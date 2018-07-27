@@ -1,0 +1,1 @@
+The odsPipeline method offers a complete pipeline for any component created with a quickstarter. It takes care of building the code, uploading artifacts to Nexus, analysing the code and starting builds and triggering deployments in Openshift.
