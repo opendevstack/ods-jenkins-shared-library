@@ -113,8 +113,6 @@ class OdsPipeline implements Serializable {
     }
 
     // Environment variables
-    config.projectId = config.projectId ?: script.env.PROJECT_ID
-    config.componentId = config.componentId ?: script.env.COMPONENT_ID
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
     config.nexusHost = script.env.NEXUS_HOST
