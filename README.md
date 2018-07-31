@@ -60,7 +60,7 @@ odsPipeline(
 )
 ```
 
-In the example above, that the number of environments to be provisioned in openshift is limited by the configuration `environmentLimit: 10`.
+In the example above the number of environments to be provisioned in openshift is limited by the configuration `environmentLimit: 10`.
 
 When working with "multiple environment mode" we recommend to add the item BitBucket Team/Project in Jenkins to your project.  
 
