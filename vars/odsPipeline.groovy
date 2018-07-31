@@ -15,6 +15,7 @@
  * notifyNotGreen - optional - Turn on/off email notifications (default: true)
  * testProjectBranch - optional - Defaults to master
  * podVolumes - optional - PVC to mount in the slave
+ * podAlwaysPullImage - optional - Defaults to true
  */
 
 import org.ods.OdsLogger

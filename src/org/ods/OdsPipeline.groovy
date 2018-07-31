@@ -58,7 +58,7 @@ class OdsPipeline implements Serializable {
           name: 'jnlp',
           image: config.image,
           workingDir: '/tmp',
-          alwaysPullImage: true,
+          alwaysPullImage: config.podAlwaysPullImage,
           args: '${computer.jnlpmac} ${computer.name}'
         )
       ],
@@ -148,6 +148,9 @@ class OdsPipeline implements Serializable {
     }
     if (!config.podVolumes) {
       config.podVolumes = []
+    }
+    if (!config.containsKey('podAlwaysPullImage')) {
+      config.podAlwaysPullImage = true
     }
 
     // Post-Validation
