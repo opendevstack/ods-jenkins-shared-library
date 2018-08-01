@@ -113,16 +113,37 @@ class OdsPipeline implements Serializable {
     }
 
     // Environment variables
-    config.projectId = config.projectId ?: script.env.PROJECT_ID
-    config.componentId = config.componentId ?: script.env.COMPONENT_ID
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
     config.nexusHost = script.env.NEXUS_HOST
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
-    config.branchName = script.env.BRANCH_NAME
+    config.branchName = script.env.BRANCH_NAME // may be empty
     config.openshiftHost = script.env.OPENSHIFT_API_URL
     config.bitbucketHost = script.env.BITBUCKET_HOST
+
+    // ENV Validation
+    if (!config.jobName) {
+      logger.error 'JOB_NAME is required, but not set (usually provided by Jenkins)'
+    }
+    if (!config.buildNumber) {
+      logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
+    }
+    if (!config.nexusHost) {
+      logger.error 'NEXUS_HOST is required, but not set'
+    }
+    if (!config.nexusUsername) {
+      logger.error 'NEXUS_USERNAME is required, but not set'
+    }
+    if (!config.nexusPassword) {
+      logger.error 'NEXUS_PASSWORD is required, but not set'
+    }
+    if (!config.openshiftHost) {
+      logger.error 'OPENSHIFT_API_URL is required, but not set'
+    }
+    if (!config.bitbucketHost) {
+      logger.error 'BITBUCKET_HOST is required, but not set'
+    }
 
     // Derived config
     config.openshiftProjectId = "${config.projectId}-cd"
