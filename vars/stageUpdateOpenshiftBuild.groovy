@@ -8,7 +8,7 @@ def call(def context) {
     timeout(context.openshiftBuildTimeout) {
       sh "oc project ${context.targetProject}"
       patchBuildConfig(context)
-      sh "oc start-build ${context.componentId} -e projectId=${context.projectId} -e componentId=${context.componentId} -e tagversion=${context.tagversion} -e nexusHost=${context.nexusHost} -e nexusUsername=${context.nexusUsername} -e nexusPassword=${context.nexusPassword} --wait=true -n ${context.targetProject}"
+      sh "oc start-build ${context.componentId} -e projectId=${context.projectId} -e componentId=${context.componentId} -e tagversion=${context.tagversion} -e nexusHost=${context.nexusHost} -e nexusUsername=${context.nexusUsername} -e nexusPassword=${context.nexusPassword} --follow -n ${context.targetProject}"
     }
   }
 }
