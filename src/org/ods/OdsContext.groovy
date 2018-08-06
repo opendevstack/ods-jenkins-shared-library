@@ -296,15 +296,15 @@ class OdsContext implements Context {
 
   // If BRANCH_NAME is not given, we need to check whether the pipeline is
   // responsible for building this commit at all.
-  private boolean isResponsible(String branch, boolean masterBuild) {
-    if ("master".equals(branch) && masterBuild) {
+  private boolean isResponsible(String branch, boolean testPipelineBuild) {
+    if (config.testProjectBranch.equals(branch) && testPipelineBuild) {
       true
     } else if (branch.startsWith("feature/")
       || branch.startsWith("hotfix/")
       || branch.startsWith("bugfix/")
       || branch.startsWith("release/")
     ) {
-      !masterBuild
+      !testPipelineBuild
     } else {
       false
     }
@@ -313,7 +313,7 @@ class OdsContext implements Context {
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4-brown-bag-lunch" from it.
   private String extractShortBranchName(String branch) {
-    if ("master".equals(branch)) {
+    if (config.testProjectBranch.equals(branch)) {
       branch
     } else if (branch.startsWith("feature/")) {
       branch.drop("feature/".length())
@@ -331,7 +331,7 @@ class OdsContext implements Context {
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
-      if ("master".equals(branch)) {
+      if (config.testProjectBranch.equals(branch)) {
           branch
       } else if (branch.startsWith("feature/")) {
           def list = branch.drop("feature/".length()).tokenize("-")
@@ -396,7 +396,7 @@ class OdsContext implements Context {
   }
 
   private String determineEnvironment(String gitBranch, String projectId, boolean autoCreateEnvironment) {
-    if ("master".equals(gitBranch)) {
+    if (config.testProjectBranch.equals(gitBranch)) {
       return "test"
     } else if ("develop".equals(gitBranch) || !autoCreateEnvironment) {
       return "dev"
