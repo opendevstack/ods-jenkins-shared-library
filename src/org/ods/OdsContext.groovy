@@ -117,8 +117,7 @@ class OdsContext implements Context {
       config.gitBranch = determineBranchToBuild(config.credentialsId, config.gitUrl)
       checkoutBranch(config.gitBranch)
       config.gitCommit = retrieveGitCommit()
-      def isTestProjectBuild = config.jobName.endsWith("-test")
-      if (!isResponsible(config.gitBranch, isTestProjectBuild)) {
+      if (!isResponsible()) {
         def previousBuild = script.currentBuild.getPreviousBuild()
         if (previousBuild) {
           logger.verbose "Setting status of previous build"
@@ -296,18 +295,16 @@ class OdsContext implements Context {
 
   // If BRANCH_NAME is not given, we need to check whether the pipeline is
   // responsible for building this commit at all.
-  private boolean isResponsible(String branch, boolean testPipelineBuild) {
-    if (config.testProjectBranch.equals(branch) && testPipelineBuild) {
-      true
-    } else if (branch.startsWith("feature/")
-      || branch.startsWith("hotfix/")
-      || branch.startsWith("bugfix/")
-      || branch.startsWith("release/")
-    ) {
-      !testPipelineBuild
-    } else {
-      false
+  private boolean isResponsible() {
+    if (config.jobName.endsWith("-test")) {
+      return config.testProjectBranch.equals(config.gitBranch)
     }
+
+    if (config.jobName.endsWith("-dev")) {
+      return !config.testProjectBranch.equals(config.gitBranch)
+    }
+
+    return true
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
@@ -398,23 +395,35 @@ class OdsContext implements Context {
   private String determineEnvironment(String gitBranch, String projectId, boolean autoCreateEnvironment) {
     if (config.testProjectBranch.equals(gitBranch)) {
       return "test"
-    } else if ("develop".equals(gitBranch) || !autoCreateEnvironment) {
-      return "dev"
-    } else {
-      def tokens = extractBranchCode(gitBranch).tokenize("-")
-      def pId = tokens[0]
-      if (!pId || !pId.toLowerCase().equals(projectId.toLowerCase())) {
-        logger.echo "No project ID found in branch name => no environment to deploy to"
-        return ""
-      }
-      def code = tokens[1]
-      if (code) {
-        return code.toLowerCase() + "-dev"
-      } else {
-        logger.echo "No branch code extracted => no environment to deploy to"
-        return ""
-      }
     }
+
+    def tokens = extractBranchCode(gitBranch).tokenize("-")
+    def pId = tokens[0]
+    if (!pId || !pId.toLowerCase().equals(projectId.toLowerCase())) {
+      logger.echo "No project ID found in branch name => deploying to dev environment"
+      return "dev"
+    }
+
+    def code = tokens[1]
+    if (!code) {
+      logger.echo "No branch code extractable => deploying to dev environment"
+      return "dev"
+    }
+
+    env = code.toLowerCase() + "-dev"
+    if (autoCreateEnvironment || environmentExists("${projectId}-${env}")) {
+      return env
+    }
+
+    return "dev"
+  }
+
+  private boolean environmentExists(String name) {
+    def statusCode = sh(
+      script:"oc project ${name} &> /dev/null",
+      returnStatus: true
+    )
+    return statusCode == 0
   }
 
   private String checkoutBranch(String branchName) {

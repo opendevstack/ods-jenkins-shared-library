@@ -15,6 +15,12 @@ def call(def context) {
       return
     }
 
+    if (!autoCreateEnvironment) {
+      error "Environment ${context.environment} does not exist and " +
+            "cannot be created automatically as autoCreateEnvironment=false!"
+      return
+    }
+
     if (tooManyEnvironments(context.projectId, context.environmentLimit)) {
       error "Cannot create OC project " +
             "as there are already ${context.environmentLimit} OC projects! " +
