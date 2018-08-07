@@ -85,6 +85,9 @@ class OdsContext implements Context {
     if (!config.podVolumes) {
       config.podVolumes = []
     }
+    if (!config.containsKey('podAlwaysPullImage')) {
+      config.podAlwaysPullImage = true
+    }
 
     logger.verbose "Validating configuration ..."
     if (config.autoCreateEnvironment && !config.branchName) {
