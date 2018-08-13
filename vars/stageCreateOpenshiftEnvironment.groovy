@@ -5,7 +5,12 @@ def call(def context) {
       return
     }
 
-    if (["test", "dev"].contains(context.environment)) {
+    if (["dev"].contains(context.environment) && (environmentExists(context.targetProject) || !context.autoCreateEnvironment)) {
+      context.echo("Skipping for test/dev environment ...")
+      return
+    }
+
+    if (["test"].contains(context.environment)) {
       println("Skipping for test/dev environment ...")
       return
     }
