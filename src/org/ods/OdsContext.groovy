@@ -395,7 +395,7 @@ class OdsContext implements Context {
     ).trim().replace('https://bitbucket', token)
   }
 
-  private String determineEnvironment(String gitBranch, String projectId, boolean autoCreateEnvironment) {
+  private String determineEnvironment2(String gitBranch, String projectId, boolean autoCreateEnvironment) {
     if ("master".equals(gitBranch)) {
       return "test"
     } else if ("develop".equals(gitBranch) || !autoCreateEnvironment) {
@@ -417,7 +417,76 @@ class OdsContext implements Context {
     }
   }
 
+  String determineEnvironment(String gitBranch, String origProjectId,  boolean autoCreateEnvironment) {
+//    String gitBranch = config.gitBranch
+    if (isMasterBranch(gitBranch)) {
+      return "test"
+    } else if (isDevelopBranch(gitBranch) || !autoCreateEnvironment) {
+      return "dev"
+    } else if (isUATBranch(gitBranch)) {
+      return "uat"
+    } else if (isProductionBranch(gitBranch)) {
+      return "prod"
+    } else {
+      def tokens = extractBranchCode(gitBranch).split("-")
+      def projectId = tokens[0]
+      if (!projectId || !projectId.equalsIgnoreCase(origProjectId)) {
+        logger.echo "No project ID found in branch name => no environment to deploy to"
+        return ""
+      }
+      String code = tokens[1]
+      if (code) {
+        if (!code.endsWith("#")) {
+          return "dev"
+        }
+        if (isAReleaseBranch(gitBranch)) {
+          try {
+            if (!code.startsWith("v")) {
+              logger.echo "Release branch name '${code}' needs to start with 'v' => no environment to deploy"
+              return ""
+            }
+            return code + "-rel"
+          } catch (IllegalArgumentException ex) {
+            logger.echo "Release branch name '${code}' is not a semantic version name => no environment to deploy"
+            return ""
+          }
+        } else {
+          return code + "-dev"
+        }
+
+      } else {
+        logger.echo "No branch code extracted => no environment to deploy to"
+        return ""
+      }
+    }
+  }
   private String checkoutBranch(String branchName) {
     script.git url: config.gitUrl, branch: branchName, credentialsId: config.credentialsId
   }
+
+  private boolean isMasterBranch(String gitBranch) {
+    return gitBranch.startsWith("master")
+  }
+
+  private boolean isDevelopBranch(String gitBranch) {
+    return gitBranch.startsWith("develop")
+  }
+
+  private boolean isUATBranch(String gitBranch) {
+    return gitBranch.startsWith("uat")
+  }
+
+  private boolean isProductionBranch(String gitBranch) {
+    return gitBranch.startsWith("production")
+  }
+
+  private boolean isAFeatureBranch(String gitBranch) {
+    return gitBranch.startsWith("feature/")
+  }
+
+  private boolean isAReleaseBranch(String gitBranch) {
+    return gitBranch.startsWith("release/")
+  }
+
+
 }
