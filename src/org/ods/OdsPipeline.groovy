@@ -43,7 +43,7 @@ class OdsPipeline implements Serializable {
       }
     }
 
-    if (context.branchUpdated) {
+    if (!context.responsible || context.branchUpdated) {
       script.currentBuild.result = 'ABORTED'
       logger.verbose "***** Skipping ODS Pipeline *****"
       return

@@ -12,6 +12,8 @@ interface Context {
 
     String getBuildUrl()
 
+    boolean getResponsible()
+
     String getImage()
 
     String getPodLabel()
