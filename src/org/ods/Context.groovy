@@ -6,6 +6,12 @@ interface Context {
 
     boolean getVerbose()
 
+    String getJobName()
+
+    String getBuildNumber()
+
+    String getBuildUrl()
+
     String getImage()
 
     String getPodLabel()

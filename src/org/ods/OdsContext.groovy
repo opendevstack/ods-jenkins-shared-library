@@ -30,6 +30,7 @@ class OdsContext implements Context {
     logger.verbose "Collecting environment variables ..."
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
+    config.buildUrl = script.env.BUILD_URL
     config.nexusHost = script.env.NEXUS_HOST
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
@@ -43,6 +44,9 @@ class OdsContext implements Context {
     }
     if (!config.buildNumber) {
       logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
+    }
+    if (!config.buildUrl) {
+      logger.error 'BUILD_URL is required, but not set (usually provided by Jenkins)'
     }
     if (!config.nexusHost) {
       logger.error 'NEXUS_HOST is required, but not set'
@@ -145,6 +149,18 @@ class OdsContext implements Context {
 
   boolean getVerbose() {
       config.verbose
+  }
+
+  String getJobName() {
+    config.jobName
+  }
+
+  String getBuildNumber() {
+    config.buildNumber
+  }
+
+  String getBuildUrl() {
+    config.buildUrl
   }
 
   boolean getUpdateBranch() {
