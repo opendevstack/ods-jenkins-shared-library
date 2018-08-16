@@ -410,7 +410,7 @@ class OdsContext implements Context {
       return "dev"
     }
 
-    env = code.toLowerCase() + "-dev"
+    def env = code.toLowerCase() + "-dev"
     if (autoCreateEnvironment || environmentExists("${projectId}-${env}")) {
       return env
     }
