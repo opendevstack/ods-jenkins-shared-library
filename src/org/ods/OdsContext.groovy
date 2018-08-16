@@ -410,7 +410,7 @@ class OdsContext implements Context {
       return "dev"
     }
 
-    env = code.toLowerCase() + "-dev"
+    def env = code.toLowerCase() + "-dev"
     if (autoCreateEnvironment || environmentExists("${projectId}-${env}")) {
       return env
     }
@@ -419,7 +419,7 @@ class OdsContext implements Context {
   }
 
   private boolean environmentExists(String name) {
-    def statusCode = sh(
+    def statusCode = script.sh(
       script:"oc project ${name} &> /dev/null",
       returnStatus: true
     )
