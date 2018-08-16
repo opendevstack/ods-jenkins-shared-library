@@ -395,30 +395,7 @@ class OdsContext implements Context {
     ).trim().replace('https://bitbucket', token)
   }
 
-  private String determineEnvironment2(String gitBranch, String projectId, boolean autoCreateEnvironment) {
-    if ("master".equals(gitBranch)) {
-      return "test"
-    } else if ("develop".equals(gitBranch) || !autoCreateEnvironment) {
-      return "dev"
-    } else {
-      def tokens = extractBranchCode(gitBranch).tokenize("-")
-      def pId = tokens[0]
-      if (!pId || !pId.toLowerCase().equals(projectId.toLowerCase())) {
-        logger.echo "No project ID found in branch name => no environment to deploy to"
-        return ""
-      }
-      def code = tokens[1]
-      if (code) {
-        return code.toLowerCase() + "-dev"
-      } else {
-        logger.echo "No branch code extracted => no environment to deploy to"
-        return ""
-      }
-    }
-  }
-
   String determineEnvironment(String gitBranch, String origProjectId,  boolean autoCreateEnvironment) {
-//    String gitBranch = config.gitBranch
     if (isMasterBranch(gitBranch)) {
       return "test"
     } else if (isDevelopBranch(gitBranch) || !autoCreateEnvironment) {

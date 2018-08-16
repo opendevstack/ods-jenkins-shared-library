@@ -64,6 +64,41 @@ In the example above the number of environments to be provisioned in openshift i
 
 When working with "multiple environment mode" we recommend to add the item BitBucket Team/Project in Jenkins to your project.  
 
+# Branch names to openshift project name rules  
+
+This library maps branch names to openshift project names before deploying a project (namespace) to openshift.   
+
+E.g. if the branch name prefix is `master` then the resolved target openshift project name will be `<project-id>-test`.
+
+Following naming convention rules are used to map branch names to openshift environment:
+
+Case 1: multi environments is not enabled (`autoCreateEnvironment=false`)  
+
+| branch name | openshift project name |
+| ----------- | ----------- |
+| starts with `master`|     `<project-id>-test` |
+| starts with `develop` |   `<project-id>-dev` |
+| starts with `feature/` |  `<project-id>-dev` |
+| starts with `release/v-<version>` | `<project-id>-<version>-rel` |
+| starts with `uat` |       `<project-id>-uat` |
+| starts with `production`| `<project-id>-prod` |
+| not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
+
+NOTE: value of `project-id` and `version` should not contain char `-`.
+
+Case 2: multi environments is enabled (`autoCreateEnvironment=true`)
+
+Beside all case 1 rules following rule apply:
+
+| branch name | openshift project name |
+| ----------- | ----------- |
+| starts with `feature/<project-id>-<jira-item>#` | `<project-id>-<jira-item>-dev` |
+
+NOTE: value of `jira-item` should not contain char `-`.
+
+NOTE: The char `#` needs to be added after the `jira-item` in order to get a new openshift project created.      
+If the char `#` is not added, then the resolved openshift project name will be `<project-id>-dev`.  
+
 # Customisation
 
 Inside the closure passed to `odsPipeline`, you have full control. Write stages just like you would do in a normal `Jenkinsfile`. You have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsPipeline`. Please see `vars/odsPipeline.groovy` for possible options.
