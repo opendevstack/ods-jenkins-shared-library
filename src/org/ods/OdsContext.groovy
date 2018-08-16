@@ -419,7 +419,7 @@ class OdsContext implements Context {
   }
 
   private boolean environmentExists(String name) {
-    def statusCode = sh(
+    def statusCode = script.sh(
       script:"oc project ${name} &> /dev/null",
       returnStatus: true
     )
