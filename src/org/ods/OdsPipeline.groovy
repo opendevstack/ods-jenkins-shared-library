@@ -35,6 +35,7 @@ class OdsPipeline implements Serializable {
         }
       } catch (err) {
         script.currentBuild.result = 'FAILURE'
+        setBitbucketBuildStatus('FAILED')
         if (context.notifyNotGreen) {
           notifyNotGreen()
         }
@@ -42,7 +43,7 @@ class OdsPipeline implements Serializable {
       }
     }
 
-    if (context.branchUpdated) {
+    if (!context.responsible || context.branchUpdated) {
       script.currentBuild.result = 'ABORTED'
       logger.verbose "***** Skipping ODS Pipeline *****"
       return
@@ -65,14 +66,17 @@ class OdsPipeline implements Serializable {
     ) {
       script.node(context.podLabel) {
         try {
+          setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             script.git url: context.gitUrl, branch: context.gitBranch, credentialsId: context.credentialsId
             script.currentBuild.displayName = "${context.shortBranchName}/#${context.tagversion}"
             stages(context)
           }
           script.currentBuild.result = 'SUCCESS'
+          setBitbucketBuildStatus('SUCCESSFUL')
         } catch (err) {
           script.currentBuild.result = 'FAILURE'
+          setBitbucketBuildStatus('FAILED')
           if (context.notifyNotGreen) {
             notifyNotGreen()
           }
@@ -111,6 +115,27 @@ class OdsPipeline implements Serializable {
     }
     return updated
   }
+
+  private void setBitbucketBuildStatus(String state) {
+    logger.verbose "Setting BitBucket build status to ${state} ..."
+    def buildName = "${context.jobName}-${context.tagversion}"
+    try {
+      script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
+        script.sh """curl \\
+          --fail \\
+          --silent \\
+          --user ${script.USERPASS} \\
+          --request POST \\
+          --header \"Content-Type: application/json\" \\
+          --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
+          https://${context.bitbucketHost}/rest/build-status/1.0/commits/${context.gitCommit}
+        """
+      }
+    } catch (err) {
+      logger.verbose "Could not set BitBucket build status to ${state}"
+    }
+  }
+
 
   private void notifyNotGreen() {
     script.emailext(
