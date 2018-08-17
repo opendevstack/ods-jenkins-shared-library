@@ -62,6 +62,9 @@ class OdsContextTest extends GroovyTestCase {
         config.gitBranch = "develop"
         assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, true))
 
+        config.gitBranch = "uat"
+        assertEquals("uat", uut.determineEnvironment(config.gitBranch, config.projectId, true))
+
         config.gitBranch = "master"
         config.projectId = "psp"
         config.gitBranch = "feature/" + config.projectId.toUpperCase() + "-ABC"
