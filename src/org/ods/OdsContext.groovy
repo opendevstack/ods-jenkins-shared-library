@@ -30,6 +30,7 @@ class OdsContext implements Context {
     logger.verbose "Collecting environment variables ..."
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
+    config.buildUrl = script.env.BUILD_URL
     config.nexusHost = script.env.NEXUS_HOST
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
@@ -43,6 +44,9 @@ class OdsContext implements Context {
     }
     if (!config.buildNumber) {
       logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
+    }
+    if (!config.buildUrl) {
+      logger.error 'BUILD_URL is required, but not set (usually provided by Jenkins)'
     }
     if (!config.nexusHost) {
       logger.error 'NEXUS_HOST is required, but not set'
@@ -95,6 +99,8 @@ class OdsContext implements Context {
                    'You will need to configure a "Bitbucket Team/Project" item.'
     }
 
+    config.responsible = true
+
     logger.verbose "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
 
@@ -118,16 +124,9 @@ class OdsContext implements Context {
       checkoutBranch(config.gitBranch)
       config.gitCommit = retrieveGitCommit()
       if (!isResponsible()) {
-        def previousBuild = script.currentBuild.getPreviousBuild()
-        if (previousBuild) {
-          logger.verbose "Setting status of previous build"
-          script.currentBuild.result = previousBuild.getResult()
-        } else {
-          logger.verbose "No previous build, setting status ABORTED"
-          script.currentBuild.result = 'ABORTED'
-        }
         script.currentBuild.displayName = "${config.buildNumber}/skipping-not-responsible"
-        logger.error "This job: ${config.jobName} is not responsible for building: ${config.gitBranch}"
+        logger.verbose "This job: ${config.jobName} is not responsible for building: ${config.gitBranch}"
+        config.responsible = false
       }
     }
 
@@ -145,6 +144,22 @@ class OdsContext implements Context {
 
   boolean getVerbose() {
       config.verbose
+  }
+
+  String getJobName() {
+    config.jobName
+  }
+
+  String getBuildNumber() {
+    config.buildNumber
+  }
+
+  String getBuildUrl() {
+    config.buildUrl
+  }
+
+  boolean getResponsible() {
+    config.responsible
   }
 
   boolean getUpdateBranch() {
@@ -264,7 +279,7 @@ class OdsContext implements Context {
   }
 
   boolean shouldUpdateBranch() {
-    config.updateBranch && config.testProjectBranch != config.gitBranch
+    config.responsible && config.updateBranch && config.testProjectBranch != config.gitBranch
   }
 
   def setBranchUpdated(boolean branchUpdated) {
