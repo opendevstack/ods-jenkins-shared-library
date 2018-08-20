@@ -355,15 +355,15 @@ class OdsContext implements Context {
   private String retrieveBranchOfPullRequest(credentialsId, gitUrl, gitCommit) {
     script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
       def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-      script.withEnv(["BITBUCKET_URL=${url}"]) {
+      script.withEnv(["BITBUCKET_URL=${url}", "GIT_COMMIT=${gitCommit}"]) {
         return script.sh(returnStdout: true, script: '''
           git config user.name "Jenkins CD User"
           git config user.email "cd_user@opendevstack.org"
           git config credential.helper store
           echo ${BITBUCKET_URL} > ~/.git-credentials
           git fetch
-          git ls-remote -q --heads ${gitUrl} | grep '${gitCommit}' | awk '{print \$2}'
-        ''').trim().drop("refs/heads/".length()
+          git ls-remote -q --heads ${BITBUCKET_URL} | grep '${GIT_COMMIT}' | awk '{print \$2}'
+        ''').trim().drop("refs/heads/".length())
       }
     }
   }
