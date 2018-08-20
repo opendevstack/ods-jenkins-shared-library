@@ -367,7 +367,7 @@ class OdsContext implements Context {
           git config credential.helper store
           echo ${BITBUCKET_URL} > ~/.git-credentials
           git fetch
-          git ls-remote -q --heads ${BITBUCKET_URL} | grep ${GIT_COMMIT} | awk {print \$2}
+          git ls-remote -q --heads ${BITBUCKET_URL} | grep ${GIT_COMMIT} | awk "{print \$2}"
         ''').trim().drop("refs/heads/".length())
       }
     }
