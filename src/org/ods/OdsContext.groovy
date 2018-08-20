@@ -107,6 +107,8 @@ class OdsContext implements Context {
       // of the branch we want to build for, so just get HEAD now.
       config.gitCommit = retrieveGitCommit()
       if (config.branchName.startsWith("PR-")){
+        logger.verbose "--> commit:"
+        logger.verbose config.gitCommit
         config.gitBranch = retrieveBranchOfPullRequest(config.credentialsId, config.gitUrl, config.gitCommit)
         config.jobName = config.branchName
       } else {
@@ -356,6 +358,8 @@ class OdsContext implements Context {
     script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
       def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
       def commit = gitCommit
+      logger.verbose "--> commit:"
+      logger.verbose commit
       script.withEnv(["BITBUCKET_URL=${url}", "GIT_COMMIT=${commit}"]) {
         return script.sh(returnStdout: true, script: '''
           git config user.name "Jenkins CD User"
@@ -363,8 +367,6 @@ class OdsContext implements Context {
           git config credential.helper store
           echo ${BITBUCKET_URL} > ~/.git-credentials
           git fetch
-          echo ${BITBUCKET_URL}
-          echo ${GIT_COMMIT}
           git ls-remote -q --heads ${BITBUCKET_URL} | grep ${GIT_COMMIT} | awk "{print $2}"
         ''').trim().drop("refs/heads/".length())
       }
