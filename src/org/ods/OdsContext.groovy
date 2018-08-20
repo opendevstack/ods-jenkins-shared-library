@@ -454,7 +454,7 @@ class OdsContext implements Context {
   }
 
   private boolean isProductionBranch(String gitBranch) {
-    return gitBranch.startsWith("production")
+    return gitBranch.startsWith("prod")
   }
 
   private boolean isAFeatureBranch(String gitBranch) {
