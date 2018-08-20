@@ -363,7 +363,7 @@ class OdsContext implements Context {
           echo ${BITBUCKET_URL} > ~/.git-credentials
           git fetch
           git for-each-ref --sort=-committerdate refs/remotes/origin | cut -c69- | head -1
-        ''').trim().drop("refs/heads/".length())
+        ''').trim().substring("refs/heads/".length())
       }
     }
   }
