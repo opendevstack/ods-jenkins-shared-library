@@ -107,7 +107,7 @@ class OdsContext implements Context {
       // of the branch we want to build for, so just get HEAD now.
       config.gitCommit = retrieveGitCommit()
       if (config.branchName.startsWith("PR-")){
-        config.gitBranch = getBranchOfPullRequest()
+        config.gitBranch = retrieveBranchOfPullRequest()
         config.jobName = config.branchName
       } else {
         config.gitBranch = config.branchName
