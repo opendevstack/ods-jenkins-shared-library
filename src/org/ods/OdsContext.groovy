@@ -356,8 +356,9 @@ class OdsContext implements Context {
   // git branch, which we need.
   private String retrieveBranchOfPullRequest(credId, gitUrl) {
     def  gitCommit = script.sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+    logger.verbose gitCommit
     script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
-        git credentialsId: credId, url: constructCredentialBitbucketURL(gitUrl, script.USERPASS)
+        def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
         def branch = script.sh(returnStdout: true,
               script: "git ls-remote | grep $gitCommit | grep 'feature' | awk '{print \$2}'").trim().drop("refs/heads/".length())
         return branch
