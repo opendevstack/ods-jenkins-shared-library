@@ -107,6 +107,8 @@ class OdsContext implements Context {
       // of the branch we want to build for, so just get HEAD now.
       config.gitCommit = retrieveGitCommit()
       if (config.branchName.startsWith("PR-")){
+        logger.verbose "--> commit:"
+        logger.verbose config.gitCommit
         config.gitBranch = retrieveBranchOfPullRequest(config.credentialsId, config.gitUrl)
         config.jobName = config.branchName
       } else {
@@ -352,20 +354,29 @@ class OdsContext implements Context {
 
   // For pull requests, the branch name environment variable is not the actual
   // git branch, which we need.
-  private String retrieveBranchOfPullRequest(credentialsId, gitUrl) {
-    script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
-      def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-      script.withEnv(["BITBUCKET_URL=${url}"]) {
-        return script.sh(returnStdout: true, script: '''
-          git config user.name "Jenkins CD User"
-          git config user.email "cd_user@opendevstack.org"
-          git config credential.helper store
-          echo ${BITBUCKET_URL} > ~/.git-credentials
-          git fetch
-          git for-each-ref --sort=-committerdate refs/remotes/origin | cut -c69- | head -1
-        ''').trim()
-      }
+  private String retrieveBranchOfPullRequest(credId, gitUrl) {
+    def  gitCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+    script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
+        git credentialsId: credId, url: constructCredentialBitbucketURL(gitUrl, script.USERPASS)
+        def branch = sh(returnStdout: true,
+              script: "git ls-remote | grep $gitCommit | grep 'feature' | awk '{print \$2}'").trim().drop("refs/heads/".length())
+        return branch
     }
+
+
+    // script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
+    //   def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
+    //   script.withEnv(["BITBUCKET_URL=${url}"]) {
+    //     return script.sh(returnStdout: true, script: '''
+    //       git config user.name "Jenkins CD User"
+    //       git config user.email "cd_user@opendevstack.org"
+    //       git config credential.helper store
+    //       echo ${BITBUCKET_URL} > ~/.git-credentials
+    //       git fetch
+    //       git for-each-ref --sort=-committerdate refs/remotes/origin | cut -c69- | head -1
+    //     ''').trim().drop("refs/heads/".length())
+    //   }
+    // }
   }
 
   // If BRANCH_NAME is not given, we need to figure out the branch from the last
