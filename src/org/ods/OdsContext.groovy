@@ -355,10 +355,10 @@ class OdsContext implements Context {
   // For pull requests, the branch name environment variable is not the actual
   // git branch, which we need.
   private String retrieveBranchOfPullRequest(credId, gitUrl) {
-    def  gitCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+    def  gitCommit = script.sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
     script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
         git credentialsId: credId, url: constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-        def branch = sh(returnStdout: true,
+        def branch = script.sh(returnStdout: true,
               script: "git ls-remote | grep $gitCommit | grep 'feature' | awk '{print \$2}'").trim().drop("refs/heads/".length())
         return branch
     }
