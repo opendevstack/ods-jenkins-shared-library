@@ -354,7 +354,7 @@ class OdsContext implements Context {
   // git branch, which we need.
 
   private String retrieveBranchOfPullRequest(String credId, String gitUrl, String pullRequest){
-    script.withCredentials([usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
+    script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
       def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
       def pullRequestNumber = pullRequest.drop("PR-".length())
       def commitNumber = script.withEnv(["BITBUCKET_URL=${url}", "PULL_REQUEST_NUMBER=${pullRequestNumber}"]) {
