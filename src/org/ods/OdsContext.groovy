@@ -107,9 +107,7 @@ class OdsContext implements Context {
       // of the branch we want to build for, so just get HEAD now.
       config.gitCommit = retrieveGitCommit()
       if (config.branchName.startsWith("PR-")){
-        logger.verbose "--> commit:"
-        logger.verbose config.gitCommit
-        config.gitBranch = retrieveBranchOfPullRequest(config.credentialsId, config.gitUrl)
+        config.gitBranch = retrieveBranchOfPullRequest(config.credentialsId, config.gitUrl, config.branchName)
         config.jobName = config.branchName
       } else {
         config.gitBranch = config.branchName
@@ -354,15 +352,48 @@ class OdsContext implements Context {
 
   // For pull requests, the branch name environment variable is not the actual
   // git branch, which we need.
-  private String retrieveBranchOfPullRequest(credId, gitUrl) {
-    def  gitCommit = script.sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-    logger.verbose gitCommit
-    script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
-        def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-        def branch = script.sh(returnStdout: true,
-              script: "git ls-remote | grep $gitCommit | grep 'feature' | awk '{print \$2}'").trim().drop("refs/heads/".length())
-        return branch
+
+  private String retrieveBranchOfPullRequest(String credId, String gitUrl, String pullRequest){
+    script.withCredentials([usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
+      def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
+      def pullRequestNumber = pullRequest.drop("PR-".length())
+      def commitNumber = script.withEnv(["BITBUCKET_URL=${url}", "PULL_REQUEST_NUMBER=${pullRequestNumber}"]) {
+        return script.sh(returnStdout: true, script: '''
+          git config user.name "Jenkins CD User"
+          git config user.email "cd_user@opendevstack.org"
+          git config credential.helper store
+          echo ${BITBUCKET_URL} > ~/.git-credentials
+          git fetch
+          git ls-remote | grep \"refs/pull-requests/${PULL_REQUEST_NUMBER}/from\" | awk \'{print \$1}\'
+        ''').trim()
+      }
+      def branch = script.withEnv(["BITBUCKET_URL=${url}", "COMMIT_NUMBER=${commitNumber}"]) {
+        return script.sh(returnStdout: true, script: '''
+          git config user.name "Jenkins CD User"
+          git config user.email "cd_user@opendevstack.org"
+          git config credential.helper store
+          echo ${BITBUCKET_URL} > ~/.git-credentials
+          git fetch
+          git ls-remote | grep ${COMMIT_NUMBER} | grep \'refs/heads\' | awk \'{print \$2}\'
+        ''').trim().drop("refs/heads/".length())
+      }
+        // def commitNumber = script.sh(returnStdout: true,
+        //       script: "git ls-remote | grep \"refs/pull-requests/${pullRequestNumber}/from\" | awk '{print \$1}'").trim()
+        // def branch = script.sh(returnStdout: true,
+        //       script: "git ls-remote | grep '$commitNumber' | grep 'refs/heads' | awk '{print \$2}'").trim().drop("refs/heads/".length())
+
+      return branch
     }
+  }
+  // private String retrieveBranchOfPullRequest(credId, gitUrl) {
+    // def  gitCommit = script.sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+    // logger.verbose gitCommit
+    // script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
+    //     def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
+    //     def branch = script.sh(returnStdout: true,
+    //           script: "git ls-remote | grep $gitCommit | grep 'feature' | awk '{print \$2}'").trim().drop("refs/heads/".length())
+    //     return branch
+    // }
 
 
     // script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
@@ -378,7 +409,7 @@ class OdsContext implements Context {
     //     ''').trim().drop("refs/heads/".length())
     //   }
     // }
-  }
+  // }
 
   // If BRANCH_NAME is not given, we need to figure out the branch from the last
   // commit to the repository.
