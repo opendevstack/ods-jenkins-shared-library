@@ -101,7 +101,7 @@ Case 2: multi environments is enabled (`autoCreateEnvironment=true`)
 | starts with `feature/<project-id>-<jira-item>#` | `<project-id>-<jira-item>#-dev` |
 | starts with `hotfix/` |  `<project-id>-dev` |
 | starts with `bugfix/` |  `<project-id>-dev` |
-| starts with `release/<project-id>-v<version>` | `<project-id>-v<version>` |
+| starts with `release/<project-id>-v<version>` | `<project-id>-v<version>-rel` |
 | not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
 
 NOTES:
