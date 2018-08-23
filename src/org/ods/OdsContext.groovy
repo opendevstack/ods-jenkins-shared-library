@@ -424,41 +424,105 @@ class OdsContext implements Context {
     ).trim().replace('https://bitbucket', token)
   }
 
-  private String determineEnvironment(String gitBranch, String projectId, boolean autoCreateEnvironment) {
-    if (config.testProjectBranch.equals(gitBranch)) {
+  String determineEnvironment(String gitBranch, String origProjectId, boolean autoCreateEnvironment) {
+
+    String errMsg = "No environment was determined. No environment to deploy to! [gitBranch=${gitBranch}" +
+      ", projectId=${origProjectId}, autoCreateEnvironment=${autoCreateEnvironment}]"
+
+    if (autoCreateEnvironment==false) {
+      if (isMasterBranch(gitBranch)) {
+        return "test"
+      } else if (isDevelopBranch(gitBranch) || isAFeatureBranch(gitBranch)
+              || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
+              || isABugBranch(gitBranch)) {
+        return "dev"
+      } else if (isUATBranch(gitBranch)) {
+        return "uat"
+      } else if (isProductionBranch(gitBranch)) {
+        return "prod"
+      }
+      logger.echo errMsg
+      return ""
+    }
+
+    if (isMasterBranch(gitBranch)) {
       return "test"
-    }
-
-    def tokens = extractBranchCode(gitBranch).tokenize("-")
-    def pId = tokens[0]
-    if (!pId || !pId.toLowerCase().equals(projectId.toLowerCase())) {
-      logger.echo "No project ID found in branch name => deploying to dev environment"
+    } else if (isDevelopBranch(gitBranch)) {
       return "dev"
+    } else if (isUATBranch(gitBranch)) {
+      return "uat"
+    } else if (isProductionBranch(gitBranch)) {
+      return "prod"
+    } else if (isAFeatureBranch(gitBranch)
+            || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
+            || isABugBranch(gitBranch)) {
+      def tokens = extractBranchCode(gitBranch).split("-")
+      def projectId = tokens[0]
+      if (!projectId || !projectId.equalsIgnoreCase(origProjectId)) {
+        logger.echo errMsg
+        return ""
+      }
+      String code = tokens[1]
+      if (code) {
+        if (isAReleaseBranch(gitBranch)) {
+          try {
+            if (!code.startsWith("v")) {
+              logger.echo "Release branch name '${code}' needs to start with 'v' => no environment to deploy"
+              return ""
+            }
+            return code + "-rel"
+          } catch (IllegalArgumentException ex) {
+            logger.echo "Release branch name '${code}' is not a semantic version name => no environment to deploy"
+            return ""
+          }
+        } else if (!code.endsWith("#")) {
+          return "dev"
+        } else {
+          return code + "-dev"
+        }
+      } else {
+        logger.echo errMsg
+        return ""
+      }
+    } else {
+        logger.echo errMsg
+        return ""
     }
-
-    def code = tokens[1]
-    if (!code) {
-      logger.echo "No branch code extractable => deploying to dev environment"
-      return "dev"
-    }
-
-    def env = code.toLowerCase() + "-dev"
-    if (autoCreateEnvironment || environmentExists("${projectId}-${env}")) {
-      return env
-    }
-
-    return "dev"
   }
-
-  private boolean environmentExists(String name) {
-    def statusCode = script.sh(
-      script:"oc project ${name} &> /dev/null",
-      returnStatus: true
-    )
-    return statusCode == 0
-  }
-
   private String checkoutBranch(String branchName) {
     script.git url: config.gitUrl, branch: branchName, credentialsId: config.credentialsId
   }
+
+  private boolean isMasterBranch(String gitBranch) {
+    return gitBranch.startsWith("master")
+  }
+
+  private boolean isDevelopBranch(String gitBranch) {
+    return gitBranch.startsWith("dev")
+  }
+
+  private boolean isUATBranch(String gitBranch) {
+    return gitBranch.startsWith("uat")
+  }
+
+  private boolean isProductionBranch(String gitBranch) {
+    return gitBranch.startsWith("prod")
+  }
+
+  private boolean isAFeatureBranch(String gitBranch) {
+    return gitBranch.startsWith("feature/")
+  }
+
+  private boolean isAReleaseBranch(String gitBranch) {
+    return gitBranch.startsWith("release/")
+  }
+
+  private boolean isAHotfixBranch(String gitBranch) {
+    return gitBranch.startsWith("hotfix/")
+  }
+
+  private boolean isABugBranch(String gitBranch) {
+    return gitBranch.startsWith("bugfix/")
+  }
+
 }
