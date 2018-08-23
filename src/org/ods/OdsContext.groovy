@@ -30,6 +30,7 @@ class OdsContext implements Context {
     logger.verbose "Collecting environment variables ..."
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
+    config.buildUrl = script.env.BUILD_URL
     config.nexusHost = script.env.NEXUS_HOST
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
@@ -43,6 +44,9 @@ class OdsContext implements Context {
     }
     if (!config.buildNumber) {
       logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
+    }
+    if (!config.buildUrl) {
+      logger.error 'BUILD_URL is required, but not set (usually provided by Jenkins)'
     }
     if (!config.nexusHost) {
       logger.error 'NEXUS_HOST is required, but not set'
@@ -95,6 +99,8 @@ class OdsContext implements Context {
                    'You will need to configure a "Bitbucket Team/Project" item.'
     }
 
+    config.responsible = true
+
     logger.verbose "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
 
@@ -117,18 +123,10 @@ class OdsContext implements Context {
       config.gitBranch = determineBranchToBuild(config.credentialsId, config.gitUrl)
       checkoutBranch(config.gitBranch)
       config.gitCommit = retrieveGitCommit()
-      def isTestProjectBuild = config.jobName.endsWith("-test")
-      if (!isResponsible(config.gitBranch, isTestProjectBuild)) {
-        def previousBuild = script.currentBuild.getPreviousBuild()
-        if (previousBuild) {
-          logger.verbose "Setting status of previous build"
-          script.currentBuild.result = previousBuild.getResult()
-        } else {
-          logger.verbose "No previous build, setting status ABORTED"
-          script.currentBuild.result = 'ABORTED'
-        }
+      if (!isResponsible()) {
         script.currentBuild.displayName = "${config.buildNumber}/skipping-not-responsible"
-        logger.error "This job: ${config.jobName} is not responsible for building: ${config.gitBranch}"
+        logger.verbose "This job: ${config.jobName} is not responsible for building: ${config.gitBranch}"
+        config.responsible = false
       }
     }
 
@@ -146,6 +144,22 @@ class OdsContext implements Context {
 
   boolean getVerbose() {
       config.verbose
+  }
+
+  String getJobName() {
+    config.jobName
+  }
+
+  String getBuildNumber() {
+    config.buildNumber
+  }
+
+  String getBuildUrl() {
+    config.buildUrl
+  }
+
+  boolean getResponsible() {
+    config.responsible
   }
 
   boolean getUpdateBranch() {
@@ -265,7 +279,7 @@ class OdsContext implements Context {
   }
 
   boolean shouldUpdateBranch() {
-    config.updateBranch && config.testProjectBranch != config.gitBranch
+    config.responsible && config.updateBranch && config.testProjectBranch != config.gitBranch
   }
 
   def setBranchUpdated(boolean branchUpdated) {
@@ -296,24 +310,22 @@ class OdsContext implements Context {
 
   // If BRANCH_NAME is not given, we need to check whether the pipeline is
   // responsible for building this commit at all.
-  private boolean isResponsible(String branch, boolean masterBuild) {
-    if ("master".equals(branch) && masterBuild) {
-      true
-    } else if (branch.startsWith("feature/")
-      || branch.startsWith("hotfix/")
-      || branch.startsWith("bugfix/")
-      || branch.startsWith("release/")
-    ) {
-      !masterBuild
-    } else {
-      false
+  private boolean isResponsible() {
+    if (config.jobName.endsWith("-test")) {
+      return config.testProjectBranch.equals(config.gitBranch)
     }
+
+    if (config.jobName.endsWith("-dev")) {
+      return !config.testProjectBranch.equals(config.gitBranch)
+    }
+
+    return true
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4-brown-bag-lunch" from it.
   private String extractShortBranchName(String branch) {
-    if ("master".equals(branch)) {
+    if (config.testProjectBranch.equals(branch)) {
       branch
     } else if (branch.startsWith("feature/")) {
       branch.drop("feature/".length())
@@ -331,7 +343,7 @@ class OdsContext implements Context {
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
-      if ("master".equals(branch)) {
+      if (config.testProjectBranch.equals(branch)) {
           branch
       } else if (branch.startsWith("feature/")) {
           def list = branch.drop("feature/".length()).tokenize("-")
@@ -352,7 +364,6 @@ class OdsContext implements Context {
 
   // For pull requests, the branch name environment variable is not the actual
   // git branch, which we need.
-
   private String retrieveBranchOfPullRequest(String credId, String gitUrl, String pullRequest){
     script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
       def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
@@ -377,39 +388,9 @@ class OdsContext implements Context {
           git ls-remote | grep ${COMMIT_NUMBER} | grep \'refs/heads\' | awk \'{print \$2}\'
         ''').trim().drop("refs/heads/".length())
       }
-        // def commitNumber = script.sh(returnStdout: true,
-        //       script: "git ls-remote | grep \"refs/pull-requests/${pullRequestNumber}/from\" | awk '{print \$1}'").trim()
-        // def branch = script.sh(returnStdout: true,
-        //       script: "git ls-remote | grep '$commitNumber' | grep 'refs/heads' | awk '{print \$2}'").trim().drop("refs/heads/".length())
-
       return branch
     }
   }
-  // private String retrieveBranchOfPullRequest(credId, gitUrl) {
-    // def  gitCommit = script.sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-    // logger.verbose gitCommit
-    // script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
-    //     def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-    //     def branch = script.sh(returnStdout: true,
-    //           script: "git ls-remote | grep $gitCommit | grep 'feature' | awk '{print \$2}'").trim().drop("refs/heads/".length())
-    //     return branch
-    // }
-
-
-    // script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
-    //   def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-    //   script.withEnv(["BITBUCKET_URL=${url}"]) {
-    //     return script.sh(returnStdout: true, script: '''
-    //       git config user.name "Jenkins CD User"
-    //       git config user.email "cd_user@opendevstack.org"
-    //       git config credential.helper store
-    //       echo ${BITBUCKET_URL} > ~/.git-credentials
-    //       git fetch
-    //       git for-each-ref --sort=-committerdate refs/remotes/origin | cut -c69- | head -1
-    //     ''').trim().drop("refs/heads/".length())
-    //   }
-    // }
-  // }
 
   // If BRANCH_NAME is not given, we need to figure out the branch from the last
   // commit to the repository.
@@ -443,27 +424,46 @@ class OdsContext implements Context {
     ).trim().replace('https://bitbucket', token)
   }
 
-  String determineEnvironment(String gitBranch, String origProjectId,  boolean autoCreateEnvironment) {
+  String determineEnvironment(String gitBranch, String origProjectId, boolean autoCreateEnvironment) {
+
+    String errMsg = "No environment was determined for => no environment to deploy to! [gitBranch=${gitBranch}" +
+      ", projectId=${origProjectId}, autoCreateEnvironment=${autoCreateEnvironment}]"
+
+    if (autoCreateEnvironment==false) {
+      if (isMasterBranch(gitBranch)) {
+        return "test"
+      } else if (isDevelopBranch(gitBranch) || isAFeatureBranch(gitBranch)
+              || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
+              || isABugBranch(gitBranch)) {
+        return "dev"
+      } else if (isUATBranch(gitBranch)) {
+        return "uat"
+      } else if (isProductionBranch(gitBranch)) {
+        return "prod"
+      }
+      logger.echo errMsg
+      return ""
+    }
+
     if (isMasterBranch(gitBranch)) {
       return "test"
-    } else if (isDevelopBranch(gitBranch) || !autoCreateEnvironment) {
+    } else if (isDevelopBranch(gitBranch)) {
       return "dev"
     } else if (isUATBranch(gitBranch)) {
       return "uat"
     } else if (isProductionBranch(gitBranch)) {
       return "prod"
-    } else {
+    } else if (isAFeatureBranch(gitBranch)
+            || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
+            || isABugBranch(gitBranch)) {
       def tokens = extractBranchCode(gitBranch).split("-")
       def projectId = tokens[0]
       if (!projectId || !projectId.equalsIgnoreCase(origProjectId)) {
-        logger.echo "No project ID found in branch name => no environment to deploy to"
+        logger.echo errMsg
         return ""
       }
       String code = tokens[1]
       if (code) {
-        if (!code.endsWith("#")) {
-          return "dev"
-        }
         if (isAReleaseBranch(gitBranch)) {
           try {
             if (!code.startsWith("v")) {
@@ -475,14 +475,18 @@ class OdsContext implements Context {
             logger.echo "Release branch name '${code}' is not a semantic version name => no environment to deploy"
             return ""
           }
+        } else if (!code.endsWith("#")) {
+          return "dev"
         } else {
           return code + "-dev"
         }
-
       } else {
-        logger.echo "No branch code extracted => no environment to deploy to"
+        logger.echo errMsg
         return ""
       }
+    } else {
+        logger.echo errMsg
+        return ""
     }
   }
   private String checkoutBranch(String branchName) {
@@ -494,7 +498,7 @@ class OdsContext implements Context {
   }
 
   private boolean isDevelopBranch(String gitBranch) {
-    return gitBranch.startsWith("develop")
+    return gitBranch.startsWith("dev")
   }
 
   private boolean isUATBranch(String gitBranch) {
@@ -513,5 +517,12 @@ class OdsContext implements Context {
     return gitBranch.startsWith("release/")
   }
 
+  private boolean isAHotfixBranch(String gitBranch) {
+    return gitBranch.startsWith("hotfix/")
+  }
+
+  private boolean isABugBranch(String gitBranch) {
+    return gitBranch.startsWith("bugfix/")
+  }
 
 }

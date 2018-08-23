@@ -13,19 +13,10 @@ def call(def context) {
 }
 
 private void patchBuildConfig(def context) {
-  sh """oc patch bc ${context.componentId} --patch '
-   spec:
-     output:
-       to:
-         kind: ImageStreamTag
-         name: ${context.componentId}:${context.tagversion}
-     runPolicy: Serial
-     source:
-       type: Binary
-     strategy:
-       type: Docker
-       dockerstrategy: {}
-    ' -n ${context.targetProject}"""
+  sh """oc patch bc ${context.componentId} --type=json --patch '[
+    {"op": "replace", "path": "/spec/source", "value":{"type":"Binary"}},
+    {"op": "replace", "path": "/spec/output/to/name", "value":"${context.componentId}:${context.tagversion}"}
+    ]' -n ${context.targetProject}"""
 }
 
 return this

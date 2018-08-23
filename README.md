@@ -66,38 +66,50 @@ When working with "multiple environment mode" we recommend to add the item BitBu
 
 # Branch names to openshift project name rules  
 
-This library maps branch names to openshift project names before deploying a project (namespace) to openshift.   
+Before deploying a project (namespace) to openshift, this library maps branch names to openshift project names.    
 
 E.g. if the branch name prefix is `master` then the resolved target openshift project name will be `<project-id>-test`.
 
-Following naming convention rules are used to map branch names to openshift environment:
+Following naming convention rules are applied to map branch names to openshift environment:
 
 Case 1: multi environments is not enabled (`autoCreateEnvironment=false`)  
 
 | branch name | openshift project name |
 | ----------- | ----------- |
+| starts with `dev` |   `<project-id>-dev` |
 | starts with `master`|     `<project-id>-test` |
-| starts with `develop` |   `<project-id>-dev` |
-| starts with `feature/` |  `<project-id>-dev` |
-| starts with `release/v-<version>` | `<project-id>-<version>-rel` |
 | starts with `uat` |       `<project-id>-uat` |
-| starts with `production`| `<project-id>-prod` |
+| starts with `prod`| `<project-id>-prod` |
+| starts with `feature/` |  `<project-id>-dev` |
+| starts with `hotfix/` |  `<project-id>-dev` |
+| starts with `bugfix/` |  `<project-id>-dev` |
+| starts with `release/` | `<project-id>-dev` |
 | not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
 
-NOTE: value of `project-id` and `version` should not contain char `-`.
+NOTE:
+- value of `project-id` and `version` should not contain char `-`.
 
 Case 2: multi environments is enabled (`autoCreateEnvironment=true`)
 
-Beside all case 1 rules following rule apply:
-
 | branch name | openshift project name |
 | ----------- | ----------- |
-| starts with `feature/<project-id>-<jira-item>#` | `<project-id>-<jira-item>-dev` |
+| starts with `dev` |   `<project-id>-dev` |
+| starts with `master`|     `<project-id>-test` |
+| starts with `uat` |       `<project-id>-uat` |
+| starts with `prod`| `<project-id>-prod` |
+| starts with `feature/` |  `<project-id>-dev` |
+| starts with `feature/<project-id>-<jira-item>#` |  `feature/<project-id>-<jira-item>#` |
+| starts with `hotfix/` |  `<project-id>-dev` |
+| starts with `bugfix/` |  `<project-id>-dev` |
+| starts with `release/<project-id>-v<version>` | `<project-id>-v<version>` |
+| not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
 
-NOTE: value of `jira-item` should not contain char `-`.
-
-NOTE: The char `#` needs to be added after the `jira-item` in order to get a new openshift project created.      
+NOTES:
+ 
+- value of `project-id`, `version`, `jira-item` should not contain char `-`.
+- the char `#` needs to be added after the `jira-item` in order to get a new openshift project created.      
 If the char `#` is not added, then the resolved openshift project name will be `<project-id>-dev`.  
+- the char `v` needs to be added after `<project-id>-` in order to get a new openshift porject created for a special release version.
 
 # Customisation
 
