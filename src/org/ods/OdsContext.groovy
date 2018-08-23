@@ -426,7 +426,7 @@ class OdsContext implements Context {
 
   String determineEnvironment(String gitBranch, String origProjectId, boolean autoCreateEnvironment) {
 
-    String errMsg = "No environment was determined for => no environment to deploy to! [gitBranch=${gitBranch}" +
+    String errMsg = "No environment was determined. No environment to deploy to! [gitBranch=${gitBranch}" +
       ", projectId=${origProjectId}, autoCreateEnvironment=${autoCreateEnvironment}]"
 
     if (autoCreateEnvironment==false) {

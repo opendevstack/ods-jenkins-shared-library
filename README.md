@@ -98,7 +98,7 @@ Case 2: multi environments is enabled (`autoCreateEnvironment=true`)
 | starts with `uat` |       `<project-id>-uat` |
 | starts with `prod`| `<project-id>-prod` |
 | starts with `feature/` |  `<project-id>-dev` |
-| starts with `feature/<project-id>-<jira-item>#` |  `feature/<project-id>-<jira-item>#` |
+| starts with `feature/<project-id>-<jira-item>#` | `<project-id>-<jira-item>#-dev` |
 | starts with `hotfix/` |  `<project-id>-dev` |
 | starts with `bugfix/` |  `<project-id>-dev` |
 | starts with `release/<project-id>-v<version>` | `<project-id>-v<version>` |
