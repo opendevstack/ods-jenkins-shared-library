@@ -69,7 +69,21 @@ class OdsContext implements Context {
     config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
 
     logger.verbose "Setting defaults ..."
-    config.autoCreateEnvironment = config.autoCreateEnvironment ?: false
+    if (!config.containsKey('workflow')) {
+      config.workflow = "GitHub Flow"
+    }
+    if (config.workflow != "git-flow" && config.workflow != "GitHub Flow") {
+      logger.error 'Aborting! workflow must be either "git-flow" or ' +
+                   '"GitHub Flow", but was "' + config.workflow + '".'
+    }
+    config.autoCreateReviewEnvironment = config.autoCreateReviewEnvironment ?: false
+    config.autoCreateReleaseEnvironment = config.autoCreateReleaseEnvironment ?: false
+    config.autoCreateHotfixEnvironment = config.autoCreateHotfixEnvironment ?: false
+    if (config.autoCreateEnvironment) {
+      config.autoCreateReviewEnvironment = true
+      config.autoCreateReleaseEnvironment = true
+      config.autoCreateHotfixEnvironment = true
+    }
     config.updateBranch = config.updateBranch ?: false
     if (!config.containsKey('notifyNotGreen')) {
       config.notifyNotGreen = true
@@ -83,8 +97,32 @@ class OdsContext implements Context {
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
     }
-    if (!config.testProjectBranch) {
-      config.testProjectBranch = "master"
+    if (config.testProjectBranch) {
+      logger.echo 'Caution! testProjectBranch is deprecated. Set ' +
+                  'productionBranch and/or productionEnvironment.'
+      config.productionBranch = config.testProjectBranch
+      config.productionEnvironment = "test"
+    }
+    if (!config.productionBranch) {
+      config.productionBranch = "master"
+    }
+    if (!config.productionEnvironment) {
+      config.productionEnvironment = "prod"
+    }
+    if (!config.developmentBranch) {
+      config.developmentBranch = "develop"
+    }
+    if (!config.developmentEnvironment) {
+      config.developmentEnvironment = "dev"
+    }
+    if (!config.defaultReviewEnvironment) {
+      config.defaultReviewEnvironment = "review"
+    }
+    if (!config.defaultHotfixEnvironment) {
+      config.defaultHotfixEnvironment = "hotfix"
+    }
+    if (!config.defaultReleaseEnvironment) {
+      config.defaultReleaseEnvironment = "release"
     }
     if (!config.podVolumes) {
       config.podVolumes = []
@@ -93,25 +131,15 @@ class OdsContext implements Context {
       config.podAlwaysPullImage = true
     }
 
-    logger.verbose "Validating configuration ..."
-    if (config.autoCreateEnvironment && !config.branchName) {
-      logger.error 'Aborting! autoCreateEnvironment=true and branchName=null. ' +
-                   'You will need to configure a "Bitbucket Team/Project" item.'
-    }
-
     config.responsible = true
 
     logger.verbose "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
 
-    // BRANCH_NAME is only given for "Bitbucket Team/Project" items. If
-    // autoCreateEnvironment is disabled, we need to determine the Git branch to
-    // build from the last push. In that case, we also skip the pipeline if
-    // it is triggered but not responsible.
-    if (config.autoCreateEnvironment) {
-      // For "Bitbucket Team/Project" items, the initial checkout is already
-      // of the branch we want to build for, so just get HEAD now.
-      config.gitCommit = retrieveGitCommit()
+    // BRANCH_NAME is only given for "Bitbucket Team/Project" items. For those,
+    // we need to do a little bit of magic to get the right Git branch.
+    // For other pipelines, we need to check responsibility.
+    if (config.branchName) {
       if (config.branchName.startsWith("PR-")){
         config.gitBranch = retrieveBranchOfPullRequest(config.credentialsId, config.gitUrl, config.branchName)
         config.jobName = config.branchName
@@ -134,9 +162,19 @@ class OdsContext implements Context {
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
     logger.verbose "Setting environment ..."
-    config.environment = determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment)
+    config.environment = determineEnvironment()
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
+      if (assumedEnvironments.contains(config.environment)) {
+        config.cloneSourceEnv = ""
+      } else {
+        config.cloneSourceEnv = config.productionEnvironment
+      }
+      if (config.workflow == "git-flow") {
+        if (config.environment.startsWith("release-") || config.environment.startsWith("review-") || [config.defaultReleaseEnvironment, config.defaultReviewEnvironment].contains(config.environment)) {
+          config.cloneSourceEnv = config.developmentEnvironment
+        }
+      }
     }
 
     logger.verbose "Assembled configuration: ${config}"
@@ -222,12 +260,20 @@ class OdsContext implements Context {
       config.nexusPassword
   }
 
-  String getEnvironment() {
-      config.environment
+  String getProductionBranch() {
+      config.productionBranch
   }
 
-  String getTestProjectBranch() {
-      config.testProjectBranch
+  String getProductionEnvironment() {
+      config.productionEnvironment
+  }
+
+  String getCloneSourceEnv() {
+      config.cloneSourceEnv
+  }
+
+  String getEnvironment() {
+      config.environment
   }
 
   String getGroupId() {
@@ -279,11 +325,21 @@ class OdsContext implements Context {
   }
 
   boolean shouldUpdateBranch() {
-    config.responsible && config.updateBranch && config.testProjectBranch != config.gitBranch
+    config.responsible && config.updateBranch && config.productionBranch != config.gitBranch
   }
 
   def setBranchUpdated(boolean branchUpdated) {
       this.branchUpdated = branchUpdated
+  }
+
+  String[] getAssumedEnvironments() {
+    return [
+      config.productionEnvironment,
+      config.developmentEnvironment,
+      config.defaultReviewEnvironment,
+      config.defaultHotfixEnvironment,
+      config.defaultReleaseEnvironment
+    ]
   }
 
   // We cannot use java.security.MessageDigest.getInstance("SHA-256")
@@ -308,24 +364,25 @@ class OdsContext implements Context {
       ).trim()
   }
 
-  // If BRANCH_NAME is not given, we need to check whether the pipeline is
-  // responsible for building this commit at all.
+  // Pipelines ending in either "-test" or "-prod" are only responsible for the
+  // production branch (typically master). "-master" pipelines are responsible
+  // for master branch. Other pipelines are responsible for all other branches.
+  // This works because BitBucket items only trigger the correct pipeline, and
+  // in the other case the "-dev" pipeline should build all branches. 
   private boolean isResponsible() {
-    if (config.jobName.endsWith("-test")) {
-      return config.testProjectBranch.equals(config.gitBranch)
+    if (config.jobName.endsWith("-test") || config.jobName.endsWith("-prod")) {
+      config.productionBranch.equals(config.gitBranch)
+    } else if (config.jobName.endsWith("-master")) {
+       config.gitBranch == "master"
+    } else {
+      !config.productionBranch.equals(config.gitBranch)
     }
-
-    if (config.jobName.endsWith("-dev")) {
-      return !config.testProjectBranch.equals(config.gitBranch)
-    }
-
-    return true
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4-brown-bag-lunch" from it.
   private String extractShortBranchName(String branch) {
-    if (config.testProjectBranch.equals(branch)) {
+    if (config.productionBranch.equals(branch)) {
       branch
     } else if (branch.startsWith("feature/")) {
       branch.drop("feature/".length())
@@ -343,7 +400,7 @@ class OdsContext implements Context {
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
-      if (config.testProjectBranch.equals(branch)) {
+      if (config.productionBranch.equals(branch)) {
           branch
       } else if (branch.startsWith("feature/")) {
           def list = branch.drop("feature/".length()).tokenize("-")
@@ -424,105 +481,125 @@ class OdsContext implements Context {
     ).trim().replace('https://bitbucket', token)
   }
 
-  String determineEnvironment(String gitBranch, String origProjectId, boolean autoCreateEnvironment) {
+  // This logic must be consistent with what is described in README.md.
+  // To make it easier to follow the logic, it is broken down by workflow (at
+  // the cost of having some duplication).
+  String determineEnvironment() {
+    String noDeploymentMsg = "No environment to deploy to was determined " +
+      "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
+    String env = ""
 
-    String errMsg = "No environment was determined. No environment to deploy to! [gitBranch=${gitBranch}" +
-      ", projectId=${origProjectId}, autoCreateEnvironment=${autoCreateEnvironment}]"
-
-    if (autoCreateEnvironment==false) {
-      if (isMasterBranch(gitBranch)) {
-        return "test"
-      } else if (isDevelopBranch(gitBranch) || isAFeatureBranch(gitBranch)
-              || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
-              || isABugBranch(gitBranch)) {
-        return "dev"
-      } else if (isUATBranch(gitBranch)) {
-        return "uat"
-      } else if (isProductionBranch(gitBranch)) {
-        return "prod"
+    if (config.workflow == "git-flow") {
+      // production
+      if (config.gitBranch == config.productionBranch) {
+        return config.productionEnvironment
       }
-      logger.echo errMsg
+
+      // development
+      if (config.gitBranch == config.developmentBranch) {
+        return config.developmentEnvironment
+      }
+
+      // hotfix
+      if (config.gitBranch.startsWith("hotfix/")) {
+        def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
+        if (ticketId) {
+          env = "hotfix-${ticketId}"
+          if (config.autoCreateHotfixEnvironment || environmentExists(env)) {
+            return env
+          }
+        }
+        env = config.defaultHotfixEnvironment
+        if (environmentExists(env)) {
+          return env
+        }
+        logger.echo "Default hotfix environment (${env}) does not exist. " +
+                    "Create it manually via the cloning script to deploy to it."
+        logger.echo noDeploymentMsg
+        return ""
+      }
+
+      // release
+      if (config.gitBranch.startsWith("release/")) {
+        def version = config.gitBranch.split("/")[1]
+        if (version) {
+          env = "release-${version}"
+          if (config.autoCreateReleaseEnvironment || environmentExists(env)) {
+            return env
+          }
+        }
+        env = config.defaultReleaseEnvironment
+        if (environmentExists(env)) {
+          return env
+        }
+        logger.echo "Default release environment (${env}) does not exist. " +
+                    "Create it manually via the cloning script to deploy to it."
+        logger.echo noDeploymentMsg
+        return ""
+      }
+
+      // review
+      def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
+      if (ticketId) {
+        env = "review-${ticketId}"
+        if (config.autoCreateReviewEnvironment || environmentExists(env)) {
+          return env
+        }
+      }
+      env = config.defaultReviewEnvironment
+      if (environmentExists(env)) {
+        return env
+      }
+      logger.echo "Default review environment (${env}) does not exist. " +
+                  "Create it manually via the cloning script to deploy to it."
+      logger.echo noDeploymentMsg
       return ""
     }
 
-    if (isMasterBranch(gitBranch)) {
-      return "test"
-    } else if (isDevelopBranch(gitBranch)) {
-      return "dev"
-    } else if (isUATBranch(gitBranch)) {
-      return "uat"
-    } else if (isProductionBranch(gitBranch)) {
-      return "prod"
-    } else if (isAFeatureBranch(gitBranch)
-            || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
-            || isABugBranch(gitBranch)) {
-      def tokens = extractBranchCode(gitBranch).split("-")
-      def projectId = tokens[0]
-      if (!projectId || !projectId.equalsIgnoreCase(origProjectId)) {
-        logger.echo errMsg
-        return ""
+    if (config.workflow == "GitHub Flow") {
+      // production
+      if (config.gitBranch == config.productionBranch) {
+        return config.productionEnvironment
       }
-      String code = tokens[1]
-      if (code) {
-        if (isAReleaseBranch(gitBranch)) {
-          try {
-            if (!code.startsWith("v")) {
-              logger.echo "Release branch name '${code}' needs to start with 'v' => no environment to deploy"
-              return ""
-            }
-            return code + "-rel"
-          } catch (IllegalArgumentException ex) {
-            logger.echo "Release branch name '${code}' is not a semantic version name => no environment to deploy"
-            return ""
-          }
-        } else if (!code.endsWith("#")) {
-          return "dev"
-        } else {
-          return code + "-dev"
+
+      // review
+      def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
+      if (ticketId) {
+        env = "review-${ticketId}"
+        if (config.autoCreateReviewEnvironment || environmentExists(env)) {
+          return env
         }
-      } else {
-        logger.echo errMsg
-        return ""
       }
-    } else {
-        logger.echo errMsg
-        return ""
+      env = config.defaultReviewEnvironment
+      if (environmentExists(env)) {
+        return env
+      }
+      logger.echo "Default review environment (${env}) does not exist. " +
+                  "Create it manually via the cloning script to deploy to it."
+      logger.echo noDeploymentMsg
+      return ""
     }
   }
-  private String checkoutBranch(String branchName) {
+
+  protected String getTicketIdFromBranch(String branchName, String projectId) {
+    def tokens = extractBranchCode(branchName).split("-")
+    def pId = tokens[0]
+    if (!pId || !pId.equalsIgnoreCase(projectId)) {
+      return ""
+    }
+    return tokens[1]
+  }
+
+  protected String checkoutBranch(String branchName) {
     script.git url: config.gitUrl, branch: branchName, credentialsId: config.credentialsId
   }
 
-  private boolean isMasterBranch(String gitBranch) {
-    return gitBranch.startsWith("master")
-  }
-
-  private boolean isDevelopBranch(String gitBranch) {
-    return gitBranch.startsWith("dev")
-  }
-
-  private boolean isUATBranch(String gitBranch) {
-    return gitBranch.startsWith("uat")
-  }
-
-  private boolean isProductionBranch(String gitBranch) {
-    return gitBranch.startsWith("prod")
-  }
-
-  private boolean isAFeatureBranch(String gitBranch) {
-    return gitBranch.startsWith("feature/")
-  }
-
-  private boolean isAReleaseBranch(String gitBranch) {
-    return gitBranch.startsWith("release/")
-  }
-
-  private boolean isAHotfixBranch(String gitBranch) {
-    return gitBranch.startsWith("hotfix/")
-  }
-
-  private boolean isABugBranch(String gitBranch) {
-    return gitBranch.startsWith("bugfix/")
+  protected boolean environmentExists(String name) {
+    def statusCode = script.sh(
+      script:"oc project ${name} &> /dev/null",
+      returnStatus: true
+    )
+    return statusCode == 0
   }
 
 }

@@ -2,125 +2,103 @@
 
 This library allows to have a minimal Jenkinsfile in each repository by providing all language-agnostic build aspects. The goal is to duplicate as little as possible between repositories and have an easy way to ship updates to all projects.
 
-This shared library supports two different working modes: 
-* trunk-based development mode (default) 
-* multiple environments mode
 
-# Usage
+## Usage
 
 Load the shared library in your `Jenkinsfile` like this:
 ```groovy
 def final projectId = "hugo"
 def final componentId = "be-node-express"
 def final credentialsId = "${projectId}-cd-cd-user-with-password"
+def sharedLibraryRepository
+def dockerRegistry
 node {
   sharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
+  dockerRegistry = env.DOCKER_REGISTRY
 }
 
-library identifier: 'ods@latest', retriever: modernSCM(
+library identifier: 'ods-library@1-latest', retriever: modernSCM(
   [$class: 'GitSCMSource',
    remote: sharedLibraryRepository,
    credentialsId: credentialsId])
 
 odsPipeline(
-  image: 'docker-registry.default.svc:5000/cd/slave-maven',
-  verbose: true,
+  image: "${dockerRegistry}/cd/jenkins-slave-maven",
   projectId: projectId,
-  componentId: componentId
+  componentId: componentId,
+  verbose: true,
 ) { context ->
   stage('Build') {
-      // your custom code
+      // custom stage
   }
-  stageScanForSonarqube(context)
-  stageCreateOpenshiftEnvironment(context)
-  stageUpdateOpenshiftBuild(context)
-  stageDeployToOpenshift(context)
-  stageTriggerAllBuilds(context)
+  stageScanForSonarqube(context) // using a provided stage
 }
 ```
 
-# Switching to multiple environment modes
 
-The "multiple environment mode" enables the shared library to create new Openshift projects for new branches.
+## Workflow
 
-This will only happen if the branch name starts with the suffix `feature/`, `bugfix/`, `hotfix/` or `release/` and is followed by the Jira issue, e.g. `PSP-100`.
+When using the shared library, you have the choice between two different workflows:
 
-Note that there is no check in place that verifies that the jira item is a valid one.
+### [GitHub Flow](https://guides.github.com/introduction/flow/): Focus on continuous deployment (default)
 
-This mode is disabled by default, to enable it, add `autoCreateEnvironment: true` like this:
-```
-odsPipeline(
-  image: 'docker-registry.default.svc:5000/cd/slave-nodejs',
-  verbose: true,
-  projectId: projectId,
-  componentId: componentId,
-  notifyNotGreen: false,
-  autoCreateEnvironment: true,
-  environmentLimit: 10
-)
-```
+`master` is the main branch and feature/bugfix branches target this branch. Each pull request is promoted to production immediately, with no integration branch in between. This style is useful for fast development, and/or when a good review system is in place.
 
-In the example above the number of environments to be provisioned in openshift is limited by the configuration `environmentLimit: 10`.
+The following mapping between branches and OpenShift environments applies (top to bottom):
 
-When working with "multiple environment mode" we recommend to add the item BitBucket Team/Project in Jenkins to your project.  
+| Branch | Environment |
+| --- | --- |
+| `master` | `prod` |
+| `*`, e.g. `feature/foo-123-bar` | If branch contains a ticket ID (`.*-([0-9]*)-.*`), attempt to deploy to `review-123`. If branch does not contain a ticket ID, or `review-123` does not exist and auto-creation is not enabled, attempt to deploy to `review` instead. If `review` does not exist either, no deployment happens. |
 
-# Branch names to openshift project name rules  
+Please note that GitHub Flow recommends to deploy the PR to production before merging it into master. This step is out of scope of the shared library, and has to be performed via different means if desired.
 
-Before deploying a project (namespace) to openshift, this library maps branch names to openshift project names.    
+### [git-flow](https://jeffkreeftmeijer.com/git-flow/): Focus on continuous integration
 
-E.g. if the branch name prefix is `master` then the resolved target openshift project name will be `<project-id>-test`.
+`develop` is the integration branch, and feature/bugfix branches target this branch. `master` is the production branch, typically updated at the end of every sprint. Additionally, there are `release-x.x.x` branches (forked from `develop`) to ensure quality before the release is promoted to production, and `hotfix/x` branches (forked from `master`) for small urgent fixes.
 
-Following naming convention rules are applied to map branch names to openshift environment:
+The following mapping between branches and OpenShift environments applies (top to bottom):
 
-Case 1: multi environments is not enabled (`autoCreateEnvironment=false`)  
+| Branch | Environment |
+| --- | --- |
+| `master` | `prod` |
+| `develop` | `dev` |
+| `hotfix/*`, e.g. `hotfix/foo-123-bar` | If branch contains a ticket ID (`.*-([0-9]*)-.*`), attempt to deploy to `hotfix-123`. If branch does not contain a ticket ID, or `hotfix-123` does not exist and auto-creation is not enabled, attempt to deploy to `hotfix` instead. If `hotfix` does not exist either, no deployment happens. |
+| `release/*`, e.g. `release/1.0.0` | Attempt to deploy to `release-1.0.0`. If that does not exist and auto-creation is not enabled, attempt to deploy to `release` instead. If `release` does not exist either, no deployment happens. |
+| `.*`, e.g. `feature/foo-123-bar` | If branch contains a ticket ID (`.*-([0-9]*)-.*`), attempt to deploy to `review-123`. If branch does not contain a ticket ID, or `review-123` does not exist and auto-creation is not enabled, attempt to deploy to `review` instead. If `review` does not exist either, no deployment happens. |
 
-| branch name | openshift project name |
-| ----------- | ----------- |
-| starts with `dev` |   `<project-id>-dev` |
-| starts with `master`|     `<project-id>-test` |
-| starts with `uat` |       `<project-id>-uat` |
-| starts with `prod`| `<project-id>-prod` |
-| starts with `feature/` |  `<project-id>-dev` |
-| starts with `hotfix/` |  `<project-id>-dev` |
-| starts with `bugfix/` |  `<project-id>-dev` |
-| starts with `release/` | `<project-id>-dev` |
-| not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
+### Customization
 
-NOTE:
-- value of `project-id` and `version` should not contain char `-`.
+Both workflows can be customized with the following options:
 
-Case 2: multi environments is enabled (`autoCreateEnvironment=true`)
+* `autoCreateReviewEnvironment`: Creates `review-x` environments on the fly (off by default).
+* `defaultReviewEnvironment`: Defaults to `review` (not created by Jenkins)
+* `productionBranch`: Defaults to `master`
+* `productionEnvironment`: Defaults to `prod`
 
-| branch name | openshift project name |
-| ----------- | ----------- |
-| starts with `dev` |   `<project-id>-dev` |
-| starts with `master`|     `<project-id>-test` |
-| starts with `uat` |       `<project-id>-uat` |
-| starts with `prod`| `<project-id>-prod` |
-| starts with `feature/` |  `<project-id>-dev` |
-| starts with `feature/<project-id>-<jira-item>#` | `<project-id>-<jira-item>#-dev` |
-| starts with `hotfix/` |  `<project-id>-dev` |
-| starts with `bugfix/` |  `<project-id>-dev` |
-| starts with `release/<project-id>-v<version>` | `<project-id>-v<version>-rel` |
-| not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
+Additionally, `workflow: "git-flow"` can be customized further:
 
-NOTES:
- 
-- value of `project-id`, `version`, `jira-item` should not contain char `-`.
-- the char `#` needs to be added after the `jira-item` in order to get a new openshift project created.      
-If the char `#` is not added, then the resolved openshift project name will be `<project-id>-dev`.  
-- the char `v` needs to be added after `<project-id>-` in order to get a new openshift porject created for a special release version.
+* `autoCreateReleaseEnvironment`: Creates `release-x` environments on the fly (off by default).
+* `autoCreateHotfixEnvironment`: Creates `hotfix-x` environments on the fly (off by default).
+* `defaultHotfixEnvironment`: Defaults to `hotfix` (not created by Jenkins)
+* `defaultReleaseEnvironment`: Defaults to `release` (not created by Jenkins)
+* `developmentBranch`: Defaults to `develop`
+* `developmentEnvironment`: Defaults to `dev`
 
-# Customisation
+Note that auto-creation of environments works by cloning a previous environment. For GitHub Flow, review environments are cloned from `prod`. For git-flow, review and release environments are cloned from `dev`, hotfix is cloned from `prod`.
+
+
+## Writing stages
 
 Inside the closure passed to `odsPipeline`, you have full control. Write stages just like you would do in a normal `Jenkinsfile`. You have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsPipeline`. Please see `vars/odsPipeline.groovy` for possible options.
 
 
-# Development
-* Assume that repositories are tracking the `latest` tag. Therefore, be careful when you move this tag. Make sure to test your changes first in a repository that you own by pointing to your shared library branch.
+## Development
+* Assume that repositories are tracking `x-latest` tags. Therefore, be careful when you move those tags. Make sure to test your changes first in a repository that you own by pointing to your shared library branch.
 * Try to write tests.
 * See if you can split things up into classes.
 * Keep in mind that you need to access e.g. `sh` via `script.sh`.
 
-# Background
+
+## Background
 The implementation is largely based on https://www.relaxdiego.com/2018/02/jenkins-on-jenkins-shared-libraries.html. The scripted pipeline syntax was chosen because it is a better fit for a shared library. The declarative pipeline syntax is targeted for newcomers and/or simple pipelines (see https://jenkins.io/doc/book/pipeline/syntax/#scripted-pipeline). If you try to use it e.g. within a Groovy class you'll end up with lots of `script` blocks.

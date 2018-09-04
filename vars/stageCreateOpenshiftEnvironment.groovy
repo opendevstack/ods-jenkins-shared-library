@@ -5,8 +5,8 @@ def call(def context) {
       return
     }
 
-    if (["test", "dev"].contains(context.environment)) {
-      println("Skipping for test/dev environment ...")
+    if (context.assumedEnvironments.contains(context.environment)) {
+      println("Skipping for ${context.environment} environment ...")
       return
     }
 
@@ -14,6 +14,12 @@ def call(def context) {
       println("Environment exists already ...")
       return
     }
+
+    def autoCreateEnvironment = (
+      (context.environment.startsWith('hotfix-') && context.autoCreateHotfixEnvironment) ||
+      (context.environment.startsWith('release-') && context.autoCreateReleaseEnvironment) ||
+      (context.environment.startsWith('review-') && context.autoCreateReviewEnvironment)
+    )
 
     if (!autoCreateEnvironment) {
       error "Environment ${context.environment} does not exist and " +
@@ -69,8 +75,8 @@ private void createEnvironment(def context) {
         verbose = "-v true"
       }
       def gitUrl = "https://${USERPASS}@${context.bitbucketHost}/scm/${context.projectId}/${context.projectId}-occonfig-artifacts.git"
-      sh(script: "sh export.sh -p ${context.projectId} -h ${context.openshiftHost} -e test -g ${gitUrl} -cpj ${verbose}")
-      sh(script: "sh import.sh -h ${context.openshiftHost} -p ${context.projectId} -e test -g ${gitUrl} -n ${context.targetProject} ${admins} ${verbose} --apply true")
+      sh(script: "sh export.sh -p ${context.projectId} -h ${context.openshiftHost} -e ${context.cloneSourceEnv} -g ${gitUrl} -cpj ${verbose}")
+      sh(script: "sh import.sh -h ${context.openshiftHost} -p ${context.projectId} -e ${context.cloneSourceEnv} -g ${gitUrl} -n ${context.targetProject} ${admins} ${verbose} --apply true")
     }
     print("House cleaning...")
     sh(script: "rm -r oc_migration_scripts")

@@ -30,14 +30,14 @@ private void triggerAllBuilds(context) {
 private String[] getBuildConfigs(def context) {
   sh(
     returnStdout: true,
-    script: "oc get bc --no-headers -n ${context.projectId}-test | awk '{print \$1}'"
+    script: "oc get bc --no-headers -n ${context.projectId}-${context.cloneSourceEnv} | awk '{print \$1}'"
   ).split()
 }
 
 private String getTagversion(def context, String bc) {
   sh(
     returnStdout: true,
-    script: "oc export bc ${bc} -n ${context.projectId}-test | grep 'output' -A 3 | tail -n 1 | awk -F':' '{print \$3}'"
+    script: "oc export bc ${bc} -n ${context.projectId}-${context.cloneSourceEnv} | grep 'output' -A 3 | tail -n 1 | awk -F':' '{print \$3}'"
   ).trim()
 }
 

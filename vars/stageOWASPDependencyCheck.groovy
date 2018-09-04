@@ -1,5 +1,5 @@
 def call(def context) {
-  if (context.testProjectBranch == context.gitBranch) {
+  if (context.productionBranch == context.gitBranch) {
     stage("OWASP Dependency Check") {
       sh "dependency-check " +
               "--project ${context.projectId}-${context.componentId} " +
