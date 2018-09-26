@@ -44,10 +44,6 @@ interface Context {
 
     String getNexusPassword()
 
-    String getProductionBranch()
-
-    String getProductionEnvironment()
-
     String getCloneSourceEnv()
 
     String getEnvironment()
@@ -77,6 +73,4 @@ interface Context {
     def setBranchUpdated(boolean branchUpdated)
 
     def setEnvironmentCreated(boolean created)
-
-    String[] getAssumedEnvironments()
 }

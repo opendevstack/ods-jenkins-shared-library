@@ -26,6 +26,9 @@ class OdsContext implements Context {
     if (!config.image) {
       logger.error "Param 'image' is required"
     }
+    if (!config.branchToEnvironmentMapping) {
+      logger.error "Param 'branchToEnvironmentMapping' is required"
+    }
 
     logger.verbose "Collecting environment variables ..."
     config.jobName = script.env.JOB_NAME
@@ -69,20 +72,8 @@ class OdsContext implements Context {
     config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
 
     logger.verbose "Setting defaults ..."
-    if (!config.containsKey('workflow')) {
-      config.workflow = "GitHub Flow"
-    }
-    if (config.workflow != "git-flow" && config.workflow != "GitHub Flow") {
-      logger.error 'Aborting! workflow must be either "git-flow" or ' +
-                   '"GitHub Flow", but was "' + config.workflow + '".'
-    }
-    config.autoCreateReviewEnvironment = config.autoCreateReviewEnvironment ?: false
-    config.autoCreateReleaseEnvironment = config.autoCreateReleaseEnvironment ?: false
-    config.autoCreateHotfixEnvironment = config.autoCreateHotfixEnvironment ?: false
-    if (config.autoCreateEnvironment) {
-      config.autoCreateReviewEnvironment = true
-      config.autoCreateReleaseEnvironment = true
-      config.autoCreateHotfixEnvironment = true
+    if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
+      config.autoCloneEnvironmentsFromSourceMapping = [:]
     }
     config.updateBranch = config.updateBranch ?: false
     if (!config.containsKey('notifyNotGreen')) {
@@ -96,33 +87,6 @@ class OdsContext implements Context {
     }
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
-    }
-    if (config.testProjectBranch) {
-      logger.echo 'Caution! testProjectBranch is deprecated. Set ' +
-                  'productionBranch and/or productionEnvironment.'
-      config.productionBranch = config.testProjectBranch
-      config.productionEnvironment = "test"
-    }
-    if (!config.productionBranch) {
-      config.productionBranch = "master"
-    }
-    if (!config.productionEnvironment) {
-      config.productionEnvironment = "prod"
-    }
-    if (!config.developmentBranch) {
-      config.developmentBranch = "develop"
-    }
-    if (!config.developmentEnvironment) {
-      config.developmentEnvironment = "dev"
-    }
-    if (!config.defaultReviewEnvironment) {
-      config.defaultReviewEnvironment = "review"
-    }
-    if (!config.defaultHotfixEnvironment) {
-      config.defaultHotfixEnvironment = "hotfix"
-    }
-    if (!config.defaultReleaseEnvironment) {
-      config.defaultReleaseEnvironment = "release"
     }
     if (!config.podVolumes) {
       config.podVolumes = []
@@ -162,19 +126,9 @@ class OdsContext implements Context {
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
     logger.verbose "Setting environment ..."
-    config.environment = determineEnvironment()
+    determineEnvironment()
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
-      if (assumedEnvironments.contains(config.environment)) {
-        config.cloneSourceEnv = ""
-      } else {
-        config.cloneSourceEnv = config.productionEnvironment
-      }
-      if (config.workflow == "git-flow") {
-        if (config.environment.startsWith("release-") || config.environment.startsWith("review-") || [config.defaultReleaseEnvironment, config.defaultReviewEnvironment].contains(config.environment)) {
-          config.cloneSourceEnv = config.developmentEnvironment
-        }
-      }
     }
 
     logger.verbose "Assembled configuration: ${config}"
@@ -260,14 +214,6 @@ class OdsContext implements Context {
       config.nexusPassword
   }
 
-  String getProductionBranch() {
-      config.productionBranch
-  }
-
-  String getProductionEnvironment() {
-      config.productionEnvironment
-  }
-
   String getCloneSourceEnv() {
       config.cloneSourceEnv
   }
@@ -330,16 +276,6 @@ class OdsContext implements Context {
 
   def setBranchUpdated(boolean branchUpdated) {
       this.branchUpdated = branchUpdated
-  }
-
-  String[] getAssumedEnvironments() {
-    return [
-      config.productionEnvironment,
-      config.developmentEnvironment,
-      config.defaultReviewEnvironment,
-      config.defaultHotfixEnvironment,
-      config.defaultReleaseEnvironment
-    ]
   }
 
   // We cannot use java.security.MessageDigest.getInstance("SHA-256")
@@ -484,100 +420,61 @@ class OdsContext implements Context {
   // This logic must be consistent with what is described in README.md.
   // To make it easier to follow the logic, it is broken down by workflow (at
   // the cost of having some duplication).
-  String determineEnvironment() {
-    String noDeploymentMsg = "No environment to deploy to was determined " +
-      "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
-    String env = ""
-
-    if (config.workflow == "git-flow") {
-      // production
-      if (config.gitBranch == config.productionBranch) {
-        return config.productionEnvironment
-      }
-
-      // development
-      if (config.gitBranch == config.developmentBranch) {
-        return config.developmentEnvironment
-      }
-
-      // hotfix
-      if (config.gitBranch.startsWith("hotfix/")) {
-        def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
-        if (ticketId) {
-          env = "hotfix-${ticketId}"
-          if (config.autoCreateHotfixEnvironment || environmentExists(env)) {
-            return env
-          }
-        }
-        env = config.defaultHotfixEnvironment
-        if (environmentExists(env)) {
-          return env
-        }
-        logger.echo "Default hotfix environment (${env}) does not exist. " +
-                    "Create it manually via the cloning script to deploy to it."
-        logger.echo noDeploymentMsg
-        return ""
-      }
-
-      // release
-      if (config.gitBranch.startsWith("release/")) {
-        def version = config.gitBranch.split("/")[1]
-        if (version) {
-          env = "release-${version}"
-          if (config.autoCreateReleaseEnvironment || environmentExists(env)) {
-            return env
-          }
-        }
-        env = config.defaultReleaseEnvironment
-        if (environmentExists(env)) {
-          return env
-        }
-        logger.echo "Default release environment (${env}) does not exist. " +
-                    "Create it manually via the cloning script to deploy to it."
-        logger.echo noDeploymentMsg
-        return ""
-      }
-
-      // review
-      def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
-      if (ticketId) {
-        env = "review-${ticketId}"
-        if (config.autoCreateReviewEnvironment || environmentExists(env)) {
-          return env
-        }
-      }
-      env = config.defaultReviewEnvironment
-      if (environmentExists(env)) {
-        return env
-      }
-      logger.echo "Default review environment (${env}) does not exist. " +
-                  "Create it manually via the cloning script to deploy to it."
-      logger.echo noDeploymentMsg
-      return ""
+  void determineEnvironment() {
+    // Fixed name
+    def env = config.branchToEnvironmentMapping[config.gitBranch]
+    if (env) {
+      config.environment = env
+      config.cloneSourceEnv = null
+      return
     }
 
-    if (config.workflow == "GitHub Flow") {
-      // production
-      if (config.gitBranch == config.productionBranch) {
-        return config.productionEnvironment
-      }
-
-      // review
-      def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
-      if (ticketId) {
-        env = "review-${ticketId}"
-        if (config.autoCreateReviewEnvironment || environmentExists(env)) {
-          return env
+    // Prefix
+    for (e in config.branchToEnvironmentMapping) {
+        if (config.gitBranch.startsWith(e.key)) {
+          setMostSpecificEnvironment(
+            e.value,
+            config.gitBranch.replace(e.key, "")
+          )
+          return
         }
-      }
-      env = config.defaultReviewEnvironment
-      if (environmentExists(env)) {
-        return env
-      }
-      logger.echo "Default review environment (${env}) does not exist. " +
-                  "Create it manually via the cloning script to deploy to it."
-      logger.echo noDeploymentMsg
-      return ""
+    }
+
+    // Any branch
+    def genericEnv = config.branchToEnvironmentMapping["*"]
+    if (genericEnv) {
+      setMostSpecificEnvironment(
+        genericEnv,
+        config.gitBranch.replace("/", "")
+      )
+      return
+    }
+
+    logger.echo "No environment to deploy to was determined " +
+      "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
+    config.environment = ""
+    config.cloneSourceEnv = ""
+  }
+
+  // Based on given +genericEnv+ (e.g. "preview") and +branchSuffix+ (e.g.
+  // "foo-123-bar"), it finds the most specific environment. This is either:
+  // - the +genericEnv+ suffixed with a numeric ticket ID
+  // - the +genericEnv+ suffixed with the +branchSuffix+
+  // - the +genericEnv+ without suffix
+  protected void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
+    def specifcEnv = genericEnv + "-" + branchSuffix
+
+    def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
+    if (ticketId) {
+      specifcEnv = genericEnv + "-" + ticketId
+    }
+
+    config.cloneSourceEnv = config.autoCloneEnvironmentsFromSourceMapping[genericEnv]
+    def autoCloneEnabled = !!config.cloneSourceEnv
+    if (autoCloneEnabled || environmentExists(specifcEnv)) {
+      config.environment = specifcEnv
+    } else {
+      config.environment = genericEnv
     }
   }
 
@@ -585,6 +482,9 @@ class OdsContext implements Context {
     def tokens = extractBranchCode(branchName).split("-")
     def pId = tokens[0]
     if (!pId || !pId.equalsIgnoreCase(projectId)) {
+      return ""
+    }
+    if (!tokens[1].isNumber()) {
       return ""
     }
     return tokens[1]

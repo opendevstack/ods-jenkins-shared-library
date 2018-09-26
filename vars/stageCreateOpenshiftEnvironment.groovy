@@ -5,25 +5,14 @@ def call(def context) {
       return
     }
 
-    if (context.assumedEnvironments.contains(context.environment)) {
+    def assumedEnvironments = context.branchToEnvironmentMapping.values()
+    if (assumedEnvironments.contains(context.environment)) {
       println("Skipping for ${context.environment} environment ...")
       return
     }
 
     if (environmentExists(context.targetProject)) {
       println("Environment exists already ...")
-      return
-    }
-
-    def autoCreateEnvironment = (
-      (context.environment.startsWith('hotfix-') && context.autoCreateHotfixEnvironment) ||
-      (context.environment.startsWith('release-') && context.autoCreateReleaseEnvironment) ||
-      (context.environment.startsWith('review-') && context.autoCreateReviewEnvironment)
-    )
-
-    if (!autoCreateEnvironment) {
-      error "Environment ${context.environment} does not exist and " +
-            "cannot be created automatically as autoCreateEnvironment=false!"
       return
     }
 
