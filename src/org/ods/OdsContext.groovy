@@ -210,6 +210,14 @@ class OdsContext implements Context {
       config.nexusPassword
   }
 
+  String getBranchToEnvironmentMapping() {
+      config.branchToEnvironmentMapping
+  }
+
+  String getAutoCloneEnvironmentsFromSourceMapping() {
+      config.autoCloneEnvironmentsFromSourceMapping
+  }
+
   String getCloneSourceEnv() {
       config.cloneSourceEnv
   }
