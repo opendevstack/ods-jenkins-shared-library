@@ -7,7 +7,6 @@ class OdsContext implements Context {
   Map config
 
   boolean environmentCreated
-  boolean branchUpdated
 
   OdsContext(script, config, logger) {
     this.script = script
@@ -159,10 +158,6 @@ class OdsContext implements Context {
     config.responsible
   }
 
-  boolean getUpdateBranch() {
-      config.updateBranch
-  }
-
   String getGitBranch() {
       config.gitBranch
   }
@@ -185,10 +180,6 @@ class OdsContext implements Context {
 
   boolean getPodAlwaysPullImage() {
     config.podAlwaysPullImage
-  }
-
-  boolean getBranchUpdated() {
-      branchUpdated
   }
 
   String getGitUrl() {
@@ -283,14 +274,6 @@ class OdsContext implements Context {
       this.environmentCreated = created
   }
 
-  boolean shouldUpdateBranch() {
-    config.responsible && config.updateBranch && config.productionBranch != config.gitBranch
-  }
-
-  def setBranchUpdated(boolean branchUpdated) {
-      this.branchUpdated = branchUpdated
-  }
-
   // We cannot use java.security.MessageDigest.getInstance("SHA-256")
   // nor hashCode() due to sandbox restrictions ...
   private int simpleHash(String str) {
@@ -313,27 +296,24 @@ class OdsContext implements Context {
       ).trim()
   }
 
-  // Pipelines ending in either "-test" or "-prod" are only responsible for the
-  // production branch (typically master). "-master" pipelines are responsible
-  // for master branch. Other pipelines are responsible for all other branches.
-  // This works because BitBucket items only trigger the correct pipeline, and
-  // in the other case the "-dev" pipeline should build all branches. 
+  // Pipelines ending in "-test" are only responsible for master or
+  // production branch. "-dev" pipelines are responsible for all other branches.
+  // If the pipeline does not end in "-test" or "-dev", the assumption is that
+  // it is triggered exactly, so is responsible by definition. 
   private boolean isResponsible() {
-    if (config.jobName.endsWith("-test") || config.jobName.endsWith("-prod")) {
-      config.productionBranch.equals(config.gitBranch)
-    } else if (config.jobName.endsWith("-master")) {
-       config.gitBranch == "master"
+    if (config.jobName.endsWith("-test")) {
+      ['master', 'production'].contains(config.gitBranch)
+    } else if (config.jobName.endsWith("-dev")) {
+       !['master', 'production'].contains(config.gitBranch)
     } else {
-      !config.productionBranch.equals(config.gitBranch)
+      true
     }
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4-brown-bag-lunch" from it.
   private String extractShortBranchName(String branch) {
-    if (config.productionBranch.equals(branch)) {
-      branch
-    } else if (branch.startsWith("feature/")) {
+    if (branch.startsWith("feature/")) {
       branch.drop("feature/".length())
     } else if (branch.startsWith("bugfix/")) {
       branch.drop("bugfix/".length())
@@ -349,9 +329,7 @@ class OdsContext implements Context {
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
-      if (config.productionBranch.equals(branch)) {
-          branch
-      } else if (branch.startsWith("feature/")) {
+      if (branch.startsWith("feature/")) {
           def list = branch.drop("feature/".length()).tokenize("-")
           "${list[0]}-${list[1]}"
       } else if (branch.startsWith("bugfix/")) {

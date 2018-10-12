@@ -22,13 +22,9 @@ interface Context {
 
     boolean getPodAlwaysPullImage()
 
-    boolean getUpdateBranch()
-
     String getGitBranch()
 
     String getCredentialsId()
-
-    boolean getBranchUpdated()
 
     String getGitUrl()
 
@@ -73,8 +69,6 @@ interface Context {
     boolean getEnvironmentCreated()
 
     int getOpenshiftBuildTimeout()
-
-    def setBranchUpdated(boolean branchUpdated)
 
     def setEnvironmentCreated(boolean created)
 }
