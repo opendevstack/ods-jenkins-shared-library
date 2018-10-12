@@ -75,7 +75,12 @@ class OdsContext implements Context {
     if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
       config.autoCloneEnvironmentsFromSourceMapping = [:]
     }
-    config.updateBranch = config.updateBranch ?: false
+    if (!config.containsKey('sonarQubeBranch')) {
+      config.sonarQubeBranch = 'master'
+    }
+    if (!config.containsKey('dependencyCheckBranch')) {
+      config.dependencyCheckBranch = 'master'
+    }
     if (!config.containsKey('notifyNotGreen')) {
       config.notifyNotGreen = true
     }
@@ -240,6 +245,14 @@ class OdsContext implements Context {
 
   String getTargetProject() {
       config.targetProject
+  }
+
+  String getSonarQubeBranch() {
+      config.sonarQubeBranch
+  }
+
+  String getDependencyCheckBranch() {
+      config.dependencyCheckBranch
   }
 
   int getEnvironmentLimit() {

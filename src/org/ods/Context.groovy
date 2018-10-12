@@ -58,6 +58,10 @@ interface Context {
 
     String getTargetProject()
 
+    String getSonarQubeBranch()
+
+    String getDependencyCheckBranch()
+
     int getEnvironmentLimit()
 
     boolean getAdmins()
