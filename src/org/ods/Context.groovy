@@ -4,7 +4,7 @@ interface Context {
 
     def assemble()
 
-    boolean getVerbose()
+    boolean getDebug()
 
     String getJobName()
 

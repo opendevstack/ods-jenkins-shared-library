@@ -10,11 +10,11 @@ class OdsContextTest extends GroovyTestCase {
 
         logger = new Logger() {
             @Override
-            void echo(String message) {
+            void info(String message) {
             }
 
             @Override
-            void verbose(String message) {
+            void debug(String message) {
             }
 
             @Override

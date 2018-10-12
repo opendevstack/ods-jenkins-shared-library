@@ -2,8 +2,8 @@ package org.ods
 
 interface Logger {
 
-  void echo(String message)
-  void verbose(String message)
+  void info(String message)
+  void debug(String message)
   void error(String message)
 
 }
