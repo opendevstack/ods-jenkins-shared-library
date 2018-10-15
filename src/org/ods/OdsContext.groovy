@@ -15,7 +15,7 @@ class OdsContext implements Context {
   }
 
   def assemble() {
-    logger.verbose "Validating input ..."
+    logger.debug "Validating input ..."
     if (!config.projectId) {
       logger.error "Param 'projectId' is required"
     }
@@ -29,7 +29,7 @@ class OdsContext implements Context {
       logger.error "Param 'branchToEnvironmentMapping' is required"
     }
 
-    logger.verbose "Collecting environment variables ..."
+    logger.debug "Collecting environment variables ..."
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
     config.buildUrl = script.env.BUILD_URL
@@ -40,7 +40,7 @@ class OdsContext implements Context {
     config.openshiftHost = script.env.OPENSHIFT_API_URL
     config.bitbucketHost = script.env.BITBUCKET_HOST
 
-    logger.verbose "Validating environment variables ..."
+    logger.debug "Validating environment variables ..."
     if (!config.jobName) {
       logger.error 'JOB_NAME is required, but not set (usually provided by Jenkins)'
     }
@@ -66,11 +66,11 @@ class OdsContext implements Context {
       logger.error 'BITBUCKET_HOST is required, but not set'
     }
 
-    logger.verbose "Deriving configuration from input ..."
+    logger.debug "Deriving configuration from input ..."
     config.openshiftProjectId = "${config.projectId}-cd"
     config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
 
-    logger.verbose "Setting defaults ..."
+    logger.debug "Setting defaults ..."
     if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
       config.autoCloneEnvironmentsFromSourceMapping = [:]
     }
@@ -101,7 +101,7 @@ class OdsContext implements Context {
 
     config.responsible = true
 
-    logger.verbose "Retrieving Git information ..."
+    logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
 
     // BRANCH_NAME is only given for "Bitbucket Team/Project" items. For those,
@@ -121,7 +121,7 @@ class OdsContext implements Context {
       config.gitCommit = retrieveGitCommit()
       if (!isResponsible()) {
         script.currentBuild.displayName = "${config.buildNumber}/skipping-not-responsible"
-        logger.verbose "This job: ${config.jobName} is not responsible for building: ${config.gitBranch}"
+        logger.info "This job: ${config.jobName} is not responsible for building: ${config.gitBranch}"
         config.responsible = false
       }
     }
@@ -129,17 +129,17 @@ class OdsContext implements Context {
     config.shortBranchName = extractShortBranchName(config.gitBranch)
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
-    logger.verbose "Setting environment ..."
+    logger.debug "Setting environment ..."
     determineEnvironment()
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
 
-    logger.verbose "Assembled configuration: ${config}"
+    logger.info "Assembled configuration: ${config}"
   }
 
-  boolean getVerbose() {
-      config.verbose
+  boolean getDebug() {
+      config.debug
   }
 
   String getJobName() {
@@ -449,7 +449,7 @@ class OdsContext implements Context {
       return
     }
 
-    logger.echo "No environment to deploy to was determined " +
+    logger.info "No environment to deploy to was determined " +
       "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
     config.environment = ""
     config.cloneSourceEnv = ""

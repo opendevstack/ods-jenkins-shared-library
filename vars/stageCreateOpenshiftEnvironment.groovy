@@ -59,13 +59,13 @@ private void createEnvironment(def context) {
       if (context.admins) {
         admins = "-a ${context.admins}"
       }
-      def verbose = ""
-      if (context.verbose) {
-        verbose = "-v true"
+      def debugMode = ""
+      if (context.debug) {
+        debugMode = "-v true"
       }
       def gitUrl = "https://${USERPASS}@${context.bitbucketHost}/scm/${context.projectId}/${context.projectId}-occonfig-artifacts.git"
-      sh(script: "sh export.sh -p ${context.projectId} -h ${context.openshiftHost} -e ${context.cloneSourceEnv} -g ${gitUrl} -cpj ${verbose}")
-      sh(script: "sh import.sh -h ${context.openshiftHost} -p ${context.projectId} -e ${context.cloneSourceEnv} -g ${gitUrl} -n ${context.targetProject} ${admins} ${verbose} --apply true")
+      sh(script: "sh export.sh -p ${context.projectId} -h ${context.openshiftHost} -e ${context.cloneSourceEnv} -g ${gitUrl} -cpj ${debugMode}")
+      sh(script: "sh import.sh -h ${context.openshiftHost} -p ${context.projectId} -e ${context.cloneSourceEnv} -g ${gitUrl} -n ${context.targetProject} ${admins} ${debugMode} --apply true")
     }
     print("House cleaning...")
     sh(script: "rm -r oc_migration_scripts")

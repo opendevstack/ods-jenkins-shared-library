@@ -17,9 +17,9 @@ class OdsPipeline implements Serializable {
 
   // Main entry point.
   def execute(Closure stages) {
-    logger.verbose "***** Starting ODS Pipeline *****"
+    logger.info "***** Starting ODS Pipeline *****"
 
-    logger.verbose "***** Continuing on node 'master' *****"
+    logger.info "***** Continuing on node 'master' *****"
     script.node('master') {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -40,11 +40,11 @@ class OdsPipeline implements Serializable {
 
     if (!context.responsible) {
       script.currentBuild.result = 'ABORTED'
-      logger.verbose "***** Skipping ODS Pipeline *****"
+      logger.info "***** Skipping ODS Pipeline *****"
       return
     }
 
-    logger.verbose "***** Continuing on node '${context.podLabel}' based on image '${context.image}' *****"
+    logger.info "***** Continuing on node '${context.podLabel}' based on image '${context.image}' *****"
     script.podTemplate(
       label: context.podLabel,
       cloud: 'openshift',
@@ -80,11 +80,11 @@ class OdsPipeline implements Serializable {
       }
     }
 
-    logger.verbose "***** Finished ODS Pipeline *****"
+    logger.info "***** Finished ODS Pipeline *****"
   }
 
   private void setBitbucketBuildStatus(String state) {
-    logger.verbose "Setting BitBucket build status to ${state} ..."
+    logger.info "Setting BitBucket build status to ${state} ..."
     def buildName = "${context.jobName}-${context.tagversion}"
     try {
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
@@ -99,7 +99,7 @@ class OdsPipeline implements Serializable {
         """
       }
     } catch (err) {
-      logger.verbose "Could not set BitBucket build status to ${state}"
+      logger.info "Could not set BitBucket build status to ${state}"
     }
   }
 

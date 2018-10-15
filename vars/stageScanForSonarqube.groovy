@@ -2,9 +2,9 @@ def call(def context) {
   if (context.sonarQubeBranch == '*' || context.sonarQubeBranch == context.gitBranch) {
     stage('SonarQube Analysis') {
       withSonarQubeEnv('SonarServerConfig') {
-        def verbose = ""
-        if (context.verbose) {
-          verbose = "-X"
+        def debugMode = ""
+        if (context.debug) {
+          debugMode = "-X"
         }
         def scannerBinary = "sonar-scanner"
         def status = sh(returnStatus: true, script: "which ${scannerBinary}")
@@ -12,7 +12,7 @@ def call(def context) {
           def scannerHome = tool 'SonarScanner'
           scannerBinary = "${scannerHome}/bin/sonar-scanner"
         }
-        sh "${scannerBinary} ${verbose}"
+        sh "${scannerBinary} ${debugMode}"
       }
     }
   }

@@ -3,20 +3,20 @@ package org.ods
 class OdsLogger implements Logger {
 
   private Object script
-  private boolean verbose
+  private boolean debug
 
-  OdsLogger(script, verbose) {
-    this.verbose = verbose
+  OdsLogger(script, debug) {
+    this.debug = debug
     this.script = script
   }
 
-  void verbose(String message) {
-    if (verbose) {
+  void debug(String message) {
+    if (debug) {
       echo message
     }
   }
 
-  void echo(String message) {
+  void info(String message) {
     script.echo message
   }
 
