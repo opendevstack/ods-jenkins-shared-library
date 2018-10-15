@@ -38,55 +38,88 @@ odsPipeline(
 
 ## Workflow
 
-When using the shared library, you have the choice between two different workflows:
+The shared library does not impose which Git workflow you use. Whether you use git-flow, GitHub flow or a custom workflow, it is possible to configure the shared library according to your needs. There are just two settings to control everything: `branchToEnvironmentMapping` and `autoCloneEnvironmentsFromSourceMapping`.
 
-### [GitHub Flow](https://guides.github.com/introduction/flow/): Focus on continuous deployment (default)
+### branchToEnvironmentMapping
 
-`master` is the main branch and feature/bugfix branches target this branch. Each pull request is promoted to production immediately, with no integration branch in between. This style is useful for fast development, and/or when a good review system is in place.
+Example:
+```
+branchToEnvironmentMapping: [
+  "master": "prod",
+  "develop": "dev",
+  "hotfix/": "hotfix",
+  "*": "review"
+]
+```
 
-The following mapping between branches and OpenShift environments applies (top to bottom):
+Maps a branch to an environment. There are three ways to reference branches:
 
-| Branch | Environment |
-| --- | --- |
-| `master` | `prod` |
-| `*`, e.g. `feature/foo-123-bar` | If branch contains a ticket ID (`.*-([0-9]*)-.*`), attempt to deploy to `review-123`. If branch does not contain a ticket ID, or `review-123` does not exist and auto-creation is not enabled, attempt to deploy to `review` instead. If `review` does not exist either, no deployment happens. |
+* Fixed name (e.g. `master`)
+* Prefix (ending with a slash, e.g. `hotfix/`)
+* Any branch (`*`)
 
-Please note that GitHub Flow recommends to deploy the PR to production before merging it into master. This step is out of scope of the shared library, and has to be performed via different means if desired.
+Matches are made top-to-bottom. For prefixes / any branch, a more specific environment might be selected if:
 
-### [git-flow](https://jeffkreeftmeijer.com/git-flow/): Focus on continuous integration
+* the branch contains a ticket ID and a corresponding env exists in OCP. E.g. for mapping `"feature/": "dev"` and branch `feature/foo-123-bar`, the env `dev-123` is selected instead of `dev` if it exists.
+* the branch name corresponds to an existing env in OCP. E.g. for mapping `"release/": "rel"` and branch `release/1.0.0`, the env `rel-1.0.0` is selected instead of `rel` if it exists.
 
-`develop` is the integration branch, and feature/bugfix branches target this branch. `master` is the production branch, typically updated at the end of every sprint. Additionally, there are `release-x.x.x` branches (forked from `develop`) to ensure quality before the release is promoted to production, and `hotfix/x` branches (forked from `master`) for small urgent fixes.
+### autoCloneEnvironmentsFromSourceMapping
 
-The following mapping between branches and OpenShift environments applies (top to bottom):
+Caution! Cloning environments on-the-fly is an advanced feature and should only be used if you understand OCP well, as there are many moving parts and things can go wrong in multiple places.
 
-| Branch | Environment |
-| --- | --- |
-| `master` | `prod` |
-| `develop` | `dev` |
-| `hotfix/*`, e.g. `hotfix/foo-123-bar` | If branch contains a ticket ID (`.*-([0-9]*)-.*`), attempt to deploy to `hotfix-123`. If branch does not contain a ticket ID, or `hotfix-123` does not exist and auto-creation is not enabled, attempt to deploy to `hotfix` instead. If `hotfix` does not exist either, no deployment happens. |
-| `release/*`, e.g. `release/1.0.0` | Attempt to deploy to `release-1.0.0`. If that does not exist and auto-creation is not enabled, attempt to deploy to `release` instead. If `release` does not exist either, no deployment happens. |
-| `.*`, e.g. `feature/foo-123-bar` | If branch contains a ticket ID (`.*-([0-9]*)-.*`), attempt to deploy to `review-123`. If branch does not contain a ticket ID, or `review-123` does not exist and auto-creation is not enabled, attempt to deploy to `review` instead. If `review` does not exist either, no deployment happens. |
+Example:
+```
+autoCloneEnvironmentsFromSourceMapping: [
+  "hotfix": "prod",
+  "review": "dev"
+]
+```
 
-### Customization
+Instead of deploying multiple branches to the same environment, individual environments can be created on-the-fly. For example, the mapping `"*": "review"` deploys all branches to the `review` environment. To have one environment per branch / ticket ID, you can add the `review` environment to `autoCloneEnvironmentsFromSourceMapping`, e.g. like this: `"review": "dev"`. This will create individual environments (named e.g. `review-123` or `review-foobar`), each cloned from the `dev` environment.
 
-Both workflows can be customized with the following options:
+### Examples
 
-* `autoCreateReviewEnvironment`: Creates `review-x` environments on the fly (off by default).
-* `defaultReviewEnvironment`: Defaults to `review` (not created by Jenkins)
-* `productionBranch`: Defaults to `master`
-* `productionEnvironment`: Defaults to `prod`
+If you use [git-flow](https://jeffkreeftmeijer.com/git-flow/), the following config fits well:
+```
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  'develop': 'dev',
+  'release/': 'rel',
+  'hotfix/': 'hotfix',
+  '*': 'preview'
+]
+// Optionally, configure environments on-the-fly:
+autoCloneEnvironmentsFromSourceMapping: [
+  'rel': 'dev',
+  'hotfix': 'prod',
+  'preview': 'dev'
+]
+```
 
-Additionally, `workflow: "git-flow"` can be customized further:
+If you use [GitHub Flow](https://guides.github.com/introduction/flow/), the following config fits well:
+```
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  '*': 'preview'
+]
+// Optionally, configure environments on-the-fly:
+autoCloneEnvironmentsFromSourceMapping: [
+  'preview': 'prod'
+]
+```
 
-* `autoCreateReleaseEnvironment`: Creates `release-x` environments on the fly (off by default).
-* `autoCreateHotfixEnvironment`: Creates `hotfix-x` environments on the fly (off by default).
-* `defaultHotfixEnvironment`: Defaults to `hotfix` (not created by Jenkins)
-* `defaultReleaseEnvironment`: Defaults to `release` (not created by Jenkins)
-* `developmentBranch`: Defaults to `develop`
-* `developmentEnvironment`: Defaults to `dev`
-
-Note that auto-creation of environments works by cloning a previous environment. For GitHub Flow, review environments are cloned from `prod`. For git-flow, review and release environments are cloned from `dev`, hotfix is cloned from `prod`.
-
+If you use a custom workflow, the config could look like this:
+```
+branchToEnvironmentMapping: [
+  'production': 'prod',
+  'master': 'dev',
+  'staging': 'uat'
+]
+// Optionally, configure environments on-the-fly:
+autoCloneEnvironmentsFromSourceMapping: [
+  'uat': 'prod'
+]
+```
 
 ## Writing stages
 

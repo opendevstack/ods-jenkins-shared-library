@@ -22,13 +22,9 @@ interface Context {
 
     boolean getPodAlwaysPullImage()
 
-    boolean getUpdateBranch()
-
     String getGitBranch()
 
     String getCredentialsId()
-
-    boolean getBranchUpdated()
 
     String getGitUrl()
 
@@ -44,9 +40,9 @@ interface Context {
 
     String getNexusPassword()
 
-    String getProductionBranch()
+    String getBranchToEnvironmentMapping()
 
-    String getProductionEnvironment()
+    String getAutoCloneEnvironmentsFromSourceMapping()
 
     String getCloneSourceEnv()
 
@@ -62,6 +58,10 @@ interface Context {
 
     String getTargetProject()
 
+    String getSonarQubeBranch()
+
+    String getDependencyCheckBranch()
+
     int getEnvironmentLimit()
 
     boolean getAdmins()
@@ -74,9 +74,5 @@ interface Context {
 
     int getOpenshiftBuildTimeout()
 
-    def setBranchUpdated(boolean branchUpdated)
-
     def setEnvironmentCreated(boolean created)
-
-    String[] getAssumedEnvironments()
 }

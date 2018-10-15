@@ -27,11 +27,6 @@ class OdsPipeline implements Serializable {
           script.stage('Prepare') {
             context.assemble()
           }
-          if (context.shouldUpdateBranch()) {
-            script.stage('Update Branch') {
-              context.branchUpdated = updateBranch()
-            }
-          }
         }
       } catch (err) {
         script.currentBuild.result = 'FAILURE'
@@ -43,7 +38,7 @@ class OdsPipeline implements Serializable {
       }
     }
 
-    if (!context.responsible || context.branchUpdated) {
+    if (!context.responsible) {
       script.currentBuild.result = 'ABORTED'
       logger.verbose "***** Skipping ODS Pipeline *****"
       return
@@ -86,34 +81,6 @@ class OdsPipeline implements Serializable {
     }
 
     logger.verbose "***** Finished ODS Pipeline *****"
-  }
-
-  private boolean updateBranch() {
-    def updated = false
-    script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-      def url = context.gitUrl.replace("cd_user", script.USERPASS)
-      script.withEnv(["BRANCH_TO_BUILD=${context.gitBranch}", "BITBUCKET_URL=${url}"]) {
-        script.sh '''
-          git config user.name "Jenkins CD User"
-          git config user.email "cd_user@opendevstack.org"
-          git config credential.helper store
-          echo ${BITBUCKET_URL} > ~/.git-credentials
-          git checkout ${BRANCH_TO_BUILD}
-          git merge origin/${BRANCH_TO_BUILD}
-          '''
-        def mergeResult = script.sh returnStdout: true, script: '''
-          git merge --no-edit -m "Merging master to ${BRANCH_TO_BUILD}" origin/master
-          '''
-        if (!mergeResult.trim().contains("Already up-to-date.")) {
-          script.sh 'git push origin ${BRANCH_TO_BUILD} 2>&1'
-          logger.verbose "Branch was updated with master"
-          updated = true
-        } else {
-          logger.verbose "Branch is up-to-date with master"
-        }
-      }
-    }
-    return updated
   }
 
   private void setBitbucketBuildStatus(String state) {
