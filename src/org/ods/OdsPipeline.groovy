@@ -87,7 +87,7 @@ class OdsPipeline implements Serializable {
   private boolean updateBranch() {
     def updated = false
     script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-      def url = context.gitUrl.replace("cd_user", script.USERPASS)
+      def url = context.gitUrl.replace("cd_user", script.USERPASS.replace('@', '%40'))
       script.withEnv(["BRANCH_TO_BUILD=${context.gitBranch}", "BITBUCKET_URL=${url}"]) {
         script.sh '''
           git config user.name "Jenkins CD User"
