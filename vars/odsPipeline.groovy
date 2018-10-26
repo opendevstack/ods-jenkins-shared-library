@@ -12,7 +12,7 @@
  *                                                     source (e.g. if you want
  *                                                     to clone "feature" envs
  *                                                     from the "prod" env).
- * verbose - optional - Turn on/off verbose output (defaults to "false").
+ * debug - optional - Turn on/off debug output (defaults to "false").
  * openshiftBuildTimeout - optional - Defaults to 15 minutes.
  * notifyNotGreen - optional - Turn on/off email notifications (defaults to "true").
  * podVolumes - optional - Persistent volume claim to mount in the slave.
@@ -30,8 +30,8 @@ import org.ods.OdsLogger
 import org.ods.OdsPipeline
 
 def call(Map config, Closure body) {
-  config.verbose = config.verbose ?: (config.debug ?: false)
-  def logger = new OdsLogger(this, config.verbose)
+  config.debug = config.debug ?: false
+  def logger = new OdsLogger(this, config.debug)
   def bp = new OdsPipeline(this, config, logger)
   return bp.execute(body)
 }
