@@ -379,17 +379,7 @@ class OdsContext implements Context {
   }
 
   private String constructCredentialBitbucketURL(String url, String userPass) {
-      return url.replace("cd_user", userPass)
-  }
-
-  private String buildGitUrl(credentialsId) {
-    def token
-    script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
-      token = 'https://' + script.USERPASS + '@bitbucket'
-    }
-    return script.sh(
-      returnStdout: true, script: 'git config --get remote.origin.url'
-    ).trim().replace('https://bitbucket', token)
+      return url.replace("cd_user", userPass.replace('@', '%40'))
   }
 
   private String determineEnvironment(String gitBranch, String projectId, boolean autoCreateEnvironment) {
@@ -410,7 +400,7 @@ class OdsContext implements Context {
       return "dev"
     }
 
-    env = code.toLowerCase() + "-dev"
+    def env = code.toLowerCase() + "-dev"
     if (autoCreateEnvironment || environmentExists("${projectId}-${env}")) {
       return env
     }
@@ -419,7 +409,7 @@ class OdsContext implements Context {
   }
 
   private boolean environmentExists(String name) {
-    def statusCode = sh(
+    def statusCode = script.sh(
       script:"oc project ${name} &> /dev/null",
       returnStatus: true
     )
