@@ -2,123 +2,150 @@ package org.ods
 
 class OdsContextTest extends GroovyTestCase {
 
-    LinkedHashMap<String, String> config
     PipelineScript script
-    OdsPipeline pipeline
-    Context uut
+    Logger logger
 
     protected void setUp() {
-
-        config = [gitBranch: 'master', projectId:'PSP', autoCreateEnvironment:'true']
-
         script = new PipelineScript()
 
-        Logger logger = new Logger() {
+        logger = new Logger() {
             @Override
             void echo(String message) {
-                script.echo(message)
             }
 
             @Override
             void verbose(String message) {
-                script.echo(message)
             }
 
             @Override
             void error(String message) {
-                script.echo(message)
+            }
+        }
+    }
+
+    void testDetermineEnvironment_gitflow() {
+        def existingEnvironments = []
+        def config = [
+            projectId: 'foo',
+            branchToEnvironmentMapping: [
+                'master': 'prod',
+                'develop': 'dev',
+                'release/': 'rel',
+                'hotfix/': 'hotfix',
+                '*': 'preview'
+            ],
+            autoCloneEnvironmentsFromSourceMapping: [:]
+        ]
+        def uut = new OdsContext(script, config, logger) {
+            protected boolean environmentExists(String name) {
+                existingEnvironments.contains(name)
             }
         }
 
-        pipeline = new OdsPipeline(script, config, logger)
+        config.gitBranch = 'master'
+        uut.determineEnvironment()
+        assertEquals("prod", config.environment)
 
-        uut = pipeline.context
+        config.gitBranch = 'develop'
+        uut.determineEnvironment()
+        assertEquals("dev", config.environment)
 
+        config.gitBranch = 'release/1.0.0'
+        uut.determineEnvironment()
+        assertEquals("rel", config.environment)
+
+        config.gitBranch = 'hotfix/foo-123-bar'
+        uut.determineEnvironment()
+        assertEquals("hotfix", config.environment)
+
+        config.gitBranch = 'feature/foo-123-bar'
+        uut.determineEnvironment()
+        assertEquals("preview", config.environment)
+
+        existingEnvironments = ['preview-123']
+        config.gitBranch = 'feature/foo-123-bar'
+        uut.determineEnvironment()
+        assertEquals("preview-123", config.environment)
+
+        existingEnvironments = ['preview-foo-bar']
+        config.gitBranch = 'foo-bar'
+        uut.determineEnvironment()
+        assertEquals("preview-foo-bar", config.environment)
     }
 
-    void testGivenDetermineEnvironment_whenAutoCreateEqualsFalse() {
+    void testDetermineEnvironment_githubflow() {
+        def existingEnvironments = []
+        def config = [
+            projectId: 'foo',
+            branchToEnvironmentMapping: [
+                'master': 'prod',
+                '*': 'preview'
+            ],
+            autoCloneEnvironmentsFromSourceMapping: [
+                'preview': 'prod'
+            ]
+        ]
+        def uut = new OdsContext(script, config, logger) {
+            protected boolean environmentExists(String name) {
+                existingEnvironments.contains(name)
+            }
+        }
 
-        uut = pipeline.context
+        config.gitBranch = 'master'
+        uut.determineEnvironment()
+        assertEquals("prod", config.environment)
 
-        // DevTest Mode
-        config.autoCreateEnvironment = false
-        config.projectId = "psp"
-
-        config.gitBranch = "dev"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "master"
-        assertEquals("test", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "uat"
-        assertEquals("uat", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "prod"
-        assertEquals("prod", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "feature/PSP-111"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "feature/PSP-111#-something"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "bugfix/" + config.projectId.toUpperCase() + "-444-something-else"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "hotfix/" + config.projectId.toUpperCase() + "-444-something-else"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "release/" + config.projectId.toUpperCase() + "-v1_1_1"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "something_without_a_minus"
-        assertEquals("", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
+        config.gitBranch = 'feature/foo-123-bar'
+        uut.determineEnvironment()
+        assertEquals("preview-123", config.environment)
     }
 
-    void testGivenDetermineEnvironment_whenAutoCreateEqualsTrue() {
+    void testDetermineEnvironment_autoclone() {
+        def existingEnvironments = []
+        def config = [
+            projectId: 'foo',
+            branchToEnvironmentMapping: [
+                'master': 'prod',
+                'develop': 'dev',
+                'release/': 'rel',
+                'hotfix/': 'hotfix',
+                '*': 'preview'
+            ],
+            autoCloneEnvironmentsFromSourceMapping: [
+                'rel': 'dev',
+                'hotfix': 'prod',
+                'preview': 'dev'
+            ]
+        ]
+        def uut = new OdsContext(script, config, logger) {
+            protected boolean environmentExists(String name) {
+                existingEnvironments.contains(name)
+            }
+        }
 
-        uut = pipeline.context
+        config.gitBranch = 'release/1.0.0'
+        uut.determineEnvironment()
+        assertEquals("rel-1.0.0", config.environment)
+        assertEquals("dev", config.cloneSourceEnv)
 
-        // Multi Environments Mode
-        config.autoCreateEnvironment = true
-        config.projectId = "psp"
+        config.gitBranch = 'hotfix/foo-123-bar'
+        uut.determineEnvironment()
+        assertEquals("hotfix-123", config.environment)
+        assertEquals("prod", config.cloneSourceEnv)
 
-        config.gitBranch = "dev"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
+        config.gitBranch = 'hotfix/foo'
+        uut.determineEnvironment()
+        assertEquals("hotfix-foo", config.environment)
+        assertEquals("prod", config.cloneSourceEnv)
 
-        config.gitBranch = "master"
-        assertEquals("test", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
+        config.gitBranch = 'feature/foo-123-bar'
+        uut.determineEnvironment()
+        assertEquals("preview-123", config.environment)
+        assertEquals("dev", config.cloneSourceEnv)
 
-        config.gitBranch = "uat"
-        assertEquals("uat", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "prod"
-        assertEquals("prod", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "feature/" + config.projectId.toUpperCase() + "-ABC"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-
-        config.gitBranch = "something-else"
-        assertEquals("", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "something_without_a_minus"
-        assertEquals("", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "bugfix/" + config.projectId.toUpperCase() + "-444-something-else"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "hotfix/" + config.projectId.toUpperCase() + "-444-something-else"
-        assertEquals("dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "feature/PSP-111#-something"
-        assertEquals("111#-dev", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
-        config.gitBranch = "release/" + config.projectId.toUpperCase() + "-v1_1_1"
-        assertEquals("v1_1_1-rel", uut.determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment))
-
+        config.gitBranch = 'foo-bar'
+        uut.determineEnvironment()
+        assertEquals("preview-foo-bar", config.environment)
+        assertEquals("dev", config.cloneSourceEnv)
     }
-
-
 }

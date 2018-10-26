@@ -1,5 +1,5 @@
 def call(def context) {
-  if (context.testProjectBranch == context.gitBranch) {
+  if (context.sonarQubeBranch == '*' || context.sonarQubeBranch == context.gitBranch) {
     stage('SonarQube Analysis') {
       withSonarQubeEnv('SonarServerConfig') {
         def verbose = ""

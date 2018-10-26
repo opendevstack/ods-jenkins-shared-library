@@ -2,125 +2,136 @@
 
 This library allows to have a minimal Jenkinsfile in each repository by providing all language-agnostic build aspects. The goal is to duplicate as little as possible between repositories and have an easy way to ship updates to all projects.
 
-This shared library supports two different working modes: 
-* trunk-based development mode (default) 
-* multiple environments mode
 
-# Usage
+## Usage
 
 Load the shared library in your `Jenkinsfile` like this:
 ```groovy
 def final projectId = "hugo"
 def final componentId = "be-node-express"
 def final credentialsId = "${projectId}-cd-cd-user-with-password"
+def sharedLibraryRepository
+def dockerRegistry
 node {
   sharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
+  dockerRegistry = env.DOCKER_REGISTRY
 }
 
-library identifier: 'ods@latest', retriever: modernSCM(
+library identifier: 'ods-library@1-latest', retriever: modernSCM(
   [$class: 'GitSCMSource',
    remote: sharedLibraryRepository,
    credentialsId: credentialsId])
 
 odsPipeline(
-  image: 'docker-registry.default.svc:5000/cd/slave-maven',
-  verbose: true,
+  image: "${dockerRegistry}/cd/jenkins-slave-maven",
   projectId: projectId,
-  componentId: componentId
+  componentId: componentId,
+  verbose: true,
 ) { context ->
   stage('Build') {
-      // your custom code
+      // custom stage
   }
-  stageScanForSonarqube(context)
-  stageCreateOpenshiftEnvironment(context)
-  stageUpdateOpenshiftBuild(context)
-  stageDeployToOpenshift(context)
-  stageTriggerAllBuilds(context)
+  stageScanForSonarqube(context) // using a provided stage
 }
 ```
 
-# Switching to multiple environment modes
 
-The "multiple environment mode" enables the shared library to create new Openshift projects for new branches.
+## Workflow
 
-This will only happen if the branch name starts with the suffix `feature/`, `bugfix/`, `hotfix/` or `release/` and is followed by the Jira issue, e.g. `PSP-100`.
+The shared library does not impose which Git workflow you use. Whether you use git-flow, GitHub flow or a custom workflow, it is possible to configure the shared library according to your needs. There are just two settings to control everything: `branchToEnvironmentMapping` and `autoCloneEnvironmentsFromSourceMapping`.
 
-Note that there is no check in place that verifies that the jira item is a valid one.
+### branchToEnvironmentMapping
 
-This mode is disabled by default, to enable it, add `autoCreateEnvironment: true` like this:
+Example:
 ```
-odsPipeline(
-  image: 'docker-registry.default.svc:5000/cd/slave-nodejs',
-  verbose: true,
-  projectId: projectId,
-  componentId: componentId,
-  notifyNotGreen: false,
-  autoCreateEnvironment: true,
-  environmentLimit: 10
-)
+branchToEnvironmentMapping: [
+  "master": "prod",
+  "develop": "dev",
+  "hotfix/": "hotfix",
+  "*": "review"
+]
 ```
 
-In the example above the number of environments to be provisioned in openshift is limited by the configuration `environmentLimit: 10`.
+Maps a branch to an environment. There are three ways to reference branches:
 
-When working with "multiple environment mode" we recommend to add the item BitBucket Team/Project in Jenkins to your project.  
+* Fixed name (e.g. `master`)
+* Prefix (ending with a slash, e.g. `hotfix/`)
+* Any branch (`*`)
 
-# Branch names to openshift project name rules  
+Matches are made top-to-bottom. For prefixes / any branch, a more specific environment might be selected if:
 
-Before deploying a project (namespace) to openshift, this library maps branch names to openshift project names.    
+* the branch contains a ticket ID and a corresponding env exists in OCP. E.g. for mapping `"feature/": "dev"` and branch `feature/foo-123-bar`, the env `dev-123` is selected instead of `dev` if it exists.
+* the branch name corresponds to an existing env in OCP. E.g. for mapping `"release/": "rel"` and branch `release/1.0.0`, the env `rel-1.0.0` is selected instead of `rel` if it exists.
 
-E.g. if the branch name prefix is `master` then the resolved target openshift project name will be `<project-id>-test`.
+### autoCloneEnvironmentsFromSourceMapping
 
-Following naming convention rules are applied to map branch names to openshift environment:
+Caution! Cloning environments on-the-fly is an advanced feature and should only be used if you understand OCP well, as there are many moving parts and things can go wrong in multiple places.
 
-Case 1: multi environments is not enabled (`autoCreateEnvironment=false`)  
+Example:
+```
+autoCloneEnvironmentsFromSourceMapping: [
+  "hotfix": "prod",
+  "review": "dev"
+]
+```
 
-| branch name | openshift project name |
-| ----------- | ----------- |
-| starts with `dev` |   `<project-id>-dev` |
-| starts with `master`|     `<project-id>-test` |
-| starts with `uat` |       `<project-id>-uat` |
-| starts with `prod`| `<project-id>-prod` |
-| starts with `feature/` |  `<project-id>-dev` |
-| starts with `hotfix/` |  `<project-id>-dev` |
-| starts with `bugfix/` |  `<project-id>-dev` |
-| starts with `release/` | `<project-id>-dev` |
-| not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
+Instead of deploying multiple branches to the same environment, individual environments can be created on-the-fly. For example, the mapping `"*": "review"` deploys all branches to the `review` environment. To have one environment per branch / ticket ID, you can add the `review` environment to `autoCloneEnvironmentsFromSourceMapping`, e.g. like this: `"review": "dev"`. This will create individual environments (named e.g. `review-123` or `review-foobar`), each cloned from the `dev` environment.
 
-NOTE:
-- value of `project-id` and `version` should not contain char `-`.
+### Examples
 
-Case 2: multi environments is enabled (`autoCreateEnvironment=true`)
+If you use [git-flow](https://jeffkreeftmeijer.com/git-flow/), the following config fits well:
+```
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  'develop': 'dev',
+  'release/': 'rel',
+  'hotfix/': 'hotfix',
+  '*': 'preview'
+]
+// Optionally, configure environments on-the-fly:
+autoCloneEnvironmentsFromSourceMapping: [
+  'rel': 'dev',
+  'hotfix': 'prod',
+  'preview': 'dev'
+]
+```
 
-| branch name | openshift project name |
-| ----------- | ----------- |
-| starts with `dev` |   `<project-id>-dev` |
-| starts with `master`|     `<project-id>-test` |
-| starts with `uat` |       `<project-id>-uat` |
-| starts with `prod`| `<project-id>-prod` |
-| starts with `feature/` |  `<project-id>-dev` |
-| starts with `feature/<project-id>-<jira-item>#` | `<project-id>-<jira-item>#-dev` |
-| starts with `hotfix/` |  `<project-id>-dev` |
-| starts with `bugfix/` |  `<project-id>-dev` |
-| starts with `release/<project-id>-v<version>` | `<project-id>-v<version>-rel` |
-| not any of rules above  | openshift project name will be empty. Deployment to openshift will fail. |
+If you use [GitHub Flow](https://guides.github.com/introduction/flow/), the following config fits well:
+```
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  '*': 'preview'
+]
+// Optionally, configure environments on-the-fly:
+autoCloneEnvironmentsFromSourceMapping: [
+  'preview': 'prod'
+]
+```
 
-NOTES:
- 
-- value of `project-id`, `version`, `jira-item` should not contain char `-`.
-- the char `#` needs to be added after the `jira-item` in order to get a new openshift project created.      
-If the char `#` is not added, then the resolved openshift project name will be `<project-id>-dev`.  
-- the char `v` needs to be added after `<project-id>-` in order to get a new openshift porject created for a special release version.
+If you use a custom workflow, the config could look like this:
+```
+branchToEnvironmentMapping: [
+  'production': 'prod',
+  'master': 'dev',
+  'staging': 'uat'
+]
+// Optionally, configure environments on-the-fly:
+autoCloneEnvironmentsFromSourceMapping: [
+  'uat': 'prod'
+]
+```
 
-# Customisation
+## Writing stages
 
 Inside the closure passed to `odsPipeline`, you have full control. Write stages just like you would do in a normal `Jenkinsfile`. You have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsPipeline`. Please see `vars/odsPipeline.groovy` for possible options.
 
 
-# Development
-* Assume that repositories are tracking the `latest` tag. Therefore, be careful when you move this tag. Make sure to test your changes first in a repository that you own by pointing to your shared library branch.
+## Development
+* Assume that repositories are tracking `x-latest` tags. Therefore, be careful when you move those tags. Make sure to test your changes first in a repository that you own by pointing to your shared library branch.
 * Try to write tests.
 * See if you can split things up into classes.
 * Keep in mind that you need to access e.g. `sh` via `script.sh`.
 
-# Background
+
+## Background
 The implementation is largely based on https://www.relaxdiego.com/2018/02/jenkins-on-jenkins-shared-libraries.html. The scripted pipeline syntax was chosen because it is a better fit for a shared library. The declarative pipeline syntax is targeted for newcomers and/or simple pipelines (see https://jenkins.io/doc/book/pipeline/syntax/#scripted-pipeline). If you try to use it e.g. within a Groovy class you'll end up with lots of `script` blocks.

@@ -7,7 +7,6 @@ class OdsContext implements Context {
   Map config
 
   boolean environmentCreated
-  boolean branchUpdated
 
   OdsContext(script, config, logger) {
     this.script = script
@@ -25,6 +24,9 @@ class OdsContext implements Context {
     }
     if (!config.image) {
       logger.error "Param 'image' is required"
+    }
+    if (!config.branchToEnvironmentMapping) {
+      logger.error "Param 'branchToEnvironmentMapping' is required"
     }
 
     logger.verbose "Collecting environment variables ..."
@@ -69,8 +71,15 @@ class OdsContext implements Context {
     config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
 
     logger.verbose "Setting defaults ..."
-    config.autoCreateEnvironment = config.autoCreateEnvironment ?: false
-    config.updateBranch = config.updateBranch ?: false
+    if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
+      config.autoCloneEnvironmentsFromSourceMapping = [:]
+    }
+    if (!config.containsKey('sonarQubeBranch')) {
+      config.sonarQubeBranch = 'master'
+    }
+    if (!config.containsKey('dependencyCheckBranch')) {
+      config.dependencyCheckBranch = 'master'
+    }
     if (!config.containsKey('notifyNotGreen')) {
       config.notifyNotGreen = true
     }
@@ -83,9 +92,6 @@ class OdsContext implements Context {
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
     }
-    if (!config.testProjectBranch) {
-      config.testProjectBranch = "master"
-    }
     if (!config.podVolumes) {
       config.podVolumes = []
     }
@@ -93,25 +99,15 @@ class OdsContext implements Context {
       config.podAlwaysPullImage = true
     }
 
-    logger.verbose "Validating configuration ..."
-    if (config.autoCreateEnvironment && !config.branchName) {
-      logger.error 'Aborting! autoCreateEnvironment=true and branchName=null. ' +
-                   'You will need to configure a "Bitbucket Team/Project" item.'
-    }
-
     config.responsible = true
 
     logger.verbose "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
 
-    // BRANCH_NAME is only given for "Bitbucket Team/Project" items. If
-    // autoCreateEnvironment is disabled, we need to determine the Git branch to
-    // build from the last push. In that case, we also skip the pipeline if
-    // it is triggered but not responsible.
-    if (config.autoCreateEnvironment) {
-      // For "Bitbucket Team/Project" items, the initial checkout is already
-      // of the branch we want to build for, so just get HEAD now.
-      config.gitCommit = retrieveGitCommit()
+    // BRANCH_NAME is only given for "Bitbucket Team/Project" items. For those,
+    // we need to do a little bit of magic to get the right Git branch.
+    // For other pipelines, we need to check responsibility.
+    if (config.branchName) {
       if (config.branchName.startsWith("PR-")){
         config.gitBranch = retrieveBranchOfPullRequest(config.credentialsId, config.gitUrl, config.branchName)
         config.jobName = config.branchName
@@ -134,7 +130,7 @@ class OdsContext implements Context {
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
     logger.verbose "Setting environment ..."
-    config.environment = determineEnvironment(config.gitBranch, config.projectId, config.autoCreateEnvironment)
+    determineEnvironment()
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
@@ -162,10 +158,6 @@ class OdsContext implements Context {
     config.responsible
   }
 
-  boolean getUpdateBranch() {
-      config.updateBranch
-  }
-
   String getGitBranch() {
       config.gitBranch
   }
@@ -188,10 +180,6 @@ class OdsContext implements Context {
 
   boolean getPodAlwaysPullImage() {
     config.podAlwaysPullImage
-  }
-
-  boolean getBranchUpdated() {
-      branchUpdated
   }
 
   String getGitUrl() {
@@ -222,12 +210,20 @@ class OdsContext implements Context {
       config.nexusPassword
   }
 
-  String getEnvironment() {
-      config.environment
+  String getBranchToEnvironmentMapping() {
+      config.branchToEnvironmentMapping
   }
 
-  String getTestProjectBranch() {
-      config.testProjectBranch
+  String getAutoCloneEnvironmentsFromSourceMapping() {
+      config.autoCloneEnvironmentsFromSourceMapping
+  }
+
+  String getCloneSourceEnv() {
+      config.cloneSourceEnv
+  }
+
+  String getEnvironment() {
+      config.environment
   }
 
   String getGroupId() {
@@ -248,6 +244,14 @@ class OdsContext implements Context {
 
   String getTargetProject() {
       config.targetProject
+  }
+
+  String getSonarQubeBranch() {
+      config.sonarQubeBranch
+  }
+
+  String getDependencyCheckBranch() {
+      config.dependencyCheckBranch
   }
 
   int getEnvironmentLimit() {
@@ -278,14 +282,6 @@ class OdsContext implements Context {
       this.environmentCreated = created
   }
 
-  boolean shouldUpdateBranch() {
-    config.responsible && config.updateBranch && config.testProjectBranch != config.gitBranch
-  }
-
-  def setBranchUpdated(boolean branchUpdated) {
-      this.branchUpdated = branchUpdated
-  }
-
   // We cannot use java.security.MessageDigest.getInstance("SHA-256")
   // nor hashCode() due to sandbox restrictions ...
   private int simpleHash(String str) {
@@ -308,26 +304,24 @@ class OdsContext implements Context {
       ).trim()
   }
 
-  // If BRANCH_NAME is not given, we need to check whether the pipeline is
-  // responsible for building this commit at all.
+  // Pipelines ending in "-test" are only responsible for master or
+  // production branch. "-dev" pipelines are responsible for all other branches.
+  // If the pipeline does not end in "-test" or "-dev", the assumption is that
+  // it is triggered exactly, so is responsible by definition. 
   private boolean isResponsible() {
     if (config.jobName.endsWith("-test")) {
-      return config.testProjectBranch.equals(config.gitBranch)
+      ['master', 'production'].contains(config.gitBranch)
+    } else if (config.jobName.endsWith("-dev")) {
+       !['master', 'production'].contains(config.gitBranch)
+    } else {
+      true
     }
-
-    if (config.jobName.endsWith("-dev")) {
-      return !config.testProjectBranch.equals(config.gitBranch)
-    }
-
-    return true
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4-brown-bag-lunch" from it.
   private String extractShortBranchName(String branch) {
-    if (config.testProjectBranch.equals(branch)) {
-      branch
-    } else if (branch.startsWith("feature/")) {
+    if (branch.startsWith("feature/")) {
       branch.drop("feature/".length())
     } else if (branch.startsWith("bugfix/")) {
       branch.drop("bugfix/".length())
@@ -343,9 +337,7 @@ class OdsContext implements Context {
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
-      if (config.testProjectBranch.equals(branch)) {
-          branch
-      } else if (branch.startsWith("feature/")) {
+      if (branch.startsWith("feature/")) {
           def list = branch.drop("feature/".length()).tokenize("-")
           "${list[0]}-${list[1]}"
       } else if (branch.startsWith("bugfix/")) {
@@ -424,105 +416,89 @@ class OdsContext implements Context {
     ).trim().replace('https://bitbucket', token)
   }
 
-  String determineEnvironment(String gitBranch, String origProjectId, boolean autoCreateEnvironment) {
-
-    String errMsg = "No environment was determined. No environment to deploy to! [gitBranch=${gitBranch}" +
-      ", projectId=${origProjectId}, autoCreateEnvironment=${autoCreateEnvironment}]"
-
-    if (autoCreateEnvironment==false) {
-      if (isMasterBranch(gitBranch)) {
-        return "test"
-      } else if (isDevelopBranch(gitBranch) || isAFeatureBranch(gitBranch)
-              || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
-              || isABugBranch(gitBranch)) {
-        return "dev"
-      } else if (isUATBranch(gitBranch)) {
-        return "uat"
-      } else if (isProductionBranch(gitBranch)) {
-        return "prod"
-      }
-      logger.echo errMsg
-      return ""
+  // This logic must be consistent with what is described in README.md.
+  // To make it easier to follow the logic, it is broken down by workflow (at
+  // the cost of having some duplication).
+  void determineEnvironment() {
+    // Fixed name
+    def env = config.branchToEnvironmentMapping[config.gitBranch]
+    if (env) {
+      config.environment = env
+      config.cloneSourceEnv = null
+      return
     }
 
-    if (isMasterBranch(gitBranch)) {
-      return "test"
-    } else if (isDevelopBranch(gitBranch)) {
-      return "dev"
-    } else if (isUATBranch(gitBranch)) {
-      return "uat"
-    } else if (isProductionBranch(gitBranch)) {
-      return "prod"
-    } else if (isAFeatureBranch(gitBranch)
-            || isAReleaseBranch(gitBranch) || isAHotfixBranch(gitBranch)
-            || isABugBranch(gitBranch)) {
-      def tokens = extractBranchCode(gitBranch).split("-")
-      def projectId = tokens[0]
-      if (!projectId || !projectId.equalsIgnoreCase(origProjectId)) {
-        logger.echo errMsg
-        return ""
-      }
-      String code = tokens[1]
-      if (code) {
-        if (isAReleaseBranch(gitBranch)) {
-          try {
-            if (!code.startsWith("v")) {
-              logger.echo "Release branch name '${code}' needs to start with 'v' => no environment to deploy"
-              return ""
-            }
-            return code + "-rel"
-          } catch (IllegalArgumentException ex) {
-            logger.echo "Release branch name '${code}' is not a semantic version name => no environment to deploy"
-            return ""
-          }
-        } else if (!code.endsWith("#")) {
-          return "dev"
-        } else {
-          return code + "-dev"
+    // Prefix
+    for (e in config.branchToEnvironmentMapping) {
+        if (config.gitBranch.startsWith(e.key)) {
+          setMostSpecificEnvironment(
+            e.value,
+            config.gitBranch.replace(e.key, "")
+          )
+          return
         }
-      } else {
-        logger.echo errMsg
-        return ""
-      }
+    }
+
+    // Any branch
+    def genericEnv = config.branchToEnvironmentMapping["*"]
+    if (genericEnv) {
+      setMostSpecificEnvironment(
+        genericEnv,
+        config.gitBranch.replace("/", "")
+      )
+      return
+    }
+
+    logger.echo "No environment to deploy to was determined " +
+      "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
+    config.environment = ""
+    config.cloneSourceEnv = ""
+  }
+
+  // Based on given +genericEnv+ (e.g. "preview") and +branchSuffix+ (e.g.
+  // "foo-123-bar"), it finds the most specific environment. This is either:
+  // - the +genericEnv+ suffixed with a numeric ticket ID
+  // - the +genericEnv+ suffixed with the +branchSuffix+
+  // - the +genericEnv+ without suffix
+  protected void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
+    def specifcEnv = genericEnv + "-" + branchSuffix
+
+    def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
+    if (ticketId) {
+      specifcEnv = genericEnv + "-" + ticketId
+    }
+
+    config.cloneSourceEnv = config.autoCloneEnvironmentsFromSourceMapping[genericEnv]
+    def autoCloneEnabled = !!config.cloneSourceEnv
+    if (autoCloneEnabled || environmentExists(specifcEnv)) {
+      config.environment = specifcEnv
     } else {
-        logger.echo errMsg
-        return ""
+      config.environment = genericEnv
     }
   }
-  private String checkoutBranch(String branchName) {
+
+  protected String getTicketIdFromBranch(String branchName, String projectId) {
+    def tokens = extractBranchCode(branchName).split("-")
+    def pId = tokens[0]
+    if (!pId || !pId.equalsIgnoreCase(projectId)) {
+      return ""
+    }
+    if (!tokens[1].isNumber()) {
+      return ""
+    }
+    return tokens[1]
+  }
+
+  protected String checkoutBranch(String branchName) {
     script.git url: config.gitUrl, branch: branchName, credentialsId: config.credentialsId
   }
 
-  private boolean isMasterBranch(String gitBranch) {
-    return gitBranch.startsWith("master")
-  }
-
-  private boolean isDevelopBranch(String gitBranch) {
-    return gitBranch.startsWith("dev")
-  }
-
-  private boolean isUATBranch(String gitBranch) {
-    return gitBranch.startsWith("uat")
-  }
-
-  private boolean isProductionBranch(String gitBranch) {
-    return gitBranch.startsWith("prod")
-  }
-
-  private boolean isAFeatureBranch(String gitBranch) {
-    return gitBranch.startsWith("feature/")
-  }
-
-  private boolean isAReleaseBranch(String gitBranch) {
-    return gitBranch.startsWith("release/")
-  }
-
-  private boolean isAHotfixBranch(String gitBranch) {
-    return gitBranch.startsWith("hotfix/")
-  }
-
-  private boolean isABugBranch(String gitBranch) {
-    return gitBranch.startsWith("bugfix/")
+  protected boolean environmentExists(String name) {
+    def statusCode = script.sh(
+      script:"oc project ${name} &> /dev/null",
+      returnStatus: true
+    )
+    return statusCode == 0
   }
 
 }
