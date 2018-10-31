@@ -17,7 +17,7 @@ node {
   dockerRegistry = env.DOCKER_REGISTRY
 }
 
-library identifier: 'ods-library@1-latest', retriever: modernSCM(
+library identifier: 'ods-library@production', retriever: modernSCM(
   [$class: 'GitSCMSource',
    remote: sharedLibraryRepository,
    credentialsId: credentialsId])
@@ -124,9 +124,19 @@ autoCloneEnvironmentsFromSourceMapping: [
 
 Inside the closure passed to `odsPipeline`, you have full control. Write stages just like you would do in a normal `Jenkinsfile`. You have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsPipeline`. Please see `vars/odsPipeline.groovy` for possible options.
 
+## Versioning
+
+Each `Jenkinsfile` references a Git revsison of this library, e.g.
+`library identifier: 'ods-library@production'`. The Git revsison can be a
+branch (e.g. `production` or `0.1.x`), a tag (e.g.`0.1.1`) or a specific commit.
+
+By default, each `Jenkinsfile` in `ods-project-quickstarters` on the `master`
+branch references the `production` branch of this library. Quickstarters on a
+branch point to the corresponding branch of the shared library - for example
+a `Jenkinsfile` on branch `0.1.x` oints to `0.1.x` of the shared library.
+
 
 ## Development
-* Assume that repositories are tracking `x-latest` tags. Therefore, be careful when you move those tags. Make sure to test your changes first in a repository that you own by pointing to your shared library branch.
 * Try to write tests.
 * See if you can split things up into classes.
 * Keep in mind that you need to access e.g. `sh` via `script.sh`.
