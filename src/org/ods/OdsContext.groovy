@@ -403,17 +403,7 @@ class OdsContext implements Context {
   }
 
   private String constructCredentialBitbucketURL(String url, String userPass) {
-      return url.replace("cd_user", userPass)
-  }
-
-  private String buildGitUrl(credentialsId) {
-    def token
-    script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
-      token = 'https://' + script.USERPASS + '@bitbucket'
-    }
-    return script.sh(
-      returnStdout: true, script: 'git config --get remote.origin.url'
-    ).trim().replace('https://bitbucket', token)
+      return url.replace("cd_user", userPass.replace('@', '%40'))
   }
 
   // This logic must be consistent with what is described in README.md.
