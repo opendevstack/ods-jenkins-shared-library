@@ -120,9 +120,24 @@ autoCloneEnvironmentsFromSourceMapping: [
 ]
 ```
 
+
 ## Writing stages
 
 Inside the closure passed to `odsPipeline`, you have full control. Write stages just like you would do in a normal `Jenkinsfile`. You have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsPipeline`. Please see `vars/odsPipeline.groovy` for possible options.
+
+
+## Slave customization
+
+The slave used to build your code can be customized by specifying the image to
+use. Further, `podAlwaysPullImage` (defaulting to `true`) can be used to
+determine whether this image should be refreshed on each build. The setting
+`podVolumes` allows to mount persistent volume claims to the pod (the value is
+passed to the `podTemplate` call as `volumes`). To control the container pods
+completely, set `podContainers` (which is passed to the `podTemplate` call
+as `containers`). See the
+[kubernetes-plugin](https://github.com/jenkinsci/kubernetes-plugin)
+documentation for possible configuration.
+
 
 ## Versioning
 

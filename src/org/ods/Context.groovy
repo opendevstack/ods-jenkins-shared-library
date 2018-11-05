@@ -18,6 +18,8 @@ interface Context {
 
     String getPodLabel()
 
+    Object getPodContainers()
+
     Object getPodVolumes()
 
     boolean getPodAlwaysPullImage()
