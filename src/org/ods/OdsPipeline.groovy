@@ -21,7 +21,7 @@ class OdsPipeline implements Serializable {
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild()
     }
-    
+
     def cl = {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -50,7 +50,7 @@ class OdsPipeline implements Serializable {
       cl()
     }
 
-	def nodeStartTime = System.currentTimeMillis();
+    def nodeStartTime = System.currentTimeMillis();
     def msgBasedOn = ''
     if (context.image) {
       msgBasedOn = " based on image '${context.image}'"
@@ -78,10 +78,10 @@ class OdsPipeline implements Serializable {
               setBitbucketBuildStatus('SUCCESSFUL')
               return
             }
-            
+
             stages(context)
           }
-          
+
           stashTestResults()
           updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
@@ -99,7 +99,7 @@ class OdsPipeline implements Serializable {
             if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException)
             {
               throw err
-            } else 
+            } else
             {
               context.addArtifactURI('failedStage', script.env.STAGE_NAME)
               stashTestResults(true)
@@ -108,7 +108,7 @@ class OdsPipeline implements Serializable {
           } else {
             throw err
           }
-        } 
+        }
       }
     }
   }
@@ -133,11 +133,11 @@ class OdsPipeline implements Serializable {
         context.cloneSourceEnv = null
       }
       def debug = script.env.DEBUG
-      if (debug != null && context.debug == null) 
+      if (debug != null && context.debug == null)
       {
           logger.debug("Setting ${debug} on ${context.projectId}")
           context.debug = debug
-      } 
+      }
     } else {
       logger.error("Variable MULTI_REPO_ENV must not be null!")
       // Using exception because error step would skip post steps
@@ -147,9 +147,9 @@ class OdsPipeline implements Serializable {
 
   private void stashTestResults (def hasFailed = false) {
     def testLocation = "build/test-results/test"
-    
+
     logger.debug "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
-    
+
     if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
     {
       // verify the beast exists
@@ -159,20 +159,20 @@ class OdsPipeline implements Serializable {
       {
         script.currentBuild = 'FAILURE'
         throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
-      } else 
+      } else
       {
-        // copy files to default location 
+        // copy files to default location
         script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
       }
-    } 
-    
+    }
+
     script.sh (script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
     def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true, label: "Find test results").trim()
     logger.debug "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
-    
+
     context.addArtifactURI("testResults", foundTests)
-    
-    if (hasFailed && foundTests.toInteger() == 0) 
+
+    if (hasFailed && foundTests.toInteger() == 0)
     {
       logger.debug "ODS Build did fail, and no test results,.. returning"
       return
@@ -181,7 +181,7 @@ class OdsPipeline implements Serializable {
     // stash them in the mro pattern
     script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
   }
-  
+
   private void setBitbucketBuildStatus(String state) {
     if (!context.getBitbucketNotificationEnabled()) {
       return
@@ -236,7 +236,7 @@ class OdsPipeline implements Serializable {
         logger.info 'Skipping for empty environment ...'
         return
       }
-      
+
       if (!!script.env.MULTI_REPO_BUILD)
       {
           logger.info "MRO Build - skipping env mapping"
@@ -257,7 +257,7 @@ class OdsPipeline implements Serializable {
         logger.info "Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ..."
         return
       }
-      
+
       if (tooManyEnvironments(context.projectId, context.environmentLimit)) {
         logger.error "Cannot create OC project " +
           "as there are already ${context.environmentLimit} OC projects! " +

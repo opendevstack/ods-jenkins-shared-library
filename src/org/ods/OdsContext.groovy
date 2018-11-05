@@ -5,7 +5,7 @@ class OdsContext implements Context {
   def script
   Logger logger
   Map config
-  
+
   def artifactUriStore = [ : ]
 
   OdsContext(script, config, logger) {
@@ -159,6 +159,8 @@ class OdsContext implements Context {
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
+
+    config.podLabel = "pod-${UUID.randomUUID().toString()}"
 
     logger.info "Assembled configuration: ${config}"
   }
@@ -358,7 +360,7 @@ class OdsContext implements Context {
   boolean getTestResults () {
     return config.testResults
   }
-  
+
   void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
     config.localCheckoutEnabled = localCheckoutEnabled
   }
@@ -553,7 +555,7 @@ class OdsContext implements Context {
     )
     return statusCode == 0
   }
-  
+
   public Map<String, String> getBuildArtifactURIs() {
     return this.artifactUriStore
   }
