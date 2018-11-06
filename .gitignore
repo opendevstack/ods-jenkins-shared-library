@@ -1,10 +1,8 @@
 target
-
-### IntelliJ IDEA ###
+bin
+out
+.project
 .idea
 *.iws
 *.iml
 *.ipr
-out
-
-bin
