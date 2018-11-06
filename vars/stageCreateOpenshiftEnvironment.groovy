@@ -43,15 +43,16 @@ private boolean environmentExists(String name) {
 private void createEnvironment(def context) {
   println("Environment does not exist yet. Creating now ...")
   withCredentials([usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
+    def userPass = USERPASS.replace('@', '%40')
     sh(script: "mkdir -p oc_migration_scripts/migration_config")
 
     dir('oc_migration_scripts') {
-      sh(script: "curl --fail -s --user ${USERPASS} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/export_ocp_project_metadata.sh?at=refs%2Fheads%2Fproduction' -d raw -o export.sh")
-      sh(script: "curl --fail -s --user ${USERPASS} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/import_ocp_project_metadata.sh?at=refs%2Fheads%2Fproduction' -d raw -o import.sh")
+      sh(script: "curl --fail -s --user ${userPass} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/export_ocp_project_metadata.sh?at=refs%2Fheads%2Fproduction' -d raw -o export.sh")
+      sh(script: "curl --fail -s --user ${userPass} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/import_ocp_project_metadata.sh?at=refs%2Fheads%2Fproduction' -d raw -o import.sh")
 
       dir('migration_config') {
-        sh(script: "curl --fail -s --user ${USERPASS} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-configuration/raw/ods-project-quickstarters/ocp-templates/scripts/ocp_project_config_source' -d raw -o ocp_project_config_source")
-        sh(script: "curl --fail -s --user ${USERPASS} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-configuration/raw/ods-project-quickstarters/ocp-templates/scripts/ocp_project_config_target' -d raw -o ocp_project_config_target")
+        sh(script: "curl --fail -s --user ${userPass} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-configuration/raw/ods-project-quickstarters/ocp-templates/scripts/ocp_project_config_source' -d raw -o ocp_project_config_source")
+        sh(script: "curl --fail -s --user ${userPass} -G 'https://${context.bitbucketHost}/projects/opendevstack/repos/ods-configuration/raw/ods-project-quickstarters/ocp-templates/scripts/ocp_project_config_target' -d raw -o ocp_project_config_target")
       }
 
       // Running the export and import scripts
@@ -63,7 +64,7 @@ private void createEnvironment(def context) {
       if (context.debug) {
         debugMode = "-v true"
       }
-      def gitUrl = "https://${USERPASS}@${context.bitbucketHost}/scm/${context.projectId}/${context.projectId}-occonfig-artifacts.git"
+      def gitUrl = "https://${userPass}@${context.bitbucketHost}/scm/${context.projectId}/${context.projectId}-occonfig-artifacts.git"
       sh(script: "sh export.sh -p ${context.projectId} -h ${context.openshiftHost} -e ${context.cloneSourceEnv} -g ${gitUrl} -cpj ${debugMode}")
       sh(script: "sh import.sh -h ${context.openshiftHost} -p ${context.projectId} -e ${context.cloneSourceEnv} -g ${gitUrl} -n ${context.targetProject} ${admins} ${debugMode} --apply true")
     }
