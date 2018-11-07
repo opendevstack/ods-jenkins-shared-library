@@ -133,7 +133,7 @@ branch (e.g. `production` or `0.1.x`), a tag (e.g.`0.1.1`) or a specific commit.
 By default, each `Jenkinsfile` in `ods-project-quickstarters` on the `master`
 branch references the `production` branch of this library. Quickstarters on a
 branch point to the corresponding branch of the shared library - for example
-a `Jenkinsfile` on branch `0.1.x` oints to `0.1.x` of the shared library.
+a `Jenkinsfile` on branch `0.1.x` points to `0.1.x` of the shared library.
 
 
 ## Development
