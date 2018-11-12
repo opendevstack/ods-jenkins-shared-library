@@ -38,7 +38,6 @@ class OdsContext implements Context {
     config.nexusHost = script.env.NEXUS_HOST
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
-    config.branchName = script.env.BRANCH_NAME // may be empty
     config.openshiftHost = script.env.OPENSHIFT_API_URL
     config.bitbucketHost = script.env.BITBUCKET_HOST
 
@@ -114,34 +113,10 @@ class OdsContext implements Context {
       ]
     }
 
-    config.responsible = true
-
     logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
-
-    // BRANCH_NAME is only given for "Bitbucket Team/Project" items. For those,
-    // we need to do a little bit of magic to get the right Git branch.
-    // For other pipelines, we need to check responsibility.
-    if (config.branchName) {
-      if (config.branchName.startsWith("PR-")){
-        config.gitBranch = retrieveBranchOfPullRequest(config.credentialsId, config.gitUrl, config.branchName)
-        config.jobName = config.branchName
-      } else {
-        config.gitBranch = config.branchName
-        config.jobName = extractBranchCode(config.branchName)
-      }
-    } else {
-      config.gitBranch = determineBranchToBuild(config.credentialsId, config.gitUrl)
-      checkoutBranch(config.gitBranch)
-      config.gitCommit = retrieveGitCommit()
-      if (!isResponsible()) {
-        script.currentBuild.displayName = "${config.buildNumber}/skipping-not-responsible"
-        logger.info "This job: ${config.jobName} is not responsible for building: ${config.gitBranch}"
-        config.responsible = false
-      }
-    }
-
-    config.shortBranchName = extractShortBranchName(config.gitBranch)
+    config.gitBranch = retrieveGitBranch()
+    config.gitCommit = retrieveGitCommit()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
     logger.debug "Setting environment ..."
@@ -169,10 +144,6 @@ class OdsContext implements Context {
 
   String getBuildUrl() {
     config.buildUrl
-  }
-
-  boolean getResponsible() {
-    config.responsible
   }
 
   String getGitBranch() {
@@ -205,10 +176,6 @@ class OdsContext implements Context {
 
   String getGitUrl() {
       config.gitUrl
-  }
-
-  String getShortBranchName() {
-      config.shortBranchName
   }
 
   String getTagversion() {
@@ -315,34 +282,14 @@ class OdsContext implements Context {
       ).trim()
   }
 
-  // Pipelines ending in "-test" are only responsible for master or
-  // production branch. "-dev" pipelines are responsible for all other branches.
-  // If the pipeline does not end in "-test" or "-dev", the assumption is that
-  // it is triggered exactly, so is responsible by definition.
-  private boolean isResponsible() {
-    if (config.jobName.endsWith("-test")) {
-      ['master', 'production'].contains(config.gitBranch)
-    } else if (config.jobName.endsWith("-dev")) {
-       !['master', 'production'].contains(config.gitBranch)
-    } else {
-      true
-    }
-  }
+  private String retrieveGitBranch() {
+    def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
+    def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
-  // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
-  // "HUGO-4-brown-bag-lunch" from it.
-  private String extractShortBranchName(String branch) {
-    if (branch.startsWith("feature/")) {
-      branch.drop("feature/".length())
-    } else if (branch.startsWith("bugfix/")) {
-      branch.drop("bugfix/".length())
-    } else if (branch.startsWith("hotfix/")) {
-      branch.drop("hotfix/".length())
-    } else if (branch.startsWith("release/")) {
-      branch.drop("release/".length())
-    } else {
-      branch
-    }
+    script.sh(
+      returnStdout: true,
+      script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
+    ).trim()
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
@@ -363,54 +310,6 @@ class OdsContext implements Context {
       } else {
           branch
       }
-  }
-
-  // For pull requests, the branch name environment variable is not the actual
-  // git branch, which we need.
-  private String retrieveBranchOfPullRequest(String credId, String gitUrl, String pullRequest){
-    script.withCredentials([script.usernameColonPassword(credentialsId: credId, variable: 'USERPASS')]) {
-      def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-      def pullRequestNumber = pullRequest.drop("PR-".length())
-      def commitNumber = script.withEnv(["BITBUCKET_URL=${url}", "PULL_REQUEST_NUMBER=${pullRequestNumber}"]) {
-        return script.sh(returnStdout: true, script: '''
-          git config user.name "Jenkins CD User"
-          git config user.email "cd_user@opendevstack.org"
-          git config credential.helper store
-          echo ${BITBUCKET_URL} > ~/.git-credentials
-          git fetch
-          git ls-remote | grep \"refs/pull-requests/${PULL_REQUEST_NUMBER}/from\" | awk \'{print \$1}\'
-        ''').trim()
-      }
-      def branch = script.withEnv(["BITBUCKET_URL=${url}", "COMMIT_NUMBER=${commitNumber}"]) {
-        return script.sh(returnStdout: true, script: '''
-          git config user.name "Jenkins CD User"
-          git config user.email "cd_user@opendevstack.org"
-          git config credential.helper store
-          echo ${BITBUCKET_URL} > ~/.git-credentials
-          git fetch
-          git ls-remote | grep ${COMMIT_NUMBER} | grep \'refs/heads\' | awk \'{print \$2}\'
-        ''').trim().drop("refs/heads/".length())
-      }
-      return branch
-    }
-  }
-
-  // If BRANCH_NAME is not given, we need to figure out the branch from the last
-  // commit to the repository.
-  private String determineBranchToBuild(credentialsId, gitUrl) {
-    script.withCredentials([script.usernameColonPassword(credentialsId: credentialsId, variable: 'USERPASS')]) {
-      def url = constructCredentialBitbucketURL(gitUrl, script.USERPASS)
-      script.withEnv(["BITBUCKET_URL=${url}"]) {
-        return script.sh(returnStdout: true, script: '''
-          git config user.name "Jenkins CD User"
-          git config user.email "cd_user@opendevstack.org"
-          git config credential.helper store
-          echo ${BITBUCKET_URL} > ~/.git-credentials
-          git fetch
-          git for-each-ref --sort=-committerdate refs/remotes/origin | cut -c69- | head -1
-        ''').trim()
-      }
-    }
   }
 
   private String constructCredentialBitbucketURL(String url, String userPass) {
@@ -488,10 +387,6 @@ class OdsContext implements Context {
       return ""
     }
     return tokens[1]
-  }
-
-  protected String checkoutBranch(String branchName) {
-    script.git url: config.gitUrl, branch: branchName, credentialsId: config.credentialsId
   }
 
   protected boolean environmentExists(String name) {
