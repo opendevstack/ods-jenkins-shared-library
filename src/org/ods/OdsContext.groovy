@@ -22,8 +22,8 @@ class OdsContext implements Context {
     if (!config.componentId) {
       logger.error "Param 'componentId' is required"
     }
-    if (!config.image) {
-      logger.error "Param 'image' is required"
+    if (!config.image && !config.podContainers) {
+      logger.error "Param 'image' or 'podContainers' is required"
     }
     if (!config.branchToEnvironmentMapping) {
       logger.error "Param 'branchToEnvironmentMapping' is required"
@@ -98,6 +98,17 @@ class OdsContext implements Context {
     if (!config.containsKey('podAlwaysPullImage')) {
       config.podAlwaysPullImage = true
     }
+    if (!config.containsKey('podContainers')) {
+      config.podContainers = [
+        script.containerTemplate(
+          name: 'jnlp',
+          image: config.image,
+          workingDir: '/tmp',
+          alwaysPullImage: config.podAlwaysPullImage,
+          args: '${computer.jnlpmac} ${computer.name}'
+        )
+      ]
+    }
 
     config.responsible = true
 
@@ -135,6 +146,8 @@ class OdsContext implements Context {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
 
+    config.podLabel = "pod-${UUID.randomUUID().toString()}"
+
     logger.info "Assembled configuration: ${config}"
   }
 
@@ -171,7 +184,11 @@ class OdsContext implements Context {
   }
 
   String getPodLabel() {
-    "pod-${simpleHash(config.image)}"
+    config.podLabel
+  }
+
+  Object getPodContainers() {
+    config.podContainers
   }
 
   Object getPodVolumes() {
@@ -280,16 +297,6 @@ class OdsContext implements Context {
 
   def setEnvironmentCreated(boolean created) {
       this.environmentCreated = created
-  }
-
-  // We cannot use java.security.MessageDigest.getInstance("SHA-256")
-  // nor hashCode() due to sandbox restrictions ...
-  private int simpleHash(String str) {
-    int hash = 7;
-    for (int i = 0; i < str.length(); i++) {
-      hash = hash*31 + str.charAt(i);
-    }
-    return hash
   }
 
   private String retrieveGitUrl() {
