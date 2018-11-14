@@ -25,7 +25,11 @@ library identifier: 'ods-library@production', retriever: modernSCM(
 odsPipeline(
   image: "${dockerRegistry}/cd/jenkins-slave-maven",
   projectId: projectId,
-  componentId: componentId
+  componentId: componentId,
+  branchToEnvironmentMapping: [
+    'master': 'test',
+    '*': 'dev'
+  ]
 ) { context ->
   stage('Build') {
       // custom stage
