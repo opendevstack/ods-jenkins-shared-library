@@ -12,7 +12,7 @@ class OdsLogger implements Logger {
 
   void debug(String message) {
     if (debug) {
-      echo message
+      script.echo message
     }
   }
 
