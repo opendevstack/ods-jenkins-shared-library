@@ -25,7 +25,9 @@ class OdsContext implements Context {
     if (!config.image) {
       logger.error "Param 'image' is required"
     }
-    if (!config.branchToEnvironmentMapping) {
+    // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
+    // if the repository should not be deployed to OpenShift at all.
+    if (!config.containsKey('branchToEnvironmentMapping')) {
       logger.error "Param 'branchToEnvironmentMapping' is required"
     }
 
