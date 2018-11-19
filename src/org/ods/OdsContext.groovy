@@ -49,9 +49,6 @@ class OdsContext implements Context {
     if (!config.buildNumber) {
       logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
     }
-    if (!config.buildUrl) {
-      logger.error 'BUILD_URL is required, but not set (usually provided by Jenkins)'
-    }
     if (!config.nexusHost) {
       logger.error 'NEXUS_HOST is required, but not set'
     }
@@ -66,6 +63,11 @@ class OdsContext implements Context {
     }
     if (!config.bitbucketHost) {
       logger.error 'BITBUCKET_HOST is required, but not set'
+    }
+    if (!config.buildUrl) {
+      logger.info 'BUILD_URL is required to set a proper build status in ' +
+                  'BitBucket, but it is not present. Normally, it is provided ' +
+                  'by Jenkins - please check your JenkinsUrl configuration.'
     }
 
     logger.debug "Deriving configuration from input ..."
