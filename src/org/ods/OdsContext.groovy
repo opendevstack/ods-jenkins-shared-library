@@ -307,7 +307,7 @@ class OdsContext implements Context {
   // Pipelines ending in "-test" are only responsible for master or
   // production branch. "-dev" pipelines are responsible for all other branches.
   // If the pipeline does not end in "-test" or "-dev", the assumption is that
-  // it is triggered exactly, so is responsible by definition. 
+  // it is triggered exactly, so is responsible by definition.
   private boolean isResponsible() {
     if (config.jobName.endsWith("-test")) {
       ['master', 'production'].contains(config.gitBranch)
@@ -403,7 +403,7 @@ class OdsContext implements Context {
   }
 
   private String constructCredentialBitbucketURL(String url, String userPass) {
-      return url.replace("cd_user", userPass.replace('@', '%40'))
+      return url.replace("cd_user", userPass.replace('@', '%40')).replaceAll("[\n\r]","").trim()
   }
 
   // This logic must be consistent with what is described in README.md.
