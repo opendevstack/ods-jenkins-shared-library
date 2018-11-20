@@ -48,19 +48,15 @@ class OdsPipeline implements Serializable {
       return
     }
 
-    logger.info "***** Continuing on node '${context.podLabel}' based on image '${context.image}' *****"
+    def msgBasedOn = ''
+    if (context.image) {
+      msgBasedOn = " based on image '${context.image}'"
+    }
+    logger.info "***** Continuing on node '${context.podLabel}'${msgBasedOn} *****"
     script.podTemplate(
       label: context.podLabel,
       cloud: 'openshift',
-      containers: [
-        script.containerTemplate(
-          name: 'jnlp',
-          image: context.image,
-          workingDir: '/tmp',
-          alwaysPullImage: context.podAlwaysPullImage,
-          args: '${computer.jnlpmac} ${computer.name}'
-        )
-      ],
+      containers: context.podContainers,
       volumes: context.podVolumes
     ) {
       script.node(context.podLabel) {
