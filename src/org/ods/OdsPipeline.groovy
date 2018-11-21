@@ -42,12 +42,6 @@ class OdsPipeline implements Serializable {
       }
     }
 
-    if (!context.responsible) {
-      script.currentBuild.result = 'ABORTED'
-      logger.info "***** Skipping ODS Pipeline *****"
-      return
-    }
-
     def msgBasedOn = ''
     if (context.image) {
       msgBasedOn = " based on image '${context.image}'"
@@ -63,8 +57,8 @@ class OdsPipeline implements Serializable {
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            script.git url: context.gitUrl, branch: context.gitBranch, credentialsId: context.credentialsId
-            script.currentBuild.displayName = "${context.shortBranchName}/#${context.tagversion}"
+            script.checkout script.scm
+            script.currentBuild.displayName = "#${context.tagversion}"
             stages(context)
           }
           script.currentBuild.result = 'SUCCESS'
