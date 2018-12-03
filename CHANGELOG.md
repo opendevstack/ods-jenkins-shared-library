@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [1.0.0] - 2018-12-03
+
 ### Added
 - Allow to take full control over the pod containers of the build slave (#35).
 - Allow to start build in OpenShift directly from artifacts produced in the Jenkins pipeline. This removes the need to upload the artifacts to Nexus and then download them again in the `Dockerfile`. To use, replace `stageUpdateOpenShiftBuild` with `stageStartOpenShiftBuild` and adapt the `Dockerfile` accordingly. See [#8](https://github.com/opendevstack/ods-jenkins-shared-library/pull/8).
@@ -19,6 +22,7 @@
 
 ### Removed
 - Verbose mode (#30)
+- `stageUpdateOpenshiftBuild` - Use `stageStartOpenShiftBuild` instead (#8)
 
 
 ## [0.1.0] - 2018-07-27
