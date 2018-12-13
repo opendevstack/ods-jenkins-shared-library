@@ -12,7 +12,18 @@ def call(def context) {
           def scannerHome = tool 'SonarScanner'
           scannerBinary = "${scannerHome}/bin/sonar-scanner"
         }
+		// execute the scan
         sh "${scannerBinary} ${debugMode}"
+		
+		// we need to get the sq project name - people could modify it
+		sq_props = readProperties file: 'sonar-project.properties'
+		sonarProjectKey = sq_props['sonar.projectKey']
+		withEnv (["SQ_PROJECT=${sonarProjectKey}"])
+		{
+		  sh "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT"
+		  // archive generated cnes report doc
+		  archiveArtifacts '*-analysis-report.docx*'
+		}	
       }
     }
   }
