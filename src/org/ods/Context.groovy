@@ -12,11 +12,11 @@ interface Context {
 
     String getBuildUrl()
 
-    boolean getResponsible()
-
     String getImage()
 
     String getPodLabel()
+
+    Object getPodContainers()
 
     Object getPodVolumes()
 
@@ -27,8 +27,6 @@ interface Context {
     String getCredentialsId()
 
     String getGitUrl()
-
-    String getShortBranchName()
 
     String getTagversion()
 

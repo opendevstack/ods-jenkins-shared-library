@@ -17,7 +17,7 @@ node {
   dockerRegistry = env.DOCKER_REGISTRY
 }
 
-library identifier: 'ods-library@1-latest', retriever: modernSCM(
+library identifier: 'ods-library@production', retriever: modernSCM(
   [$class: 'GitSCMSource',
    remote: sharedLibraryRepository,
    credentialsId: credentialsId])
@@ -25,7 +25,11 @@ library identifier: 'ods-library@1-latest', retriever: modernSCM(
 odsPipeline(
   image: "${dockerRegistry}/cd/jenkins-slave-maven",
   projectId: projectId,
-  componentId: componentId
+  componentId: componentId,
+  branchToEnvironmentMapping: [
+    'master': 'test',
+    '*': 'dev'
+  ]
 ) { context ->
   stage('Build') {
       // custom stage
@@ -120,13 +124,38 @@ autoCloneEnvironmentsFromSourceMapping: [
 ]
 ```
 
+
 ## Writing stages
 
 Inside the closure passed to `odsPipeline`, you have full control. Write stages just like you would do in a normal `Jenkinsfile`. You have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsPipeline`. Please see `vars/odsPipeline.groovy` for possible options.
 
 
+## Slave customization
+
+The slave used to build your code can be customized by specifying the image to
+use. Further, `podAlwaysPullImage` (defaulting to `true`) can be used to
+determine whether this image should be refreshed on each build. The setting
+`podVolumes` allows to mount persistent volume claims to the pod (the value is
+passed to the `podTemplate` call as `volumes`). To control the container pods
+completely, set `podContainers` (which is passed to the `podTemplate` call
+as `containers`). See the
+[kubernetes-plugin](https://github.com/jenkinsci/kubernetes-plugin)
+documentation for possible configuration.
+
+
+## Versioning
+
+Each `Jenkinsfile` references a Git revsison of this library, e.g.
+`library identifier: 'ods-library@production'`. The Git revsison can be a
+branch (e.g. `production` or `0.1.x`), a tag (e.g.`0.1.1`) or a specific commit.
+
+By default, each `Jenkinsfile` in `ods-project-quickstarters` on the `master`
+branch references the `production` branch of this library. Quickstarters on a
+branch point to the corresponding branch of the shared library - for example
+a `Jenkinsfile` on branch `0.1.x` points to `0.1.x` of the shared library.
+
+
 ## Development
-* Assume that repositories are tracking `x-latest` tags. Therefore, be careful when you move those tags. Make sure to test your changes first in a repository that you own by pointing to your shared library branch.
 * Try to write tests.
 * See if you can split things up into classes.
 * Keep in mind that you need to access e.g. `sh` via `script.sh`.
