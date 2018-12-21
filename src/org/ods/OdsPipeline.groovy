@@ -80,23 +80,27 @@ class OdsPipeline implements Serializable {
   private void setBitbucketBuildStatus(String state) {
     logger.info "Setting BitBucket build status to ${state} ..."
     def buildName = "${context.jobName}-${context.tagversion}"
-    try {
-      script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-        script.sh """curl \\
-          --fail \\
-          --silent \\
-          --user ${script.USERPASS} \\
-          --request POST \\
-          --header \"Content-Type: application/json\" \\
-          --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
-          https://${context.bitbucketHost}/rest/build-status/1.0/commits/${context.gitCommit}
-        """
+    def maxAttempts = 3
+    def retries = 0
+    while(retries++ < maxAttempts) {
+      try {
+        script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
+          script.sh """curl \\
+            --fail \\
+            --silent \\
+            --user ${script.USERPASS} \\
+            --request POST \\
+            --header \"Content-Type: application/json\" \\
+            --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
+            https://${context.bitbucketHost}/rest/build-status/1.0/commits/${context.gitCommit}
+          """
+        }
+        return
+      } catch(err) {
+        logger.info "Could not set BitBucket build status to ${state} due to ${err}"
       }
-    } catch (err) {
-      logger.info "Could not set BitBucket build status to ${state}"
     }
   }
-
 
   private void notifyNotGreen() {
     script.emailext(
