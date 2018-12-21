@@ -329,14 +329,17 @@ class OdsContext implements Context {
     }
 
     // Prefix
-    for (e in config.branchToEnvironmentMapping) {
-        if (config.gitBranch.startsWith(e.key)) {
-          setMostSpecificEnvironment(
-            e.value,
-            config.gitBranch.replace(e.key, "")
-          )
-          return
-        }
+    // Loop needs to be done like this due to
+    // https://issues.jenkins-ci.org/browse/JENKINS-27421 and
+    // https://issues.jenkins-ci.org/browse/JENKINS-35191.
+    for (def key : config.branchToEnvironmentMapping.keySet()) {
+      if (config.gitBranch.startsWith(key)) {
+        setMostSpecificEnvironment(
+          config.branchToEnvironmentMapping[key],
+          config.gitBranch.replace(key, "")
+        )
+        return
+      }
     }
 
     // Any branch
