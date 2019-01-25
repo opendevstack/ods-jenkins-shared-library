@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+- Retry setting build status twice ([#57](https://github.com/opendevstack/ods-jenkins-shared-library/pull/57))
+
+### Fixed
+- Serialization error when branch prefix is used in environment mapping ([#58](https://github.com/opendevstack/ods-jenkins-shared-library/pull/58))
+
 
 ## [1.0.0] - 2018-12-03
 
