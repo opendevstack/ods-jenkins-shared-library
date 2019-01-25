@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [1.0.1] - 2019-01-25
+
 ### Changed
 - Retry setting build status twice ([#57](https://github.com/opendevstack/ods-jenkins-shared-library/pull/57))
 
