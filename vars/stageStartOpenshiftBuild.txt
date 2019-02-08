@@ -1,0 +1,7 @@
+stageStartOpenshiftBuild triggers the BuildConfig related to the repository
+being built.
+
+stageStartOpenshiftBuild takes an optional "buildArgs" param, which is a map
+allowing to customise the image build step in OpenShift. For example:
+
+stageStartOpenshiftBuild(context, ["myArg":"val"])
