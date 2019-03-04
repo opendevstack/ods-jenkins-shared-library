@@ -59,6 +59,14 @@ class OdsPipeline implements Serializable {
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             script.checkout script.scm
             script.currentBuild.displayName = "#${context.tagversion}"
+
+            if (context.ciSkip){
+              logger.info 'Skipping Build ...'
+              script.currentBuild.result = 'SUCCESS'
+              setBitbucketBuildStatus('SUCCESSFUL')
+              return
+            }
+
             stages(context)
           }
           script.currentBuild.result = 'SUCCESS'
