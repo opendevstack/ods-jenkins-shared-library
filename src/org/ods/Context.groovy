@@ -12,6 +12,8 @@ interface Context {
 
     String getBuildUrl()
 
+    String getBuildTime()
+
     String getImage()
 
     String getPodLabel()
@@ -54,6 +56,12 @@ interface Context {
 
     String getGitCommit()
 
+    String getGitCommitAuthor()
+
+    String getGitCommitMessage()
+
+    String getGitCommitTime()
+
     String getTargetProject()
 
     String getSonarQubeBranch()
@@ -65,6 +73,8 @@ interface Context {
     boolean getAdmins()
 
     String getOpenshiftHost()
+
+    String getOdsSharedLibVersion()
 
     String getBitbucketHost()
 
