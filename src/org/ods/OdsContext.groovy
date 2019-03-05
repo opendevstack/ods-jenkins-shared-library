@@ -293,11 +293,9 @@ class OdsContext implements Context {
   }
   // looks for string [ci skip] in commit message
   boolean getCiSkip() {
-    logger.info "testing.."
-    def ciSkip = script.sh(
+    script.sh(
             returnStdout: true, script: 'git show --pretty=%s%b -s'
-    )
-    return ciSkip.contains('[ci skip]')
+    ).toLowerCase().contains('[ci skip]')
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
