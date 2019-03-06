@@ -62,7 +62,7 @@ class OdsPipeline implements Serializable {
 
             if (context.ciSkip){
               logger.info 'Skipping Build ...'
-              script.currentBuild.result = 'SUCCESS'
+              script.currentBuild.result = 'NOT_BUILT'
               setBitbucketBuildStatus('SUCCESSFUL')
               return
             }
