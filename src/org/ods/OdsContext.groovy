@@ -35,11 +35,13 @@ class OdsContext implements Context {
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
     config.buildUrl = script.env.BUILD_URL
+    config.buildTime = new Date()
     config.nexusHost = script.env.NEXUS_HOST
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
     config.openshiftHost = script.env.OPENSHIFT_API_URL
     config.bitbucketHost = script.env.BITBUCKET_HOST
+    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true)
 
     logger.debug "Validating environment variables ..."
     if (!config.jobName) {
@@ -117,6 +119,9 @@ class OdsContext implements Context {
     config.gitUrl = retrieveGitUrl()
     config.gitBranch = retrieveGitBranch()
     config.gitCommit = retrieveGitCommit()
+    config.gitCommitAuthor = retrieveGitCommitAuthor()
+    config.gitCommitMessage = retrieveGitCommitMessage()
+    config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
     logger.debug "Setting environment ..."
@@ -144,6 +149,10 @@ class OdsContext implements Context {
 
   String getBuildUrl() {
     config.buildUrl
+  }
+
+  String getBuildTime() {
+    config.buildTime
   }
 
   String getGitBranch() {
@@ -227,7 +236,19 @@ class OdsContext implements Context {
   }
 
   String getGitCommit() {
-      config.gitCommit
+    config.gitCommit
+  }
+
+  String getGitCommitAuthor() {
+    config.gitCommitAuthor
+  }
+
+  String getGitCommitMessage() {
+    config.gitCommitMessage
+  }
+
+  String getGitCommitTime() {
+    config.gitCommitTime
   }
 
   String getTargetProject() {
@@ -254,6 +275,10 @@ class OdsContext implements Context {
       config.openshiftHost
   }
 
+  String getOdsSharedLibVersion() {
+    config.odsSharedLibVersion
+  }
+
   String getBitbucketHost() {
       config.bitbucketHost
   }
@@ -277,9 +302,27 @@ class OdsContext implements Context {
   }
 
   private String retrieveGitCommit() {
-      script.sh(
-        returnStdout: true, script: 'git rev-parse HEAD'
-      ).trim()
+    script.sh(
+      returnStdout: true, script: 'git rev-parse HEAD'
+    ).trim()
+  }
+
+  private String retrieveGitCommitAuthor() {
+    script.sh(
+      returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD"
+    ).trim()
+  }
+
+  private String retrieveGitCommitMessage() {
+    script.sh(
+            returnStdout: true, script: "git log -1 --pretty=%B HEAD"
+    ).trim()
+  }
+
+  private String retrieveGitCommitTime() {
+    script.sh(
+            returnStdout: true, script: "git show -s --format=%ci HEAD"
+    ).trim()
   }
 
   private String retrieveGitBranch() {
