@@ -83,4 +83,6 @@ interface Context {
     int getOpenshiftBuildTimeout()
 
     def setEnvironmentCreated(boolean created)
+
+    boolean getCiSkip()
 }
