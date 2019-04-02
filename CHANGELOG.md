@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+##  [1.0.2] - 2019-04-02
+- Image author / commit empty in oc image built thru jenkins shared lib ([#47](https://github.com/opendevstack/ods-jenkins-shared-library/pull/47))
 
 ## [1.0.1] - 2019-01-25
 
