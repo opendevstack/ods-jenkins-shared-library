@@ -162,6 +162,13 @@ you can follow the following steps:
 - Track your large files in your local clone, as explained in previous step
 - Enable Git LFS in your repository (if BitBucket: under repository's settings main page you can enable it)
 
+**NOTE**: if already having a repository with large files and you want to migrate it to using git LFS:
+
+```bash
+git lfs migrate
+```
+
+
 ## Development
 * Try to write tests.
 * See if you can split things up into classes.
