@@ -110,7 +110,8 @@ class OdsContext implements Context {
           image: config.image,
           workingDir: '/tmp',
           alwaysPullImage: config.podAlwaysPullImage,
-          args: '${computer.jnlpmac} ${computer.name}'
+          args: '${computer.jnlpmac} ${computer.name}',
+          serviceAccount: 'jenkins'
         )
       ]
     }
@@ -333,6 +334,12 @@ class OdsContext implements Context {
       returnStdout: true,
       script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
     ).trim()
+  }
+  // looks for string [ci skip] in commit message
+  boolean getCiSkip() {
+    script.sh(
+            returnStdout: true, script: 'git show --pretty=%s%b -s'
+    ).toLowerCase().contains('[ci skip]')
   }
 
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
