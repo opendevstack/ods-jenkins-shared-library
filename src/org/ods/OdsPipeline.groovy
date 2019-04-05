@@ -57,7 +57,8 @@ class OdsPipeline implements Serializable {
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            script.checkout script.scm
+            checkoutWithGitLFSpull()
+
             script.currentBuild.displayName = "#${context.tagversion}"
 
             if (context.ciSkip){
@@ -83,6 +84,21 @@ class OdsPipeline implements Serializable {
     }
 
     logger.info "***** Finished ODS Pipeline *****"
+  }
+
+  private void checkoutWithGitLFSpull(){
+    script.checkout([  $class: 'GitSCM',
+                    branches: [[name: 'refs/heads/'+context.gitBranch]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [$class: 'GitLFSPull']
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [
+                        [credentialsId: context.credentialsId,
+                        url: context.gitUrl]
+                    ]
+                ])
   }
 
   private void setBitbucketBuildStatus(String state) {
