@@ -57,7 +57,11 @@ class OdsPipeline implements Serializable {
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            checkoutWithGitLFSpull()
+            if (isSlaveNodeGitLFSenabled()){
+              checkoutWithGitLFSpull()
+            } else {
+              script.checkout script.scm
+            }
 
             script.currentBuild.displayName = "#${context.tagversion}"
 
@@ -84,21 +88,6 @@ class OdsPipeline implements Serializable {
     }
 
     logger.info "***** Finished ODS Pipeline *****"
-  }
-
-  private void checkoutWithGitLFSpull(){
-    script.checkout([  $class: 'GitSCM',
-                    branches: [[name: 'refs/heads/'+context.gitBranch]],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [
-                        [$class: 'GitLFSPull']
-                    ],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [
-                        [credentialsId: context.credentialsId,
-                        url: context.gitUrl]
-                    ]
-                ])
   }
 
   private void setBitbucketBuildStatus(String state) {
@@ -191,4 +180,28 @@ class OdsPipeline implements Serializable {
     )
     return statusCode == 0
   }
+
+  private void checkoutWithGitLFSpull(){
+    script.checkout([  $class: 'GitSCM',
+                    branches: [[name: 'refs/heads/'+context.gitBranch]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [$class: 'GitLFSPull']
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [
+                        [credentialsId: context.credentialsId,
+                        url: context.gitUrl]
+                    ]
+                ])
+  }
+
+  private boolean isSlaveNodeGitLFSenabled(){
+    def statusCode = script.sh(
+      script:"git lfs &> /dev/null",
+      returnStatus: true
+    )
+    return statusCode == 0
+  }
+
 }
