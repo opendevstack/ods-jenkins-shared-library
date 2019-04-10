@@ -154,6 +154,20 @@ branch references the `production` branch of this library. Quickstarters on a
 branch point to the corresponding branch of the shared library - for example
 a `Jenkinsfile` on branch `0.1.x` points to `0.1.x` of the shared library.
 
+## Git LFS (Git Large File Storage extension)
+
+If you are working with large files (e.g.: binary files, media files, files bigger than 5MB...),
+you can follow the following steps:
+- Check this HOWTO about [Git LFS](https://www.atlassian.com/git/tutorials/git-lfs)
+- Track your large files in your local clone, as explained in previous step
+- Enable Git LFS in your repository (if BitBucket: under repository's settings main page you can enable it)
+
+**NOTE**: if already having a repository with large files and you want to migrate it to using git LFS:
+
+```bash
+git lfs migrate
+```
+
 
 ## Development
 * Try to write tests.

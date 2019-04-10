@@ -85,4 +85,5 @@ interface Context {
     def setEnvironmentCreated(boolean created)
 
     boolean getCiSkip()
+
 }

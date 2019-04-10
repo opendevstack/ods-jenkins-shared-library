@@ -185,15 +185,15 @@ class OdsContext implements Context {
   }
 
   String getGitUrl() {
-      config.gitUrl
+    config.gitUrl
   }
 
   String getTagversion() {
-      config.tagversion
+    config.tagversion
   }
 
   boolean getNotifyNotGreen() {
-      config.notifyNotGreen
+    config.notifyNotGreen
   }
 
   String getNexusHost() {
