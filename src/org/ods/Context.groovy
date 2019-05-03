@@ -24,6 +24,8 @@ interface Context {
 
     boolean getPodAlwaysPullImage()
 
+    String getPodServiceAccount()
+
     String getGitBranch()
 
     String getCredentialsId()

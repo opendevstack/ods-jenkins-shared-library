@@ -51,7 +51,8 @@ class OdsPipeline implements Serializable {
       label: context.podLabel,
       cloud: 'openshift',
       containers: context.podContainers,
-      volumes: context.podVolumes
+      volumes: context.podVolumes,
+      serviceAccount: context.podServiceAccount
     ) {
       script.node(context.podLabel) {
         try {
