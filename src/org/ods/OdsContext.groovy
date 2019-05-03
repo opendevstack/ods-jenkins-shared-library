@@ -103,6 +103,9 @@ class OdsContext implements Context {
     if (!config.containsKey('podAlwaysPullImage')) {
       config.podAlwaysPullImage = true
     }
+    if (!config.containsKey('podServiceAccount')) {
+      config.podServiceAccount = 'jenkins'
+    }
     if (!config.containsKey('podContainers')) {
       config.podContainers = [
         script.containerTemplate(
@@ -110,8 +113,7 @@ class OdsContext implements Context {
           image: config.image,
           workingDir: '/tmp',
           alwaysPullImage: config.podAlwaysPullImage,
-          args: '${computer.jnlpmac} ${computer.name}',
-          serviceAccount: 'jenkins'
+          args: '${computer.jnlpmac} ${computer.name}'
         )
       ]
     }
@@ -182,6 +184,10 @@ class OdsContext implements Context {
 
   boolean getPodAlwaysPullImage() {
     config.podAlwaysPullImage
+  }
+
+  String getPodServiceAccount() {
+    config.podServiceAccount
   }
 
   String getGitUrl() {
