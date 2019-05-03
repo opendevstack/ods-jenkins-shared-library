@@ -110,7 +110,8 @@ class OdsContext implements Context {
           image: config.image,
           workingDir: '/tmp',
           alwaysPullImage: config.podAlwaysPullImage,
-          args: '${computer.jnlpmac} ${computer.name}'
+          args: '${computer.jnlpmac} ${computer.name}',
+          serviceAccount: 'jenkins'
         )
       ]
     }
