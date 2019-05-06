@@ -214,6 +214,10 @@ class OdsContext implements Context {
       config.nexusPassword
   }
 
+  String getNexusHostWithBasicAuth() {
+    config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
+  }
+
   String getBranchToEnvironmentMapping() {
       config.branchToEnvironmentMapping
   }

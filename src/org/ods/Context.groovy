@@ -42,6 +42,8 @@ interface Context {
 
     String getNexusPassword()
 
+    String getNexusHostWithBasicAuth()
+
     String getBranchToEnvironmentMapping()
 
     String getAutoCloneEnvironmentsFromSourceMapping()
