@@ -130,5 +130,5 @@ interface Context {
     // Whether the build should be skipped, based on the Git commit message.
     boolean getCiSkip()
 
-    setEnvironmentCreated(boolean created)
+    def setEnvironmentCreated(boolean created)
 }
