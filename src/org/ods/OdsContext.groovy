@@ -278,10 +278,6 @@ class OdsContext implements Context {
       config.environmentLimit
   }
 
-  boolean getAdmins() {
-      config.admins
-  }
-
   String getOpenshiftHost() {
       config.openshiftHost
   }
