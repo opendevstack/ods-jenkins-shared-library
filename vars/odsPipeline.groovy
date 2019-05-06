@@ -23,7 +23,6 @@
  *                                    set it to "*" to run OWASP dependency
  *                                    checks on all branches.
  * environmentLimit - optional - Defaults to "5".
- * admins - optional - Comma separated list of admins for the cloned OC projects
  */
 
 import org.ods.OdsLogger
