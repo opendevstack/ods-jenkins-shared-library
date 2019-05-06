@@ -129,6 +129,52 @@ autoCloneEnvironmentsFromSourceMapping: [
 
 Inside the closure passed to `odsPipeline`, you have full control. Write stages just like you would do in a normal `Jenkinsfile`. You have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsPipeline`. Please see `vars/odsPipeline.groovy` for possible options.
 
+When you write stages, you have access to both global variables (defined without `def` in the `Jenkinsfile`) and the
+`context` object. It contains the following properties:
+
+| Property | Description |
+| ------------- |-------------|
+| jobName | Value of JOB_NAME. It is the name of the project of the build. |
+| buildNumber | Value of BUILD_NUMBER. The current build number, such as "153". |
+| buildUrl | Value of BUILD_URL. The URL where the results of the build can be found (e.g. http://buildserver/jenkins/job/MyJobName/123/) |
+| buildTime | Time of the build, collected when the odsPipeline starts. |
+| image | Container image to use for the Jenkins agent container. This value is not used when "podContainers" is set. |
+| podLabel | Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds. |
+| podContainers | Custom pod containers to use. By default, only one container is used, and it is configure automatically. If you need to run multiple containers (e.g. app and database), then you can configure the containers via this property. |
+| podVolumes | Volumes to make available to the pod. |
+| podAlwaysPullImage | Determine whether to always pull the container image before each build run. |
+| podServiceAccount | Serviceaccount to use when running the pod. |
+| credentialsId | Credentials identifier (Credentials are created and named automatically by the OpenShift Jenkins plugin). |
+| tagversion | The tagversion is made up of the build number and the first 8 chars of the commit SHA. |
+| notifyNotGreen | Whether to send notifications if the build is not successful. |
+| nexusHost | Nexus host (with scheme). |
+| nexusUsername | Nexus username. |
+| nexusPassword | Nexus password. |
+| nexusHostWithBasicAuth | Nexus host (with scheme), including username and password as BasicAuth. |
+| branchToEnvironmentMapping | Define which branches are deployed to which environments. |
+| autoCloneEnvironmentsFromSourceMapping | Define which environments are cloned from which source environments. |
+| cloneSourceEnv | The environment which was chosen as the clone source. |
+| environment | The environment which was chosen as the deployment target, e.g. "dev". |
+| targetProject | Target project, based on the environment. E.g. "foo-dev". |
+| groupId | Group ID, defaults to: org.opendevstack.<projectID>. |
+| projectId | Project ID, e.g. "foo". |
+| componentId | Component ID, e.g. "be-auth-service". |
+| gitUrl | Git URL of repository |
+| gitBranch | Git branch for which the build runs. |
+| gitCommit |Git commit SHA to build. |
+| gitCommitAuthor | Git commit author. |
+| gitCommitMessage | Git commit message. |
+| gitCommitTime | Git commit time in RFC 3399. |
+| sonarQubeBranch | Branch on which to run SonarQube analysis. |
+| dependencyCheckBranch | Branch on which to run dependency checks. |
+| environmentLimit | Number of environments to allow. |
+| openshiftHost | OpenShift host - value taken from OPENSHIFT_API_URL. |
+| odsSharedLibVersion | ODS Jenkins shared library version, taken from reference in Jenkinsfile. |
+| bitbucketHost | BitBucket host - value taken from BITBUCKET_HOST. |
+| environmentCreated | Whether an environment has been created during the build. |
+| openshiftBuildTimeout | Timeout for the OpenShift build of the container image. |
+| ciSkip | Whether the build should be skipped, based on the Git commit message. |
+
 
 ## Slave customization
 

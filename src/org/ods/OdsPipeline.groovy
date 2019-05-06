@@ -51,7 +51,8 @@ class OdsPipeline implements Serializable {
       label: context.podLabel,
       cloud: 'openshift',
       containers: context.podContainers,
-      volumes: context.podVolumes
+      volumes: context.podVolumes,
+      serviceAccount: context.podServiceAccount
     ) {
       script.node(context.podLabel) {
         try {
@@ -91,6 +92,11 @@ class OdsPipeline implements Serializable {
   }
 
   private void setBitbucketBuildStatus(String state) {
+    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
+      logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
+      return
+    }
+
     logger.info "Setting BitBucket build status to ${state} ..."
     def buildName = "${context.jobName}-${context.tagversion}"
     def maxAttempts = 3
