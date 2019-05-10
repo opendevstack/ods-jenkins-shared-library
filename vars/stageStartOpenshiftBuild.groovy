@@ -1,14 +1,20 @@
-def call(def context, def buildArgs = [:], def imageLabels = [:]) {
+def call(def context, def buildArgs = [:], def imageLabels = [:], def tailorSelector = '') {
   stage('Build Openshift Image') {
     if (!context.environment) {
       echo "Skipping for empty environment ..."
       return
     }
 
+    if (utilsTailor.enabled()) {
+      def tailorVersion = utilsTailor.getVersion()
+      echo "Using Tailor (${tailorVersion}) to update build environment."
+      utilsTailor.execBuildUpdate(context, tailorSelector)
+    }
+    patchBuildConfig(context, buildArgs, imageLabels)
+
     def buildId = null
     def startBuildInfo = ''
     timeout(context.openshiftBuildTimeout) {
-      patchBuildConfig(context, buildArgs, imageLabels)
       startBuildInfo = sh (
         script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir docker --follow",
         label: "Start OpenShift build",
@@ -84,11 +90,13 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
 
   def patches = [
       '{"op": "replace", "path": "/spec/source", "value": {"type":"Binary"}}',
-      """{"op": "replace", "path": "/spec/output/to/name", "value": "${context.componentId}:${context.tagversion}"}""",
       """{"op": "${imageLabelsOp}", "path": "/spec/output/imageLabels", "value": [
         ${odsImageLabels.join(",")}
       ]}"""
   ]
+  if (!utilsTailor.enabled()) {
+    patches.push("""{"op": "replace", "path": "/spec/output/to/name", "value": "${context.componentId}:${context.tagversion}"}""")
+  }
 
   // add build args
   def buildArgsItems = []

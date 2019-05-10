@@ -1,0 +1,20 @@
+stageDeployToOpenshift deploys the service.
+
+When no "openshift" folder is present, a deployment is just an update of the
+container image.
+
+However, when an "openshift" folder is present, this stage can fully control the
+OpenShift resources for this service via code, e.g. it can deploy changes to
+environment variables, or changing constraints etc. of the DeploymentConfig. It
+does this by using Tailor (https://github.com/opendevstack/tailor) to sync the
+"desired state" expressed in templates and parameters with the "current state"
+found in OpenShift. Tailor automatically calculates the required changes and
+applies them via JSON patchsets.
+
+The "tailor" binary is pre-installed in the jenkins-slave-base image. The
+behaviour of Tailor can be customized by adding a "Tailorfile" (or a more
+specific, per-environment version of it such as "Tailorfile.foo-dev" and
+"Tailorfile.foo-test").
+
+The actual rollout of the deployment is watched, which also allows to monitor
+the progress and fail the build if the rollout does not work.

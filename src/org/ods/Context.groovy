@@ -140,7 +140,7 @@ interface Context {
     // Timeout for the OpenShift build of the container image in minutes.
     int getOpenshiftBuildTimeout()
 
-    // Timeout for the OpenShift rollout of the pod in minutes.
+    // Timeout for the OpenShift rollout of the deployment in minutes.
     int getOpenshiftRolloutTimeout()
 
     // Whether the build should be skipped, based on the Git commit message.
