@@ -1,0 +1,19 @@
+stageDeployToOpenshift deploys the service.
+
+A deployment is more than just updating an image, it might also involve adding
+an environment variable, or changing constraints etc. Because of this, a
+deployment should be one atomic JSON patchset.
+
+When an "openshift" folder is present, we use the "tailor" binary in the
+slave-base to apply its templates. The behaviour is customizable by
+adding a "Tailorfile" (or a more specific, per-project version of it).
+
+The actual rollout is triggered explicitly, which also allows us to
+monitor the progress and fail the build if the rollout does not work.
+
+As a consequence of this, when adding an "openshift" folder, the
+automatic triggers are removed, and the built container image is not
+tagged with "latest" anymore - we simply deploy the tag we just applied.
+This assumes that the template consumes the TAGVERSION param and that it
+uses it correctly to set the image. The latter is not checked, but the
+former at least errors if the TAGVERSION param is not consumed.
