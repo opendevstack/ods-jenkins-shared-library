@@ -13,7 +13,7 @@ def call(def context, def buildArgs = [:]) {
 }
 
 private void patchBuildConfig(def context, def buildArgs) {
-  def gitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n]+"," ").trim().replaceAll("[\"']+","")
+  def sanitizedGitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
   def patches = [
       '{"op": "replace", "path": "/spec/source", "value": {"type":"Binary"}}',
       """{"op": "replace", "path": "/spec/output/to/name", "value": "${context.componentId}:${context.tagversion}"}""",
@@ -21,7 +21,7 @@ private void patchBuildConfig(def context, def buildArgs) {
         {"name":"ods.build.source.repo.commit.author","value":"${context.gitCommitAuthor}"},
         {"name":"ods.build.source.repo.url","value":"${context.gitUrl}"},
         {"name":"ods.build.source.repo.commit","value":"${context.gitCommit}"},
-        {"name":"ods.build.source.repo.commit.msg","value":"${gitCommitMessage}"},
+        {"name":"ods.build.source.repo.commit.msg","value":"${sanitizedGitCommitMessage}"},
         {"name":"ods.build.source.repo.commit.time","value":"${context.gitCommitTime}"},
         {"name":"ods.build.source.repo.branch","value":"${context.gitBranch}"},
         {"name":"ods.build.jenkins.job.url","value":"${context.buildUrl}"},
