@@ -22,7 +22,7 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.msg\",\"value\":\"${context.sanitizedGitCommitMessage}\"}")
     odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.author\",\"value\":\"${context.gitCommitAuthor}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.timestamp\",\"value\":\"${context.gitCommitTime}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.source.repo.branch",\"value\":\"${context.gitBranch}\"}")
+	odsImageLabels.push("{\"name\":\"ods.build.source.repo.branch\",\"value\":\"${context.gitBranch}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.jenkins.job.url\",\"value\":\"${context.buildUrl}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.timestamp\",\"value\":\"${context.buildTime}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.lib.version\",\"value\":\"${context.odsSharedLibVersion}\"}")
