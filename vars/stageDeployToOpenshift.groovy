@@ -1,4 +1,4 @@
-def call(def context) {
+def call(def context, def selector) {
   stage('Deploy to Openshift') {
     if (!context.environment) {
       println("Skipping for empty environment ...")
@@ -15,7 +15,10 @@ def call(def context) {
       if (fileExists("openshift/${context.targetProject}.env")) {
         paramFile = "--param-file ${context.targetProject}.env"
       }
-      def tailorFlagsAndArgs = "--non-interactive --namespace ${context.targetProject} --selector app=${context.projectId}-${context.componentId} update --ignore-path bc:/spec/output/imageLabels --ignore-path bc:/spec/strategy/dockerStrategy/buildArgs ${paramFile} --param TAGVERSION=${context.tagversion}"
+      if (!selector) {
+        selector = "app=${context.projectId}-${context.componentId}"
+      }
+      def tailorFlagsAndArgs = "--non-interactive --namespace ${context.targetProject} --selector ${selector} update --ignore-path bc:/spec/output/imageLabels --ignore-path bc:/spec/strategy/dockerStrategy/buildArgs ${paramFile} --param TAGVERSION=${context.tagversion}"
       if (fileExists("openshift/Tailorfile.${context.targetProject}")) {
         tailorFlagsAndArgs = "--file Tailorfile.${context.targetProject} " + tailorFlagsAndArgs
       } else if (fileExists("openshift/Tailorfile")) {
