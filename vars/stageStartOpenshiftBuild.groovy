@@ -37,7 +37,7 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
   try {
     def releaseFile = new File('docker/release.json')
     release.append(${odsImageLabels.join(",")}, "UTF-8")
-  } (catch org.jenkinsci.plugins.scriptsecurity.sandbox.RejectedAccessException accessException) {
+  } catch (org.jenkinsci.plugins.scriptsecurity.sandbox.RejectedAccessException accessException) {
     println "Cannot create release.json - please approve in jenkins script approval!"
   }
   
