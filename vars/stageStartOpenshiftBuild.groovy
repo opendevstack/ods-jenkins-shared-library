@@ -13,7 +13,7 @@ def call(def context, def buildArgs = [:]) {
 }
 
 private void patchBuildConfig(def context, def buildArgs) {
-  def gitCommitMessage = ${context.gitCommitMessage.replaceAll("[\r\n\"']+","").trim()}
+  def gitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n\"']+","").trim()
   def patches = [
       '{"op": "replace", "path": "/spec/source", "value": {"type":"Binary"}}',
       """{"op": "replace", "path": "/spec/output/to/name", "value": "${context.componentId}:${context.tagversion}"}""",
