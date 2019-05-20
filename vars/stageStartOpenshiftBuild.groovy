@@ -35,7 +35,7 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
   }
   
   // write the file - so people can pick it up in the Dockerfile
-  writeFile file: 'docker/release.json', text: odsImageLabels.join(",")
+  writeFile file: 'docker/release.json', text: "[" + odsImageLabels.join(",") + "]"
   
   def patches = [
       '{"op": "replace", "path": "/spec/source", "value": {"type":"Binary"}}',
