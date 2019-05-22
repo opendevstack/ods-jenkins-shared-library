@@ -51,13 +51,19 @@ class OdsPipeline implements Serializable {
       label: context.podLabel,
       cloud: 'openshift',
       containers: context.podContainers,
-      volumes: context.podVolumes
+      volumes: context.podVolumes,
+      serviceAccount: context.podServiceAccount
     ) {
       script.node(context.podLabel) {
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            script.checkout script.scm
+            if (isSlaveNodeGitLFSenabled()){
+              checkoutWithGitLFSpull()
+            } else {
+              script.checkout script.scm
+            }
+
             script.currentBuild.displayName = "#${context.tagversion}"
 
             if (context.ciSkip){
@@ -86,6 +92,11 @@ class OdsPipeline implements Serializable {
   }
 
   private void setBitbucketBuildStatus(String state) {
+    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
+      logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
+      return
+    }
+
     logger.info "Setting BitBucket build status to ${state} ..."
     def buildName = "${context.jobName}-${context.tagversion}"
     def maxAttempts = 3
@@ -96,7 +107,7 @@ class OdsPipeline implements Serializable {
           script.sh """curl \\
             --fail \\
             --silent \\
-            --user ${script.USERPASS} \\
+            --user ${script.USERPASS.replace('$', '\'$\'')} \\
             --request POST \\
             --header \"Content-Type: application/json\" \\
             --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
@@ -149,7 +160,7 @@ class OdsPipeline implements Serializable {
 
       logger.info 'Environment does not exist yet. Creating now ...'
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-        def userPass = script.USERPASS.replace('@', '%40')
+        def userPass = script.USERPASS.replace('@', '%40').replace('$', '\'$\'')
         def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
         script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
         def debugMode = ""
@@ -175,4 +186,28 @@ class OdsPipeline implements Serializable {
     )
     return statusCode == 0
   }
+
+  private void checkoutWithGitLFSpull(){
+    script.checkout([  $class: 'GitSCM',
+                    branches: [[name: 'refs/heads/'+context.gitBranch]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [$class: 'GitLFSPull']
+                    ],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [
+                        [credentialsId: context.credentialsId,
+                        url: context.gitUrl]
+                    ]
+                ])
+  }
+
+  private boolean isSlaveNodeGitLFSenabled(){
+    def statusCode = script.sh(
+      script:"git lfs &> /dev/null",
+      returnStatus: true
+    )
+    return statusCode == 0
+  }
+
 }

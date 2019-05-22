@@ -103,6 +103,9 @@ class OdsContext implements Context {
     if (!config.containsKey('podAlwaysPullImage')) {
       config.podAlwaysPullImage = true
     }
+    if (!config.containsKey('podServiceAccount')) {
+      config.podServiceAccount = 'jenkins'
+    }
     if (!config.containsKey('podContainers')) {
       config.podContainers = [
         script.containerTemplate(
@@ -110,10 +113,12 @@ class OdsContext implements Context {
           image: config.image,
           workingDir: '/tmp',
           alwaysPullImage: config.podAlwaysPullImage,
-          args: '${computer.jnlpmac} ${computer.name}',
-          serviceAccount: 'jenkins'
+          args: '${computer.jnlpmac} ${computer.name}'
         )
       ]
+    }
+    if (!config.containsKey('podLabel')) {
+      config.podLabel = "pod-${UUID.randomUUID().toString()}"
     }
 
     logger.debug "Retrieving Git information ..."
@@ -130,8 +135,6 @@ class OdsContext implements Context {
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
-
-    config.podLabel = "pod-${UUID.randomUUID().toString()}"
 
     logger.info "Assembled configuration: ${config}"
   }
@@ -184,16 +187,20 @@ class OdsContext implements Context {
     config.podAlwaysPullImage
   }
 
+  String getPodServiceAccount() {
+    config.podServiceAccount
+  }
+
   String getGitUrl() {
-      config.gitUrl
+    config.gitUrl
   }
 
   String getTagversion() {
-      config.tagversion
+    config.tagversion
   }
 
   boolean getNotifyNotGreen() {
-      config.notifyNotGreen
+    config.notifyNotGreen
   }
 
   String getNexusHost() {
@@ -206,6 +213,10 @@ class OdsContext implements Context {
 
   String getNexusPassword() {
       config.nexusPassword
+  }
+
+  String getNexusHostWithBasicAuth() {
+    config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
   }
 
   String getBranchToEnvironmentMapping() {
@@ -266,10 +277,6 @@ class OdsContext implements Context {
 
   int getEnvironmentLimit() {
       config.environmentLimit
-  }
-
-  boolean getAdmins() {
-      config.admins
   }
 
   String getOpenshiftHost() {
