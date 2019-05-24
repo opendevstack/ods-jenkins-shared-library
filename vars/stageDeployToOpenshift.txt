@@ -1,19 +1,24 @@
 stageDeployToOpenshift deploys the service.
 
-A deployment is more than just updating an image, it might also involve adding
-an environment variable, or changing constraints etc. Because of this, a
-deployment should be one atomic JSON patchset.
+When no "openshift" folder is present, a deployment is just an update of the
+container image.
 
-When an "openshift" folder is present, we use the "tailor" binary in the
-slave-base to apply its templates. The behaviour is customizable by
-adding a "Tailorfile" (or a more specific, per-project version of it).
+However, when an "openshift" folder is present, this stage can fully control the
+OpenShift resources for this service via code, e.g. it can deploy changes to
+environment variable, or changing constraints etc. of the DeploymentConfig. It
+does this by using Tailor (https://github.com/opendevstack/tailor) to sync the
+"desired state" expressed in templates and parameters with the "current state"
+found in OpenShift. Tailor automatically calculates the required changes and
+applies them as one atomic JSON patchset.
 
-The actual rollout is triggered explicitly, which also allows us to
-monitor the progress and fail the build if the rollout does not work.
+The "tailor" binary is pre-installed in the slave-base. The behaviour of Tailor
+can be customized by adding a "Tailorfile" (or a more specific, per-project
+version of it such as "Tailorfile.foo-dev" and "Tailorfile.foo-test").
 
-As a consequence of this, when adding an "openshift" folder, the
-automatic triggers are removed, and the built container image is not
-tagged with "latest" anymore - we simply deploy the tag we just applied.
-This assumes that the template consumes the TAGVERSION param and that it
-uses it correctly to set the image. The latter is not checked, but the
-former at least errors if the TAGVERSION param is not consumed.
+The actual rollout of the deployment is triggered explicitly via "oc rollout",
+which also allows us to monitor the progress and fail the build if the rollout
+does not work. Note that any automatic deployment triggers are disabled to
+achieve this. Also, the image being rolled out is not tagged with "latest" - the
+stage simply deploys the image tag that was built in the previous stage. This
+assumes that the template processed by Tailor consumes the "TAGVERSION" param
+and that the template uses it correctly to set the image.
