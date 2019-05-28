@@ -14,6 +14,8 @@
 - `withCredentials` expands `$` sign - leading to bitbucket errors ([#87](https://github.com/opendevstack/ods-jenkins-shared-library/issues/87))
 - Pod label is always unique ([#83](https://github.com/opendevstack/ods-jenkins-shared-library/issues/83))
 - NullPointerException if error occurs during prepare stage ([#68](https://github.com/opendevstack/ods-jenkins-shared-library/issues/68))
+
+### Changed
 - Builder Pods should run with jenkins SA rather than default SA ([#64](https://github.com/opendevstack/ods-jenkins-shared-library/issues/64), [#78](https://github.com/opendevstack/ods-jenkins-shared-library/issues/78))
 
 ##  [1.0.2] - 2019-04-02
