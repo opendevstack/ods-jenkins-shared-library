@@ -117,6 +117,9 @@ class OdsContext implements Context {
         )
       ]
     }
+    if (!config.containsKey('podLabel')) {
+      config.podLabel = "pod-${UUID.randomUUID().toString()}"
+    }
 
     logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
@@ -132,8 +135,6 @@ class OdsContext implements Context {
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
-
-    config.podLabel = "pod-${UUID.randomUUID().toString()}"
 
     logger.info "Assembled configuration: ${config}"
   }

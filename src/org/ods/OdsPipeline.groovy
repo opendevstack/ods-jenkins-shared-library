@@ -107,7 +107,7 @@ class OdsPipeline implements Serializable {
           script.sh """curl \\
             --fail \\
             --silent \\
-            --user ${script.USERPASS} \\
+            --user ${script.USERPASS.replace('$', '\'$\'')} \\
             --request POST \\
             --header \"Content-Type: application/json\" \\
             --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
@@ -160,7 +160,7 @@ class OdsPipeline implements Serializable {
 
       logger.info 'Environment does not exist yet. Creating now ...'
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-        def userPass = script.USERPASS.replace('@', '%40')
+        def userPass = script.USERPASS.replace('@', '%40').replace('$', '\'$\'')
         def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
         script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
         def debugMode = ""
