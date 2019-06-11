@@ -1,17 +1,28 @@
 def call(def context, def selector) {
   stage('Deploy to Openshift') {
+    println("/CHK1")
     if (!context.environment) {
       println("Skipping for empty environment ...")
       return
     }
 
+    println("/CHK20")
     if (fileExists('openshift')) {
       // Output Tailor version to make it easier to diagnose issues.
       sh "tailor version"
       // Ensure that no automatic triggers exist as we rollout manually later on.
-      sh "oc --namespace ${context.targetProject} set triggers dc/${context.componentId} --manual"
+      println("CHK21:${context.targetProject}")
+      println("CHK21:${context.componentId}")
+      if (resourceExists("${context.targetProject}", "dc", "${context.componentId}")) {
+        println("/CHK21")
+        sh "oc --namespace ${context.targetProject} set triggers dc/${context.componentId} --manual"
+      } else {
+        println("/CHK22")
+        // expecting tailor to create the resource initially
+      }
       // Detect any <project>.env, .env, Tailorfile.<project> or Tailorfile files.
       def paramFile = ''
+      println("/CHK30")
       if (fileExists("openshift/${context.targetProject}.env")) {
         paramFile = "--param-file ${context.targetProject}.env"
       } else if (fileExists("openshift/.env")) {
@@ -44,6 +55,14 @@ def call(def context, def selector) {
       )
     }
   }
+}
+
+private boolean resourceExists(String namespace, String type, String name) {
+  def statusCode = sh(
+    script:"oc --namespace ${namespace} get ${type}/${name} &> /dev/null",
+    returnStatus: true
+  )
+  return statusCode == 0
 }
 
 return this
