@@ -4,6 +4,8 @@ interface Context {
 
     def assemble()
 
+    def tailorUsingOpenshiftFolder(String selector) // selector may be null.
+
     boolean getDebug()
 
     // Value of JOB_NAME. It is the name of the project of the build.

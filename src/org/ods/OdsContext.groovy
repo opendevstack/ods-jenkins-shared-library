@@ -456,4 +456,43 @@ class OdsContext implements Context {
     return statusCode == 0
   }
 
+  private boolean resourceExists(String namespace, String type, String name) {
+    def statusCode = sh(
+      script:"oc --namespace ${namespace} get ${type}/${name} &> /dev/null",
+      returnStatus: true
+    )
+    return statusCode == 0
+  }
+
+  def tailorUsingOpenshiftFolder(String selector = null) {
+    // Output Tailor version to make it easier to diagnose issues.
+    script.sh "tailor version"
+    // Ensure that no automatic triggers exist as we rollout manually later on.
+    logger.info "targetProject=${config.targetProject}"
+    logger.info "componentId=${config.componentId}"
+    // Detect any <project>.env, .env, Tailorfile.<project> or Tailorfile files.
+    def paramFile = ''
+    if (script.fileExists("openshift/${config.targetProject}.env")) {
+      paramFile = "--param-file ${config.targetProject}.env"
+    } else if (script.fileExists("openshift/.env")) {
+      paramFile = "--param-file .env"
+    }
+    // Ensure default selector to prevent accidentally targeting the whole project.
+    if (!selector) {
+      selector = "app=${config.projectId}-${config.componentId}"
+    }
+    // Do not touch BuildConfig paths that have been touched in stageStartOpenshiftBuild.
+    def ignorePaths = '--ignore-path bc:/spec/output/imageLabels --ignore-path bc:/spec/strategy/dockerStrategy/buildArgs'
+    // Pass tagversion to set the correct container image.
+    def tailorFlagsAndArgs = "--non-interactive --namespace ${config.targetProject} --selector ${selector} update ${ignorePaths} ${paramFile} --param TAGVERSION=${config.tagversion}"
+    if (script.fileExists("openshift/Tailorfile.${config.targetProject}")) {
+      tailorFlagsAndArgs = "--file Tailorfile.${config.targetProject} " + tailorFlagsAndArgs
+    } else if (script.fileExists("openshift/Tailorfile")) {
+      tailorFlagsAndArgs = "--file Tailorfile " + tailorFlagsAndArgs
+    }
+    // Update config via Tailor.
+    script.sh "cd openshift && tailor ${tailorFlagsAndArgs}"
+  }
+
+
 }

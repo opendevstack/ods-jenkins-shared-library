@@ -5,6 +5,11 @@ def call(def context, def buildArgs = [:]) {
       return
     }
 
+    if (! resourceExists("${context.targetProject}", "dc", "${context.componentId}")) {
+      println("CHK: invoking context.tailorUsingOpenshiftFolder()")
+      context.tailorUsingOpenshiftFolder()
+    }
+
     timeout(context.openshiftBuildTimeout) {
       patchBuildConfig(context, buildArgs)
       sh "oc start-build ${context.componentId} --from-dir docker --follow -n ${context.targetProject}"
@@ -42,6 +47,14 @@ private void patchBuildConfig(def context, def buildArgs) {
   }
 
   sh """oc patch bc ${context.componentId} --type=json --patch '[${patches.join(",")}]' -n ${context.targetProject}"""
+}
+
+private boolean resourceExists(String namespace, String type, String name) {
+  def statusCode = sh(
+    script:"oc --namespace ${namespace} get ${type}/${name} &> /dev/null",
+    returnStatus: true
+  )
+  return statusCode == 0
 }
 
 return this
