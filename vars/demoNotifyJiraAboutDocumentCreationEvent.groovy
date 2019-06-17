@@ -9,7 +9,7 @@ def call(projectMetadata) {
 
   // Request the Jira issue with the label VP in the current project
   def jiraSearchURI = new URIBuilder()
-      .setScheme("http")
+      .setScheme("https")
       .setHost("jira.biscrum.com")
       .setPort(80)
       .setPath("/rest/api/2/search")
@@ -30,7 +30,7 @@ def call(projectMetadata) {
 
   // Add a comment to the previously queried Jira issue
   def jiraIssueURI = new URIBuilder()
-      .setScheme("http")
+      .setScheme("https")
       .setHost("jira.biscrum.com")
       .setPort(80)
       .setPath("/rest/api/2/issue/${responseContent.issues[0].id}/comment")
