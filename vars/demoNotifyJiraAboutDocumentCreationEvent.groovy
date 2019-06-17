@@ -19,7 +19,8 @@ def call(projectMetadata) {
   def response = httpRequest url: jiraSearchURI.toString(),
     httpMode: 'GET',
     acceptType: 'APPLICATION_JSON',
-    authentication: 'cd-user-with-password'
+    authentication: 'cd-user-with-password',
+    ignoreSslErrors: true
     // customHeaders: [[ name: 'Authorization', value: "Basic ${credentials}" ]]
 
   def responseContent = new groovy.json.JsonSlurperClassic().parseText(response.content)
@@ -42,5 +43,6 @@ def call(projectMetadata) {
     contentType: 'APPLICATION_JSON',
     // customHeaders: [[ name: 'Authorization', value: "Basic ${credentials}" ]],
     authentication: 'cd-user-with-password',
+    ignoreSslErrors: true,
     requestBody: groovy.json.JsonOutput.toJson([ body: "A new document has been generated and is available at: http://." ])
 }
