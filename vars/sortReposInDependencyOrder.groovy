@@ -20,6 +20,7 @@ def call(def repos) {
   // Build dependency graph
   //
   // Vertices
+  println repos.size
   repos.each { repo ->
     println repo.name.toString()
     g.addVertex (repo.name)
