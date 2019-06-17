@@ -11,7 +11,7 @@ def call(projectMetadata) {
   def jiraSearchURI = new URIBuilder()
       .setScheme("https")
       .setHost("jira.biscrum.com")
-      .setPort(80)
+      .setPort(443)
       .setPath("/rest/api/2/search")
       .addParameter("jql", "project = ${projectMetadata.services.jira.project.key} and labels = VP")
       .build()
@@ -32,7 +32,7 @@ def call(projectMetadata) {
   def jiraIssueURI = new URIBuilder()
       .setScheme("https")
       .setHost("jira.biscrum.com")
-      .setPort(80)
+      .setPort(443)
       .setPath("/rest/api/2/issue/${responseContent.issues[0].id}/comment")
       .build()
 
