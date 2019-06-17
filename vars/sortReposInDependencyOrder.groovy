@@ -26,10 +26,12 @@ def call(def repos) {
     g.addVertex (repo.name)
   }
   // Edges
+  println "Adding edges"
   repos.each { repo ->
     if (!repo.pipelineConfig.dependencies.isEmpty())
       repo.pipelineConfig.dependencies.each { dep_url -> 
         dep_repo = repos.find { it.url == dep_url }
+        println dep_repo.toString()
         g.addEdge (repo.name , dep_repo.name)
       }
   }
