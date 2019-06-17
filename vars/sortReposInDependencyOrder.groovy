@@ -13,46 +13,16 @@ import java.net.*;
 import java.util.*;
 
 def call(def repos) {
-  def g = new DefaultDirectedGraph(DefaultEdge.class);
   def result = []
-
-  //
-  // Build dependency graph
-  //
-  // Vertices
-  repos.each { repo ->
-    g.addVertex (repo.name)
-  }
-  // Edges
-  repos.each { repo ->
-    if (!repo.pipelineConfig.dependencies.isEmpty())
-      repo.pipelineConfig.dependencies.each { dep_url -> 
-        dep_repo = repos.find { it.url == dep_url }
-        g.addEdge (repo.name , dep_repo.name)
-      }
-  }
-  // println g.toString()
-
-  //
-  // Verify graph and build list
-  //
+  def depGraph = dependencyGraphPopulate(repos)
 
   // Check for cyclic dependencies
-  new CycleDetector(g).detectCycles() ? error ('Error: Detected cyclic dependency.') : println ('No cyclic dependency found')
+  new CycleDetector(depGraph).detectCycles() ? error ('Error: Detected cyclic dependency.') : println ('No cyclic dependency found')
 
-  // Determine all roots (independent graphs)
-  def root_nodes = []
-  g.vertexSet().each { vertex ->
-    // Traverse all vertices and determine if they are root
-    if (!g.incomingEdgesOf(vertex))
-      root_nodes.add(vertex)
-  }
-  // println "root node is" + root_nodes.toString()
-  
   // Traverse the graph and build the ordered list.
   // Depth first will put the dependencies at the top of the list
-  root_nodes.each { root_node ->
-    def iterator = new DepthFirstIterator<>(g, root_node)
+  dependencyGraphGetRootList(depGraph).each { root_node ->
+    def iterator = new DepthFirstIterator<>(depGraph, root_node)
     while (iterator.hasNext()) {
       def repo = iterator.next()
       // println repo
@@ -62,5 +32,5 @@ def call(def repos) {
   
   // Return list of repos in correct build order
   // println result.reverse().toString()
-  result.reverse()
+  return result.reverse()
 }
