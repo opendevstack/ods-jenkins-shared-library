@@ -12,7 +12,7 @@ def call(repos) {
       ],
       submoduleCfg: [],
       userRemoteConfigs: [
-        [ url: repo.url ]
+        [ credentialsId: 'cd-user-with-password', url: repo.url ]
       ]
     ])
   }
