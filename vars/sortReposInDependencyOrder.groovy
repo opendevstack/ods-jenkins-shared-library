@@ -21,7 +21,7 @@ def call(def repos) {
   //
   // Vertices
   repos.each { repo ->
-    println repo.toString()
+    println repo.name.toString()
     g.addVertex (repo.name)
   }
   // Edges
