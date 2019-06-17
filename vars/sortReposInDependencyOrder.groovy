@@ -20,18 +20,19 @@ def call(def repos) {
   // Build dependency graph
   //
   // Vertices
-  println repos.size
+  // println repos.size
   repos.each { repo ->
-    println repo.name.toString()
+    // println repo.name.toString()
     g.addVertex (repo.name)
   }
   // Edges
-  println "Adding edges"
+  // println "Adding edges"
   repos.each { repo ->
     if (!repo.pipelineConfig.dependencies.isEmpty())
       repo.pipelineConfig.dependencies.each { dep_url -> 
         dep_repo = repos.find { it.url == dep_url }
-        println dep_repo.toString()
+        if (!dep_repo)
+          error ('Missing dependency defined in repository' + repo.name)
         g.addEdge (repo.name , dep_repo.name)
       }
   }
