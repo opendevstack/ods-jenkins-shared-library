@@ -41,12 +41,12 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
 
     post.setEntity(builder.build())
 
-    def auth = null
+    def encodedAuth = null
     withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'NEXUS_PWD', usernameVariable: 'NEXUS_USER')]) {
-        auth = "${env.NEXUS_USER}:${env.NEXUS_PWD}"
+        def auth = "${env.NEXUS_USER}:${env.NEXUS_PWD}"
         println auth
+        encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
     }
-    def encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
     String authHeader = "Basic ${encodedAuth}"
     post.setHeader(HttpHeaders.AUTHORIZATION, authHeader)
     def response = httpClient.execute(post)
