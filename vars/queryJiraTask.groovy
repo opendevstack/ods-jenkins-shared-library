@@ -27,7 +27,7 @@ def call(projectMetadata, query = null) {
 
     def responseContent = new JsonSlurperClassic().parseText(response.content)
     if (responseContent.total != 1 ) {
-        error "Error: Jira reports there is != 1 issues with label 'VP' in project '${projectMetadata.services.jira.project.key}'"
+        error "Error: Jira reports there is != 1 for query '${cqlQuery}'"
     }
     println "Response: ${JsonOutput.toJson(responseContent)}"
     return responseContent.issues[0]
