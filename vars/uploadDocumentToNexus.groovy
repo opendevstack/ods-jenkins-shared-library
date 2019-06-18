@@ -23,31 +23,32 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
             .setPath("/service/rest/v1/components")
             .addParameter('repository', repository)
             .build()
+    String result = null;
     withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'NEXUS_PWD', usernameVariable: 'NEXUS_USER')]) {
         def auth = "${env.NEXUS_USER}:${env.NEXUS_PWD}"
         println auth
-        encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
+        def encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
+        println encodedAuth
+        HttpPost post = new HttpPost(nexusURI)
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+        builder.addTextBody('maven2.groupId', groupId)
+        builder.addTextBody('maven2.artifactId', arifactId)
+        builder.addTextBody('maven2.version', version)
+        builder.addTextBody('maven2.packaging', 'pdf')
+        builder.addBinaryBody('maven2.asset1', documentData, ContentType.create("application/pdf"), 'report.pdf')
+        builder.addTextBody('maven2.asset1.classifier', 'reports')
+        builder.addTextBody('maven2.asset1.extension', 'pdf')
+        post.setEntity(builder.build())
+        String authHeader = "Basic ${encodedAuth}"
+        post.setHeader(HttpHeaders.AUTHORIZATION, authHeader)
+        def httpClient = HttpClientBuilder.create().build()
+        def response = httpClient.execute(post)
+        if (response.getStatusLine().getStatusCode() != 204) {
+            throw new RuntimeException("Cound not upload document. Nexus returned status ${response.getStatusLine().getStatusCode()}")
+        }
+        def path = "/repository/${repository}/${groupId.replace('.', '/')}/${arifactId}/${version}/${arifactId}-${version}-reports.pdf"
+        result = nexusURI.resolve(path).toString()
     }
-    println encodedAuth
-    HttpPost post = new HttpPost(nexusURI)
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create()
-    builder.addTextBody('maven2.groupId', groupId)
-    builder.addTextBody('maven2.artifactId', arifactId)
-    builder.addTextBody('maven2.version', version)
-    builder.addTextBody('maven2.packaging', 'pdf')
-    builder.addBinaryBody('maven2.asset1', documentData, ContentType.create("application/pdf"), 'report.pdf')
-    builder.addTextBody('maven2.asset1.classifier', 'reports')
-    builder.addTextBody('maven2.asset1.extension', 'pdf')
-    post.setEntity(builder.build())
-    def encodedAuth = null
-    String authHeader = "Basic ${encodedAuth}"
-    post.setHeader(HttpHeaders.AUTHORIZATION, authHeader)
-    def httpClient = HttpClientBuilder.create().build()
-    def response = httpClient.execute(post)
-    if (response.getStatusLine().getStatusCode() != 204) {
-        throw new RuntimeException("Cound not upload document. Nexus returned status ${response.getStatusLine().getStatusCode()}")
-    }
-    def path = "/repository/${repository}/${groupId.replace('.', '/')}/${arifactId}/${version}/${arifactId}-${version}-reports.pdf"
-//http://localhost:8081/repository/maven-releases/org/opendevstack/rm/docgen/1.2.3/docgen-1.2.3-reports.pdf
-    return nexusURI.resolve(path).toString()
+    return result
+    
 }
