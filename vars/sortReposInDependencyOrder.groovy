@@ -12,7 +12,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-private def dependencyGraphGetRootList(def repo){
+private def dependencyGraphGetRootList(def graph){
   def rootVertices = []
   graph.vertexSet().each { vertex ->
     // Traverse all vertices and determine if they are root
