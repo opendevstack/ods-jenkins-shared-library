@@ -26,8 +26,6 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
 
 //http://localhost:8081/repository/maven-releases/
 
-    def httpClient = HttpClientBuilder.create().build()
-
     HttpPost post = new HttpPost(nexusURI)
 
     MultipartEntityBuilder builder = MultipartEntityBuilder.create()
@@ -49,6 +47,7 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
     }
     String authHeader = "Basic ${encodedAuth}"
     post.setHeader(HttpHeaders.AUTHORIZATION, authHeader)
+    def httpClient = HttpClientBuilder.create().build()
     def response = httpClient.execute(post)
     if (response.getStatusLine().getStatusCode() != 204) {
         throw new RuntimeException("Cound not upload document. Nexus returned status ${response.getStatusLine().getStatusCode()}")
