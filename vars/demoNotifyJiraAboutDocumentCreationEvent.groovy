@@ -2,7 +2,7 @@
 @Grab('org.apache.httpcomponents:httpclient:4.5.9')
 import org.apache.http.client.utils.URIBuilder
 // TODO:
-// - retrieve Jira credentials and host name in the Jenkins credentials store
+// - retrieve JIRA host name and configurations from Jenkins environment
 // - document creation is in the scope of each repository, not the orchestration pipeline
 def call(projectMetadata) {
   
@@ -17,7 +17,6 @@ def call(projectMetadata) {
   def response = httpRequest url: jiraSearchURI.toString(),
     httpMode: 'GET',
     acceptType: 'APPLICATION_JSON',
-    ignoreSslErrors: true,
     authentication: 'jira-credentials'
 
   def responseContent = new groovy.json.JsonSlurperClassic().parseText(response.content)
@@ -39,6 +38,5 @@ def call(projectMetadata) {
     acceptType: 'APPLICATION_JSON',
     contentType: 'APPLICATION_JSON',
     authentication: 'jira-credentials',
-    ignoreSslErrors: true,
     requestBody: groovy.json.JsonOutput.toJson([ body: "A new document has been generated and is available at: http://." ])
 }
