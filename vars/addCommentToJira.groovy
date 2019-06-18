@@ -3,7 +3,7 @@ import groovy.json.JsonSlurperClassic
 @Grab('org.apache.httpcomponents:httpclient:4.5.9')
 import org.apache.http.client.utils.URIBuilder
 
-def call(projectMetadata, taskKey, comment) {
+def call(taskKey, comment) {
     def jiraIssueURI = new URIBuilder()
             .setScheme("https")
             .setHost("jira.biscrum.com")
