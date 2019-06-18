@@ -22,7 +22,7 @@ private def dependencyGraphGetRootList(def repo){
   return rootVertices
 }
 
-private def dependencyGraphPopulate(def repo){
+private def dependencyGraphPopulate(def repos){
     def directedGraph = new DefaultDirectedGraph(DefaultEdge.class);
     // Vertices
     repos.each { repo ->
