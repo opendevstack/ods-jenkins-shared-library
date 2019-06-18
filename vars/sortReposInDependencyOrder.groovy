@@ -1,19 +1,19 @@
 @Grab('org.jgrapht:jgrapht-core:1.3.1')
 @Grab('org.jgrapht:jgrapht-io:1.3.1')
 
-import org.jgrapht.*;
-import org.jgrapht.graph.*;
-import org.jgrapht.alg.*;
-import org.jgrapht.alg.cycle.*;
-import org.jgrapht.io.*;
-import org.jgrapht.traverse.*;
+import org.jgrapht.*
+import org.jgrapht.graph.*
+import org.jgrapht.alg.*
+import org.jgrapht.alg.cycle.*
+import org.jgrapht.io.*
+import org.jgrapht.traverse.*
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.*
+import java.net.*
+import java.util.*
 
 def call(def repos) {
-  def g = new DefaultDirectedGraph(DefaultEdge.class);
+  def g = new DefaultDirectedGraph(DefaultEdge.class)
   def result = []
 
   //
