@@ -1,63 +1,57 @@
 @Grab('org.jgrapht:jgrapht-core:1.3.1')
 @Grab('org.jgrapht:jgrapht-io:1.3.1')
 
-import org.jgrapht.*
-import org.jgrapht.graph.*
-import org.jgrapht.alg.*
-import org.jgrapht.alg.cycle.*
-import org.jgrapht.io.*
-import org.jgrapht.traverse.*
+import org.jgrapht.*;
+import org.jgrapht.graph.*;
+import org.jgrapht.alg.*;
+import org.jgrapht.alg.cycle.*;
+import org.jgrapht.io.*;
+import org.jgrapht.traverse.*;
 
-import java.io.*
-import java.net.*
-import java.util.*
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+private def dependencyGraphGetRootList(def graph){
+  def rootVertices = []
+  graph.vertexSet().each { vertex ->
+    // Traverse all vertices and determine if they are root
+    if (!graph.incomingEdgesOf(vertex))
+      rootVertices.add(vertex)
+  }
+  return rootVertices
+}
+
+private def dependencyGraphPopulate(def repos){
+    def directedGraph = new DefaultDirectedGraph(DefaultEdge.class);
+    // Vertices
+    repos.each { repo ->
+        directedGraph.addVertex (repo.name)
+    }
+    // Edges
+    repos.each { repo ->
+        if (!repo.pipelineConfig.dependencies.isEmpty())
+        repo.pipelineConfig.dependencies.each { dep_url -> 
+            dep_repo = repos.find { it.url == dep_url }
+            if (!dep_repo)
+            error ('Missing dependency defined in repository' + repo.name)
+            directedGraph.addEdge (repo.name , dep_repo.name)
+        }
+    }
+    return directedGraph
+}
 
 def call(def repos) {
-  def g = new DefaultDirectedGraph(DefaultEdge.class)
   def result = []
-
-  //
-  // Build dependency graph
-  //
-  // Vertices
-  // println repos.size
-  repos.each { repo ->
-    // println repo.name.toString()
-    g.addVertex (repo.name)
-  }
-  // Edges
-  // println "Adding edges"
-  repos.each { repo ->
-    if (!repo.pipelineConfig.dependencies.isEmpty())
-      repo.pipelineConfig.dependencies.each { dep_url -> 
-        dep_repo = repos.find { it.url == dep_url }
-        if (!dep_repo)
-          error ('Missing dependency defined in repository' + repo.name)
-        g.addEdge (repo.name , dep_repo.name)
-      }
-  }
-  // println g.toString()
-
-  //
-  // Verify graph and build list
-  //
+  def depGraph = dependencyGraphPopulate(repos)
 
   // Check for cyclic dependencies
-  new CycleDetector(g).detectCycles() ? error ('Error: Detected cyclic dependency.') : println ('No cyclic dependency found')
+  new CycleDetector(depGraph).detectCycles() ? error ('Error: Detected cyclic dependency.') : println ('No cyclic dependency found')
 
-  // Determine all roots (independent graphs)
-  def root_nodes = []
-  g.vertexSet().each { vertex ->
-    // Traverse all vertices and determine if they are root
-    if (!g.incomingEdgesOf(vertex))
-      root_nodes.add(vertex)
-  }
-  // println "root node is" + root_nodes.toString()
-  
   // Traverse the graph and build the ordered list.
   // Depth first will put the dependencies at the top of the list
-  root_nodes.each { root_node ->
-    def iterator = new DepthFirstIterator<>(g, root_node)
+  dependencyGraphGetRootList(depGraph).each { root_node ->
+    def iterator = new DepthFirstIterator<>(depGraph, root_node)
     while (iterator.hasNext()) {
       def repo = iterator.next()
       // println repo
@@ -67,5 +61,5 @@ def call(def repos) {
   
   // Return list of repos in correct build order
   // println result.reverse().toString()
-  result.reverse()
+  return result.reverse()
 }
