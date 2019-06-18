@@ -28,6 +28,6 @@ def call(projectMetadata) {
     if (responseContent.total > 1) {
         error "Error: Jira reports there is > 1 issues with label 'VP' in project '${projectMetadata.services.jira.project.key}'"
     }
-    println "Id: ${JsonOutput.toJson(responseContent.issues[0])}"
+    println "Response: ${JsonOutput.toJson(responseContent)}"
     return responseContent.issues[0]
 }
