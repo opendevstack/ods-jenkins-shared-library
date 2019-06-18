@@ -23,11 +23,13 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
             .setPath("/service/rest/v1/components")
             .addParameter('repository', repository)
             .build()
-
-//http://localhost:8081/repository/maven-releases/
+    withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'NEXUS_PWD', usernameVariable: 'NEXUS_USER')]) {
+        def auth = "${env.NEXUS_USER}:${env.NEXUS_PWD}"
+        println auth
+        encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
+    }
 
     HttpPost post = new HttpPost(nexusURI)
-
     MultipartEntityBuilder builder = MultipartEntityBuilder.create()
     builder.addTextBody('maven2.groupId', groupId)
     builder.addTextBody('maven2.artifactId', arifactId)
@@ -36,15 +38,8 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
     builder.addBinaryBody('maven2.asset1', documentData, ContentType.create("application/pdf"), 'report.pdf')
     builder.addTextBody('maven2.asset1.classifier', 'reports')
     builder.addTextBody('maven2.asset1.extension', 'pdf')
-
     post.setEntity(builder.build())
-
     def encodedAuth = null
-    withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'NEXUS_PWD', usernameVariable: 'NEXUS_USER')]) {
-        def auth = "${env.NEXUS_USER}:${env.NEXUS_PWD}"
-        println auth
-        encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
-    }
     String authHeader = "Basic ${encodedAuth}"
     post.setHeader(HttpHeaders.AUTHORIZATION, authHeader)
     def httpClient = HttpClientBuilder.create().build()
