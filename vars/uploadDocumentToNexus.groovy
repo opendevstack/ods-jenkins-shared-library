@@ -41,13 +41,13 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
 
     post.setEntity(builder.build())
 
-    def auth = 'admin:admin123'
-    def encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
-    String authHeader = "Basic ${encodedAuth}"
-    post.setHeader(HttpHeaders.AUTHORIZATION, authHeader)
-
+    withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'NEXUS_PWD', usernameVariable: 'NEXUS_USER')]) {
+        def auth = "${env.NEXUS_USER}:${env.NEXUS_PWD}"
+        def encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
+        String authHeader = "Basic ${encodedAuth}"
+        post.setHeader(HttpHeaders.AUTHORIZATION, authHeader)
+    }
     def response = httpClient.execute(post)
-
     if (response.getStatusLine().getStatusCode() != 204) {
         throw new RuntimeException("Cound not upload document. Nexus returned status ${response.getStatusLine().getStatusCode()}")
     }
