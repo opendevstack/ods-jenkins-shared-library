@@ -14,10 +14,12 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
 
     def repository = 'maven-releases'
 
+    def host = "${env.NEXUS_HOST}" ?: 'nexus.pltf'
+    def port = "${env.NEXUS_PORT}" ?: '8082'
     def nexusURI = new URIBuilder()
             .setScheme("http")
-            .setHost("localhost")
-            .setPort(8081)
+            .setHost(host)
+            .setPort(Integer.parseInt(port))
             .setPath("/service/rest/v1/components")
             .addParameter('repository', repository)
             .build()
