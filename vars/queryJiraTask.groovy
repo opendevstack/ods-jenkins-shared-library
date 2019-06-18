@@ -2,18 +2,19 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 @Grab('org.apache.httpcomponents:httpclient:4.5.9')
 import org.apache.http.client.utils.URIBuilder
-// TODO:
-// - retrieve Jira credentials and host name in the Jenkins credentials store
-// - document creation is in the scope of each repository, not the orchestration pipeline
+
 def call(projectMetadata, query = null) {
-    //def credentials = "admin:admin".bytes.encodeBase64().toString()
+
+    def jiraPort = "${env.JIRA_PORT}" ?: '443'
+    def jiraProto = "${env.JIRA_PROTO}" ?: 'https'
+    def jiraHost = "${env.JIRA_HOST}" ?: 'jira.biscrum.com'
 
     // Request the Jira issue with the label VP in the current project
     def cqlQuery = query ?: "project = ${projectMetadata.services.jira.project.key} and labels = VP"
     def jiraSearchURI = new URIBuilder()
-            .setScheme("https")
-            .setHost("jira.biscrum.com")
-            .setPort(443)
+            .setScheme(jiraProto)
+            .setHost(jiraHost)
+            .setPort(Integer.parseInt(jiraPort))
             .setPath("/rest/api/2/search")
             .addParameter("jql", cqlQuery)
             .build()
@@ -21,7 +22,7 @@ def call(projectMetadata, query = null) {
     def response = httpRequest url: jiraSearchURI.toString(),
             httpMode: 'GET',
             acceptType: 'APPLICATION_JSON',
-            authentication: 'cd-user-with-password',
+            authentication: 'jira',
             ignoreSslErrors: true
     // customHeaders: [[ name: 'Authorization', value: "Basic ${credentials}" ]]
 
