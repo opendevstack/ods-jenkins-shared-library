@@ -15,6 +15,7 @@ def call(data = null, reportType = 'InstallationReport', reportVersion = '1.0', 
     def payload = JsonOutput.toJson(requestData)
     println payload
     def docGenSvcUrl = 'http://${host}:${port}/document'
+    println docGenSvcUrl
     def post = new URL(docGenSvcUrl).openConnection()
     post.setRequestMethod("POST")
     post.setDoOutput(true)
