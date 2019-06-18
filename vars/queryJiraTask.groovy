@@ -25,8 +25,8 @@ def call(projectMetadata) {
     // customHeaders: [[ name: 'Authorization', value: "Basic ${credentials}" ]]
 
     def responseContent = new JsonSlurperClassic().parseText(response.content)
-    if (responseContent.total > 1) {
-        error "Error: Jira reports there is > 1 issues with label 'VP' in project '${projectMetadata.services.jira.project.key}'"
+    if (responseContent.total != 1 ) {
+        error "Error: Jira reports there is != 1 issues with label 'VP' in project '${projectMetadata.services.jira.project.key}'"
     }
     println "Response: ${JsonOutput.toJson(responseContent)}"
     return responseContent.issues[0]
