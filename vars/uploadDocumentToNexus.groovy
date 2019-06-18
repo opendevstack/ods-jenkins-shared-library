@@ -28,7 +28,7 @@ def call(byte[] documentData, groupId = 'org.opendevstack.rm', arifactId = 'docg
         println auth
         encodedAuth = Base64.encoder.encodeToString(auth.getBytes(StandardCharsets.UTF_8))
     }
-
+    println encodedAuth
     HttpPost post = new HttpPost(nexusURI)
     MultipartEntityBuilder builder = MultipartEntityBuilder.create()
     builder.addTextBody('maven2.groupId', groupId)
