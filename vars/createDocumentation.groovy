@@ -1,4 +1,4 @@
-def call(repos, projectMetadata) {
+def call(stage, repos, projectMetadata) {
     repos.each { repo ->
         def docData = createDocument('data')
         def docUrl = uploadDocumentToNexus(docData , 'org.opendevstack.rm', repo.name)
