@@ -20,7 +20,7 @@ def call(taskKey, comment) {
             httpMode: 'POST',
             acceptType: 'APPLICATION_JSON',
             contentType: 'APPLICATION_JSON',
-            authentication: 'cd-user-with-password',
+            authentication: 'jira',
             ignoreSslErrors: true,
             requestBody: JsonOutput.toJson([ body: "${comment}" ])
 
