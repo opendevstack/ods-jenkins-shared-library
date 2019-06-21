@@ -15,13 +15,15 @@ def call(data = null, reportType = 'InstallationReport', reportVersion = '1.0', 
     def payload = JsonOutput.toJson(requestData)
     println payload
     def docGenSvcUrl = "http://${host}:${port}/document"
-    def responseData = httpRequest url: docGenSvcUrl,
+    def response = httpRequest url: docGenSvcUrl,
             consoleLogResponseBody: true,
             httpMode: 'POST',
             acceptType: 'APPLICATION_JSON',
             contentType: 'APPLICATION_JSON',
             ignoreSslErrors: true,
             requestBody: payload
-    println responseData
-    return Base64.decoder.decode(responseData.data)
+
+    JsonSlurper slurper = new JsonSlurper()
+    slurper.parse(response.content)
+    return Base64.decoder.decode(slurper.parse(response.content).data)
 }
