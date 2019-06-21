@@ -25,5 +25,5 @@ def call(data = null, reportType = 'InstallationReport', reportVersion = '1.0', 
 
     JsonSlurper slurper = new JsonSlurper()
     slurper.parse(response.content)
-    return Base64.decoder.decode(slurper.parse(response.content).data)
+    return Base64.decoder.decode(slurper.parseText(response.content).data)
 }
