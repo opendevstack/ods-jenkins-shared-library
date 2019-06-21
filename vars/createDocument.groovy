@@ -22,6 +22,6 @@ def call(data = null, reportType = 'InstallationReport', reportVersion = '1.0', 
             contentType: 'APPLICATION_JSON',
             ignoreSslErrors: true,
             requestBody: payload
-
+    println responseData
     return Base64.decoder.decode(responseData.data)
 }
