@@ -22,8 +22,6 @@ def call(data = null, reportType = 'InstallationReport', reportVersion = '1.0', 
             contentType: 'APPLICATION_JSON',
             ignoreSslErrors: true,
             requestBody: payload
-    JsonSlurper slurper = new JsonSlurper()
-    def response = slurper.parse(requestData)
-    println JsonOutput.toJson(response)
-    return Base64.decoder.decode(response.data)
+
+    return Base64.decoder.decode(responseData.data)
 }
