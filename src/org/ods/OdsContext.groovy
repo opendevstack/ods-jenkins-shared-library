@@ -172,6 +172,8 @@ class OdsContext implements Context {
     config.gitCommitAuthor = retrieveGitCommitAuthor()
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
+    config.lastSuccessfulCommit = retrieveLastSuccessfulCommit()
+    config.committedFiles = retrieveGitCommitFiles(config.lastSuccessfulCommit)
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
     if (!config.containsKey('bitbucketNotificationEnabled')) {
@@ -278,6 +280,14 @@ class OdsContext implements Context {
 
   String getTagversion() {
     config.tagversion
+  }
+
+  String getLastSuccessfulCommit() {
+    config.lastSuccessfulCommit
+  }
+
+  String[] getCommittedFiles() {
+    config.committedFiles
   }
 
   boolean getNotifyNotGreen() {
@@ -478,6 +488,34 @@ class OdsContext implements Context {
       returnStdout: true, script: "git show -s --format=%ci HEAD",
       label : 'getting GIT commit date/time'
     ).trim()
+  }
+
+  private String retrieveLastSuccessfulCommit() {
+    def lastSuccessfulBuild = script.currentBuild.rawBuild.getPreviousSuccessfulBuild()
+    if (!lastSuccessfulBuild) {
+      logger.info("There seems to be no last successful build.")
+      return ""
+    }
+    return commitHashForBuild(lastSuccessfulBuild)
+  }
+
+  private String commitHashForBuild(build) {
+    return build
+      .getActions(hudson.plugins.git.util.BuildData.class)
+      .find { action -> action.getRemoteUrls().contains(config.gitUrl) }
+      .getLastBuiltRevision().getSha1String()
+  }
+
+  private String[] retrieveGitCommitFiles(String lastSuccessfulCommitHash) {
+    if (!lastSuccessfulCommitHash) {
+      logger.info("Didn't find the last successful commit. Can't return the committed files.")
+      return []
+    }
+    return script
+      .sh(
+        returnStdout: true,
+        script: "git diff-tree --no-commit-id --name-only -r ${config.gitCommit}"
+      ).toString().split()
   }
 
   private String retrieveGitBranch() {

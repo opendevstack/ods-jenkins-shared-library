@@ -130,6 +130,12 @@ interface Context {
     // Git commit time in RFC 3399.
     String getGitCommitTime()
 
+    // Gets last successful commit SHA built on Jenkins on a specific pipeline
+    String getLastSuccessfulCommit()
+
+    // Gets a string array of committed files since the last successful commit
+    String[] getCommittedFiles()
+
     // Branch on which to run SonarQube analysis.
     String getSonarQubeBranch()
 
