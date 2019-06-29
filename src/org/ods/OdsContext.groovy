@@ -135,6 +135,7 @@ class OdsContext implements Context {
     config.gitBranch = retrieveGitBranch()
     config.gitCommit = retrieveGitCommit()
     config.gitCommitAuthor = retrieveGitCommitAuthor()
+    config.gitCommitFiles = retrieveGitCommitFiles()
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
@@ -297,6 +298,10 @@ class OdsContext implements Context {
     config.gitCommitMessage
   }
 
+  String[] getGitCommitFiles() {
+    config.gitCommitFiles
+  }
+
   String getGitCommitTime() {
     config.gitCommitTime
   }
@@ -398,6 +403,12 @@ class OdsContext implements Context {
       returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD",
       label : 'getting GIT commit author'
     ).trim()
+  }
+
+  private String[] retrieveGitCommitFiles() {
+    script.sh(
+      returnStdout: true, script: "git diff-tree --no-commit-id --name-only -r ${config.gitCommit}"
+    ).toString().split()
   }
 
   private String retrieveGitCommitMessage() {

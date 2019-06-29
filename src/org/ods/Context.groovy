@@ -113,6 +113,9 @@ interface Context {
     // Git commit message.
     String getGitCommitMessage()
 
+    // Git commit files.
+    String[] getGitCommitFiles()
+
     // Git commit time in RFC 3399.
     String getGitCommitTime()
 
