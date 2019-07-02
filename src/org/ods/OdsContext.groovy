@@ -271,7 +271,11 @@ class OdsContext implements Context {
   }
 
   String getSonarQubeBranch() {
-      config.sonarQubeBranch
+    config.sonarQubeBranch
+  }
+
+  String getDoFailOnSnykScanVulnerabilities() {
+      config.doFailOnSnykScanVulnerabilities
   }
 
   String getDependencyCheckBranch() {
