@@ -82,6 +82,9 @@ class OdsContext implements Context {
     if (!config.containsKey('sonarQubeBranch')) {
       config.sonarQubeBranch = 'master'
     }
+    if (!config.containsKey('doFailOnSnykScanVulnerabilities')) {
+      config.doFailOnSnykScanVulnerabilities = true
+    }
     if (!config.containsKey('dependencyCheckBranch')) {
       config.dependencyCheckBranch = 'master'
     }
