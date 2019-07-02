@@ -38,6 +38,14 @@ odsPipeline(
 }
 ```
 
+## Provided Stages
+Following stages are provided (see folder vars for more details):
+* stageScanForSonarqube(context)
+* stageOWASPDependencyCheck(context) 
+* stageScanForSnyk(context, snykAuthenticationCode, buildFile)
+* stageUploadToNexus(context)
+* stageStartOpenshiftBuild(context)
+* stageDeployToOpenshift(context)
 
 ## Workflow
 
