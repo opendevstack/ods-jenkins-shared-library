@@ -1,15 +1,15 @@
 def call(def context, def snykAuthenticationCode, def buildFile, def failOnVulnerabilities) {
-  if (snykAuthenticationCode == null) {
+  if (null == snykAuthenticationCode) {
     context.logger "Skipping Snyk Scan due to missing authentication code (to enable pass as parameter a snyk service account authentication code to this stage)"
     return
   }
 
-  if (failOnVulnerabilities == null) {
-    failOnVulnerabilities = true
-    context.logger "Snyk test mode: build will fail if vulnerabilities are found!"
-  } else {
-    failOnVulnerabilities = false
+  boolean failBuild = true
+  if (!failOnVulnerabilities) {
+    failBuild = false
     context.logger "Snyk test mode: build will not fail if vulnerabilities are found!"
+  } else {
+    context.logger "Snyk test mode: build will fail if vulnerabilities are found!"
   }
 
   if (buildFile == null) {
@@ -35,7 +35,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def failOnVulne
         }
         // second fail if vulnerabilites are found (
         status = sh(script: "/usr/local/snyk test --file=$BUILD_FILE", returnStatus: true)
-        if (status != 0 && failOnVulnerabilities) {
+        if (status != 0 && failBuild) {
           error "Build failed: snyk test found vulnerabilities!"
         }
       }
