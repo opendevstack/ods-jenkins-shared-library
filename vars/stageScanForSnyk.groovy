@@ -24,12 +24,12 @@ def call(def context, def snykAuthenticationCode, def buildFile) {
         if (status != 0) {
           error "Build failed: something went wrong by authorising snyk (SNYK_AUTHENTICATION_CODE=$SNYK_AUTHENTICATION_CODE)!"
         }
-        // first monitor project (enable this only for master later, no need to monitor other branches)
+        // first monitor project
         status = sh(script: "/usr/local/snyk monitor --file=$BUILD_FILE --project-name=$PROJECT_NAME/$COMPONENT_NAME", returnStatus: true)
         if (status != 0) {
           error "Build failed: something went wrong with snyk monitor command!"
         }
-        // second fail if vulnerabilites are found (
+        // fail if vulnerabilites are found
         status = sh(script: "/usr/local/snyk test --file=$BUILD_FILE", returnStatus: true)
         if (status != 0 && context.doFailOnSnykScanVulnerabilities) {
           error "Build failed: snyk test found vulnerabilities (see snyk report above for details!)!"
