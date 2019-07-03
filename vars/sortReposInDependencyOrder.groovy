@@ -15,6 +15,8 @@ def call(List<Map> repos) {
         }
     }
 
-    // Transform a list of graph nodes into a list of repository configs
-    return DependencyGraph.resolve(nodes).nodes.collect { [it.data] }
+    // Transform a list of grouped graph nodes into a list of grouped repository configs
+    return DependencyGraph.resolveGroups(nodes).nodes.collect { group ->
+        group.collect { it.data }
+    }
 }
