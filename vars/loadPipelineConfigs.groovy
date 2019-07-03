@@ -15,7 +15,7 @@ def call(List<Map> repos) {
     walkRepoDirectories(repos, visitor) 
 }
 
-private def walkRepoDirectories(List repos, Closure visitor) {
+private def walkRepoDirectories(List<Map> repos, Closure visitor) {
     repos.each { repo ->
         // Compute the path of the repo inside the workspace
         def path = Paths.get(WORKSPACE, ".tmp", "repositories", repo.name).toString()

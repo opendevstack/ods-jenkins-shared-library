@@ -1,7 +1,7 @@
 import java.nio.file.Paths
 
 // Execute a named pipeline phase for each repository
-def call(String name, List<List<Map>> repoGroups) {
+def call(String name, List<Set<Map>> repoGroups) {
     repoGroups.each { group ->
         def steps = group.collectEntries { repo ->
             [

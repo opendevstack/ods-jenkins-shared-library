@@ -58,8 +58,8 @@ class DependencyGraph<T> {
         return graph
     }
 
-    static DependencyGraph<List<Node>> resolveGroups(List<Node> nodes) {
-        def graph = new DependencyGraph<List<Node>>()
+    static DependencyGraph<Set<Node>> resolveGroups(List<Node> nodes) {
+        def graph = new DependencyGraph<Set<Node>>()
 
         _resolve(nodes) { node ->
             if (graph.nodes.isEmpty()) {
