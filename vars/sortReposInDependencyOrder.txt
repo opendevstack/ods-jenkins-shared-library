@@ -1,1 +1,0 @@
-This function accepts a list of maps with repository configurations and returns an ordered list that will build considering dependency and null if a cyclic dependency is detected.
