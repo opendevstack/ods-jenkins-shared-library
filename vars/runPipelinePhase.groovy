@@ -1,13 +1,20 @@
 import java.nio.file.Paths
 
+import org.ods.phase.PipelinePhases
+
 // Execute a named pipeline phase for each repository
-def call(String name, List<Set<Map>> repoGroups) {
-    repoGroups.each { group ->
+def call(String name, List<Set<Map>> repoSets) {
+    // In some phases, we can run all repos in parallel
+    if (PipelinePhases.ALWAYS_PARALLEL_PHASES.contains(name)) {
+        repoSets = [repoSets.flatten() as Set<Map>]
+    }
+
+    repoSets.each { group ->
         def steps = group.collectEntries { repo ->
             [
                 repo.name,
                 {
-                    phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
+                    def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
                     if (phaseConfig) {
                         def label = "${repo.name} (${repo.url})"
 
