@@ -1,7 +1,7 @@
 import java.nio.file.Paths
 
 // Checkout repositories into the current workspace
-def call(List repos) {
+def call(List<Map> repos) {
     repos.each { repo ->
         checkout([
             $class: 'GitSCM',

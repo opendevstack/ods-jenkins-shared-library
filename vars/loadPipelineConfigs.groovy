@@ -5,7 +5,7 @@ import java.nio.file.Paths
 import org.yaml.snakeyaml.Yaml
 
 // Load pipeline configurations from the projects' .pipeline-config.yml
-def call(List repos) {
+def call(List<Map> repos) {
     visitor = { String path, Map repo ->
         def file = Paths.get(path, ".pipeline-config.yml").toFile()
         def data = file.exists() ? new Yaml().load(file.text) : [:]
