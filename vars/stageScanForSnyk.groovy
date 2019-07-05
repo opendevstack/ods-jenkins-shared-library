@@ -1,9 +1,9 @@
 def call(def context, def snykAuthenticationCode, def buildFile, def organisation) {
-  if (null == snykAuthenticationCode) {
+  if (!snykAuthenticationCode) {
     println("Skipping Snyk Scan due to missing authentication code (to enable pass as parameter a snyk service account authentication code to this stage)")
     return
   }
-  if (null == organisation) {
+  if (!organisation) {
     error "organisation is null!"
   }
 

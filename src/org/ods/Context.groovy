@@ -107,7 +107,7 @@ interface Context {
     String getSonarQubeBranch()
 
     // snyk behaviour configuration in case it reports vulnerabilities
-    String getFailOnSnykScanVulnerabilities() {
+    String getFailOnSnykScanVulnerabilities()
 
     // Branch on which to run dependency checks.
     String getDependencyCheckBranch()
