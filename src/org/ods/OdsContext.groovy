@@ -82,8 +82,8 @@ class OdsContext implements Context {
     if (!config.containsKey('sonarQubeBranch')) {
       config.sonarQubeBranch = 'master'
     }
-    if (!config.containsKey('doFailOnSnykScanVulnerabilities')) {
-      config.doFailOnSnykScanVulnerabilities = true
+    if (!config.containsKey('failOnSnykScanVulnerabilities')) {
+      config.failOnSnykScanVulnerabilities = true
     }
     if (!config.containsKey('dependencyCheckBranch')) {
       config.dependencyCheckBranch = 'master'
@@ -274,8 +274,8 @@ class OdsContext implements Context {
     config.sonarQubeBranch
   }
 
-  String getDoFailOnSnykScanVulnerabilities() {
-      config.doFailOnSnykScanVulnerabilities
+  String getFailOnSnykScanVulnerabilities() {
+      config.failOnSnykScanVulnerabilities
   }
 
   String getDependencyCheckBranch() {

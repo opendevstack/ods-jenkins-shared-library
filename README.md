@@ -174,7 +174,7 @@ When you write stages, you have access to both global variables (defined without
 | gitCommitMessage | Git commit message. |
 | gitCommitTime | Git commit time in RFC 3399. |
 | sonarQubeBranch | Branch on which to run SonarQube analysis. |
-| doFailOnSnykScanVulnerabilities | Boolean flag (default true) that disables build failure in case Snyk Scan founds vulnerabilities | 
+| failOnSnykScanVulnerabilities | Boolean flag (default true) that disables build failure in case Snyk Scan founds vulnerabilities | 
 | dependencyCheckBranch | Branch on which to run dependency checks. |
 | environmentLimit | Number of environments to allow. |
 | openshiftHost | OpenShift host - value taken from OPENSHIFT_API_URL. |
