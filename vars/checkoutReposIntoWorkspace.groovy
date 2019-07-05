@@ -26,3 +26,5 @@ def call(List<Map> repos) {
 
     parallel steps
 }
+
+return this

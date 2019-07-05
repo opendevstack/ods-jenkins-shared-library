@@ -25,3 +25,5 @@ private def walkRepoDirectories(List<Map> repos, Closure visitor) {
         }
     }
 }
+
+return this

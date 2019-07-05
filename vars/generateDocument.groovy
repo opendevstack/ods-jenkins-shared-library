@@ -49,3 +49,5 @@ def call(String type, String version, Map data) {
 
     return document
 }
+
+return this

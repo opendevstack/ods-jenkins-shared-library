@@ -36,3 +36,5 @@ def call(String issueIdOrKey, String comment) {
             [ body: comment ]
         )
 }
+
+return this

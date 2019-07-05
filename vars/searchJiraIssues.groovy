@@ -38,3 +38,5 @@ def call(String query) {
 
     return new JsonSlurperClassic().parseText(response.content).issues
 }
+
+return this

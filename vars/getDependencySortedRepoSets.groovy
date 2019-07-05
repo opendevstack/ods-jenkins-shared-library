@@ -20,3 +20,5 @@ def call(List<Map> repos) {
         group.collect { it.data }
     }
 }
+
+return this

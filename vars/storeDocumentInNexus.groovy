@@ -62,3 +62,5 @@ def call(String repository, String directory, String id, String version, byte[] 
 
     return result.toString()
 }
+
+return this

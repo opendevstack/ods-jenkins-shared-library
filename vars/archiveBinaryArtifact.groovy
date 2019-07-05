@@ -21,3 +21,5 @@ def call(byte[] data, Path dir, String prefix, String suffix) {
         }
     }
 }
+
+return this

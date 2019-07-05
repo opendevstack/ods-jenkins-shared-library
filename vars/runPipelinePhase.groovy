@@ -39,3 +39,5 @@ def call(String name, List<Set<Map>> repoSets) {
         parallel steps
     }
 }
+
+return this

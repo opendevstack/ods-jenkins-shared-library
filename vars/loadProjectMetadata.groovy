@@ -9,3 +9,5 @@ def call() {
     def file = Paths.get(WORKSPACE, "metadata.yml").toFile()
     return file.exists() ? new Yaml().load(file.text) : [:]
 }
+
+return this

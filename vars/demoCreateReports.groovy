@@ -23,3 +23,5 @@ def call(List reports, String version, Map projectMetadata) {
         addCommentToJiraIssue(issues[0].key, "A new ${report.id} has been generated and is available at: ${uri}.")
     }
 }
+
+return this
