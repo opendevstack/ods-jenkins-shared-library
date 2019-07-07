@@ -1,6 +1,6 @@
 package org.ods.graph
 
-class Node {
+class Node implements Serializable {
     Map data = [:]
 
     List<Node> from = []
