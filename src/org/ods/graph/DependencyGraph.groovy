@@ -1,6 +1,6 @@
 package org.ods.graph
 
-class DependencyGraph<T> {
+class DependencyGraph<T> implements Serializable {
     List<T> nodes
 
     DependencyGraph(List<T> nodes = []) {
