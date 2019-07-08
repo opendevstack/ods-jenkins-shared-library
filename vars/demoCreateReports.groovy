@@ -1,11 +1,15 @@
+import org.ods.util.MultiRepoOrchestrationPipelineUtil
+
 // Demo Scenario: create reports and store in Nexus
 def call(List reports, String version, Map projectMetadata) {
+    def util = new MultiRepoOrchestrationPipelineUtil(this)
+
     reports.each { report ->
         // Create a report
         def document = docGenCreateDocument(report.id, version, report.data)
 
         // Store the report in the Pipeline
-        archiveBinaryArtifact(document, ".tmp/documents", report.id, "${version}.pdf")
+        util.archiveArtifact(".tmp/documents", report.id, "${version}.pdf", document)
 
         // Store the report in Nexus
         def uri = nexusStoreArtifact(
