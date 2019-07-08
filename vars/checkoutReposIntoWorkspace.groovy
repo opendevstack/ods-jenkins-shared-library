@@ -1,5 +1,3 @@
-import java.nio.file.Paths
-
 // Checkout repositories into the current workspace
 def call(List<Map> repos) {
     def steps = repos.collectEntries { repo ->
@@ -13,7 +11,7 @@ def call(List<Map> repos) {
                     ],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [
-                        [ $class: 'RelativeTargetDirectory', relativeTargetDir: Paths.get(".tmp", "repositories", repo.name).toString() ]
+                        [ $class: 'RelativeTargetDirectory', relativeTargetDir: ".tmp/repositories/${repo.name}" ]
                     ],
                     submoduleCfg: [],
                     userRemoteConfigs: [

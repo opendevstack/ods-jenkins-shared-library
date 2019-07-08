@@ -1,5 +1,3 @@
-import java.nio.file.Paths
-
 // Demo Scenario: create reports and store in Nexus
 def call(List reports, String version, Map projectMetadata) {
     reports.each { report ->
@@ -7,7 +5,7 @@ def call(List reports, String version, Map projectMetadata) {
         def document = docGenCreateDocument(report.id, version, report.data)
 
         // Store the report in the Pipeline
-        archiveBinaryArtifact(document, Paths.get("documents"), report.id, "${version}.pdf")
+        archiveBinaryArtifact(document, ".tmp/documents", report.id, "${version}.pdf")
 
         // Store the report in Nexus
         def uri = nexusStoreArtifact(
