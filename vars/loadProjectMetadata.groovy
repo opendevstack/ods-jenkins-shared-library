@@ -1,12 +1,10 @@
 @Grab('org.yaml:snakeyaml:1.24')
 
-import java.nio.file.Paths
-
 import org.yaml.snakeyaml.Yaml
 
 // Load metadata from metadata.yml
 def call() {
-    def file = Paths.get(WORKSPACE, "metadata.yml").toFile()
+    def file = new File("${WORKSPACE}/metadata.yml")
     return file.exists() ? new Yaml().load(file.text) : [:]
 }
 

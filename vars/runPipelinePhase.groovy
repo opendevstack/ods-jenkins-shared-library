@@ -1,5 +1,3 @@
-import java.nio.file.Paths
-
 import org.ods.phase.PipelinePhases
 
 // Execute a named pipeline phase for each repository
@@ -19,12 +17,12 @@ def call(String name, List<Set<Map>> repoSets) {
                         def label = "${repo.name} (${repo.url})"
 
                         if (phaseConfig.type == 'Makefile') {
-                            dir(Paths.get(WORKSPACE, ".tmp", "repositories", repo.name).toString()) {
+                            dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
                                 def script = "make ${phaseConfig.task}"
                                 sh script: script, label: label
                             }
                         } else if (phaseConfig.type == 'ShellScript') {
-                            dir(Paths.get(WORKSPACE, ".tmp", "repositories", repo.name).toString()) {
+                            dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
                                 def script = "./scripts/${phaseConfig.script}"
                                 sh script: script, label: label
                             }
