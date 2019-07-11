@@ -102,33 +102,26 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         }
     }
 
-    Map readPipelineConfig(Map repo) {
-        def visitor = { String path, Map _repo ->
-            def file = new File("${path}/${PIPELINE_CONIFG_FILE_NAME}")
-            def data = file.exists() ? new Yaml().load(file.text) : [:]
-            _repo.pipelineConfig = data
-        }
-
-        walkRepoDirectories([repo], visitor)
+    Map readPipelineConfig(String path, Map repo) {
+        def file = new File("${path}/${PIPELINE_CONIFG_FILE_NAME}")
+        def config = file.exists() ? new Yaml().load(file.text) : [:]
+        repo.pipelineConfig = config
         return repo
     }
 
     List<Map> readPipelineConfigs(List<Map> repos) {
-        repos.each { repo ->
-            readPipelineConfig(repo)
+        def visitor = { baseDir, repo ->
+            readPipelineConfig(baseDir, repo)
         }
 
+        walkRepoDirectories(repos, visitor)
         return repos
     }
 
     private void walkRepoDirectories(List<Map> repos, Closure visitor) {
         repos.each { repo ->
-            // Compute the path of the repo inside the workspace
-            def path = "${this.steps.WORKSPACE}/${REPO_BASE_DIR}/${repo.name}"
-            this.steps.dir(path) {
-                // Apply the visitor to the repo at path
-                visitor(path, repo)
-            }
+            // Apply the visitor to the repo at the repo's base dir
+            visitor("${this.steps.WORKSPACE}/${REPO_BASE_DIR}/${repo.name}", repo)
         }
     }
 }
