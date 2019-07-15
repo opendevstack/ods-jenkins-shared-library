@@ -11,18 +11,20 @@ import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
 
-class DocGenService implements Serializable {
+class DocGenService {
 
-    String scheme
-    String host
-    int port
+    URI baseURL
 
-    private URI getBaseURI() {
-        return new URIBuilder()
-            .setScheme(this.scheme)
-            .setHost(this.host)
-            .setPort(this.port)
-            .build()
+    DocGenService(String baseURL) {
+        if (!baseURL) {
+            throw new IllegalArgumentException("Error: unable to connect to DocGen. 'baseURL' is undefined")
+        }
+
+        try {
+            this.baseURL = new URIBuilder(baseURL).build()
+        } catch (e) {
+            throw new IllegalArgumentException("Error: unable to connect to DocGen. '${baseURL}' is not a valid URI")
+        }
     }
 
     private static def decodeBase64(def base64String) {
@@ -30,7 +32,7 @@ class DocGenService implements Serializable {
     }
 
     def Map createDocument(String type, String version, Map data) {
-        def response = Unirest.post("${getBaseURI()}/document")
+        def response = Unirest.post("${this.baseURL}/document")
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson([

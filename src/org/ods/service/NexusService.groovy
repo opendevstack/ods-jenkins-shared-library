@@ -8,27 +8,35 @@ import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
 
-class NexusService implements Serializable {
+class NexusService {
 
-    String scheme
-    String host
-    int port
+    URI baseURL
 
     String username
     String password
 
-    private URI getBaseURI() {
-        return new URIBuilder()
-            .setScheme(this.scheme)
-            .setHost(this.host)
-            .setPort(this.port)
-            .build()
+    NexusService(String baseURL, String username, String password) {
+        if (!baseURL) {
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'baseURL' is undefined")
+        }
+
+        if (!username) {
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'username' is undefined")
+        }
+
+        if (!password) {
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'password' is undefined")
+        }
+
+        try {
+            this.baseURL = new URIBuilder(baseURL).build()
+        } catch (e) {
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. '${baseURL}' is not a valid URI")
+        }
     }
 
     def URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
-        def uri = getBaseURI()
-
-        def response = Unirest.post("${uri}/service/rest/v1/components?repository={repository}")
+        def response = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
             .routeParam("repository", repository)
             .basicAuth(this.username, this.password)            
             .field("raw.directory", directory)
@@ -46,6 +54,6 @@ class NexusService implements Serializable {
             throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: ${response.getStatus()} and message: ${response.getBody()}")
         }
 
-        return uri.resolve("/repository/${repository}/${directory}/${name}")
+        return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
     }
 }
