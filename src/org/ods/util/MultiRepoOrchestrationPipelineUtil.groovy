@@ -36,6 +36,8 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
     }
 
     Closure prepareCheckoutRepoNamedJob(Map repo) {
+        def metadata = readProjectMetadata()
+
         return [
             repo.name,
             {
@@ -50,7 +52,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                     ],
                     submoduleCfg: [],
                     userRemoteConfigs: [
-                        [ credentialsId: 'bitbucket', url: repo.url ]
+                        [ credentialsId: metadata.services.bitbucket.credentials.id, url: repo.url ]
                     ]
                 ])
             }
