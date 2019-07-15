@@ -30,11 +30,7 @@ class DocGenService implements Serializable {
     }
 
     def Map createDocument(String type, String version, Map data) {
-        def uri = new URIBuilder(getBaseURI())
-            .setPath("/document")
-            .build()
-
-        def response = Unirest.post(uri.toString())
+        def response = Unirest.post("${getBaseURI()}/document")
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson([
