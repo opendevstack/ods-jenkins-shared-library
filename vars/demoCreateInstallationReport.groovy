@@ -30,7 +30,7 @@ def call(Map metadata) {
     )
 
     // Search for the Jira issue for this report
-    def issues = jiraGetIssuesForJQLQuery("project = ${metadata.key} AND labels = LeVA_Doc:TIR")
+    def issues = jiraGetIssuesForJQLQuery("project = ${metadata.id} AND labels = LeVA_Doc:TIR")
     if (issues.isEmpty()) {
         error "Error: Jira query returned 0 issues: '${query}'"
     } else if (issues.size() > 1) {
