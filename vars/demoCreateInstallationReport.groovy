@@ -23,10 +23,9 @@ def call(Map metadata) {
     util.archiveArtifact(".tmp/documents", id, "${version}.pdf", document)
 
     // Store the report as artifact in Nexus
-    def uri = nexusStoreArtifact(
-        metadata,
+    def uri = nexusStoreArtifact(metadata,
         metadata.services.nexus.repository.name,
-        metadata.services.nexus.repository.directories.reports,
+        "${metadata.id.toLowerCase()}-${version}",
         id, version, document, "application/pdf"
     )
 
