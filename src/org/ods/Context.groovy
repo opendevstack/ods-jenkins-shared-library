@@ -132,20 +132,28 @@ interface Context {
 
     def setEnvironmentCreated(boolean created)
 
+    // Whether CI skip is enabled
     boolean getCiSkipEnabled()
 
+    // Enable/disable CI skip is enabled
     def setCiSkipEnabled(boolean ciSkipEnabled)
 
+    // Whether Bitbucket notification is enabled
     boolean getBitbucketNotificationEnabled()
 
+    // nable/disable Bitbucket notification
     def setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled)
 
+    // Whether local checkout is enabled
     boolean getLocalCheckoutEnabled()
 
+    // Enable/disable local checkout
     def setLocalCheckoutEnabled(boolean localCheckoutEnabled)
 
+    // Whether display name update is enabled
     boolean getDisplayNameUpdateEnabled()
 
+    // Enable/disable display name update
     def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
 
 
