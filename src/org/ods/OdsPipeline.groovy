@@ -18,6 +18,7 @@ class OdsPipeline implements Serializable {
   // Main entry point.
   def execute(Closure stages) {
     logger.info "***** Starting ODS Pipeline *****"
+    checkForMultiRepoBuild()
 
     logger.info "***** Continuing on node 'master' *****"
     def cl = {
@@ -94,6 +95,16 @@ class OdsPipeline implements Serializable {
     }
 
     logger.info "***** Finished ODS Pipeline *****"
+  }
+
+  def checkForMultiRepoBuild() {
+    if (!!script.env.MULTI_REPO_BUILD) {
+      context.bitbucketNotificationEnabled = false
+      context.localCheckoutEnabled = false
+      context.displayNameUpdateEnabled = false
+      context.ciSkipEnabled = false
+      context.cloneSourceEnv = false
+    }
   }
 
   private void setBitbucketBuildStatus(String state) {
