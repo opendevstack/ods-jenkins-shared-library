@@ -1,3 +1,4 @@
+import org.ods.parser.JUnitParser
 import org.ods.phase.PipelinePhases
 import org.ods.util.MultiRepoOrchestrationPipelineUtil
 
@@ -46,6 +47,9 @@ def call(Map metadata, List<Set<Map>> repos) {
     </testsuite>
 </testsuites>
     """
+
+    def testResults = JUnitParser.parseJUnitXML(testResultsString)
+    println "TEST_RESULTS: " + testResults
 
     // Execute phase for each repository
     def util = new MultiRepoOrchestrationPipelineUtil(this)
