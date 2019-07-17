@@ -36,6 +36,9 @@ class JiraService {
         } catch (e) {
             throw new IllegalArgumentException("Error: unable to connect to Jira. '${baseURL}' is not a valid URI")
         }
+
+        this.username = username
+        this.password = password
     }
 
     def void appendCommentToIssue(String issueIdOrKey, String comment) {

@@ -33,6 +33,9 @@ class NexusService {
         } catch (e) {
             throw new IllegalArgumentException("Error: unable to connect to Nexus. '${baseURL}' is not a valid URI")
         }
+
+        this.username = username
+        this.password = password
     }
 
     def URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
