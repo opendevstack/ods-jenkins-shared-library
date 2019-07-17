@@ -51,6 +51,11 @@ def call(Map metadata, List<Set<Map>> repos) {
     def testResults = JUnitParser.parseJUnitXML(testResultsString)
     println "TEST_RESULTS: " + testResults
 
+    def testCasesExecuted = testResults.testsuites.each { testsuite ->
+        testsuite.testcases.collect { it.name }
+    }
+    println "TEST_CASES_EXECUTED: " + testCasesExecuted
+
     // Execute phase for each repository
     def util = new MultiRepoOrchestrationPipelineUtil(this)
     util.prepareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos)
