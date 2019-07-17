@@ -131,4 +131,22 @@ interface Context {
     boolean getCiSkip()
 
     def setEnvironmentCreated(boolean created)
+
+    boolean getCiSkipEnabled()
+
+    def setCiSkipEnabled(boolean ciSkipEnabled)
+
+    boolean getBitbucketNotificationEnabled()
+
+    def setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled)
+
+    boolean getLocalCheckoutEnabled()
+
+    def setLocalCheckoutEnabled(boolean localCheckoutEnabled)
+
+    boolean getDisplayNameUpdateEnabled()
+
+    def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
+
+
 }

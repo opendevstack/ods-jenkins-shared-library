@@ -23,7 +23,9 @@ class OdsPipeline implements Serializable {
     script.node('master') {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-          script.checkout script.scm
+          if (context.getLocalCheckoutEnabled()) {
+            script.checkout script.scm
+          }
           script.stage('Prepare') {
             context.assemble()
           }
@@ -58,15 +60,12 @@ class OdsPipeline implements Serializable {
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            if (isSlaveNodeGitLFSenabled()){
-              checkoutWithGitLFSpull()
-            } else {
-              script.checkout script.scm
+            checkoutWithGit(isSlaveNodeGitLFSenabled())
+            if (context.getDisplayNameUpdateEnabled()) {
+              script.currentBuild.displayName = "#${context.tagversion}"
             }
 
-            script.currentBuild.displayName = "#${context.tagversion}"
-
-            if (context.ciSkip){
+            if (context.getCiSkipEnabled() && context.ciSkip){
               logger.info 'Skipping build due to [ci skip] in the commit message ...'
               script.currentBuild.result = 'NOT_BUILT'
               setBitbucketBuildStatus('SUCCESSFUL')
@@ -92,6 +91,9 @@ class OdsPipeline implements Serializable {
   }
 
   private void setBitbucketBuildStatus(String state) {
+    if (!context.getBitbucketNotificationEnabled()) {
+      return
+    }
     if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
       logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
       return
@@ -187,19 +189,22 @@ class OdsPipeline implements Serializable {
     return statusCode == 0
   }
 
-  private void checkoutWithGitLFSpull(){
-    script.checkout([  $class: 'GitSCM',
-                    branches: [[name: 'refs/heads/'+context.gitBranch]],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [
-                        [$class: 'GitLFSPull']
-                    ],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [
-                        [credentialsId: context.credentialsId,
-                        url: context.gitUrl]
-                    ]
-                ])
+  private void checkoutWithGit(boolean lfsEnabled){
+    def gitParams = [$class                           : 'GitSCM',
+                     branches                         : [[name: 'refs/heads/' + context.gitBranch]],
+                     doGenerateSubmoduleConfigurations: false,
+                     submoduleCfg                     : [],
+                     userRemoteConfigs                : [
+                             [credentialsId: context.credentialsId,
+                              url          : context.gitUrl]
+                     ]
+    ]
+    if (lfsEnabled) {
+      gitParams.extensions = [
+              [$class: 'GitLFSPull']
+      ]
+    }
+    script.checkout(gitParams)
   }
 
   private boolean isSlaveNodeGitLFSenabled(){

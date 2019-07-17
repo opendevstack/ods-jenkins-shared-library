@@ -303,6 +303,38 @@ class OdsContext implements Context {
       this.environmentCreated = created
   }
 
+  boolean getCiSkipEnabled() {
+    return (config.ciSkipEnabled == null || config.ciSkipEnabled)
+  }
+
+  def setCiSkipEnabled(boolean ciSkipEnabled) {
+    config.ciSkipEnabled = ciSkipEnabled
+  }
+
+  boolean getBitbucketNotificationEnabled() {
+    return (config.bitbucketNotificationEnabled == null || config.bitbucketNotificationEnabled)
+  }
+
+  def setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled) {
+    config.bitbucketNotificationEnabled = bitbucketNotificationEnabled
+  }
+
+  boolean getLocalCheckoutEnabled() {
+    return (config.localCheckoutEnabled == null || config.localCheckoutEnabled)
+  }
+
+  def setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
+    config.localCheckoutEnabled = localCheckoutEnabled
+  }
+
+  boolean getDisplayNameUpdateEnabled() {
+    return (config.displayNameUpdateEnabled == null || config.displayNameUpdateEnabled)
+  }
+
+  def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
+    config.displayNameUpdateEnabled = displayNameUpdateEnabled
+  }
+
   private String retrieveGitUrl() {
     script.sh(
       returnStdout: true, script: 'git config --get remote.origin.url'
@@ -334,13 +366,23 @@ class OdsContext implements Context {
   }
 
   private String retrieveGitBranch() {
-    def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
-    def buildConfigName = config.jobName.substring(pipelinePrefix.size())
+    def branch
+    if (this.getLocalCheckoutEnabled()) {
+      def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
+      def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
-    script.sh(
-      returnStdout: true,
-      script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
-    ).trim()
+      branch = script.sh(
+              returnStdout: true,
+              script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
+      ).trim()
+    } else {
+      // in case code is already checked out, OpenShift build config can not be used for retrieving branch
+      branch = script.sh(
+              returnStdout: true,
+              script: "git rev-parse --abbrev-ref HEAD"
+      ).trim()
+    }
+    return branch
   }
   // looks for string [ci skip] in commit message
   boolean getCiSkip() {
