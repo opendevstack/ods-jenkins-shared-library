@@ -35,4 +35,12 @@ class PipelineUtil {
 
         return new Yaml().load(file.text)
     }
+
+    def executeJenkinsfile(String filePath = 'Jenkinsfile') {
+        if (fileExists(filePath)) {
+            load path: filePath
+        } else {
+            error "File ${filePath} does not exist!"
+        }
+    }
 }
