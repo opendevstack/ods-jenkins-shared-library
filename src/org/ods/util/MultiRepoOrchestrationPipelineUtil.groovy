@@ -4,8 +4,8 @@ package org.ods.util
 
 import groovy.transform.InheritConstructors
 
-import org.ods.graph.DependencyGraph
-import org.ods.graph.Node
+import org.ods.dependency.DependencyGraph
+import org.ods.dependency.Node
 import org.ods.phase.PipelinePhases
 import org.yaml.snakeyaml.Yaml
 
