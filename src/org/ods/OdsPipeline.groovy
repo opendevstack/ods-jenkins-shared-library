@@ -20,29 +20,35 @@ class OdsPipeline implements Serializable {
     logger.info "***** Starting ODS Pipeline *****"
 
     logger.info "***** Continuing on node 'master' *****"
-    script.node('master') {
-      try {
-        script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-          if (context.getLocalCheckoutEnabled()) {
-            script.checkout script.scm
-          }
-          script.stage('Prepare') {
-            context.assemble()
-          }
-          def autoCloneEnabled = !!context.cloneSourceEnv
-          if (autoCloneEnabled) {
-            createOpenShiftEnvironment(context)
-          }
+    def cl = {
+        try {
+            script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+                if (context.getLocalCheckoutEnabled()) {
+                    script.checkout script.scm
+                }
+                script.stage('Prepare') {
+                    context.assemble()
+                }
+                def autoCloneEnabled = !!context.cloneSourceEnv
+                if (autoCloneEnabled) {
+                    createOpenShiftEnvironment(context)
+                }
+            }
+        } catch (err) {
+            script.currentBuild.result = 'FAILURE'
+            setBitbucketBuildStatus('FAILED')
+            if (context.notifyNotGreen) {
+                notifyNotGreen()
+            }
+            throw err
         }
-      } catch (err) {
-        script.currentBuild.result = 'FAILURE'
-        setBitbucketBuildStatus('FAILED')
-        if (context.notifyNotGreen) {
-          notifyNotGreen()
-        }
-        throw err
-      }
     }
+    if (context.getLocalCheckoutEnabled()) {
+      script.node('master', cl)
+    } else {
+      cl()
+    }
+
 
     def msgBasedOn = ''
     if (context.image) {
