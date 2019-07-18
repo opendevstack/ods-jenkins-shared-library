@@ -99,11 +99,11 @@ class OdsPipeline implements Serializable {
 
   def checkForMultiRepoBuild() {
     if (!!script.env.MULTI_REPO_BUILD) {
-      context.bitbucketNotificationEnabled = false
-      context.localCheckoutEnabled = false
-      context.displayNameUpdateEnabled = false
-      context.ciSkipEnabled = false
-      context.cloneSourceEnv = false
+      context.bitbucketNotificationEnabled = context.bitbucketNotificationEnabled ?: false
+      context.localCheckoutEnabled = context.localCheckoutEnabled ?: false
+      context.displayNameUpdateEnabled = context.displayNameUpdateEnabled ?: false
+      context.ciSkipEnabled = context.ciSkipEnabled ?: false
+      context.cloneSourceEnv = context.cloneSourceEnv ?: false
     }
   }
 
