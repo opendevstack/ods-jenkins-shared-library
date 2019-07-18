@@ -36,7 +36,7 @@ class JUnitParser {
             .findAll { ["error", "failure"].contains(it.name()) }
             .collectEntries {[
                 it.name(),
-                it.attributes() << [ "text": it.text() ]
+                [:] << it.attributes() << [ "text": it.text() ]
             ]}
 
         // Parse <testcase>/(<skipped>|<system-out>|<system-err>) elements
