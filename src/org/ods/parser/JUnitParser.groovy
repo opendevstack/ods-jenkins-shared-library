@@ -83,7 +83,9 @@ class JUnitParser {
 
         def result = [:]
         if (root.name() == "testsuite") {
-            result = parseJUnitXMLTestSuiteElement(root)
+            result = [
+                "testsuites": [ parseJUnitXMLTestSuiteElement(root) ]
+            ]
         } else if (root.name() == "testsuites") {
             result = parseJUnitXMLTestSuitesElement(root)
         }
