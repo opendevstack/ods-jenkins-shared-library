@@ -82,4 +82,71 @@ class JiraService {
 
         return new JsonSlurperClassic().parseText(response.getBody()).issues
     }
+
+    class Helper {
+        @NonCPS
+        /*
+         * Transforms the parser's result into a (unique) set of failures.
+         * Annotates each failure with indications on affected testsuite and -case.
+         */
+        static Map toSimpleIssuesFormat(List issues) {
+            /*
+             * Produces the following format:
+             *
+             * [
+             *     "4711": [ // Issue
+             *         id: 4711,
+             *         key: _,
+             *         summary: _,
+             *         description: _,
+             *         url: _,
+             *         parent: [
+             *             id: _,
+             *             key: _,
+             *             summary: _,
+             *             description: _,
+             *             url: _
+             *         ]
+             *     ],
+             *     ...
+             * ]
+             */
+
+            // Compute parents
+            def parents = [:]
+            issues.each { issue ->
+                if (issue.fields.parent) {
+                    def entry = [
+                        id: issue.fields.parent.id,
+                        key: issue.fields.parent.key,
+                        summary: issue.fields.parent.fields.summary,
+                        description: issue.fields.parent.fields.description,
+                        url: issue.fields.parent.self
+                    ]
+
+                    parents << [ (issue.fields.parent.id): entry ]
+                }
+            }
+
+            def result = [:]
+            issues.each { issue ->
+                def entry = [
+                    id: issue.id,
+                    key: issue.key,
+                    summary: issue.fields.summary,
+                    description: issue.fields.description,
+                    url: issue.self
+                ]
+
+                // Attach a reference to the parent
+                if (issue.fields.parent) {
+                    entry.parent = parents[issue.fields.parent.id]
+                }
+
+                result << [ (issue.id): entry ]
+            }
+
+            return result
+        }
+    }
 }

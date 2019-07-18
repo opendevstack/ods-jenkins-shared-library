@@ -3,9 +3,8 @@ import org.ods.phase.PipelinePhases
 import org.ods.util.MultiRepoOrchestrationPipelineUtil
 
 def call(Map metadata, List<Set<Map>> repos) {
-    // Get a list of automated test scenarios from Jira
-    def issues = jiraGetIssuesForJQLQuery(metadata, "project = ${metadata.id} AND labels = AutomatedTest AND issuetype = sub-task")
-        .collect {[ id: it.id, key: it.key, summary: it.fields.summary, description: it.fields.description, url: it.self ]}
+    // Get automated test scenarios from Jira
+    def jiraIssues = jiraGetIssuesForJQLQuery(metadata, "project = ${metadata.id} AND labels = AutomatedTest AND issuetype = sub-task")
 
     def testResultsString = """
 <testsuites>
@@ -48,13 +47,14 @@ def call(Map metadata, List<Set<Map>> repos) {
 </testsuites>
     """
 
+    // Parse JUnit XML results
     def testResults = JUnitParser.parseJUnitXML(testResultsString)
-    println "TEST_RESULTS: " + testResults
 
-    def testCasesExecuted = testResults.testsuites.each { testsuite ->
-        testsuite.testcases.collect { it.name }
-    }
-    println "TEST_CASES_EXECUTED: " + testCasesExecuted
+    // Transform the JUnit XML parser's results into a simple format
+    def testResultsSimple = JUnitParser.Helper.toSimpleFormat(testResults)
+
+    // Transform the JUnit XML parser's results into a simple failures format
+    def testResultsSimpleFailures = JUnitParser.Helper.toSimpleFailuresFormat(testResults)
 
     // Execute phase for each repository
     def util = new MultiRepoOrchestrationPipelineUtil(this)

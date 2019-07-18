@@ -39,7 +39,7 @@ def call(Map metadata) {
     }
 
     // Add a comment to the Jira issue with a link to the report
-    jiraAppendCommentToIssue(metadata, issues[0].key, "A new ${id} has been generated and is available at: ${uri}.")
+    jiraAppendCommentToIssue(metadata, issues.iterator().next().value.key, "A new ${id} has been generated and is available at: ${uri}.")
 }
 
 return this
