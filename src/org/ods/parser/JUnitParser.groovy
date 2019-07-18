@@ -6,51 +6,84 @@ import groovy.json.JsonBuilder
 // Collection.find() failing in Jenkins: https://stackoverflow.com/questions/54364380/same-script-work-well-at-the-jenkins-script-console-but-not-at-the-pipline
 class JUnitParser {
     @NonCPS
-    // Parse a JUnit XML <testsuite> element including children
-    private static def parseJUnitXMLTestSuiteElement(def testsuite) {
+    // Parse a JUnit XML <property> element
+    private static def parseJUnitXMLPropertyElement(def property) {
+        if (!property.@name) {
+            throw new IllegalArgumentException("Error: unable to parse JUnit XML <property> element. Required attribute 'name' is missing.")
+        }
+
+        if (!property.@value) {
+            throw new IllegalArgumentException("Error: unable to parse JUnit XML <property> element. Required attribute 'value' is missing.")
+        }
+
+        return property.attributes()
+    }
+
+    @NonCPS
+    // Parse a JUnit XML <testcase> element
+    private static def parseJUnitXMLTestCaseElement(def testcase) {
+        if (!testcase.@name) {
+            throw new IllegalArgumentException("Error: unable to parse JUnit XML <testcase> element. Required attribute 'name' is missing.")
+        }
+
         def result = [:]
 
-        // Parse testsuite attributes
+        // Parse <testcase> attributes
+        result << testcase.attributes()
+
+        // Parse <testcase>/(<error>|<failure>) elements
+        result << testcase."*"
+            .findAll { ["error", "failure"].contains(it.name()) }
+            .collectEntries {[
+                it.name(),
+                it.attributes() << [ "text": it.text() ]
+            ]}
+
+        // Parse <testcase>/(<skipped>|<system-out>|<system-err>) elements
+        result << testcase."*"
+            .findAll { ["skipped", "system-out", "system-err"].contains(it.name()) }
+            .collectEntries {
+                [ it.name(), it.text() ]
+            }
+
+        return result
+    }
+
+    @NonCPS
+    // Parse a JUnit XML <testsuite> element
+    private static def parseJUnitXMLTestSuiteElement(def testsuite) {
+        if (!testsuite.@name) {
+            throw new IllegalArgumentException("Error: unable to parse JUnit XML <testsuite> element. Required attribute 'name' is missing.")
+        }
+
+        if (!testsuite.tests) {
+            throw new IllegalArgumentException("Error: unable to parse JUnit XML <testsuite> element. Required attribute 'tests' is missing.")
+        }
+
+        def result = [:]
+
+        // Parse <testsuite> attributes
         result << testsuite.attributes()
 
-        // Parse testsuite.property elements
+        // Parse <testsuite>/**/<property> elements
         result << [ "properties": testsuite."**"
             .findAll { it.name() == "property" }
-            // Parse testsuite.property attributes
-            .collect { it.attributes() }
+            .collect { parseJUnitXMLPropertyElement(it) }
         ]
 
-        // Parse testsuite.testcase elements
+        // Parse <testsuite>/<testcase> elements
         result << [ "testcases": testsuite."*"
             .findAll { it.name() == "testcase" }
-            .collect {
-                def testcase = [:]
-
-                // Parse testsuite.testcase attributes
-                testcase << it.attributes()
-
-                testcase << it."*"
-                    // Parse testsuite.testcase.(error/failure) elements
-                    .findAll { ["error", "failure"].contains(it.name()) }
-                    .collectEntries {[
-                        it.name(),
-                        // Parse testsuite.testcase.(error/failure) attributes
-                        it.attributes() << [ "text": it.text() ]
-                    ]}
-
-                testcase << it."*"
-                    // Parse testsuite.testcase.(skipped/system-out/system-err) elements
-                    .findAll { ["skipped", "system-out", "system-err"].contains(it.name()) }
-                    .collectEntries {
-                        [ it.name(), it.text() ]
-                    }
-            }
+            .collect { parseJUnitXMLTestCaseElement(it) }
         ]
 
+        // Parse <testsuite>/<system-out> elements
         result << [
-            // Handle testsuite.system-out elements
-            "systemOut": testsuite."*".find { it.name() == "system-out" }.text(),
-            // Handle testsuite.system-err elements
+            "systemOut": testsuite."*".find { it.name() == "system-out" }.text()
+        ]
+
+        // Parse <testsuite>/<system-err> elements
+        result << [
             "systemErr": testsuite."*".find { it.name() == "system-err" }.text()
         ]
 
@@ -58,14 +91,15 @@ class JUnitParser {
     }
 
     @NonCPS
-    // Parse a JUnit XML <testsuites> element including children
+    // Parse a JUnit XML <testsuites> element
     private static def parseJUnitXMLTestSuitesElement(def testsuites) {
         def result = [:]
 
-        // Parse testsuites attributes
+        // Parse <testsuites> attributes
         result << testsuites.attributes()
-        result << [(testsuites.name()): testsuites.children()
-            // Parse testsuite elements
+
+        // Parse <testsuites>/<testsuite> elements
+        result << [(testsuites.name()): testsuites."*"
             .findAll { it.name() == "testsuite" }
             .collect { parseJUnitXMLTestSuiteElement(it) }
         ]
