@@ -66,6 +66,16 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
     }
 
     Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo) {
+        if (name == 'build' && repo.type == 'ods') {
+            return [
+                repo.name,
+                {
+                    this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
+                        executeJenkinsfile()
+                    }
+                }
+            ]
+        }
         return [
             repo.name,
             {
