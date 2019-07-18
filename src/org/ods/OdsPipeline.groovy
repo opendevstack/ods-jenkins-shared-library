@@ -103,7 +103,6 @@ class OdsPipeline implements Serializable {
       context.localCheckoutEnabled = context.localCheckoutEnabled ?: false
       context.displayNameUpdateEnabled = context.displayNameUpdateEnabled ?: false
       context.ciSkipEnabled = context.ciSkipEnabled ?: false
-      context.cloneSourceEnv = context.cloneSourceEnv ?: false
     }
   }
 
