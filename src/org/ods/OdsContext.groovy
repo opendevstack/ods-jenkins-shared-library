@@ -231,8 +231,16 @@ class OdsContext implements Context {
       config.cloneSourceEnv
   }
 
+  def setCloneSourceEnv(String cloneSourceEnv) {
+    config.cloneSourceEnv = cloneSourceEnv
+  }
+
   String getEnvironment() {
       config.environment
+  }
+
+  def setEnvironment(String environment) {
+    config.environment = environment
   }
 
   String getGroupId() {
@@ -419,6 +427,10 @@ class OdsContext implements Context {
   // To make it easier to follow the logic, it is broken down by workflow (at
   // the cost of having some duplication).
   void determineEnvironment() {
+    if (config.environment) {
+      // environment already set
+      return
+    }
     // Fixed name
     def env = config.branchToEnvironmentMapping[config.gitBranch]
     if (env) {

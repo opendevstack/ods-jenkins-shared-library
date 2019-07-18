@@ -70,8 +70,14 @@ interface Context {
     // The environment which was chosen as the clone source.
     String getCloneSourceEnv()
 
+    // Set the environment to clone
+    def setCloneSourceEnv( String cloneSourceEnv)
+
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
+
+    // Set environment
+    def setEnvironment(String environment)
 
     // Target project, based on the environment. E.g. "foo-dev".
     String getTargetProject()
