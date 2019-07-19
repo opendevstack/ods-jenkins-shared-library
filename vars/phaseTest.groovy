@@ -1,14 +1,25 @@
 import org.ods.parser.JUnitParser
 import org.ods.phase.PipelinePhases
+import org.ods.service.JiraService
 import org.ods.util.MultiRepoOrchestrationPipelineUtil
 
 def call(Map metadata, List<Set<Map>> repos) {
     // Get automated test scenarios from Jira
     def jiraIssues = jiraGetIssuesForJQLQuery(metadata, "project = ${metadata.id} AND labels = AutomatedTest AND issuetype = sub-task")
 
+    /*
+    // Execute phase for each repository
+    def util = new MultiRepoOrchestrationPipelineUtil(this)
+    util.
+    epareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos)
+        .each { group ->
+            parallel(group)
+        }
+    */
+
     def testResultsString = """
 <testsuites>
-    <testsuite name="Feature X" tests="1" skipped="0" failures="1" errors="0" timestamp="2019-06-25T18:12:36" hostname="surfer-172-29-1-61-hotspot.internet-for-guests.com" time="1.458">
+    <testsuite name="Create Feature X" tests="1" skipped="0" failures="1" errors="0" timestamp="2019-06-25T18:12:36" hostname="surfer-172-29-1-61-hotspot.internet-for-guests.com" time="1.458">
         <properties/>
         <testcase name="Test Scenario A" classname="app.DocGenSpec" time="0.033">
             <failure message="java.io.FileNotFoundException: /Users/metmajer/Dropbox/IT%20Platform/demo/pltf-doc-gen/build/resources/test/templates.zip (No such file or directory)" type="java.io.FileNotFoundException">java.io.FileNotFoundException: /Users/metmajer/Dropbox/IT%20Platform/demo/pltf-doc-gen/build/resources/test/templates.zip (No such file or directory)
@@ -29,7 +40,7 @@ def call(Map metadata, List<Set<Map>> repos) {
         ]]></system-out>
         <system-err><![CDATA[]]></system-err>
     </testsuite>
-    <testsuite name="Feature Y" tests="2" skipped="0" failures="0" errors="0" timestamp="2019-06-25T18:12:42" hostname="surfer-172-29-1-61-hotspot.internet-for-guests.com" time="1.458">
+    <testsuite name="Create Feature Y" tests="2" skipped="0" failures="0" errors="0" timestamp="2019-06-25T18:12:42" hostname="surfer-172-29-1-61-hotspot.internet-for-guests.com" time="1.458">
         <properties/>
         <testcase name="Test Scenario B" classname="app.DocGenSpec" time="1.311"/>
         <testcase name="Test Scenario C" classname="app.DocGenSpec" time="0.113"/>
@@ -47,21 +58,19 @@ def call(Map metadata, List<Set<Map>> repos) {
 </testsuites>
     """
 
-    // Parse JUnit XML results
     def testResults = JUnitParser.parseJUnitXML(testResultsString)
 
     // Transform the JUnit XML parser's results into a simple format
     def testResultsSimple = JUnitParser.Helper.toSimpleFormat(testResults)
 
     // Transform the JUnit XML parser's results into a simple failures format
-    def testResultsSimpleFailures = JUnitParser.Helper.toSimpleFailuresFormat(testResults)
+    def testFailures = JUnitParser.Helper.toSimpleFailuresFormat(testResults)
 
-    // Execute phase for each repository
-    def util = new MultiRepoOrchestrationPipelineUtil(this)
-    util.prepareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos)
-        .each { group ->
-            parallel(group)
-        }
+    // Create Jira bugs for test failures
+    jiraCreateBugsForTestFailures(metadata, testFailures, jiraIssues)
+
+    // Demarcate Jira issues according to test results
+    jiraMarkIssuesForTestResults(metadata, testResultsSimple, jiraIssues)
 
     // Provide Junit XML reports to Jenkins
     writeFile file: ".tmp/JUnitReport.xml", text: testResultsString
