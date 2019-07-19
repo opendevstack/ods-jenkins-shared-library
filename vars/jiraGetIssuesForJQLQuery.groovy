@@ -9,7 +9,8 @@ def call(Map metadata, String query) {
             .getIssuesForJQLQuery(query)
     }
 
-    return result
+    // Transform the result into a simple format
+    return JiraService.Helper.toSimpleIssuesFormat(result)
 }
 
 return this

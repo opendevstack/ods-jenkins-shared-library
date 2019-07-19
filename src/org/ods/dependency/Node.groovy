@@ -1,4 +1,4 @@
-package org.ods.graph
+package org.ods.dependency
 
 class Node implements Serializable {
     Map data = [:]
