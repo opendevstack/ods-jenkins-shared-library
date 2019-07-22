@@ -3,7 +3,7 @@ import org.ods.parser.JUnitParser
 
 // Create and store an DevelopmentTestReport
 def call(Map metadata) {
-    
+
 	def testXml = '''<testsuites duration="50.5">
 	    <testsuite failures="0" name="Untitled suite in /Users/niko/Sites/casperjs/tests/suites/casper/agent.js" package="tests/suites/casper/agent" tests="3" time="0.256">
 	        <testcase classname="tests/suites/casper/agent" name="Default user agent matches /CasperJS/" time="0.103"/>
@@ -25,7 +25,7 @@ def call(Map metadata) {
 	        </testcase>
 	    </testsuite>
 	</testsuites>'''
-	
+
 	// Configuration data
 	def id = "DevelopmentTestReport"
 	def version = "0.1"
@@ -41,12 +41,12 @@ def call(Map metadata) {
 			testsuites: new JUnitParser().parseJUnitXML(testXml)
 		]
 	]
-			
+
     def util = new MultiRepoOrchestrationPipelineUtil(this)
-	
+
     // Create the report
     def document = docGenCreateDocument(metadata, id, version, data)
-    
+
 	// Store the report as pipeline artifact
     util.archiveArtifact(".tmp/documents", id, "${version}.pdf", document)
 
@@ -58,7 +58,7 @@ def call(Map metadata) {
     )
 
     // Search for the Jira issue for this report
-	def query = "project = ${metadata.services.jira.project.key} AND labels = LeVA_Doc:DTR"
+	def query = "project = ${metadata.id} AND labels = LeVA_Doc:DTR"
     def issues = jiraGetIssuesForJQLQuery(metadata, query)
     if (issues.size() != 1) {
         error "Error: Jira query returned ${issues.size()} issues: '${query}'"
