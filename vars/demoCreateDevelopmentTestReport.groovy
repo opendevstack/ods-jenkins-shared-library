@@ -1,5 +1,7 @@
 import org.ods.util.MultiRepoOrchestrationPipelineUtil
 import org.ods.parser.JUnitParser
+import groovy.json.JsonOutput
+import org.ods.util.FileUtil
 
 // Create and store an DevelopmentTestReport
 def call(Map metadata) {
@@ -51,20 +53,19 @@ def call(Map metadata) {
     util.archiveArtifact(".tmp/documents", id, "${version}.pdf", document)
 
 	//Create Raw Data files
-	File xmlTestFile = new File("TestXML.xml")
-	xmlTestFile.write(testXml)
-	File testJson = new File("TestJson.json")
-	testJson.write(data.toString())
-	def files = []
-	files.add(xmlTestFile)
-	files.add(testJson)
-	files.add(document)
-	
+	def baseDir = pwd() + "/rawData/"
+	dir: path: baseDir
+	deleteDir()
+	writeFile file: baseDir + 'TestXML.xml', text: testXml
+	def json = JsonOutput.toJson(data)
+	writeFile(file: baseDir + 'TestJson.json', text: json)
+	FileUtil.createTempFile(baseDir, id, "${version}.pdf", document)
+			
     // Store the report as artifact in Nexus
     def uri = nexusStoreZipArtifact(metadata,
         metadata.services.nexus.repository.name,
         "${id.toLowerCase()}-${version}",
-        id, version, files
+        id, version, baseDir
     )
 
     // Search for the Jira issue for this report
