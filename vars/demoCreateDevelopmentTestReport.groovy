@@ -50,11 +50,21 @@ def call(Map metadata) {
 	// Store the report as pipeline artifact
     util.archiveArtifact(".tmp/documents", id, "${version}.pdf", document)
 
+	//Create Raw Data files
+	File xmlTestFile = new File("TestXML.xml")
+	xmlTestFile.write(testXml)
+	File testJson = new File("TestJson.json")
+	testJson.write(data.toString())
+	def files[]
+	files.add(xmlTestFile)
+	files.add(testJson)
+	files.add(document)
+	
     // Store the report as artifact in Nexus
-    def uri = nexusStoreArtifact(metadata,
+    def uri = nexusStoreZipArtifact(metadata,
         metadata.services.nexus.repository.name,
         "${metadata.id.toLowerCase()}-${version}",
-        id, version, document, "application/pdf"
+        id, version, files
     )
 
     // Search for the Jira issue for this report
