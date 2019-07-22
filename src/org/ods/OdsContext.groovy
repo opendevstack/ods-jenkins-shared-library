@@ -346,7 +346,9 @@ class OdsContext implements Context {
   private String retrieveGitUrl() {
     script.sh(
       returnStdout: true, script: 'git config --get remote.origin.url'
-    ).trim().replace('https://bitbucket', 'https://cd_user@bitbucket')
+    ).trim().replaceAll('^(https?)://') {
+      it[0] + 'cd_user@'
+    }
   }
 
   private String retrieveGitCommit() {
