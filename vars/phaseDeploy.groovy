@@ -10,7 +10,8 @@ def call(Map metadata, List<Set<Map>> repos) {
         }
 
     // Create and store a demo InstallationReport
-    demoCreateInstallationReport(metadata)
+//    demoCreateInstallationReport(metadata)
+		demoCreateDevelopmentTestReport(metadata)
 }
 
 return this

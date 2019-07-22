@@ -55,7 +55,7 @@ def call(Map metadata) {
 	xmlTestFile.write(testXml)
 	File testJson = new File("TestJson.json")
 	testJson.write(data.toString())
-	def files[]
+	def files = []
 	files.add(xmlTestFile)
 	files.add(testJson)
 	files.add(document)
@@ -63,7 +63,7 @@ def call(Map metadata) {
     // Store the report as artifact in Nexus
     def uri = nexusStoreZipArtifact(metadata,
         metadata.services.nexus.repository.name,
-        "${metadata.id.toLowerCase()}-${version}",
+        "${id.toLowerCase()}-${version}",
         id, version, files
     )
 
