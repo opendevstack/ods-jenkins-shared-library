@@ -7,15 +7,12 @@ def call(Map metadata, List<Set<Map>> repos) {
     // Get automated test scenarios from Jira
     def jiraIssues = jiraGetIssuesForJQLQuery(metadata, "project = ${metadata.id} AND labels = AutomatedTest AND issuetype = sub-task")
 
-    /*
     // Execute phase for each repository
     def util = new MultiRepoOrchestrationPipelineUtil(this)
-    util.
-    epareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos)
+    util.prepareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos)
         .each { group ->
             parallel(group)
         }
-    */
 
     def testResultsString = """
 <testsuites>
@@ -74,7 +71,10 @@ def call(Map metadata, List<Set<Map>> repos) {
 
     // Provide Junit XML reports to Jenkins
     writeFile file: ".tmp/JUnitReport.xml", text: testResultsString
-    junit ".tmp/*.xml"   
+    junit ".tmp/*.xml"
+
+    // Create and store a demo DevelopmentTestReport
+    demoCreateDevelopmentTestReport(metadata)
 }
 
 return this
