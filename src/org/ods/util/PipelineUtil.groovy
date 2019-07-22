@@ -37,10 +37,10 @@ class PipelineUtil {
     }
 
     def executeJenkinsfile(String filePath = 'Jenkinsfile') {
-        if (fileExists(filePath)) {
-            load path: filePath
+        if (steps.fileExists(filePath)) {
+            steps.load path: filePath
         } else {
-            error "File ${filePath} does not exist!"
+            steps.error "File ${filePath} does not exist!"
         }
     }
 }
