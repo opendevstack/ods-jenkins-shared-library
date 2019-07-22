@@ -421,10 +421,6 @@ class OdsContext implements Context {
       }
   }
 
-  private String constructCredentialBitbucketURL(String url, String userPass) {
-      return url.replace("cd_user", userPass.replace('@', '%40')).replaceAll("[\n\r]","").trim()
-  }
-
   // This logic must be consistent with what is described in README.md.
   // To make it easier to follow the logic, it is broken down by workflow (at
   // the cost of having some duplication).
