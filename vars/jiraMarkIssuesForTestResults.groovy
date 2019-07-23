@@ -2,7 +2,7 @@ import org.ods.service.JiraService
 
 // Adds a commment to a Jira issue
 def call(Map metadata, Map testResults, Map jiraIssues) {
-    def jiraLabels = ["Error", "Failure", "Missing", "Skipped", "Success"]
+    def jiraLabels = ["Error", "Failed", "Missing", "Skipped", "Succeeded"]
 
     withCredentials([ usernamePassword(credentialsId: metadata.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
         def jira = new JiraService(env.JIRA_URL, env.JIRA_USERNAME, env.JIRA_PASSWORD)
@@ -22,7 +22,7 @@ def call(Map metadata, Map testResults, Map jiraIssues) {
 
                 jiraIssue = jiraIssue.value
 
-                def jiraLabelsToApply = ["Success"]
+                def jiraLabelsToApply = ["Succeeded"]
                 if (testcase.skipped || testcase.error || testcase.failure) {
                     if (testcase.skipped) {
                         jiraLabelsToApply = ["Skipped"]
@@ -33,32 +33,26 @@ def call(Map metadata, Map testResults, Map jiraIssues) {
                     }
 
                     if (testcase.failure) {
-                        jiraLabelsToApply = ["Failure"]
+                        jiraLabelsToApply = ["Failed"]
                     }
                 }
-
-                // Remove deprecated labels from the issue
-                def jiraLabelsToRemove = jiraLabels - jiraLabelsToApply
-                jira.removeLabelsFromIssue(jiraIssue.id, jiraLabelsToRemove)
 
                 // Apply appropriate labels to the issue
                 jira.addLabelsToIssue(jiraIssue.id, jiraLabelsToApply)
 
-                jiraIssuesProcessed << jiraIssue
+                jiraIssuesProcessed << [ (jiraIssue.id): jiraIssue ]
             }
         }
 
-        // Handle unprocessed Jira issues (for which no tests were executed)
+        // Remove label "Missing" from all processed issues
+        jiraIssuesProcessed.each { issueId, issue ->
+            jira.removeLabelsFromIssue(issueId, ["Missing"])
+        }
+
+        // Add label "Missing" to all unprocessed issues
         def jiraIssuesUnprocessed = jiraIssues - jiraIssuesProcessed
         jiraIssuesUnprocessed.each { issueId, issue ->
-            def jiraLabelsToApply = ["Missing"]
-
-            // Apply appropriate labels to the issue
-            jira.addLabelsToIssue(issue.id, jiraLabelsToApply)
-
-            // Remove deprecated labels from the issue
-            def jiraLabelsToRemove = jiraLabels - jiraLabelsToApply
-            jira.removeLabelsFromIssue(issue.id, jiraLabelsToRemove)
+            jira.addLabelsToIssue(issueId, ["Missing"])
         }
     }
 }
