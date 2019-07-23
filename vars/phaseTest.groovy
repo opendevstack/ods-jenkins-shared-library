@@ -60,13 +60,15 @@ def call(Map metadata, List<Set<Map>> repos) {
     // Transform the JUnit XML parser's results into a simple format
     def testResultsSimple = JUnitParser.Helper.toSimpleFormat(testResults)
 
-    // Transform the JUnit XML parser's results into a simple failures format
-    def testFailures = JUnitParser.Helper.toSimpleFailuresFormat(testResults)
+    // Create Jira bugs for erroneous tests
+    def errors = JUnitParser.Helper.toSimpleErrorsFormat(testResults)
+    jiraCreateBugsForTestFailures(metadata, errors, jiraIssues)
 
-    // Create Jira bugs for test failures
-    jiraCreateBugsForTestFailures(metadata, testFailures, jiraIssues)
+    // Create Jira bugs for failed tests
+    def failures = JUnitParser.Helper.toSimpleFailuresFormat(testResults)
+    jiraCreateBugsForTestFailures(metadata, failures, jiraIssues)
 
-    // Demarcate Jira issues according to test results
+    // Mark Jira issues according to test results
     jiraMarkIssuesForTestResults(metadata, testResultsSimple, jiraIssues)
 
     // Provide Junit XML reports to Jenkins
