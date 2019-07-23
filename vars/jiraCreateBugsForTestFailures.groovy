@@ -21,11 +21,14 @@ private def createBugAndLinkTestCases(def metadata, def jira, def failure, def j
     failure.testsuites.each { testsuiteName, testsuite ->
         testsuite.testcases.each { testcaseName ->
             // Find the issue in Jira representing the test case
-            def issue = jiraIssues.find { id, issue ->
+            def jiraIssue = jiraIssues.find { id, issue ->
                 issue.summary == testcaseName
-            }.value
+            }
 
-            jira.createIssueLinkTypeBlocks(bug, issue)
+            // Attempt to create a link to the bug only if the issue exists
+            if (jiraIssue) {
+                jira.createIssueLinkTypeBlocks(bug, jiraIssue.value)
+            }
         }
     }
 }
