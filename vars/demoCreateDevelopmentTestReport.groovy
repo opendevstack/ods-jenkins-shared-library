@@ -46,19 +46,22 @@ def call(Map metadata) {
 
     def util = new MultiRepoOrchestrationPipelineUtil(this)
 
+	//Create Raw Data files
+    def baseDir = pwd() + "/rawData/"
+    dir(baseDir){
+		deleteDir()
+	}
+    writeFile file: baseDir + 'TestXML.xml', text: testXml
+    def json = JsonOutput.toJson(data)
+    writeFile(file: baseDir + 'TestJson.json', text: json)
+
     // Create the report
     def document = docGenCreateDocument(metadata, id, version, data)
 
 	// Store the report as pipeline artifact
     util.archiveArtifact(".tmp/documents", id, "${version}.pdf", document)
 
-	//Create Raw Data files
-	def baseDir = pwd() + "/rawData/"
-	dir: path: baseDir
-	deleteDir()
-	writeFile file: baseDir + 'TestXML.xml', text: testXml
-	def json = JsonOutput.toJson(data)
-	writeFile(file: baseDir + 'TestJson.json', text: json)
+	// Add document to zip folder
 	FileUtil.createTempFile(baseDir, id, "${version}.pdf", document)
 			
     // Store the report as artifact in Nexus
