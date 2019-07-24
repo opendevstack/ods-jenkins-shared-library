@@ -162,5 +162,10 @@ interface Context {
     // Enable/disable display name update
     def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
 
+    // Whether mail notification is enabled
+    boolean getMailNotificationEnabled()
+
+    // Enable/disable mail notification
+    def setMailNotificationEnabled(boolean mailNotificationEnabled)
 
 }

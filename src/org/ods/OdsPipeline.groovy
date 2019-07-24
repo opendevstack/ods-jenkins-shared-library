@@ -36,7 +36,9 @@ class OdsPipeline implements Serializable {
           }
         }
       } catch (err) {
-        script.currentBuild.result = 'FAILURE'
+        if (context.displayNameUpdateEnabled) {
+          script.currentBuild.result = 'FAILURE'
+        }
         setBitbucketBuildStatus('FAILED')
         if (context.notifyNotGreen) {
           notifyNotGreen()
@@ -81,10 +83,14 @@ class OdsPipeline implements Serializable {
 
             stages(context)
           }
-          script.currentBuild.result = 'SUCCESS'
+          if (context.displayNameUpdateEnabled) {
+            script.currentBuild.result = 'SUCCESS'
+          }
           setBitbucketBuildStatus('SUCCESSFUL')
         } catch (err) {
-          script.currentBuild.result = 'FAILURE'
+          if (context.displayNameUpdateEnabled) {
+            script.currentBuild.result = 'FAILURE'
+          }
           setBitbucketBuildStatus('FAILED')
           if (context.notifyNotGreen) {
             notifyNotGreen()
@@ -99,13 +105,15 @@ class OdsPipeline implements Serializable {
 
   def checkForMultiRepoBuild() {
     if (!!script.env.MULTI_REPO_BUILD) {
-      context.bitbucketNotificationEnabled = context.bitbucketNotificationEnabled ?: false
-      context.localCheckoutEnabled = context.localCheckoutEnabled ?: false
-      context.displayNameUpdateEnabled = context.displayNameUpdateEnabled ?: false
-      context.ciSkipEnabled = context.ciSkipEnabled ?: false
-      env = script.env.MULTI_REPO_ENV
-      if (env) {
-        context.environment = env
+      logger.info '***** Multi Repo Build detected *****'
+      context.bitbucketNotificationEnabled = false
+      context.localCheckoutEnabled = false
+      context.displayNameUpdateEnabled = false
+      context.ciSkipEnabled = false
+      context.mailNotificationEnabled = false
+      def buildEnv = script.env.MULTI_REPO_ENV
+      if (buildEnv) {
+        context.environment = buildEnv
         context.cloneSourceEnv = null
       }
     }
@@ -145,16 +153,18 @@ class OdsPipeline implements Serializable {
   }
 
   private void notifyNotGreen() {
-    script.emailext(
-      body: '${script.DEFAULT_CONTENT}', mimeType: 'text/html',
-      replyTo: '$script.DEFAULT_REPLYTO', subject: '${script.DEFAULT_SUBJECT}',
-      to: script.emailextrecipients([
-        [$class: 'CulpritsRecipientProvider'],
-        [$class: 'DevelopersRecipientProvider'],
-        [$class: 'RequesterRecipientProvider'],
-        [$class: 'UpstreamComitterRecipientProvider']
-      ])
-    )
+    if (context.mailNotificationEnabled) {
+      script.emailext(
+        body: '${script.DEFAULT_CONTENT}', mimeType: 'text/html',
+        replyTo: '$script.DEFAULT_REPLYTO', subject: '${script.DEFAULT_SUBJECT}',
+        to: script.emailextrecipients([
+          [$class: 'CulpritsRecipientProvider'],
+          [$class: 'DevelopersRecipientProvider'],
+          [$class: 'RequesterRecipientProvider'],
+          [$class: 'UpstreamComitterRecipientProvider']
+         ])
+      )
+    }
   }
 
   def createOpenShiftEnvironment(def context) {

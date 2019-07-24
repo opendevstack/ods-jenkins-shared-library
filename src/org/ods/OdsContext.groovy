@@ -343,12 +343,18 @@ class OdsContext implements Context {
     config.displayNameUpdateEnabled = displayNameUpdateEnabled
   }
 
+  boolean getMailNotificationEnabled() {
+    return (config.mailNotificationEnabled == null) || config.mailNotificationEnabled
+  }
+
+  def setMailNotificationEnabled(boolean mailNotificationEnabled) {
+    config.mailNotificationEnabled = mailNotificationEnabled
+  }
+
   private String retrieveGitUrl() {
     script.sh(
       returnStdout: true, script: 'git config --get remote.origin.url'
-    ).trim().replaceAll('^(https?)://') {
-      it[0] + 'cd_user@'
-    }
+    ).trim().replaceAll('^(https?)://') { it[0] + 'cd_user@' }
   }
 
   private String retrieveGitCommit() {
