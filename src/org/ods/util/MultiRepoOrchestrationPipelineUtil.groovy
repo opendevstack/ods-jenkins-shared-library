@@ -66,36 +66,32 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
     }
 
     Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo) {
-        if (name == 'build' && repo.type == 'ods') {
-            return [
-                repo.name,
-                {
-                    this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
-                        executeJenkinsfile()
-                    }
-                }
-            ]
-        }
         return [
             repo.name,
             {
-                def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
-                if (phaseConfig) {
-                    def label = "${repo.name} (${repo.url})"
-
-                    if (phaseConfig.type == 'Makefile') {
-                        this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
-                            def script = "make ${phaseConfig.task}"
-                            this.steps.sh script: script, label: label
-                        }
-                    } else if (phaseConfig.type == 'ShellScript') {
-                        this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
-                            def script = "./scripts/${phaseConfig.script}"
-                            this.steps.sh script: script, label: label
-                        }
+                if (name == 'build' && repo.type == 'ods') {
+                    this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
+                        executeJenkinsfile()
                     }
                 } else {
-                    // Ignore undefined phases
+                    def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
+                    if (phaseConfig) {
+                        def label = "${repo.name} (${repo.url})"
+
+                        if (phaseConfig.type == 'Makefile') {
+                            this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
+                                def script = "make ${phaseConfig.task}"
+                                this.steps.sh script: script, label: label
+                            }
+                        } else if (phaseConfig.type == 'ShellScript') {
+                            this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
+                                def script = "./scripts/${phaseConfig.script}"
+                                this.steps.sh script: script, label: label
+                            }
+                        }
+                    } else {
+                        // Ignore undefined phases
+                    }
                 }
             }
         ]

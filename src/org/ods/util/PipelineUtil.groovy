@@ -36,11 +36,11 @@ class PipelineUtil {
         return new Yaml().load(file.text)
     }
 
-    def executeJenkinsfile(String filePath = 'Jenkinsfile') {
+    void executeJenkinsfile(String filePath = 'Jenkinsfile') {
         if (steps.fileExists(filePath)) {
             steps.load path: filePath
         } else {
-            steps.error "File ${filePath} does not exist!"
+            throw new RuntimeException("File ${filePath} does not exist!")
         }
     }
 }
