@@ -1,12 +1,13 @@
-import org.ods.util.MultiRepoOrchestrationPipelineUtil
-import org.ods.parser.JUnitParser
 import groovy.json.JsonOutput
+
+import org.ods.parser.JUnitParser
 import org.ods.util.FileUtil
+import org.ods.util.MultiRepoOrchestrationPipelineUtil
 
 // Create and store an DevelopmentTestReport
 def call(Map metadata) {
 
-	def testXml = '''<testsuites duration="50.5">
+	def testResultsString = '''<testsuites duration="50.5">
 	    <testsuite failures="0" name="Untitled suite in /Users/niko/Sites/casperjs/tests/suites/casper/agent.js" package="tests/suites/casper/agent" tests="3" time="0.256">
 	        <testcase classname="tests/suites/casper/agent" name="Default user agent matches /CasperJS/" time="0.103"/>
 	        <testcase classname="tests/suites/casper/agent" name="Default user agent matches /plop/" time="0.146"/>
@@ -40,35 +41,34 @@ def call(Map metadata) {
 			type: id
 		],
 		data: [
-			testsuites: new JUnitParser().parseJUnitXML(testXml)
+			testsuites: new JUnitParser().parseJUnitXML(testResultsString)
 		]
 	]
 
     def util = new MultiRepoOrchestrationPipelineUtil(this)
 
-	//Create Raw Data files
-    def baseDir = pwd() + "/rawData/"
-    dir(baseDir){
-		deleteDir()
-	}
-    writeFile file: baseDir + 'TestXML.xml', text: testXml
-    def json = JsonOutput.toJson(data)
-    writeFile(file: baseDir + 'TestJson.json', text: json)
-
     // Create the report
     def document = docGenCreateDocument(metadata, id, version, data)
 
-	// Store the report as pipeline artifact
-    util.archiveArtifact(".tmp/documents", id, "${version}.pdf", document)
+	// Create the report archive
+	def archivePath = "${WORKSPACE}/.tmp/artifacts/${id}-${version}.zip"
+	def archive = FileUtil.createZipFile(archivePath,
+		[
+			"raw/junit.xml": testResultsString.getBytes(),
+			"raw/report.json": JsonOutput.toJson(data).getBytes(),
+			"report.pdf": document
+		]
+	)
 
-	// Add document to zip folder
-	FileUtil.createTempFile(baseDir, id, "${version}.pdf", document)
-			
-    // Store the report as artifact in Nexus
-    def uri = nexusStoreZipArtifact(metadata,
+	// Store the report archive as pipeline artifact
+    util.archiveArtifact(archivePath, archive)
+
+    // Store the report archive as artifact in Nexus
+    def uri = nexusStoreArtifact(metadata,
         metadata.services.nexus.repository.name,
-        "${id.toLowerCase()}-${version}",
-        id, version, baseDir
+        "${metadata.id.toLowerCase()}-${version}",
+        "${id}-${version}.zip",
+        archive, "application/zip"
     )
 
     // Search for the Jira issue for this report

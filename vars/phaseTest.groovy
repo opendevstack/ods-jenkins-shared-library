@@ -72,8 +72,8 @@ def call(Map metadata, List<Set<Map>> repos) {
     jiraMarkIssuesForTestResults(metadata, testResultsSimple, jiraIssues)
 
     // Provide Junit XML reports to Jenkins
-    writeFile file: ".tmp/JUnitReport.xml", text: testResultsString
-    junit ".tmp/*.xml"
+    writeFile file: ".tmp/junit/junit.xml", text: testResultsString
+    junit ".tmp/junit/*.xml"
 
     // Create and store a demo DevelopmentTestReport
     demoCreateDevelopmentTestReport(metadata)
