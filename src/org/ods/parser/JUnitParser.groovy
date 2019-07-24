@@ -136,7 +136,7 @@ class JUnitParser {
 
         @NonCPS
         /*
-         * Transforms the parser's result into a (unique) set of errors.
+         * Transforms the parser's result into a (unique) set of test errors.
          * Annotates each error with indications on affected testsuite and -case.
          */
         static Set toSimpleErrorsFormat(def xml) {
@@ -207,7 +207,7 @@ class JUnitParser {
 
         @NonCPS
         /*
-         * Transforms the parser's result into a (unique) set of failures.
+         * Transforms the parser's result into a (unique) set of test failures.
          * Annotates each failure with indications on affected testsuite and -case.
          */
         static Set toSimpleFailuresFormat(def xml) {

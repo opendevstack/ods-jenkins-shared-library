@@ -1,17 +1,15 @@
 import org.ods.service.JiraService
 
-// Create Jira bugs for test failures
+// Create Jira bugs for failed tests
 def call(Map metadata, Collection testFailures, Map jiraIssues) {
-//    withCredentials([ usernamePassword(credentialsId: metadata.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
-//        def jira = new JiraService(env.JIRA_URL, env.JIRA_USERNAME, env.JIRA_PASSWORD)
-        def jira = new JiraService(env.JIRA_URL, "admin", "admin")
+    withCredentials([ usernamePassword(credentialsId: metadata.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
+        def jira = new JiraService(env.JIRA_URL, env.JIRA_USERNAME, env.JIRA_PASSWORD)
 
-        // TODO: also handle errors
         testFailures.each { failure ->
             createBugAndLinkTestCases(metadata, jira, failure, jiraIssues)
         }
     }
-//}
+}
 
 private def createBugAndLinkTestCases(def metadata, def jira, def failure, def jiraIssues) {
     // Create a Jira bug for the failure in the current project
@@ -22,11 +20,14 @@ private def createBugAndLinkTestCases(def metadata, def jira, def failure, def j
     failure.testsuites.each { testsuiteName, testsuite ->
         testsuite.testcases.each { testcaseName ->
             // Find the issue in Jira representing the test case
-            def issue = jiraIssues.find { id, issue ->
+            def jiraIssue = jiraIssues.find { id, issue ->
                 issue.summary == testcaseName
-            }.value
+            }
 
-            jira.createIssueLinkTypeBlocks(bug, issue)
+            // Attempt to create a link to the bug only if the issue exists
+            if (jiraIssue) {
+                jira.createIssueLinkTypeBlocks(bug, jiraIssue.value)
+            }
         }
     }
 }

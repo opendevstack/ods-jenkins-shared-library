@@ -18,7 +18,7 @@ def call(Map metadata, List<Set<Map>> repos) {
 <testsuites>
     <testsuite name="Create Feature X" tests="1" skipped="0" failures="1" errors="0" timestamp="2019-06-25T18:12:36" hostname="surfer-172-29-1-61-hotspot.internet-for-guests.com" time="1.458">
         <properties/>
-        <testcase name="Test Scenario A" classname="app.DocGenSpec" time="0.033">
+        <testcase name="Test Case A" classname="app.DocGenSpec" time="0.033">
             <failure message="java.io.FileNotFoundException: /Users/metmajer/Dropbox/IT%20Platform/demo/pltf-doc-gen/build/resources/test/templates.zip (No such file or directory)" type="java.io.FileNotFoundException">java.io.FileNotFoundException: /Users/metmajer/Dropbox/IT%20Platform/demo/pltf-doc-gen/build/resources/test/templates.zip (No such file or directory)
             at java.base/java.io.FileInputStream.open(FileInputStream.java:219)
             at java.base/java.io.FileInputStream.&lt;init&gt;(FileInputStream.java:157)
@@ -26,6 +26,7 @@ def call(Map metadata, List<Set<Map>> repos) {
             at app.DocGenSpec.generate(DocGenSpec.groovy:59)
             </failure>
         </testcase>
+        <testcase name="Test Case B" classname="app.DocGenSpec" time="1.311"/>
         <system-out><![CDATA[[2019-06-25 20:12:36,150]-[Test worker] INFO  app.App - [test@netty]: Server started in 710ms
 
         POST /document    [application/json]     [application/json]    (/anonymous)
@@ -39,8 +40,7 @@ def call(Map metadata, List<Set<Map>> repos) {
     </testsuite>
     <testsuite name="Create Feature Y" tests="2" skipped="0" failures="0" errors="0" timestamp="2019-06-25T18:12:42" hostname="surfer-172-29-1-61-hotspot.internet-for-guests.com" time="1.458">
         <properties/>
-        <testcase name="Test Scenario B" classname="app.DocGenSpec" time="1.311"/>
-        <testcase name="Test Scenario C" classname="app.DocGenSpec" time="0.113"/>
+        <testcase name="Test Case C" classname="app.DocGenSpec" time="0.113"/>
         <system-out><![CDATA[[2019-06-25 20:12:36,150]-[Test worker] INFO  app.App - [test@netty]: Server started in 710ms
 
         POST /document    [application/json]     [application/json]    (/anonymous)
@@ -60,13 +60,15 @@ def call(Map metadata, List<Set<Map>> repos) {
     // Transform the JUnit XML parser's results into a simple format
     def testResultsSimple = JUnitParser.Helper.toSimpleFormat(testResults)
 
-    // Transform the JUnit XML parser's results into a simple failures format
-    def testFailures = JUnitParser.Helper.toSimpleFailuresFormat(testResults)
+    // Create Jira bugs for erroneous tests
+    def errors = JUnitParser.Helper.toSimpleErrorsFormat(testResults)
+    jiraCreateBugsForTestFailures(metadata, errors, jiraIssues)
 
-    // Create Jira bugs for test failures
-    jiraCreateBugsForTestFailures(metadata, testFailures, jiraIssues)
+    // Create Jira bugs for failed tests
+    def failures = JUnitParser.Helper.toSimpleFailuresFormat(testResults)
+    jiraCreateBugsForTestFailures(metadata, failures, jiraIssues)
 
-    // Demarcate Jira issues according to test results
+    // Mark Jira issues according to test results
     jiraMarkIssuesForTestResults(metadata, testResultsSimple, jiraIssues)
 
     // Provide Junit XML reports to Jenkins
