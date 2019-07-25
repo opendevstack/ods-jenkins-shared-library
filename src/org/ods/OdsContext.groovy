@@ -6,8 +6,6 @@ class OdsContext implements Context {
   Logger logger
   Map config
 
-  boolean environmentCreated
-
   OdsContext(script, config, logger) {
     this.script = script
     this.config = config
@@ -213,7 +211,7 @@ class OdsContext implements Context {
     config.notifyNotGreen
   }
 
-  def setNotifyNotGreen(boolean notifyNotGreen) {
+  void setNotifyNotGreen(boolean notifyNotGreen) {
     config.notifyNotGreen = notifyNotGreen
   }
 
@@ -245,7 +243,7 @@ class OdsContext implements Context {
       config.cloneSourceEnv
   }
 
-  def setCloneSourceEnv(String cloneSourceEnv) {
+  void setCloneSourceEnv(String cloneSourceEnv) {
     config.cloneSourceEnv = cloneSourceEnv
   }
 
@@ -253,7 +251,7 @@ class OdsContext implements Context {
       config.environment
   }
 
-  def setEnvironment(String environment) {
+  void setEnvironment(String environment) {
     config.environment = environment
   }
 
@@ -313,23 +311,15 @@ class OdsContext implements Context {
       config.bitbucketHost
   }
 
-  boolean getEnvironmentCreated() {
-      this.environmentCreated
-  }
-
   int getOpenshiftBuildTimeout() {
       config.openshiftBuildTimeout
-  }
-
-  def setEnvironmentCreated(boolean created) {
-      this.environmentCreated = created
   }
 
   boolean getCiSkipEnabled() {
     return config.ciSkipEnabled
   }
 
-  def setCiSkipEnabled(boolean ciSkipEnabled) {
+  void setCiSkipEnabled(boolean ciSkipEnabled) {
     config.ciSkipEnabled = ciSkipEnabled
   }
 
@@ -337,7 +327,7 @@ class OdsContext implements Context {
     return config.bitbucketNotificationEnabled
   }
 
-  def setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled) {
+  void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled) {
     config.bitbucketNotificationEnabled = bitbucketNotificationEnabled
   }
 
@@ -345,7 +335,7 @@ class OdsContext implements Context {
     return config.localCheckoutEnabled
   }
 
-  def setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
+  void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
     config.localCheckoutEnabled = localCheckoutEnabled
   }
 
@@ -353,7 +343,7 @@ class OdsContext implements Context {
     return config.displayNameUpdateEnabled
   }
 
-  def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
+  void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
     config.displayNameUpdateEnabled = displayNameUpdateEnabled
   }
 

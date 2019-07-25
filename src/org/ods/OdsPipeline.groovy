@@ -18,7 +18,7 @@ class OdsPipeline implements Serializable {
   // Main entry point.
   def execute(Closure stages) {
     logger.info "***** Starting ODS Pipeline *****"
-    checkForMultiRepoBuild()
+    prepareForMultiRepoBuild()
 
     logger.info "***** Continuing on node 'master' *****"
     def cl = {
@@ -95,7 +95,7 @@ class OdsPipeline implements Serializable {
     logger.info "***** Finished ODS Pipeline *****"
   }
 
-  def checkForMultiRepoBuild() {
+  def prepareForMultiRepoBuild() {
     if (!!script.env.MULTI_REPO_BUILD) {
       logger.info '***** Multi Repo Build detected *****'
       context.bitbucketNotificationEnabled = false

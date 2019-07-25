@@ -50,7 +50,7 @@ interface Context {
     boolean getNotifyNotGreen()
 
     // Enable/disable notifications
-    def setNotifyNotGreen(boolean notifyNotGreen)
+    void setNotifyNotGreen(boolean notifyNotGreen)
 
     // Nexus host (with scheme).
     String getNexusHost()
@@ -74,13 +74,13 @@ interface Context {
     String getCloneSourceEnv()
 
     // Set the environment to clone
-    def setCloneSourceEnv( String cloneSourceEnv)
+    void setCloneSourceEnv( String cloneSourceEnv)
 
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
 
     // Set environment
-    def setEnvironment(String environment)
+    void setEnvironment(String environment)
 
     // Target project, based on the environment. E.g. "foo-dev".
     String getTargetProject()
@@ -130,39 +130,34 @@ interface Context {
     // BitBucket host - value taken from BITBUCKET_HOST.
     String getBitbucketHost()
 
-    // Whether an environment has been created during the build.
-    boolean getEnvironmentCreated()
-
     // Timeout for the OpenShift build of the container image.
     int getOpenshiftBuildTimeout()
 
     // Whether the build should be skipped, based on the Git commit message.
     boolean getCiSkip()
 
-    def setEnvironmentCreated(boolean created)
-
     // Whether CI skip is enabled
     boolean getCiSkipEnabled()
 
     // Enable/disable CI skip is enabled
-    def setCiSkipEnabled(boolean ciSkipEnabled)
+    void setCiSkipEnabled(boolean ciSkipEnabled)
 
     // Whether Bitbucket notification is enabled
     boolean getBitbucketNotificationEnabled()
 
     // nable/disable Bitbucket notification
-    def setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled)
+    void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled)
 
     // Whether local checkout is enabled
     boolean getLocalCheckoutEnabled()
 
     // Enable/disable local checkout
-    def setLocalCheckoutEnabled(boolean localCheckoutEnabled)
+    void setLocalCheckoutEnabled(boolean localCheckoutEnabled)
 
     // Whether display name update is enabled
     boolean getDisplayNameUpdateEnabled()
 
     // Enable/disable display name update
-    def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
+    void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
 
 }
