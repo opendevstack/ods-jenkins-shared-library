@@ -4,8 +4,8 @@ package org.ods.util
 
 import groovy.transform.InheritConstructors
 
-import org.ods.graph.DependencyGraph
-import org.ods.graph.Node
+import org.ods.dependency.DependencyGraph
+import org.ods.dependency.Node
 import org.ods.phase.PipelinePhases
 import org.yaml.snakeyaml.Yaml
 
@@ -78,20 +78,19 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                     if (phaseConfig) {
                         def label = "${repo.name} (${repo.url})"
 
-                        if (phaseConfig.type == 'Makefile') {
-                            this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
-                                def script = "make ${phaseConfig.task}"
-                                this.steps.sh script: script, label: label
-                            }
-                        } else if (phaseConfig.type == 'ShellScript') {
-                            this.steps.dir("${WORKSPACE}/.tmp/repositories/${repo.name}") {
-                                def script = "./scripts/${phaseConfig.script}"
-                                this.steps.sh script: script, label: label
-                            }
+                    if (phaseConfig.type == 'Makefile') {
+                        this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                            def script = "make ${phaseConfig.task}"
+                            this.steps.sh script: script, label: label
                         }
-                    } else {
-                        // Ignore undefined phases
+                    } else if (phaseConfig.type == 'ShellScript') {
+                        this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                            def script = "./scripts/${phaseConfig.script}"
+                            this.steps.sh script: script, label: label
+                        }
                     }
+                } else {
+                    // Ignore undefined phases
                 }
             }
         ]

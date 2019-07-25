@@ -14,15 +14,25 @@ class PipelineUtil {
         this.steps = steps
     }
 
-    void archiveArtifact(String dirname, String prefix, String suffix, byte[] data) {
-        def tmpFile = null
+    void archiveArtifact(String path, byte[] data) {
+        def file = null
+
+        if (!path.startsWith(this.steps.WORKSPACE)) {
+            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace.")
+        }
 
         try {
-            tmpFile = FileUtil.createTempFile("${this.steps.WORKSPACE}/${dirname}", prefix, suffix, data)
-            this.steps.archiveArtifacts artifacts: "${dirname}/${tmpFile.name}"
+            // Write the artifact data to file
+            file = new File(path).setBytes(data)
+
+            // Compute the relative path inside the Jenkins workspace
+            def workspacePath = new File(this.steps.WORKSPACE).toURI().relativize(new File(path).toURI()).getPath()
+
+            // Archive the artifact (requires a relative path inside the Jenkins workspace)
+            this.steps.archiveArtifacts artifacts: workspacePath
         } finally {
-            if (tmpFile != null && tmpFile.exists()) {
-                tmpFile.delete()
+            if (file && file.exists()) {
+                file.delete()
             }
         }
     }

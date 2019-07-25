@@ -6,5 +6,5 @@ class PipelinePhases {
     static final String TEST_PHASE    = "Test"
     static final String RELEASE_PHASE = "Release"
 
-    static final List ALWAYS_PARALLEL_PHASES = [ BUILD_PHASE ]
+    static final List ALWAYS_PARALLEL_PHASES = []
 }
