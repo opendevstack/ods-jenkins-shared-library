@@ -203,6 +203,10 @@ class OdsContext implements Context {
     config.notifyNotGreen
   }
 
+  def setNotifyNotGreen(boolean notifyNotGreen) {
+    config.notifyNotGreen = notifyNotGreen
+  }
+
   String getNexusHost() {
       config.nexusHost
   }
@@ -341,14 +345,6 @@ class OdsContext implements Context {
 
   def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
     config.displayNameUpdateEnabled = displayNameUpdateEnabled
-  }
-
-  boolean getMailNotificationEnabled() {
-    return (config.mailNotificationEnabled == null) || config.mailNotificationEnabled
-  }
-
-  def setMailNotificationEnabled(boolean mailNotificationEnabled) {
-    config.mailNotificationEnabled = mailNotificationEnabled
   }
 
   private String retrieveGitUrl() {

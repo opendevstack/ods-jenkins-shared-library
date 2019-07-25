@@ -36,13 +36,9 @@ class OdsPipeline implements Serializable {
           }
         }
       } catch (err) {
-        if (context.displayNameUpdateEnabled) {
-          script.currentBuild.result = 'FAILURE'
-        }
+        updateBuildStatus('FAILURE')
         setBitbucketBuildStatus('FAILED')
-        if (context.notifyNotGreen) {
-          notifyNotGreen()
-        }
+        notifyNotGreen()
         throw err
       }
     }
@@ -76,21 +72,17 @@ class OdsPipeline implements Serializable {
 
             if (context.getCiSkipEnabled() && context.ciSkip){
               logger.info 'Skipping build due to [ci skip] in the commit message ...'
-              script.currentBuild.result = 'NOT_BUILT'
+              updateBuildStatus('NOT_BUILT')
               setBitbucketBuildStatus('SUCCESSFUL')
               return
             }
 
             stages(context)
           }
-          if (context.displayNameUpdateEnabled) {
-            script.currentBuild.result = 'SUCCESS'
-          }
+          updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
         } catch (err) {
-          if (context.displayNameUpdateEnabled) {
-            script.currentBuild.result = 'FAILURE'
-          }
+          updateBuildStatus('FAILURE')
           setBitbucketBuildStatus('FAILED')
           if (context.notifyNotGreen) {
             notifyNotGreen()
@@ -110,7 +102,7 @@ class OdsPipeline implements Serializable {
       context.localCheckoutEnabled = false
       context.displayNameUpdateEnabled = false
       context.ciSkipEnabled = false
-      context.mailNotificationEnabled = false
+      context.notifyNotGreen = false
       def buildEnv = script.env.MULTI_REPO_ENV
       if (buildEnv) {
         context.environment = buildEnv
@@ -153,7 +145,7 @@ class OdsPipeline implements Serializable {
   }
 
   private void notifyNotGreen() {
-    if (context.mailNotificationEnabled) {
+    if (context.notifyNotGreen) {
       script.emailext(
         body: '${script.DEFAULT_CONTENT}', mimeType: 'text/html',
         replyTo: '$script.DEFAULT_REPLYTO', subject: '${script.DEFAULT_SUBJECT}',
@@ -210,6 +202,12 @@ class OdsPipeline implements Serializable {
     script.sh(
       returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l"
     ).trim().toInteger() >= limit
+  }
+
+  def updateBuildStatus(String status) {
+    if (context.displayNameUpdateEnabled) {
+      script.currentBuild.result = status
+    }
   }
 
   private boolean environmentExists(String name) {

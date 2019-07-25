@@ -49,6 +49,9 @@ interface Context {
     // Whether to send notifications if the build is not successful.
     boolean getNotifyNotGreen()
 
+    // Enable/disable notifications
+    def setNotifyNotGreen(boolean notifyNotGreen)
+
     // Nexus host (with scheme).
     String getNexusHost()
 
@@ -161,11 +164,5 @@ interface Context {
 
     // Enable/disable display name update
     def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
-
-    // Whether mail notification is enabled
-    boolean getMailNotificationEnabled()
-
-    // Enable/disable mail notification
-    def setMailNotificationEnabled(boolean mailNotificationEnabled)
 
 }
