@@ -107,6 +107,10 @@ class OdsPipeline implements Serializable {
       if (buildEnv) {
         context.environment = buildEnv
         context.cloneSourceEnv = null
+      } else {
+        logger.error("Variable MULTI_REPO_ENV must not be null!")
+        // Using exception because error step would skip post steps
+        throw new RuntimeException("Variable MULTI_REPO_ENV must not be null!")
       }
     }
   }

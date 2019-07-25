@@ -12,6 +12,12 @@ class OdsContext implements Context {
     this.script = script
     this.config = config
     this.logger = logger
+    initCheckoutDefault()
+  }
+
+  private initCheckoutDefault() {
+    // must be set before assemble
+    config.localCheckoutEnabled = config.localCheckoutEnabled ?: true
   }
 
   def assemble() {
@@ -129,6 +135,10 @@ class OdsContext implements Context {
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
+
+    config.displayNameUpdateEnabled = config.displayNameUpdateEnabled ?: true
+    config.ciSkipEnabled = config.ciSkipEnabled ?: true
+    config.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled ?: true
 
     logger.debug "Setting environment ..."
     determineEnvironment()
@@ -316,7 +326,7 @@ class OdsContext implements Context {
   }
 
   boolean getCiSkipEnabled() {
-    return (config.ciSkipEnabled == null || config.ciSkipEnabled)
+    return config.ciSkipEnabled
   }
 
   def setCiSkipEnabled(boolean ciSkipEnabled) {
@@ -324,7 +334,7 @@ class OdsContext implements Context {
   }
 
   boolean getBitbucketNotificationEnabled() {
-    return (config.bitbucketNotificationEnabled == null || config.bitbucketNotificationEnabled)
+    return config.bitbucketNotificationEnabled
   }
 
   def setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled) {
@@ -332,7 +342,7 @@ class OdsContext implements Context {
   }
 
   boolean getLocalCheckoutEnabled() {
-    return (config.localCheckoutEnabled == null || config.localCheckoutEnabled)
+    return config.localCheckoutEnabled
   }
 
   def setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
@@ -340,7 +350,7 @@ class OdsContext implements Context {
   }
 
   boolean getDisplayNameUpdateEnabled() {
-    return (config.displayNameUpdateEnabled == null || config.displayNameUpdateEnabled)
+    return config.displayNameUpdateEnabled
   }
 
   def setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
