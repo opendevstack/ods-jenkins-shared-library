@@ -69,23 +69,29 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         return [
             repo.name,
             {
-                def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
-                if (phaseConfig) {
-                    def label = "${repo.name} (${repo.url})"
-
-                    if (phaseConfig.type == 'Makefile') {
-                        this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
-                            def script = "make ${phaseConfig.task}"
-                            this.steps.sh script: script, label: label
-                        }
-                    } else if (phaseConfig.type == 'ShellScript') {
-                        this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
-                            def script = "./scripts/${phaseConfig.script}"
-                            this.steps.sh script: script, label: label
-                        }
+                if (name == 'build' && repo.type == 'ods') {
+                    this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                        executeJenkinsfile()
                     }
                 } else {
-                    // Ignore undefined phases
+                    def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
+                    if (phaseConfig) {
+                        def label = "${repo.name} (${repo.url})"
+
+                        if (phaseConfig.type == 'Makefile') {
+                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                                def script = "make ${phaseConfig.task}"
+                                this.steps.sh script: script, label: label
+                            }
+                        } else if (phaseConfig.type == 'ShellScript') {
+                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                                def script = "./scripts/${phaseConfig.script}"
+                                this.steps.sh script: script, label: label
+                            }
+                        }
+                    } else {
+                        // Ignore undefined phases
+                    }
                 }
             }
         ]

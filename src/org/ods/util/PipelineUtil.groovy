@@ -37,6 +37,14 @@ class PipelineUtil {
         }
     }
 
+    void executeJenkinsfile(String filePath = 'Jenkinsfile') {
+        def file = new File(filePath)
+        if (!file.exists()) {
+            throw new RuntimeException("Error: unable to load Jenkinsfile. File ${filePath} does not exist.")
+        }
+        steps.load path: filePath
+    }
+
     Map readProjectMetadata() {
         def file = new File("${this.steps.WORKSPACE}/${PROJECT_METADATA_FILE_NAME}")
         if (!file.exists()) {
@@ -45,4 +53,5 @@ class PipelineUtil {
 
         return new Yaml().load(file.text)
     }
+
 }
