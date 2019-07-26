@@ -10,12 +10,10 @@ class OdsContext implements Context {
     this.script = script
     this.config = config
     this.logger = logger
-    initCheckoutDefault()
-  }
-
-  private initCheckoutDefault() {
-    // must be set before assemble
-    config.localCheckoutEnabled = config.localCheckoutEnabled ?: true
+    // Must be done in constructor. Otherwise CpsCallableInvocation throws ProxyException.
+    if (!this.config.containsKey('localCheckoutEnabled')) {
+      this.config.localCheckoutEnabled = true
+    }
   }
 
   def assemble() {
@@ -134,9 +132,15 @@ class OdsContext implements Context {
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
-    config.displayNameUpdateEnabled = config.displayNameUpdateEnabled ?: true
-    config.ciSkipEnabled = config.ciSkipEnabled ?: true
-    config.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled ?: true
+    if (!config.containsKey('bitbucketNotificationEnabled')) {
+      config.bitbucketNotificationEnabled = true
+    }
+    if (!config.containsKey('displayNameUpdateEnabled')) {
+      config.displayNameUpdateEnabled = true
+    }
+    if (!config.containsKey('ciSkipEnabled')) {
+      config.ciSkipEnabled = true
+    }
 
     logger.debug "Setting environment ..."
     determineEnvironment()
@@ -353,7 +357,7 @@ class OdsContext implements Context {
                              usernameVariable: 'CD_USERNAME', passwordVariable: 'CD_PASSWORD']]) {
       script.sh(
               returnStdout: true, script: 'git config --get remote.origin.url'
-      ).trim().replaceAll('^(https?)://') { it[0] + "${env.CD_USERNAME}@" }
+      ).trim().replaceAll('^(https?)://') { it[0] + "${script.env.CD_USERNAME}@" }
     }
   }
 
