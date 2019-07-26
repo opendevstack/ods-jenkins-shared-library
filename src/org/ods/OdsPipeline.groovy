@@ -20,7 +20,6 @@ class OdsPipeline implements Serializable {
     logger.info "***** Starting ODS Pipeline *****"
     prepareForMultiRepoBuild()
 
-    logger.info "***** Continuing on node 'master' *****"
     def cl = {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -43,6 +42,7 @@ class OdsPipeline implements Serializable {
       }
     }
     if (context.getLocalCheckoutEnabled()) {
+      logger.info "***** Continuing on node 'master' *****"
       script.node('master', cl)
     } else {
       cl()
