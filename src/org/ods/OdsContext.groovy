@@ -352,13 +352,9 @@ class OdsContext implements Context {
   }
 
   private String retrieveGitUrl() {
-    //password must also be mapped, otherwise username is null
-    script.withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: this.credentialsId,
-                             usernameVariable: 'CD_USERNAME', passwordVariable: 'CD_PASSWORD']]) {
-      script.sh(
-              returnStdout: true, script: 'git config --get remote.origin.url'
-      ).trim().replaceAll('^(https?)://') { it[0] + "${script.env.CD_USERNAME}@" }
-    }
+    script.sh(
+      returnStdout: true, script: 'git config --get remote.origin.url'
+    ).trim().replace('https://bitbucket', 'https://cd_user@bitbucket')
   }
 
   private String retrieveGitCommit() {
