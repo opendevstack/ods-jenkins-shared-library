@@ -69,7 +69,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                if (name == 'build' && repo.type == 'ods') {
+                if (name == PipelinePhases.BUILD_PHASE && repo.type == 'ods') {
                     this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}") {
                         executeJenkinsfile()
                     }
