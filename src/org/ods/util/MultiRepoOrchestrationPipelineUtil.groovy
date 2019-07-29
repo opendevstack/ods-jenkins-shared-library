@@ -39,7 +39,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         def metadata = readProjectMetadata()
 
         return [
-            repo.name,
+            repo.id,
             {
                 this.steps.checkout([
                     $class: 'GitSCM',
@@ -48,7 +48,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                     ],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [
-                        [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPO_BASE_DIR}/${repo.name}" ]
+                        [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPO_BASE_DIR}/${repo.id}" ]
                     ],
                     submoduleCfg: [],
                     userRemoteConfigs: [
@@ -67,24 +67,24 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
 
     Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo) {
         return [
-            repo.name,
+            repo.id,
             {
                 if (name == 'build' && repo.type == 'ods') {
-                    this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                    this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}") {
                         executeJenkinsfile()
                     }
                 } else {
                     def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
                     if (phaseConfig) {
-                        def label = "${repo.name} (${repo.url})"
+                        def label = "${repo.id} (${repo.url})"
 
                         if (phaseConfig.type == 'Makefile') {
-                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}") {
                                 def script = "make ${phaseConfig.task}"
                                 this.steps.sh script: script, label: label
                             }
                         } else if (phaseConfig.type == 'ShellScript') {
-                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.name}") {
+                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}") {
                                 def script = "./scripts/${phaseConfig.script}"
                                 this.steps.sh script: script, label: label
                             }
@@ -129,7 +129,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
     private void walkRepoDirectories(List<Map> repos, Closure visitor) {
         repos.each { repo ->
             // Apply the visitor to the repo at the repo's base dir
-            visitor("${this.steps.WORKSPACE}/${REPO_BASE_DIR}/${repo.name}", repo)
+            visitor("${this.steps.WORKSPACE}/${REPO_BASE_DIR}/${repo.id}", repo)
         }
     }
 }
