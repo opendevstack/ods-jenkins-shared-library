@@ -39,14 +39,10 @@ def call(Map metadata, Map testResults, Map jiraIssues) {
 
                 // Apply appropriate labels to the issue
                 jira.addLabelsToIssue(jiraIssue.id, jiraLabelsToApply)
+                jira.removeLabelsFromIssue(jiraIssue.id, jiraLabels - jiraLabelsToApply)
 
                 jiraIssuesProcessed << [ (jiraIssue.id): jiraIssue ]
             }
-        }
-
-        // Remove label "Missing" from all processed issues
-        jiraIssuesProcessed.each { issueId, issue ->
-            jira.removeLabelsFromIssue(issueId, ["Missing"])
         }
 
         // Add label "Missing" to all unprocessed issues
