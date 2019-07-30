@@ -136,10 +136,10 @@ class JUnitParser {
 
         @NonCPS
         /*
-         * Transforms the parser's result into a (unique) set of test errors.
+         * Transforms a simple result format into a (unique) set of test errors.
          * Annotates each error with indications on affected testsuite and -case.
          */
-        static Set toSimpleErrorsFormat(def xml) {
+        static Set toSimpleErrorsFormat(Map testResults) {
             /*
              * Produces the following format:
              *
@@ -166,11 +166,9 @@ class JUnitParser {
              * ]
              */
 
-            def tests = toSimpleFormat(xml)
-
             // Compute a (unique) set of errors
             def errors = [] as Set
-            tests.each { testsuiteName, testcases ->
+            testResults.each { testsuiteName, testcases ->
                 testcases.each { testcaseName, testcase ->
                     if (testcase.error) {
                         errors << testcase.error
@@ -181,7 +179,7 @@ class JUnitParser {
             def result = errors
             result.each { error ->
                 // Find all testcases that exhibit the current error
-                tests.each { testsuiteName, testcases ->
+                testResults.each { testsuiteName, testcases ->
                     testcases.each { testcaseName, testcase ->
                         // As we augment errors in result with "testsuites", we must
                         // remove this key for comparing with errors in testcases
@@ -207,10 +205,10 @@ class JUnitParser {
 
         @NonCPS
         /*
-         * Transforms the parser's result into a (unique) set of test failures.
+         * Transforms a simple result format into a (unique) set of test failures.
          * Annotates each failure with indications on affected testsuite and -case.
          */
-        static Set toSimpleFailuresFormat(def xml) {
+        static Set toSimpleFailuresFormat(Map testResults) {
             /*
              * Produces the following format:
              *
@@ -237,11 +235,9 @@ class JUnitParser {
              * ]
              */
 
-            def tests = toSimpleFormat(xml)
-
             // Compute a (unique) set of failures
             def failures = [] as Set
-            tests.each { testsuiteName, testcases ->
+            testResults.each { testsuiteName, testcases ->
                 testcases.each { testcaseName, testcase ->
                     if (testcase.failure) {
                         failures << testcase.failure
@@ -252,7 +248,7 @@ class JUnitParser {
             def result = failures
             result.each { failure ->
                 // Find all testcases that exhibit the current failure
-                tests.each { testsuiteName, testcases ->
+                testResults.each { testsuiteName, testcases ->
                     testcases.each { testcaseName, testcase ->
                         // As we augment failures in result with "testsuites", we must
                         // remove this key for comparing with failures in testcases
@@ -277,7 +273,7 @@ class JUnitParser {
         }
 
         @NonCPS
-        // Transform the parser's result into a simple format.
+        // Transform the parser's result into a simple result format.
         static Map toSimpleFormat(Map xml) {
             /*
              * Produces the following format:
