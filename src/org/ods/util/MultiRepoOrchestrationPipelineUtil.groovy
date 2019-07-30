@@ -69,9 +69,11 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
+                def baseDir = "${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}"
+
                 if (name == PipelinePhases.BUILD_PHASE && repo.type == 'ods') {
-                    this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}") {
-                        executeJenkinsfile()
+                    this.steps.dir(baseDir) {
+                        loadGroovySourceFile("${baseDir}/Jenkinsfile")
                     }
                 } else {
                     def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
@@ -79,12 +81,12 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                         def label = "${repo.id} (${repo.url})"
 
                         if (phaseConfig.type == 'Makefile') {
-                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}") {
+                            this.steps.dir("${baseDir}") {
                                 def script = "make ${phaseConfig.task}"
                                 this.steps.sh script: script, label: label
                             }
                         } else if (phaseConfig.type == 'ShellScript') {
-                            this.steps.dir("${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}") {
+                            this.steps.dir("${baseDir}") {
                                 def script = "./scripts/${phaseConfig.script}"
                                 this.steps.sh script: script, label: label
                             }

@@ -37,12 +37,13 @@ class PipelineUtil {
         }
     }
 
-    void executeJenkinsfile(String filePath = 'Jenkinsfile') {
-        def file = new File(filePath)
+    def loadGroovySourceFile(String path) {
+        def file = new File(path)
         if (!file.exists()) {
-            throw new RuntimeException("Error: unable to load Jenkinsfile. File ${filePath} does not exist.")
+            throw new RuntimeException("Error: unable to load Groovy source file. Path ${path} does not exist.")
         }
-        steps.load path: filePath
+
+        return this.steps.load(path)
     }
 
     Map readProjectMetadata() {
@@ -53,5 +54,4 @@ class PipelineUtil {
 
         return new Yaml().load(file.text)
     }
-
 }
