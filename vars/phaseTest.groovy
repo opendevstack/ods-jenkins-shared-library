@@ -15,15 +15,19 @@ def call(Map metadata, List<Set<Map>> repos) {
             parallel(group)
         }
 
+    def globalTestResults = [ testsuites: [] ]
+
     repos.each { group ->
         group.each { repo ->
             if (repo.type == 'ods') {
-                // Unstash JUnit XML test reports into the local file system
+                // Unstash JUnit XML test reports and report them to Jenkins
                 def testReportsBaseDirPath = "junit/${repo.id}"
                 def testReportsBaseDir = FileUtil.createDirectory("${env.WORKSPACE}/${testReportsBaseDirPath}")
                 dir(testReportsBaseDirPath) {
                     unstash name: "test-reports-junit-xml-${repo.id}-${env.BUILD_ID}"
                 }
+
+                junit "${testReportsBaseDirPath}/**/*.xml"
 
                 // Parse individual JUnit XML test reports for the current repo
                 def testReportFiles = []
@@ -32,35 +36,33 @@ def call(Map metadata, List<Set<Map>> repos) {
                 }
 
                 // Combine individual JUnit XML test reports into a single report
-                def testReport = [ testsuites: [] ]
-                testReportFiles.inject(testReport) { current, next ->
-                    def testReport_ = JUnitParser.parseJUnitXML(next.text)
-                    current.testsuites.addAll(testReport_.testsuites)
+                def testResults = [ testsuites: [] ]
+                testReportFiles.inject(testResults) { current, next ->
+                    def testReport = JUnitParser.parseJUnitXML(next.text)
+                    current.testsuites.addAll(testReport.testsuites)
                 }
 
+                // Create and store a LeVA Development Test Report for the current repo
+                createDevelopmentTestReport(metadata, repo, testResults, testReportFiles)
 
-                // Transform the parsed JUnit XML report into a simple result format
-                def testReportSimple = JUnitParser.Helper.toSimpleFormat(testReport)
-
-                // Create Jira bugs for erroneous tests
-                def errors = JUnitParser.Helper.toSimpleErrorsFormat(testReportSimple)
-                jiraCreateBugsForTestFailures(metadata, errors, jiraIssues)
-
-                // Create Jira bugs for failed tests
-                def failures = JUnitParser.Helper.toSimpleFailuresFormat(testReportSimple)
-                jiraCreateBugsForTestFailures(metadata, failures, jiraIssues)
-
-                // Mark Jira issues according to test results
-                jiraMarkIssuesForTestResults(metadata, testReportSimple, jiraIssues)
-
-                // Provide Junit XML reports to Jenkins
-                junit "${testReportsBaseDirPath}/**/*.xml"
-
-
-                createDevelopmentTestReport(metadata, repo, testReport, testReportFiles)
+                globalTestResults.testsuites.addAll(testResults.testsuites)
             }
         }
     }
+
+    // Transform the parsed JUnit XML report into a simple result format
+    def globalTestResultsSimple = JUnitParser.Helper.toSimpleFormat(globalTestResults)
+
+    // Mark Jira issues according to test results
+    jiraMarkIssuesForTestResults(metadata, globalTestResultsSimple, jiraIssues)
+
+    // Create Jira bugs for erroneous tests
+    def errors = JUnitParser.Helper.toSimpleErrorsFormat(globalTestResultsSimple)
+    jiraCreateBugsForTestFailures(metadata, errors, jiraIssues)
+
+    // Create Jira bugs for failed tests
+    def failures = JUnitParser.Helper.toSimpleFailuresFormat(globalTestResultsSimple)
+    jiraCreateBugsForTestFailures(metadata, failures, jiraIssues)
 }
 
 return this

@@ -22,12 +22,11 @@ def call(Map metadata, Map testResults, Map jiraIssues) {
 
                 jiraIssue = jiraIssue.value
 
+                // Remove all labels from the issue
+                jira.removeLabelsFromIssue(jiraIssue.id, jiraLabels)
+
                 def jiraLabelsToApply = ["Succeeded"]
                 if (testcase.skipped || testcase.error || testcase.failure) {
-                    if (testcase.skipped) {
-                        jiraLabelsToApply = ["Skipped"]
-                    }
-
                     if (testcase.error) {
                         jiraLabelsToApply = ["Error"]
                     }
@@ -35,11 +34,14 @@ def call(Map metadata, Map testResults, Map jiraIssues) {
                     if (testcase.failure) {
                         jiraLabelsToApply = ["Failed"]
                     }
+
+                    if (testcase.skipped) {
+                        jiraLabelsToApply = ["Skipped"]
+                    }
                 }
 
-                // Apply appropriate labels to the issue
+                // Apply all appropriate labels to the issue
                 jira.addLabelsToIssue(jiraIssue.id, jiraLabelsToApply)
-                jira.removeLabelsFromIssue(jiraIssue.id, jiraLabels - jiraLabelsToApply)
 
                 jiraIssuesProcessed << [ (jiraIssue.id): jiraIssue ]
             }

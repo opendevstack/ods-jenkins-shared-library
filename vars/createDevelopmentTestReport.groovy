@@ -4,8 +4,8 @@ import org.ods.parser.JUnitParser
 import org.ods.util.FileUtil
 import org.ods.util.MultiRepoOrchestrationPipelineUtil
 
-// Create and store an DevelopmentTestReport
-def call(Map metadata, Map repo, Map testReport, List testReportFiles) {
+// Create and store a LeVa Development Test Report
+def call(Map metadata, Map repo, Map testResults, List testReportFiles) {
 
 	// Configuration data
 	def id = "DevelopmentTestReport"
@@ -20,7 +20,7 @@ def call(Map metadata, Map repo, Map testReport, List testReportFiles) {
 			type: id
 		],
 		data: [
-			testsuites: testReport
+			testsuites: testResults
 		]
 	]
 
