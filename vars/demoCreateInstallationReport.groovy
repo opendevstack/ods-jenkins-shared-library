@@ -24,7 +24,7 @@ def call(Map metadata) {
     def document = docGenCreateDocument(metadata, id, version, data)
 
 	// Create the report archive
-    def archivePath = "${WORKSPACE}/.tmp/artifacts/${id}-${version}-${env.BUILD_ID}.zip"
+    def archivePath = "${WORKSPACE}/artifacts/${id}-${version}-${env.BUILD_ID}.zip"
 	def archive = FileUtil.createZipFile(archivePath,
 		[
 			"raw/report.json": JsonOutput.toJson(data).getBytes(),

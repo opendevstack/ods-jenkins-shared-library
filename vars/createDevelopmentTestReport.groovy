@@ -30,7 +30,7 @@ def call(Map metadata, Map repo, Map testReport, List testReportFiles) {
     def document = docGenCreateDocument(metadata, id, version, data)
 
 	// Create the report archive
-	def archivePath = "${WORKSPACE}/.tmp/artifacts/${id}-${repo.id}-${version}-${env.BUILD_ID}.zip"
+	def archivePath = "${WORKSPACE}/artifacts/${id}-${repo.id}-${version}-${env.BUILD_ID}.zip"
 	def archive = FileUtil.createZipFile(archivePath,
 		[
 			"report.pdf": document,

@@ -13,7 +13,7 @@ import org.yaml.snakeyaml.Yaml
 class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
 
     static final String PIPELINE_CONIFG_FILE_NAME = ".pipeline-config.yml"
-    static final String REPO_BASE_DIR = ".tmp/repositories"
+    static final String REPO_BASE_DIR = "repositories"
 
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
@@ -69,7 +69,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                def baseDir = "${this.steps.WORKSPACE}/.tmp/repositories/${repo.id}"
+                def baseDir = "${this.steps.WORKSPACE}/${REPO_BASE_DIR}/${repo.id}"
 
                 if (name == PipelinePhases.BUILD_PHASE && repo.type == 'ods') {
                     this.steps.dir(baseDir) {

@@ -19,7 +19,7 @@ def call(Map metadata, List<Set<Map>> repos) {
         group.each { repo ->
             if (repo.type == 'ods') {
                 // Unstash JUnit XML test reports into the local file system
-                def testReportsBaseDirPath = ".tmp/junit/${repo.id}"
+                def testReportsBaseDirPath = "junit/${repo.id}"
                 def testReportsBaseDir = FileUtil.createDirectory("${env.WORKSPACE}/${testReportsBaseDirPath}")
                 dir(testReportsBaseDirPath) {
                     unstash name: "test-reports-junit-xml-${repo.id}-${env.BUILD_ID}"
