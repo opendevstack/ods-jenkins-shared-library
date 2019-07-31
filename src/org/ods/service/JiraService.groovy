@@ -82,11 +82,9 @@ class JiraService {
             .body(JsonOutput.toJson(
                 [
                     update: [
-                        labels: [
-                            names.collectEntries { name ->
-                                [ add: name ]
-                            }
-                        ]
+                        labels: names.collect { name ->
+                            [ add: name ]
+                        }
                     ]
                 ]
             ))
@@ -225,11 +223,9 @@ class JiraService {
             .body(JsonOutput.toJson(
                 [
                     update: [
-                        labels: [
-                            names.collectEntries { name ->
-                                [ remove: name ]
-                            }
-                        ]
+                        labels: names.collect { name ->
+                            [ remove: name ]
+                        }
                     ]
                 ]
             ))
