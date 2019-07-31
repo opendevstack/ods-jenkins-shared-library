@@ -41,7 +41,7 @@ class NexusService {
     def URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
         def response = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
             .routeParam("repository", repository)
-            .basicAuth(this.username, this.password)            
+            .basicAuth(this.username, this.password)
             .field("raw.directory", directory)
             .field("raw.asset1", new ByteArrayInputStream(artifact), contentType)
             .field("raw.asset1.filename", name)

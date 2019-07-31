@@ -2,6 +2,8 @@ package org.ods.service
 
 @Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 
@@ -135,7 +137,7 @@ class JiraService {
     }
 
     void createIssueLinkTypeBlocks(Map inwardIssue, Map outwardIssue) {
-        return createIssueLinkType("Blocks", inwardIssue, outwardIssue)
+        createIssueLinkType("Blocks", inwardIssue, outwardIssue)
     }
 
     Map createIssueType(String type, String projectKey, String summary, String description) {

@@ -1,0 +1,50 @@
+plugins {
+    id 'groovy'
+}
+
+group "org.ods"
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile "com.cloudbees:groovy-cps:1.29"
+    compile "com.konghq:unirest-java:2.3.08:standalone"
+    compile "net.lingala.zip4j:zip4j:2.1.1"
+    compile "org.apache.ivy:ivy:2.2.0"
+    compile "org.codehaus.groovy:groovy-all:2.5.7"
+    compile "org.yaml:snakeyaml:1.24"
+
+    testCompile "com.github.stefanbirkner:system-rules:1.19.0" // for managing environment variables
+    testCompile "com.github.tomakehurst:wiremock:2.23.2"       // for mocking HTTP server reponses
+    testCompile "org.hamcrest:hamcrest:2.1"
+    testCompile "org.spockframework:spock-core:1.3-groovy-2.5"
+}
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ["src"]
+        }
+    }
+
+    test {
+        groovy {
+            srcDirs = ["test"]
+        }
+    }
+}
+
+compileGroovy {
+    groovyOptions.configurationScript = file("gradle/config.groovy")
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+    }
+}

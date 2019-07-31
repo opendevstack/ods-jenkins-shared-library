@@ -32,12 +32,17 @@ class DependencyGraph<T> implements Serializable {
             nodesReady.each { ready ->
                 // Handle a node ready to be processed
                 handler(ready)
+
                 // Remove ready nodes from nodeDependencies
+                def nodeDependenciesToRemove = [:]
                 nodeDependencies.each { node, dependencies ->
                     if (node == ready) {
-                        nodeDependencies.remove(node)
+                        nodeDependenciesToRemove << [ (node): dependencies ]
                     }
                 }
+
+                nodeDependencies = nodeDependencies - nodeDependenciesToRemove
+
                 // Remove ready nodes from nodeDependencies (Groovy >= 2.5.0)
                 // nodeDependencies.removeAll { node, dependencies -> node == ready }
 

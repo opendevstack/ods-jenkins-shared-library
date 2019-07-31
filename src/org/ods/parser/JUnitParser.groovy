@@ -1,5 +1,7 @@
 package org.ods.parser
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import groovy.json.JsonBuilder
 
 // JUnit XML 5 Schema: https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd
