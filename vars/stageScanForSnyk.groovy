@@ -29,7 +29,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
           error "something went wrong by authorising snyk (SNYK_AUTHENTICATION_CODE=$SNYK_AUTHENTICATION_CODE)!"
         }
         // first monitor project
-        status = sh(script: "snyk monitor -org=$ORGANISATION --file=$BUILD_FILE --project-name=$PROJECT_NAME/$COMPONENT_NAME", returnStatus: true)
+        status = sh(script: "snyk monitor -org=$ORGANISATION --file=$BUILD_FILE --project-name=$COMPONENT_NAME", returnStatus: true)
         if (status != 0) {
           error "something went wrong with snyk monitor command!"
         }
