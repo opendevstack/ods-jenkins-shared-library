@@ -4,7 +4,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
     return
   }
   if (!organisation) {
-    organisation = context.targetProject
+    organisation = context.projectId
     println("organisation set to ${organisation}")
   }
 
