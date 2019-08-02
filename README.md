@@ -42,7 +42,7 @@ odsPipeline(
 Following stages are provided (see folder vars for more details):
 * stageScanForSonarqube(context)
 * stageOWASPDependencyCheck(context) 
-* stageScanForSnyk(context, snykAuthenticationCode, buildFile)
+* stageScanForSnyk(context, snykAuthenticationCode, buildFile, projectId)
 * stageUploadToNexus(context)
 * stageStartOpenshiftBuild(context)
 * stageDeployToOpenshift(context)
@@ -174,7 +174,7 @@ When you write stages, you have access to both global variables (defined without
 | gitCommitMessage | Git commit message. |
 | gitCommitTime | Git commit time in RFC 3399. |
 | sonarQubeBranch | Branch on which to run SonarQube analysis. |
-| failOnSnykScanVulnerabilities | Boolean flag (default true) that disables build failure in case Snyk Scan founds vulnerabilities | 
+| failOnSnykScanVulnerabilities | Boolean flag (default true) that disables build failure in case Snyk Scan finds vulnerabilities | 
 | dependencyCheckBranch | Branch on which to run dependency checks. |
 | environmentLimit | Number of environments to allow. |
 | openshiftHost | OpenShift host - value taken from OPENSHIFT_API_URL. |

@@ -1,4 +1,4 @@
 The "Snyk Security Scan" stage does 2 tasks:
 1. uploads the list of project 3rd party dependencies including its licenses for monitoring. Snyk monitoring feature notifies developers about new vulnerabilities per email once this vulnerabilities are reported to the Snyk Vulnerability Database
-1. analyses your project 3rd party dependencies including its licenses and break the build if vulnerable versions are found in the project. Build fail can be disable with the property ```FailOnSnykScanVulnerabilities```
+2. analyses your project 3rd party dependencies including its licenses and break the build if vulnerable versions are found in the project. Build fail can be disable with the property ```FailOnSnykScanVulnerabilities```
 Note: that if this stage only runs if the SNYK_AUTHENTICATION_CODE is found as environment variable. This variable needs to be defined as environment variable in the deployment configuration of your project jenkins.
