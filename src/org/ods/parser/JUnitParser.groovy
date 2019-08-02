@@ -24,7 +24,7 @@ class JUnitParser {
     @NonCPS
     // Parse a JUnit XML <testcase> element
     private static def parseJUnitXMLTestCaseElement(def testcase) {
-        if (!testcase.@name) {
+        if (testcase.@name.isEmpty()) {
             throw new IllegalArgumentException("Error: unable to parse JUnit XML <testcase> element. Required attribute 'name' is missing.")
         }
 
@@ -41,12 +41,20 @@ class JUnitParser {
                 [:] << it.attributes() << [ "text": it.text() ]
             ]}
 
-        // Parse <testcase>/(<skipped>|<system-out>|<system-err>) elements
-        result << testcase."*"
-            .findAll { ["skipped", "system-out", "system-err"].contains(it.name()) }
-            .collectEntries {
-                [ it.name(), it.text() ]
-            }
+        // Parse <testcase>/<skipped> elements
+        result << [
+            "skipped": testcase."*".find { it.name() == "skipped" } ? true : false
+        ]
+
+        // Parse <testcase>/<system-out> elements
+        result << [
+            "systemOut": testcase."*".find { it.name() == "system-out" }.text()
+        ]
+
+        // Parse <testcase>/<system-err> elements
+        result << [
+            "systemErr": testcase."*".find { it.name() == "system-err" }.text()
+        ]
 
         return result
     }
@@ -54,11 +62,11 @@ class JUnitParser {
     @NonCPS
     // Parse a JUnit XML <testsuite> element
     private static def parseJUnitXMLTestSuiteElement(def testsuite) {
-        if (!testsuite.@name) {
+        if (testsuite.@name.isEmpty()) {
             throw new IllegalArgumentException("Error: unable to parse JUnit XML <testsuite> element. Required attribute 'name' is missing.")
         }
 
-        if (!testsuite.tests) {
+        if (testsuite.@tests.isEmpty()) {
             throw new IllegalArgumentException("Error: unable to parse JUnit XML <testsuite> element. Required attribute 'tests' is missing.")
         }
 
@@ -112,6 +120,10 @@ class JUnitParser {
     @NonCPS
     // Parse a JUnit 4/5 XML document
     static Map parseJUnitXML(String xml) {
+        if (!xml || xml.isEmpty()) {
+            throw new IllegalArgumentException("Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format.")
+        }
+
         def root = new XmlSlurper().parseText(xml)
         if (!["testsuites", "testsuite"].contains(root.name())) {
             throw new IllegalArgumentException("Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format.")
