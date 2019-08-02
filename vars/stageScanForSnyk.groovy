@@ -5,7 +5,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
   }
   if (!organisation) {
     organisation = ${context.targetProject}
-    println "organisation set to ${context.targetProject}!"
+    println("organisation set to ${organisation}")
   }
 
   String message = "Snyk scan mode: build will " + (context.failOnSnykScanVulnerabilities ? "" : "not ") +
