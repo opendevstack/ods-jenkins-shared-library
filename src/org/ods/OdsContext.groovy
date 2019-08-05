@@ -352,10 +352,11 @@ class OdsContext implements Context {
   }
 
   private String retrieveGitUrl() {
+    // HHHHHAAAAACK - FIXME
     script.sh(
       returnStdout: true, script: 'git config --get remote.origin.url',
       label : 'getting GIT url'
-    ).trim().replace('://', '://cd_user@')
+    ).trim().replace('https://bitbucket', 'https://cd_user@bitbucket')
   }
 
   private String retrieveGitCommit() {
