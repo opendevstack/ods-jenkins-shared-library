@@ -92,6 +92,7 @@ class OdsPipeline implements Serializable {
         } finally {
           // in case called from outside
           return this
+        }
       }
     }
   }
