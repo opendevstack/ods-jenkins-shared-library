@@ -81,6 +81,7 @@ class OdsPipeline implements Serializable {
           }
           updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
+          logger.info "***** Finished ODS Pipeline *****"
         } catch (err) {
           updateBuildStatus('FAILURE')
           setBitbucketBuildStatus('FAILED')
@@ -88,11 +89,11 @@ class OdsPipeline implements Serializable {
             notifyNotGreen()
           }
           throw err
-        }
+        } finally {
+          // in case called from outside
+          return this
       }
     }
-
-    logger.info "***** Finished ODS Pipeline *****"
   }
 
   def prepareForMultiRepoBuild() {
