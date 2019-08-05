@@ -353,31 +353,36 @@ class OdsContext implements Context {
 
   private String retrieveGitUrl() {
     script.sh(
-      returnStdout: true, script: 'git config --get remote.origin.url'
-    ).trim().replace('https://bitbucket', 'https://cd_user@bitbucket')
+      returnStdout: true, script: 'git config --get remote.origin.url',
+      label : 'getting GIT url'
+    ).trim().replace('://', '://cd_user@')
   }
 
   private String retrieveGitCommit() {
     script.sh(
-      returnStdout: true, script: 'git rev-parse HEAD'
+      returnStdout: true, script: 'git rev-parse HEAD',
+      label : 'getting GIT commit'
     ).trim()
   }
 
   private String retrieveGitCommitAuthor() {
     script.sh(
       returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD"
+      label : 'getting GIT commit author'
     ).trim()
   }
 
   private String retrieveGitCommitMessage() {
     script.sh(
-            returnStdout: true, script: "git log -1 --pretty=%B HEAD"
+      returnStdout: true, script: "git log -1 --pretty=%B HEAD"
+      label : 'getting GIT commit message'
     ).trim()
   }
 
   private String retrieveGitCommitTime() {
     script.sh(
-            returnStdout: true, script: "git show -s --format=%ci HEAD"
+      returnStdout: true, script: "git show -s --format=%ci HEAD",
+      label : 'getting GIT commit date/time'
     ).trim()
   }
 
@@ -389,13 +394,15 @@ class OdsContext implements Context {
 
       branch = script.sh(
               returnStdout: true,
+              label : 'getting GIT branch to build',
               script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
       ).trim()
     } else {
       // in case code is already checked out, OpenShift build config can not be used for retrieving branch
       branch = script.sh(
               returnStdout: true,
-              script: "git rev-parse --abbrev-ref HEAD"
+              script: "git rev-parse --abbrev-ref HEAD",
+              label : 'getting GIT branch to build'
       ).trim()
     }
     return branch
@@ -403,7 +410,8 @@ class OdsContext implements Context {
   // looks for string [ci skip] in commit message
   boolean getCiSkip() {
     script.sh(
-            returnStdout: true, script: 'git show --pretty=%s%b -s'
+      returnStdout: true, script: 'git show --pretty=%s%b -s',
+      label : 'check skip CI?'
     ).toLowerCase().contains('[ci skip]')
   }
 
@@ -510,6 +518,7 @@ class OdsContext implements Context {
   protected boolean environmentExists(String name) {
     def statusCode = script.sh(
       script:"oc project ${name} &> /dev/null",
+      label : 'checking for OCP env ${name}',
       returnStatus: true
     )
     return statusCode == 0
