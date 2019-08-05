@@ -13,7 +13,7 @@ import org.yaml.snakeyaml.Yaml
 class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
 
     static final String PIPELINE_CONIFG_FILE_NAME = ".pipeline-config.yml"
-    static final String REPO_BASE_DIR = "repositories"
+    static final String REPOS_BASE_DIR = "repositories"
 
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
@@ -36,23 +36,23 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
     }
 
     Closure prepareCheckoutRepoNamedJob(Map repo) {
-        def metadata = readProjectMetadata()
+        def project = readProjectMetadata()
 
         return [
             repo.id,
             {
-                this.steps.checkout([
+                this.script.checkout([
                     $class: 'GitSCM',
                     branches: [
                         [ name: repo.branch ]
                     ],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [
-                        [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPO_BASE_DIR}/${repo.id}" ]
+                        [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ]
                     ],
                     submoduleCfg: [],
                     userRemoteConfigs: [
-                        [ credentialsId: metadata.services.bitbucket.credentials.id, url: repo.url ]
+                        [ credentialsId: project.services.bitbucket.credentials.id, url: repo.url ]
                     ]
                 ])
             }
@@ -69,10 +69,10 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                def baseDir = "${this.steps.WORKSPACE}/${REPO_BASE_DIR}/${repo.id}"
+                def baseDir = "${this.script.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
 
                 if (name == PipelinePhases.BUILD_PHASE && repo.type == 'ods') {
-                    this.steps.dir(baseDir) {
+                    this.script.dir(baseDir) {
                         loadGroovySourceFile("${baseDir}/Jenkinsfile")
                     }
                 } else {
@@ -81,14 +81,14 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                         def label = "${repo.id} (${repo.url})"
 
                         if (phaseConfig.type == 'Makefile') {
-                            this.steps.dir("${baseDir}") {
+                            this.script.dir("${baseDir}") {
                                 def script = "make ${phaseConfig.task}"
-                                this.steps.sh script: script, label: label
+                                this.script.sh script: script, label: label
                             }
                         } else if (phaseConfig.type == 'ShellScript') {
-                            this.steps.dir("${baseDir}") {
+                            this.script.dir("${baseDir}") {
                                 def script = "./scripts/${phaseConfig.script}"
-                                this.steps.sh script: script, label: label
+                                this.script.sh script: script, label: label
                             }
                         }
                     } else {
@@ -131,7 +131,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
     private void walkRepoDirectories(List<Map> repos, Closure visitor) {
         repos.each { repo ->
             // Apply the visitor to the repo at the repo's base dir
-            visitor("${this.steps.WORKSPACE}/${REPO_BASE_DIR}/${repo.id}", repo)
+            visitor("${this.script.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
         }
     }
 }

@@ -3,8 +3,8 @@ import org.ods.util.MultiRepoOrchestrationPipelineUtil
 def call() {
     def util = new MultiRepoOrchestrationPipelineUtil(this)
 
-    def metadata = util.readProjectMetadata()
-    def repos = metadata.repositories
+    def project = util.readProjectMetadata()
+    def repos = project.repositories
 
     // Checkout repositories into the workspace
     parallel(util.prepareCheckoutReposNamedJobs(repos))
@@ -16,7 +16,7 @@ def call() {
     repos = util.computeRepoGroups(repos)
 
     return [
-        metadata: metadata,
+        project: project,
         repos: repos
     ]
 }
