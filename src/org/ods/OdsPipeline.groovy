@@ -206,7 +206,7 @@ class OdsPipeline implements Serializable {
 
   private boolean tooManyEnvironments(String projectId, Integer limit) {
     script.sh(
-      returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l"
+      returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l", label : "check ocp environment maximum"
     ).trim().toInteger() >= limit
   }
 
@@ -219,6 +219,7 @@ class OdsPipeline implements Serializable {
   private boolean environmentExists(String name) {
     def statusCode = script.sh(
       script:"oc project ${name} &> /dev/null",
+      label : "check if OCP environment exists",
       returnStatus: true
     )
     return statusCode == 0
@@ -248,6 +249,7 @@ class OdsPipeline implements Serializable {
   private boolean isSlaveNodeGitLFSenabled(){
     def statusCode = script.sh(
       script:"git lfs &> /dev/null",
+      label : "check if slave is GIT lfs enabled",
       returnStatus: true
     )
     return statusCode == 0
