@@ -367,14 +367,14 @@ class OdsContext implements Context {
 
   private String retrieveGitCommitAuthor() {
     script.sh(
-      returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD"
+      returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD",
       label : 'getting GIT commit author'
     ).trim()
   }
 
   private String retrieveGitCommitMessage() {
     script.sh(
-      returnStdout: true, script: "git log -1 --pretty=%B HEAD"
+      returnStdout: true, script: "git log -1 --pretty=%B HEAD",
       label : 'getting GIT commit message'
     ).trim()
   }
