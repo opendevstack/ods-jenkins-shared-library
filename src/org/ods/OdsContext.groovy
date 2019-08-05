@@ -357,7 +357,7 @@ class OdsContext implements Context {
       label : 'getting GIT url'
     ).trim()
     
-    if (!gitUrl.contains('@') {
+    if (!gitUrl.contains('@')) {
       return gitUrl.replace('@', 'cd_user@')
     } else {
       return gitUrl
