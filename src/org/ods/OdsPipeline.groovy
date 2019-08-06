@@ -62,8 +62,6 @@ class OdsPipeline implements Serializable {
       serviceAccount: context.podServiceAccount
     ) {
       script.node(context.podLabel) {
-        def startupTime = currentBuild.duration - startTime
-        logger.info "Node startup took: ${startupTime} ms"
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
