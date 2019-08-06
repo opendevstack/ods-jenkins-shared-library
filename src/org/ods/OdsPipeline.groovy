@@ -48,7 +48,7 @@ class OdsPipeline implements Serializable {
       cl()
     }
 
-
+	def nodeStartTime = System.currentTimeMillis();
     def msgBasedOn = ''
     if (context.image) {
       msgBasedOn = " based on image '${context.image}'"
@@ -62,6 +62,7 @@ class OdsPipeline implements Serializable {
       serviceAccount: context.podServiceAccount
     ) {
       script.node(context.podLabel) {
+        logger.info "Node ('${context.image}') startup took: " + (System.currentTimeMillis() - startTime) + " ms"
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
