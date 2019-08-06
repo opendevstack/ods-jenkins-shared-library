@@ -43,7 +43,7 @@ def call(Map project, List<Set<Map>> repos) {
                 def testReport = junit.parseTestReportFiles(testReportFiles)
 
                 // Create and store a Development Test Report document
-                levaDocs.createDTR("0.1", project, repo, testReport, testReportFiles)
+                levaDoc.createDTR("0.1", project, repo, testReport, testReportFiles)
 
                 testResults.testsuites.addAll(testReport.testsuites)
             }
