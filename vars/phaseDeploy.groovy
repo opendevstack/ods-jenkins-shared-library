@@ -23,6 +23,7 @@ def call(Map project, List<Set<Map>> repos) {
                 def repo = project.repositories.find { it.id == repoId }
 
                 // Create and store a Technical Installation Report document
+                echo "Creating and archiving a Technical Installation Report for ${repoId}"
                 levaDoc.createTIR("0.1", project, repo)
             }
         }

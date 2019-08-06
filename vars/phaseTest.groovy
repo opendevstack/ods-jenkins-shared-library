@@ -28,12 +28,14 @@ def call(Map project, List<Set<Map>> repos) {
             group.each { repoId, _ ->
                 def repo = project.repositories.find { it.id == repoId }
 
-                def testReportsPath = "junit/${repo.id}"
+                def testReportsPath = "junit/${repoId}"
 
                 // Unstash JUnit test reports into path
-                junit.unstashTestReportsIntoPath("test-reports-junit-xml-${repo.id}-${env.BUILD_ID}", "${WORKSPACE}/${testReportsPath}")
+                echo "Collecting JUnit XML Reports for ${repoId}"
+                junit.unstashTestReportsIntoPath("test-reports-junit-xml-${repoId}-${env.BUILD_ID}", "${WORKSPACE}/${testReportsPath}")
 
                 // Report JUnit test reports to Jenkins
+                echo "Reporting JUnit XML Reports for ${repoId} into Jenkins"
                 junit.reportTestReportsFromPathToJenkins(testReportsPath)
 
                 // Load JUnit test report files from path
@@ -43,9 +45,8 @@ def call(Map project, List<Set<Map>> repos) {
                 def testReport = junit.parseTestReportFiles(testReportFiles)
 
                 // Create and store a Development Test Report document
+                echo "Creating and archiving a Development Test Report for ${repoId}"
                 levaDoc.createDTR("0.1", project, repo, testReport, testReportFiles)
-
-                testResults.testsuites.addAll(testReport.testsuites)
             }
         }
 
