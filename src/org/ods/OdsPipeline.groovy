@@ -224,7 +224,7 @@ class OdsPipeline implements Serializable {
 
   private void checkoutWithGit(boolean lfsEnabled){
     def gitParams = [$class                           : 'GitSCM',
-                     branches                         : [[name: 'refs/heads/' + context.gitBranch]],
+                     branches                         : [[name: context.gitCommit]],
                      doGenerateSubmoduleConfigurations: false,
                      submoduleCfg                     : [],
                      userRemoteConfigs                : [
