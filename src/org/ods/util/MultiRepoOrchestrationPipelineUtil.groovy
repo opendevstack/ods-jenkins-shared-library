@@ -72,8 +72,10 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                 def baseDir = "${this.script.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
 
                 if (name == PipelinePhases.BUILD_PHASE && repo.type?.toLowerCase() == 'ods') {
-                    this.script.dir(baseDir) {
-                        loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                    this.script.stage('ODS') {
+                        this.script.dir(baseDir) {
+                            loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                        }
                     }
                 } else {
                     def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
