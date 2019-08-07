@@ -26,7 +26,7 @@ def call(def context) {
         // we need to get the SQ project name as people could modify it
       	sqProps = readProperties file: 'sonar-project.properties'
     		sonarProjectKey = sqProps['sonar.projectKey']
-        	targetSQreport = "SCRR-" + sonarProjectKey + "-" + projectVersionParam + ".docx"
+        	targetSQreport = "SCRR-" + sonarProjectKey + ".docx"
         withEnv (["SQ_PROJECT=${sonarProjectKey}", "TARGET_SQ_REPORT=${targetSQreport}"]) {
     		  sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR Report")
               sh (script: "mkdir ${debugMode} -p artifacts", label : "create artifacts folder")
