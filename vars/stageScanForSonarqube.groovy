@@ -32,7 +32,7 @@ def call(def context) {
               sh (script: "mkdir ${debugMode} -p artifacts", label : "create artifacts folder")
               sh (script: "mv ${debugMode} *-analysis-report.docx* artifacts/", label : "move SCRR to artifacts dir")
               sh (script: "mv ${debugMode} artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT", label : "rename to SCRR")
-          	  archiveArtifacts "artifacts/*SCCR*"
+          	  archiveArtifacts "artifacts/SCRR*"
     		}	
       }
     }
