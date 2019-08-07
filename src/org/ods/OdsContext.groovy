@@ -409,8 +409,15 @@ class OdsContext implements Context {
               returnStdout: true,
               script: "git rev-parse --abbrev-ref HEAD",
               label : 'getting GIT branch to build'
+        withEnv (["BRANCH=${branch}"]) { 
+     		 branch = script.sh(
+            	returnStdout: true,
+              	script: "git name-rev $BRANCH | cut -d " " -f2",
+                label : 'resolving GIT branch to build' 
+        }
       ).trim()
     }
+    logger.debug "resolved branch ${branch}"
     return branch
   }
   // looks for string [ci skip] in commit message
