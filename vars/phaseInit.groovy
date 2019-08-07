@@ -50,7 +50,9 @@ def call() {
     )
 
     // Checkout repositories into the workspace
-    parallel(util.prepareCheckoutReposNamedJob(repos))
+    parallel(util.prepareCheckoutReposNamedJob(repos) { script, repo ->
+        echo "Environment configuration: ${env.getEnvironment()}"
+    })
 
     // Load pipeline configs from each repo's .pipeline-config.yml
     util.readPipelineConfigs(repos)
