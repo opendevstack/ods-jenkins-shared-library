@@ -15,20 +15,22 @@ def call(def context) {
         }
         // scan
         def scannerBinary = "sonar-scanner"
-        def status = sh(returnStatus: true, script: "which ${scannerBinary}")
+        def status = sh(returnStatus: true, script: "which ${scannerBinary}", label : "finding scanner binary")
         if (status != 0) {
           def scannerHome = tool 'SonarScanner'
           scannerBinary = "${scannerHome}/bin/sonar-scanner"
         }
-        sh "${scannerBinary} ${debugMode} ${projectVersionParam}"
+        sh (script: "${scannerBinary} ${debugMode} ${projectVersionParam}", label : "SQ scanning")
 		
 		    // generate and archive cnes report
         // we need to get the SQ project name as people could modify it
       	sqProps = readProperties file: 'sonar-project.properties'
     		sonarProjectKey = sqProps['sonar.projectKey']
     		withEnv (["SQ_PROJECT=${sonarProjectKey}"]) {
-    		  sh "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT"
-      		  archiveArtifacts '*-analysis-report.docx*'
+    		  sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR")
+              sh (script: "mkdir -p artifacts", label : "create artifacts folder")
+              sh (script: "mv *-analysis-report.docx* artifacts/SCRR-$SQ_PROJECT.docx", label : "move SCCR to artifacts dir")
+      		  archiveArtifacts "artifacts/SCRR-$SQ_PROJECT.docx"
     		}	
       }
     }
