@@ -412,7 +412,7 @@ class OdsContext implements Context {
       withEnv (["BRANCH=${branch}"]) { 
      		 branch = script.sh(
             	returnStdout: true,
-              	script: "git name-rev $BRANCH | cut -d " " -f2",
+              	script: "git name-rev $BRANCH | cut -d ' ' -f2",
                 label : 'resolving GIT branch to build').trim()
       }
  
