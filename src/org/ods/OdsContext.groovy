@@ -409,7 +409,7 @@ class OdsContext implements Context {
               returnStdout: true,
               script: "git rev-parse --abbrev-ref HEAD",
               label : 'getting GIT branch to build').trim()
-      withEnv (["BRANCH=${branch}"]) { 
+      script.withEnv (["BRANCH=${branch}"]) { 
      		 branch = script.sh(
             	returnStdout: true,
               	script: "git name-rev $BRANCH | cut -d ' ' -f2",
