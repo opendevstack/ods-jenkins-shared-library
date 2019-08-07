@@ -7,7 +7,7 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
 
     timeout(context.openshiftBuildTimeout) {
       patchBuildConfig(context, buildArgs, imageLabels)
-      sh "oc start-build ${context.componentId} --from-dir docker --follow -n ${context.targetProject}"
+      sh (script: "oc start-build ${context.componentId} --from-dir docker --follow -n ${context.targetProject}", label : "start openshift build")
     }
   }
 }
