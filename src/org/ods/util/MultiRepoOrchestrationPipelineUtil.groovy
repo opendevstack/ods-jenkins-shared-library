@@ -35,7 +35,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         }
     }
 
-    Closure prepareCheckoutRepoNamedJob(Map repo) {
+    Closure prepareCheckoutRepoNamedJob(Map repo, Closure postExecute = null) {
         def project = readProjectMetadata()
 
         return [
@@ -55,36 +55,39 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                         [ credentialsId: project.services.bitbucket.credentials.id, url: repo.url ]
                     ]
                 ])
+
+                if (postExecute) {
+                    postExecute(this.script, repo)
+                }
             }
         ]
     }
 
-    void prepareCheckoutReposNamedJobs(List<Map> repos) {
+    void prepareCheckoutReposNamedJob(List<Map> repos, Closure postExecute = null) {
         repos.collectEntries { repo ->
-            prepareCheckoutRepoNamedJob(repo)
+            prepareCheckoutRepoNamedJob(repo, postExecute)
         }
     }
 
-    Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo) {
+    Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure postExecute = null) {
         return [
             repo.id,
             {
                 def baseDir = "${this.script.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
 
                 if (repo.type?.toLowerCase() == 'ods') {
-                  if (name == PipelinePhases.BUILD_PHASE) {
-                     this.script.stage('ODS') {
-                        this.script.dir(baseDir) {
-                            loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                    if (name == PipelinePhases.BUILD_PHASE) {
+                        this.script.stage('ODS') {
+                            this.script.dir(baseDir) {
+                                loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                            }
                         }
-                     }
-                  } else 
-                  {  
-                     def skipEchoMessage = "ODS build ${repo.id} - skipping phase ${name}"
-                     this.script.stage('ODS') {
-                       this.script.echo(skipEchoMessage)
-                     }
-                  }
+                    } else {
+                        def skipEchoMessage = "ODS build ${repo.id} - skipping phase ${name}"
+                        this.script.stage('ODS') {
+                            this.script.echo(skipEchoMessage)
+                        }
+                    }
                 } else {
                     def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
                     if (phaseConfig) {
@@ -105,11 +108,15 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                         // Ignore undefined phases
                     }
                 }
+
+                if (postExecute) {
+                    postExecute(this.script, repo)
+                }
             }
         ]
     }
 
-    List<Set<Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos) {
+    List<Set<Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure postExecute = null) {
         // In some phases, we can run all repos in parallel
         if (PipelinePhases.ALWAYS_PARALLEL_PHASES.contains(name)) {
             repos = [repos.flatten() as Set<Map>]
@@ -117,7 +124,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
 
         repos.collect { group ->
             group.collectEntries { repo ->
-                prepareExecutePhaseForRepoNamedJob(name, repo)
+                prepareExecutePhaseForRepoNamedJob(name, repo, postExecute)
             }
         }
     }

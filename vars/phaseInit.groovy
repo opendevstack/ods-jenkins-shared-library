@@ -50,7 +50,7 @@ def call() {
     )
 
     // Checkout repositories into the workspace
-    parallel(util.prepareCheckoutReposNamedJobs(repos))
+    parallel(util.prepareCheckoutReposNamedJob(repos))
 
     // Load pipeline configs from each repo's .pipeline-config.yml
     util.readPipelineConfigs(repos)

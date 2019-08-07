@@ -17,38 +17,39 @@ def call(Map project, List<Set<Map>> repos) {
     def nexus   = ServiceRegistry.instance.get(NexusService.class.name)
     def util    = ServiceRegistry.instance.get(PipelineUtil.class.name)
 
+    def testResults = [
+        testsuites: Collections.synchronizedList([])
+    ]
 
-    def testResults = [ testsuites: [] ]
+    def groups = util.prepareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos) { script, repo ->
+        def testReportsPath = "junit/${repo.id}"
 
-    // Execute phase for each repository
-    util.prepareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos)
-        .each { group ->
-            parallel(group)
+        // Unstash JUnit test reports into path
+        echo "Collecting JUnit XML Reports for ${repo.id}"
+        junit.unstashTestReportsIntoPath("test-reports-junit-xml-${repo.id}-${script.env.BUILD_ID}", "${script.WORKSPACE}/${testReportsPath}")
 
-            group.each { repoId, _ ->
-                def repo = project.repositories.find { it.id == repoId }
+        // Report JUnit test reports to Jenkins
+        echo "Reporting JUnit XML Reports for ${repo.id} into Jenkins"
+        junit.reportTestReportsFromPathToJenkins(testReportsPath)
 
-                def testReportsPath = "junit/${repoId}"
+        // Load JUnit test report files from path
+        def testReportFiles = junit.loadTestReportsFromPath("${script.WORKSPACE}/${testReportsPath}")
 
-                // Unstash JUnit test reports into path
-                echo "Collecting JUnit XML Reports for ${repoId}"
-                junit.unstashTestReportsIntoPath("test-reports-junit-xml-${repoId}-${env.BUILD_ID}", "${WORKSPACE}/${testReportsPath}")
+        // Parse JUnit test report files into a report
+        def testReport = junit.parseTestReportFiles(testReportFiles)
 
-                // Report JUnit test reports to Jenkins
-                echo "Reporting JUnit XML Reports for ${repoId} into Jenkins"
-                junit.reportTestReportsFromPathToJenkins(testReportsPath)
+        // Create and store a Development Test Report document
+        echo "Creating and archiving a Development Test Report for ${repo.id}"
+        levaDoc.createDTR("0.1", project, repo, testReport, testReportFiles)
 
-                // Load JUnit test report files from path
-                def testReportFiles = junit.loadTestReportsFromPath("${WORKSPACE}/${testReportsPath}")
+        // Add the report's test results into a global data structure
+        testResults.testsuites.addAll(testReport.testsuites)
+    }
 
-                // Parse JUnit test report files into a report
-                def testReport = junit.parseTestReportFiles(testReportFiles)
-
-                // Create and store a Development Test Report document
-                echo "Creating and archiving a Development Test Report for ${repoId}"
-                levaDoc.createDTR("0.1", project, repo, testReport, testReportFiles)
-            }
-        }
+    // Execute phase for groups of independent repos
+    groups.each { group ->
+        parallel(group)
+    }
 
     // Report test results to corresponding test cases in Jira
     jira.reportTestResultsForProject(project.id, testResults)

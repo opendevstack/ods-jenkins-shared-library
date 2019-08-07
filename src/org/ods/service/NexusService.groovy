@@ -2,6 +2,8 @@ package org.ods.service
 
 @Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import java.net.URI
 
 import kong.unirest.Unirest
@@ -38,6 +40,7 @@ class NexusService {
         this.password = password
     }
 
+    @NonCPS
     def URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
         def response = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
             .routeParam("repository", repository)

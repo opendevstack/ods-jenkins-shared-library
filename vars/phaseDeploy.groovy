@@ -14,19 +14,16 @@ def call(Map project, List<Set<Map>> repos) {
     def nexus   = ServiceRegistry.instance.get(NexusService.class.name)
     def util    = ServiceRegistry.instance.get(PipelineUtil.class.name)
 
-    // Execute phase for each repository
-    util.prepareExecutePhaseForReposNamedJob(PipelinePhases.DEPLOY_PHASE, repos)
-        .each { group ->
-            parallel(group)
+    def groups = util.prepareExecutePhaseForReposNamedJob(PipelinePhases.DEPLOY_PHASE, repos) { script, repo ->
+        // Create and store a Technical Installation Report document
+        echo "Creating and archiving a Technical Installation Report for ${repo.id}"
+        levaDoc.createTIR("0.1", project, repo)
+    }
 
-            group.each { repoId, _ ->
-                def repo = project.repositories.find { it.id == repoId }
-
-                // Create and store a Technical Installation Report document
-                echo "Creating and archiving a Technical Installation Report for ${repoId}"
-                levaDoc.createTIR("0.1", project, repo)
-            }
-        }
+    // Execute phase for groups of independent repos
+    groups.each { group ->
+        parallel(group)
+    }
 }
 
 return this

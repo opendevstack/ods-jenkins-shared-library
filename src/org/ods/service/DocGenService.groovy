@@ -2,6 +2,8 @@ package org.ods.service
 
 @Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 
@@ -27,11 +29,7 @@ class DocGenService {
         }
     }
 
-    private static def decodeBase64(def base64String) {
-        return Base64.decoder.decode(base64String)
-    }
-
-    def Map createDocument(String type, String version, Map data) {
+    byte[] createDocument(String type, String version, Map data) {
         def response = Unirest.post("${this.baseURL}/document")
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -49,7 +47,10 @@ class DocGenService {
         }
 
         def result = new JsonSlurperClassic().parseText(response.getBody())
-        result.data = decodeBase64(result.data)
-        return result
+        return decodeBase64(result.data)
+    }
+
+    private static byte[] decodeBase64(def base64String) {
+        return Base64.decoder.decode(base64String)
     }
 }

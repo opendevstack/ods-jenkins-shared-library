@@ -5,7 +5,7 @@ import org.ods.util.PipelineUtil
 def call(Map project, List<Set<Map>> repos) {
     def util = ServiceRegistry.instance.get(PipelineUtil.class.name)
 
-    // Execute phase for each repository
+    // Execute phase for groups of independent repos
     util.prepareExecutePhaseForReposNamedJob(PipelinePhases.BUILD_PHASE, repos)
         .each { group ->
             parallel(group)

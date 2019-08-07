@@ -1,5 +1,7 @@
 package org.ods.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import groovy.json.JsonOutput
 
 import java.time.LocalDateTime
@@ -36,7 +38,7 @@ class LeVaDocumentUseCase {
         def archive = this.util.createZipArtifact(
             "${type}-${repo.id}-${version}-${this.script.env.BUILD_ID}.zip",
             [
-                "report.pdf": document.data,
+                "report.pdf": document,
                 "raw/report.json": JsonOutput.toJson(data).getBytes()
             ] << rawFiles.collectEntries { file ->
                 [ "raw/${file.name}", file.getBytes() ]

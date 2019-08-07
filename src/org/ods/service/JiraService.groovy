@@ -43,6 +43,7 @@ class JiraService {
         this.password = password
     }
 
+    @NonCPS
     void appendCommentToIssue(String issueIdOrKey, String comment) {
         if (!issueIdOrKey) {
             throw new IllegalArgumentException("Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined")
@@ -67,6 +68,7 @@ class JiraService {
         }
     }
 
+    @NonCPS
     void addLabelsToIssue(String issueIdOrKey, List names) {
         if (!issueIdOrKey) {
             throw new IllegalArgumentException("Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined")
@@ -97,6 +99,7 @@ class JiraService {
         }
     }
 
+    @NonCPS
     void createIssueLinkType(String linkType, Map inwardIssue, Map outwardIssue) {
         if (!inwardIssue) {
             throw new IllegalArgumentException("Error: unable to create Jira issue link. 'inwardIssue' is undefined")
@@ -136,10 +139,12 @@ class JiraService {
         }
     }
 
+    @NonCPS
     void createIssueLinkTypeBlocks(Map inwardIssue, Map outwardIssue) {
         createIssueLinkType("Blocks", inwardIssue, outwardIssue)
     }
 
+    @NonCPS
     Map createIssueType(String type, String projectKey, String summary, String description) {
         if (!type) {
             throw new IllegalArgumentException("Error: unable to create Jira issue. 'type' is undefined")
@@ -190,6 +195,7 @@ class JiraService {
         return createIssueType("Bug", projectKey, summary, description)
     }
 
+    @NonCPS
     List getIssuesForJQLQuery(String query) {
         if (!query) {
             throw new IllegalArgumentException("Error: unable to get Jira issues for JQL query. 'query' is undefined")
@@ -208,6 +214,7 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody()).issues
     }
 
+    @NonCPS
     void removeLabelsFromIssue(String issueIdOrKey, List names) {
         if (!issueIdOrKey) {
             throw new IllegalArgumentException("Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined")
