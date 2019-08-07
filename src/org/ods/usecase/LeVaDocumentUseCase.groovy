@@ -37,7 +37,7 @@ class LeVaDocumentUseCase {
 
     private void createDocument(String type, String version, Map project, Map repo, Map data, List<File> rawFiles, String jiraIssueJQLQuery) {
         // Create a PDF document via the DocGen service
-        def document = this.docGen.createDocument(type, version, data)
+        def document = this.docGen.createDocument(type, '0.1', data)
 
         // Create an archive with the document and raw data
         def archive = this.util.createZipArtifact(
