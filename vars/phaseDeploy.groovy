@@ -17,7 +17,7 @@ def call(Map project, List<Set<Map>> repos) {
     def groups = util.prepareExecutePhaseForReposNamedJob(PipelinePhases.DEPLOY_PHASE, repos) { script, repo ->
         // Create and store a Technical Installation Report document
         echo "Creating and archiving a Technical Installation Report for ${repo.id}"
-        levaDoc.createTIR("0.1", project, repo)
+        levaDoc.createTIR(script.env.version, project, repo)
     }
 
     // Execute phase for groups of independent repos
