@@ -7,7 +7,7 @@ def call(def context) {
         if (context.debug) {
           debugMode = "-X"
         }
-        // project version
+        // project version - this could be overwritten later by e.g. the MRO forced version
         def projectVersionParam = ""
         def propertiesContent = readFile('sonar-project.properties')
         if (!propertiesContent.contains('sonar.projectVersion=')) {
@@ -26,7 +26,7 @@ def call(def context) {
         // we need to get the SQ project name as people could modify it
       	sqProps = readProperties file: 'sonar-project.properties'
     		sonarProjectKey = sqProps['sonar.projectKey']
-        	targetSQreport = "SCRR-" + sonarProjectKey + ".docx"
+        	targetSQreport = "SCRR-" + sonarProjectKey + "-" + projectVersionParam + ".docx"
         withEnv (["SQ_PROJECT=${sonarProjectKey}", "TARGET_SQ_REPORT=${targetSQreport}"]) {
     		  sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR Report")
               sh (script: "mkdir ${debugMode} -p artifacts", label : "create artifacts folder")
