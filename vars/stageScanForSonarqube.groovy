@@ -29,9 +29,9 @@ def call(def context) {
         	targetSQreport = "SCRR-" + sonarProjectKey + ".docx"
         withEnv (["SQ_PROJECT=${sonarProjectKey}", "TARGET_SQ_REPORT=${targetSQreport}"]) {
     		  sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR Report")
-              sh (script: "mkdir ${debugMode} -p artifacts", label : "create artifacts folder")
-              sh (script: "mv ${debugMode} *-analysis-report.docx* artifacts/", label : "move SCRR to artifacts dir")
-              sh (script: "mv ${debugMode} artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT", label : "rename to SCRR")
+              sh (script: "mkdir -p artifacts", label : "create artifacts folder")
+              sh (script: "mv *-analysis-report.docx* artifacts/", label : "move SCRR to artifacts dir")
+              sh (script: "mv artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT", label : "rename to SCRR")
           	  archiveArtifacts "artifacts/SCRR*"
     		}	
       }
