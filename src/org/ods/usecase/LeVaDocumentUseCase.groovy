@@ -16,6 +16,11 @@ class LeVaDocumentUseCase {
     private static final String DOCUMENT_TYPE_DTR = "DTR"
     private static final String DOCUMENT_TYPE_TIR = "TIR"
 
+    private static final Map DOCUMENT_TYPE_NAMES = [
+        DOCUMENT_TYPE_DTR: "Development Test Report",
+        DOCUMENT_TYPE_TIR: "Technical Installation Report"
+    ]
+
     private def script
     private DocGenService docGen
     private JiraService jira
@@ -74,7 +79,7 @@ class LeVaDocumentUseCase {
                 description: project.description,
                 version: version,
                 date_created: LocalDateTime.now().toString(),
-                type: documentType
+                type: DOCUMENT_TYPE_NAMES[documentType]
             ],
             data: [
                 testsuites: testResults
@@ -94,7 +99,7 @@ class LeVaDocumentUseCase {
                 description: project.description,
                 version: version,
                 date_created: LocalDateTime.now().toString(),
-                type: documentType
+                type: DOCUMENT_TYPE_NAMES[documentType]
             ],
             data: [:]
         ]
