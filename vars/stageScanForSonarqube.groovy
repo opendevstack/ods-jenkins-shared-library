@@ -30,8 +30,7 @@ def call(def context) {
     		  sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR")
               sh (script: "mkdir ${debugMode} -p artifacts", label : "create artifacts folder")
               sh (script: "mv ${debugMode} *-analysis-report.docx* artifacts/", label : "move SCCR to artifacts dir")
-              sh (script: "mv ${debugMode} artifacts/*-analysis-report.docx* artifacts/SCRR-$SQ_PROJECT.docx", label : "rename to match pattern")
-      		  archiveArtifacts "artifacts/SCRR-$SQ_PROJECT.docx"
+      		  archiveArtifacts "artifacts/*-analysis-report.docx*"
     		}	
       }
     }
