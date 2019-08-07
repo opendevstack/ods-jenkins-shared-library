@@ -411,8 +411,8 @@ class OdsContext implements Context {
                 label : 'getting GIT branch to build').trim()
 	  branch = script.sh(
   				returnStdout: true,
-        		script: "git name-rev ${branch} | cut -d ' ' -f2",
-                label : 'resolving GIT branch to build').trim()
+        		script: "git name-rev ${branch} | cut -d ' ' -f2"  | sed -e 's|remotes/origin/||g',
+                label : 'resolving to real GIT branch to build').trim()
     }
     logger.debug "resolved branch ${branch}"
     return branch
