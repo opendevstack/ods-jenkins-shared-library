@@ -406,16 +406,13 @@ class OdsContext implements Context {
     } else {
       // in case code is already checked out, OpenShift build config can not be used for retrieving branch
       branch = script.sh(
-              returnStdout: true,
-              script: "git rev-parse --abbrev-ref HEAD",
-              label : 'getting GIT branch to build').trim()
-      script.withEnv (["BRANCH=${branch}"]) { 
-     		 branch = script.sh(
-            	returnStdout: true,
-              	script: "git name-rev $BRANCH | cut -d ' ' -f2",
+                returnStdout: true,
+                script: "git rev-parse --abbrev-ref HEAD",
+                label : 'getting GIT branch to build').trim()
+	  branch = script.sh(
+  				returnStdout: true,
+        		script: "git name-rev ${branch} | cut -d ' ' -f2",
                 label : 'resolving GIT branch to build').trim()
-      }
- 
     }
     logger.debug "resolved branch ${branch}"
     return branch
