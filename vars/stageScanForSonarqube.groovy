@@ -28,8 +28,8 @@ def call(def context) {
     		sonarProjectKey = sqProps['sonar.projectKey']
     		withEnv (["SQ_PROJECT=${sonarProjectKey}"]) {
     		  sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR")
-              sh (script: "mkdir -p artifacts", label : "create artifacts folder")
-              sh (script: "mv *-analysis-report.docx* artifacts/SCRR-$SQ_PROJECT.docx", label : "move SCCR to artifacts dir")
+              sh (script: "mkdir ${debugMode} -p artifacts", label : "create artifacts folder")
+              sh (script: "mv ${debugMode} *-analysis-report.docx* artifacts/SCRR-$SQ_PROJECT.docx", label : "move SCCR to artifacts dir")
       		  archiveArtifacts "artifacts/SCRR-$SQ_PROJECT.docx"
     		}	
       }
