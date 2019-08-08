@@ -356,9 +356,9 @@ class OdsContext implements Context {
       returnStdout: true, script: 'git config --get remote.origin.url',
       label : 'getting GIT url'
     ).trim()
-    
+    // check if the url already contains a user
     if (!gitUrl.contains('@')) {
-      return gitUrl.replace('@', 'cd_user@')
+      return gitUrl.replace('://', '://cd_user@')
     } else {
       return gitUrl
     }
