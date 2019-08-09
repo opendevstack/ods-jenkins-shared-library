@@ -29,7 +29,7 @@ import org.ods.OdsLogger
 import org.ods.OdsPipeline
 
 def call(Map config, Closure body) {
-  def debug = script.env.DEBUG
+  def debug = env.DEBUG
   if (debug != null && context.debug == null)
   {
       config.debug = debug
