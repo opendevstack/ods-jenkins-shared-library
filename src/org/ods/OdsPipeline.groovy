@@ -110,7 +110,7 @@ class OdsPipeline implements Serializable {
         context.environment = buildEnv
         context.cloneSourceEnv = null
         def debug = script.env.DEBUG
-        if (debug != null) 
+        if (debug != null && context.debug == null) 
         {
             context.debug = debug
         } 
