@@ -29,8 +29,12 @@ import org.ods.OdsLogger
 import org.ods.OdsPipeline
 
 def call(Map config, Closure body) {
-  config.debug = config.debug ?: false
-  def logger = new OdsLogger(this, config.debug)
+  def debug = script.env.DEBUG
+  if (debug != null && context.debug == null)
+  {
+      config.debug = debug
+  }
+  def logger = new OdsLogger(this, debug)
   def bp = new OdsPipeline(this, config, logger)
   return bp.execute(body)
 }

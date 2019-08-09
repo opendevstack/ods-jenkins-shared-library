@@ -112,6 +112,7 @@ class OdsPipeline implements Serializable {
         def debug = script.env.DEBUG
         if (debug != null && context.debug == null) 
         {
+            logger.debug("Setting ${debug} on ${context.projectId}")
             context.debug = debug
         } 
       } else {
