@@ -109,6 +109,11 @@ class OdsPipeline implements Serializable {
       if (buildEnv) {
         context.environment = buildEnv
         context.cloneSourceEnv = null
+        def debug = script.env.DEBUG
+        if (debug != null) 
+        {
+            context.debug = debug
+        } 
       } else {
         logger.error("Variable MULTI_REPO_ENV must not be null!")
         // Using exception because error step would skip post steps
@@ -195,7 +200,7 @@ class OdsPipeline implements Serializable {
         def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
         script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
         def debugMode = ""
-        if (context.debug) {
+        if (context.getDebug) {
           debugMode = "--debug"
         }
         script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} ${debugMode}")
