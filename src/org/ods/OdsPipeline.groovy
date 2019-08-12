@@ -197,7 +197,7 @@ class OdsPipeline implements Serializable {
         return
       }
 
-      if (environmentExists(context.cloneSourceEnv)) {
+      if (!environmentExists(context.cloneSourceEnv)) {
         logger.info 'Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ...'
         return
       }
