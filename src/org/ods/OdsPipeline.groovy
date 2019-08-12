@@ -108,7 +108,15 @@ class OdsPipeline implements Serializable {
       def buildEnv = script.env.MULTI_REPO_ENV
       if (buildEnv) {
         context.environment = buildEnv
-        context.cloneSourceEnv = null
+        logger.debug("Setting target env ${context.environment} on ${context.projectId}")
+        def sourceCloneEnv = script.env.SOURCE_CLONE_ENV
+        if (sourceCloneEnv != null && sourceCloneEnv.toString().trim().length() > 0) {
+          logger.info("Environment cloning enabled, source environment: ${sourceCloneEnv}")
+          context.cloneSourceEnv = sourceCloneEnv
+        } else {
+          logger.info("Environment cloning not enabled")
+          context.cloneSourceEnv = null
+        }
         def debug = script.env.DEBUG
         if (debug != null && context.debug == null) 
         {
@@ -185,10 +193,15 @@ class OdsPipeline implements Serializable {
       }
 
       if (environmentExists(context.targetProject)) {
-        logger.info 'Environment exists already ...'
+        logger.info 'Target Environment ${context.targetProject} exists already ...'
         return
       }
 
+      if (environmentExists(context.cloneSourceEnv)) {
+        logger.info 'Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ...'
+        return
+      }
+      
       if (tooManyEnvironments(context.projectId, context.environmentLimit)) {
         logger.error "Cannot create OC project " +
           "as there are already ${context.environmentLimit} OC projects! " +
@@ -199,12 +212,14 @@ class OdsPipeline implements Serializable {
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
         def userPass = script.USERPASS.replace('@', '%40').replace('$', '\'$\'')
         def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
+        def branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
+        logger.info 'Calculated branch name: ${branchName}'
         script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
         def debugMode = ""
         if (context.getDebug) {
           debugMode = "--debug"
         }
-        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} ${debugMode}")
+        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} -gb ${context.branchName} ${debugMode}")
         logger.info 'Environment created!'
       }
     }
