@@ -185,11 +185,16 @@ class OdsPipeline implements Serializable {
         logger.info 'Skipping for empty environment ...'
         return
       }
-
-      def assumedEnvironments = context.branchToEnvironmentMapping.values()
-      if (assumedEnvironments.contains(context.environment)) {
-        logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
-        return
+      
+      if (!!script.env.MULTI_REPO_BUILD)
+      {
+          logger.info "MRO Build - skipping env mapping"
+      } else {
+        def assumedEnvironments = context.branchToEnvironmentMapping.values()
+        if (assumedEnvironments.contains(context.environment)) {
+          logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
+          return
+        }
       }
 
       if (environmentExists(context.targetProject)) {
