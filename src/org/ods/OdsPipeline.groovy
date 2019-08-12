@@ -188,17 +188,17 @@ class OdsPipeline implements Serializable {
 
       def assumedEnvironments = context.branchToEnvironmentMapping.values()
       if (assumedEnvironments.contains(context.environment)) {
-        logger.info 'Skipping for ${context.environment} environment ...'
+        logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
         return
       }
 
       if (environmentExists(context.targetProject)) {
-        logger.info 'Target Environment ${context.targetProject} exists already ...'
+        logger.info "Target Environment ${context.targetProject} exists already ..."
         return
       }
 
       if (!environmentExists(context.cloneSourceEnv)) {
-        logger.info 'Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ...'
+        logger.info "Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ..."
         return
       }
       
