@@ -82,9 +82,18 @@ class OdsPipeline implements Serializable {
           try 
           {
             logger.info "Stage execution completed, testResults : ${context.testResults}"
-            if (context.getTestResults() != null && context.getTestResults().toString().trim().length() > 0 && !context.getTestResults() == "build/test-results/test") 
+            
+            def testLocation = "build/test-results/test"
+            
+            if (context.getTestResults().toString().trim().length() > 0 && fileExists(context.getTestResults()) && !context.getTestResults() == testLocation) 
             {
-              script.sh(script: "cp -rf ${context.getTestResults()}/* build/test-results/test/*", label : "move test results")
+              def verifyDir = script.sh (script : "ls ")
+              script.sh(script: "mkdir -p build/test-results/test", label : "create test result folder")
+              script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
+            } else 
+            {
+              def foundTests = script.sh(script: "ls -la ${testLocation} | wc -l", returnStdout : true)
+              script.echo "Found ${foundTests} tests.. "
             }
             
             script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
