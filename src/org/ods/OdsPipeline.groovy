@@ -143,7 +143,7 @@ class OdsPipeline implements Serializable {
       script.sh(script: "mkdir -p ${testLocation}", label : "create test result folder: ${testLocation}")
       if (verifyDir == 2)
       {
-        script.fail "The test results directory ${context.getTestResults()} provided does NOT exist!"
+        throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
       } else 
       {
         script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
