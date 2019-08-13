@@ -82,7 +82,8 @@ class OdsPipeline implements Serializable {
           try 
           {
             logger.info "Stage execution completed, testResults : ${context.testResults}"
-            if (context.getTestResults() != null && context.getTestResults().toString().trim().length > 0 && !context.getTestResults() == "build/test-results/test") {
+            if (context.getTestResults() != null && context.getTestResults().toString().trim().length() > 0 && !context.getTestResults() == "build/test-results/test") 
+            {
               script.sh(script: "cp -rf ${context.getTestResults()}/* build/test-results/test/*", label : "move test results")
             }
             
@@ -91,7 +92,7 @@ class OdsPipeline implements Serializable {
             logger.info "Test results stashed .. "
           } catch (Throwable thStash) 
           {
-             script.echo 'Exception: ' + thStash.getStackTrace() as String[]
+             script.echo 'Exception on testresult stashing: ' + thStash.getStackTrace() as String[]
           }
             
           updateBuildStatus('SUCCESS')
