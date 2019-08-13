@@ -137,7 +137,7 @@ class OdsPipeline implements Serializable {
     
     logger.info "Stage execution completed, testResults : ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
     
-    if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation)
+    if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
     {
       def verifyDir = script.sh (script : "ls ${context.getTestResults()}", returnStatus:true, label : "verifying existance of ${testLocation}")
       script.sh(script: "mkdir -p ${testLocation}", label : "create test result folder: ${testLocation}")
