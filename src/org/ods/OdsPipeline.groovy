@@ -79,35 +79,7 @@ class OdsPipeline implements Serializable {
             stages(context)
           }
           
-          try 
-          {
-            def testLocation = "build/test-results/test"
-            
-            logger.info "Stage execution completed, testResults : ${context.testResults}, defaultlocation: ${testLocation}"
-            
-            if (context.getTestResults().toString().trim().length() > 0 && !context.getTestResults() == testLocation) 
-            {
-              def verifyDir = script.sh (script : "ls ${context.getTestResults()}", returnStatus:true)
-              if (verifyDir == 0)
-              {
-                script.echo "The test results directory provided does NOT exist!"
-              }
-              script.sh(script: "mkdir -p build/test-results/test", label : "create test result folder")
-              script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
-            } else 
-            {
-              def foundTests = script.sh(script: "ls -la ${testLocation} | wc -l", returnStdout : true)
-              script.echo "Found ${foundTests} tests.. "
-            }
-            
-            script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
-            
-            logger.info "Test results stashed .. "
-          } catch (Throwable thStash) 
-          {
-             script.echo 'Exception on testresult stashing: ' + thStash.getStackTrace() as String[]
-          }
-            
+          stashTestResults()
           updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
           logger.info "***** Finished ODS Pipeline *****"
@@ -160,6 +132,31 @@ class OdsPipeline implements Serializable {
     }
   }
 
+  private void stashTestResults () {
+    def testLocation = "build/test-results/test"
+    
+    logger.info "Stage execution completed, testResults : ${context.testResults}, defaultlocation: ${testLocation}"
+    
+    if (context.getTestResults().toString().trim().length() > 0 && !context.getTestResults() == testLocation)
+    {
+      def verifyDir = script.sh (script : "ls ${context.getTestResults()}", returnStatus:true, label : "verifying existance of ${testLocation}")
+      script.sh(script: "mkdir -p ${testLocation}", label : "create test result folder: ${testLocation}")
+      if (verifyDir == 2)
+      {
+        script.fail "The test results directory ${context.getTestResults()} provided does NOT exist!"
+      } else 
+      {
+        script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
+      }
+    } else
+    {
+      def foundTests = script.sh(script: "ls -la ${testLocation}/.xml | wc -l", returnStdout : true).trim()
+      script.echo "Found ${foundTests} tests in ${testLocation}"
+    }
+    
+    script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
+  }
+  
   private void setBitbucketBuildStatus(String state) {
     if (!context.getBitbucketNotificationEnabled()) {
       return
