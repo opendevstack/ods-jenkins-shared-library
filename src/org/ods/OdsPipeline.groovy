@@ -224,8 +224,8 @@ class OdsPipeline implements Serializable {
         if (context.getDebug()) {
           debugMode = "--debug"
         }
-        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} -gb ${context.branchName} ${debugMode}")
-        logger.info 'Environment created!'
+        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} -gb ${branchName} ${debugMode}")
+        logger.info "Environment (${context.environment}) created!"
       }
     }
   }
