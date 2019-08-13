@@ -81,13 +81,17 @@ class OdsPipeline implements Serializable {
           
           try 
           {
-            logger.info "Stage execution completed, testResults : ${context.testResults}"
-            
             def testLocation = "build/test-results/test"
             
-            if (context.getTestResults().toString().trim().length() > 0 && fileExists(context.getTestResults()) && !context.getTestResults() == testLocation) 
+            logger.info "Stage execution completed, testResults : ${context.testResults}, defaultlocation: ${testLocation}"
+            
+            if (context.getTestResults().toString().trim().length() > 0 && !context.getTestResults() == testLocation) 
             {
-              def verifyDir = script.sh (script : "ls ")
+              def verifyDir = script.sh (script : "ls ${context.getTestResults()}", returnStatus:true)
+              if (verifyDir == 0)
+              {
+                script.echo "The test results directory provided does NOT exist!"
+              }
               script.sh(script: "mkdir -p build/test-results/test", label : "create test result folder")
               script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
             } else 
