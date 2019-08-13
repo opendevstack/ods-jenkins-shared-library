@@ -307,4 +307,7 @@ class OdsPipeline implements Serializable {
     return statusCode == 0
   }
 
+  public Map<String, String> getBuildArtifactURIs () {
+    return context.getBuildArtifactURIs()
+  }
 }

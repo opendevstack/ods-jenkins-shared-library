@@ -34,6 +34,8 @@ def call(def context) {
               sh (script: "mv artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT", label : "rename to SCRR")
           	  archiveArtifacts "artifacts/SCRR*"
     		}	
+        
+        context.addArtifactURI("SCRR", targetSQreport)
       }
     }
   }

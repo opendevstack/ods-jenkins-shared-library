@@ -163,5 +163,10 @@ interface Context {
 
     // Enable/disable display name update
     void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
+    
+    // get any build artifact URIs there were created
+    public Map<String, String> getBuildArtifactURIs()
+  
+    public void addArtifactURI (String key, String value)
 
 }

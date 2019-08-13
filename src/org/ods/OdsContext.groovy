@@ -5,6 +5,8 @@ class OdsContext implements Context {
   def script
   Logger logger
   Map config
+  
+  def artifactUriStore = [ : ]
 
   OdsContext(script, config, logger) {
     this.script = script
@@ -542,5 +544,12 @@ class OdsContext implements Context {
     )
     return statusCode == 0
   }
+  
+  public Map<String, String> getBuildArtifactURIs() {
+    return this.artifactUriStore
+  }
 
+  public void addArtifactURI (String key, String value) {
+    this.artifactUriStore.put(key, value)
+  }
 }
