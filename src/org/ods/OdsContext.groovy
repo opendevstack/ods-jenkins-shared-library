@@ -138,7 +138,12 @@ class OdsContext implements Context {
     if (!config.containsKey('displayNameUpdateEnabled')) {
       config.displayNameUpdateEnabled = true
     }
-    if (!config.containsKey('ciSkipEnabled')) {
+
+    if (!config.containsKey('testResults')) {
+      config.testResults = ''
+    }
+
+        if (!config.containsKey('ciSkipEnabled')) {
       config.ciSkipEnabled = true
     }
 

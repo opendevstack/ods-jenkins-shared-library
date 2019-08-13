@@ -80,7 +80,7 @@ class OdsPipeline implements Serializable {
           }
           
           logger.info "Stage execution completed, testResults : ${context.getTestResults()}"
-          if (context.getTestResults() != null && !context.getTestResults() == "build/test-results/test") {
+          if (context.getTestResults() != null && context.getTestResults().toString().trim().length > 0 && !context.getTestResults() == "build/test-results/test") {
             script.sh(script: "cp -rf ${context.getTestResults()}/* build/test-results/test/*", label : "move test results")
           }
           
