@@ -33,17 +33,9 @@ def call(def context) {
               sh (script: "mv *-analysis-report.docx* artifacts/", label : "move SCRR to artifacts dir")
               sh (script: "mv artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT", label : "rename to SCRR")
               archiveArtifacts "artifacts/SCRR*"
+              stash(name: "scrr-report-${context.componentId}-${context.buildNumber}", includes: 'artifacts/SCRR*', allowEmpty : true)
+              context.addArtifactURI("SCRR", targetSQreport)
         }
-        
-        // MRO
-        if (!context.localCheckoutEnabled) {
-          script.echo "Stashing SCCR for MRO build"
-          // stash them in the mro pattern
-          script.stash(name: "scrr-report-${context.componentId}-${context.buildNumber}", includes: 'artifacts/SCRR*', allowEmpty : true)
-        }
-        context.addArtifactURI("SCRR", targetSQreport)
-        
-        script.echo "SQ code scanning completed"
       }
     }
   }
