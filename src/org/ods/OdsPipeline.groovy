@@ -18,8 +18,10 @@ class OdsPipeline implements Serializable {
   // Main entry point.
   def execute(Closure stages) {
     logger.info "***** Starting ODS Pipeline *****"
-    prepareForMultiRepoBuild()
-
+    if (!!script.env.MULTI_REPO_BUILD) {
+      setupForMultiRepoBuild()
+    }
+    
     def cl = {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -98,47 +100,46 @@ class OdsPipeline implements Serializable {
     }
   }
 
-  def prepareForMultiRepoBuild() {
-    if (!!script.env.MULTI_REPO_BUILD) {
-      logger.info '***** Multi Repo Build detected *****'
-      context.bitbucketNotificationEnabled = false
-      context.localCheckoutEnabled = false
-      context.displayNameUpdateEnabled = false
-      context.ciSkipEnabled = false
-      context.notifyNotGreen = false
-      def buildEnv = script.env.MULTI_REPO_ENV
-      if (buildEnv) {
-        context.environment = buildEnv
-        logger.debug("Setting target env ${context.environment} on ${context.projectId}")
-        def sourceCloneEnv = script.env.SOURCE_CLONE_ENV
-        if (sourceCloneEnv != null && sourceCloneEnv.toString().trim().length() > 0) {
-          logger.info("Environment cloning enabled, source environment: ${sourceCloneEnv}")
-          context.cloneSourceEnv = sourceCloneEnv
-        } else {
-          logger.info("Environment cloning not enabled")
-          context.cloneSourceEnv = null
-        }
-        def debug = script.env.DEBUG
-        if (debug != null && context.debug == null) 
-        {
-            logger.debug("Setting ${debug} on ${context.projectId}")
-            context.debug = debug
-        } 
+  def setupForMultiRepoBuild() {
+    logger.info '***** Multi Repo Build detected *****'
+    context.bitbucketNotificationEnabled = false
+    context.localCheckoutEnabled = false
+    context.displayNameUpdateEnabled = false
+    context.ciSkipEnabled = false
+    context.notifyNotGreen = false
+    def buildEnv = script.env.MULTI_REPO_ENV
+    if (buildEnv) {
+      context.environment = buildEnv
+      logger.debug("Setting target env ${context.environment} on ${context.projectId}")
+      def sourceCloneEnv = script.env.SOURCE_CLONE_ENV
+      if (sourceCloneEnv != null && sourceCloneEnv.toString().trim().length() > 0) {
+        logger.info("Environment cloning enabled, source environment: ${sourceCloneEnv}")
+        context.cloneSourceEnv = sourceCloneEnv
       } else {
-        logger.error("Variable MULTI_REPO_ENV must not be null!")
-        // Using exception because error step would skip post steps
-        throw new RuntimeException("Variable MULTI_REPO_ENV must not be null!")
+        logger.info("Environment cloning not enabled")
+        context.cloneSourceEnv = null
       }
+      def debug = script.env.DEBUG
+      if (debug != null && context.debug == null) 
+      {
+          logger.debug("Setting ${debug} on ${context.projectId}")
+          context.debug = debug
+      } 
+    } else {
+      logger.error("Variable MULTI_REPO_ENV must not be null!")
+      // Using exception because error step would skip post steps
+      throw new RuntimeException("Variable MULTI_REPO_ENV must not be null!")
     }
   }
 
   private void stashTestResults () {
     def testLocation = "build/test-results/test"
     
-    logger.info "Stage execution completed, testResults : ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
+    logger.info "stashing testResults : config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
     
     if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
     {
+      // verify the beast exists
       def verifyDir = script.sh (script : "ls ${context.getTestResults()}", returnStatus:true, label : "verifying existance of ${testLocation}")
       script.sh(script: "mkdir -p ${testLocation}", label : "create test result folder: ${testLocation}")
       if (verifyDir == 2)
@@ -146,6 +147,7 @@ class OdsPipeline implements Serializable {
         throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
       } else 
       {
+        // copy files to default location 
         script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
       }
     } else
@@ -154,6 +156,7 @@ class OdsPipeline implements Serializable {
       script.echo "Found ${foundTests} tests in ${testLocation}"
     }
     
+    // stash them in the mro pattern
     script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
   }
   
