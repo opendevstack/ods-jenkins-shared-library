@@ -4,8 +4,12 @@ interface Context {
 
     def assemble()
 
+    // Get debug mode
     boolean getDebug()
 
+    // Get the location of the xmlunit results
+    boolean getTestResults ()
+    
     // Value of JOB_NAME. It is the name of the project of the build.
     String getJobName()
 

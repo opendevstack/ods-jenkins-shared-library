@@ -76,9 +76,18 @@ class OdsPipeline implements Serializable {
               setBitbucketBuildStatus('SUCCESSFUL')
               return
             }
-
             stages(context)
           }
+          
+          def testResults = context.getTestResults()
+          
+          if (testResults != null) 
+          {
+            script.echo "Found configured testResults location: ${context.testResults}"
+            script.stash (name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: "${context.testResults}")
+          }
+          
+          
           updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
           logger.info "***** Finished ODS Pipeline *****"

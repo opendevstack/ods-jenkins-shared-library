@@ -339,6 +339,10 @@ class OdsContext implements Context {
     return config.localCheckoutEnabled
   }
 
+  boolean getTestResults () {
+    return confg.testResults
+  }
+  
   void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
     config.localCheckoutEnabled = localCheckoutEnabled
   }
