@@ -143,7 +143,7 @@ class OdsContext implements Context {
       config.testResults = ''
     }
 
-        if (!config.containsKey('ciSkipEnabled')) {
+    if (!config.containsKey('ciSkipEnabled')) {
       config.ciSkipEnabled = true
     }
 
