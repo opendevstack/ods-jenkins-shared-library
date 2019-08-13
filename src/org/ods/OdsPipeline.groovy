@@ -221,7 +221,7 @@ class OdsPipeline implements Serializable {
         logger.info 'Calculated branch name: ${branchName}'
         script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
         def debugMode = ""
-        if (context.getDebug) {
+        if (context.getDebug()) {
           debugMode = "--debug"
         }
         script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} -gb ${context.branchName} ${debugMode}")
