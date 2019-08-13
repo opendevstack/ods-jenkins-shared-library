@@ -143,7 +143,7 @@ class OdsContext implements Context {
   }
 
   boolean getDebug() {
-      config.debug
+    config.debug
   }
 
   String getJobName() {
@@ -163,11 +163,11 @@ class OdsContext implements Context {
   }
 
   String getGitBranch() {
-      config.gitBranch
+    config.gitBranch
   }
 
   String getCredentialsId() {
-      config.credentialsId
+    config.credentialsId
   }
 
   String getImage() {
@@ -207,15 +207,15 @@ class OdsContext implements Context {
   }
 
   String getNexusHost() {
-      config.nexusHost
+    config.nexusHost
   }
 
   String getNexusUsername() {
-      config.nexusUsername
+    config.nexusUsername
   }
 
   String getNexusPassword() {
-      config.nexusPassword
+    config.nexusPassword
   }
 
   String getNexusHostWithBasicAuth() {
@@ -223,31 +223,31 @@ class OdsContext implements Context {
   }
 
   String getBranchToEnvironmentMapping() {
-      config.branchToEnvironmentMapping
+    config.branchToEnvironmentMapping
   }
 
   String getAutoCloneEnvironmentsFromSourceMapping() {
-      config.autoCloneEnvironmentsFromSourceMapping
+    config.autoCloneEnvironmentsFromSourceMapping
   }
 
   String getCloneSourceEnv() {
-      config.cloneSourceEnv
+    config.cloneSourceEnv
   }
 
   String getEnvironment() {
-      config.environment
+    config.environment
   }
 
   String getGroupId() {
-      config.groupId
+    config.groupId
   }
 
   String getProjectId() {
-      config.projectId
+    config.projectId
   }
 
   String getComponentId() {
-      config.componentId
+    config.componentId
   }
 
   String getGitCommit() {
@@ -267,7 +267,7 @@ class OdsContext implements Context {
   }
 
   String getTargetProject() {
-      config.targetProject
+    config.targetProject
   }
 
   String getSonarQubeBranch() {
@@ -275,19 +275,19 @@ class OdsContext implements Context {
   }
 
   String getFailOnSnykScanVulnerabilities() {
-      config.failOnSnykScanVulnerabilities
+    config.failOnSnykScanVulnerabilities
   }
 
   String getDependencyCheckBranch() {
-      config.dependencyCheckBranch
+    config.dependencyCheckBranch
   }
 
   int getEnvironmentLimit() {
-      config.environmentLimit
+    config.environmentLimit
   }
 
   String getOpenshiftHost() {
-      config.openshiftHost
+    config.openshiftHost
   }
 
   String getOdsSharedLibVersion() {
@@ -295,15 +295,15 @@ class OdsContext implements Context {
   }
 
   String getBitbucketHost() {
-      config.bitbucketHost
+    config.bitbucketHost
   }
 
   boolean getEnvironmentCreated() {
-      this.environmentCreated
+    this.environmentCreated
   }
 
   int getOpenshiftBuildTimeout() {
-      config.openshiftBuildTimeout
+    config.openshiftBuildTimeout
   }
 
   def setEnvironmentCreated(boolean created) {
