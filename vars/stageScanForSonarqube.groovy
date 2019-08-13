@@ -24,17 +24,21 @@ def call(def context) {
 		
 		    // generate and archive cnes report
         // we need to get the SQ project name as people could modify it
-      	sqProps = readProperties file: 'sonar-project.properties'
-    		sonarProjectKey = sqProps['sonar.projectKey']
-        	targetSQreport = "SCRR-" + sonarProjectKey + ".docx"
+        sqProps = readProperties file: 'sonar-project.properties'
+            sonarProjectKey = sqProps['sonar.projectKey']
+            targetSQreport = "SCRR-" + sonarProjectKey + ".docx"
         withEnv (["SQ_PROJECT=${sonarProjectKey}", "TARGET_SQ_REPORT=${targetSQreport}"]) {
-    		  sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR Report")
+              sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR Report")
               sh (script: "mkdir -p artifacts", label : "create artifacts folder")
               sh (script: "mv *-analysis-report.docx* artifacts/", label : "move SCRR to artifacts dir")
               sh (script: "mv artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT", label : "rename to SCRR")
-          	  archiveArtifacts "artifacts/SCRR*"
-    		}	
+              archiveArtifacts "artifacts/SCRR*"
+        }
         
+        if (!!script.env.MULTI_REPO_BUILD) {
+          // stash them in the mro pattern
+          script.stash(name: "scrr-report-${context.componentId}-${context.buildNumber}", includes: 'artifacts/SCRR*', allowEmpty : true)
+        }
         context.addArtifactURI("SCRR", targetSQreport)
       }
     }
