@@ -150,7 +150,7 @@ class OdsPipeline implements Serializable {
       }
     } else
     {
-      def foundTests = script.sh(script: "ls -la ${testLocation}/.xml | wc -l", returnStdout : true).trim()
+      def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true).trim()
       script.echo "Found ${foundTests} tests in ${testLocation}"
     }
     
