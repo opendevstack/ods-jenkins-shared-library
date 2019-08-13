@@ -35,11 +35,15 @@ def call(def context) {
               archiveArtifacts "artifacts/SCRR*"
         }
         
-        if (!!script.env.MULTI_REPO_BUILD) {
+        // MRO
+        if (!context.localCheckoutEnabled) {
+          script.echo "Stashing SCCR for MRO build"
           // stash them in the mro pattern
           script.stash(name: "scrr-report-${context.componentId}-${context.buildNumber}", includes: 'artifacts/SCRR*', allowEmpty : true)
         }
         context.addArtifactURI("SCRR", targetSQreport)
+        
+        script.echo "SQ code scanning completed"
       }
     }
   }
