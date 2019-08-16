@@ -18,7 +18,7 @@ def call(def context) {
       
     def ocpDeployment
     while(true) {
-      ocpDeployment = sh(returnStdout: true, script:"oc describe dc ${context.componentId} -n ${context.targetProject} | grep -e ${ocpDockerLatestImageRef} -e Status -e 'Latest Version'", label : "find new deployment").trim().split(/\s+/)
+      ocpDeployment = sh(returnStdout: true, script:"sleep 10 && oc describe dc ${context.componentId} -n ${context.targetProject} | grep -e ${ocpDockerLatestImageRef} -e Status -e 'Latest Version'", label : "find new deployment").trim().split(/\s+/)
       
       echo ("Found last deployment id: ${ocpDeployment[2]} - status ${ocpDeployment[6]}")
       if (ocpDeployment[6] != "Pending" && ocpDeployment[6] != "Running") {
