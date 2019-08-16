@@ -42,3 +42,4 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
 }
 
 return this
+
