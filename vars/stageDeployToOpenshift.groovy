@@ -13,13 +13,12 @@ def call(def context) {
       namespace: context.targetProject
     )
 
-    def ocpLatestImage = sh(returnStdout: true, script:"oc get istag ${context.componentId}:latest -n ${context.targetProject} --no-headers", label : "find last image").trim().split(/\s+/)
-    def ocpDockerLatestImageRef = ocpLatestImage[1]
+    def ocpLatestImage = sh(returnStdout: true, script:"oc get istag ${context.componentId}:latest -n ${context.targetProject} -o jsonpath='{.image.dockerImageReference}'", label : "find last image").trim()
       
     def ocpDeployment
     timeout(context.openshiftBuildTimeout) {
       while(true) {
-        ocpDeployment = sh(returnStdout: true, script:"sleep 10 && oc describe dc ${context.componentId} -n ${context.targetProject} | grep -e ${ocpDockerLatestImageRef} -e Status -e 'Latest Version'", label : "find new deployment").trim().split(/\s+/)
+        ocpDeployment = sh(returnStdout: true, script:"sleep 10 && oc describe dc ${context.componentId} -n ${context.targetProject} | grep -e ${ocpLatestImage} -e Status -e 'Latest Version'", label : "find new deployment").trim().split(/\s+/)
         
         echo ("Found last deployment id: ${ocpDeployment[2]} - status ${ocpDeployment[6]}")
         if (ocpDeployment[6] != "Pending" && ocpDeployment[6] != "Running") {
