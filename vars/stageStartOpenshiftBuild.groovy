@@ -9,6 +9,21 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
       patchBuildConfig(context, buildArgs, imageLabels)
       sh (script: "oc start-build ${context.componentId} --from-dir docker --follow -n ${context.targetProject}", label : "start openshift build")
     }
+
+    def ocpbuild = sh(returnStdout: true, script:"oc get build --sort-by=.status.startTimestamp --no-headers -n ${context.targetProject} -l buildconfig=${context.componentId} | tail -n1", label : "find last build").trim().split(/\s+/)
+    
+    def ocpbuildId = ocpbuild[0]
+    def ocpbuildStatus = ocpbuild[3]
+    
+    if (ocpbuildStatus.toString().trim().toLowerCase() != "complete") {
+      error "OCP Build ${ocpbuildId} was not successfull - status ${ocpbuildStatus}"
+    }
+  
+    def ocpCurrentImage = sh(returnStdout: true, script:"oc get istag ${context.componentId}:${context.getTagversion()} -n ${context.targetProject} --no-headers", label : "find new image").trim().split(/\s+/)
+    def ocpCurrentDockerImageRef = ocpCurrentImage[1]
+  
+    context.addArtifactURI("OCP Build Id", ocpbuildId)
+    context.addArtifactURI("OCP Docker image", ocpCurrentDockerImageRef)
   }
 }
 
