@@ -1,7 +1,6 @@
 def call(def context, def snykAuthenticationCode, def buildFile, def organisation) {
   if (!snykAuthenticationCode) {
-    println("Skipping Snyk Scan due to missing authentication code (to enable pass as parameter a snyk service account authentication code to this stage)")
-    return
+    error "missing snyk authentication code (parameter snykAuthenticationCode is null or false)"
   }
   if (!organisation) {
     organisation = context.projectId
