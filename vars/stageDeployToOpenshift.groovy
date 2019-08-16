@@ -17,17 +17,19 @@ def call(def context) {
     def ocpDockerLatestImageRef = ocpLatestImage[1]
       
     def ocpDeployment
-    while(true) {
-      ocpDeployment = sh(returnStdout: true, script:"sleep 10 && oc describe dc ${context.componentId} -n ${context.targetProject} | grep -e ${ocpDockerLatestImageRef} -e Status -e 'Latest Version'", label : "find new deployment").trim().split(/\s+/)
-      
-      echo ("Found last deployment id: ${ocpDeployment[2]} - status ${ocpDeployment[6]}")
-      if (ocpDeployment[6] != "Pending" && ocpDeployment[6] != "Running") {
-          echo "OCP Deployment done - reporting status"
-          break
+    timeout(context.openshiftBuildTimeout) {
+      while(true) {
+        ocpDeployment = sh(returnStdout: true, script:"sleep 10 && oc describe dc ${context.componentId} -n ${context.targetProject} | grep -e ${ocpDockerLatestImageRef} -e Status -e 'Latest Version'", label : "find new deployment").trim().split(/\s+/)
+        
+        echo ("Found last deployment id: ${ocpDeployment[2]} - status ${ocpDeployment[6]}")
+        if (ocpDeployment[6] != "Pending" && ocpDeployment[6] != "Running") {
+            echo "OCP Deployment done - reporting status"
+            break
+        }
       }
     }
     
-    if (ocpDeployment[6] != "Complete") {
+    if (ocpDeployment == null || ocpDeployment[6] != "Complete") {
       error "Deployment ${context.componentId}${ocpDeployment[2]} failed (status: ${ocpDeployment[6]}), please check the error in the OCP console"
     }
     

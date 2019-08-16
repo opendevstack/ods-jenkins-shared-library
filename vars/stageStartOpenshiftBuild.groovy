@@ -19,11 +19,10 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
       error "OCP Build ${ocpbuildId} was not successfull - status ${ocpbuildStatus}"
     }
   
-    def ocpCurrentImage = sh(returnStdout: true, script:"oc get istag ${context.componentId}:${context.getTagversion()} -n ${context.targetProject} --no-headers", label : "find new image").trim().split(/\s+/)
-    def ocpCurrentDockerImageRef = ocpCurrentImage[1]
+    def ocpCurrentImage = sh(returnStdout: true, script:"oc get istag ${context.componentId}:${context.getTagversion()} -n ${context.targetProject} -o jsonpath='{.image.dockerImageReference}'", label : "find new image").trim()
   
     context.addArtifactURI("OCP Build Id", ocpbuildId)
-    context.addArtifactURI("OCP Docker image", ocpCurrentDockerImageRef)
+    context.addArtifactURI("OCP Docker image", ocpCurrentImage)
   }
 }
 
