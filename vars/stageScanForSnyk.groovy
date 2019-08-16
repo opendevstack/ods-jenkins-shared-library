@@ -3,8 +3,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
     error "missing snyk authentication code (parameter snykAuthenticationCode is null or false)"
   }
   if (!organisation) {
-    organisation = context.projectId
-    println("organisation set to ${organisation}")
+    error "missing organisation (parameter organisation is null or false)"
   }
 
   String message = "Snyk scan mode: build will " + (context.failOnSnykScanVulnerabilities ? "" : "not ") +
