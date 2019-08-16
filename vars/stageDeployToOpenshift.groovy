@@ -25,7 +25,6 @@ def call(def context) {
           echo "OCP Deployment done - reporting status"
           break
       }
-      sleep 10s
     }
     
     if (ocpDeployment[6] != "Complete") {
