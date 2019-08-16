@@ -10,7 +10,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
   "fail if vulnerabilities are found (failOnSnykScanVulnerabilities=${context.failOnSnykScanVulnerabilities})!"
   println(message)
 
-  if (buildFile == null) {
+  if (!buildFile) {
     error "build file definition for snyk security scan is null!"
   } else {
     stage('Snyk Security Scan') {
