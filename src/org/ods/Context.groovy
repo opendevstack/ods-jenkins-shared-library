@@ -167,6 +167,8 @@ interface Context {
     // get any build artifact URIs there were created
     public Map<String, String> getBuildArtifactURIs()
   
+    // adds a build artifact URI to the context for later retrieval,
+    // e.g. in case a stage fails - the failed stage name - with key failedStage
     public void addArtifactURI (String key, String value)
 
 }
