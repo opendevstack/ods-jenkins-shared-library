@@ -95,14 +95,16 @@ class OdsPipeline implements Serializable {
             notifyNotGreen()
           }
           if (!!script.env.MULTI_REPO_BUILD) {
-            logger.debug "MRO build - caught error for ${context.componentId}"
             // this is the case on a parallel node to be interupted
-            if (!(err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException))
+            if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException)
+            {
+              throw err
+            } else 
             {
               context.addArtifactURI('failedStage', script.env.STAGE_NAME)
               stashTestResults(true)
+              return this
             }
-            return this
           } else {
             throw err
           }
