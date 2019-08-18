@@ -95,10 +95,9 @@ class OdsPipeline implements Serializable {
             notifyNotGreen()
           }
           if (!!script.env.MULTI_REPO_BUILD) {
-            logger.info "MRO build - caught error"
+            logger.debug "MRO build - caught error"
             context.addArtifactURI('failedStage', script.env.STAGE_NAME)
             stashTestResults(true)
-            logger.info "MRO build - returning context: ${context.getBuildArtifactURIs()}"
             return this
           } else {
             throw err
@@ -143,7 +142,7 @@ class OdsPipeline implements Serializable {
   private void stashTestResults (def hasFailed = false) {
     def testLocation = "build/test-results/test"
     
-    logger.info "stashing testResults : config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
+    logger.debug "stashing testResults : config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
     
     if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
     {
@@ -152,6 +151,7 @@ class OdsPipeline implements Serializable {
       script.sh(script: "mkdir -p ${testLocation}", label : "create test result folder: ${testLocation}")
       if (verifyDir == 2)
       {
+        script.currentBuild = 'FAILURE'
         throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
       } else 
       {
@@ -167,7 +167,8 @@ class OdsPipeline implements Serializable {
     
     if (hasFailed && foundTests.toInteger() == 0) 
     {
-      script.echo "ODS Build did fail, and no test results,.. failing"
+      logger.debug "ODS Build did fail, and no test results,.. failing"
+      script.currentBuild = 'FAILURE'
       throw new RuntimeException ("ODS Build failed - and no test results!")
     }
 
