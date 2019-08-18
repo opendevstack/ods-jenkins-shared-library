@@ -79,14 +79,7 @@ class OdsPipeline implements Serializable {
               return
             }
             
-            try {
-              stages(context)
-            } catch (errStages) 
-            {
-              echo "error in stages .. "
-              context.addArtifactURI('failedStage', env.STAGE_NAME)
-              throw errStages
-            }
+            stages(context)
           }
           
           stashTestResults()
@@ -102,10 +95,10 @@ class OdsPipeline implements Serializable {
             notifyNotGreen()
           }
           throw err
-        } finally {
+        } /*finally {
           // in case called from outside
           return this
-        }
+        } */
       }
     }
   }
