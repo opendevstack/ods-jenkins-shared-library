@@ -140,7 +140,7 @@ class OdsPipeline implements Serializable {
     }
   }
 
-  private void stashTestResults (def hasFailed = true) {
+  private void stashTestResults (def hasFailed = false) {
     def testLocation = "build/test-results/test"
     
     logger.info "stashing testResults : config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
