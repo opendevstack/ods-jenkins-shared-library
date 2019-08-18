@@ -161,13 +161,13 @@ class OdsPipeline implements Serializable {
     } 
     
     def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true).trim()
-    script.echo "Found ${foundTests} tests in ${testLocation}"
+    script.echo "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
     
     context.addArtifactURI("testResults", foundTests)
     
-    if (hasFailed && foundTests == 0) 
+    if (hasFailed && foundTests.toInteger() == 0) 
     {
-      script.echo "Buidl did fail, and no test results,.. failing"
+      script.echo "ODS Build did fail, and no test results,.. failing"
       throw new RuntimeException ("ODS Build failed - and no test results!")
     }
 
