@@ -85,7 +85,7 @@ class OdsPipeline implements Serializable {
           stashTestResults()
           updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
-          logger.info "***** Finished ODS Pipeline *****"
+          logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
           return this
         } catch (err) {
           logger.info "***** Finished ODS Pipeline for  ${context.componentId} (with error) *****"
@@ -95,14 +95,13 @@ class OdsPipeline implements Serializable {
             notifyNotGreen()
           }
           if (!!script.env.MULTI_REPO_BUILD) {
-            logger.debug "MRO build - caught error ${context.componentId}"
-            if (err instancef org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) 
+            logger.debug "MRO build - caught error for ${context.componentId}"
+            // this is the case on a parallel node to be interupted
+            if (!(err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException))
             {
-              // parallel - fail fast
-              throw err
+              context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+              stashTestResults(true)
             }
-            context.addArtifactURI('failedStage', script.env.STAGE_NAME)
-            stashTestResults(true)
             return this
           } else {
             throw err
@@ -147,7 +146,7 @@ class OdsPipeline implements Serializable {
   private void stashTestResults (def hasFailed = false) {
     def testLocation = "build/test-results/test"
     
-    logger.debug "stashing testResults : config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
+    logger.debug "stashing testResults (${context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
     
     if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
     {
