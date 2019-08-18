@@ -165,7 +165,7 @@ class OdsPipeline implements Serializable {
     
     context.addArtifactURI("testResults", foundTests)
     
-    if (hasFailed) 
+    if (hasFailed && foundTests == 0) 
     {
       script.error ("ODS Build failed - and no test results!")
     }
