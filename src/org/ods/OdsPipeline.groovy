@@ -313,3 +313,5 @@ class OdsPipeline implements Serializable {
     return context.getBuildArtifactURIs()
   }
 }
+
+return this
