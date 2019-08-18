@@ -86,7 +86,9 @@ class OdsPipeline implements Serializable {
           updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
           logger.info "***** Finished ODS Pipeline *****"
+          return this
         } catch (err) {
+          logger.info "***** Finished ODS Pipeline (with error) *****"
           context.addArtifactURI('failedStage', script.env.STAGE_NAME)
           updateBuildStatus('FAILURE')
           setBitbucketBuildStatus('FAILED')
