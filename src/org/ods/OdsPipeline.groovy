@@ -167,7 +167,8 @@ class OdsPipeline implements Serializable {
     
     if (hasFailed && foundTests == 0) 
     {
-      script.error ("ODS Build failed - and no test results!")
+      script.echo "Buidl did fail, and no test results,.. failing"
+      throw new RuntimeException ("ODS Build failed - and no test results!")
     }
 
     // stash them in the mro pattern
