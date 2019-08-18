@@ -96,7 +96,11 @@ class OdsPipeline implements Serializable {
           }
           if (!!script.env.MULTI_REPO_BUILD) {
             logger.debug "MRO build - caught error ${context.componentId}"
-            logger.debug "MRO build - ${err.getClass()}"
+            if (err instancef org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) 
+            {
+              // parallel - fail fast
+              throw err
+            }
             context.addArtifactURI('failedStage', script.env.STAGE_NAME)
             stashTestResults(true)
             return this
