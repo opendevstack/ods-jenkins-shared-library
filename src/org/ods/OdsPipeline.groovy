@@ -93,7 +93,12 @@ class OdsPipeline implements Serializable {
           if (context.notifyNotGreen) {
             notifyNotGreen()
           }
-          throw err
+          if (!!script.env.MULTI_REPO_BUILD) {
+            script.echo "mro build - returning"
+            return this
+          } else {
+            throw err
+          }
         } /*finally {
           // in case called from outside
           return this
@@ -313,5 +318,3 @@ class OdsPipeline implements Serializable {
     return context.getBuildArtifactURIs()
   }
 }
-
-return this
