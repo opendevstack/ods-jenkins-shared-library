@@ -97,15 +97,13 @@ class OdsPipeline implements Serializable {
           if (!!script.env.MULTI_REPO_BUILD) {
             logger.info "MRO build - caught error"
             context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+            stashTestResults(true)
             logger.info "MRO build - returning context: ${context.getBuildArtifactURIs()}"
             return this
           } else {
             throw err
           }
-        } /*finally {
-          // in case called from outside
-          return this
-        } */
+        } 
       }
     }
   }
@@ -142,7 +140,7 @@ class OdsPipeline implements Serializable {
     }
   }
 
-  private void stashTestResults () {
+  private void stashTestResults (def hasFailed = true) {
     def testLocation = "build/test-results/test"
     
     logger.info "stashing testResults : config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
@@ -160,12 +158,18 @@ class OdsPipeline implements Serializable {
         // copy files to default location 
         script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
       }
-    } else
-    {
-      def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true).trim()
-      script.echo "Found ${foundTests} tests in ${testLocation}"
-    }
+    } 
     
+    def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true).trim()
+    script.echo "Found ${foundTests} tests in ${testLocation}"
+    
+    context.addArtifactURI("testResults", foundTests)
+    
+    if (hasFailed) 
+    {
+      script.error ("ODS Build failed - and no test results!")
+    }
+
     // stash them in the mro pattern
     script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
   }
