@@ -89,14 +89,15 @@ class OdsPipeline implements Serializable {
           return this
         } catch (err) {
           logger.info "***** Finished ODS Pipeline (with error) *****"
-          context.addArtifactURI('failedStage', script.env.STAGE_NAME)
           updateBuildStatus('FAILURE')
           setBitbucketBuildStatus('FAILED')
           if (context.notifyNotGreen) {
             notifyNotGreen()
           }
           if (!!script.env.MULTI_REPO_BUILD) {
-            script.echo "mro build - returning"
+            logger.info "MRO build - caught error"
+            context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+            logger.info "MRO build - returning context: ${context.getBuildArtifactURIs()}"
             return this
           } else {
             throw err
