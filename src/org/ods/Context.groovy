@@ -119,6 +119,9 @@ interface Context {
     // Branch on which to run SonarQube analysis.
     String getSonarQubeBranch()
 
+    // snyk behaviour configuration in case it reports vulnerabilities
+    String getFailOnSnykScanVulnerabilities()
+
     // Branch on which to run dependency checks.
     String getDependencyCheckBranch()
 
@@ -170,5 +173,4 @@ interface Context {
     // adds a build artifact URI to the context for later retrieval,
     // e.g. in case a stage fails - the failed stage name - with key failedStage
     public void addArtifactURI (String key, value)
-
 }

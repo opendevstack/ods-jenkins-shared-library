@@ -86,6 +86,9 @@ class OdsContext implements Context {
     if (!config.containsKey('sonarQubeBranch')) {
       config.sonarQubeBranch = 'master'
     }
+    if (!config.containsKey('failOnSnykScanVulnerabilities')) {
+      config.failOnSnykScanVulnerabilities = true
+    }
     if (!config.containsKey('dependencyCheckBranch')) {
       config.dependencyCheckBranch = 'master'
     }
@@ -300,6 +303,10 @@ class OdsContext implements Context {
 
   String getSonarQubeBranch() {
       config.sonarQubeBranch
+  }
+
+  String getFailOnSnykScanVulnerabilities() {
+      config.failOnSnykScanVulnerabilities
   }
 
   String getDependencyCheckBranch() {
@@ -552,4 +559,3 @@ class OdsContext implements Context {
   public void addArtifactURI (String key, value) {
     this.artifactUriStore.put(key, value)
   }
-}
