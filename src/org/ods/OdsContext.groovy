@@ -559,3 +559,5 @@ class OdsContext implements Context {
   public void addArtifactURI (String key, value) {
     this.artifactUriStore.put(key, value)
   }
+
+}
