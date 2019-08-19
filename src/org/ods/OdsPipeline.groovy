@@ -166,8 +166,9 @@ class OdsPipeline implements Serializable {
       }
     } 
     
+    script.sh (script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
     def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true).trim()
-    script.echo "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
+    logger.debug "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
     
     context.addArtifactURI("testResults", foundTests)
     
