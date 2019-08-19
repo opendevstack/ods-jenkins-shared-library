@@ -17,7 +17,7 @@ class OdsPipeline implements Serializable {
 
   // Main entry point.
   def execute(Closure stages) {
-    logger.info "***** Starting ODS Pipeline *****"
+    logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild()
     }
@@ -167,7 +167,7 @@ class OdsPipeline implements Serializable {
     } 
     
     script.sh (script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
-    def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true).trim()
+    def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true, label: "Find test results").trim()
     logger.debug "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
     
     context.addArtifactURI("testResults", foundTests)
