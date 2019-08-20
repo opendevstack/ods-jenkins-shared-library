@@ -148,7 +148,7 @@ class OdsPipeline implements Serializable {
   private void stashTestResults (def hasFailed = false) {
     def testLocation = "build/test-results/test"
     
-    logger.debug "stashing testResults (${context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
+    logger.debug "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
     
     if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
     {
@@ -174,9 +174,8 @@ class OdsPipeline implements Serializable {
     
     if (hasFailed && foundTests.toInteger() == 0) 
     {
-      logger.debug "ODS Build did fail, and no test results,.. failing"
-      script.currentBuild = 'FAILURE'
-      throw new RuntimeException ("ODS Build failed - and no test results!")
+      logger.debug "ODS Build did fail, and no test results,.. returning"
+      return
     }
 
     // stash them in the mro pattern
