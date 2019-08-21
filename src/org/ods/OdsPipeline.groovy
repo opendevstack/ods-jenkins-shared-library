@@ -160,13 +160,14 @@ class OdsPipeline implements Serializable {
 
       logger.info 'Environment does not exist yet. Creating now ...'
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-        def userPass = script.USERPASS.replace('@', '%40').replace('$', '\'$\'')
+        def userPass = script.USERPASS.replace('$', '\'$\'')
         def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
         script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
         def debugMode = ""
         if (context.debug) {
           debugMode = "--debug"
         }
+        userPass = userPass.replace('@', '\\@')
         script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} ${debugMode}")
         logger.info 'Environment created!'
       }
