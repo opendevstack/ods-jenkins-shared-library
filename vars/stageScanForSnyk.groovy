@@ -32,7 +32,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
           error "something went wrong with snyk monitor command!"
         }
         // fail if vulnerabilites are found
-        status = sh(script: "snyk test --org=$ORGANISATION --file=$BUILD_FILE", returnStatus: true)
+        status = sh(script: "snyk test --org=$ORGANISATION --file=$BUILD_FILE --all-sub-projects", returnStatus: true)
         if (status != 0 && context.failOnSnykScanVulnerabilities) {
           error "snyk test found vulnerabilities (see snyk report above for details!)!"
         }
