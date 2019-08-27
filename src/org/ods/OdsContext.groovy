@@ -275,10 +275,6 @@ class OdsContext implements Context {
   }
 
   String getFailOnSnykScanVulnerabilities() {
-    config.failOnSnykScanVulnerabilities
-  }
-
-  String getFailOnSnykScanVulnerabilities() {
       config.failOnSnykScanVulnerabilities
   }
 
