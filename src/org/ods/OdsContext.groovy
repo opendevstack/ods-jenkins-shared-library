@@ -278,6 +278,10 @@ class OdsContext implements Context {
     config.failOnSnykScanVulnerabilities
   }
 
+  String getFailOnSnykScanVulnerabilities() {
+      config.failOnSnykScanVulnerabilities
+  }
+
   String getDependencyCheckBranch() {
     config.dependencyCheckBranch
   }
