@@ -1,18 +1,16 @@
 def call(def context, def snykAuthenticationCode, def buildFile, def organisation) {
   if (!snykAuthenticationCode) {
-    println("Skipping Snyk Scan due to missing authentication code (to enable pass as parameter a snyk service account authentication code to this stage)")
-    return
+    error "missing snyk authentication code (parameter snykAuthenticationCode is null or false)"
   }
   if (!organisation) {
-    organisation = context.projectId
-    println("organisation set to ${organisation}")
+    error "missing organisation (parameter organisation is null or false)"
   }
 
   String message = "Snyk scan mode: build will " + (context.failOnSnykScanVulnerabilities ? "" : "not ") +
   "fail if vulnerabilities are found (failOnSnykScanVulnerabilities=${context.failOnSnykScanVulnerabilities})!"
   println(message)
 
-  if (buildFile == null) {
+  if (!buildFile) {
     error "build file definition for snyk security scan is null!"
   } else {
     stage('Snyk Security Scan') {
@@ -34,7 +32,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
           error "something went wrong with snyk monitor command!"
         }
         // fail if vulnerabilites are found
-        status = sh(script: "snyk test --org=$ORGANISATION --file=$BUILD_FILE", returnStatus: true)
+        status = sh(script: "snyk test --org=$ORGANISATION --file=$BUILD_FILE --all-sub-projects", returnStatus: true)
         if (status != 0 && context.failOnSnykScanVulnerabilities) {
           error "snyk test found vulnerabilities (see snyk report above for details!)!"
         }
@@ -44,3 +42,4 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
 }
 
 return this
+
