@@ -266,7 +266,7 @@ class OdsPipeline implements Serializable {
 
       logger.info 'Environment does not exist yet. Creating now ...'
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-        def userPass = script.USERPASS.replace('@', '%40').replace('$', '\'$\'')
+        def userPass = script.USERPASS.replace('$', '\'$\'')
         def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
         def branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
         logger.info 'Calculated branch name: ${branchName}'
@@ -275,8 +275,9 @@ class OdsPipeline implements Serializable {
         if (context.getDebug()) {
           debugMode = "--debug"
         }
-        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} -gb ${branchName} ${debugMode}")
-        logger.info "Environment (${context.environment}) created!"
+        userPass = userPass.replace('@', '\\@')
+        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -gb ${branchName} -t ${context.environment} ${debugMode}")
+        logger.info 'Environment created!'
       }
     }
   }
