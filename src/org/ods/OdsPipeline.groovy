@@ -17,13 +17,17 @@ class OdsPipeline implements Serializable {
 
   // Main entry point.
   def execute(Closure stages) {
-    logger.info "***** Starting ODS Pipeline *****"
-
-    logger.info "***** Continuing on node 'master' *****"
-    script.node('master') {
+    logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
+    if (!!script.env.MULTI_REPO_BUILD) {
+      setupForMultiRepoBuild()
+    }
+    
+    def cl = {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-          script.checkout script.scm
+          if (context.getLocalCheckoutEnabled()) {
+            script.checkout script.scm
+          }
           script.stage('Prepare') {
             context.assemble()
           }
@@ -33,15 +37,20 @@ class OdsPipeline implements Serializable {
           }
         }
       } catch (err) {
-        script.currentBuild.result = 'FAILURE'
+        updateBuildStatus('FAILURE')
         setBitbucketBuildStatus('FAILED')
-        if (context.notifyNotGreen) {
-          notifyNotGreen()
-        }
+        notifyNotGreen()
         throw err
       }
     }
+    if (context.getLocalCheckoutEnabled()) {
+      logger.info "***** Continuing on node 'master' *****"
+      script.node('master', cl)
+    } else {
+      cl()
+    }
 
+	def nodeStartTime = System.currentTimeMillis();
     def msgBasedOn = ''
     if (context.image) {
       msgBasedOn = " based on image '${context.image}'"
@@ -58,40 +67,125 @@ class OdsPipeline implements Serializable {
         try {
           setBitbucketBuildStatus('INPROGRESS')
           script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            if (isSlaveNodeGitLFSenabled()){
-              checkoutWithGitLFSpull()
-            } else {
-              script.checkout script.scm
+            checkoutWithGit(isSlaveNodeGitLFSenabled())
+            if (context.getDisplayNameUpdateEnabled()) {
+              script.currentBuild.displayName = "#${context.tagversion}"
             }
 
-            script.currentBuild.displayName = "#${context.tagversion}"
-
-            if (context.ciSkip){
+            if (context.getCiSkipEnabled() && context.ciSkip){
               logger.info 'Skipping build due to [ci skip] in the commit message ...'
-              script.currentBuild.result = 'NOT_BUILT'
+              updateBuildStatus('NOT_BUILT')
               setBitbucketBuildStatus('SUCCESSFUL')
               return
             }
-
+            
             stages(context)
           }
-          script.currentBuild.result = 'SUCCESS'
+          
+          stashTestResults()
+          updateBuildStatus('SUCCESS')
           setBitbucketBuildStatus('SUCCESSFUL')
+          logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
+          return this
         } catch (err) {
-          script.currentBuild.result = 'FAILURE'
+          logger.info "***** Finished ODS Pipeline for  ${context.componentId} (with error) *****"
+          updateBuildStatus('FAILURE')
           setBitbucketBuildStatus('FAILED')
           if (context.notifyNotGreen) {
             notifyNotGreen()
           }
-          throw err
-        }
+          if (!!script.env.MULTI_REPO_BUILD) {
+            // this is the case on a parallel node to be interupted
+            if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException)
+            {
+              throw err
+            } else 
+            {
+              context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+              stashTestResults(true)
+              return this
+            }
+          } else {
+            throw err
+          }
+        } 
       }
     }
-
-    logger.info "***** Finished ODS Pipeline *****"
   }
 
+  def setupForMultiRepoBuild() {
+    logger.info '***** Multi Repo Build detected *****'
+    context.bitbucketNotificationEnabled = false
+    context.localCheckoutEnabled = false
+    context.displayNameUpdateEnabled = false
+    context.ciSkipEnabled = false
+    context.notifyNotGreen = false
+    def buildEnv = script.env.MULTI_REPO_ENV
+    if (buildEnv) {
+      context.environment = buildEnv
+      logger.debug("Setting target env ${context.environment} on ${context.projectId}")
+      def sourceCloneEnv = script.env.SOURCE_CLONE_ENV
+      if (sourceCloneEnv != null && sourceCloneEnv.toString().trim().length() > 0) {
+        logger.info("Environment cloning enabled, source environment: ${sourceCloneEnv}")
+        context.cloneSourceEnv = sourceCloneEnv
+      } else {
+        logger.info("Environment cloning not enabled")
+        context.cloneSourceEnv = null
+      }
+      def debug = script.env.DEBUG
+      if (debug != null && context.debug == null) 
+      {
+          logger.debug("Setting ${debug} on ${context.projectId}")
+          context.debug = debug
+      } 
+    } else {
+      logger.error("Variable MULTI_REPO_ENV must not be null!")
+      // Using exception because error step would skip post steps
+      throw new RuntimeException("Variable MULTI_REPO_ENV must not be null!")
+    }
+  }
+
+  private void stashTestResults (def hasFailed = false) {
+    def testLocation = "build/test-results/test"
+    
+    logger.debug "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
+    
+    if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
+    {
+      // verify the beast exists
+      def verifyDir = script.sh (script : "ls ${context.getTestResults()}", returnStatus:true, label : "verifying existance of ${testLocation}")
+      script.sh(script: "mkdir -p ${testLocation}", label : "create test result folder: ${testLocation}")
+      if (verifyDir == 2)
+      {
+        script.currentBuild = 'FAILURE'
+        throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
+      } else 
+      {
+        // copy files to default location 
+        script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
+      }
+    } 
+    
+    script.sh (script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
+    def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true, label: "Find test results").trim()
+    logger.debug "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
+    
+    context.addArtifactURI("testResults", foundTests)
+    
+    if (hasFailed && foundTests.toInteger() == 0) 
+    {
+      logger.debug "ODS Build did fail, and no test results,.. returning"
+      return
+    }
+
+    // stash them in the mro pattern
+    script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
+  }
+  
   private void setBitbucketBuildStatus(String state) {
+    if (!context.getBitbucketNotificationEnabled()) {
+      return
+    }
     if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
       logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
       return
@@ -122,16 +216,18 @@ class OdsPipeline implements Serializable {
   }
 
   private void notifyNotGreen() {
-    script.emailext(
-      body: '${script.DEFAULT_CONTENT}', mimeType: 'text/html',
-      replyTo: '$script.DEFAULT_REPLYTO', subject: '${script.DEFAULT_SUBJECT}',
-      to: script.emailextrecipients([
-        [$class: 'CulpritsRecipientProvider'],
-        [$class: 'DevelopersRecipientProvider'],
-        [$class: 'RequesterRecipientProvider'],
-        [$class: 'UpstreamComitterRecipientProvider']
-      ])
-    )
+    if (context.notifyNotGreen) {
+      script.emailext(
+        body: '${script.DEFAULT_CONTENT}', mimeType: 'text/html',
+        replyTo: '$script.DEFAULT_REPLYTO', subject: '${script.DEFAULT_SUBJECT}',
+        to: script.emailextrecipients([
+          [$class: 'CulpritsRecipientProvider'],
+          [$class: 'DevelopersRecipientProvider'],
+          [$class: 'RequesterRecipientProvider'],
+          [$class: 'UpstreamComitterRecipientProvider']
+         ])
+      )
+    }
   }
 
   def createOpenShiftEnvironment(def context) {
@@ -140,18 +236,28 @@ class OdsPipeline implements Serializable {
         logger.info 'Skipping for empty environment ...'
         return
       }
-
-      def assumedEnvironments = context.branchToEnvironmentMapping.values()
-      if (assumedEnvironments.contains(context.environment)) {
-        logger.info 'Skipping for ${context.environment} environment ...'
-        return
+      
+      if (!!script.env.MULTI_REPO_BUILD)
+      {
+          logger.info "MRO Build - skipping env mapping"
+      } else {
+        def assumedEnvironments = context.branchToEnvironmentMapping.values()
+        if (assumedEnvironments.contains(context.environment)) {
+          logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
+          return
+        }
       }
 
       if (environmentExists(context.targetProject)) {
-        logger.info 'Environment exists already ...'
+        logger.info "Target Environment ${context.targetProject} exists already ..."
         return
       }
 
+      if (!environmentExists("${context.projectId.toLowerCase()}-${context.cloneSourceEnv}")) {
+        logger.info "Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ..."
+        return
+      }
+      
       if (tooManyEnvironments(context.projectId, context.environmentLimit)) {
         logger.error "Cannot create OC project " +
           "as there are already ${context.environmentLimit} OC projects! " +
@@ -162,13 +268,15 @@ class OdsPipeline implements Serializable {
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
         def userPass = script.USERPASS.replace('$', '\'$\'')
         def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
+        def branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
+        logger.info 'Calculated branch name: ${branchName}'
         script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
         def debugMode = ""
-        if (context.debug) {
+        if (context.getDebug()) {
           debugMode = "--debug"
         }
         userPass = userPass.replace('@', '\\@')
-        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -t ${context.environment} ${debugMode}")
+        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -gb ${branchName} -t ${context.environment} ${debugMode}")
         logger.info 'Environment created!'
       }
     }
@@ -176,39 +284,53 @@ class OdsPipeline implements Serializable {
 
   private boolean tooManyEnvironments(String projectId, Integer limit) {
     script.sh(
-      returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l"
+      returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l", label : "check ocp environment maximum"
     ).trim().toInteger() >= limit
+  }
+
+  def updateBuildStatus(String status) {
+    if (context.displayNameUpdateEnabled) {
+      script.currentBuild.result = status
+    }
   }
 
   private boolean environmentExists(String name) {
     def statusCode = script.sh(
       script:"oc project ${name} &> /dev/null",
+      label : "check if OCP environment exists",
       returnStatus: true
     )
     return statusCode == 0
   }
 
-  private void checkoutWithGitLFSpull(){
-    script.checkout([  $class: 'GitSCM',
-                    branches: [[name: 'refs/heads/'+context.gitBranch]],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [
-                        [$class: 'GitLFSPull']
-                    ],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [
-                        [credentialsId: context.credentialsId,
-                        url: context.gitUrl]
-                    ]
-                ])
+  private void checkoutWithGit(boolean lfsEnabled){
+    def gitParams = [$class                           : 'GitSCM',
+                     branches                         : [[name: context.gitCommit]],
+                     doGenerateSubmoduleConfigurations: false,
+                     submoduleCfg                     : [],
+                     userRemoteConfigs                : [
+                             [credentialsId: context.credentialsId,
+                              url          : context.gitUrl]
+                     ]
+    ]
+    if (lfsEnabled) {
+      gitParams.extensions = [
+              [$class: 'GitLFSPull']
+      ]
+    }
+    script.checkout(gitParams)
   }
 
   private boolean isSlaveNodeGitLFSenabled(){
     def statusCode = script.sh(
       script:"git lfs &> /dev/null",
+      label : "check if slave is GIT lfs enabled",
       returnStatus: true
     )
     return statusCode == 0
   }
 
+  public Map<String, String> getBuildArtifactURIs () {
+    return context.getBuildArtifactURIs()
+  }
 }

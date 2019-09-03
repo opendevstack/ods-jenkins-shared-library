@@ -7,7 +7,7 @@ def call(def context) {
         if (context.debug) {
           debugMode = "-X"
         }
-        // project version
+        // project version - this could be overwritten later by e.g. the MRO forced version
         def projectVersionParam = ""
         def propertiesContent = readFile('sonar-project.properties')
         if (!propertiesContent.contains('sonar.projectVersion=')) {
@@ -15,21 +15,27 @@ def call(def context) {
         }
         // scan
         def scannerBinary = "sonar-scanner"
-        def status = sh(returnStatus: true, script: "which ${scannerBinary}")
+        def status = sh(returnStatus: true, script: "which ${scannerBinary}", label : "finding scanner binary")
         if (status != 0) {
           def scannerHome = tool 'SonarScanner'
           scannerBinary = "${scannerHome}/bin/sonar-scanner"
         }
-        sh "${scannerBinary} ${debugMode} ${projectVersionParam}"
+        sh (script: "${scannerBinary} ${debugMode} ${projectVersionParam}", label : "SQ scanning")
 		
 		    // generate and archive cnes report
         // we need to get the SQ project name as people could modify it
-      	sqProps = readProperties file: 'sonar-project.properties'
-    		sonarProjectKey = sqProps['sonar.projectKey']
-    		withEnv (["SQ_PROJECT=${sonarProjectKey}"]) {
-    		  sh "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT"
-      		  archiveArtifacts '*-analysis-report.docx*'
-    		}	
+        sqProps = readProperties file: 'sonar-project.properties'
+            sonarProjectKey = sqProps['sonar.projectKey']
+            targetSQreport = "SCRR-" + sonarProjectKey + ".docx"
+        withEnv (["SQ_PROJECT=${sonarProjectKey}", "TARGET_SQ_REPORT=${targetSQreport}"]) {
+              sh (script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT", label : "generate SCR Report")
+              sh (script: "mkdir -p artifacts", label : "create artifacts folder")
+              sh (script: "mv *-analysis-report.docx* artifacts/", label : "move SCRR to artifacts dir")
+              sh (script: "mv artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT", label : "rename to SCRR")
+              archiveArtifacts "artifacts/SCRR*"
+              stash(name: "scrr-report-${context.componentId}-${context.buildNumber}", includes: 'artifacts/SCRR*', allowEmpty : true)
+              context.addArtifactURI("SCRR", targetSQreport)
+        }
       }
     }
   }

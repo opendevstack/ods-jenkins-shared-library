@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+- Add support for multi repo orchestration ([#97](https://github.com/opendevstack/ods-jenkins-shared-library/issues/97))
+- Insertion of cd_user in repository URL now supports arbitrary hostnames ([#98](https://github.com/opendevstack/ods-jenkins-shared-library/issues/98))
 
 ##  [1.1.0] - 2019-05-28
 ### Added

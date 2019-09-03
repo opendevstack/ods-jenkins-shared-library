@@ -5,13 +5,17 @@ class OdsContext implements Context {
   def script
   Logger logger
   Map config
-
-  boolean environmentCreated
+  
+  def artifactUriStore = [ : ]
 
   OdsContext(script, config, logger) {
     this.script = script
     this.config = config
     this.logger = logger
+    // Must be done in constructor. Otherwise CpsCallableInvocation throws ProxyException.
+    if (!this.config.containsKey('localCheckoutEnabled')) {
+      this.config.localCheckoutEnabled = true
+    }
   }
 
   def assemble() {
@@ -41,7 +45,7 @@ class OdsContext implements Context {
     config.nexusPassword = script.env.NEXUS_PASSWORD
     config.openshiftHost = script.env.OPENSHIFT_API_URL
     config.bitbucketHost = script.env.BITBUCKET_HOST
-    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true)
+    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label : 'getting ODS shared lib version')
 
     logger.debug "Validating environment variables ..."
     if (!config.jobName) {
@@ -135,6 +139,21 @@ class OdsContext implements Context {
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
+    if (!config.containsKey('bitbucketNotificationEnabled')) {
+      config.bitbucketNotificationEnabled = true
+    }
+    if (!config.containsKey('displayNameUpdateEnabled')) {
+      config.displayNameUpdateEnabled = true
+    }
+
+    if (!config.containsKey('testResults')) {
+      config.testResults = ''
+    }
+
+    if (!config.containsKey('ciSkipEnabled')) {
+      config.ciSkipEnabled = true
+    }
+
     logger.debug "Setting environment ..."
     determineEnvironment()
     if (config.environment) {
@@ -208,6 +227,10 @@ class OdsContext implements Context {
     config.notifyNotGreen
   }
 
+  void setNotifyNotGreen(boolean notifyNotGreen) {
+    config.notifyNotGreen = notifyNotGreen
+  }
+
   String getNexusHost() {
       config.nexusHost
   }
@@ -236,8 +259,16 @@ class OdsContext implements Context {
       config.cloneSourceEnv
   }
 
+  void setCloneSourceEnv(String cloneSourceEnv) {
+    config.cloneSourceEnv = cloneSourceEnv
+  }
+
   String getEnvironment() {
       config.environment
+  }
+
+  void setEnvironment(String environment) {
+    config.environment = environment
   }
 
   String getGroupId() {
@@ -300,61 +331,117 @@ class OdsContext implements Context {
       config.bitbucketHost
   }
 
-  boolean getEnvironmentCreated() {
-      this.environmentCreated
-  }
-
   int getOpenshiftBuildTimeout() {
       config.openshiftBuildTimeout
   }
 
-  def setEnvironmentCreated(boolean created) {
-      this.environmentCreated = created
+  boolean getCiSkipEnabled() {
+    return config.ciSkipEnabled
+  }
+
+  void setCiSkipEnabled(boolean ciSkipEnabled) {
+    config.ciSkipEnabled = ciSkipEnabled
+  }
+
+  boolean getBitbucketNotificationEnabled() {
+    return config.bitbucketNotificationEnabled
+  }
+
+  void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled) {
+    config.bitbucketNotificationEnabled = bitbucketNotificationEnabled
+  }
+
+  boolean getLocalCheckoutEnabled() {
+    return config.localCheckoutEnabled
+  }
+
+  boolean getTestResults () {
+    return config.testResults
+  }
+  
+  void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
+    config.localCheckoutEnabled = localCheckoutEnabled
+  }
+
+  boolean getDisplayNameUpdateEnabled() {
+    return config.displayNameUpdateEnabled
+  }
+
+  void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
+    config.displayNameUpdateEnabled = displayNameUpdateEnabled
   }
 
   private String retrieveGitUrl() {
-    script.sh(
-      returnStdout: true, script: 'git config --get remote.origin.url'
-    ).trim().replace('https://bitbucket', 'https://cd_user@bitbucket')
+    def gitUrl = script.sh(
+      returnStdout: true, script: 'git config --get remote.origin.url',
+      label : 'getting GIT url'
+    ).trim()
+    // check if the url already contains a user
+    if (!gitUrl.contains('@')) {
+      return gitUrl.replace('://', '://cd_user@')
+    } else {
+      return gitUrl
+    }
   }
 
   private String retrieveGitCommit() {
     script.sh(
-      returnStdout: true, script: 'git rev-parse HEAD'
+      returnStdout: true, script: 'git rev-parse HEAD',
+      label : 'getting GIT commit'
     ).trim()
   }
 
   private String retrieveGitCommitAuthor() {
     script.sh(
-      returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD"
+      returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD",
+      label : 'getting GIT commit author'
     ).trim()
   }
 
   private String retrieveGitCommitMessage() {
     script.sh(
-            returnStdout: true, script: "git log -1 --pretty=%B HEAD"
+      returnStdout: true, script: "git log -1 --pretty=%B HEAD",
+      label : 'getting GIT commit message'
     ).trim()
   }
 
   private String retrieveGitCommitTime() {
     script.sh(
-            returnStdout: true, script: "git show -s --format=%ci HEAD"
+      returnStdout: true, script: "git show -s --format=%ci HEAD",
+      label : 'getting GIT commit date/time'
     ).trim()
   }
 
   private String retrieveGitBranch() {
-    def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
-    def buildConfigName = config.jobName.substring(pipelinePrefix.size())
+    def branch
+    if (this.getLocalCheckoutEnabled()) {
+      def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
+      def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
-    script.sh(
-      returnStdout: true,
-      script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
-    ).trim()
+      branch = script.sh(
+              returnStdout: true,
+              label : 'getting GIT branch to build',
+              script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
+      ).trim()
+    } else {
+      // in case code is already checked out, OpenShift build config can not be used for retrieving branch
+      branch = script.sh(
+                returnStdout: true,
+                script: "git rev-parse --abbrev-ref HEAD",
+                label : 'getting GIT branch to build').trim()
+	  branch = script.sh(
+  				returnStdout: true,
+        		script: "git name-rev ${branch} | cut -d ' ' -f2  | sed -e 's|remotes/origin/||g'",
+                label : 'resolving to real GIT branch to build').trim()
+    }
+    logger.debug "resolved branch ${branch}"
+    return branch
   }
   // looks for string [ci skip] in commit message
   boolean getCiSkip() {
     script.sh(
-            returnStdout: true, script: 'git show --pretty=%s%b -s'
+      returnStdout: true, script: 'git show --pretty=%s%b -s',
+      label : 'check skip CI?'
     ).toLowerCase().contains('[ci skip]')
   }
 
@@ -378,14 +465,14 @@ class OdsContext implements Context {
       }
   }
 
-  private String constructCredentialBitbucketURL(String url, String userPass) {
-      return url.replace("cd_user", userPass.replace('@', '%40')).replaceAll("[\n\r]","").trim()
-  }
-
   // This logic must be consistent with what is described in README.md.
   // To make it easier to follow the logic, it is broken down by workflow (at
   // the cost of having some duplication).
   void determineEnvironment() {
+    if (config.environment) {
+      // environment already set
+      return
+    }
     // Fixed name
     def env = config.branchToEnvironmentMapping[config.gitBranch]
     if (env) {
@@ -461,9 +548,18 @@ class OdsContext implements Context {
   protected boolean environmentExists(String name) {
     def statusCode = script.sh(
       script:"oc project ${name} &> /dev/null",
+      label : 'checking for OCP env ${name}',
       returnStatus: true
     )
     return statusCode == 0
+  }
+  
+  public Map<String, String> getBuildArtifactURIs() {
+    return this.artifactUriStore
+  }
+
+  public void addArtifactURI (String key, value) {
+    this.artifactUriStore.put(key, value)
   }
 
 }
