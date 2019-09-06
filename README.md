@@ -214,6 +214,31 @@ you can follow the following steps:
 git lfs migrate
 ```
 
+### How to add Snyk scanning to your ODS project
+
+1. Setup organisation in snyk.io
+    1. If you don´t have an snyk account just create one at snyk.io
+    1. Once you logged into snyk.io, in your snyk group create an organisation for your project with exactly same name as project name.
+    1. Create a service account in settings for the created organisation and keep the displayed token. Yo will need it later. 
+1. Add environment variable to jenkins in your cd project 
+    1. Add the environment variable SNYK_AUTHENTICATION_CODE in jenkins in your openshift cd project with service account token as value.
+1. Edit your project Jenkinsfile
+    1. Read auth code from environment by adding: 
+        ```
+        node {
+            ...
+          snykAuthenticationCode = env.SNYK_AUTHENTICATION_CODE
+       }
+       ```
+    1. Add stageScanForSnyk: 
+        ```
+        ) { context ->
+           ...  
+         
+          stageScanForSnyk(context, snykAuthenticationCode, 'build.gradle', context.projectId)
+          ... 
+        } 
+        ```
 
 ## Development
 * Try to write tests.
