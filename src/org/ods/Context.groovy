@@ -4,8 +4,12 @@ interface Context {
 
     def assemble()
 
+    // Get debug mode
     boolean getDebug()
 
+    // Get the location of the xmlunit results
+    boolean getTestResults()
+    
     // Value of JOB_NAME. It is the name of the project of the build.
     String getJobName()
 
@@ -49,6 +53,9 @@ interface Context {
     // Whether to send notifications if the build is not successful.
     boolean getNotifyNotGreen()
 
+    // Enable/disable notifications
+    void setNotifyNotGreen(boolean notifyNotGreen)
+
     // Nexus host (with scheme).
     String getNexusHost()
 
@@ -70,8 +77,14 @@ interface Context {
     // The environment which was chosen as the clone source.
     String getCloneSourceEnv()
 
+    // Set the environment to clone
+    void setCloneSourceEnv( String cloneSourceEnv)
+
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
+
+    // Set environment
+    void setEnvironment(String environment)
 
     // Target project, based on the environment. E.g. "foo-dev".
     String getTargetProject()
@@ -124,14 +137,40 @@ interface Context {
     // BitBucket host - value taken from BITBUCKET_HOST.
     String getBitbucketHost()
 
-    // Whether an environment has been created during the build.
-    boolean getEnvironmentCreated()
-
     // Timeout for the OpenShift build of the container image.
     int getOpenshiftBuildTimeout()
 
     // Whether the build should be skipped, based on the Git commit message.
     boolean getCiSkip()
 
-    def setEnvironmentCreated(boolean created)
+    // Whether CI skip is enabled
+    boolean getCiSkipEnabled()
+
+    // Enable/disable CI skip is enabled
+    void setCiSkipEnabled(boolean ciSkipEnabled)
+
+    // Whether Bitbucket notification is enabled
+    boolean getBitbucketNotificationEnabled()
+
+    // nable/disable Bitbucket notification
+    void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled)
+
+    // Whether local checkout is enabled
+    boolean getLocalCheckoutEnabled()
+
+    // Enable/disable local checkout
+    void setLocalCheckoutEnabled(boolean localCheckoutEnabled)
+
+    // Whether display name update is enabled
+    boolean getDisplayNameUpdateEnabled()
+
+    // Enable/disable display name update
+    void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
+    
+    // get any build artifact URIs there were created
+    public Map<String, String> getBuildArtifactURIs()
+  
+    // adds a build artifact URI to the context for later retrieval,
+    // e.g. in case a stage fails - the failed stage name - with key failedStage
+    public void addArtifactURI (String key, value)
 }
