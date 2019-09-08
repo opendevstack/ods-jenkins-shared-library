@@ -21,8 +21,8 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
 
         nodes.each { node ->
             node.data.pipelineConfig.dependencies.each { dependency ->
-                // Find all nodes that node depends on
-                nodes.findAll { it.data.url == dependency }.each {
+                // Find all nodes that the current node depends on (by repo id)
+                nodes.findAll { it.data.id == dependency }.each {
                     // Add a relation between dependent nodes
                     node.addTo(it)
                 }
