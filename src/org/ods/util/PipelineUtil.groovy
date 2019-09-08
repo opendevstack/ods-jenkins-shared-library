@@ -99,12 +99,31 @@ class PipelineUtil {
         return this.script.load(path)
     }
 
-    Map readProjectMetadata() {
+    Map loadProjectMetadata() {
         def file = new File("${this.script.WORKSPACE}/${PROJECT_METADATA_FILE_NAME}")
         if (!file.exists()) {
             throw new RuntimeException("Error: unable to load project meta data. File ${PROJECT_METADATA_FILE_NAME} does not exist.")
         }
 
-        return new Yaml().load(file.text)
+        def result = new Yaml().load(file.text)
+
+        // Check for existence of required attribute 'id'
+        if (result.id == null || !result.id.trim()) {
+            throw new RuntimeException("Error: unable to process project meta data. Required attribute 'id' is undefined.")
+        }
+
+        // Check for existence of required attribute 'repositories'
+        if (!result.repositories) {
+            throw new RuntimeException("Error: unable to process project meta data. Required attribute 'repositories' is undefined.")
+        }
+
+        // Check for existence of required attribute 'repositories[i].id'
+        repos.eachWithIndex { repo, index ->
+            if (repo.id == null || !repo.id.trim()) {
+                throw new RuntimeException("Error: unable to process project meta data. Required attribute 'repositories[${index}].id' is undefined.")
+            }
+        }
+
+        return result
     }
 }

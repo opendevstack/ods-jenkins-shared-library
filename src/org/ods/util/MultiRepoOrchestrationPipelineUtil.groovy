@@ -36,7 +36,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
     }
 
     Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
-        def project = readProjectMetadata()
+        def project = loadProjectMetadata()
 
         return [
             repo.id,
