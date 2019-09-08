@@ -433,13 +433,7 @@ class OdsContext implements Context {
   private String retrieveLastSuccessfulCommit() {
     def lastSuccessfulBuildUrl = retrieveLastSuccessfulBuildUrl()
     def lastSuccessfulCommit = retrieveLastBuiltRevisionHash(lastSuccessfulBuildUrl)
-    if (!commitExists(lastSuccessfulCommit)) {
-      return script.sh(
-        script: "git --no-pager log --pretty=%P -n 1 ${config.gitCommit}",
-        returnStatus: true
-      )
-    }
-    return lastSuccessfulCommit
+    return (commitExists(lastSuccessfulCommit)) ? lastSuccessfulCommit : ""
   }
 
   private String retrieveLastSuccessfulBuildUrl() {
@@ -461,7 +455,7 @@ class OdsContext implements Context {
 
   private boolean commitExists(String commitHash) {
     return script.sh(
-      script: "git branch --contains ${lastSuccessfulCommit} &> /dev/null", // Alternative git log --pretty=%H -n 10 | grep
+      script: "git branch --contains ${commitHash} &> /dev/null", // Alternative git log --pretty=%H -n 10 | grep
       returnStatus: true
     ) == 0
   }
