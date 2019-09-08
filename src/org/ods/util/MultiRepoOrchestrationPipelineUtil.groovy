@@ -91,9 +91,8 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                             }
                         }
                     } else {
-                        def skipEchoMessage = "ODS build ${repo.id} - skipping phase ${name}"
                         this.script.stage('ODS') {
-                            this.script.echo(skipEchoMessage)
+                            this.script.echo("Repo '${repo.id}' is of type ODS Component. Nothing to do in phase '${name}'")
                         }
                     }
                 } else {

@@ -52,6 +52,7 @@ def call() {
 
     // Checkout repositories into the workspace
     parallel(util.prepareCheckoutReposNamedJob(repos) { script, repo ->
+        echo "Repository: ${repo}"
         echo "Environment configuration: ${env.getEnvironment()}"
     })
 
