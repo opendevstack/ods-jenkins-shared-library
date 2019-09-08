@@ -50,6 +50,9 @@ interface Context {
     // The tagversion is made up of the build number and the first 8 chars of the commit SHA.
     String getTagversion()
 
+    // Gets last successful commit SHA built on Jenkins on a specific pipeline
+    String getLastSuccessfulCommit()
+
     // Whether to send notifications if the build is not successful.
     boolean getNotifyNotGreen()
 

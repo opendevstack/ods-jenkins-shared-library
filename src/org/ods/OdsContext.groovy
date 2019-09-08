@@ -139,6 +139,7 @@ class OdsContext implements Context {
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
+    config.lastSuccessfulCommit = retrieveLastSuccessfulCommit()
 
     if (!config.containsKey('bitbucketNotificationEnabled')) {
       config.bitbucketNotificationEnabled = true
@@ -224,6 +225,10 @@ class OdsContext implements Context {
 
   String getTagversion() {
     config.tagversion
+  }
+
+  String getLastSuccessfulCommit() {
+    config.lastSuccessfulCommit
   }
 
   boolean getNotifyNotGreen() {
@@ -423,6 +428,42 @@ class OdsContext implements Context {
       returnStdout: true, script: "git show -s --format=%ci HEAD",
       label : 'getting GIT commit date/time'
     ).trim()
+  }
+
+  private String retrieveLastSuccessfulCommit() {
+    def lastSuccessfulBuildUrl = retrieveLastSuccessfulBuildUrl()
+    def lastSuccessfulCommit = retrieveLastBuiltRevisionHash(lastSuccessfulBuildUrl)
+    if (!commitExists(lastSuccessfulCommit)) {
+      return script.sh(
+        script: "git --no-pager log --pretty=%P -n 1 ${config.gitCommit}",
+        returnStatus: true
+      )
+    }
+    return lastSuccessfulCommit
+  }
+
+  private String retrieveLastSuccessfulBuildUrl() {
+    return script.sh(
+      script: "echo ${config.buildUrl} | sed s_${config.buildNumber}_lastSuccessfulBuild_",
+      returnStdout: true
+    ).trim() + 'api/json/?tree=actions[lastBuiltRevision[SHA1]]'
+  }
+
+  private String retrieveLastBuiltRevisionHash(String lastBuiltRevisionUrl) {
+    def lastBuiltRevisionJson = script.sh(
+      script: "curl -g ${lastBuiltRevisionUrl}",
+      returnStdout: true
+    )
+    def shaBegin = lastBuiltRevisionJson.indexOf('SHA1":"') + 7
+    def shaEnd = lastBuiltRevisionJson.indexOf('"', shaBegin)
+    return lastBuiltRevisionJson.substring(shaBegin, shaEnd)
+  }
+
+  private boolean commitExists(String commitHash) {
+    return script.sh(
+      script: "git branch --contains ${lastSuccessfulCommit} &> /dev/null", // Alternative git log --pretty=%H -n 10 | grep
+      returnStatus: true
+    ) == 0
   }
 
   private String retrieveGitBranch() {
