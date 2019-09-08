@@ -21,7 +21,7 @@ def call(Map project, List<Set<Map>> repos) {
         testsuites: Collections.synchronizedList([])
     ]
 
-    def groups = util.prepareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos) { script, repo ->
+    def groups = util.prepareExecutePhaseForReposNamedJob(PipelinePhases.TEST_PHASE, repos, null) { script, repo ->
         def testReportsPath = "junit/${repo.id}"
 
         // Unstash JUnit test reports into path

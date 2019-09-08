@@ -1,11 +1,13 @@
 package org.ods.util
 
+@Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
 @Grab('net.lingala.zip4j:zip4j:2.1.1')
 @Grab('org.yaml:snakeyaml:1.24')
 
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
+import org.apache.http.client.utils.URIBuilder
 import org.yaml.snakeyaml.Yaml
 
 class PipelineUtil {
@@ -99,12 +101,58 @@ class PipelineUtil {
         return this.script.load(path)
     }
 
-    Map readProjectMetadata() {
+    Map loadProjectMetadata() {
         def file = new File("${this.script.WORKSPACE}/${PROJECT_METADATA_FILE_NAME}")
         if (!file.exists()) {
             throw new RuntimeException("Error: unable to load project meta data. File ${PROJECT_METADATA_FILE_NAME} does not exist.")
         }
 
-        return new Yaml().load(file.text)
+        def result = new Yaml().load(file.text)
+
+        // Check for existence of required attribute 'id'
+        if (result.id == null || !result.id.trim()) {
+            throw new RuntimeException("Error: unable to process project meta data. Required attribute 'id' is undefined.")
+        }
+
+        // Check for existence of required attribute 'repositories'
+        if (!result.repositories) {
+            throw new RuntimeException("Error: unable to process project meta data. Required attribute 'repositories' is undefined.")
+        }
+
+        result.repositories.eachWithIndex { repo, index ->
+            // Check for existence of required attribute 'repositories[i].id'
+            if (repo.id == null || !repo.id.trim()) {
+                throw new RuntimeException("Error: unable to process project meta data. Required attribute 'repositories[${index}].id' is undefined.")
+            }
+
+            // Resolve repo URL, if not provided
+            if (repo.url == null || !repo.url.trim()) {
+                this.script.echo("Could not determine Git URL for repo '${repo.id}'")
+
+                def gitURL = this.script.sh(
+                    label : "Get Git URL of MRO pipeline repo",
+                    script: "git config --get remote.origin.url",
+                    returnStdout: true
+                ).trim()
+
+                gitURL = new URIBuilder(gitURL).build()
+                if (repo.name != null && repo.name.trim()) {
+                    repo.url = gitURL.resolve("${repo.name}.git")
+                } else {
+                    repo.url = gitURL.resolve("${project.id.toLowerCase()}-${repo.id}.git")
+                }
+
+                this.script.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+            }
+
+            // Resolve repo branch, if not provided
+            if (repo.branch == null || !repo.branch.trim()) {
+                this.script.echo("Could not determine Git branch for repo '${repo.id}'")
+                repo.branch = "master"
+                this.script.echo("Resolved Git branch for repo '${repo.id}' to '${repo.branch}'")
+            }
+        }
+
+        return result
     }
 }

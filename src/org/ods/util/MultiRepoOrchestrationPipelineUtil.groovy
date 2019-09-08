@@ -21,8 +21,8 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
 
         nodes.each { node ->
             node.data.pipelineConfig.dependencies.each { dependency ->
-                // Find all nodes that node depends on
-                nodes.findAll { it.data.url == dependency }.each {
+                // Find all nodes that the current node depends on (by repo id)
+                nodes.findAll { it.data.id == dependency }.each {
                     // Add a relation between dependent nodes
                     node.addTo(it)
                 }
@@ -35,12 +35,16 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         }
     }
 
-    Closure prepareCheckoutRepoNamedJob(Map repo, Closure postExecute = null) {
-        def project = readProjectMetadata()
+    Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
+        def project = loadProjectMetadata()
 
         return [
             repo.id,
             {
+                if (preExecute) {
+                    preExecute(this.script, repo)
+                }
+
                 this.script.checkout([
                     $class: 'GitSCM',
                     branches: [
@@ -63,17 +67,21 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         ]
     }
 
-    void prepareCheckoutReposNamedJob(List<Map> repos, Closure postExecute = null) {
+    void prepareCheckoutReposNamedJob(List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
         repos.collectEntries { repo ->
-            prepareCheckoutRepoNamedJob(repo, postExecute)
+            prepareCheckoutRepoNamedJob(repo, preExecute, postExecute)
         }
     }
 
-    Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure postExecute = null) {
+    Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
         return [
             repo.id,
             {
                 def baseDir = "${this.script.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+
+                if (preExecute) {
+                    preExecute(this.script, repo)
+                }
 
                 if (repo.type?.toLowerCase() == 'ods') {
                     if (name == PipelinePhases.BUILD_PHASE) {
@@ -83,9 +91,8 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
                             }
                         }
                     } else {
-                        def skipEchoMessage = "ODS build ${repo.id} - skipping phase ${name}"
                         this.script.stage('ODS') {
-                            this.script.echo(skipEchoMessage)
+                            this.script.echo("Repo '${repo.id}' is of type ODS Component. Nothing to do in phase '${name}'")
                         }
                     }
                 } else {
@@ -116,7 +123,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
         ]
     }
 
-    List<Set<Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure postExecute = null) {
+    List<Set<Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure preExecute = null, Closure postExecute = null) {
         // In some phases, we can run all repos in parallel
         if (PipelinePhases.ALWAYS_PARALLEL_PHASES.contains(name)) {
             repos = [repos.flatten() as Set<Map>]
@@ -124,7 +131,7 @@ class MultiRepoOrchestrationPipelineUtil extends PipelineUtil {
 
         repos.collect { group ->
             group.collectEntries { repo ->
-                prepareExecutePhaseForRepoNamedJob(name, repo, postExecute)
+                prepareExecutePhaseForRepoNamedJob(name, repo, preExecute, postExecute)
             }
         }
     }

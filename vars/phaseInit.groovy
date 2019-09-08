@@ -9,9 +9,10 @@ import org.ods.util.PipelineUtil
 import org.ods.util.MultiRepoOrchestrationPipelineUtil
 
 def call() {
-    // Gather metadata
     def util = new MultiRepoOrchestrationPipelineUtil(this)
-    def project = util.readProjectMetadata()
+
+    // Gather metadata
+    def project = util.loadProjectMetadata()
     def repos = project.repositories
 
     // Register services
@@ -51,6 +52,7 @@ def call() {
 
     // Checkout repositories into the workspace
     parallel(util.prepareCheckoutReposNamedJob(repos) { script, repo ->
+        echo "Repository: ${repo}"
         echo "Environment configuration: ${env.getEnvironment()}"
     })
 
