@@ -14,7 +14,7 @@ def call(Map project, List<Set<Map>> repos) {
     def nexus   = ServiceRegistry.instance.get(NexusService.class.name)
     def util    = ServiceRegistry.instance.get(PipelineUtil.class.name)
 
-    def groups = util.prepareExecutePhaseForReposNamedJob(PipelinePhases.DEPLOY_PHASE, repos) { script, repo ->
+    def groups = util.prepareExecutePhaseForReposNamedJob(PipelinePhases.DEPLOY_PHASE, repos, null) { script, repo ->
         // Create and store a Technical Installation Report document
         echo "Creating and archiving a Technical Installation Report for ${repo.id}"
         levaDoc.createTIR(script.env.version, project, repo)
