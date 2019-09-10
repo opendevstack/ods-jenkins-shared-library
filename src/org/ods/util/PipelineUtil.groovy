@@ -111,18 +111,23 @@ class PipelineUtil {
 
         // Check for existence of required attribute 'id'
         if (result.id == null || !result.id.trim()) {
-            throw new RuntimeException("Error: unable to process project meta data. Required attribute 'id' is undefined.")
+            throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'id' is undefined.")
+        }
+
+        // Check for existence of required attribute 'name'
+        if (result.name == null || !result.name.trim()) {
+            throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'name' is undefined.")
         }
 
         // Check for existence of required attribute 'repositories'
         if (!result.repositories) {
-            throw new RuntimeException("Error: unable to process project meta data. Required attribute 'repositories' is undefined.")
+            throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'repositories' is undefined.")
         }
 
         result.repositories.eachWithIndex { repo, index ->
             // Check for existence of required attribute 'repositories[i].id'
             if (repo.id == null || !repo.id.trim()) {
-                throw new RuntimeException("Error: unable to process project meta data. Required attribute 'repositories[${index}].id' is undefined.")
+                throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
 
             // Resolve repo URL, if not provided
@@ -137,9 +142,9 @@ class PipelineUtil {
 
                 gitURL = new URIBuilder(gitURL).build()
                 if (repo.name != null && repo.name.trim()) {
-                    repo.url = gitURL.resolve("${repo.name}.git")
+                    repo.url = gitURL.resolve("${repo.name}.git").toString()
                 } else {
-                    repo.url = gitURL.resolve("${project.id.toLowerCase()}-${repo.id}.git")
+                    repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
                 }
 
                 this.script.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")

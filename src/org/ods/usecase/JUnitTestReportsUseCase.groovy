@@ -13,9 +13,11 @@ class JUnitTestReportsUseCase {
     List<File> loadTestReportsFromPath(String path) {
         def result = []
 
-        new File(path).traverse(nameFilter: ~/.*\.xml$/, type: groovy.io.FileType.FILES) { file ->
-            result << file
-        }
+        try {
+            new File(path).traverse(nameFilter: ~/.*\.xml$/, type: groovy.io.FileType.FILES) { file ->
+                result << file
+            }
+        } catch (FileNotFoundException e) {}
 
         return result
     }
@@ -33,11 +35,5 @@ class JUnitTestReportsUseCase {
 
     void reportTestReportsFromPathToJenkins(String path) {
         this.script.junit("${path}/**/*.xml")
-    }
-
-    void unstashTestReportsIntoPath(String name, String path) {
-        this.script.dir(path) {
-            this.script.unstash(name: name)
-        }
     }
 }

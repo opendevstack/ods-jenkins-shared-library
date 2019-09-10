@@ -62,4 +62,27 @@ class NexusService {
 
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
     }
+    
+    @NonCPS
+    def URI storeArtifactFromFile(String repository, String directory, String name, File artifact, String contentType) {
+        def response = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+            .routeParam("repository", repository)
+            .basicAuth(this.username, this.password)
+            .field("raw.directory", directory)
+            .field("raw.asset1", new FileInputStream(artifact), contentType)
+            .field("raw.asset1.filename", name)
+            .asString()
+
+        response.ifSuccess {
+            if (response.getStatus() != 204) {
+                throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            }
+        }
+
+        response.ifFailure {
+            throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+        }
+
+        return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
+    }
 }

@@ -35,7 +35,7 @@ class LeVaDocumentUseCase {
         this.util = util
     }
 
-    private void createDocument(String type, String version, Map project, Map repo, Map data, List<File> rawFiles, String jiraIssueJQLQuery) {
+    private String createDocument(String type, String version, Map project, Map repo, Map data, List<File> rawFiles, String jiraIssueJQLQuery) {
         // Create a PDF document via the DocGen service
         def document = this.docGen.createDocument(type, '0.1', data)
 
@@ -67,9 +67,11 @@ class LeVaDocumentUseCase {
 
         // Add a comment to the Jira issue with a link to the report
         this.jira.appendCommentToIssue(jiraIssues.iterator().next().value.key, "A new ${type} has been generated and is available at: ${uri}.")
+        
+        return uri
     }
 
-    void createDTR(String version, Map project, Map repo, Map testResults, List testReportFiles) {
+    String createDTR(String version, Map project, Map repo, Map testResults, List testReportFiles) {
         def documentType = DOCUMENT_TYPE_DTR
         def jiraIssueJQLQuery = "project = ${project.id} AND labels = LeVA_Doc:DTR"
 
@@ -86,10 +88,10 @@ class LeVaDocumentUseCase {
             ]
         ]
 
-        createDocument(documentType, version, project, repo, data, testReportFiles, jiraIssueJQLQuery)
+        return createDocument(documentType, version, project, repo, data, testReportFiles, jiraIssueJQLQuery)
     }
 
-    void createTIR(String version, Map project, Map repo) {
+    String createTIR(String version, Map project, Map repo) {
         def documentType = DOCUMENT_TYPE_TIR
         def jiraIssueJQLQuery = "project = ${project.id} AND labels = LeVA_Doc:TIR"
 
@@ -104,6 +106,6 @@ class LeVaDocumentUseCase {
             data: [:]
         ]
 
-        createDocument(documentType, version, project, repo, data, [], jiraIssueJQLQuery)
+        return createDocument(documentType, version, project, repo, data, [], jiraIssueJQLQuery)
     }
 }
