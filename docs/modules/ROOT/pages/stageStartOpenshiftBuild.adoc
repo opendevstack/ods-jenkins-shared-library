@@ -1,0 +1,13 @@
+:page-partial:
+
+stageStartOpenshiftBuild triggers the BuildConfig related to the repository
+being built.
+
+stageStartOpenshiftBuild takes two optional params
+(a) the first one, named "buildArgs", which is a map allowing to customise the image build step in OpenShift.
+For example:
+stageStartOpenshiftBuild(context, ["myArg":"val"])
+
+(b) the second one, named "imageLabels", which is a map allowing to customise the image label generation.
+For example:
+stageStartOpenshiftBuild(context, [ : ], ["myImageLabel":"valLabel"]). This will end up as label prefixed with 'ext.'

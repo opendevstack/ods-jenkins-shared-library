@@ -39,6 +39,17 @@ odsPipeline(
 }
 ----
 
+== Provided Stages
+
+Following stages are provided (see folder vars for more details):
+
+* <<_stage_scan_for_sonarqube,stageScanForSonarqube(context)>>
+* stageOWASPDependencyCheck(context)
+* <<_stage_scan_for_snyk,stageScanForSnyk(context, snykAuthenticationCode, buildFile, projectId)>>
+* stageUploadToNexus(context)
+* <<_stage_start_openshift_build,stageStartOpenshiftBuild(context)>>
+* stageDeployToOpenshift(context)
+
 == Workflow
 
 The shared library does not impose which Git workflow you use. Whether you use git-flow, GitHub flow or a custom workflow, it is possible to configure the shared library according to your needs. There are just two settings to control everything: `branchToEnvironmentMapping` and `autoCloneEnvironmentsFromSourceMapping`.
@@ -235,6 +246,9 @@ When you write stages, you have access to both global variables (defined without
 | sonarQubeBranch
 | Branch on which to run SonarQube analysis.
 
+| failOnSnykScanVulnerabilities
+| Boolean flag (default true) that disables build failure in case Snyk Scan finds vulnerabilities
+
 | dependencyCheckBranch
 | Branch on which to run dependency checks.
 
@@ -298,6 +312,53 @@ you can follow the following steps:
 ----
 git lfs migrate
 ----
+
+=== How to add Snyk scanning to your ODS project
+
+. Setup organisation in snyk.io
+ .. If you don´t have an snyk account just create one at snyk.io
+ .. Once you logged into snyk.io, in your snyk group create an organisation for your project with exactly same name as project name.
+ .. Create a service account in settings for the created organisation and keep the displayed token. You will need it later.
+. Add environment variable to jenkins in your cd project
+ .. Add the environment variable `SNYK_AUTHENTICATION_CODE` in jenkins in your openshift cd project with service account token as value.
+. Edit your project Jenkinsfile
+ .. Read auth code from environment by adding:
++
+----
+ node {
+     ...
+   snykAuthenticationCode = env.SNYK_AUTHENTICATION_CODE
+}
+----
+
+ .. Add stageScanForSnyk:
++
+----
+ ) { context ->
+    ...
+
+   stageScanForSnyk(context, snykAuthenticationCode, 'build.gradle', context.projectId)
+   ...
+ }
+----
+
+== Stages
+
+=== Ods Pipeline
+
+include::./odsPipeline.adoc[]
+
+=== Stage Scan for Snyk
+
+include::./stageScanForSnyk.adoc[]
+
+=== Stage Start OpenShift Build
+
+include::./stageStartOpenshiftBuild.adoc[]
+
+=== Stage Scan For SonarQube
+
+include::./stageScanForSonarQube.adoc[]
 
 == Development
 
