@@ -1,8 +1,1 @@
-The "SonarQube Analysis" stage scans your source code and reports findings to
-SonarQube. The configuration of the scan happens via the
-"sonar-project.properties" file in the repository being built.
-
-In debug mode, the sonar-scanner binary is started with the "-X" flag.
-
-If no "sonar.projectVersion" is specified in "sonar-project.properties", it is
-set to the shortened Git SHA.
+see the documentation in the antora module / documentation at https://github.com/opendevstack/ods-jenkins-shared-library/tree/master/docs/modules/ROOT/pages
