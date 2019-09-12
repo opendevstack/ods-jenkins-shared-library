@@ -32,15 +32,17 @@ class JenkinsService {
     }
 
     boolean unstashFilesIntoPath(String name, String path, String type) {
+        def result = true
+
         this.script.dir(path) {
             try {
-                script.unstash(name: name)
+                this.script.unstash(name)
             } catch (e) {
                 this.script.echo "Could not find any files of type '${type}' to unstash for name '${name}'"
-                return false
+                result = false
             }
         }
 
-        return true
+        return result
     }
 }

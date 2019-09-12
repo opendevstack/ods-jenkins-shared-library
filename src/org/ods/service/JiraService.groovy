@@ -21,15 +21,15 @@ class JiraService {
     String password
 
     JiraService(String baseURL, String username, String password) {
-        if (!baseURL) {
+        if (!baseURL?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Jira. 'baseURL' is undefined")
         }
 
-        if (!username) {
+        if (!username?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Jira. 'username' is undefined")
         }
 
-        if (!password) {
+        if (!password?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Jira. 'password' is undefined")
         }
 
@@ -44,38 +44,13 @@ class JiraService {
     }
 
     @NonCPS
-    void appendCommentToIssue(String issueIdOrKey, String comment) {
-        if (!issueIdOrKey) {
-            throw new IllegalArgumentException("Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined")
-        }
-
-        if (!comment) {
-            throw new IllegalArgumentException("Error: unable to append comment to Jira issue. 'comment' is undefined")
-        }
-
-        def response = Unirest.post("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}/comment")
-            .routeParam("issueIdOrKey", issueIdOrKey)
-            .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .body(JsonOutput.toJson(
-                [ body: comment ]
-            ))
-            .asString()
-
-        response.ifFailure {
-            throw new RuntimeException("Error: unable to append comment to Jira issue. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
-        }
-    }
-
-    @NonCPS
     void addLabelsToIssue(String issueIdOrKey, List names) {
-        if (!issueIdOrKey) {
+        if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException("Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined")
         }
 
         if (!names) {
-            throw new IllegalArgumentException("Error: unable to add labels to Jira issue. 'name' is undefined")
+            throw new IllegalArgumentException("Error: unable to add labels to Jira issue. 'names' is undefined")
         }
 
         def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
@@ -95,12 +70,41 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to add labels to Jira issue. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            throw new RuntimeException("Error: unable to add labels to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
+        }
+    }
+
+    @NonCPS
+    void appendCommentToIssue(String issueIdOrKey, String comment) {
+        if (!issueIdOrKey?.trim()) {
+            throw new IllegalArgumentException("Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined")
+        }
+
+        if (!comment?.trim()) {
+            throw new IllegalArgumentException("Error: unable to append comment to Jira issue. 'comment' is undefined")
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}/comment")
+            .routeParam("issueIdOrKey", issueIdOrKey)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(JsonOutput.toJson(
+                [ body: comment ]
+            ))
+            .asString()
+
+        response.ifFailure {
+            throw new RuntimeException("Error: unable to append comment to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
         }
     }
 
     @NonCPS
     void createIssueLinkType(String linkType, Map inwardIssue, Map outwardIssue) {
+        if (!linkType?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create Jira issue link. 'linkType' is undefined")
+        }
+
         if (!inwardIssue) {
             throw new IllegalArgumentException("Error: unable to create Jira issue link. 'inwardIssue' is undefined")
         }
@@ -130,12 +134,12 @@ class JiraService {
 
         response.ifSuccess {
             if (response.getStatus() != 201) {
-                throw new RuntimeException("Error: unable to create Jira issue link. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+                throw new RuntimeException("Error: unable to create Jira issue link. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
             }
         }
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to create Jira issue link. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            throw new RuntimeException("Error: unable to create Jira issue link. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
         }
     }
 
@@ -146,16 +150,20 @@ class JiraService {
 
     @NonCPS
     Map createIssueType(String type, String projectKey, String summary, String description) {
-        if (!type) {
+        if (!type?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Jira issue. 'type' is undefined")
         }
 
-        if (!projectKey) {
+        if (!projectKey?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Jira issue. 'projectKey' is undefined")
         }
 
-        if (!summary) {
+        if (!summary?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Jira issue. 'summary' is undefined")
+        }
+
+        if (!description?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create Jira issue. 'description' is undefined")
         }
 
         def response = Unirest.post("${this.baseURL}/rest/api/2/issue")
@@ -180,12 +188,12 @@ class JiraService {
 
         response.ifSuccess {
             if (response.getStatus() != 201) {
-                throw new RuntimeException("Error: unable to create Jira issue. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+                throw new RuntimeException("Error: unable to create Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
             }
         }
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to create Jira issue. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            throw new RuntimeException("Error: unable to create Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
         }
 
         return new JsonSlurperClassic().parseText(response.getBody())
@@ -197,7 +205,7 @@ class JiraService {
 
     @NonCPS
     List getIssuesForJQLQuery(String query) {
-        if (!query) {
+        if (!query?.trim()) {
             throw new IllegalArgumentException("Error: unable to get Jira issues for JQL query. 'query' is undefined")
         }
 
@@ -208,7 +216,7 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to get Jira issues for JQL query. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            throw new RuntimeException("Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
         }
 
         return new JsonSlurperClassic().parseText(response.getBody()).issues
@@ -216,7 +224,7 @@ class JiraService {
 
     @NonCPS
     void removeLabelsFromIssue(String issueIdOrKey, List names) {
-        if (!issueIdOrKey) {
+        if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException("Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined")
         }
 
@@ -241,7 +249,7 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to remove labels from Jira issue. Jira responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            throw new RuntimeException("Error: unable to remove labels from Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
         }
     }
 
