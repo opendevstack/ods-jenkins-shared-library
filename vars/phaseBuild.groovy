@@ -24,7 +24,7 @@ def call(Map project, List<Set<Map>> repos) {
             if (!scrrReportFiles.isEmpty()) {
                 // Store the SCRR Report in Nexus
                 echo "Uploading an SCRR Report for repo '${repo.id}'"
-                repo.SCRR = sq.uploadSCRRReportToNexus(script.env.version, project, repo, "SCRR", scrrReportFiles.first())
+                repo.SCRR = sq.uploadSCRRReportToNexus(script.env.RELEASE_PARAM_VERSION, project, repo, "SCRR", scrrReportFiles.first())
             }
         }
     }

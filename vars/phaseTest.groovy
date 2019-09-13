@@ -46,7 +46,7 @@ def call(Map project, List<Set<Map>> repos) {
 
             // Create and store a Development Test Report document
             echo "Creating and archiving a Development Test Report for repo '${repo.id}'"
-            repo.DTR = levaDoc.createDTR(script.env.version, project, repo, testReport, testReportFiles)
+            repo.DTR = levaDoc.createDTR(script.env.RELEASE_PARAM_VERSION, project, repo, testReport, testReportFiles)
 
             // Add the report's test results into a global data structure
             testResults.testsuites.addAll(testReport.testsuites)
