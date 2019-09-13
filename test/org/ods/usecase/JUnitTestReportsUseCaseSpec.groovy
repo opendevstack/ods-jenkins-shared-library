@@ -19,8 +19,8 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
     def "load test reports from path"() {
         given:
         def tmpDir = Files.createTempDirectory("junit-test-reports-")
-        def tmpFile1 = Files.createTempFile(tmpDir, "junit", ".xml") << '<?xml version="1.0" ?>'
-        def tmpFile2 = Files.createTempFile(tmpDir, "junit", ".xml") << '<?xml version="2.0" ?>'
+        def tmpFile1 = Files.createTempFile(tmpDir, "junit", ".xml") << "JUnit XML Report 1"
+        def tmpFile2 = Files.createTempFile(tmpDir, "junit", ".xml") << "JUnit XML Report 2"
 
         def steps = Spy(PipelineSteps)
         def usecase = createUseCase(steps)
@@ -30,7 +30,7 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
         then:
         result.size() == 2
-        result.collect { it.text }.sort() == ['<?xml version="1.0" ?>', '<?xml version="2.0" ?>']
+        result.collect { it.text }.sort() == ["JUnit XML Report 1", "JUnit XML Report 2"]
 
         cleanup:
         tmpDir.toFile().deleteDir()

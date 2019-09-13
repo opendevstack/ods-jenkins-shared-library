@@ -120,6 +120,49 @@ class FixtureHelper {
         """
     }
 
+    static Map createProject() {
+        def result = [
+            id: "PRJ",
+            key: "PROJECT-1"
+        ]
+
+        result.services = [
+            bitbucket: [
+                credentials: [
+                    id: "myBitBucketCredentials"
+                ]
+            ],
+            jira: [
+                credentials: [
+                    id: "myJiraCredentials"
+                ]
+            ],
+            nexus: [
+                repository: [
+                    name: "myNexusRepository"
+                ]
+            ]
+        ]
+
+        result.repositories = [
+            [
+                id: "A",
+                url: "https://github.com/my-org/my-repo-A.git",
+                branch: "master"
+            ],
+            [
+                id: "B",
+                name: "my-repo-B",
+                branch: "master"
+            ],
+            [
+                id: "C"
+            ]
+        ]
+
+        return result
+    }
+
     static Map createTestResults(boolean convertToSimpleFormat = true) {
         def result = JUnitParser.parseJUnitXML(
             createJUnitXMLTestResults()
