@@ -95,34 +95,34 @@ class FixtureHelper {
         return result
     }
 
-    static Map createJUnitXMLTestResults() {
-        return createTestResults(false)
+    static String createJUnitXMLTestResults() {
+        return """
+        <testsuites name="my-suites" tests="4" failures="1" errors="1">
+            <testsuite name="my-suite-1" tests="2" failures="0" errors="1" skipped="0">
+                <properties>
+                    <property name="my-property-a" value="my-property-a-value"/>
+                </properties>
+                <testcase name="my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
+                <testcase name="my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
+                    <error type="my-error-type" message="my-error-message">This is an error.</error>
+                </testcase>
+            </testsuite>
+            <testsuite name="my-suite-2" tests="3" failures="1" errors="0" skipped="1">
+                <testcase name="my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
+                    <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
+                </testcase>
+                <testcase name="my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
+                    <skipped/>
+                </testcase>
+                <testcase name="my-testcase-5" classname="app.MyTestCase5" status="Succeeded" time="5"/>
+            </testsuite>
+        </testsuites>
+        """
     }
 
     static Map createTestResults(boolean convertToSimpleFormat = true) {
         def result = JUnitParser.parseJUnitXML(
-            """
-            <testsuites name="my-suites" tests="4" failures="1" errors="1">
-                <testsuite name="my-suite-1" tests="2" failures="0" errors="1" skipped="0">
-                    <properties>
-                        <property name="my-property-a" value="my-property-a-value"/>
-                    </properties>
-                    <testcase name="my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
-                    <testcase name="my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
-                        <error type="my-error-type" message="my-error-message">This is an error.</error>
-                    </testcase>
-                </testsuite>
-                <testsuite name="my-suite-2" tests="3" failures="1" errors="0" skipped="1">
-                    <testcase name="my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
-                        <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
-                    </testcase>
-                    <testcase name="my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
-                        <skipped/>
-                    </testcase>
-                    <testcase name="my-testcase-5" classname="app.MyTestCase5" status="Succeeded" time="5"/>
-                </testsuite>
-            </testsuites>
-            """
+            createJUnitXMLTestResults()
         )
 
         if (convertToSimpleFormat) {

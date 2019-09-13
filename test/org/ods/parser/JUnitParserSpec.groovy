@@ -423,7 +423,7 @@ class JUnitParserSpec extends SpecHelper {
 
     def "Helper.toSimpleFormat"() {
         given:
-        def xml = createJUnitXMLTestResults()
+        def xml = createTestResults(false)
 
         when:
         def result = JUnitParser.Helper.toSimpleFormat(xml)
@@ -496,7 +496,7 @@ class JUnitParserSpec extends SpecHelper {
 
     def "Helper.toSimpleErrorsFormat"() {
         given:
-        def xml = createJUnitXMLTestResults()
+        def xml = createTestResults(false)
 
         when:
         def result = JUnitParser.Helper.toSimpleErrorsFormat(JUnitParser.Helper.toSimpleFormat(xml))
@@ -520,7 +520,7 @@ class JUnitParserSpec extends SpecHelper {
 
     def "Helper.toSimpleFailuresFormat"() {
         given:
-        def xml = createJUnitXMLTestResults()
+        def xml = createTestResults(false)
 
         when:
         def result = JUnitParser.Helper.toSimpleFailuresFormat(JUnitParser.Helper.toSimpleFormat(xml))

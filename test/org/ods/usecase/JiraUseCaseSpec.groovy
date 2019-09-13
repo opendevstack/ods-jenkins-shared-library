@@ -85,7 +85,7 @@ class JiraUseCaseSpec extends SpecHelper {
         given:
         def projectId      = "PROJECT-1"
         def testCaseIssues = createJiraTestCaseIssues(false)
-        def testResults    = createJUnitXMLTestResults()
+        def testResults    = createTestResults(false)
         def error          = createTestResultErrors().first()
         def failure        = createTestResultFailures().first()
 

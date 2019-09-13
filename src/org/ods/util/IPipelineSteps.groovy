@@ -8,6 +8,8 @@ interface IPipelineSteps {
 
     Map env()
 
+    void junit(String path)
+
     void stash(String name)
 
     void unstash(String name)

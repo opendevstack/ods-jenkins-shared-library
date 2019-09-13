@@ -17,6 +17,9 @@ class PipelineSteps implements IPipelineSteps {
         return env
     }
 
+    void junit(String path) {
+    }
+
     void stash(String name) {
     }
 

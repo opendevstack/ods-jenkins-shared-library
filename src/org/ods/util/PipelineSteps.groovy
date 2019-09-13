@@ -3,7 +3,6 @@ package org.ods.util
 class PipelineSteps implements IPipelineSteps, Serializable {
 
     private def context
-    private Map env = [:].withDefault { "default" }
 
     PipelineSteps(def context) {
         this.context = context
@@ -18,7 +17,11 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     }
 
     Map env() {
-        return env
+        return this.context.env
+    }
+
+    void junit(String path) {
+        this.context.junit(path)
     }
 
     void stash(String name) {
