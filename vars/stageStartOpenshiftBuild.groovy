@@ -50,11 +50,23 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
   
   // write the file - so people can pick it up in the Dockerfile
   writeFile file: 'docker/release.json', text: "[" + odsImageLabels.join(",") + "]"
+
+  // Normally we want to replace the imageLabels, but in case they are not
+  // present yet, we need to add them this time.
+  def imageLabelsOp = "replace"
+  def imageLabelsValue = sh(
+    script: "oc -n ${context.targetProject} get bc/${context.componentId} -o jsonpath='{.spec.output.imageLabels}'",
+    returnStdout: true,
+    label: "Test existance of path .spec.output.imageLabels"
+  ).trim()
+  if (imageLabelsValue.length() == 0) {
+    imageLabelsOp = "add"
+  }
   
   def patches = [
       '{"op": "replace", "path": "/spec/source", "value": {"type":"Binary"}}',
       """{"op": "replace", "path": "/spec/output/to/name", "value": "${context.componentId}:${context.tagversion}"}""",
-      """{"op": "replace", "path": "/spec/output/imageLabels", "value": [
+      """{"op": "${imageLabelsOp}", "path": "/spec/output/imageLabels", "value": [
         ${odsImageLabels.join(",")}
       ]}"""
   ]
