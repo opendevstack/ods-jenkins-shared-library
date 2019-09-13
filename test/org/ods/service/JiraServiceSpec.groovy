@@ -8,8 +8,7 @@ import org.apache.http.client.utils.URIBuilder
 
 import spock.lang.*
 
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.hamcrest.Matchers.*
+import static util.FixtureHelper.*
 
 import util.*
 
@@ -555,7 +554,7 @@ class JiraServiceSpec extends SpecHelper {
         def result = [
             data: [
                 description: "myDescription",
-                projectKey: "PROJECT",
+                projectKey: "PROJECT-1",
                 summary: "mySummary",
                 type: "myType"
             ],
@@ -733,7 +732,7 @@ class JiraServiceSpec extends SpecHelper {
         def result = [
             data: [
                 description: "myDescription",
-                projectKey: "PROJECT",
+                projectKey: "PROJECT-1",
                 summary: "mySummary",
             ],
             headers: [
@@ -1032,62 +1031,7 @@ class JiraServiceSpec extends SpecHelper {
 
     def "Helper.toSimpleIssuesFormat"() {
         given:
-        def issues = [
-            [
-                id: "123",
-                key: "JIRA-123",
-                fields: [
-                    summary: "123-summary",
-                    description: "123-description",
-                    parent: [
-                        id: "0815",
-                        key: "JIRA-0815",
-                        fields: [
-                            summary: "0815-summary",
-                            description: "0815-description",
-                        ],
-                        self: "http://0815"
-                    ]
-                ],
-                self: "http://123",
-            ],
-            [
-                id: "456",
-                key: "JIRA-456",
-                fields: [
-                    summary: "456-summary",
-                    description: "456-description",
-                    parent: [
-                        id: "0815",
-                        key: "JIRA-0815",
-                        fields: [
-                            summary: "0815-summary",
-                            description: "0815-description",
-                        ],
-                        self: "http://0815"
-                    ]
-                ],
-                self: "http://456",
-            ],
-            [
-                id: "789",
-                key: "JIRA-789",
-                fields: [
-                    summary: "789-summary",
-                    description: "789-description",
-                    parent: [
-                        id: "4711",
-                        key: "JIRA-4711",
-                        fields: [
-                            summary: "4711-summary",
-                            description: "4711-description",
-                        ],
-                        self: "http://4711"
-                    ]
-                ],
-                self: "http://789",
-            ]
-        ]
+        def issues = createJiraIssues(false)
 
         when:
         def result = JiraService.Helper.toSimpleIssuesFormat(issues)
@@ -1137,11 +1081,13 @@ class JiraServiceSpec extends SpecHelper {
         ]
 
         def expected = [
+            "0815": issue0815,
+            "4711": issue4711,
             "123": issue123,
             "456": issue456,
             "789": issue789
         ]
 
-        assertThat(result, is(equalTo(expected)))
+        result == expected
     }
 }

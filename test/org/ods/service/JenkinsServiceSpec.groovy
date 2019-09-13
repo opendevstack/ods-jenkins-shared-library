@@ -12,17 +12,17 @@ class JenkinsServiceSpec extends SpecHelper {
         def path = "myPath"
         def type = "myType"
 
-        def script = Spy(PipelineSteps)
-        def service = new JenkinsService(script)
+        def steps = Spy(PipelineSteps)
+        def service = new JenkinsService(steps)
 
         when:
         def result = service.unstashFilesIntoPath(name, path, type)
 
         then:
-        1 * script.dir(path, _)
+        1 * steps.dir(path, _)
 
         then:
-        1 * script.unstash(name)
+        1 * steps.unstash(name)
 
         then:
         result == true
@@ -34,19 +34,19 @@ class JenkinsServiceSpec extends SpecHelper {
         def path = "myPath"
         def type = "myType"
 
-        def script = Spy(PipelineSteps)
-        def service = new JenkinsService(script)
+        def steps = Spy(PipelineSteps)
+        def service = new JenkinsService(steps)
 
         when:
         def result = service.unstashFilesIntoPath(name, path, type)
 
         then:
-        1 * script.unstash(name) >> {
+        1 * steps.unstash(name) >> {
             throw new RuntimeException()
         }
 
         then:
-        1 * script.echo("Could not find any files of type '${type}' to unstash for name '${name}'")
+        1 * steps.echo("Could not find any files of type '${type}' to unstash for name '${name}'")
 
         then:
         result == false

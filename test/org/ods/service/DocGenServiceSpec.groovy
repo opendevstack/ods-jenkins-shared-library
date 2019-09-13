@@ -12,6 +12,10 @@ import util.*
 
 class DocGenServiceSpec extends SpecHelper {
 
+    DocGenService createService(int port) {
+        return new DocGenService("http://localhost:${port}")
+    }
+
     Map createDocumentRequestData(Map mixins = [:]) {
         def result = [
             data: [
@@ -49,10 +53,6 @@ class DocGenServiceSpec extends SpecHelper {
         ]
 
         return result << mixins
-    }
-
-    DocGenService createService(int port) {
-        return new DocGenService("http://localhost:${port}")
     }
 
     def "instantiate with invalid baseURL"() {

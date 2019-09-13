@@ -4,8 +4,7 @@ import groovy.json.JsonBuilder
 
 import spock.lang.*
 
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.hamcrest.Matchers.*
+import static util.FixtureHelper.*
 
 import util.*
 
@@ -27,7 +26,7 @@ class JUnitParserSpec extends SpecHelper {
         def result = JUnitParser.parseJUnitXML(xmlString)
 
         then:
-        assertThat(result, is(equalTo(expected)))
+        result == expected
 
         where:
         xmlString << [
@@ -82,7 +81,7 @@ class JUnitParserSpec extends SpecHelper {
         def result = JUnitParser.parseJUnitXML(xmlString)
 
         then:
-        assertThat(result, is(equalTo(expected)))
+        result == expected
 
         where:
         xmlString << [
@@ -259,7 +258,7 @@ class JUnitParserSpec extends SpecHelper {
         def result = JUnitParser.parseJUnitXML(xmlString)
 
         then:
-        assertThat(result, is(equalTo(expected)))
+        result == expected
 
         where:
         xmlString << [
@@ -314,7 +313,7 @@ class JUnitParserSpec extends SpecHelper {
         def result = JUnitParser.parseJUnitXML(xmlString)
 
         then:
-        assertThat(result, is(equalTo(expected)))
+        result == expected
 
         where:
         xmlString << [
@@ -418,34 +417,13 @@ class JUnitParserSpec extends SpecHelper {
                 ]
             ]
         ]).toPrettyString()
-        assertThat(result, is(equalTo(expected)))
+
+        result == expected
     }
 
     def "Helper.toSimpleFormat"() {
         given:
-        def xml = JUnitParser.parseJUnitXML(
-            """
-            <testsuites name="my-suites" tests="4" failures="1" errors="1">
-                <testsuite name="my-suite-1" tests="2" failures="0" errors="1" skipped="0">
-                    <properties>
-                        <property name="my-property-a" value="my-property-a-value"/>
-                    </properties>
-                    <testcase name="my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
-                    <testcase name="my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
-                        <error type="my-error-type" message="my-error-message">This is an error.</error>
-                    </testcase>
-                </testsuite>
-                <testsuite name="my-suite-2" tests="2" failures="1" errors="0" skipped="1">
-                    <testcase name="my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
-                        <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
-                    </testcase>
-                    <testcase name="my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
-                        <skipped/>
-                    </testcase>
-                </testsuite>
-            </testsuites>
-            """
-        )
+        def xml = createJUnitXMLTestResults()
 
         when:
         def result = JUnitParser.Helper.toSimpleFormat(xml)
@@ -500,37 +478,25 @@ class JUnitParserSpec extends SpecHelper {
                     skipped: true,
                     systemOut: "",
                     systemErr: ""
+                ],
+                "my-testcase-5": [
+                    name: "my-testcase-5",
+                    classname: "app.MyTestCase5",
+                    status: "Succeeded",
+                    time: "5",
+                    skipped: false,
+                    systemOut: "",
+                    systemErr: ""
                 ]
             ]
         ]
-        assertThat(result, is(equalTo(expected)))
+
+        result == expected
     }
 
     def "Helper.toSimpleErrorsFormat"() {
         given:
-        def xml = JUnitParser.parseJUnitXML(
-            """
-            <testsuites name="my-suites" tests="4" failures="1" errors="1">
-                <testsuite name="my-suite-1" tests="2" failures="0" errors="1" skipped="0">
-                    <properties>
-                        <property name="my-property-a" value="my-property-a-value"/>
-                    </properties>
-                    <testcase name="my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
-                    <testcase name="my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
-                        <error type="my-error-type" message="my-error-message">This is an error.</error>
-                    </testcase>
-                </testsuite>
-                <testsuite name="my-suite-2" tests="2" failures="1" errors="0" skipped="1">
-                    <testcase name="my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
-                        <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
-                    </testcase>
-                    <testcase name="my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
-                        <skipped/>
-                    </testcase>
-                </testsuite>
-            </testsuites>
-            """
-        )
+        def xml = createJUnitXMLTestResults()
 
         when:
         def result = JUnitParser.Helper.toSimpleErrorsFormat(JUnitParser.Helper.toSimpleFormat(xml))
@@ -548,34 +514,13 @@ class JUnitParserSpec extends SpecHelper {
                 ]
             ]
         ]
+
         result == expected as Set
     }
 
     def "Helper.toSimpleFailuresFormat"() {
         given:
-        def xml = JUnitParser.parseJUnitXML(
-            """
-            <testsuites name="my-suites" tests="4" failures="1" errors="1">
-                <testsuite name="my-suite-1" tests="2" failures="0" errors="1" skipped="0">
-                    <properties>
-                        <property name="my-property-a" value="my-property-a-value"/>
-                    </properties>
-                    <testcase name="my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
-                    <testcase name="my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
-                        <error type="my-error-type" message="my-error-message">This is an error.</error>
-                    </testcase>
-                </testsuite>
-                <testsuite name="my-suite-2" tests="2" failures="1" errors="0" skipped="1">
-                    <testcase name="my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
-                        <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
-                    </testcase>
-                    <testcase name="my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
-                        <skipped/>
-                    </testcase>
-                </testsuite>
-            </testsuites>
-            """
-        )
+        def xml = createJUnitXMLTestResults()
 
         when:
         def result = JUnitParser.Helper.toSimpleFailuresFormat(JUnitParser.Helper.toSimpleFormat(xml))
@@ -593,6 +538,7 @@ class JUnitParserSpec extends SpecHelper {
                 ]
             ]
         ]
+
         result == expected as Set
     }
 }

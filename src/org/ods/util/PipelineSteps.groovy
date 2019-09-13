@@ -2,7 +2,8 @@ package org.ods.util
 
 class PipelineSteps implements IPipelineSteps, Serializable {
 
-    private context
+    private def context
+    private Map env = [:].withDefault { "default" }
 
     PipelineSteps(def context) {
         this.context = context
@@ -14,6 +15,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
 
     void echo(String message) {
         this.context.echo(message)
+    }
+
+    Map env() {
+        return env
     }
 
     void stash(String name) {
