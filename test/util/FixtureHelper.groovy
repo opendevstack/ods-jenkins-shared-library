@@ -13,7 +13,6 @@ class FixtureHelper {
             self: "http://${id}"
         ]
 
-
         result.fields.summary = summary ?: "${id}-summary"
         result.fields.description = description ?: "${id}-description"
 
@@ -122,8 +121,10 @@ class FixtureHelper {
 
     static Map createProject() {
         def result = [
-            id: "PRJ",
-            key: "PROJECT-1"
+            id: "PHOENIX",
+            key: "PHOENIX-123",
+            name: "Project Phoenix",
+            name: "A super sophisticated project."
         ]
 
         result.services = [

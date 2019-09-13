@@ -16,28 +16,28 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "create bug and block impacted test cases"() {
         given:
-        def projectId      = "PROJECT-1"
-        def testCaseIssues = createJiraTestCaseIssues()
-        def failure        = createTestResultFailures().first()
-        def comment        = "myComment"
-
-        def steps   = Spy(PipelineSteps)
-        def jira    = Mock(JiraService)
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
+        def project = createProject()
+        def testCaseIssues = createJiraTestCaseIssues()
+        def failure = createTestResultFailures().first()
+        def comment = "myComment"
+
+        def bug = [ key: "JIRA-BUG" ]
+
         when:
-        usecase.createBugAndBlockImpactedTestCases(projectId, testCaseIssues, failure, comment)
+        usecase.createBugAndBlockImpactedTestCases(project.id, testCaseIssues, failure, comment)
 
         then:
-        1 * jira.createIssueTypeBug(projectId, failure.type, failure.text) >> {
-            return [ key: "JIRA-BUG" ]
-        }
+        1 * jira.createIssueTypeBug(project.id, failure.type, failure.text) >> bug
 
         then:
-        1 * jira.appendCommentToIssue("JIRA-BUG", comment)
+        1 * jira.appendCommentToIssue(bug.key, comment)
 
         then:
-        1 * jira.createIssueLinkTypeBlocks([ key: "JIRA-BUG" ], {
+        1 * jira.createIssueLinkTypeBlocks(bug, {
             // TODO: create abstraction
             it.parent.summary == "my-suite-2" && it.summary == "my-testcase-3"
         })
@@ -45,12 +45,12 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "label test cases with test results"() {
         given:
-        def testCaseIssues = createJiraTestCaseIssues()
-        def testResults    = createTestResults()
-
-        def steps   = Spy(PipelineSteps)
-        def jira    = Mock(JiraService)
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
+
+        def testCaseIssues = createJiraTestCaseIssues()
+        def testResults = createTestResults()
 
         when:
         usecase.labelTestCasesWithTestResults(testCaseIssues, testResults)
@@ -83,23 +83,24 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "report test results for project"() {
         given:
-        def projectId      = "PROJECT-1"
-        def testCaseIssues = createJiraTestCaseIssues(false)
-        def testResults    = createTestResults(false)
-        def error          = createTestResultErrors().first()
-        def failure        = createTestResultFailures().first()
-
-        def steps   = Spy(PipelineSteps)
-        def jira    = Mock(JiraService)
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
+        def project = createProject()
+        def testResults = createTestResults(false)
+
+        def testCaseIssues = createJiraTestCaseIssues(false)
+        def error = createTestResultErrors().first()
+        def errorBug = [ key: "JIRA-BUG-1" ]
+        def failure = createTestResultFailures().first()
+        def failureBug = [ key: "JIRA-BUG-2" ]
+
         when:
-        usecase.reportTestResultsForProject(projectId, testResults)
+        usecase.reportTestResultsForProject(project.id, testResults)
 
         then:
-        1 * jira.getIssuesForJQLQuery("project = PROJECT-1 AND labels = AutomatedTest AND issuetype = sub-task") >> {
-            return testCaseIssues
-        }
+        1 * jira.getIssuesForJQLQuery("project = ${project.id} AND labels = AutomatedTest AND issuetype = sub-task") >> testCaseIssues
 
         then:
         1 * jira.removeLabelsFromIssue("4", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
@@ -128,29 +129,27 @@ class JiraUseCaseSpec extends SpecHelper {
 
         // create bug and block impacted test cases for error
         then:
-        1 * jira.createIssueTypeBug(projectId, error.type, error.text) >> {
-            return [ key: "JIRA-BUG-1" ]
-        }
+        1 * jira.createIssueTypeBug(project.id, error.type, error.text) >> errorBug
 
         then:
-        1 * jira.appendCommentToIssue("JIRA-BUG-1", _)
+        1 * jira.appendCommentToIssue(errorBug.key, _)
 
         then:
-        1 * jira.createIssueLinkTypeBlocks([ key: "JIRA-BUG-1" ], {
+        1 * jira.createIssueLinkTypeBlocks(errorBug, {
+            // TODO: create abstraction
             it.parent.summary == "my-suite-1" && it.summary == "my-testcase-2"
         })
 
         // create bug and block impacted test cases for failure
         then:
-        1 * jira.createIssueTypeBug(projectId, failure.type, failure.text) >> {
-            return [ key: "JIRA-BUG-2" ]
-        }
+        1 * jira.createIssueTypeBug(project.id, failure.type, failure.text) >> failureBug
 
         then:
-        1 * jira.appendCommentToIssue("JIRA-BUG-2", _)
+        1 * jira.appendCommentToIssue(failureBug.key, _)
 
         then:
-        1 * jira.createIssueLinkTypeBlocks([ key: "JIRA-BUG-2" ], {
+        1 * jira.createIssueLinkTypeBlocks(failureBug, {
+            // TODO: create abstraction
             it.parent.summary == "my-suite-2" && it.summary == "my-testcase-3"
         })
     }

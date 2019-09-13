@@ -8,12 +8,12 @@ class JenkinsServiceSpec extends SpecHelper {
 
     def "unstash files into path"() {
         given:
+        def steps = Spy(PipelineSteps)
+        def service = new JenkinsService(steps)
+
         def name = "myStash"
         def path = "myPath"
         def type = "myType"
-
-        def steps = Spy(PipelineSteps)
-        def service = new JenkinsService(steps)
 
         when:
         def result = service.unstashFilesIntoPath(name, path, type)
@@ -30,12 +30,12 @@ class JenkinsServiceSpec extends SpecHelper {
 
     def "unstash files into path with failure"() {
         given:
+        def steps = Spy(PipelineSteps)
+        def service = new JenkinsService(steps)
+
         def name = "myStash"
         def path = "myPath"
         def type = "myType"
-
-        def steps = Spy(PipelineSteps)
-        def service = new JenkinsService(steps)
 
         when:
         def result = service.unstashFilesIntoPath(name, path, type)
