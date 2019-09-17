@@ -5,7 +5,7 @@ import org.ods.parser.JUnitParser
 
 class JiraUseCase {
 
-    static final def JIRA_TEST_CASE_LABELS = [ "Error", "Failed", "Missing", "Skipped", "Succeeded" ]
+    static final List JIRA_TEST_CASE_LABELS = [ "Error", "Failed", "Missing", "Skipped", "Succeeded" ]
 
     private def script
     private JiraService jira
@@ -15,7 +15,7 @@ class JiraUseCase {
         this.jira = jira
     }
 
-    void createBugAndBlockImpactedTestCases(String projectId, Map jiraTestCaseIssues, Map failure, String comment) {
+    private void createBugAndBlockImpactedTestCases(String projectId, Map jiraTestCaseIssues, Map failure, String comment) {
         // Create a Jira bug for the failure in the current project
         def bug = this.jira.createIssueTypeBug(projectId, failure.type, failure.text)
         this.jira.appendCommentToIssue(bug.key, comment)
@@ -36,7 +36,7 @@ class JiraUseCase {
         }
     }
 
-    void labelTestCasesWithTestResults(Map jiraTestCaseIssues, Map testResults) {
+    private void labelTestCasesWithTestResults(Map jiraTestCaseIssues, Map testResults) {
         def testCasesProcessed = [:]
         testResults.each { testsuiteName, testsuite ->
             testsuite.each { testcaseName, testcase ->
@@ -80,6 +80,7 @@ class JiraUseCase {
         // Add label "Missing" to all unprocessed test case issues in Jira
         def testCasesUnprocessed = jiraTestCaseIssues - testCasesProcessed
         testCasesUnprocessed.each { issueId, issue ->
+            this.jira.removeLabelsFromIssue(issueId, JIRA_TEST_CASE_LABELS)
             this.jira.addLabelsToIssue(issueId, ["Missing"])
         }
     }

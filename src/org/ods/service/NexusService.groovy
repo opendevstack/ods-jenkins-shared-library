@@ -18,15 +18,15 @@ class NexusService {
     String password
 
     NexusService(String baseURL, String username, String password) {
-        if (!baseURL) {
+        if (!baseURL?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Nexus. 'baseURL' is undefined")
         }
 
-        if (!username) {
+        if (!username?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Nexus. 'username' is undefined")
         }
 
-        if (!password) {
+        if (!password?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to Nexus. 'password' is undefined")
         }
 
@@ -52,12 +52,12 @@ class NexusService {
 
         response.ifSuccess {
             if (response.getStatus() != 204) {
-                throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+                throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
             }
         }
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
         }
 
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
@@ -65,24 +65,6 @@ class NexusService {
     
     @NonCPS
     def URI storeArtifactFromFile(String repository, String directory, String name, File artifact, String contentType) {
-        def response = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
-            .routeParam("repository", repository)
-            .basicAuth(this.username, this.password)
-            .field("raw.directory", directory)
-            .field("raw.asset1", new FileInputStream(artifact), contentType)
-            .field("raw.asset1.filename", name)
-            .asString()
-
-        response.ifSuccess {
-            if (response.getStatus() != 204) {
-                throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: ${response.getStatus()} and message: ${response.getBody()}")
-            }
-        }
-
-        response.ifFailure {
-            throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: ${response.getStatus()} and message: ${response.getBody()}")
-        }
-
-        return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
+        return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
     }
 }

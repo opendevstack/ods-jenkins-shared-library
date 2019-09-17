@@ -2,49 +2,97 @@ package util
 
 import com.github.tomakehurst.wiremock.*
 import com.github.tomakehurst.wiremock.client.*
-
-import java.net.URI
+import com.github.tomakehurst.wiremock.core.*
 
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 
 import spock.lang.*
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
-
 class SpecHelper extends Specification {
-    @Shared WireMockServer wireMockServer
-
     @Rule
     EnvironmentVariables env = new EnvironmentVariables()
 
-    def cleanup() {
-        stopWireMockServer()
+    WireMockServer createServer(def b, Map request, Map response) {
+        def server = startWireMockServer()
+
+        def builder = b(WireMock.urlPathMatching(request.path))
+        
+        // Request
+        if (request.username && request.password) {
+            builder.withBasicAuth(request.username, request.password)
+        }
+
+        request.queryParams.each { name, value ->
+            builder.withQueryParam(name, WireMock.equalTo(value))
+        }
+
+        request.headers.each { name, value ->
+            builder.withHeader(name, WireMock.equalTo(value))
+        }
+
+        if (request.multipartRequestBody) {
+            request.multipartRequestBody.each { name, value ->
+                def multipart = WireMock.aMultipart().withName(name)
+
+                def matcher = WireMock.&equalTo
+                // Check if the body is of type byte array so we can apply an appropriate matcher
+                if (value.getClass().isArray() && value.getClass().getComponentType().getTypeName() == "byte") {
+                    matcher = WireMock.&binaryEqualTo
+                }
+
+                multipart.withBody(matcher(value))
+                builder.withMultipartRequestBody(multipart)
+            }
+        } else if (request.body) {
+            builder.withRequestBody(WireMock.equalTo(request.body))
+        }
+
+        // Response Mapping
+        def responseBuilder = WireMock.aResponse()
+
+        response.headers.each { name, value ->
+            responseBuilder.withHeader(name, value)
+        }
+
+        if (response.body) {
+            responseBuilder.withBody(response.body)
+        }
+
+        if (response.status) {
+            responseBuilder.withStatus(response.status)
+        }
+
+        builder.willReturn(responseBuilder)
+        server.stubFor(builder)
+
+        return server
     }
 
-    // Get a test resource file by name
-    def File getResource(String name) {
-        new File(getClass().getClassLoader().getResource(name).getFile())
+    String decodeBase64(String value) {
+        return new String(value.decodeBase64())
     }
 
-    // Starts and configures a WireMock server
-    def WireMockServer startWireMockServer(URI uri) {
-        this.wireMockServer = new WireMockServer(
-            options().port(uri.getPort())
+    String encodeBase64(byte[] bytes) {
+        return bytes.encodeBase64().toString()
+    }
+
+    File getResource(String name) {
+        return new File(getClass().getClassLoader().getResource(name).getFile())
+    }
+
+    WireMockServer startWireMockServer() {
+        def server = new WireMockServer(
+            WireMockConfiguration.options().dynamicPort()
         )
 
-        this.wireMockServer.start()
-        WireMock.configureFor(uri.getPort())
+        server.start()
+        WireMock.configureFor(server.port())
 
-        return this.wireMockServer
+        return server
     }
 
-    // Stops a WireMock server
-    def void stopWireMockServer() {
-        if (this.wireMockServer) {
-            this.wireMockServer.stop()
-            this.wireMockServer = null
-        }
+    void stopServer(WireMockServer server) {
+        server.stop()
     }
 }

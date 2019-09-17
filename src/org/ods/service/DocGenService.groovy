@@ -18,7 +18,7 @@ class DocGenService {
     URI baseURL
 
     DocGenService(String baseURL) {
-        if (!baseURL) {
+        if (!baseURL?.trim()) {
             throw new IllegalArgumentException("Error: unable to connect to DocGen. 'baseURL' is undefined")
         }
 
@@ -43,7 +43,7 @@ class DocGenService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to create document. DocGen responded with code: ${response.getStatus()} and message: ${response.getBody()}")
+            throw new RuntimeException("Error: unable to create document. DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
         }
 
         def result = new JsonSlurperClassic().parseText(response.getBody())
