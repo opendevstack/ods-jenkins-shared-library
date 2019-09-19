@@ -23,15 +23,14 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
     def "create document"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
         def jira = Mock(JiraService)
         def nexus = Mock(NexusService)
         def util = Mock(PipelineUtil)
 
-        def tmpDir = Files.createTempDirectory("raw-files-")
-        def logFile1 = Files.createTempFile(tmpDir, "raw", ".log").toFile() << "Log File 1"
-        def logFile2 = Files.createTempFile(tmpDir, "raw", ".log").toFile() << "Log File 2"
+        def logFile1 = Files.createTempFile("raw", ".log").toFile() << "Log File 1"
+        def logFile2 = Files.createTempFile("raw", ".log").toFile() << "Log File 2"
 
         def type = "myType"
         def version = "0.1"
@@ -85,19 +84,22 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         then:
         result == nexusUri.toString()
+
+        cleanup:
+        logFile1.delete()
+        logFile2.delete()
     }
 
     def "create document with Jira returns != 1 issue"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
         def jira = Mock(JiraService)
         def nexus = Mock(NexusService)
         def util = Mock(PipelineUtil)
 
-        def tmpDir = Files.createTempDirectory("raw-files-")
-        def logFile1 = Files.createTempFile(tmpDir, "raw", ".log").toFile() << "Log File 1"
-        def logFile2 = Files.createTempFile(tmpDir, "raw", ".log").toFile() << "Log File 2"
+        def logFile1 = Files.createTempFile("raw", ".log").toFile() << "Log File 1"
+        def logFile2 = Files.createTempFile("raw", ".log").toFile() << "Log File 2"
 
         def type = "myType"
         def version = "0.1"
@@ -135,11 +137,15 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         then:
         e = thrown(RuntimeException)
         e.message == "Error: Jira query returned 2 issues: '${jiraIssueJQLQuery}'"
+
+        cleanup:
+        logFile1.delete()
+        logFile2.delete()
     }
 
     def "create DTR"() {
         given:
-        def steps = Mock(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def junit = new JUnitTestReportsUseCase(steps)
         def usecase = createUseCase(
             steps,
@@ -151,8 +157,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         GroovyMock(LeVaDocumentUseCase, global: true)
 
-        def tmpDir = Files.createTempDirectory("junit-test-reports-")
-        def xmlFile = Files.createTempFile(tmpDir, "junit", ".xml")
+        def xmlFile = Files.createTempFile("junit", ".xml")
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
         def version = "0.1"
@@ -173,13 +178,13 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         )
 
         cleanup:
-        tmpDir.toFile().deleteDir()
+        xmlFile.toFile().delete()
     }
 
     def "create TIR"() {
         given:
         def usecase = createUseCase(
-            Mock(PipelineSteps),
+            Spy(util.PipelineSteps),
             Mock(DocGenService),
             Mock(JiraService),
             Mock(NexusService),

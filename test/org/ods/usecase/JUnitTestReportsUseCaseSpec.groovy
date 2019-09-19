@@ -18,48 +18,48 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def "load test reports from path"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def usecase = createUseCase(steps)
 
-        def tmpDir = Files.createTempDirectory("junit-test-reports-")
-        def xmlFile1 = Files.createTempFile(tmpDir, "junit", ".xml") << "JUnit XML Report 1"
-        def xmlFile2 = Files.createTempFile(tmpDir, "junit", ".xml") << "JUnit XML Report 2"
+        def xmlFiles = Files.createTempDirectory("junit-test-reports-")
+        def xmlFile1 = Files.createTempFile(xmlFiles, "junit", ".xml") << "JUnit XML Report 1"
+        def xmlFile2 = Files.createTempFile(xmlFiles, "junit", ".xml") << "JUnit XML Report 2"
 
         when:
-        def result = usecase.loadTestReportsFromPath(tmpDir.toString())
+        def result = usecase.loadTestReportsFromPath(xmlFiles.toString())
 
         then:
         result.size() == 2
         result.collect { it.text }.sort() == ["JUnit XML Report 1", "JUnit XML Report 2"]
 
         cleanup:
-        tmpDir.toFile().deleteDir()
+        xmlFiles.toFile().deleteDir()
     }
 
     def "load test reports from path with empty path"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def usecase = createUseCase(steps)
 
-        def tmpDir = Files.createTempDirectory("junit-test-reports-")
+        def xmlFiles = Files.createTempDirectory("junit-test-reports-")
 
         when:
-        def result = usecase.loadTestReportsFromPath(tmpDir.toString())
+        def result = usecase.loadTestReportsFromPath(xmlFiles.toString())
 
         then:
         result.isEmpty()
 
         cleanup:
-        tmpDir.toFile().deleteDir()
+        xmlFiles.toFile().deleteDir()
     }
 
     def "parse test report files"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def usecase = createUseCase(steps)
 
-        def tmpDir = Files.createTempDirectory("junit-test-reports-")
-        def xmlFile = Files.createTempFile(tmpDir, "junit", ".xml")
+        def xmlFiles = Files.createTempDirectory("junit-test-reports-")
+        def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml")
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
         when:
@@ -73,12 +73,12 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
         result == expected
 
         cleanup:
-        tmpDir.toFile().deleteDir()
+        xmlFiles.toFile().deleteDir()
     }
 
     def "report test reports from path to Jenkins"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def usecase = createUseCase(steps)
 
         def path = "myPath"

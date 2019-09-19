@@ -16,7 +16,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "create bug and block impacted test cases"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -45,7 +45,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "label test cases with test results"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -83,7 +83,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "report test results for project"() {
         given:
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 

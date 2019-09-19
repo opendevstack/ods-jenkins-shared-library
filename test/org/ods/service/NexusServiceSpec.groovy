@@ -14,7 +14,7 @@ class NexusServiceSpec extends SpecHelper {
         return new NexusService("http://localhost:${port}", username, password)
     }
 
-    def "create with invalid baseURL"() {
+    def "create with undefined baseURL"() {
         when:
         new NexusService(null, "username", "password")
 
@@ -37,7 +37,7 @@ class NexusServiceSpec extends SpecHelper {
         e.message == "Error: unable to connect to Nexus. 'invalid URL' is not a valid URI"
     }
 
-    def "create with invalid username"() {
+    def "create with undefined username"() {
         when:
         new NexusService("http://localhost", null, "password")
 
@@ -53,7 +53,7 @@ class NexusServiceSpec extends SpecHelper {
         e.message == "Error: unable to connect to Nexus. 'username' is undefined"
     }
 
-    def "create with invalid password"() {
+    def "create with undefined password"() {
         when:
         new NexusService("http://localhost", "username", null)
 

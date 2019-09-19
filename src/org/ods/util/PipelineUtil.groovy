@@ -22,11 +22,11 @@ class PipelineUtil {
     }
 
     void archiveArtifact(String path, byte[] data) {
-        def file = null
-
         if (!path.startsWith(this.script.WORKSPACE)) {
             throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace.")
         }
+
+        def file = null
 
         try {
             // Write the artifact data to file
@@ -48,25 +48,6 @@ class PipelineUtil {
         def dir = new File(path)
         dir.mkdirs()
         return dir
-    }
-
-    File createTempFile(String baseDir, String prefix, String suffix, byte[] data) {
-        def tmpFile = null
-
-        try {
-            // Create a temporary file containing data
-            tmpFile = File.createTempFile(
-                "${prefix}-",
-                "-${suffix}",
-                createDirectory(baseDir)
-            ) << data
-        } finally {
-            if (tmpFile && tmpFile.exists()) {
-                tmpFile.delete()
-            }
-        }
-
-        return tmpFile
     }
 
     byte[] createZipArtifact(String name, Map<String, byte[]> contents) {
@@ -95,7 +76,7 @@ class PipelineUtil {
     def loadGroovySourceFile(String path) {
         def file = new File(path)
         if (!file.exists()) {
-            throw new RuntimeException("Error: unable to load Groovy source file. Path ${path} does not exist.")
+            throw new IllegalArgumentException("Error: unable to load Groovy source file. Path ${path} does not exist.")
         }
 
         return this.script.load(path)

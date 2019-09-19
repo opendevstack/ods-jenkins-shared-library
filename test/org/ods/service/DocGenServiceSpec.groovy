@@ -55,7 +55,7 @@ class DocGenServiceSpec extends SpecHelper {
         return result << mixins
     }
 
-    def "instantiate with invalid baseURL"() {
+    def "instantiate with undefined baseURL"() {
         when:
         new DocGenService(null)
 
@@ -69,12 +69,14 @@ class DocGenServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to DocGen. 'baseURL' is undefined"
+    }
 
+    def "instantiate with invalid baseURL"() {
         when:
         new DocGenService("invalid URL")
 
         then:
-        e = thrown(IllegalArgumentException)
+        def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to DocGen. 'invalid URL' is not a valid URI"
     }
 
