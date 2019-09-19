@@ -227,7 +227,7 @@ class OdsContext implements Context {
   }
 
   String getLastSuccessfulCommit() {
-    config.lastSuccessfulCommit
+    retrieveLastSuccessfulCommit()
   }
 
   boolean getNotifyNotGreen() {
@@ -420,23 +420,27 @@ class OdsContext implements Context {
   }
 
   private String retrieveLastSuccessfulCommit() {
-    def lastSuccessfulBuildUrl = retrieveLastSuccessfulBuildUrl()
-    def lastSuccessfulCommit = retrieveLastBuiltRevisionHash(lastSuccessfulBuildUrl)
+    def lastSuccessfulBuildUrl = retrieveJenkinsLastSuccessfulBuildUrl()
+    def lastSuccessfulBuildJson = retrieveLastSuccessfulBuildJson(lastSuccessfulBuildUrl)
+    def lastSuccessfulCommit = retrieveLastBuiltRevisionHash(lastSuccessfulBuildJson)
     return (commitExists(lastSuccessfulCommit)) ? lastSuccessfulCommit : ""
   }
 
-  private String retrieveLastSuccessfulBuildUrl() {
+  private String retrieveJenkinsLastSuccessfulBuildUrl() {
     return script.sh(
       script: "echo ${config.buildUrl} | sed s_${config.buildNumber}_lastSuccessfulBuild_",
       returnStdout: true
     ).trim() + 'api/json/?tree=actions[lastBuiltRevision[SHA1]]'
   }
 
-  private String retrieveLastBuiltRevisionHash(String lastBuiltRevisionUrl) {
-    def lastBuiltRevisionJson = script.sh(
-      script: "curl -g ${lastBuiltRevisionUrl}",
+  private String retrieveLastSuccessfulBuildJson(String lastSuccessfulBuildUrl) {
+    return script.sh(
+      script: "curl -g ${lastSuccessfulBuildUrl}",
       returnStdout: true
     )
+  }
+
+  private String retrieveLastBuiltRevisionHash(String lastBuiltRevisionJson) {
     def shaBegin = lastBuiltRevisionJson.indexOf('SHA1":"') + 7
     def shaEnd = lastBuiltRevisionJson.indexOf('"', shaBegin)
     return lastBuiltRevisionJson.substring(shaBegin, shaEnd)
@@ -444,7 +448,7 @@ class OdsContext implements Context {
 
   private boolean commitExists(String commitHash) {
     return script.sh(
-      script: "git branch --contains ${commitHash} &> /dev/null", // Alternative git log --pretty=%H -n 10 | grep
+      script: "git branch --contains ${commitHash}",
       returnStatus: true
     ) == 0
   }
