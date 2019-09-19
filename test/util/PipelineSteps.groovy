@@ -6,6 +6,10 @@ class PipelineSteps implements IPipelineSteps {
 
     private Map env = [:].withDefault { "default" }
 
+    PipelineSteps() {
+        env.WORKSPACE = System.getProperty("java.io.tmpdir")
+    }
+
     void dir(String path, Closure block) {
         block()
     }

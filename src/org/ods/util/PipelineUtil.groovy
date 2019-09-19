@@ -22,8 +22,8 @@ class PipelineUtil {
     }
 
     void archiveArtifact(String path, byte[] data) {
-        if (!path.startsWith(this.script.WORKSPACE)) {
-            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace.")
+        if (!path.startsWith(this.script.env.WORKSPACE)) {
+            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace: ${path}")
         }
 
         def file = null
@@ -33,7 +33,7 @@ class PipelineUtil {
             file = new File(path).setBytes(data)
 
             // Compute the relative path inside the Jenkins workspace
-            def workspacePath = new File(this.script.WORKSPACE).toURI().relativize(new File(path).toURI()).getPath()
+            def workspacePath = new File(this.script.env.WORKSPACE).toURI().relativize(new File(path).toURI()).getPath()
 
             // Archive the artifact (requires a relative path inside the Jenkins workspace)
             this.script.archiveArtifacts artifacts: workspacePath
@@ -51,7 +51,7 @@ class PipelineUtil {
     }
 
     byte[] createZipArtifact(String name, Map<String, byte[]> contents) {
-        def path = "${this.script.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
+        def path = "${this.script.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
 
         def result = this.createZipFile(path, contents)
         this.archiveArtifact(path, result)
@@ -83,7 +83,7 @@ class PipelineUtil {
     }
 
     Map loadProjectMetadata() {
-        def file = new File("${this.script.WORKSPACE}/${PROJECT_METADATA_FILE_NAME}")
+        def file = new File("${this.script.env.WORKSPACE}/${PROJECT_METADATA_FILE_NAME}")
         if (!file.exists()) {
             throw new RuntimeException("Error: unable to load project meta data. File ${PROJECT_METADATA_FILE_NAME} does not exist.")
         }
