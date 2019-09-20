@@ -3,4 +3,4 @@ all: test
 
 .PHONY: test
 test:
-	./gradlew test --no-daemon --stacktrace
+	./gradlew test jacocoTestReport --no-daemon --stacktrace
