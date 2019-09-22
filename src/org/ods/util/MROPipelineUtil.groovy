@@ -35,7 +35,8 @@ class MROPipelineUtil extends PipelineUtil {
         static final List ALWAYS_PARALLEL = []
     }
 
-    private static final String REPOS_BASE_DIR = "repositories"
+    static final String PROJECT_METADATA_FILE_NAME = "metadata.yml"
+    static final String REPOS_BASE_DIR = "repositories"
 
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
@@ -76,6 +77,128 @@ class MROPipelineUtil extends PipelineUtil {
             "RELEASE_PARAM_VERSION=${version}",
             "SOURCE_CLONE_ENV=${sourceEnvironmentToClone}"
         ]
+    }
+
+    Map loadPipelineConfig(String path, Map repo) {
+        if (!path?.trim()) {
+            throw new IllegalArgumentException("Error: unable to parse pipeline config. 'path' is undefined")
+        }
+
+        if (!path.startsWith(this.script.env.WORKSPACE)) {
+            throw new IllegalArgumentException("Error: unable to parse pipeline config. 'path' must be inside the Jenkins workspace: ${path}")
+        }
+
+        if (!repo) {
+            throw new IllegalArgumentException("Error: unable to parse pipeline config. 'repo' is undefined")
+        }
+
+        repo.pipelineConfig = [:]
+
+        def file = new File("${path}/${PipelineConfig.FILE_NAME}")
+        if (file.exists()) {
+            def config = new Yaml().load(file.text) ?: [:]
+
+            // Resolve pipeline phase config, if provided
+            if (config.phases) {
+                config.phases.each { name, phase ->
+                    // Check for existence of required attribute 'type'
+                    if (!phase?.type?.trim()) {
+                        throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.type' is undefined in phase '${name}'.")
+                    }
+
+                    // Check for validity of required attribute 'type'
+                    if (!PipelineConfig.PHASE_EXECUTOR_TYPES.contains(phase.type)) {
+                        throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Attribute 'phase.type' contains an unsupported value '${phase.type}' in phase '${name}'. Supported types are: ${PipelineConfig.PHASE_EXECUTOR_TYPES}.")
+                    }
+
+                    // Check for validity of an executor type's supporting attributes
+                    if (phase.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
+                        if (!phase.target?.trim()) {
+                            throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.target' is undefined in phase '${name}'.")
+                        }
+                    } else if (phase.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
+                        if (!phase.script?.trim()) {
+                            throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.script' is undefined in phase '${name}'.")
+                        }
+                    }
+                }
+            }
+
+            repo.pipelineConfig = config
+        }
+
+        return repo
+    }
+
+    List<Map> loadPipelineConfigs(List<Map> repos) {
+        def visitor = { baseDir, repo ->
+            loadPipelineConfig(baseDir, repo)
+        }
+
+        walkRepoDirectories(repos, visitor)
+        return repos
+    }
+
+    Map loadProjectMetadata(String filename = PROJECT_METADATA_FILE_NAME) {
+        if (filename == null) {
+            throw new IllegalArgumentException("Error: unable to parse project meta data. 'filename' is undefined.")
+        }
+
+        def file = new File("${this.script.env.WORKSPACE}/${filename}")
+        if (!file.exists()) {
+            throw new RuntimeException("Error: unable to load project meta data. File '${this.script.env.WORKSPACE}/${filename}' does not exist.")
+        }
+
+        def result = new Yaml().load(file.text)
+
+        // Check for existence of required attribute 'id'
+        if (!result?.id?.trim()) {
+            throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'id' is undefined.")
+        }
+
+        // Check for existence of required attribute 'name'
+        if (!result?.name?.trim()) {
+            throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'name' is undefined.")
+        }
+
+        if (result.description == null) {
+            result.description = ""
+        }
+
+        // Check for existence of required attribute 'repositories'
+        if (!result.repositories) {
+            throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories' is undefined.")
+        }
+
+        result.repositories.eachWithIndex { repo, index ->
+            // Check for existence of required attribute 'repositories[i].id'
+            if (!repo.id?.trim()) {
+                throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
+            }
+
+            // Resolve repo URL, if not provided
+            if (!repo.url?.trim()) {
+                this.script.echo("Could not determine Git URL for repo '${repo.id}' from project meta data. Attempting to resolve automatically...")
+
+                def gitURL = getGitURL()
+                if (repo.name?.trim()) {
+                    repo.url = gitURL.resolve("${repo.name}.git").toString()
+                    repo.remove("name")
+                } else {
+                    repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
+                }
+
+                this.script.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+            }
+
+            // Resolve repo branch, if not provided
+            if (!repo.branch?.trim()) {
+                this.script.echo("Could not determine Git branch for repo '${repo.id}' from project meta data. Assuming 'master'.")
+                repo.branch = "master"
+            }
+        }
+
+        return result
     }
 
     Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
@@ -120,7 +243,7 @@ class MROPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                def baseDir = "${this.script.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+                def baseDir = "${this.script.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
 
                 if (preExecute) {
                     preExecute(this.script, repo)
@@ -149,7 +272,7 @@ class MROPipelineUtil extends PipelineUtil {
 
                         if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
                             this.script.dir(baseDir) {
-                                def script = "make ${phaseConfig.task}"
+                                def script = "make ${phaseConfig.target}"
                                 this.script.sh script: script, label: label
                             }
                         } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
@@ -183,42 +306,10 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    Map readPipelineConfig(String path, Map repo) {
-        def file = new File("${path}/${PipelineConfig.FILE_NAME}")
-        def config = file.exists() ? new Yaml().load(file.text) : [:]
-
-        // Resolve pipeline phase config, if provided
-        if (config.phases) {
-            config.phases.each { name, phase ->
-                // Check for existence of required attribute 'type'
-                if (phase.type == null || !phase.type.trim()) {
-                    throw new RuntimeException("Error: unable to parse pipeline phase config. Required attribute 'type' is undefined in ${phase}.")
-                }
-
-                // Check for validity of required attribute 'type'
-                if (!PipelineConfig.PHASE_EXECUTOR_TYPES.contains(phase.type)) {
-                    throw new RuntimeException("Error: unable to parse pipeline phase config. Attribute 'type' contains an unsupported value '${phase.type}'.")
-                }
-            }
-        }
-
-        repo.pipelineConfig = config
-        return repo
-    }
-
-    List<Map> readPipelineConfigs(List<Map> repos) {
-        def visitor = { baseDir, repo ->
-            readPipelineConfig(baseDir, repo)
-        }
-
-        walkRepoDirectories(repos, visitor)
-        return repos
-    }
-
     private void walkRepoDirectories(List<Map> repos, Closure visitor) {
         repos.each { repo ->
             // Apply the visitor to the repo at the repo's base dir
-            visitor("${this.script.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
+            visitor("${this.script.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
         }
     }
 }

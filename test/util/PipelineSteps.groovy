@@ -10,6 +10,9 @@ class PipelineSteps implements IPipelineSteps {
         env.WORKSPACE = System.getProperty("java.io.tmpdir")
     }
 
+    void archiveArtifacts(String artifacts) {
+    }
+
     void dir(String path, Closure block) {
         block()
     }
@@ -22,6 +25,14 @@ class PipelineSteps implements IPipelineSteps {
     }
 
     void junit(String path) {
+    }
+
+    def load(String path) {
+        return [:]
+    }
+
+    def sh(def args) {
+        return ""
     }
 
     void stash(String name) {

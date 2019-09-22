@@ -76,7 +76,7 @@ def call() {
     })
 
     // Load pipeline configs from each repo's .pipeline-config.yml
-    util.readPipelineConfigs(repos)
+    util.loadPipelineConfigs(repos)
 
     // Compute groups of repository configs for convenient parallelization
     repos = util.computeRepoGroups(repos)
