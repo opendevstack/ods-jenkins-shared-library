@@ -419,23 +419,28 @@ class OdsContext implements Context {
     ).trim()
   }
 
+  // HACK: Can use Hudson library to retrieve this:
+  // https://javadoc.jenkins-ci.org/hudson/model/Run.html#getPreviousSuccessfulBuild--
   private String retrieveLastSuccessfulCommit() {
     def lastSuccessfulBuildUrl = retrieveJenkinsLastSuccessfulBuildUrl()
     def lastSuccessfulBuildJson = retrieveLastSuccessfulBuildJson(lastSuccessfulBuildUrl)
+    // TODO: Use isEmpty once shared library becomes global
+    if (lastSuccessfulBuildJson == "") {
+      return ""
+    }
+
     def lastSuccessfulCommit = retrieveLastBuiltRevisionHash(lastSuccessfulBuildJson)
     return (commitExists(lastSuccessfulCommit)) ? lastSuccessfulCommit : ""
   }
 
   private String retrieveJenkinsLastSuccessfulBuildUrl() {
-    return script.sh(
-      script: "echo ${config.buildUrl} | sed s_${config.buildNumber}_lastSuccessfulBuild_",
-      returnStdout: true
-    ).trim() + 'api/json/?tree=actions[lastBuiltRevision[SHA1]]'
+    def lastSuccessfulBuildUrl = config.buildUrl.replace(config.buildNumber, "lastSuccessfulBuild")
+    return lastSuccessfulBuildUrl + 'api/json/?tree=actions[lastBuiltRevision[SHA1]]'
   }
 
   private String retrieveLastSuccessfulBuildJson(String lastSuccessfulBuildUrl) {
     return script.sh(
-      script: "curl -g ${lastSuccessfulBuildUrl}",
+      script: "curl -g --fail --silent  ${lastSuccessfulBuildUrl}",
       returnStdout: true
     )
   }
