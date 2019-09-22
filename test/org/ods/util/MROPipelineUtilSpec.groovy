@@ -581,7 +581,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         file.delete()
     }
 
-    def "load project metadata with undefined file"() {
+    def "load project metadata with invalid file"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = createUtil(steps)
@@ -608,7 +608,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to load project meta data. File '${steps.env.WORKSPACE}/${filename}' does not exist."
     }
 
-    def "load project metadata with undefined id"() {
+    def "load project metadata with invalid id"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = createUtil(steps)
@@ -629,7 +629,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         file.delete()
     }
 
-    def "load project metadata with undefined name"() {
+    def "load project metadata with invalid name"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = createUtil(steps)
@@ -650,7 +650,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         file.delete()
     }
     
-    def "load project metadata with undefined description"() {
+    def "load project metadata with invalid description"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = createUtil(steps)
@@ -673,7 +673,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         file.delete()
     }
     
-    def "load project metadata with undefined repositories"() {
+    def "load project metadata with invalid repositories"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = createUtil(steps)
@@ -695,7 +695,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         file.delete()
     }
 
-    def "load project metadata with undefined repository id"() {
+    def "load project metadata with invalid repository id"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = createUtil(steps)
@@ -733,7 +733,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         file.delete()
     }
 
-    def "load project metadata with undefined repository url"() {
+    def "load project metadata with invalid repository url"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = createUtil(steps)
