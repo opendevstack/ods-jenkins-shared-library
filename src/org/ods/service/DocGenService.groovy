@@ -19,13 +19,13 @@ class DocGenService {
 
     DocGenService(String baseURL) {
         if (!baseURL?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to DocGen. 'baseURL' is undefined")
+            throw new IllegalArgumentException("Error: unable to connect to DocGen. 'baseURL' is undefined.")
         }
 
         try {
             this.baseURL = new URIBuilder(baseURL).build()
         } catch (e) {
-            throw new IllegalArgumentException("Error: unable to connect to DocGen. '${baseURL}' is not a valid URI")
+            throw new IllegalArgumentException("Error: unable to connect to DocGen. '${baseURL}' is not a valid URI.")
         }
     }
 
@@ -43,7 +43,7 @@ class DocGenService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to create document. DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
+            throw new RuntimeException("Error: unable to create document. DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
         }
 
         def result = new JsonSlurperClassic().parseText(response.getBody())

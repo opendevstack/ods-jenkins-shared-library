@@ -22,7 +22,7 @@ class PipelineUtil {
 
     void archiveArtifact(String path, byte[] data) {
         if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' is undefined")
+            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' is undefined.")
         }
 
         if (!path.startsWith(this.script.env.WORKSPACE)) {
@@ -49,7 +49,7 @@ class PipelineUtil {
 
     protected File createDirectory(String path) {
         if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create directory. 'path' is undefined")
+            throw new IllegalArgumentException("Error: unable to create directory. 'path' is undefined.")
         }
 
         def dir = new File(path)
@@ -59,11 +59,11 @@ class PipelineUtil {
 
     byte[] createZipArtifact(String name, Map<String, byte[]> files) {
         if (!name?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined")
+            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
         }
 
         if (files == null) {
-            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'files' is undefined")
+            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'files' is undefined.")
         }
 
         def path = "${this.script.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
@@ -74,11 +74,11 @@ class PipelineUtil {
 
     byte[] createZipFile(String path, Map<String, byte[]> files) {
         if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined")
+            throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined.")
         }
 
         if (files == null) {
-            throw new IllegalArgumentException("Error: unable to create Zip file. 'files' is undefined")
+            throw new IllegalArgumentException("Error: unable to create Zip file. 'files' is undefined.")
         }
 
         // Create parent directory if needed
@@ -97,7 +97,7 @@ class PipelineUtil {
 
     URI getGitURL(String path = this.script.env.WORKSPACE, String remote = "origin") {
         if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Git URL. 'path' is undefined")
+            throw new IllegalArgumentException("Error: unable to get Git URL. 'path' is undefined.")
         }
 
         if (!path.startsWith(this.script.env.WORKSPACE)) {
@@ -105,7 +105,7 @@ class PipelineUtil {
         }
 
         if (!remote?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Git URL. 'remote' is undefined")
+            throw new IllegalArgumentException("Error: unable to get Git URL. 'remote' is undefined.")
         }
 
         def result = null
@@ -123,7 +123,7 @@ class PipelineUtil {
 
     def loadGroovySourceFile(String path) {
         if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to load Groovy source file. 'path' is undefined")
+            throw new IllegalArgumentException("Error: unable to load Groovy source file. 'path' is undefined.")
         }
 
         def file = new File(path)

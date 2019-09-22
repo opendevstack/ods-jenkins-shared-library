@@ -81,7 +81,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     Map loadPipelineConfig(String path, Map repo) {
         if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to parse pipeline config. 'path' is undefined")
+            throw new IllegalArgumentException("Error: unable to parse pipeline config. 'path' is undefined.")
         }
 
         if (!path.startsWith(this.script.env.WORKSPACE)) {
@@ -89,7 +89,7 @@ class MROPipelineUtil extends PipelineUtil {
         }
 
         if (!repo) {
-            throw new IllegalArgumentException("Error: unable to parse pipeline config. 'repo' is undefined")
+            throw new IllegalArgumentException("Error: unable to parse pipeline config. 'repo' is undefined.")
         }
 
         repo.pipelineConfig = [:]

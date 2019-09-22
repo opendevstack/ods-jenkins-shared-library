@@ -284,14 +284,14 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to parse pipeline config. 'path' is undefined"
+        e.message == "Error: unable to parse pipeline config. 'path' is undefined."
 
         when:
         util.loadPipelineConfig("", repos[0])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to parse pipeline config. 'path' is undefined"
+        e.message == "Error: unable to parse pipeline config. 'path' is undefined."
 
         when:
         def path = "myPath"
@@ -352,14 +352,14 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to parse pipeline config. 'repo' is undefined"
+        e.message == "Error: unable to parse pipeline config. 'repo' is undefined."
 
         when:
         util.loadPipelineConfig(steps.env.WORKSPACE, [:])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to parse pipeline config. 'repo' is undefined"
+        e.message == "Error: unable to parse pipeline config. 'repo' is undefined."
     }
 
     def "load a repo's pipeline config with invalid target for phase type Makefile"() {

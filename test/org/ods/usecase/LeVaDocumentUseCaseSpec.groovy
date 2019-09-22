@@ -123,7 +123,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: Jira query returned 0 issues: '${jiraIssueJQLQuery}'"
+        e.message == "Error: Jira query returned 0 issues: '${jiraIssueJQLQuery}'."
 
         when:
         LeVaDocumentUseCase.createDocument(
@@ -136,7 +136,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         then:
         e = thrown(RuntimeException)
-        e.message == "Error: Jira query returned 2 issues: '${jiraIssueJQLQuery}'"
+        e.message == "Error: Jira query returned 2 issues: '${jiraIssueJQLQuery}'."
 
         cleanup:
         logFile1.delete()

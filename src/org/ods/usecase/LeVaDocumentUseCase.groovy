@@ -62,7 +62,7 @@ class LeVaDocumentUseCase {
         // Search for the Jira issue associated with this report
         def jiraIssues = JiraService.Helper.toSimpleIssuesFormat(deps.jira.getIssuesForJQLQuery(jiraIssueJQLQuery))
         if (jiraIssues.size() != 1) {
-            throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jiraIssueJQLQuery}'")
+            throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jiraIssueJQLQuery}'.")
         } 
 
         // Add a comment to the Jira issue with a link to the report

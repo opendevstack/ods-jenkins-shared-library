@@ -19,21 +19,21 @@ class NexusService {
 
     NexusService(String baseURL, String username, String password) {
         if (!baseURL?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'baseURL' is undefined")
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'baseURL' is undefined.")
         }
 
         if (!username?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'username' is undefined")
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'username' is undefined.")
         }
 
         if (!password?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'password' is undefined")
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. 'password' is undefined.")
         }
 
         try {
             this.baseURL = new URIBuilder(baseURL).build()
         } catch (e) {
-            throw new IllegalArgumentException("Error: unable to connect to Nexus. '${baseURL}' is not a valid URI")
+            throw new IllegalArgumentException("Error: unable to connect to Nexus. '${baseURL}' is not a valid URI.")
         }
 
         this.username = username
@@ -52,12 +52,12 @@ class NexusService {
 
         response.ifSuccess {
             if (response.getStatus() != 204) {
-                throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
+                throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
             }
         }
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'")
+            throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
         }
 
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")

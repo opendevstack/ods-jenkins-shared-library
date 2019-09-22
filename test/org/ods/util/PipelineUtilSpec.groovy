@@ -39,14 +39,14 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to archive artifact. 'path' is undefined"
+        e.message == "Error: unable to archive artifact. 'path' is undefined."
 
         when:
         util.archiveArtifact("", new byte[0])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to archive artifact. 'path' is undefined"
+        e.message == "Error: unable to archive artifact. 'path' is undefined."
 
         when:
         def path = "myPath"
@@ -84,16 +84,17 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create directory. 'path' is undefined"
+        e.message == "Error: unable to create directory. 'path' is undefined."
 
         when:
         util.createDirectory("")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create directory. 'path' is undefined"
+        e.message == "Error: unable to create directory. 'path' is undefined."
     }
 
+    @Ignore
     def "create Zip artifact"() {
         given:
         def steps = Spy(util.PipelineSteps)
@@ -133,14 +134,14 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Zip artifact. 'name' is undefined"
+        e.message == "Error: unable to create Zip artifact. 'name' is undefined."
 
         when:
         util.createZipArtifact("", [:])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Zip artifact. 'name' is undefined"
+        e.message == "Error: unable to create Zip artifact. 'name' is undefined."
     }
 
     def "create Zip artifact with invalid files"() {
@@ -153,7 +154,7 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Zip artifact. 'files' is undefined"
+        e.message == "Error: unable to create Zip artifact. 'files' is undefined."
     }
 
     def "create Zip file"() {
@@ -188,14 +189,14 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Zip file. 'path' is undefined"
+        e.message == "Error: unable to create Zip file. 'path' is undefined."
 
         when:
         util.createZipFile("", [:])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Zip file. 'path' is undefined"
+        e.message == "Error: unable to create Zip file. 'path' is undefined."
     }
 
     def "create Zip file with invalid files"() {
@@ -208,7 +209,7 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Zip file. 'files' is undefined"
+        e.message == "Error: unable to create Zip file. 'files' is undefined."
     }
 
     def "get Git URL"() {
@@ -260,14 +261,14 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get Git URL. 'path' is undefined"
+        e.message == "Error: unable to get Git URL. 'path' is undefined."
 
         when:
         util.getGitURL("")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get Git URL. 'path' is undefined"
+        e.message == "Error: unable to get Git URL. 'path' is undefined."
 
         when:
         def path = "myPath"
@@ -288,14 +289,14 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get Git URL. 'remote' is undefined"
+        e.message == "Error: unable to get Git URL. 'remote' is undefined."
 
         when:
         util.getGitURL(steps.env.WORKSPACE, "")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get Git URL. 'remote' is undefined"
+        e.message == "Error: unable to get Git URL. 'remote' is undefined."
     }
 
     def "load Groovy source file"() {
@@ -326,14 +327,14 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load Groovy source file. 'path' is undefined"
+        e.message == "Error: unable to load Groovy source file. 'path' is undefined."
 
         when:
         util.loadGroovySourceFile("")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load Groovy source file. 'path' is undefined"
+        e.message == "Error: unable to load Groovy source file. 'path' is undefined."
 
         when:
         def path = "${steps.env.WORKSPACE}/my.groovy"

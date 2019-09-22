@@ -24,21 +24,21 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Jira. 'baseURL' is undefined"
+        e.message == "Error: unable to connect to Jira. 'baseURL' is undefined."
 
         when:
         new JiraService(" ", "username", "password")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Jira. 'baseURL' is undefined"
+        e.message == "Error: unable to connect to Jira. 'baseURL' is undefined."
 
         when:
         new JiraService("invalid URL", "username", "password")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Jira. 'invalid URL' is not a valid URI"
+        e.message == "Error: unable to connect to Jira. 'invalid URL' is not a valid URI."
     }
 
     def "create with invalid username"() {
@@ -47,14 +47,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Jira. 'username' is undefined"
+        e.message == "Error: unable to connect to Jira. 'username' is undefined."
 
         when:
         new JiraService("http://localhost", " ", "password")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Jira. 'username' is undefined"
+        e.message == "Error: unable to connect to Jira. 'username' is undefined."
     }
 
     def "create with invalid password"() {
@@ -63,14 +63,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Jira. 'password' is undefined"
+        e.message == "Error: unable to connect to Jira. 'password' is undefined."
 
         when:
         new JiraService("http://localhost", "username", " ")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to Jira. 'password' is undefined"
+        e.message == "Error: unable to connect to Jira. 'password' is undefined."
     }
 
 
@@ -122,14 +122,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined"
+        e.message == "Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined."
 
         when:
         service.addLabelsToIssue(" ", request.data.names)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined"
+        e.message == "Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined."
     }
 
     def "add labels to issue with invalid names"() {
@@ -145,14 +145,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to add labels to Jira issue. 'names' is undefined"
+        e.message == "Error: unable to add labels to Jira issue. 'names' is undefined."
 
         when:
         service.addLabelsToIssue(request.data.issueIdOrKey, [])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to add labels to Jira issue. 'names' is undefined"
+        e.message == "Error: unable to add labels to Jira issue. 'names' is undefined."
     }
 
     def "add labels to issue"() {
@@ -189,7 +189,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to add labels to Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to add labels to Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -240,14 +240,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined"
+        e.message == "Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined."
 
         when:
         service.appendCommentToIssue(" ", request.data.comment)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined"
+        e.message == "Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined."
     }
 
     def "append comment to issue with invalid comment"() {
@@ -263,14 +263,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to append comment to Jira issue. 'comment' is undefined"
+        e.message == "Error: unable to append comment to Jira issue. 'comment' is undefined."
 
         when:
         service.appendCommentToIssue(request.data.issueIdOrKey, " ")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to append comment to Jira issue. 'comment' is undefined"
+        e.message == "Error: unable to append comment to Jira issue. 'comment' is undefined."
     }
 
     def "append comment to issue"() {
@@ -307,7 +307,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to append comment to Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to append comment to Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -370,14 +370,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue link. 'linkType' is undefined"
+        e.message == "Error: unable to create Jira issue link. 'linkType' is undefined."
 
         when:
         service.createIssueLinkType(" ", request.data.inwardIssue, request.data.outwardIssue)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue link. 'linkType' is undefined"
+        e.message == "Error: unable to create Jira issue link. 'linkType' is undefined."
     }
 
     def "create issue link type with invalid inwardIssue"() {
@@ -393,14 +393,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue link. 'inwardIssue' is undefined"
+        e.message == "Error: unable to create Jira issue link. 'inwardIssue' is undefined."
 
         when:
         service.createIssueLinkType(request.data.linkType, [:], request.data.outwardIssue)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue link. 'inwardIssue' is undefined"
+        e.message == "Error: unable to create Jira issue link. 'inwardIssue' is undefined."
     }
 
     def "create issue link type with invalid outwardIssue"() {
@@ -416,14 +416,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue link. 'outwardIssue' is undefined"
+        e.message == "Error: unable to create Jira issue link. 'outwardIssue' is undefined."
 
         when:
         service.createIssueLinkType(request.data.linkType, request.data.inwardIssue, [:])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue link. 'outwardIssue' is undefined"
+        e.message == "Error: unable to create Jira issue link. 'outwardIssue' is undefined."
     }
 
     def "create issue link type"() {
@@ -460,7 +460,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue link. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to create Jira issue link. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -543,7 +543,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue link. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to create Jira issue link. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -604,14 +604,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'type' is undefined"
+        e.message == "Error: unable to create Jira issue. 'type' is undefined."
 
         when:
         service.createIssueType(" ", request.data.projectKey, request.data.summary, request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'type' is undefined"
+        e.message == "Error: unable to create Jira issue. 'type' is undefined."
     }
 
     def "create issue type with invalid projectKey"() {
@@ -627,14 +627,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'projectKey' is undefined"
+        e.message == "Error: unable to create Jira issue. 'projectKey' is undefined."
 
         when:
         service.createIssueType(request.data.type, " ", request.data.summary, request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'projectKey' is undefined"
+        e.message == "Error: unable to create Jira issue. 'projectKey' is undefined."
     }
 
     def "create issue type with invalid summary"() {
@@ -650,14 +650,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'summary' is undefined"
+        e.message == "Error: unable to create Jira issue. 'summary' is undefined."
 
         when:
         service.createIssueType(request.data.type, request.data.projectKey, " ", request.data.description)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'summary' is undefined"
+        e.message == "Error: unable to create Jira issue. 'summary' is undefined."
     }
 
     def "create issue type with invalid description"() {
@@ -673,14 +673,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'description' is undefined"
+        e.message == "Error: unable to create Jira issue. 'description' is undefined."
 
         when:
         service.createIssueType(request.data.type, request.data.projectKey, request.data.summary, " ")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create Jira issue. 'description' is undefined"
+        e.message == "Error: unable to create Jira issue. 'description' is undefined."
     }
 
     def "create issue type"() {
@@ -721,7 +721,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to create Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -806,7 +806,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to create Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -857,14 +857,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get Jira issues for JQL query. 'query' is undefined"
+        e.message == "Error: unable to get Jira issues for JQL query. 'query' is undefined."
 
         when:
         service.getIssuesForJQLQuery(" ")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get Jira issues for JQL query. 'query' is undefined"
+        e.message == "Error: unable to get Jira issues for JQL query. 'query' is undefined."
     }
 
     def "get issues for JQL query"() {
@@ -901,7 +901,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to get Jira issues for JQL query. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to get Jira issues for JQL query. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -956,14 +956,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined"
+        e.message == "Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined."
 
         when:
         service.removeLabelsFromIssue(" ", request.data.names)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined"
+        e.message == "Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined."
     }
 
     def "remove labels from issue with invalid names"() {
@@ -979,14 +979,14 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to remove labels from Jira issue. 'names' is undefined"
+        e.message == "Error: unable to remove labels from Jira issue. 'names' is undefined."
 
         when:
         service.removeLabelsFromIssue(request.data.issueIdOrKey, [])
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to remove labels from Jira issue. 'names' is undefined"
+        e.message == "Error: unable to remove labels from Jira issue. 'names' is undefined."
     }
 
     def "remove labels from issue"() {
@@ -1023,7 +1023,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to remove labels from Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to remove labels from Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
