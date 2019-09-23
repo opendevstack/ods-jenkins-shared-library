@@ -15,6 +15,11 @@ class JiraUseCase {
         this.jira = jira
     }
 
+    private boolean checkJiraIssueMatchesTestCase(Map issue, String testcaseName) {
+        def issueKeyClean = issue.key.replaceAll("-", "")
+        return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
+    }
+
     private void createBugAndBlockImpactedTestCases(String projectId, Map jiraTestCaseIssues, Map failure, String comment) {
         // Create a Jira bug for the failure in the current project
         def bug = this.jira.createIssueTypeBug(projectId, failure.type, failure.text)
@@ -25,7 +30,7 @@ class JiraUseCase {
             testsuite.testcases.each { testcaseName ->
                 // Find the issue in Jira representing the test case
                 def jiraTestCaseIssue = jiraTestCaseIssues.find { id, issue ->
-                    issue.summary == testcaseName && issue.parent.summary == testsuiteName
+                    checkJiraIssueMatchesTestCase(issue, testcaseName)
                 }
 
                 // Attempt to create a link to the bug only if the issue exists
@@ -42,7 +47,7 @@ class JiraUseCase {
             testsuite.each { testcaseName, testcase ->
                 // Find the test case issue in Jira that matches the executed test case
                 def jiraTestCaseIssue = jiraTestCaseIssues.find { issueId, issue ->
-                    issue.summary == testcaseName && issue.parent.summary == testsuiteName
+                    checkJiraIssueMatchesTestCase(issue, testcaseName)
                 }
 
                 if (!jiraTestCaseIssue) {
@@ -91,7 +96,7 @@ class JiraUseCase {
 
         // Get (automated) test case definitions from Jira
         def jiraTestCaseIssues = JiraService.Helper.toSimpleIssuesFormat(
-            this.jira.getIssuesForJQLQuery("project = ${projectId} AND labels = AutomatedTest AND issuetype = sub-task")
+            this.jira.getIssuesForJQLQuery("project = ${projectId} AND labels = AutomatedTest AND issuetype = Task")
         )
 
         // Label test cases according to their test results

@@ -431,8 +431,8 @@ class JUnitParserSpec extends SpecHelper {
         then:
         def expected = [
             "my-suite-1": [
-                "my-testcase-1": [
-                    name: "my-testcase-1",
+                "JIRA4_my-testcase-1": [
+                    name: "JIRA4_my-testcase-1",
                     classname: "app.MyTestCase1",
                     status: "Succeeded",
                     time: "1",
@@ -440,8 +440,8 @@ class JUnitParserSpec extends SpecHelper {
                     systemOut: "",
                     systemErr: ""
                 ],
-                "my-testcase-2": [
-                    name: "my-testcase-2",
+                "JIRA5_my-testcase-2": [
+                    name: "JIRA5_my-testcase-2",
                     classname: "app.MyTestCase2",
                     status: "Error",
                     time: "2",
@@ -456,8 +456,8 @@ class JUnitParserSpec extends SpecHelper {
                 ]
             ],
             "my-suite-2": [
-                "my-testcase-3": [
-                    name: "my-testcase-3",
+                "JIRA6_my-testcase-3": [
+                    name: "JIRA6_my-testcase-3",
                     classname: "app.MyTestCase3",
                     status: "Failed",
                     time: "3",
@@ -470,21 +470,12 @@ class JUnitParserSpec extends SpecHelper {
                     systemOut: "",
                     systemErr: ""
                 ],
-                "my-testcase-4": [
-                    name: "my-testcase-4",
+                "JIRA7_my-testcase-4": [
+                    name: "JIRA7_my-testcase-4",
                     classname: "app.MyTestCase4",
                     status: "Missing",
                     time: "4",
                     skipped: true,
-                    systemOut: "",
-                    systemErr: ""
-                ],
-                "my-testcase-5": [
-                    name: "my-testcase-5",
-                    classname: "app.MyTestCase5",
-                    status: "Succeeded",
-                    time: "5",
-                    skipped: false,
                     systemOut: "",
                     systemErr: ""
                 ]
@@ -509,7 +500,7 @@ class JUnitParserSpec extends SpecHelper {
                 text: "This is an error.",
                 testsuites: [
                     "my-suite-1": [
-                        testcases: [ "my-testcase-2" ]
+                        testcases: [ "JIRA5_my-testcase-2" ]
                     ]
                 ]
             ]
@@ -533,7 +524,7 @@ class JUnitParserSpec extends SpecHelper {
                 text: "This is a failure.",
                 testsuites: [
                     "my-suite-2": [
-                        testcases: [ "my-testcase-3" ]
+                        testcases: [ "JIRA6_my-testcase-3" ]
                     ]
                 ]
             ]
