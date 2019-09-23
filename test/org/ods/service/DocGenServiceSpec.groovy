@@ -61,21 +61,21 @@ class DocGenServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to DocGen. 'baseURL' is undefined"
+        e.message == "Error: unable to connect to DocGen. 'baseURL' is undefined."
 
         when:
         new DocGenService(" ")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to DocGen. 'baseURL' is undefined"
+        e.message == "Error: unable to connect to DocGen. 'baseURL' is undefined."
 
         when:
         new DocGenService("invalid URL")
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to connect to DocGen. 'invalid URL' is not a valid URI"
+        e.message == "Error: unable to connect to DocGen. 'invalid URL' is not a valid URI."
     }
 
     def "create document"() {
@@ -112,7 +112,7 @@ class DocGenServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create document. DocGen responded with code: '500' and message: 'Sorry, doesn\'t work!'"
+        e.message == "Error: unable to create document. DocGen responded with code: '500' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)

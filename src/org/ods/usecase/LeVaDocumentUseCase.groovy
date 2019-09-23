@@ -35,23 +35,23 @@ class LeVaDocumentUseCase {
         this.util = util
     }
 
-    private String createDocument(String type, String version, Map project, Map repo, Map data, List<File> rawFiles, String jiraIssueJQLQuery) {
+    static String createDocument(Map deps, String type, String version, Map project, Map repo, Map data, List<File> rawFiles, String jiraIssueJQLQuery) {
         // Create a PDF document via the DocGen service
-        def document = this.docGen.createDocument(type, '0.1', data)
+        def document = deps.docGen.createDocument(type, '0.1', data)
 
         // Create an archive with the document and raw data
-        def archive = this.util.createZipArtifact(
-            "${type}-${repo.id}-${version}-${this.script.env.BUILD_ID}.zip",
+        def archive = deps.util.createZipArtifact(
+            "${type}-${repo.id}-${version}-${deps.script.env.BUILD_ID}.zip",
             [
                 "report.pdf": document,
                 "raw/report.json": JsonOutput.toJson(data).getBytes()
             ] << rawFiles.collectEntries { file ->
-                [ "raw/${file.name}", file.getBytes() ]
+                [ "raw/${file.getName()}", file.getBytes() ]
             }
         )
 
         // Store the archive as an artifact in Nexus
-        def uri = this.nexus.storeArtifact(
+        def uri = deps.nexus.storeArtifact(
             project.services.nexus.repository.name,
             "${project.id.toLowerCase()}-${version}",
             "${type}-${repo.id}-${version}.zip",
@@ -60,15 +60,15 @@ class LeVaDocumentUseCase {
         )
 
         // Search for the Jira issue associated with this report
-        def jiraIssues = JiraService.Helper.toSimpleIssuesFormat(this.jira.getIssuesForJQLQuery(jiraIssueJQLQuery))
+        def jiraIssues = JiraService.Helper.toSimpleIssuesFormat(deps.jira.getIssuesForJQLQuery(jiraIssueJQLQuery))
         if (jiraIssues.size() != 1) {
-            throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jiraIssueJQLQuery}'")
+            throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jiraIssueJQLQuery}'.")
         } 
 
         // Add a comment to the Jira issue with a link to the report
-        this.jira.appendCommentToIssue(jiraIssues.iterator().next().value.key, "A new ${type} has been generated and is available at: ${uri}.")
+        deps.jira.appendCommentToIssue(jiraIssues.iterator().next().value.key, "A new ${type} has been generated and is available at: ${uri}.")
         
-        return uri
+        return uri.toString()
     }
 
     String createDTR(String version, Map project, Map repo, Map testResults, List testReportFiles) {
@@ -88,7 +88,10 @@ class LeVaDocumentUseCase {
             ]
         ]
 
-        return createDocument(documentType, version, project, repo, data, testReportFiles, jiraIssueJQLQuery)
+        return createDocument(
+            [script: this.script, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
+            documentType, version, project, repo, data, testReportFiles, (String) jiraIssueJQLQuery
+        )
     }
 
     String createTIR(String version, Map project, Map repo) {
@@ -106,6 +109,9 @@ class LeVaDocumentUseCase {
             data: [:]
         ]
 
-        return createDocument(documentType, version, project, repo, data, [], jiraIssueJQLQuery)
+        return createDocument(
+            [script: this.script, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
+            documentType, version, project, repo, data, [], (String) jiraIssueJQLQuery
+        )
     }
 }

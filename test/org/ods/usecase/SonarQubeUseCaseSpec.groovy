@@ -19,54 +19,54 @@ class SonarQubeUseCaseSpec extends SpecHelper {
 
     def "load SCRR reports from path"() {
         given:
-        def tmpDir = Files.createTempDirectory("scrr-reports-")
-        def tmpFile1 = Files.createTempFile(tmpDir, "scrr", ".docx") << "SCRR Report 1"
-        def tmpFile2 = Files.createTempFile(tmpDir, "scrr", ".docx") << "SCRR Report 2"
-
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def nexus = Mock(NexusService)
         def usecase = createUseCase(steps, nexus)
 
+        def scrrFiles = Files.createTempDirectory("scrr-reports-")
+        def scrrFile1 = Files.createTempFile(scrrFiles, "scrr", ".docx") << "SCRR Report 1"
+        def scrrFile2 = Files.createTempFile(scrrFiles, "scrr", ".docx") << "SCRR Report 2"
+
         when:
-        def result = usecase.loadSCRRReportsFromPath(tmpDir.toString())
+        def result = usecase.loadSCRRReportsFromPath(scrrFiles.toString())
 
         then:
         result.size() == 2
         result.collect { it.text }.sort() == ["SCRR Report 1", "SCRR Report 2"]
 
         cleanup:
-        tmpDir.toFile().deleteDir()
+        scrrFiles.toFile().deleteDir()
     }
 
     def "load SCRR reports from path with empty path"() {
         given:
-        def tmpDir = Files.createTempDirectory("scrr-reports-")
-
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def nexus = Mock(NexusService)
         def usecase = createUseCase(steps, nexus)
 
+        def scrrFiles = Files.createTempDirectory("scrr-reports-")
+
         when:
-        def result = usecase.loadSCRRReportsFromPath(tmpDir.toString())
+        def result = usecase.loadSCRRReportsFromPath(scrrFiles.toString())
 
         then:
         result.isEmpty()
 
         cleanup:
-        tmpDir.toFile().deleteDir()
+        scrrFiles.toFile().deleteDir()
     }
 
     def "upload SCRR reports to Nexus"() {
         given:
+        def steps = Spy(util.PipelineSteps)
+        def nexus = Mock(NexusService)
+        def usecase = createUseCase(steps, nexus)
+
         def version = "0.1"
         def project = createProject()
         def repo = project.repositories.first()
         def type = "myType"
         def artifact = Files.createTempFile("scrr", ".docx").toFile()
-
-        def steps = Spy(PipelineSteps)
-        def nexus = Mock(NexusService)
-        def usecase = createUseCase(steps, nexus)
 
         when:
         def result = usecase.uploadSCRRReportToNexus(version, project, repo, type, artifact)

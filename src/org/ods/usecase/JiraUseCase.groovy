@@ -20,7 +20,7 @@ class JiraUseCase {
         return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
     }
 
-    private void createBugAndBlockImpactedTestCases(String projectId, Map jiraTestCaseIssues, Map failure, String comment) {
+    void createBugAndBlockImpactedTestCases(String projectId, Map jiraTestCaseIssues, Map failure, String comment) {
         // Create a Jira bug for the failure in the current project
         def bug = this.jira.createIssueTypeBug(projectId, failure.type, failure.text)
         this.jira.appendCommentToIssue(bug.key, comment)
@@ -41,7 +41,7 @@ class JiraUseCase {
         }
     }
 
-    private void labelTestCasesWithTestResults(Map jiraTestCaseIssues, Map testResults) {
+    void labelTestCasesWithTestResults(Map jiraTestCaseIssues, Map testResults) {
         def testCasesProcessed = [:]
         testResults.each { testsuiteName, testsuite ->
             testsuite.each { testcaseName, testcase ->

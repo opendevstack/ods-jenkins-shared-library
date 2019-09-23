@@ -13,7 +13,6 @@ import org.yaml.snakeyaml.Yaml
 class PipelineUtil {
 
     static final String ARTIFACTS_BASE_DIR = "artifacts"
-    static final String PROJECT_METADATA_FILE_NAME = "metadata.yml"
 
     protected def script
 
@@ -22,21 +21,25 @@ class PipelineUtil {
     }
 
     void archiveArtifact(String path, byte[] data) {
-        def file = null
-
-        if (!path.startsWith(this.script.WORKSPACE)) {
-            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace.")
+        if (!path?.trim()) {
+            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' is undefined.")
         }
+
+        if (!path.startsWith(this.script.env.WORKSPACE)) {
+            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace: ${path}")
+        }
+
+        def file = null
 
         try {
             // Write the artifact data to file
             file = new File(path).setBytes(data)
 
             // Compute the relative path inside the Jenkins workspace
-            def workspacePath = new File(this.script.WORKSPACE).toURI().relativize(new File(path).toURI()).getPath()
+            def workspacePath = new File(this.script.env.WORKSPACE).toURI().relativize(new File(path).toURI()).getPath()
 
             // Archive the artifact (requires a relative path inside the Jenkins workspace)
-            this.script.archiveArtifacts artifacts: workspacePath
+            this.script.archiveArtifacts(workspacePath)
         } finally {
             if (file && file.exists()) {
                 file.delete()
@@ -44,40 +47,40 @@ class PipelineUtil {
         }
     }
 
-    File createDirectory(String path) {
+    protected File createDirectory(String path) {
+        if (!path?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create directory. 'path' is undefined.")
+        }
+
         def dir = new File(path)
         dir.mkdirs()
         return dir
     }
 
-    File createTempFile(String baseDir, String prefix, String suffix, byte[] data) {
-        def tmpFile = null
-
-        try {
-            // Create a temporary file containing data
-            tmpFile = File.createTempFile(
-                "${prefix}-",
-                "-${suffix}",
-                createDirectory(baseDir)
-            ) << data
-        } finally {
-            if (tmpFile && tmpFile.exists()) {
-                tmpFile.delete()
-            }
+    byte[] createZipArtifact(String name, Map<String, byte[]> files) {
+        if (!name?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
         }
 
-        return tmpFile
-    }
+        if (files == null) {
+            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'files' is undefined.")
+        }
 
-    byte[] createZipArtifact(String name, Map<String, byte[]> contents) {
-        def path = "${this.script.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
-
-        def result = this.createZipFile(path, contents)
+        def path = "${this.script.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
+        def result = this.createZipFile(path, files)
         this.archiveArtifact(path, result)
         return result
     }
 
     byte[] createZipFile(String path, Map<String, byte[]> files) {
+        if (!path?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined.")
+        }
+
+        if (files == null) {
+            throw new IllegalArgumentException("Error: unable to create Zip file. 'files' is undefined.")
+        }
+
         // Create parent directory if needed
         createDirectory(new File(path).getParent())
 
@@ -92,72 +95,42 @@ class PipelineUtil {
         return new File(path).getBytes()
     }
 
+    URI getGitURL(String path = this.script.env.WORKSPACE, String remote = "origin") {
+        if (!path?.trim()) {
+            throw new IllegalArgumentException("Error: unable to get Git URL. 'path' is undefined.")
+        }
+
+        if (!path.startsWith(this.script.env.WORKSPACE)) {
+            throw new IllegalArgumentException("Error: unable to get Git URL. 'path' must be inside the Jenkins workspace: ${path}")
+        }
+
+        if (!remote?.trim()) {
+            throw new IllegalArgumentException("Error: unable to get Git URL. 'remote' is undefined.")
+        }
+
+        def result = null
+
+        this.script.dir(path) {
+            result = this.script.sh(
+                label : "Get Git URL for repository at path '${path}' and origin '${remote}'",
+                script: "git config --get remote.${remote}.url",
+                returnStdout: true
+            ).trim()
+        }
+
+        return new URIBuilder(result).build()
+    }
+
     def loadGroovySourceFile(String path) {
+        if (!path?.trim()) {
+            throw new IllegalArgumentException("Error: unable to load Groovy source file. 'path' is undefined.")
+        }
+
         def file = new File(path)
         if (!file.exists()) {
-            throw new RuntimeException("Error: unable to load Groovy source file. Path ${path} does not exist.")
+            throw new IllegalArgumentException("Error: unable to load Groovy source file. Path ${path} does not exist.")
         }
 
         return this.script.load(path)
-    }
-
-    Map loadProjectMetadata() {
-        def file = new File("${this.script.WORKSPACE}/${PROJECT_METADATA_FILE_NAME}")
-        if (!file.exists()) {
-            throw new RuntimeException("Error: unable to load project meta data. File ${PROJECT_METADATA_FILE_NAME} does not exist.")
-        }
-
-        def result = new Yaml().load(file.text)
-
-        // Check for existence of required attribute 'id'
-        if (result.id == null || !result.id.trim()) {
-            throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'id' is undefined.")
-        }
-
-        // Check for existence of required attribute 'name'
-        if (result.name == null || !result.name.trim()) {
-            throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'name' is undefined.")
-        }
-
-        // Check for existence of required attribute 'repositories'
-        if (!result.repositories) {
-            throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'repositories' is undefined.")
-        }
-
-        result.repositories.eachWithIndex { repo, index ->
-            // Check for existence of required attribute 'repositories[i].id'
-            if (repo.id == null || !repo.id.trim()) {
-                throw new RuntimeException("Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
-            }
-
-            // Resolve repo URL, if not provided
-            if (repo.url == null || !repo.url.trim()) {
-                this.script.echo("Could not determine Git URL for repo '${repo.id}'")
-
-                def gitURL = this.script.sh(
-                    label : "Get Git URL of MRO pipeline repo",
-                    script: "git config --get remote.origin.url",
-                    returnStdout: true
-                ).trim()
-
-                gitURL = new URIBuilder(gitURL).build()
-                if (repo.name != null && repo.name.trim()) {
-                    repo.url = gitURL.resolve("${repo.name}.git").toString()
-                } else {
-                    repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
-                }
-
-                this.script.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
-            }
-
-            // Resolve repo branch, if not provided
-            if (repo.branch == null || !repo.branch.trim()) {
-                this.script.echo("Could not determine Git branch for repo '${repo.id}'")
-                repo.branch = "master"
-                this.script.echo("Resolved Git branch for repo '${repo.id}' to '${repo.branch}'")
-            }
-        }
-
-        return result
     }
 }

@@ -123,8 +123,10 @@ class FixtureHelper {
 
     static Map createProject() {
         def result = [
-            id: "PRJ",
-            key: "PROJECT-1"
+            id: "PHOENIX",
+            key: "PHOENIX-123",
+            name: "Project Phoenix",
+            name: "A super sophisticated project."
         ]
 
         result.services = [
