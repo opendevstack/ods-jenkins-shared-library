@@ -13,7 +13,6 @@ class FixtureHelper {
             self: "http://${id}"
         ]
 
-
         result.fields.summary = summary ?: "${id}-summary"
         result.fields.description = description ?: "${id}-description"
 
@@ -57,7 +56,6 @@ class FixtureHelper {
     static def createJiraTestCaseIssues(boolean convertToSimpleFormat = true) {
         def result = []
 
-        // Create some parents
         def mySuite1 = createJiraIssue("1", "my-suite-1", "Test Suite 1", false)
         result << mySuite1
 
@@ -67,23 +65,27 @@ class FixtureHelper {
         def mySuite3 = createJiraIssue("3", "my-suite-3", "Test Suite 3", false)
         result << mySuite3
 
-        // Create some children
+        // my-testcase-1 correponds to the Jira issue with key JIRA-4
         def myTestCase1 = createJiraIssue("4", "my-testcase-1", "Test Case 1", false)
         myTestCase1.fields.parent = mySuite1
         result << myTestCase1
 
+        // my-testcase-2 correponds to the Jira issue with key JIRA-5
         def myTestCase2 = createJiraIssue("5", "my-testcase-2", "Test Case 2", false)
         myTestCase2.fields.parent = mySuite1
         result << myTestCase2
 
+        // my-testcase-3 correponds to the Jira issue with key JIRA-6
         def myTestCase3 = createJiraIssue("6", "my-testcase-3", "Test Case 3", false)
         myTestCase3.fields.parent = mySuite2
         result << myTestCase3
 
+        // my-testcase-4 correponds to the Jira issue with key JIRA-7
         def myTestCase4 = createJiraIssue("7", "my-testcase-4", "Test Case 4", false)
         myTestCase4.fields.parent = mySuite2
         result << myTestCase4
 
+        // my-testcase-5 correponds to the Jira issue with key JIRA-8
         def myTestCase5 = createJiraIssue("8", "my-testcase-5", "Test Case 5", false)
         myTestCase5.fields.parent = mySuite3
         result << myTestCase5
@@ -102,19 +104,18 @@ class FixtureHelper {
                 <properties>
                     <property name="my-property-a" value="my-property-a-value"/>
                 </properties>
-                <testcase name="my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
-                <testcase name="my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
+                <testcase name="JIRA4_my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
+                <testcase name="JIRA5_my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
                     <error type="my-error-type" message="my-error-message">This is an error.</error>
                 </testcase>
             </testsuite>
-            <testsuite name="my-suite-2" tests="3" failures="1" errors="0" skipped="1">
-                <testcase name="my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
+            <testsuite name="my-suite-2" tests="2" failures="1" errors="0" skipped="1">
+                <testcase name="JIRA6_my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
                     <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
                 </testcase>
-                <testcase name="my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
+                <testcase name="JIRA7_my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
                     <skipped/>
                 </testcase>
-                <testcase name="my-testcase-5" classname="app.MyTestCase5" status="Succeeded" time="5"/>
             </testsuite>
         </testsuites>
         """
