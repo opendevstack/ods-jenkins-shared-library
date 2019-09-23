@@ -14,6 +14,48 @@ class JiraUseCaseSpec extends SpecHelper {
         return new JiraUseCase(steps, jira)
     }
 
+    def "check Jira issue matches test case"() {
+        given:
+        def steps   = Spy(PipelineSteps)
+        def jira    = Mock(JiraService)
+        def usecase = createUseCase(steps, jira)
+
+        when:
+        def issue = [key: "JIRA-123"]
+        def testcaseName = "JIRA123 test"
+
+        then:
+        usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+
+        when:
+        issue = [key: "JIRA-123"]
+        testcaseName = "JIRA123-test"
+
+        then:
+        usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+
+        when:
+        issue = [key: "JIRA-123"]
+        testcaseName = "JIRA123_test"
+
+        then:
+        usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+
+        when:
+        issue = [key: "JIRA-123"]
+        testcaseName = "JIRA123test"
+
+        then:
+        !usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+
+        when:
+        issue = [key: "JIRA-123"]
+        testcaseName = "JIRA-123_test"
+
+        then:
+        !usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+    }
+
     def "create bug and block impacted test cases"() {
         given:
         def steps = Spy(util.PipelineSteps)
@@ -38,8 +80,8 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.createIssueLinkTypeBlocks(bug, {
-            // TODO: create abstraction
-            it.parent.summary == "my-suite-2" && it.summary == "my-testcase-3"
+            // the Jira issue that shall be linked to the bug
+            it.key == "JIRA-6"
         })
     }
 
@@ -100,7 +142,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.reportTestResultsForProject(project.id, testResults)
 
         then:
-        1 * jira.getIssuesForJQLQuery("project = ${project.id} AND labels = AutomatedTest AND issuetype = sub-task") >> testCaseIssues
+        1 * jira.getIssuesForJQLQuery("project = ${project.id} AND labels = AutomatedTest AND issuetype = Task") >> testCaseIssues
 
         then:
         1 * jira.removeLabelsFromIssue("4", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
@@ -136,8 +178,8 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.createIssueLinkTypeBlocks(errorBug, {
-            // TODO: create abstraction
-            it.parent.summary == "my-suite-1" && it.summary == "my-testcase-2"
+            // the Jira issue that shall be linked to the bug
+            it.key == "JIRA-5"
         })
 
         // create bug and block impacted test cases for failure
@@ -149,8 +191,8 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.createIssueLinkTypeBlocks(failureBug, {
-            // TODO: create abstraction
-            it.parent.summary == "my-suite-2" && it.summary == "my-testcase-3"
+            // the Jira issue that shall be linked to the bug
+            it.key == "JIRA-6"
         })
     }
 }

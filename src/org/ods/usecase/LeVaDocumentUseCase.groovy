@@ -73,7 +73,7 @@ class LeVaDocumentUseCase {
 
     String createDTR(String version, Map project, Map repo, Map testResults, List testReportFiles) {
         def documentType = DOCUMENT_TYPE_DTR
-        def jiraIssueJQLQuery = "project = ${project.id} AND labels = LeVA_Doc:DTR"
+        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:DTR"
 
         def data = [
             metadata: [
@@ -96,7 +96,7 @@ class LeVaDocumentUseCase {
 
     String createTIR(String version, Map project, Map repo) {
         def documentType = DOCUMENT_TYPE_TIR
-        def jiraIssueJQLQuery = "project = ${project.id} AND labels = LeVA_Doc:TIR"
+        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation'  AND labels = LeVA_Doc:TIR"
 
         def data = [
             metadata: [
