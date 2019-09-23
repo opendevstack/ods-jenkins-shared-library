@@ -115,7 +115,7 @@ class PipelineUtil {
                 label : "Get Git URL for repository at path '${path}' and origin '${remote}'",
                 script: "git config --get remote.${remote}.url",
                 returnStdout: true
-            )
+            ).trim()
         }
 
         return new URIBuilder(result).build()
