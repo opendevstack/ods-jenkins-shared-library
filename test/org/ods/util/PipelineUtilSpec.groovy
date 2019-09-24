@@ -227,10 +227,10 @@ class PipelineUtilSpec extends SpecHelper {
         1 * steps.dir(path, _)
 
         then:
-        1 * steps.sh({ it.script == "git config --get remote.${origin}.url" && it.returnStdout }) >> new URI("https://github.com/my-org/my-repo.git")
+        1 * steps.sh({ it.script == "git config --get remote.${origin}.url" && it.returnStdout }) >> new URI("https://github.com/my-org/my-repo.git").toString()
 
         then:
-        result.toString() == "https://github.com/my-org/my-repo.git"
+        result == new URI("https://github.com/my-org/my-repo.git")
     }
 
     def "get Git URL with default arguments"() {
@@ -245,10 +245,10 @@ class PipelineUtilSpec extends SpecHelper {
         1 * steps.dir(steps.env.WORKSPACE, _)
 
         then:
-        1 * steps.sh({ it.script == "git config --get remote.origin.url" && it.returnStdout }) >> new URI("https://github.com/my-org/my-repo.git")
+        1 * steps.sh({ it.script == "git config --get remote.origin.url" && it.returnStdout }) >> new URI("https://github.com/my-org/my-repo.git").toString()
 
         then:
-        result.toString() == "https://github.com/my-org/my-repo.git"
+        result == new URI("https://github.com/my-org/my-repo.git")
     }
 
     def "get Git URL with invalid path"() {

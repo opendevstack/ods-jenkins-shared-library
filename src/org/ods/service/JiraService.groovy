@@ -70,7 +70,13 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to add labels to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to add labels to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to add labels to Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
     }
 
@@ -95,7 +101,13 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to append comment to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to append comment to Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to append comment to Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
     }
 
@@ -139,7 +151,13 @@ class JiraService {
         }
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to create Jira issue link. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to create Jira issue link. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to create Jira issue link. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
     }
 
@@ -193,7 +211,13 @@ class JiraService {
         }
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to create Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to create Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to create Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
 
         return new JsonSlurperClassic().parseText(response.getBody())
@@ -216,7 +240,19 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 400) {
+                def matcher = message =~ /The value '(.*)' does not exist for the field 'project'./
+                if (matcher.find()) {
+                    def project = matcher[0][1]
+                    message += " Could it be that the project '${project}' does not exist in Jira?"
+                }
+            } else if (response.getStatus() == 404) {
+                message = "Error: unable to get Jira issues for JQL query. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
 
         return new JsonSlurperClassic().parseText(response.getBody()).issues
@@ -249,7 +285,13 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to remove labels from Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to remove labels from Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to remove labels from Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
     }
 

@@ -43,7 +43,13 @@ class DocGenService {
             .asString()
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to create document. DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to create document. DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to create document. DocGen could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
 
         def result = new JsonSlurperClassic().parseText(response.getBody())

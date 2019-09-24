@@ -173,7 +173,28 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "add labels to issue with failure"() {
+    def "add labels to issue with HTTP 404 failure"() {
+        given:
+        def request = addLabelsToIssueRequestData()
+        def response = addLabelsToIssueResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.addLabelsToIssue(request.data.issueIdOrKey, request.data.names)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to add labels to Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "add labels to issue with HTTP 500 failure"() {
         given:
         def request = addLabelsToIssueRequestData()
         def response = addLabelsToIssueResponseData([
@@ -189,7 +210,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to add labels to Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to add labels to Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -291,7 +312,28 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "append comment to issue with failure"() {
+    def "append comment to issue with HTTP 404 failure"() {
+        given:
+        def request = appendCommentToIssueRequestData()
+        def response = appendCommentToIssueResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.appendCommentToIssue(request.data.issueIdOrKey, request.data.comment)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to append comment to Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "append comment to issue with HTTP 500 failure"() {
         given:
         def request = appendCommentToIssueRequestData()
         def response = appendCommentToIssueResponseData([
@@ -307,7 +349,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to append comment to Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to append comment to Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -444,7 +486,28 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue link type with failure"() {
+    def "create issue link type with HTTP 404 failure"() {
+        given:
+        def request = createIssueLinkTypeRequestData()
+        def response = createIssueLinkTypeResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.createIssueLinkType(request.data.linkType, request.data.inwardIssue, request.data.outwardIssue)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to create Jira issue link. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create issue link type with HTTP 500 failure"() {
         given:
         def request = createIssueLinkTypeRequestData()
         def response = createIssueLinkTypeResponseData([
@@ -460,7 +523,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue link. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to create Jira issue link. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -527,7 +590,28 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue link type 'Blocks' with failure"() {
+    def "create issue link type 'Blocks' with HTTP 404 failure"() {
+        given:
+        def request = createIssueLinkTypeBlocksRequestData()
+        def response = createIssueLinkTypeBlocksResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.createIssueLinkTypeBlocks(request.data.inwardIssue, request.data.outwardIssue)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to create Jira issue link. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create issue link type 'Blocks' with HTTP 500 failure"() {
         given:
         def request = createIssueLinkTypeBlocksRequestData()
         def response = createIssueLinkTypeBlocksResponseData([
@@ -543,7 +627,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue link. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to create Jira issue link. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -705,7 +789,28 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type with failure"() {
+    def "create issue type with HTTP 404 failure"() {
+        given:
+        def request = createIssueTypeRequestData()
+        def response = createIssueTypeResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.createIssueType(request.data.type, request.data.projectKey, request.data.summary, request.data.description)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to create Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create issue type with HTTP 500 failure"() {
         given:
         def request = createIssueTypeRequestData()
         def response = createIssueTypeResponseData([
@@ -721,7 +826,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to create Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -790,7 +895,28 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type 'Bug' with failure"() {
+    def "create issue type 'Bug' with HTTP 404 failure"() {
+        given:
+        def request = createIssueTypeBugRequestData()
+        def response = createIssueTypeBugResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.createIssueTypeBug(request.data.projectKey, request.data.summary, request.data.description)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to create Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create issue type 'Bug' with HTTP 500 failure"() {
         given:
         def request = createIssueTypeBugRequestData()
         def response = createIssueTypeBugResponseData([
@@ -806,7 +932,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to create Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -885,7 +1011,72 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create issue type 'Bug' with failure"() {
+    def "get issues for JQL query with HTTP 400 failure"() {
+        given:
+        def request = getIssuesForJQLQueryRequestData()
+        def response = getIssuesForJQLQueryResponseData([
+            body: "Sorry, doesn't work!",
+            status: 400
+        ])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.getIssuesForJQLQuery(request.data.query)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "get issues for JQL query with HTTP 400 failure because of non-existent project"() {
+        given:
+        def request = getIssuesForJQLQueryRequestData()
+        def response = getIssuesForJQLQueryResponseData([
+            body: """{"errorMessages":["The value 'myProject' does not exist for the field 'project'."],"errors":{}""",
+            status: 400
+        ])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.getIssuesForJQLQuery(request.data.query)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == """Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.status}' and message: '${response.body}'. Could it be that the project 'myProject' does not exist in Jira?"""
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "get issues for JQL query with HTTP 404 failure"() {
+        given:
+        def request = getIssuesForJQLQueryRequestData()
+        def response = getIssuesForJQLQueryResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.getIssuesForJQLQuery(request.data.query)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to get Jira issues for JQL query. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "get issues for JQL query with HTTP 500 failure"() {
         given:
         def request = getIssuesForJQLQueryRequestData()
         def response = getIssuesForJQLQueryResponseData([
@@ -901,7 +1092,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to get Jira issues for JQL query. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -1007,7 +1198,28 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "remove labels from issue with failure"() {
+    def "remove labels from issue with HTTP 404 failure"() {
+        given:
+        def request = removeLabelsFromIssueRequestData()
+        def response = removeLabelsFromIssueResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.removeLabelsFromIssue(request.data.issueIdOrKey, request.data.names)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to remove labels from Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "remove labels from issue with HTTP 500 failure"() {
         given:
         def request = removeLabelsFromIssueRequestData()
         def response = removeLabelsFromIssueResponseData([
@@ -1023,7 +1235,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to remove labels from Jira issue. Jira responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to remove labels from Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)

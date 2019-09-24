@@ -96,7 +96,7 @@ class LeVaDocumentUseCase {
 
     String createTIR(String version, Map project, Map repo) {
         def documentType = DOCUMENT_TYPE_TIR
-        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation'  AND labels = LeVA_Doc:TIR"
+        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:TIR"
 
         def data = [
             metadata: [

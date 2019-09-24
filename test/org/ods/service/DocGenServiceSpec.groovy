@@ -96,7 +96,28 @@ class DocGenServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "create document with failure"() {
+    def "create document with HTTP 404 failure"() {
+        given:
+        def request = createDocumentRequestData()
+        def response = createDocumentResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port())
+
+        when:
+        service.createDocument(request.data.type, request.data.version, request.data.data)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to create document. DocGen could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "create document with HTTP 500 failure"() {
         given:
         def request = createDocumentRequestData()
         def response = createDocumentResponseData([
@@ -112,7 +133,7 @@ class DocGenServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create document. DocGen responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to create document. DocGen responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
