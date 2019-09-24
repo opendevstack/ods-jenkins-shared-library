@@ -57,7 +57,13 @@ class NexusService {
         }
 
         response.ifFailure {
-            throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            def message = "Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
         }
 
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")

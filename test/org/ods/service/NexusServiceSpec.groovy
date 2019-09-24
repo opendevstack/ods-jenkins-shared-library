@@ -123,7 +123,28 @@ class NexusServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "store artifact with failure"() {
+    def "store artifact with HTTP 404 failure"() {
+        given:
+        def request = storeArtifactRequestData()
+        def response = storeArtifactResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.storeArtifact(request.data.repository, request.data.directory, request.data.name, request.data.artifact, request.data.contentType)
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to store artifact. Nexus could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "store artifact with HTTP 500 failure"() {
         given:
         def request = storeArtifactRequestData()
         def response = storeArtifactResponseData([
@@ -139,7 +160,7 @@ class NexusServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to store artifact. Nexus responded with code: '500' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to store artifact. Nexus responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)

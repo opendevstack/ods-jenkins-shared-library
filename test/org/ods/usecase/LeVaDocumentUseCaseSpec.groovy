@@ -167,7 +167,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         def testReport = junit.parseTestReportFiles(testReportFiles)
 
         def type = "DTR"
-        def jiraIssueJQLQuery = "project = ${project.id} AND labels = LeVA_Doc:${type}"
+        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${type}"
 
         when:
         usecase.createDTR(version, project, repo, testReport, testReportFiles)
@@ -198,7 +198,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         def repo = project.repositories.first()
 
         def type = "TIR"
-        def jiraIssueJQLQuery = "project = ${project.id} AND labels = LeVA_Doc:${type}"
+        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${type}"
 
         when:
         usecase.createTIR(version, project, repo)
