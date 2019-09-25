@@ -26,126 +26,110 @@ class OdsContextTest extends GroovyTestCase {
     void testDetermineEnvironment_gitflow() {
         def existingEnvironments = []
         def config = [
-            projectId: 'foo',
-            branchToEnvironmentMapping: [
-                'master': 'prod',
-                'develop': 'dev',
-                'release/': 'rel',
-                'hotfix/': 'hotfix',
-                '*': 'preview'
-            ],
-            autoCloneEnvironmentsFromSourceMapping: [:]
+                projectId                             : 'foo',
+                branchToEnvironmentMapping            : [
+                        'master'  : 'prod',
+                        'develop' : 'dev',
+                        'release/': 'rel',
+                        'hotfix/' : 'hotfix',
+                        '*'       : 'preview'
+                ],
+                autoCloneEnvironmentsFromSourceMapping: [:]
         ]
-        def uut = new OdsContext(script, config, logger) {
-            protected boolean environmentExists(String name) {
-                existingEnvironments.contains(name)
-            }
-        }
 
-        config.gitBranch = 'master'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'master')
         assertEquals("prod", config.environment)
 
-        config.gitBranch = 'develop'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'develop')
         assertEquals("dev", config.environment)
 
-        config.gitBranch = 'release/1.0.0'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'release/1.0.0')
         assertEquals("rel", config.environment)
 
-        config.gitBranch = 'hotfix/foo-123-bar'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'hotfix/foo-123-bar')
         assertEquals("hotfix", config.environment)
 
-        config.gitBranch = 'feature/foo-123-bar'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'feature/foo-123-bar')
         assertEquals("preview", config.environment)
 
         existingEnvironments = ['preview-123']
-        config.gitBranch = 'feature/foo-123-bar'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'feature/foo-123-bar')
         assertEquals("preview-123", config.environment)
 
         existingEnvironments = ['preview-foo-bar']
-        config.gitBranch = 'foo-bar'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'foo-bar')
         assertEquals("preview-foo-bar", config.environment)
     }
 
     void testDetermineEnvironment_githubflow() {
         def existingEnvironments = []
         def config = [
-            projectId: 'foo',
-            branchToEnvironmentMapping: [
-                'master': 'prod',
-                '*': 'preview'
-            ],
-            autoCloneEnvironmentsFromSourceMapping: [
-                'preview': 'prod'
-            ]
+                projectId                             : 'foo',
+                branchToEnvironmentMapping            : [
+                        'master': 'prod',
+                        '*'     : 'preview'
+                ],
+                autoCloneEnvironmentsFromSourceMapping: [
+                        'preview': 'prod'
+                ]
         ]
-        def uut = new OdsContext(script, config, logger) {
-            protected boolean environmentExists(String name) {
-                existingEnvironments.contains(name)
-            }
-        }
 
-        config.gitBranch = 'master'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments, 'master')
         assertEquals("prod", config.environment)
 
-        config.gitBranch = 'feature/foo-123-bar'
-        uut.determineEnvironment()
+        determineEnvironment(config,existingEnvironments,'feature/foo-123-bar')
         assertEquals("preview-123", config.environment)
     }
 
     void testDetermineEnvironment_autoclone() {
         def existingEnvironments = []
         def config = [
-            projectId: 'foo',
-            branchToEnvironmentMapping: [
-                'master': 'prod',
-                'develop': 'dev',
-                'release/': 'rel',
-                'hotfix/': 'hotfix',
-                '*': 'preview'
-            ],
-            autoCloneEnvironmentsFromSourceMapping: [
-                'rel': 'dev',
-                'hotfix': 'prod',
-                'preview': 'dev'
-            ]
+                projectId                             : 'foo',
+                branchToEnvironmentMapping            : [
+                        'master'  : 'prod',
+                        'develop' : 'dev',
+                        'release/': 'rel',
+                        'hotfix/' : 'hotfix',
+                        '*'       : 'preview'
+                ],
+                autoCloneEnvironmentsFromSourceMapping: [
+                        'rel'    : 'dev',
+                        'hotfix' : 'prod',
+                        'preview': 'dev'
+                ]
         ]
+
+        determineEnvironment(config,existingEnvironments,'release/1.0.0')
+        assertEquals("rel-1.0.0", config.environment)
+        assertEquals("dev", config.cloneSourceEnv)
+
+        determineEnvironment(config, existingEnvironments, 'hotfix/foo-123-bar')
+        assertEquals("hotfix-123", config.environment)
+        assertEquals("prod", config.cloneSourceEnv)
+
+        determineEnvironment(config, existingEnvironments, 'hotfix/foo')
+        assertEquals("hotfix-foo", config.environment)
+        assertEquals("prod", config.cloneSourceEnv)
+
+        determineEnvironment(config, existingEnvironments, 'feature/foo-123-bar')
+        assertEquals("preview-123", config.environment)
+        assertEquals("dev", config.cloneSourceEnv)
+
+        determineEnvironment(config, existingEnvironments, 'foo-bar')
+        assertEquals("preview-foo-bar", config.environment)
+        assertEquals("dev", config.cloneSourceEnv)
+    }
+
+    //resets config.environment and call determineEnvironment on newly created OdsContext object
+    void determineEnvironment(config, existingEnvironments, String branch) {
+        config.environment = null
         def uut = new OdsContext(script, config, logger) {
             protected boolean environmentExists(String name) {
                 existingEnvironments.contains(name)
             }
         }
-
-        config.gitBranch = 'release/1.0.0'
+        config.gitBranch = branch
         uut.determineEnvironment()
-        assertEquals("rel-1.0.0", config.environment)
-        assertEquals("dev", config.cloneSourceEnv)
 
-        config.gitBranch = 'hotfix/foo-123-bar'
-        uut.determineEnvironment()
-        assertEquals("hotfix-123", config.environment)
-        assertEquals("prod", config.cloneSourceEnv)
-
-        config.gitBranch = 'hotfix/foo'
-        uut.determineEnvironment()
-        assertEquals("hotfix-foo", config.environment)
-        assertEquals("prod", config.cloneSourceEnv)
-
-        config.gitBranch = 'feature/foo-123-bar'
-        uut.determineEnvironment()
-        assertEquals("preview-123", config.environment)
-        assertEquals("dev", config.cloneSourceEnv)
-
-        config.gitBranch = 'foo-bar'
-        uut.determineEnvironment()
-        assertEquals("preview-foo-bar", config.environment)
-        assertEquals("dev", config.cloneSourceEnv)
     }
 }
