@@ -12,6 +12,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.archiveArtifacts(artifacts)
     }
 
+    def checkout(Map config) {
+        return this.context.checkout(config)
+    }
+
     void dir(String path, Closure block) {
         this.context.dir(path, block)
     }
@@ -20,7 +24,11 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.echo(message)
     }
 
-    Map env() {
+    def getCurrentBuild() {
+        return this.context.currentBuild
+    }
+
+    Map getEnv() {
         return this.context.env
     }
 
@@ -34,6 +42,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
 
     def sh(def args) {
         this.context.sh(args)
+    }
+
+    void stage(String name, Closure block) {
+        this.context.stage(name, block)
     }
 
     void stash(String name) {

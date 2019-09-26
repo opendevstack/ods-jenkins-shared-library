@@ -9,15 +9,16 @@ import net.lingala.zip4j.model.ZipParameters
 
 import org.apache.http.client.utils.URIBuilder
 import org.yaml.snakeyaml.Yaml
+import org.ods.util.IPipelineSteps
 
 class PipelineUtil {
 
     static final String ARTIFACTS_BASE_DIR = "artifacts"
 
-    protected def script
+    protected IPipelineSteps steps
 
-    PipelineUtil(def script) {
-        this.script = script
+    PipelineUtil(IPipelineSteps steps) {
+        this.steps = steps
     }
 
     void archiveArtifact(String path, byte[] data) {
@@ -25,7 +26,7 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to archive artifact. 'path' is undefined.")
         }
 
-        if (!path.startsWith(this.script.env.WORKSPACE)) {
+        if (!path.startsWith(this.steps.env.WORKSPACE)) {
             throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace: ${path}")
         }
 
@@ -36,10 +37,10 @@ class PipelineUtil {
             file = new File(path).setBytes(data)
 
             // Compute the relative path inside the Jenkins workspace
-            def workspacePath = new File(this.script.env.WORKSPACE).toURI().relativize(new File(path).toURI()).getPath()
+            def workspacePath = new File(this.steps.env.WORKSPACE).toURI().relativize(new File(path).toURI()).getPath()
 
             // Archive the artifact (requires a relative path inside the Jenkins workspace)
-            this.script.archiveArtifacts(workspacePath)
+            this.steps.archiveArtifacts(workspacePath)
         } finally {
             if (file && file.exists()) {
                 file.delete()
@@ -66,7 +67,7 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'files' is undefined.")
         }
 
-        def path = "${this.script.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
+        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
         def result = this.createZipFile(path, files)
         this.archiveArtifact(path, result)
         return result
@@ -95,12 +96,12 @@ class PipelineUtil {
         return new File(path).getBytes()
     }
 
-    URI getGitURL(String path = this.script.env.WORKSPACE, String remote = "origin") {
+    URI getGitURL(String path = this.steps.env.WORKSPACE, String remote = "origin") {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to get Git URL. 'path' is undefined.")
         }
 
-        if (!path.startsWith(this.script.env.WORKSPACE)) {
+        if (!path.startsWith(this.steps.env.WORKSPACE)) {
             throw new IllegalArgumentException("Error: unable to get Git URL. 'path' must be inside the Jenkins workspace: ${path}")
         }
 
@@ -110,8 +111,8 @@ class PipelineUtil {
 
         def result = null
 
-        this.script.dir(path) {
-            result = this.script.sh(
+        this.steps.dir(path) {
+            result = this.steps.sh(
                 label : "Get Git URL for repository at path '${path}' and origin '${remote}'",
                 script: "git config --get remote.${remote}.url",
                 returnStdout: true
@@ -131,6 +132,6 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to load Groovy source file. Path ${path} does not exist.")
         }
 
-        return this.script.load(path)
+        return this.steps.load(path)
     }
 }

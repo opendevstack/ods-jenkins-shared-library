@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 import org.ods.service.DocGenService
 import org.ods.service.JiraService
 import org.ods.service.NexusService
+import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineUtil
 
 class LeVaDocumentUseCase {
@@ -21,14 +22,14 @@ class LeVaDocumentUseCase {
         DOCUMENT_TYPE_TIR: "Technical Installation Report"
     ]
 
-    private def script
     private DocGenService docGen
     private JiraService jira
     private NexusService nexus
+    private IPipelineSteps steps
     private PipelineUtil util
 
-    LeVaDocumentUseCase(def script, DocGenService docGen, JiraService jira, NexusService nexus, PipelineUtil util) {
-        this.script = script
+    LeVaDocumentUseCase(IPipelineSteps steps, DocGenService docGen, JiraService jira, NexusService nexus, PipelineUtil util) {
+        this.steps = steps
         this.docGen = docGen
         this.jira = jira
         this.nexus = nexus
@@ -41,7 +42,7 @@ class LeVaDocumentUseCase {
 
         // Create an archive with the document and raw data
         def archive = deps.util.createZipArtifact(
-            "${type}-${repo.id}-${version}-${deps.script.env.BUILD_ID}.zip",
+            "${type}-${repo.id}-${version}-${deps.steps.env.BUILD_ID}.zip",
             [
                 "report.pdf": document,
                 "raw/report.json": JsonOutput.toJson(data).getBytes()
@@ -89,7 +90,7 @@ class LeVaDocumentUseCase {
         ]
 
         return createDocument(
-            [script: this.script, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
             documentType, version, project, repo, data, testReportFiles, (String) jiraIssueJQLQuery
         )
     }
@@ -110,7 +111,7 @@ class LeVaDocumentUseCase {
         ]
 
         return createDocument(
-            [script: this.script, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
             documentType, version, project, repo, data, [], (String) jiraIssueJQLQuery
         )
     }
