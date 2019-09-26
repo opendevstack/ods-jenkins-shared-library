@@ -181,8 +181,6 @@ class MROPipelineUtil extends PipelineUtil {
                 this.steps.echo("Could not determine Git URL for repo '${repo.id}' from project meta data. Attempting to resolve automatically...")
 
                 def gitURL = this.getGitURL(this.steps.env.WORKSPACE, "origin")
-                this.steps.echo("???: Class: ${gitURL.getClass().getName()}")
-                this.steps.echo("???: Value: ${gitURL}")
                 if (repo.name?.trim()) {
                     repo.url = gitURL.resolve("${repo.name}.git").toString()
                     repo.remove("name")

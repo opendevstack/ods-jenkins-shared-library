@@ -142,7 +142,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.reportTestResultsForProject(project.id, testResults)
 
         then:
-        1 * jira.getIssuesForJQLQuery("project = ${project.id} AND labels = AutomatedTest AND issuetype = Task") >> testCaseIssues
+        1 * jira.getIssuesForJQLQuery("project = ${project.id} AND labels = AutomatedTest AND issuetype = Test") >> testCaseIssues
 
         then:
         1 * jira.removeLabelsFromIssue("4", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })

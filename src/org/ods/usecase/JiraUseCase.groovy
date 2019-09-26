@@ -97,7 +97,7 @@ class JiraUseCase {
 
         // Get (automated) test case definitions from Jira
         def jiraTestCaseIssues = JiraService.Helper.toSimpleIssuesFormat(
-            this.jira.getIssuesForJQLQuery("project = ${projectId} AND labels = AutomatedTest AND issuetype = Task")
+            this.jira.getIssuesForJQLQuery("project = ${projectId} AND labels = AutomatedTest AND issuetype = Test")
         )
 
         // Label test cases according to their test results
