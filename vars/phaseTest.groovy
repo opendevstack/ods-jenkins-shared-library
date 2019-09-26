@@ -23,13 +23,13 @@ def call(Map project, List<Set<Map>> repos) {
         testsuites: Collections.synchronizedList([])
     ]
 
-    def groups = util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.TEST, repos, null) { script, repo ->
+    def groups = util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.TEST, repos, null) { steps, repo ->
         // TODO: ODS error handling
         def testReportsPath = "junit/${repo.id}"
 
         // Unstash JUnit test reports into path
         echo "Collecting JUnit XML Reports for ${repo.id}"
-        def hasStashedTestReports = jenkins.unstashFilesIntoPath("test-reports-junit-xml-${repo.id}-${script.env.BUILD_ID}", "${script.WORKSPACE}/${testReportsPath}", "JUnit XML Report")
+        def hasStashedTestReports = jenkins.unstashFilesIntoPath("test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}", "${steps.env.WORKSPACE}/${testReportsPath}", "JUnit XML Report")
 
         if (hasStashedTestReports) {
             if (repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS) {
@@ -39,14 +39,14 @@ def call(Map project, List<Set<Map>> repos) {
             }
 
             // Load JUnit test report files from path
-            def testReportFiles = junit.loadTestReportsFromPath("${script.WORKSPACE}/${testReportsPath}")
+            def testReportFiles = junit.loadTestReportsFromPath("${steps.env.WORKSPACE}/${testReportsPath}")
 
             // Parse JUnit test report files into a report
             def testReport = junit.parseTestReportFiles(testReportFiles)
 
             // Create and store a Development Test Report document
             echo "Creating and archiving a Development Test Report for repo '${repo.id}'"
-            repo.DTR = levaDoc.createDTR(script.env.RELEASE_PARAM_VERSION, project, repo, testReport, testReportFiles)
+            repo.DTR = levaDoc.createDTR(steps.env.RELEASE_PARAM_VERSION, project, repo, testReport, testReportFiles)
 
             // Add the report's test results into a global data structure
             testResults.testsuites.addAll(testReport.testsuites)

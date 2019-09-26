@@ -59,13 +59,13 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     List getEnvironment(boolean debug = false) {
-        def version = this.script.env.version?.trim() ?: "WIP"
-        def targetEnvironment = this.script.env.environment?.trim() ?: "dev"
-        def sourceEnvironmentToClone = this.script.env.sourceEnvironmentToClone?.trim() ?: targetEnvironment
+        def version = this.steps.env.version?.trim() ?: "WIP"
+        def targetEnvironment = this.steps.env.environment?.trim() ?: "dev"
+        def sourceEnvironmentToClone = this.steps.env.sourceEnvironmentToClone?.trim() ?: targetEnvironment
 
-        def changeId = this.script.env.changeId?.trim() ?: "${version}-${targetEnvironment}"
-        def configItem = this.script.env.configItem?.trim() ?: "UNDEFINED"
-        def changeDescription = this.script.env.changeDescription?.trim() ?: "UNDEFINED"
+        def changeId = this.steps.env.changeId?.trim() ?: "${version}-${targetEnvironment}"
+        def configItem = this.steps.env.configItem?.trim() ?: "UNDEFINED"
+        def changeDescription = this.steps.env.changeDescription?.trim() ?: "UNDEFINED"
 
         return [
             "DEBUG=${debug}",
@@ -84,7 +84,7 @@ class MROPipelineUtil extends PipelineUtil {
             throw new IllegalArgumentException("Error: unable to parse pipeline config. 'path' is undefined.")
         }
 
-        if (!path.startsWith(this.script.env.WORKSPACE)) {
+        if (!path.startsWith(this.steps.env.WORKSPACE)) {
             throw new IllegalArgumentException("Error: unable to parse pipeline config. 'path' must be inside the Jenkins workspace: ${path}")
         }
 
@@ -144,9 +144,9 @@ class MROPipelineUtil extends PipelineUtil {
             throw new IllegalArgumentException("Error: unable to parse project meta data. 'filename' is undefined.")
         }
 
-        def file = new File("${this.script.env.WORKSPACE}/${filename}")
+        def file = new File("${this.steps.env.WORKSPACE}/${filename}")
         if (!file.exists()) {
-            throw new RuntimeException("Error: unable to load project meta data. File '${this.script.env.WORKSPACE}/${filename}' does not exist.")
+            throw new RuntimeException("Error: unable to load project meta data. File '${this.steps.env.WORKSPACE}/${filename}' does not exist.")
         }
 
         def result = new Yaml().load(file.text)
@@ -178,9 +178,11 @@ class MROPipelineUtil extends PipelineUtil {
 
             // Resolve repo URL, if not provided
             if (!repo.url?.trim()) {
-                this.script.echo("Could not determine Git URL for repo '${repo.id}' from project meta data. Attempting to resolve automatically...")
+                this.steps.echo("Could not determine Git URL for repo '${repo.id}' from project meta data. Attempting to resolve automatically...")
 
-                def gitURL = getGitURL()
+                def gitURL = this.getGitURL(this.steps.env.WORKSPACE, "origin")
+                this.steps.echo("???: Class: ${gitURL.getClass().getName()}")
+                this.steps.echo("???: Value: ${gitURL}")
                 if (repo.name?.trim()) {
                     repo.url = gitURL.resolve("${repo.name}.git").toString()
                     repo.remove("name")
@@ -188,12 +190,12 @@ class MROPipelineUtil extends PipelineUtil {
                     repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
                 }
 
-                this.script.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+                this.steps.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
             }
 
             // Resolve repo branch, if not provided
             if (!repo.branch?.trim()) {
-                this.script.echo("Could not determine Git branch for repo '${repo.id}' from project meta data. Assuming 'master'.")
+                this.steps.echo("Could not determine Git branch for repo '${repo.id}' from project meta data. Assuming 'master'.")
                 repo.branch = "master"
             }
         }
@@ -208,10 +210,10 @@ class MROPipelineUtil extends PipelineUtil {
             repo.id,
             {
                 if (preExecute) {
-                    preExecute(this.script, repo)
+                    preExecute(this.steps, repo)
                 }
 
-                this.script.checkout([
+                this.steps.checkout([
                     $class: 'GitSCM',
                     branches: [
                         [ name: repo.branch ]
@@ -227,7 +229,7 @@ class MROPipelineUtil extends PipelineUtil {
                 ])
 
                 if (postExecute) {
-                    postExecute(this.script, repo)
+                    postExecute(this.steps, repo)
                 }
             }
         ]
@@ -243,26 +245,26 @@ class MROPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                def baseDir = "${this.script.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+                def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
 
                 if (preExecute) {
-                    preExecute(this.script, repo)
+                    preExecute(this.steps, repo)
                 }
 
                 if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS) {
                     if (name == PipelinePhases.BUILD) {
-                        this.script.stage('ODS') {
-                            this.script.dir(baseDir) {
+                        this.steps.stage('ODS') {
+                            this.steps.dir(baseDir) {
                                 def job = loadGroovySourceFile("${baseDir}/Jenkinsfile")
 
                                 // Collect ODS build artifact URIs for repo
                                 repo.buildArtifactURIs = job.getBuildArtifactURIs()
-                                this.script.echo("Collected ODS build artifact URIs for repo '${repo.id}': ${repo.buildArtifactURIs}")
+                                this.steps.echo("Collected ODS build artifact URIs for repo '${repo.id}': ${repo.buildArtifactURIs}")
                             }
                         }
                     } else {
-                        this.script.stage('ODS') {
-                            this.script.echo("Repo '${repo.id}' is of type ODS Component. Nothing to do in phase '${name}'")
+                        this.steps.stage('ODS') {
+                            this.steps.echo("Repo '${repo.id}' is of type ODS Component. Nothing to do in phase '${name}'")
                         }
                     }
                 } else {
@@ -271,14 +273,14 @@ class MROPipelineUtil extends PipelineUtil {
                         def label = "${repo.id} (${repo.url})"
 
                         if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
-                            this.script.dir(baseDir) {
-                                def script = "make ${phaseConfig.target}"
-                                this.script.sh script: script, label: label
+                            this.steps.dir(baseDir) {
+                                def steps = "make ${phaseConfig.target}"
+                                this.steps.sh script: steps, label: label
                             }
                         } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
-                            this.script.dir(baseDir) {
-                                def script = "./scripts/${phaseConfig.script}"
-                                this.script.sh script: script, label: label
+                            this.steps.dir(baseDir) {
+                                def steps = "./scripts/${phaseConfig.steps}"
+                                this.steps.sh script: steps, label: label
                             }
                         }
                     } else {
@@ -287,7 +289,7 @@ class MROPipelineUtil extends PipelineUtil {
                 }
 
                 if (postExecute) {
-                    postExecute(this.script, repo)
+                    postExecute(this.steps, repo)
                 }
             }
         ]
@@ -309,7 +311,7 @@ class MROPipelineUtil extends PipelineUtil {
     private void walkRepoDirectories(List<Map> repos, Closure visitor) {
         repos.each { repo ->
             // Apply the visitor to the repo at the repo's base dir
-            visitor("${this.script.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
+            visitor("${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
         }
     }
 }

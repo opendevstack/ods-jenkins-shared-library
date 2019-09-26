@@ -13,6 +13,10 @@ class PipelineSteps implements IPipelineSteps {
     void archiveArtifacts(String artifacts) {
     }
 
+    def checkout(Map config) {
+        return [:]
+    }
+
     void dir(String path, Closure block) {
         block()
     }
@@ -20,7 +24,11 @@ class PipelineSteps implements IPipelineSteps {
     void echo(String message) {
     }
 
-    Map env() {
+    def getCurrentBuild() {
+        return [:]
+    }
+
+    Map getEnv() {
         return env
     }
 
@@ -33,6 +41,10 @@ class PipelineSteps implements IPipelineSteps {
 
     def sh(def args) {
         return ""
+    }
+
+    void stage(String name, Closure block) {
+        block()
     }
 
     void stash(String name) {

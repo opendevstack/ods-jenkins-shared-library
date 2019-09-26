@@ -1,14 +1,15 @@
 package org.ods.usecase
 
 import org.ods.service.NexusService
+import org.ods.util.IPipelineSteps
 
 class SonarQubeUseCase {
 
-    private def script
-    private def NexusService nexus
+    private NexusService nexus
+    private IPipelineSteps steps
 
-    SonarQubeUseCase(def script, nexus) {
-        this.script = script
+    SonarQubeUseCase(IPipelineSteps steps, nexus) {
+        this.steps = steps
         this.nexus = nexus
     }
 

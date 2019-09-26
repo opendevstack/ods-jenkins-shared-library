@@ -9,22 +9,22 @@ def call(Map project, List<Set<Map>> repos) {
     def util = ServiceRegistry.instance.get(PipelineUtil.class.name)
     def sq = ServiceRegistry.instance.get(SonarQubeUseCase.class.name)
 
-    def groups = util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.BUILD, repos, null) { script, repo ->
+    def groups = util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.BUILD, repos, null) { steps, repo ->
         // TODO: ODS error handling
         def scrrReportsPath = "sonarqube/${repo.id}"
 
         // Unstash SCRR reports into path
         echo "Collecting SCRR Reports for repo '${repo.id}'"
-        def hasStashedSCRRReports = jenkins.unstashFilesIntoPath("scrr-report-${repo.id}-${script.env.BUILD_ID}", "${script.WORKSPACE}/${scrrReportsPath}", "SCRR Report")
+        def hasStashedSCRRReports = jenkins.unstashFilesIntoPath("scrr-report-${repo.id}-${steps.env.BUILD_ID}", "${steps.env.WORKSPACE}/${scrrReportsPath}", "SCRR Report")
 
         if (hasStashedSCRRReports) {
             // Load SCRR report files from path
-            def scrrReportFiles = sq.loadSCRRReportsFromPath("${script.WORKSPACE}/${scrrReportsPath}")
+            def scrrReportFiles = sq.loadSCRRReportsFromPath("${steps.env.WORKSPACE}/${scrrReportsPath}")
 
             if (!scrrReportFiles.isEmpty()) {
                 // Store the SCRR Report in Nexus
                 echo "Uploading an SCRR Report for repo '${repo.id}'"
-                repo.SCRR = sq.uploadSCRRReportToNexus(script.env.RELEASE_PARAM_VERSION, project, repo, "SCRR", scrrReportFiles.first())
+                repo.SCRR = sq.uploadSCRRReportToNexus(steps.env.RELEASE_PARAM_VERSION, project, repo, "SCRR", scrrReportFiles.first())
             }
         }
     }

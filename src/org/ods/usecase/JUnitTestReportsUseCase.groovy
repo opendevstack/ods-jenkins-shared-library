@@ -1,13 +1,14 @@
 package org.ods.usecase
 
 import org.ods.parser.JUnitParser
+import org.ods.util.IPipelineSteps
 
 class JUnitTestReportsUseCase {
 
-    private def script
+    private IPipelineSteps steps
 
-    JUnitTestReportsUseCase(def script) {
-        this.script = script
+    JUnitTestReportsUseCase(IPipelineSteps steps) {
+        this.steps = steps
     }
 
     List<File> loadTestReportsFromPath(String path) {
@@ -34,6 +35,6 @@ class JUnitTestReportsUseCase {
     }
 
     void reportTestReportsFromPathToJenkins(String path) {
-        this.script.junit("${path}/**/*.xml")
+        this.steps.junit("${path}/**/*.xml")
     }
 }

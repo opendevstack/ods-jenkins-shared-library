@@ -1,17 +1,18 @@
 package org.ods.usecase
 
-import org.ods.service.JiraService
 import org.ods.parser.JUnitParser
+import org.ods.service.JiraService
+import org.ods.util.IPipelineSteps
 
 class JiraUseCase {
 
     static final List JIRA_TEST_CASE_LABELS = [ "Error", "Failed", "Missing", "Skipped", "Succeeded" ]
 
-    private def script
     private JiraService jira
+    private IPipelineSteps steps
 
-    JiraUseCase(def script, JiraService jira) {
-        this.script = script
+    JiraUseCase(IPipelineSteps steps, JiraService jira) {
+        this.steps = steps
         this.jira = jira
     }
 
@@ -105,13 +106,13 @@ class JiraUseCase {
         // Create Jira bugs for erroneous test cases
         def errors = JUnitParser.Helper.toSimpleErrorsFormat(testResultsSimple)
         errors.each { error ->
-            this.createBugAndBlockImpactedTestCases(projectId, jiraTestCaseIssues, error, this.script.env.RUN_DISPLAY_URL)
+            this.createBugAndBlockImpactedTestCases(projectId, jiraTestCaseIssues, error, this.steps.env.RUN_DISPLAY_URL)
         }
 
         // Create Jira bugs for failed test cases
         def failures = JUnitParser.Helper.toSimpleFailuresFormat(testResultsSimple)
         failures.each { failure ->
-            this.createBugAndBlockImpactedTestCases(projectId, jiraTestCaseIssues, failure, this.script.env.RUN_DISPLAY_URL)
+            this.createBugAndBlockImpactedTestCases(projectId, jiraTestCaseIssues, failure, this.steps.env.RUN_DISPLAY_URL)
         }
     }
 }

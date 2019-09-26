@@ -9,11 +9,14 @@ import org.ods.usecase.JiraUseCase
 import org.ods.usecase.LeVaDocumentUseCase
 import org.ods.usecase.SonarQubeUseCase
 import org.ods.util.MROPipelineUtil
+import org.ods.util.PipelineSteps
 import org.ods.util.PipelineUtil
 
 def call() {
+    def steps = new PipelineSteps(this)
+    def util = new MROPipelineUtil(steps)
+
     // Gather metadata
-    def util = new MROPipelineUtil(this)
     def project = util.loadProjectMetadata()
     def repos = project.repositories
 
@@ -22,6 +25,7 @@ def call() {
 
     // Register global services
     def registry = ServiceRegistry.instance
+    registry.add(PipelineSteps.class.name, steps)
     registry.add(PipelineUtil.class.name, util)
 
     registry.add(DocGenService.class.name,
@@ -30,24 +34,38 @@ def call() {
 
     withCredentials([ usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
         registry.add(JiraService.class.name,
-            new JiraService(env.JIRA_URL, env.JIRA_USERNAME, env.JIRA_PASSWORD)
+            new JiraService(
+                env.JIRA_URL,
+                env.JIRA_USERNAME,
+                env.JIRA_PASSWORD
+            )
         )
     }
 
     registry.add(JiraUseCase.class.name,
-        new JiraUseCase(this, registry.get(JiraService.class.name))
+        new JiraUseCase(
+            registry.get(PipelineSteps.class.name),
+            registry.get(JiraService.class.name)
+        )
     )
 
     registry.add(JUnitTestReportsUseCase.class.name,
-        new JUnitTestReportsUseCase(this)
+        new JUnitTestReportsUseCase(
+            registry.get(PipelineSteps.class.name)
+        )
     )
 
     registry.add(NexusService.class.name,
-        new NexusService(env.NEXUS_URL, env.NEXUS_USERNAME, env.NEXUS_PASSWORD)
+        new NexusService(
+            env.NEXUS_URL,
+            env.NEXUS_USERNAME,
+            env.NEXUS_PASSWORD
+        )
     )
 
     registry.add(LeVaDocumentUseCase.class.name,
-        new LeVaDocumentUseCase(this,
+        new LeVaDocumentUseCase(
+            registry.get(PipelineSteps.class.name),
             registry.get(DocGenService.class.name),
             registry.get(JiraService.class.name),
             registry.get(NexusService.class.name),
@@ -57,20 +75,31 @@ def call() {
 
     withCredentials([ usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: "BITBUCKET_USER", passwordVariable: "BITBUCKET_PW") ]) {
         registry.add(OpenShiftService.class.name,
-            new OpenShiftService(this, env.OPENSHIFT_API_URL, env.BITBUCKET_HOST, env.BITBUCKET_USER, env.BITBUCKET_PW)
+            new OpenShiftService(
+                registry.get(PipelineSteps.class.name),
+                env.OPENSHIFT_API_URL,
+                env.BITBUCKET_HOST,
+                env.BITBUCKET_USER,
+                env.BITBUCKET_PW
+            )
         )
     }
 
     registry.add(SonarQubeUseCase.class.name,
-        new SonarQubeUseCase(this, registry.get(NexusService.class.name))
+        new SonarQubeUseCase(
+            registry.get(PipelineSteps.class.name),
+            registry.get(NexusService.class.name)
+        )
     )
 
     registry.add(JenkinsService.class.name,
-        new JenkinsService(this)
+        new JenkinsService(
+            registry.get(PipelineSteps.class.name)
+        )
     )
 
     // Checkout repositories into the workspace
-    parallel(util.prepareCheckoutReposNamedJob(repos) { script, repo ->
+    parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
         echo "Repository: ${repo}"
         echo "Environment configuration: ${env.getEnvironment()}"
     })

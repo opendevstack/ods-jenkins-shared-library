@@ -47,7 +47,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         when:
         def result = LeVaDocumentUseCase.createDocument(
-            [script: steps, docGen: docGen, jira: jira, nexus: nexus, util: util],
+            [steps: steps, docGen: docGen, jira: jira, nexus: nexus, util: util],
             type, version, project, repo, data, rawFiles, jiraIssueJQLQuery
         )
 
@@ -114,7 +114,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         when:
         LeVaDocumentUseCase.createDocument(
-            [script: steps, docGen: docGen, jira: jira, nexus: nexus, util: util],
+            [steps: steps, docGen: docGen, jira: jira, nexus: nexus, util: util],
             type, version, project, repo, data, rawFiles, jiraIssueJQLQuery
         )
 
@@ -127,7 +127,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         when:
         LeVaDocumentUseCase.createDocument(
-            [script: steps, docGen: docGen, jira: jira, nexus: nexus, util: util],
+            [steps: steps, docGen: docGen, jira: jira, nexus: nexus, util: util],
             type, version, project, repo, data, rawFiles, jiraIssueJQLQuery
         )
 
