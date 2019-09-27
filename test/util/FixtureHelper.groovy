@@ -53,6 +53,20 @@ class FixtureHelper {
         return result
     }
 
+    static def createJiraDocumentIssues(boolean convertToSimpleFormat = true) {
+        def result = []
+
+        result << createJiraIssue("1", "my-doc-A", "Document A", false)
+        result << createJiraIssue("2", "my-doc-B", "Document B", false)
+        result << createJiraIssue("3", "my-doc-C", "Document C", false)
+
+        if (convertToSimpleFormat) {
+            result = JiraService.Helper.toSimpleIssuesFormat(result)
+        }
+
+        return result
+    }
+
     static def createJiraTestCaseIssues(boolean convertToSimpleFormat = true) {
         def result = []
 
