@@ -32,14 +32,16 @@ def call() {
         new DocGenService(env.DOCGEN_URL)
     )
 
-    withCredentials([ usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
-        registry.add(JiraService.class.name,
-            new JiraService(
-                env.JIRA_URL,
-                env.JIRA_USERNAME,
-                env.JIRA_PASSWORD
+    if (project.services.jira) {
+        withCredentials([ usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
+            registry.add(JiraService.class.name,
+                new JiraService(
+                    env.JIRA_URL,
+                    env.JIRA_USERNAME,
+                    env.JIRA_PASSWORD
+                )
             )
-        )
+        }
     }
 
     registry.add(JiraUseCase.class.name,
@@ -67,7 +69,7 @@ def call() {
         new LeVaDocumentUseCase(
             registry.get(PipelineSteps.class.name),
             registry.get(DocGenService.class.name),
-            registry.get(JiraService.class.name),
+            registry.get(JiraUseCase.class.name),
             registry.get(NexusService.class.name),
             registry.get(PipelineUtil.class.name)
         )

@@ -17,18 +17,18 @@ class LeVaDocumentUseCase {
     private static final String DOCUMENT_TYPE_DTR = "DTR"
     private static final String DOCUMENT_TYPE_TIR = "TIR"
 
-    private static final Map DOCUMENT_TYPE_NAMES = [
+    private static Map DOCUMENT_TYPE_NAMES = [
         DOCUMENT_TYPE_DTR: "Development Test Report",
         DOCUMENT_TYPE_TIR: "Technical Installation Report"
     ]
 
     private DocGenService docGen
-    private JiraService jira
+    private JiraUseCase jira
     private NexusService nexus
     private IPipelineSteps steps
     private PipelineUtil util
 
-    LeVaDocumentUseCase(IPipelineSteps steps, DocGenService docGen, JiraService jira, NexusService nexus, PipelineUtil util) {
+    LeVaDocumentUseCase(IPipelineSteps steps, DocGenService docGen, JiraUseCase jira, NexusService nexus, PipelineUtil util) {
         this.steps = steps
         this.docGen = docGen
         this.jira = jira
@@ -36,7 +36,7 @@ class LeVaDocumentUseCase {
         this.util = util
     }
 
-    static String createDocument(Map deps, String type, String version, Map project, Map repo, Map data, List<File> rawFiles, String jiraIssueJQLQuery) {
+    private static String createDocument(Map deps, String type, String version, Map project, Map repo, Map data, List<File> rawFiles) {
         // Create a PDF document via the DocGen service
         def document = deps.docGen.createDocument(type, '0.1', data)
 
@@ -60,21 +60,13 @@ class LeVaDocumentUseCase {
             "application/zip"
         )
 
-        // Search for the Jira issue associated with this report
-        def jiraIssues = JiraService.Helper.toSimpleIssuesFormat(deps.jira.getIssuesForJQLQuery(jiraIssueJQLQuery))
-        if (jiraIssues.size() != 1) {
-            throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jiraIssueJQLQuery}'.")
-        } 
+        deps.jira.notifyLeVaDocumentIssue(project.id, type, "A new ${DOCUMENT_TYPE_NAMES[type]} has been generated and is available at: ${uri}.")
 
-        // Add a comment to the Jira issue with a link to the report
-        deps.jira.appendCommentToIssue(jiraIssues.iterator().next().value.key, "A new ${type} has been generated and is available at: ${uri}.")
-        
         return uri.toString()
     }
 
     String createDTR(String version, Map project, Map repo, Map testResults, List testReportFiles) {
         def documentType = DOCUMENT_TYPE_DTR
-        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:DTR"
 
         def data = [
             metadata: [
@@ -91,13 +83,12 @@ class LeVaDocumentUseCase {
 
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
-            documentType, version, project, repo, data, testReportFiles, (String) jiraIssueJQLQuery
+            documentType, version, project, repo, data, testReportFiles
         )
     }
 
     String createTIR(String version, Map project, Map repo) {
         def documentType = DOCUMENT_TYPE_TIR
-        def jiraIssueJQLQuery = "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:TIR"
 
         def data = [
             metadata: [
@@ -112,7 +103,7 @@ class LeVaDocumentUseCase {
 
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, util: this.util],
-            documentType, version, project, repo, data, [], (String) jiraIssueJQLQuery
+            documentType, version, project, repo, data, []
         )
     }
 }
