@@ -27,15 +27,17 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
 }
 
 private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
-  // sanitize commit message
+ // sanitize commit message
   def sanitizedGitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
+  //remove apostrophe in committer name-fix for issue-https://github.com/opendevstack/ods-project-quickstarters/issues/358
+  def sanitizedGitCommitAuthor = context.gitCommitAuthor.trim().replaceAll("'","")
 
   // create the default ODS driven labels
   def odsImageLabels = []
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.url\",\"value\":\"${context.gitUrl}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.sha\",\"value\":\"${context.gitCommit}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.msg\",\"value\":\"${sanitizedGitCommitMessage}\"}")
-    odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.author\",\"value\":\"${context.gitCommitAuthor}\"}")
+    odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.author\",\"value\":\"${sanitizedGitCommitAuthor}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.timestamp\",\"value\":\"${context.gitCommitTime}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.branch\",\"value\":\"${context.gitBranch}\"}")
 	odsImageLabels.push("{\"name\":\"ods.build.jenkins.job.url\",\"value\":\"${context.buildUrl}\"}")
