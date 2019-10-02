@@ -29,7 +29,7 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
 private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
  // sanitize commit message
   def sanitizedGitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
-  //remove apostrophe in committer name-fix for issue-https://github.com/opendevstack/ods-project-quickstarters/issues/358
+  //remove apostrophe in committer name
   def sanitizedGitCommitAuthor = context.gitCommitAuthor.trim().replaceAll("'","")
 
   // create the default ODS driven labels
