@@ -138,7 +138,6 @@ class OdsContext implements Context {
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
-    config.lastSuccessfulCommit = retrieveLastSuccessfulCommit()
 
     if (!config.containsKey('bitbucketNotificationEnabled')) {
       config.bitbucketNotificationEnabled = true
