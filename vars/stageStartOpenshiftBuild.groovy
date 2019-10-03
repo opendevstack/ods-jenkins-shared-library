@@ -31,17 +31,18 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
   def sanitizedGitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
   //remove apostrophe in committer name
   def sanitizedGitCommitAuthor = context.gitCommitAuthor.trim().replaceAll("'","")
+  
   // create the default ODS driven labels
   def odsImageLabels = []
-	odsImageLabels.push("{\"name\":\"ods.build.source.repo.url\",\"value\":\"${context.gitUrl}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.sha\",\"value\":\"${context.gitCommit}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.msg\",\"value\":\"${sanitizedGitCommitMessage}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.source.repo.url\",\"value\":\"${context.gitUrl}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.sha\",\"value\":\"${context.gitCommit}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.msg\",\"value\":\"${sanitizedGitCommitMessage}\"}")
   odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.author\",\"value\":\"${sanitizedGitCommitAuthor}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.timestamp\",\"value\":\"${context.gitCommitTime}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.source.repo.branch\",\"value\":\"${context.gitBranch}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.jenkins.job.url\",\"value\":\"${context.buildUrl}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.timestamp\",\"value\":\"${context.buildTime}\"}")
-	odsImageLabels.push("{\"name\":\"ods.build.lib.version\",\"value\":\"${context.odsSharedLibVersion}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.source.repo.commit.timestamp\",\"value\":\"${context.gitCommitTime}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.source.repo.branch\",\"value\":\"${context.gitBranch}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.jenkins.job.url\",\"value\":\"${context.buildUrl}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.timestamp\",\"value\":\"${context.buildTime}\"}")
+  odsImageLabels.push("{\"name\":\"ods.build.lib.version\",\"value\":\"${context.odsSharedLibVersion}\"}")
 
   // add additional ones - prefixed with ext.
   for (def key : imageLabels.keySet()) {
