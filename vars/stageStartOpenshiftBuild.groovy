@@ -31,7 +31,7 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
   def sanitizedGitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
   //remove apostrophe in committer name
   def sanitizedGitCommitAuthor = context.gitCommitAuthor.trim().replaceAll("'","")
-
+  
   // create the default ODS driven labels
   def odsImageLabels = []
 	odsImageLabels.push("{\"name\":\"ods.build.source.repo.url\",\"value\":\"${context.gitUrl}\"}")
