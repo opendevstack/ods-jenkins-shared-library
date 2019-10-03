@@ -9,7 +9,7 @@ interface Context {
 
     // Get the location of the xmlunit results
     boolean getTestResults()
-    
+
     // Value of JOB_NAME. It is the name of the project of the build.
     String getJobName()
 
@@ -49,6 +49,9 @@ interface Context {
 
     // The tagversion is made up of the build number and the first 8 chars of the commit SHA.
     String getTagversion()
+
+    // Gets last successful commit SHA built on Jenkins on a specific pipeline
+    String getLastSuccessfulCommit()
 
     // Whether to send notifications if the build is not successful.
     boolean getNotifyNotGreen()
@@ -166,10 +169,10 @@ interface Context {
 
     // Enable/disable display name update
     void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
-    
+
     // get any build artifact URIs there were created
     public Map<String, String> getBuildArtifactURIs()
-  
+
     // adds a build artifact URI to the context for later retrieval,
     // e.g. in case a stage fails - the failed stage name - with key failedStage
     public void addArtifactURI (String key, value)

@@ -5,7 +5,7 @@ class OdsContext implements Context {
   def script
   Logger logger
   Map config
-  
+
   def artifactUriStore = [ : ]
 
   OdsContext(script, config, logger) {
@@ -138,6 +138,7 @@ class OdsContext implements Context {
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
+    config.lastSuccessfulCommit = retrieveLastSuccessfulCommit()
 
     if (!config.containsKey('bitbucketNotificationEnabled')) {
       config.bitbucketNotificationEnabled = true
@@ -159,6 +160,8 @@ class OdsContext implements Context {
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
+
+    config.podLabel = "pod-${UUID.randomUUID().toString()}"
 
     logger.info "Assembled configuration: ${config}"
   }
@@ -221,6 +224,10 @@ class OdsContext implements Context {
 
   String getTagversion() {
     config.tagversion
+  }
+
+  String getLastSuccessfulCommit() {
+    retrieveLastSuccessfulCommit()
   }
 
   boolean getNotifyNotGreen() {
@@ -358,7 +365,7 @@ class OdsContext implements Context {
   boolean getTestResults () {
     return config.testResults
   }
-  
+
   void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
     config.localCheckoutEnabled = localCheckoutEnabled
   }
@@ -410,6 +417,45 @@ class OdsContext implements Context {
       returnStdout: true, script: "git show -s --format=%ci HEAD",
       label : 'getting GIT commit date/time'
     ).trim()
+  }
+
+  // HACK: Can use Hudson library to retrieve this:
+  // https://javadoc.jenkins-ci.org/hudson/model/Run.html#getPreviousSuccessfulBuild--
+  private String retrieveLastSuccessfulCommit() {
+    def lastSuccessfulBuildUrl = retrieveJenkinsLastSuccessfulBuildUrl()
+    def lastSuccessfulBuildJson = retrieveLastSuccessfulBuildJson(lastSuccessfulBuildUrl)
+    // TODO: Use isEmpty once shared library becomes global
+    if (lastSuccessfulBuildJson == "") {
+      return ""
+    }
+
+    def lastSuccessfulCommit = retrieveLastBuiltRevisionHash(lastSuccessfulBuildJson)
+    return (commitExists(lastSuccessfulCommit)) ? lastSuccessfulCommit : ""
+  }
+
+  private String retrieveJenkinsLastSuccessfulBuildUrl() {
+    def lastSuccessfulBuildUrl = config.buildUrl.replace(config.buildNumber, "lastSuccessfulBuild")
+    return lastSuccessfulBuildUrl + 'api/json/?tree=actions[lastBuiltRevision[SHA1]]'
+  }
+
+  private String retrieveLastSuccessfulBuildJson(String lastSuccessfulBuildUrl) {
+    return script.sh(
+      script: "curl -g --fail --silent  ${lastSuccessfulBuildUrl}",
+      returnStdout: true
+    )
+  }
+
+  private String retrieveLastBuiltRevisionHash(String lastBuiltRevisionJson) {
+    def shaBegin = lastBuiltRevisionJson.indexOf('SHA1":"') + 7
+    def shaEnd = lastBuiltRevisionJson.indexOf('"', shaBegin)
+    return lastBuiltRevisionJson.substring(shaBegin, shaEnd)
+  }
+
+  private boolean commitExists(String commitHash) {
+    return script.sh(
+      script: "git branch --contains ${commitHash}",
+      returnStatus: true
+    ) == 0
   }
 
   private String retrieveGitBranch() {
@@ -553,7 +599,7 @@ class OdsContext implements Context {
     )
     return statusCode == 0
   }
-  
+
   public Map<String, String> getBuildArtifactURIs() {
     return this.artifactUriStore
   }
