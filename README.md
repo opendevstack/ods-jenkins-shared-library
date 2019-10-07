@@ -4,6 +4,8 @@
 
 ## Introduction
 
+This library allows to have a minimal Jenkinsfile in each repository by providing all language-agnostic build aspects. The goal is to duplicate as little as possible between repositories and have an easy way to ship updates to all projects.
+
 ## Documentation
 See [OpenDevStack Provisioning Application](https://www.opendevstack.org/ods-documentation/ods-jenkins-shared-library/latest/index.html) for details.
  
