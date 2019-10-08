@@ -10,10 +10,15 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
       sh (script: "oc start-build ${context.componentId} --from-dir docker --follow -n ${context.targetProject}", label : "start openshift build")
     }
 
-    def ocpbuild = sh(returnStdout: true, script:"oc get build --sort-by=.status.startTimestamp -o jsonpath='{.items[-1:].metadata.name},{.items[-1:].status.phase}' -n ${context.targetProject} -l buildconfig=${context.componentId}", label : "find last build").trim().split(',')
+    def ocpbuildId
+    def ocpbuildStatus
     
-    def ocpbuildId = ocpbuild[0]
-    def ocpbuildStatus = ocpbuild[1]
+    while (ocpbuildStatus == null || ocpbuildStatus.toString().trim().toLowerCase() == "running") 
+    {
+      def ocpbuild = sh(returnStdout: true, script:"sleep 10 && oc get build --sort-by=.status.startTimestamp -o jsonpath='{.items[-1:].metadata.name},{.items[-1:].status.phase}' -n ${context.targetProject} -l buildconfig=${context.componentId}", label : "find last build").trim().split(',')
+      ocpbuildId = ocpbuild[0]
+      ocpbuildStatus = ocpbuild[1]
+    }
     
     if (ocpbuildStatus.toString().trim().toLowerCase() != "complete") {
       error "OCP Build ${ocpbuildId} was not successfull - status ${ocpbuildStatus}"
