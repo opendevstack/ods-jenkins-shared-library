@@ -27,8 +27,8 @@ class JUnitTestReportsUseCase {
         def result = [ testsuites: [] ]
 
         files.inject(result) { sum, current ->
-            def testReport = JUnitParser.parseJUnitXML(current.text)
-            sum.testsuites.addAll(testReport.testsuites)
+            def testResult = JUnitParser.parseJUnitXML(current.text)
+            sum.testsuites.addAll(testResult.testsuites)
         }
 
         return result

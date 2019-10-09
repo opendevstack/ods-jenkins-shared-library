@@ -69,7 +69,6 @@ class NexusService {
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
     }
     
-    @NonCPS
     def URI storeArtifactFromFile(String repository, String directory, String name, File artifact, String contentType) {
         return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
     }

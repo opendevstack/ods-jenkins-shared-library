@@ -1,5 +1,7 @@
 package org.ods.service
 
+import groovy.json.JsonSlurperClassic
+
 import org.ods.util.IPipelineSteps
 
 class OpenShiftService {
@@ -70,5 +72,15 @@ class OpenShiftService {
       } else {
         return steps.sh (script: "oc get ${type} ${name} -o jsonpath=\'${jsonpath}\'", returnStdout : true, label: "getting OC artifact ${name} with jsonpath: ${jsonpath}")
       }
+    }
+
+    Map getPodDataForComponent(String name) {
+        String stdout = this.steps.sh(
+          script: "oc get pod -l component=${name} -o json --show-all=false",
+          returnStdout: true,
+          label: "Getting OpenShift Pod data for ${name}"
+        ).trim()
+
+        return new JsonSlurperClassic().parseText(stdout)
     }
 }

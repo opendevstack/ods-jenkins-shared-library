@@ -4,6 +4,8 @@ import com.github.tomakehurst.wiremock.*
 import com.github.tomakehurst.wiremock.client.*
 import com.github.tomakehurst.wiremock.core.*
 
+import java.nio.file.Paths
+
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 
@@ -78,7 +80,7 @@ class SpecHelper extends Specification {
     }
 
     File getResource(String name) {
-        return new File(getClass().getClassLoader().getResource(name).getFile())
+        return Paths.get(System.getProperty("user.dir"), "test", "resources", name).toFile()
     }
 
     WireMockServer startWireMockServer() {

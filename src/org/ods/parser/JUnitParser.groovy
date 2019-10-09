@@ -143,197 +143,63 @@ class JUnitParser {
 
     class Helper {
         @NonCPS
+        private static Set getIssues(Map testResults, String type) {
+            // Compute a unique set of issues
+            def issues = [] as Set
+            testResults.testsuites.each { testsuite ->
+                testsuite.testcases.each { testcase ->
+                    if (testcase[type]) {
+                        issues << testcase[type]
+                    }
+                }
+            }
+
+            def result = issues
+            result.each { issue ->
+                // Find all testcases that exhibit the current issue
+                testResults.testsuites.each { testsuite ->
+                    testsuite.testcases.each { testcase ->
+                        def _issue = issue.findAll { it.key != "testsuites" }
+                        if (testcase[type] && testcase[type].equals(_issue)) {
+                            if (!issue.containsKey("testsuites")) {
+                                issue.testsuites = []
+                            }
+
+                            // Check if the current testsuite already exists in the issue
+                            def issueTestsuite = issue.testsuites.find { it.name == testsuite.name }
+                            if (!issueTestsuite) {
+                                issueTestsuite = [
+                                    name: testsuite.name,
+                                    testcases: []
+                                ]
+
+                                issue.testsuites << issueTestsuite
+                            }
+
+                            // Add the current testcase to the issue
+                            issueTestsuite.testcases << [
+                                name: testcase.name
+                            ]
+                        }
+                    }
+                }
+            }
+
+            return result
+        }
+
+        static Set getErrors(Map testResults) {
+            return getIssues(testResults, "error")
+        }
+
+        static Set getFailures(Map testResults) {
+            return getIssues(testResults, "failure")
+        }
+
+        @NonCPS
         // Transform the parser's result into a JSON string.
         static String toJSONString(Map xml) {
             new JsonBuilder(xml).toPrettyString()
-        }
-
-        @NonCPS
-        /*
-         * Transforms a simple result format into a (unique) set of test errors.
-         * Annotates each error with indications on affected testsuite and -case.
-         */
-        static Set toSimpleErrorsFormat(Map testResults) {
-            /*
-             * Produces the following format:
-             *
-             * [
-             *     [ // Error
-             *         message: _,
-             *         text: _,
-             *         type: _,
-             *         testsuites: [
-             *             "Test Suite X": [
-             *                 "testcases": [
-             *                     "Test Case A",
-             *                     "Test Case B"
-             *                 ]
-             *             ],
-             *             "Test Suite Y": [
-             *                 "testcases": [
-             *                     "Test Case C"
-             *                 ]
-             *             ]
-             *         ]
-             *     ],
-             *     ...
-             * ]
-             */
-
-            // Compute a (unique) set of errors
-            def errors = [] as Set
-            testResults.each { testsuiteName, testcases ->
-                testcases.each { testcaseName, testcase ->
-                    if (testcase.error) {
-                        errors << testcase.error
-                    }
-                }
-            }
-
-            def result = errors
-            result.each { error ->
-                // Find all testcases that exhibit the current error
-                testResults.each { testsuiteName, testcases ->
-                    testcases.each { testcaseName, testcase ->
-                        // As we augment errors in result with "testsuites", we must
-                        // remove this key for comparing with errors in testcases
-                        def _error = error.findAll { it.key != "testsuites" }
-                        if (testcase.error && testcase.error.equals(_error)) {
-                            if (!error.containsKey("testsuites")) {
-                                error.testsuites = [:]
-                            }
-                            
-                            if (!error.testsuites.containsKey(testsuiteName)) {
-                                error.testsuites[testsuiteName] = [ "testcases": [] ]
-                            }
-
-                            // Attach the name of each affected testsuite and testcase
-                            error.testsuites[testsuiteName].testcases << testcaseName
-                        }
-                    }
-                }
-            }
-
-            return result
-        }
-
-        @NonCPS
-        /*
-         * Transforms a simple result format into a (unique) set of test failures.
-         * Annotates each failure with indications on affected testsuite and -case.
-         */
-        static Set toSimpleFailuresFormat(Map testResults) {
-            /*
-             * Produces the following format:
-             *
-             * [
-             *     [ // Failure
-             *         message: _,
-             *         text: _,
-             *         type: _,
-             *         testsuites: [
-             *             "Test Suite X": [
-             *                 "testcases": [
-             *                     "Test Case A",
-             *                     "Test Case B"
-             *                 ]
-             *             ],
-             *             "Test Suite Y": [
-             *                 "testcases": [
-             *                     "Test Case C"
-             *                 ]
-             *             ]
-             *         ]
-             *     ],
-             *     ...
-             * ]
-             */
-
-            // Compute a (unique) set of failures
-            def failures = [] as Set
-            testResults.each { testsuiteName, testcases ->
-                testcases.each { testcaseName, testcase ->
-                    if (testcase.failure) {
-                        failures << testcase.failure
-                    }
-                }
-            }
-
-            def result = failures
-            result.each { failure ->
-                // Find all testcases that exhibit the current failure
-                testResults.each { testsuiteName, testcases ->
-                    testcases.each { testcaseName, testcase ->
-                        // As we augment failures in result with "testsuites", we must
-                        // remove this key for comparing with failures in testcases
-                        def _failure = failure.findAll { it.key != "testsuites" }
-                        if (testcase.failure && testcase.failure.equals(_failure)) {
-                            if (!failure.containsKey("testsuites")) {
-                                failure.testsuites = [:]
-                            }
-                            
-                            if (!failure.testsuites.containsKey(testsuiteName)) {
-                                failure.testsuites[testsuiteName] = [ "testcases": [] ]
-                            }
-
-                            // Attach the name of each affected testsuite and testcase
-                            failure.testsuites[testsuiteName].testcases << testcaseName
-                        }
-                    }
-                }
-            }
-
-            return result
-        }
-
-        @NonCPS
-        // Transform the parser's result into a simple result format.
-        static Map toSimpleFormat(Map xml) {
-            /*
-             * Produces the following format:
-             *
-             * Returns
-             * [
-             *     "Test Suite X": [
-             *         "Test Case A": [
-             *             "classname": _,
-             *             "failure": [
-             *                 "message": _,
-             *                 "text": _,
-             *                 "type": _
-             *             ],
-             *             "name": "Test Case A",
-             *             "time": 0.1
-             *         ]
-             *     ],
-             *     "Test Suite Y": [
-             *         "Test Case B": [
-             *             "classname": _,
-             *             "name": "Test Case B",
-             *             "time": 0.2
-             *         ],
-             *         "Test Case C": [
-             *             "classname": _,
-             *             "name": "Test Case C",
-             *             "time": 0.3
-             *         ]
-             *     ]
-             * ]
-             */
-
-            def result = [:]
-
-            xml.testsuites.each { testsuite ->
-                def testcases = [:]
-
-                testsuite.testcases.each { testcase ->
-                    testcases << [ (testcase.name): testcase ]
-                }
-
-                result << [ (testsuite.name): testcases ]
-            }
-
-            return result
         }
     }
 }

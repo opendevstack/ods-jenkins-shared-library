@@ -4,6 +4,10 @@ package org.ods.util
 
 import groovy.transform.InheritConstructors
 
+import hudson.Functions
+
+import java.nio.file.Paths
+
 import org.ods.dependency.DependencyGraph
 import org.ods.dependency.Node
 import org.yaml.snakeyaml.Yaml
@@ -16,7 +20,7 @@ class MROPipelineUtil extends PipelineUtil {
 
         static final String REPO_TYPE_ODS = "ods"
 
-        static final String PHASE_EXECUTOR_TYPE_MAKEFILE    = "Makefile"
+        static final String PHASE_EXECUTOR_TYPE_MAKEFILE = "Makefile"
         static final String PHASE_EXECUTOR_TYPE_SHELLSCRIPT = "ShellScript"
 
         static final List PHASE_EXECUTOR_TYPES = [
@@ -25,18 +29,31 @@ class MROPipelineUtil extends PipelineUtil {
         ]
     }
 
+    class PipelineEnvs {
+        static final String DEV = "dev"
+        static final String QA = "qa"
+        static final String PROD = "prod"
+    }
+
     class PipelinePhases {
-        static final String BUILD    = "Build"
-        static final String DEPLOY   = "Deploy"
+        static final String BUILD = "Build"
+        static final String DEPLOY = "Deploy"
         static final String FINALIZE = "Finalize"
-        static final String RELEASE  = "Release"
-        static final String TEST     = "Test"
+        static final String RELEASE = "Release"
+        static final String TEST = "Test"
 
         static final List ALWAYS_PARALLEL = []
     }
 
     static final String PROJECT_METADATA_FILE_NAME = "metadata.yml"
     static final String REPOS_BASE_DIR = "repositories"
+
+    private GitUtil git
+
+    MROPipelineUtil(IPipelineSteps steps, GitUtil git) {
+        super(steps)
+        this.git = git
+    }
 
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
@@ -58,7 +75,35 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    List getEnvironment(boolean debug = false) {
+    private void executeBlockWithFailFast(Closure block) {
+        try {
+            block()
+        } catch (ConcurrentModificationException e) {
+            // FIXME: shut up for the moment
+        } catch (e) {
+            this.steps.currentBuild.result = "FAILURE"
+            this.steps.echo(e.message)
+            hudson.Functions.printThrowable(e)
+            throw e
+        }
+    }
+
+    List getBuildEnvironment(boolean debug = false) {
+        def params = this.getBuildParams()
+
+        return [
+            "DEBUG=${debug}",
+            "MULTI_REPO_BUILD=true",
+            "MULTI_REPO_ENV=${params.targetEnvironment}",
+            "RELEASE_PARAM_CHANGE_ID=${params.changeId}",
+            "RELEASE_PARAM_CHANGE_DESC=${params.changeDescription}",
+            "RELEASE_PARAM_CONFIG_ITEM=${params.configItem}",
+            "RELEASE_PARAM_VERSION=${params.version}",
+            "SOURCE_CLONE_ENV=${params.sourceEnvironmentToClone}"
+        ]
+    }
+
+    Map getBuildParams() {
         def version = this.steps.env.version?.trim() ?: "WIP"
         def targetEnvironment = this.steps.env.environment?.trim() ?: "dev"
         def sourceEnvironmentToClone = this.steps.env.sourceEnvironmentToClone?.trim() ?: targetEnvironment
@@ -68,15 +113,19 @@ class MROPipelineUtil extends PipelineUtil {
         def changeDescription = this.steps.env.changeDescription?.trim() ?: "UNDEFINED"
 
         return [
-            "DEBUG=${debug}",
-            "MULTI_REPO_BUILD=true",
-            "MULTI_REPO_ENV=${targetEnvironment}",
-            "RELEASE_PARAM_CHANGE_ID=${changeId}",
-            "RELEASE_PARAM_CHANGE_DESC=${changeDescription}",
-            "RELEASE_PARAM_CONFIG_ITEM=${configItem}",
-            "RELEASE_PARAM_VERSION=${version}",
-            "SOURCE_CLONE_ENV=${sourceEnvironmentToClone}"
+            changeDescription: changeDescription,
+            changeId: changeId,
+            configItem: configItem,
+            sourceEnvironmentToClone: sourceEnvironmentToClone,
+            targetEnvironment: targetEnvironment,
+            version: version
         ]
+    }
+
+    boolean isTriggeredByChangeManagementProcess() {
+        def changeId = this.steps.env.changeId?.trim()
+        def configItem = this.steps.env.configItem?.trim()
+        return changeId && configItem
     }
 
     Map loadPipelineConfig(String path, Map repo) {
@@ -94,7 +143,7 @@ class MROPipelineUtil extends PipelineUtil {
 
         repo.pipelineConfig = [:]
 
-        def file = new File("${path}/${PipelineConfig.FILE_NAME}")
+        def file = Paths.get(path, PipelineConfig.FILE_NAME).toFile()
         if (file.exists()) {
             def config = new Yaml().load(file.text) ?: [:]
 
@@ -144,7 +193,7 @@ class MROPipelineUtil extends PipelineUtil {
             throw new IllegalArgumentException("Error: unable to parse project meta data. 'filename' is undefined.")
         }
 
-        def file = new File("${this.steps.env.WORKSPACE}/${filename}")
+        def file = Paths.get(this.steps.env.WORKSPACE, filename).toFile()
         if (!file.exists()) {
             throw new RuntimeException("Error: unable to load project meta data. File '${this.steps.env.WORKSPACE}/${filename}' does not exist.")
         }
@@ -169,6 +218,11 @@ class MROPipelineUtil extends PipelineUtil {
         if (!result.repositories) {
             throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories' is undefined.")
         }
+
+        result.gitData = [
+            commit: this.git.getCommit(),
+            url: this.git.getURL()
+        ]
 
         result.repositories.eachWithIndex { repo, index ->
             // Check for existence of required attribute 'repositories[i].id'
@@ -211,7 +265,7 @@ class MROPipelineUtil extends PipelineUtil {
                     preExecute(this.steps, repo)
                 }
 
-                this.steps.checkout([
+                def scm = this.steps.checkout([
                     $class: 'GitSCM',
                     branches: [
                         [ name: repo.branch ]
@@ -225,6 +279,14 @@ class MROPipelineUtil extends PipelineUtil {
                         [ credentialsId: project.services.bitbucket.credentials.id, url: repo.url ]
                     ]
                 ])
+
+                repo.gitData = [
+                    branch: scm.GIT_BRANCH,
+                    commit: scm.GIT_COMMIT,
+                    previousCommit: scm.GIT_PREVIOUS_COMMIT,
+                    previousSucessfulCommit: scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT,
+                    url: scm.GIT_URL
+                ]
 
                 if (postExecute) {
                     postExecute(this.steps, repo)
@@ -243,51 +305,57 @@ class MROPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+                executeBlockWithFailFast {
+                    def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
 
-                if (preExecute) {
-                    preExecute(this.steps, repo)
-                }
+                    if (preExecute) {
+                        preExecute(this.steps, repo)
+                    }
 
-                if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS) {
-                    if (name == PipelinePhases.BUILD) {
-                        this.steps.stage('ODS') {
-                            this.steps.dir(baseDir) {
-                                def job = loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                    if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS) {
+                        if (name == PipelinePhases.BUILD) {
+                            this.steps.stage('ODS') {
+                                this.steps.dir(baseDir) {
+                                    def job = loadGroovySourceFile("${baseDir}/Jenkinsfile")
 
-                                // Collect ODS build artifact URIs for repo
-                                repo.buildArtifactURIs = job.getBuildArtifactURIs()
-                                this.steps.echo("Collected ODS build artifact URIs for repo '${repo.id}': ${repo.buildArtifactURIs}")
+                                    // Collect ODS build artifacts for repo
+                                    repo.odsBuildArtifacts = job.getBuildArtifactURIs()
+                                    this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.odsBuildArtifacts}")
+
+                                    if (repo.odsBuildArtifacts?.failedStage) {
+                                        throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
+                                    }
+                                }
+                            }
+                        } else {
+                            this.steps.stage('ODS') {
+                                this.steps.echo("Repo '${repo.id}' is of type ODS Component. Nothing to do in phase '${name}'")
                             }
                         }
                     } else {
-                        this.steps.stage('ODS') {
-                            this.steps.echo("Repo '${repo.id}' is of type ODS Component. Nothing to do in phase '${name}'")
+                        def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
+                        if (phaseConfig) {
+                            def label = "${repo.id} (${repo.url})"
+
+                            if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
+                                this.steps.dir(baseDir) {
+                                    def steps = "make ${phaseConfig.target}"
+                                    this.steps.sh script: steps, label: label
+                                }
+                            } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
+                                this.steps.dir(baseDir) {
+                                    def steps = "./scripts/${phaseConfig.steps}"
+                                    this.steps.sh script: steps, label: label
+                                }
+                            }
+                        } else {
+                            // Ignore undefined phases
                         }
                     }
-                } else {
-                    def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
-                    if (phaseConfig) {
-                        def label = "${repo.id} (${repo.url})"
 
-                        if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
-                            this.steps.dir(baseDir) {
-                                def steps = "make ${phaseConfig.target}"
-                                this.steps.sh script: steps, label: label
-                            }
-                        } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
-                            this.steps.dir(baseDir) {
-                                def steps = "./scripts/${phaseConfig.steps}"
-                                this.steps.sh script: steps, label: label
-                            }
-                        }
-                    } else {
-                        // Ignore undefined phases
+                    if (postExecute) {
+                        postExecute(this.steps, repo)
                     }
-                }
-
-                if (postExecute) {
-                    postExecute(this.steps, repo)
                 }
             }
         ]

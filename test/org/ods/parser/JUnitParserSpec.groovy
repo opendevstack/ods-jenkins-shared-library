@@ -421,76 +421,12 @@ class JUnitParserSpec extends SpecHelper {
         result == expected
     }
 
-    def "Helper.toSimpleFormat"() {
+    def "Helper.getErrors"() {
         given:
-        def xml = createTestResults(false)
+        def xml = createTestResults()
 
         when:
-        def result = JUnitParser.Helper.toSimpleFormat(xml)
-
-        then:
-        def expected = [
-            "my-suite-1": [
-                "JIRA4_my-testcase-1": [
-                    name: "JIRA4_my-testcase-1",
-                    classname: "app.MyTestCase1",
-                    status: "Succeeded",
-                    time: "1",
-                    skipped: false,
-                    systemOut: "",
-                    systemErr: ""
-                ],
-                "JIRA5_my-testcase-2": [
-                    name: "JIRA5_my-testcase-2",
-                    classname: "app.MyTestCase2",
-                    status: "Error",
-                    time: "2",
-                    error: [
-                        type: "my-error-type",
-                        message: "my-error-message",
-                        text: "This is an error."
-                    ],
-                    skipped: false,
-                    systemOut: "",
-                    systemErr: ""
-                ]
-            ],
-            "my-suite-2": [
-                "JIRA6_my-testcase-3": [
-                    name: "JIRA6_my-testcase-3",
-                    classname: "app.MyTestCase3",
-                    status: "Failed",
-                    time: "3",
-                    failure: [
-                        type: "my-failure-type",
-                        message: "my-failure-message",
-                        text: "This is a failure."
-                    ],
-                    skipped: false,
-                    systemOut: "",
-                    systemErr: ""
-                ],
-                "JIRA7_my-testcase-4": [
-                    name: "JIRA7_my-testcase-4",
-                    classname: "app.MyTestCase4",
-                    status: "Missing",
-                    time: "4",
-                    skipped: true,
-                    systemOut: "",
-                    systemErr: ""
-                ]
-            ]
-        ]
-
-        result == expected
-    }
-
-    def "Helper.toSimpleErrorsFormat"() {
-        given:
-        def xml = createTestResults(false)
-
-        when:
-        def result = JUnitParser.Helper.toSimpleErrorsFormat(JUnitParser.Helper.toSimpleFormat(xml))
+        def result = JUnitParser.Helper.getErrors(xml)
 
         then:
         def expected = [
@@ -499,8 +435,13 @@ class JUnitParserSpec extends SpecHelper {
                 message: "my-error-message",
                 text: "This is an error.",
                 testsuites: [
-                    "my-suite-1": [
-                        testcases: [ "JIRA5_my-testcase-2" ]
+                    [
+                        name: "my-suite-1",
+                        testcases: [
+                            [
+                                name: "JIRA2_my-testcase-2"
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -509,12 +450,12 @@ class JUnitParserSpec extends SpecHelper {
         result == expected as Set
     }
 
-    def "Helper.toSimpleFailuresFormat"() {
+    def "Helper.getFailures"() {
         given:
-        def xml = createTestResults(false)
+        def xml = createTestResults()
 
         when:
-        def result = JUnitParser.Helper.toSimpleFailuresFormat(JUnitParser.Helper.toSimpleFormat(xml))
+        def result = JUnitParser.Helper.getFailures(xml)
 
         then:
         def expected = [
@@ -523,8 +464,11 @@ class JUnitParserSpec extends SpecHelper {
                 message: "my-failure-message",
                 text: "This is a failure.",
                 testsuites: [
-                    "my-suite-2": [
-                        testcases: [ "JIRA6_my-testcase-3" ]
+                    [
+                        name: "my-suite-2",
+                        testcases: [
+                            [ name: "JIRA3_my-testcase-3" ] 
+                        ]
                     ]
                 ]
             ]
