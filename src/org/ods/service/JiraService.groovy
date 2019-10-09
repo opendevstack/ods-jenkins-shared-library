@@ -228,34 +228,8 @@ class JiraService {
     }
 
     @NonCPS
-    List getIssuesForJQLQuery(String query) {
-        if (!query?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Jira issues for JQL query. 'query' is undefined.")
-        }
-
-        def response = Unirest.get("${this.baseURL}/rest/api/2/search?jql={query}")
-            .routeParam("query", query)
-            .header("Accept", "application/json")
-            .basicAuth(this.username, this.password)
-            .asString()
-
-        response.ifFailure {
-            def message = "Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
-
-            if (response.getStatus() == 400) {
-                def matcher = message =~ /The value '(.*)' does not exist for the field 'project'./
-                if (matcher.find()) {
-                    def project = matcher[0][1]
-                    message += " Could it be that the project '${project}' does not exist in Jira?"
-                }
-            } else if (response.getStatus() == 404) {
-                message = "Error: unable to get Jira issues for JQL query. Jira could not be found at: '${this.baseURL}'."
-            }
-
-            throw new RuntimeException(message)
-        }
-
-        return new JsonSlurperClassic().parseText(response.getBody()).issues
+    List getIssuesForJQLQuery(Map query) {
+        return searchByJQLQuery(query).issues
     }
 
     @NonCPS
@@ -295,70 +269,35 @@ class JiraService {
         }
     }
 
-    class Helper {
-        @NonCPS
-        /*
-         * Transforms the parser's result into a (unique) set of failures.
-         * Annotates each failure with indications on affected testsuite and -case.
-         */
-        static Map toSimpleIssuesFormat(List issues) {
-            /*
-             * Produces the following format:
-             *
-             * [
-             *     "4711": [ // Issue
-             *         id: 4711,
-             *         key: _,
-             *         summary: _,
-             *         description: _,
-             *         url: _,
-             *         parent: [
-             *             id: _,
-             *             key: _,
-             *             summary: _,
-             *             description: _,
-             *             url: _
-             *         ]
-             *     ],
-             *     ...
-             * ]
-             */
-
-            // Compute parents
-            def parents = [:]
-            issues.each { issue ->
-                if (issue.fields.parent) {
-                    def entry = [
-                        id: issue.fields.parent.id,
-                        key: issue.fields.parent.key,
-                        summary: issue.fields.parent.fields.summary,
-                        description: issue.fields.parent.fields.description,
-                        url: issue.fields.parent.self
-                    ]
-
-                    parents << [ (issue.fields.parent.id): entry ]
-                }
-            }
-
-            def result = [:]
-            issues.each { issue ->
-                def entry = [
-                    id: issue.id,
-                    key: issue.key,
-                    summary: issue.fields.summary,
-                    description: issue.fields.description,
-                    url: issue.self
-                ]
-
-                // Attach a reference to the parent
-                if (issue.fields.parent) {
-                    entry.parent = parents[issue.fields.parent.id]
-                }
-
-                result << [ (issue.id): entry ]
-            }
-
-            return result
+    @NonCPS
+    Map searchByJQLQuery(Map query) {
+        if (!query) {
+            throw new IllegalArgumentException("Error: unable to get Jira issues for JQL query. 'query' is undefined.")
         }
+
+        def response = Unirest.post("${this.baseURL}/rest/api/2/search")
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(JsonOutput.toJson(query))
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get Jira issues for JQL query. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 400) {
+                def matcher = message =~ /The value '(.*)' does not exist for the field 'project'./
+                if (matcher.find()) {
+                    def project = matcher[0][1]
+                    message += " Could it be that the project '${project}' does not exist in Jira?"
+                }
+            } else if (response.getStatus() == 404) {
+                message = "Error: unable to get Jira issues for JQL query. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
     }
 }

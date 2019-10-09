@@ -5,7 +5,27 @@ import org.ods.service.JiraService
 
 class FixtureHelper {
 
-    static Map createJiraIssue(String id, String summary = null, String description = null, boolean convertToSimpleFormat = true) {
+    static Map createBuildEnvironment(def env) {
+        def params = createBuildParams()
+        params.each { key, value ->
+            env.set(key, value)
+        }
+
+        return params
+    }
+
+    static Map createBuildParams() {
+        return [
+            changeDescription: "The change I've wanted.",
+            changeId: "0815",
+            configItem: "myItem",
+            sourceEnvironmentToClone: "dev",
+            targetEnvironment: "dev",
+            version: "0.1"
+        ]
+    }
+
+    static Map createJiraIssue(String id, String summary = null, String description = null) {
         def result = [
             id: id,
             key: "JIRA-${id}",
@@ -16,97 +36,53 @@ class FixtureHelper {
         result.fields.summary = summary ?: "${id}-summary"
         result.fields.description = description ?: "${id}-description"
 
-        if (convertToSimpleFormat) {
-            result = JiraService.Helper.toSimpleIssuesFormat([result])[id]
-        }
-
         return result
     }
 
-    static def createJiraIssues(boolean convertToSimpleFormat = true) {
+    static List createJiraIssues() {
         def result = []
 
         // Create some parents
-        def issue0815 = createJiraIssue("0815", "0815-summary", "0815-description", false)
-        result << issue0815
-
-        def issue4711 = createJiraIssue("4711", "4711-summary", "4711-description", false)
-        result << issue4711
+        def issue0815 = createJiraIssue("0815", "0815-summary", "0815-description")
+        def issue4711 = createJiraIssue("4711", "4711-summary", "4711-description")
 
         // Create some children
-        def issue123 = createJiraIssue("123", "123-summary", "123-description", false)
+        def issue123 = createJiraIssue("123", "123-summary", "123-description")
         issue123.fields.parent = issue0815
         result << issue123
 
-        def issue456 = createJiraIssue("456", "456-summary", "456-description", false)
+        def issue456 = createJiraIssue("456", "456-summary", "456-description")
         issue456.fields.parent = issue0815
         result << issue456
 
-        def issue789 = createJiraIssue("789", "789-summary", "789-description", false)
+        def issue789 = createJiraIssue("789", "789-summary", "789-description")
         issue789.fields.parent = issue4711
         result << issue789
 
-        if (convertToSimpleFormat) {
-            result = JiraService.Helper.toSimpleIssuesFormat(result)
-        }
+        result << issue0815
+        result << issue4711
 
         return result
     }
 
-    static def createJiraDocumentIssues(boolean convertToSimpleFormat = true) {
+    static List createJiraDocumentIssues() {
         def result = []
 
-        result << createJiraIssue("1", "my-doc-A", "Document A", false)
-        result << createJiraIssue("2", "my-doc-B", "Document B", false)
-        result << createJiraIssue("3", "my-doc-C", "Document C", false)
-
-        if (convertToSimpleFormat) {
-            result = JiraService.Helper.toSimpleIssuesFormat(result)
-        }
+        result << createJiraIssue("1", "my-doc-A", "Document A")
+        result << createJiraIssue("2", "my-doc-B", "Document B")
+        result << createJiraIssue("3", "my-doc-C", "Document C")
 
         return result
     }
 
-    static def createJiraTestCaseIssues(boolean convertToSimpleFormat = true) {
+    static List createJiraTestIssues() {
         def result = []
 
-        def mySuite1 = createJiraIssue("1", "my-suite-1", "Test Suite 1", false)
-        result << mySuite1
-
-        def mySuite2 = createJiraIssue("2", "my-suite-2", "Test Suite 2", false)
-        result << mySuite2
-
-        def mySuite3 = createJiraIssue("3", "my-suite-3", "Test Suite 3", false)
-        result << mySuite3
-
-        // my-testcase-1 correponds to the Jira issue with key JIRA-4
-        def myTestCase1 = createJiraIssue("4", "my-testcase-1", "Test Case 1", false)
-        myTestCase1.fields.parent = mySuite1
-        result << myTestCase1
-
-        // my-testcase-2 correponds to the Jira issue with key JIRA-5
-        def myTestCase2 = createJiraIssue("5", "my-testcase-2", "Test Case 2", false)
-        myTestCase2.fields.parent = mySuite1
-        result << myTestCase2
-
-        // my-testcase-3 correponds to the Jira issue with key JIRA-6
-        def myTestCase3 = createJiraIssue("6", "my-testcase-3", "Test Case 3", false)
-        myTestCase3.fields.parent = mySuite2
-        result << myTestCase3
-
-        // my-testcase-4 correponds to the Jira issue with key JIRA-7
-        def myTestCase4 = createJiraIssue("7", "my-testcase-4", "Test Case 4", false)
-        myTestCase4.fields.parent = mySuite2
-        result << myTestCase4
-
-        // my-testcase-5 correponds to the Jira issue with key JIRA-8
-        def myTestCase5 = createJiraIssue("8", "my-testcase-5", "Test Case 5", false)
-        myTestCase5.fields.parent = mySuite3
-        result << myTestCase5
-
-        if (convertToSimpleFormat) {
-            result = JiraService.Helper.toSimpleIssuesFormat(result)
-        }
+        result << createJiraIssue("1", "my-testcase-1", "Test Case 1")
+        result << createJiraIssue("2", "my-testcase-2", "Test Case 2")
+        result << createJiraIssue("3", "my-testcase-3", "Test Case 3")
+        result << createJiraIssue("4", "my-testcase-4", "Test Case 4")
+        result << createJiraIssue("5", "my-testcase-5", "Test Case 5")
 
         return result
     }
@@ -118,18 +94,21 @@ class FixtureHelper {
                 <properties>
                     <property name="my-property-a" value="my-property-a-value"/>
                 </properties>
-                <testcase name="JIRA4_my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
-                <testcase name="JIRA5_my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
+                <testcase name="JIRA1_my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
+                <testcase name="JIRA2_my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
                     <error type="my-error-type" message="my-error-message">This is an error.</error>
                 </testcase>
             </testsuite>
             <testsuite name="my-suite-2" tests="2" failures="1" errors="0" skipped="1">
-                <testcase name="JIRA6_my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
+                <testcase name="JIRA3_my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
                     <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
                 </testcase>
-                <testcase name="JIRA7_my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
+                <testcase name="JIRA4_my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
                     <skipped/>
                 </testcase>
+            </testsuite>
+            <testsuite name="my-suite-3" tests="1" failures="0" errors="0" skipped="0">
+                <testcase name="my-testcase-5" classname="app.MyTestCase5" status="Succeeded" time="5"/>
             </testsuite>
         </testsuites>
         """
@@ -180,23 +159,41 @@ class FixtureHelper {
         return result
     }
 
-    static Map createTestResults(boolean convertToSimpleFormat = true) {
-        def result = JUnitParser.parseJUnitXML(
+    static Map createOpenShiftPodDataForComponent() {
+        return [
+            items: [
+                [
+                    metadata: [
+                        name: "myPodName",
+                        namespace: "myPodNamespace",
+                        creationTimestamp: "myPodCreationTimestamp",
+                        labels: [
+                            env: "myPodEnvironment"
+                        ]
+                    ],
+                    spec: [
+                        nodeName: "myPodNode"
+                    ],
+                    status: [
+                        podIP: "1.2.3.4",
+                        phase: "myPodStatus"
+                    ]
+                ]
+            ]
+        ]
+    }
+
+    static Map createTestResults() {
+        return JUnitParser.parseJUnitXML(
             createJUnitXMLTestResults()
         )
-
-        if (convertToSimpleFormat) {
-            result = JUnitParser.Helper.toSimpleFormat(result)
-        }
-
-        return result
     }
 
     static Set createTestResultErrors() {
-        return JUnitParser.Helper.toSimpleErrorsFormat(createTestResults(true))
+        return JUnitParser.Helper.getErrors(createTestResults())
     }
 
     static Set createTestResultFailures() {
-        return JUnitParser.Helper.toSimpleFailuresFormat(createTestResults(true))
+        return JUnitParser.Helper.getFailures(createTestResults())
     }
 }

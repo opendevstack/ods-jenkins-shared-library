@@ -1,15 +1,16 @@
 package org.ods.util
 
-@Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
 @Grab('net.lingala.zip4j:zip4j:2.1.1')
 @Grab('org.yaml:snakeyaml:1.24')
+
+import com.cloudbees.groovy.cps.NonCPS
 
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
 import org.apache.http.client.utils.URIBuilder
-import org.yaml.snakeyaml.Yaml
 import org.ods.util.IPipelineSteps
+import org.yaml.snakeyaml.Yaml
 
 class PipelineUtil {
 
@@ -48,6 +49,7 @@ class PipelineUtil {
         }
     }
 
+    @NonCPS
     protected File createDirectory(String path) {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to create directory. 'path' is undefined.")
@@ -67,12 +69,13 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'files' is undefined.")
         }
 
-        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
+        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
         def result = this.createZipFile(path, files)
         this.archiveArtifact(path, result)
         return result
     }
 
+    @NonCPS
     byte[] createZipFile(String path, Map<String, byte[]> files) {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined.")
@@ -83,7 +86,7 @@ class PipelineUtil {
         }
 
         // Create parent directory if needed
-        createDirectory(new File(path).getParent())
+        this.createDirectory(new File(path).getParent())
 
         // Create the Zip file
         def zipFile = new ZipFile(path)

@@ -3,6 +3,8 @@ package org.ods.util
 import java.nio.file.Files
 import java.nio.file.Paths
 
+import org.apache.pdfbox.pdmodel.PDDocument
+
 import spock.lang.*
 
 import static util.FixtureHelper.*

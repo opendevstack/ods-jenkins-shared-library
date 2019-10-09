@@ -13,7 +13,7 @@ class SonarQubeUseCase {
         this.nexus = nexus
     }
 
-    List<File> loadSCRRReportsFromPath(String path) {
+    List<File> loadReportsFromPath(String path) {
         def result = []
 
         try {
@@ -25,7 +25,7 @@ class SonarQubeUseCase {
         return result
     }
 
-    String uploadSCRRReportToNexus(String version, Map project, Map repo, String type, File artifact) {
+    String uploadReportToNexus(String version, Map project, Map repo, String type, File artifact) {
         return this.nexus.storeArtifactFromFile(
             project.services.nexus.repository.name,
             "${project.id.toLowerCase()}-${version}",

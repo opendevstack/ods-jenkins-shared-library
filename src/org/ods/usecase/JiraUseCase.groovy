@@ -1,10 +1,22 @@
 package org.ods.usecase
 
+import groovy.json.JsonOutput
+
 import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
 import org.ods.util.IPipelineSteps
 
 class JiraUseCase {
+
+    class IssueTypes {
+        static final String DOCUMENT_CHAPTER = "Documentation Chapter"
+        static final String LEVA_DOCUMENTATION = "LeVA Documentation"
+    }
+
+    class CustomIssueFields {
+        static final String CONTENT = "Content"
+        static final String HEADING_NUMBER = "Heading Number"
+    }
 
     static final List JIRA_TEST_CASE_LABELS = [ "Error", "Failed", "Missing", "Skipped", "Succeeded" ]
 
@@ -21,49 +33,100 @@ class JiraUseCase {
         return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
     }
 
-    void createBugAndBlockImpactedTestCases(String projectId, Map jiraTestCaseIssues, Map failure, String comment) {
+    void createBugsAndBlockImpactedTestCases(String projectId, List jiraTestIssues, Set failures, String comment) {
         if (!this.jira) return
 
-        // Create a Jira bug for the failure in the current project
-        def bug = this.jira.createIssueTypeBug(projectId, failure.type, failure.text)
-        this.jira.appendCommentToIssue(bug.key, comment)
+        failures.each { failure ->
+            def bug = this.jira.createIssueTypeBug(projectId, failure.type, failure.text)
 
-        // Iterate through all test cases affected by this failure
-        failure.testsuites.each { testsuiteName, testsuite ->
-            testsuite.testcases.each { testcaseName ->
-                // Find the issue in Jira representing the test case
-                def jiraTestCaseIssue = jiraTestCaseIssues.find { id, issue ->
-                    checkJiraIssueMatchesTestCase(issue, testcaseName)
-                }
-
-                // Attempt to create a link to the bug only if the issue exists
-                if (jiraTestCaseIssue) {
-                    this.jira.createIssueLinkTypeBlocks(bug, jiraTestCaseIssue.value)
-                }
+            walkJiraTestIssuesAndTestResults(jiraTestIssues, failure) { issue, testcase, isMatch ->
+                if (isMatch) this.jira.createIssueLinkTypeBlocks(bug, issue)
             }
+
+            this.jira.appendCommentToIssue(bug.key, comment)
         }
     }
 
-    void labelTestCasesWithTestResults(Map jiraTestCaseIssues, Map testResults) {
+    List getAutomatedTestIssues(String projectId, String componentId = null) {
+        if (!this.jira) return []
+
+        def query = "project = ${projectId} AND issuetype = Test AND labels = AutomatedTest"
+        if (componentId) {
+            query += " AND component = '${componentId}'"
+        }
+
+        def jqlQuery = [
+            jql: query
+        ]
+
+        return this.jira.getIssuesForJQLQuery(jqlQuery).each { issue ->
+            issue.isRelatedTo = this.getLinkedIssuesForIssue(issue.key, "is related to") ?: []
+        }
+    }
+
+    Map getDocumentChapterData(String projectId, String documentType) {
+        if (!this.jira) return [:]
+
+        def jqlQuery = [
+            jql: "project = ${projectId} AND issuetype = '${IssueTypes.DOCUMENT_CHAPTER}' AND labels = LeVA_Doc:${documentType}",
+            expand: [ "names", "renderedFields" ]
+        ]
+
+        def result = this.jira.searchByJQLQuery(jqlQuery)
+
+        def contentFieldKey = result.names.find { it.value == CustomIssueFields.CONTENT }.key
+        def numberKey = result.names.find { it.value == CustomIssueFields.HEADING_NUMBER }.key
+
+        return result.issues.collectEntries { issue ->
+            def content = issue.renderedFields[contentFieldKey]
+            def number = issue.fields[numberKey]?.trim()
+
+            return [
+                "sec${number.replaceAll(/\./, "s")}".toString(),
+                [
+                    number: number,
+                    heading: issue.fields.summary,
+                    content: content?.replaceAll("\u00a0", " ") ?: ""
+                ]
+            ]
+        }
+    }
+
+    List getLinkedIssuesForIssue(String issueKey, String relationType = "") {
+        if (!this.jira) return []
+
+        def query = "issue in linkedIssues('${issueKey}'"
+
+        if (relationType.trim()) {
+            query += ", '${relationType}'"
+        }
+
+        query += ")"
+
+        def jqlQuery = [
+            jql: query
+        ]
+
+        return this.jira.getIssuesForJQLQuery(jqlQuery)
+    }
+
+    List getStoriesInEpic(String epicKey) {
+        if (!this.jira) return []
+
+        def jqlQuery = [
+            jql: "issuetype = Story AND 'Epic Link' = ${epicKey}"
+        ]
+
+        return this.jira.getIssuesForJQLQuery(jqlQuery)
+    }
+
+    void labelTestIssuesWithTestResults(List jiraTestIssues, Map testResults) {
         if (!this.jira) return
 
-        def testCasesProcessed = [:]
-        testResults.each { testsuiteName, testsuite ->
-            testsuite.each { testcaseName, testcase ->
-                // Find the test case issue in Jira that matches the executed test case
-                def jiraTestCaseIssue = jiraTestCaseIssues.find { issueId, issue ->
-                    checkJiraIssueMatchesTestCase(issue, testcaseName)
-                }
-
-                if (!jiraTestCaseIssue) {
-                    // There is no issue for the executed test case in Jira
-                    return
-                }
-
-                jiraTestCaseIssue = jiraTestCaseIssue.value
-
-                // Remove all labels from the test case issue in Jira
-                this.jira.removeLabelsFromIssue(jiraTestCaseIssue.id, JIRA_TEST_CASE_LABELS)
+        // Handle Jira issues for which a corresponding test exists in testResults
+        def matchedHandler = { result ->
+            result.each { issue, testcase ->
+                this.jira.removeLabelsFromIssue(issue.id, this.JIRA_TEST_CASE_LABELS)
 
                 def labelsToApply = ["Succeeded"]
                 if (testcase.skipped || testcase.error || testcase.failure) {
@@ -80,60 +143,88 @@ class JiraUseCase {
                     }
                 }
 
-                // Apply all appropriate labels to the issue
-                this.jira.addLabelsToIssue(jiraTestCaseIssue.id, labelsToApply)
-
-                testCasesProcessed << [ (jiraTestCaseIssue.id): jiraTestCaseIssue ]
+                this.jira.addLabelsToIssue(issue.id, labelsToApply)
             }
         }
 
-        // Add label "Missing" to all unprocessed test case issues in Jira
-        def testCasesUnprocessed = jiraTestCaseIssues - testCasesProcessed
-        testCasesUnprocessed.each { issueId, issue ->
-            this.jira.removeLabelsFromIssue(issueId, JIRA_TEST_CASE_LABELS)
-            this.jira.addLabelsToIssue(issueId, ["Missing"])
+        // Handle Jira issues for which no corresponding test exists in testResults
+        def unmatchedHandler = { result ->
+            result.each { issue ->
+                this.jira.removeLabelsFromIssue(issue.id, JIRA_TEST_CASE_LABELS)
+                this.jira.addLabelsToIssue(issue.id, ["Missing"])
+            }
         }
+
+        this.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, testResults, matchedHandler, unmatchedHandler)
     }
 
-    void notifyLeVaDocumentIssue(String projectId, String documentType, String message) {
+    void matchJiraTestIssuesAgainstTestResults(List jiraTestIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
+        def result = [
+            matched: [:],
+            mismatched: []
+        ]
+
+        walkJiraTestIssuesAndTestResults(jiraTestIssues, testResults) { issue, testcase, isMatch ->
+            if (isMatch) {
+                result.matched << [
+                    (issue): testcase
+                ]
+            }
+        }
+
+        jiraTestIssues.each { issue ->
+            if (!result.matched.keySet().contains(issue)) {
+                result.mismatched << issue
+            }
+        }
+
+        matchedHandler(result.matched)
+        unmatchedHandler(result.mismatched)
+    }
+
+    void notifyLeVaDocumentTrackingIssue(String projectId, String documentType, String message) {
         if (!this.jira) return
 
-        def jqlQuery = "project = ${projectId} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"
+        def jqlQuery = [ jql: "project = ${projectId} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = LeVA_Doc:${documentType}" ]
 
         // Search for the Jira issue associated with the document
-        def jiraIssues = JiraService.Helper.toSimpleIssuesFormat(this.jira.getIssuesForJQLQuery(jqlQuery))
+        def jiraIssues = this.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.size() != 1) {
             throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jqlQuery}'.")
         }
 
         // Add a comment to the Jira issue with a link to the report
-        this.jira.appendCommentToIssue(jiraIssues.iterator().next().value.key, message)
+        this.jira.appendCommentToIssue(jiraIssues.first().key, message)
     }
 
-    void reportTestResultsForProject(String projectId, Map testResults) {
+    void reportTestResultsForComponent(String projectId, String componentId, Map testResults) {
         if (!this.jira) return
 
-        // Transform the JUnit test results into a simple format
-        def testResultsSimple = JUnitParser.Helper.toSimpleFormat(testResults)
-
-        // Get (automated) test case definitions from Jira
-        def jiraTestCaseIssues = JiraService.Helper.toSimpleIssuesFormat(
-            this.jira.getIssuesForJQLQuery("project = ${projectId} AND labels = AutomatedTest AND issuetype = Test")
-        )
+        // Get automated test case definitions from Jira
+        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentId)
 
         // Label test cases according to their test results
-        this.labelTestCasesWithTestResults(jiraTestCaseIssues, testResultsSimple)
+        this.labelTestIssuesWithTestResults(jiraTestIssues, testResults)
 
         // Create Jira bugs for erroneous test cases
-        def errors = JUnitParser.Helper.toSimpleErrorsFormat(testResultsSimple)
-        errors.each { error ->
-            this.createBugAndBlockImpactedTestCases(projectId, jiraTestCaseIssues, error, this.steps.env.RUN_DISPLAY_URL)
-        }
+        def errors = JUnitParser.Helper.getErrors(testResults)
+        this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, errors, this.steps.env.RUN_DISPLAY_URL)
 
         // Create Jira bugs for failed test cases
-        def failures = JUnitParser.Helper.toSimpleFailuresFormat(testResultsSimple)
-        failures.each { failure ->
-            this.createBugAndBlockImpactedTestCases(projectId, jiraTestCaseIssues, failure, this.steps.env.RUN_DISPLAY_URL)
+        def failures = JUnitParser.Helper.getFailures(testResults)
+        this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, failures, this.steps.env.RUN_DISPLAY_URL)
+    }
+
+    private void walkJiraTestIssuesAndTestResults(List jiraTestIssues, Map testResults, Closure visitor) {
+        testResults.testsuites.each { testsuite ->
+            testsuite.testcases.each { testcase ->
+                def issue = jiraTestIssues.find { issue ->
+                    this.checkJiraIssueMatchesTestCase(issue, testcase.name)
+                }
+
+                def isMatch = issue != null
+                visitor(issue, testcase, isMatch)
+            }
         }
     }
 }

@@ -29,6 +29,7 @@ class DocGenService {
         }
     }
 
+    @NonCPS
     byte[] createDocument(String type, String version, Map data) {
         def response = Unirest.post("${this.baseURL}/document")
             .header("Accept", "application/json")
@@ -56,7 +57,7 @@ class DocGenService {
         return decodeBase64(result.data)
     }
 
-    private static byte[] decodeBase64(def base64String) {
+    private static byte[] decodeBase64(String base64String) {
         return Base64.decoder.decode(base64String)
     }
 }

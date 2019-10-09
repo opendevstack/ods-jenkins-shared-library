@@ -942,7 +942,9 @@ class JiraServiceSpec extends SpecHelper {
     Map getIssuesForJQLQueryRequestData(Map mixins = [:]) {
         def result = [
             data: [
-                query: "I want it all!"
+                query: [
+                    jql: "I want it all!"
+                ]
             ],
             headers: [
                 "Accept": "application/json"
@@ -950,10 +952,6 @@ class JiraServiceSpec extends SpecHelper {
             password: "password",
             path: "/rest/api/2/search",
             username: "username"
-        ]
-
-        result.queryParams = [
-            "jql": result.data.query
         ]
 
         return result << mixins
@@ -975,7 +973,7 @@ class JiraServiceSpec extends SpecHelper {
         def request = getIssuesForJQLQueryRequestData()
         def response = getIssuesForJQLQueryResponseData()
 
-        def server = createServer(WireMock.&get, request, response)
+        def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
@@ -986,7 +984,7 @@ class JiraServiceSpec extends SpecHelper {
         e.message == "Error: unable to get Jira issues for JQL query. 'query' is undefined."
 
         when:
-        service.getIssuesForJQLQuery(" ")
+        service.getIssuesForJQLQuery([:])
 
         then:
         e = thrown(IllegalArgumentException)
@@ -998,7 +996,7 @@ class JiraServiceSpec extends SpecHelper {
         def request = getIssuesForJQLQueryRequestData()
         def response = getIssuesForJQLQueryResponseData()
 
-        def server = createServer(WireMock.&get, request, response)
+        def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
@@ -1019,7 +1017,7 @@ class JiraServiceSpec extends SpecHelper {
             status: 400
         ])
 
-        def server = createServer(WireMock.&get, request, response)
+        def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
@@ -1041,7 +1039,7 @@ class JiraServiceSpec extends SpecHelper {
             status: 400
         ])
 
-        def server = createServer(WireMock.&get, request, response)
+        def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
@@ -1062,7 +1060,7 @@ class JiraServiceSpec extends SpecHelper {
             status: 404
         ])
 
-        def server = createServer(WireMock.&get, request, response)
+        def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
@@ -1084,7 +1082,7 @@ class JiraServiceSpec extends SpecHelper {
             status: 500
         ])
 
-        def server = createServer(WireMock.&get, request, response)
+        def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
@@ -1239,67 +1237,5 @@ class JiraServiceSpec extends SpecHelper {
 
         cleanup:
         stopServer(server)
-    }
-
-    def "Helper.toSimpleIssuesFormat"() {
-        given:
-        def issues = createJiraIssues(false)
-
-        when:
-        def result = JiraService.Helper.toSimpleIssuesFormat(issues)
-
-        then:
-        def issue0815 = [
-            id: "0815",
-            key: "JIRA-0815",
-            summary: "0815-summary",
-            description: "0815-description",
-            url: "http://0815"
-        ]
-
-        def issue4711 = [
-            id: "4711",
-            key: "JIRA-4711",
-            summary: "4711-summary",
-            description: "4711-description",
-            url: "http://4711"
-        ]
-
-        def issue123 = [
-            id: "123",
-            key: "JIRA-123",
-            summary: "123-summary",
-            description: "123-description",
-            parent: issue0815,
-            url: "http://123"
-        ]
-
-        def issue456 = [
-            id: "456",
-            key: "JIRA-456",
-            summary: "456-summary",
-            description: "456-description",
-            parent: issue0815,
-            url: "http://456"
-        ]
-
-        def issue789 = [
-            id: "789",
-            key: "JIRA-789",
-            summary: "789-summary",
-            description: "789-description",
-            parent: issue4711,
-            url: "http://789"
-        ]
-
-        def expected = [
-            "0815": issue0815,
-            "4711": issue4711,
-            "123": issue123,
-            "456": issue456,
-            "789": issue789
-        ]
-
-        result == expected
     }
 }

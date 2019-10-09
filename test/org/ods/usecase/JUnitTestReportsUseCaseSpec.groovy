@@ -59,11 +59,11 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
         def usecase = createUseCase(steps)
 
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
-        def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml")
+        def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
         when:
-        def result = usecase.parseTestReportFiles([xmlFile.toFile()])
+        def result = usecase.parseTestReportFiles([xmlFile])
 
         then:
         def expected = [
@@ -73,7 +73,7 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
         result == expected
 
         cleanup:
-        xmlFiles.toFile().deleteDir()
+        xmlFiles.deleteDir()
     }
 
     def "report test reports from path to Jenkins"() {
