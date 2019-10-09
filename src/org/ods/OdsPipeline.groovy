@@ -162,7 +162,7 @@ class OdsPipeline implements Serializable {
       } else
       {
         // copy files to default location
-        script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}/*", label : "Moving test results to expected location")
+        script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}", label : "Moving test results to expected location")
       }
     }
 
