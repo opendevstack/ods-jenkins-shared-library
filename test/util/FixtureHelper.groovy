@@ -119,7 +119,8 @@ class FixtureHelper {
             id: "PHOENIX",
             key: "PHOENIX-123",
             name: "Project Phoenix",
-            name: "A super sophisticated project."
+            description: "A super sophisticated project.",
+            data: [:]
         ]
 
         result.services = [
@@ -144,15 +145,18 @@ class FixtureHelper {
             [
                 id: "A",
                 url: "https://github.com/my-org/my-repo-A.git",
-                branch: "master"
+                branch: "master",
+                data: [:]
             ],
             [
                 id: "B",
                 name: "my-repo-B",
-                branch: "master"
+                branch: "master",
+                data: [:]
             ],
             [
-                id: "C"
+                id: "C",
+                data: [:]
             ]
         ]
 

@@ -27,6 +27,9 @@ class LeVaDocumentUseCase {
         static final String SCR = "SCR"
         static final String TIP = "TIP"
         static final String TIR = "TIR"
+
+        static final String OVERALL_COVER = "Overall-Cover"
+        static final String OVERALL_TIR_COVER = "Overall-TIR-Cover"
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
@@ -116,7 +119,7 @@ class LeVaDocumentUseCase {
         return result
     }
 
-    private static String createDocument(Map deps, String type, Map project, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null) {
+    private static String createDocument(Map deps, String type, Map project, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String typeName = null) {
         def buildParams = deps.util.getBuildParams()
 
         // Create a PDF document via the DocGen service
@@ -133,7 +136,7 @@ class LeVaDocumentUseCase {
             }
         }
 
-        def baseName = computeDocumentFileBaseName(type, deps.steps, buildParams, project, repo)
+        def baseName = computeDocumentFileBaseName(typeName ?: type, deps.steps, buildParams, project, repo)
 
         // Create an archive with the document and raw data
         def archive = deps.util.createZipArtifact(
@@ -155,9 +158,40 @@ class LeVaDocumentUseCase {
             "application/zip"
         )
 
-        deps.jira.notifyLeVaDocumentTrackingIssue(project.id, type, "A new ${DOCUMENT_TYPE_NAMES[type]} has been generated and is available at: ${uri}.")
+        deps.jira.notifyLeVaDocumentTrackingIssue(project.id, typeName ?: type, "A new ${DOCUMENT_TYPE_NAMES[type]} has been generated and is available at: ${uri}.")
 
         return uri.toString()
+    }
+
+    private String createOverallDocument(String coverType, String documentType, Map project, Closure visitor = null) {
+        def documents = []
+        def sections = []
+
+        project.repositories.each { repo ->
+            documents << repo.data.documents[documentType]
+            sections << [
+                heading: repo.id
+            ]
+        }
+
+        def data = [
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                sections: sections
+            ]
+        ]
+
+        if (visitor) {
+            visitor(data.data)
+        }
+
+        def modifier = { document ->
+            documents.add(0, document)
+            return this.pdf.merge(documents)
+        }
+
+        def deps = [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util]
+        return createDocument(deps, coverType, project, null, data, [:], modifier, documentType)
     }
 
     String createDTP(Map project) {
@@ -169,7 +203,7 @@ class LeVaDocumentUseCase {
         }
 
         def data = [
-            metadata: getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
                 sections: sections,
@@ -186,9 +220,14 @@ class LeVaDocumentUseCase {
             ]
         ]
 
+        def modifier = { document ->
+            project.data.documents[documentType] = document
+            return document
+        }
+
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, null, data, [:], null
+            documentType, project, null, data, [:], modifier, null
         )
     }
 
@@ -221,7 +260,7 @@ class LeVaDocumentUseCase {
         def discrepancies = this.computeDTRDiscrepancies(jiraTestIssues)
 
         def data = [
-            metadata: getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project, repo),
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project, repo),
             data: [
                 repo: repo,
                 sections: sections,
@@ -253,10 +292,19 @@ class LeVaDocumentUseCase {
             [ "raw/${file.getName()}", file.getBytes() ]
         }
 
+        def modifier = { document ->
+            repo.data.documents[documentType] = document
+            return document
+        }
+
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, repo, data, , files, null
+            documentType, project, repo, data, files, modifier, null
         )
+    }
+
+    String createOverallDTR(Map project) {
+        return createOverallDocument(DocumentTypes.OVERALL_COVER, DocumentTypes.DTR, project)
     }
 
     String createSCP(Map project) {
@@ -268,16 +316,21 @@ class LeVaDocumentUseCase {
         }
 
         def data = [
-            metadata: getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
                 sections: sections
             ]
         ]
 
+        def modifier = { document ->
+            project.data.documents[documentType] = document
+            return document
+        }
+
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, null, data, [:], null
+            documentType, project, null, data, [:], modifier, null
         )
     }
 
@@ -290,7 +343,7 @@ class LeVaDocumentUseCase {
         }
 
         def data = [
-            metadata: getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project, repo),
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project, repo),
             data: [
                 sections: sections
             ]
@@ -319,10 +372,19 @@ class LeVaDocumentUseCase {
             files << [ "${name}.${FilenameUtils.getExtension(sonarQubeWordDoc.getName())}": sonarQubeWordDoc.getBytes() ]
         }
 
+        def modifier = { document ->
+            repo.data.documents[documentType] = document
+            return document
+        }
+
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, repo, data, files, null
+            documentType, project, repo, data, files, modifier, null
         )
+    }
+
+    String createOverallSCR(Map project) {
+        return createOverallDocument(DocumentTypes.OVERALL_COVER, DocumentTypes.SCR, project)
     }
 
     String createTIP(Map project) {
@@ -334,7 +396,7 @@ class LeVaDocumentUseCase {
         }
 
         def data = [
-            metadata: getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
                 repos: project.repositories,
@@ -342,9 +404,14 @@ class LeVaDocumentUseCase {
             ]
         ]
 
+        def modifier = { document ->
+            project.data.documents[documentType] = document
+            return document
+        }
+
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, null, data, [:], null
+            documentType, project, null, data, [:], modifier, null
         )
     }
 
@@ -359,14 +426,11 @@ class LeVaDocumentUseCase {
         }
 
         def data = [
-            metadata: getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project, repo),
-            jenkinsData: [
-                log: this.jenkins.getCurrentBuildLogAsText()
-            ],
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project, repo),
             openShiftData: [
-                ocpBuildId           : repo?.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
-                ocpDockerImage       : repo?.odsBuildArtifacts?."OCP Docker image" ?: "N/A",
-                ocpDeploymentId      : repo?.odsBuildArtifacts?."OCP Deployment Id" ?: "N/A",
+                ocpBuildId           : repo?.data.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
+                ocpDockerImage       : repo?.data.odsBuildArtifacts?."OCP Docker image" ?: "N/A",
+                ocpDeploymentId      : repo?.data.odsBuildArtifacts?."OCP Deployment Id" ?: "N/A",
                 podName              : pods?.items[0]?.metadata?.name ?: "N/A",
                 podNamespace         : pods?.items[0]?.metadata?.namespace ?: "N/A",
                 podCreationTimestamp : pods?.items[0]?.metadata?.creationTimestamp ?: "N/A",
@@ -382,10 +446,29 @@ class LeVaDocumentUseCase {
             ]
         ]
 
+        def modifier = { document ->
+            repo.data.documents[documentType] = document
+            return document
+        }
+
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, repo, data, [:], null
+            documentType, project, repo, data, [:], modifier, null
         )
+    }
+
+    String createOverallTIR(Map project) {
+        return createOverallDocument(DocumentTypes.OVERALL_TIR_COVER, DocumentTypes.TIR, project) { data ->
+            // Append another section for the Jenkins build log
+            data.sections << [
+                heading: "Jenkins Build Log"
+            ]
+
+            // Add Jenkins build log data
+            data.jenkinsData = [
+                log: this.jenkins.getCurrentBuildLogAsText()
+            ]
+        }
     }
 
     private Map getDocumentMetadata(String type, Map project, Map repo = null) {
@@ -402,7 +485,7 @@ class LeVaDocumentUseCase {
             version: this.steps.env.RELEASE_PARAM_VERSION,
             date_created: LocalDateTime.now().toString(),
             buildParameter: this.util.getBuildParams(),
-            git: repo ? repo.gitData : project.gitData,
+            git: repo ? repo.data.git : project.data.git,
             jenkins: [
                 buildNumber: this.steps.env.BUILD_NUMBER,
                 buildUrl: this.steps.env.BUILD_URL,
