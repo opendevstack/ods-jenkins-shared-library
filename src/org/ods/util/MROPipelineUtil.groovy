@@ -219,7 +219,10 @@ class MROPipelineUtil extends PipelineUtil {
             throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories' is undefined.")
         }
 
-        result.gitData = [
+        result.data = [:]
+        result.data.documents = [:]
+
+        result.data.git = [
             commit: this.git.getCommit(),
             url: this.git.getURL()
         ]
@@ -229,6 +232,9 @@ class MROPipelineUtil extends PipelineUtil {
             if (!repo.id?.trim()) {
                 throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
+
+            repo.data = [:]
+            repo.data.documents = [:]
 
             // Resolve repo URL, if not provided
             if (!repo.url?.trim()) {
@@ -280,7 +286,7 @@ class MROPipelineUtil extends PipelineUtil {
                     ]
                 ])
 
-                repo.gitData = [
+                repo.data.git = [
                     branch: scm.GIT_BRANCH,
                     commit: scm.GIT_COMMIT,
                     previousCommit: scm.GIT_PREVIOUS_COMMIT,
@@ -319,10 +325,10 @@ class MROPipelineUtil extends PipelineUtil {
                                     def job = loadGroovySourceFile("${baseDir}/Jenkinsfile")
 
                                     // Collect ODS build artifacts for repo
-                                    repo.odsBuildArtifacts = job.getBuildArtifactURIs()
-                                    this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.odsBuildArtifacts}")
+                                    repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
+                                    this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
 
-                                    if (repo.odsBuildArtifacts?.failedStage) {
+                                    if (repo.data.odsBuildArtifacts?.failedStage) {
                                         throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
                                     }
                                 }

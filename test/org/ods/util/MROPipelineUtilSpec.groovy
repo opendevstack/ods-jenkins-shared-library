@@ -770,25 +770,37 @@ class MROPipelineUtilSpec extends SpecHelper {
             id: "myId",
             name: "myName",
             description: "myDescription",
-            gitData: [
-                commit: git.getCommit(),
-                url: git.getURL()
+            data: [
+                documents: [:],
+                git: [
+                    commit: git.getCommit(),
+                    url: git.getURL()
+                ]
             ],
             repositories: [
                 [
                     id: "A",
                     url: "https://github.com/my-org/my-repo-A.git",
-                    branch: "master"
+                    branch: "master",
+                    data: [
+                        documents: [:]
+                    ]
                 ],
                 [
                     id: "B",
                     url: "https://github.com/my-org/my-repo-B.git",
-                    branch: "master"
+                    branch: "master",
+                    data: [
+                        documents: [:]
+                    ]
                 ],
                 [
                     id: "C",
                     url: "https://github.com/my-org/myid-C.git",
-                    branch: "master"
+                    branch: "master",
+                    data: [
+                        documents: [:]
+                    ]
                 ]
             ]
         ]

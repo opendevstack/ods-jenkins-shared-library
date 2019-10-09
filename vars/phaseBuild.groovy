@@ -75,6 +75,11 @@ def call(Map project, List<Set<Map>> repos) {
         parallel(group)
     }
 
+    echo "Creating and archiving an overall Software Development (Coding and Code Review) Report for project '${project.id}'"
+    levaDoc.createOverallSCR(project)
+
+    echo "Creating and archiving an overall Software Development Testing Report for project '${project.id}'"
+    levaDoc.createOverallDTR(project)
 }
 
 return this

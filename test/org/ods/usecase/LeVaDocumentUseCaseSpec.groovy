@@ -362,7 +362,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         1 * jira.getAutomatedTestIssues(project.id) >> []
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
     }
 
     def "create DTP without Jira"() {
@@ -431,6 +431,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         def testIssues = createJiraTestIssues()
         def type = LeVaDocumentUseCase.DocumentTypes.DTR
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
+        def document = "myDocument".bytes
 
         when:
         // TODO: should we turn jira into a Spy to test an issue's success state?
@@ -447,7 +448,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         1 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, repo, _, files, null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, repo, _, files, _, null) >> document
 
         cleanup:
         xmlFile.delete()
@@ -530,7 +531,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(type)
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
     }
 
     def "create SCP without Jira"() {
@@ -603,7 +604,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(type)
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, repo, _, files, null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, repo, _, files, _, null)
     }
 
     def "create SCR without Jira"() {
@@ -675,7 +676,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         _ * util.getBuildParams() >> buildParams
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
     }
 
     def "create TIP without Jira"() {
@@ -745,13 +746,12 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.getDocumentChapterData(project.id, type) >> ["sec1": "myContent"]
-        1 * jenkins.getCurrentBuildLogAsText()
         0 * levaFiles.getDocumentChapterData(type)
         1 * os.getPodDataForComponent(repo.id) >> createOpenShiftPodDataForComponent()
         _ * util.getBuildParams() >> buildParams
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, repo, _, [:], null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, repo, _, [:], _, null)
     }
 
     def "create TIR without Jira"() {
