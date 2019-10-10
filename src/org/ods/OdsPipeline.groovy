@@ -161,7 +161,7 @@ class OdsPipeline implements Serializable {
         throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
       } else
       {
-        // copy files to default location 
+        // copy files to default location
         script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}", label : "Moving test results to expected location")
       }
     }
