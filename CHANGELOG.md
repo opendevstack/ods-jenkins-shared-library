@@ -1,8 +1,18 @@
 # Changelog
 
-## [Unreleased]
-- Add support for multi repo orchestration ([#97](https://github.com/opendevstack/ods-jenkins-shared-library/issues/97))
-- Insertion of cd_user in repository URL now supports arbitrary hostnames ([#98](https://github.com/opendevstack/ods-jenkins-shared-library/issues/98))
+## [1.2.0] - 2019-10-10
+### Added
+- Make ODS pipeline configurable for MRO ([#97](https://github.com/opendevstack/ods-jenkins-shared-library/issues/97))
+- Make jenkins ods shared lib ready for MRO ([#108](https://github.com/opendevstack/ods-jenkins-shared-library/pull/108))
+### Fixed
+- Job fails when using a custom test reports location ([#132](https://github.com/opendevstack/ods-jenkins-shared-library/issues/132)) 
+- Seldom failure (OCP Build app-be-bonjour-451 was not successfull - status Running) - although build completed in same var / stage([#135](https://github.com/opendevstack/ods-jenkins-shared-library/issues/135))
+- Fix build still running issue during build check ([#136](https://github.com/opendevstack/ods-jenkins-shared-library/pull/136))
+- Auto Clone Environment fails during curl download ([#109](https://github.com/opendevstack/ods-jenkins-shared-library/pull/109))
+- Set memory explicitly for Jenkins slave pods ([#114](https://github.com/opendevstack/ods-jenkins-shared-library/issues/114))
+- Shared lib clone environment always stores @master in oc-config-artifacts ([#105](https://github.com/opendevstack/ods-jenkins-shared-library/issues/105))
+- Build Openshift Image stage fails if the committer has an apostrophe in their name ([#130](https://github.com/opendevstack/ods-jenkins-shared-library/issues/130))
+
 
 ##  [1.1.0] - 2019-05-28
 ### Added
