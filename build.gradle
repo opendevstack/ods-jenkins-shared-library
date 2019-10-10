@@ -1,0 +1,112 @@
+plugins {
+    id 'jacoco'
+    id 'groovy'
+}
+
+group "org.ods"
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+ext 
+{
+    nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
+    nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
+    nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
+    no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
+}
+
+repositories {
+    if (no_nexus) {
+        println("using repositories 'jcenter' and 'mavenCentral'")
+        jcenter()
+        mavenCentral()
+
+        maven {
+            url "https://repo1.maven.org/maven2/"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+
+        maven {
+            url "https://repo.jenkins-ci.org/releases"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+    } else {
+        println("using nexus repositories")
+        if (!nexus_url) {
+            throw new GradleException('Nexus URL not specified!')
+        }
+        maven() {
+            url "${nexus_url}/repository/jcenter/"
+            credentials() {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven() {
+            url "${nexus_url}/repository/maven-public/"
+            credentials() {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven() {
+            url "${nexus_url}/repository/atlassian_public/"
+            credentials {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+    }
+}
+
+dependencies {
+    compile "com.cloudbees:groovy-cps:1.29"
+    compile "com.konghq:unirest-java:2.3.08:standalone"
+    compile "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.2"
+    compile "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf:2.0.2"
+    compile "net.lingala.zip4j:zip4j:2.1.1"
+    compile "org.apache.ivy:ivy:2.2.0"
+    compile "org.apache.pdfbox:pdfbox:2.0.17"
+    compile "org.apache.poi:poi:4.0.1"
+    compile "org.codehaus.groovy:groovy-all:2.5.7"
+    compile "org.yaml:snakeyaml:1.24"
+    compile "org.jenkins-ci.main:jenkins-core:2.46.3"
+    compile group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-api', version: '2.36', ext: 'jar'
+    compile group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.41', ext: 'jar'
+
+    testCompile "cglib:cglib-nodep:3.3.0"                      // for mocking classes
+    testCompile "com.github.stefanbirkner:system-rules:1.19.0" // for managing environment variables
+    testCompile "com.github.tomakehurst:wiremock:2.23.2"       // for mocking HTTP server reponses
+    testCompile "net.bytebuddy:byte-buddy:1.10.1"              // for mocking classes
+    testCompile "org.hamcrest:hamcrest:2.1"
+    testCompile "org.objenesis:objenesis:3.0.1"                // for mocking final classes
+    testCompile "org.spockframework:spock-core:1.3-groovy-2.5"
+}
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ["src"]
+        }
+    }
+
+    test {
+        groovy {
+            srcDirs = ["test"]
+        }
+    }
+}
+
+compileGroovy {
+    groovyOptions.configurationScript = file("gradle/config.groovy")
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+    }
+}
