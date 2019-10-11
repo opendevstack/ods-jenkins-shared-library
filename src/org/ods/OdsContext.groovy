@@ -99,7 +99,7 @@ class OdsContext implements Context {
       config.environmentLimit = 5
     }
     if (!config.containsKey('openshiftBuildTimeout')) {
-      config.openshiftBuildTimeout = 15
+      config.openshiftBuildTimeout = 15 // minutes
     }
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
@@ -138,7 +138,6 @@ class OdsContext implements Context {
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
-    config.lastSuccessfulCommit = retrieveLastSuccessfulCommit()
 
     if (!config.containsKey('bitbucketNotificationEnabled')) {
       config.bitbucketNotificationEnabled = true
@@ -572,7 +571,7 @@ class OdsContext implements Context {
 
     config.cloneSourceEnv = config.autoCloneEnvironmentsFromSourceMapping[genericEnv]
     def autoCloneEnabled = !!config.cloneSourceEnv
-    if (autoCloneEnabled || environmentExists(specifcEnv)) {
+    if (autoCloneEnabled || OpenshiftUtils.environmentExists(script, specifcEnv)) {
       config.environment = specifcEnv
     } else {
       config.environment = genericEnv
@@ -589,15 +588,6 @@ class OdsContext implements Context {
       return ""
     }
     return tokens[1]
-  }
-
-  protected boolean environmentExists(String name) {
-    def statusCode = script.sh(
-      script:"oc project ${name} &> /dev/null",
-      label : 'checking for OCP env ${name}',
-      returnStatus: true
-    )
-    return statusCode == 0
   }
 
   public Map<String, String> getBuildArtifactURIs() {

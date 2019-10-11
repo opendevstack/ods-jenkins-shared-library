@@ -140,7 +140,7 @@ interface Context {
     // BitBucket host - value taken from BITBUCKET_HOST.
     String getBitbucketHost()
 
-    // Timeout for the OpenShift build of the container image.
+    // Timeout for the OpenShift build of the container image in minutes.
     int getOpenshiftBuildTimeout()
 
     // Whether the build should be skipped, based on the Git commit message.
