@@ -362,7 +362,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         1 * jira.getAutomatedTestIssues(project.id) >> []
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], null, null)
     }
 
     def "create DTP without Jira"() {
@@ -531,7 +531,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(type)
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], null, null)
     }
 
     def "create SCP without Jira"() {
@@ -676,7 +676,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         _ * util.getBuildParams() >> buildParams
 
         then:
-        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], null, null)
     }
 
     def "create TIP without Jira"() {
