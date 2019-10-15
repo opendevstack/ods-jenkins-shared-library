@@ -190,8 +190,16 @@ class LeVaDocumentUseCase {
             return this.pdf.merge(documents)
         }
 
-        def deps = [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util]
-        return createDocument(deps, coverType, project, null, data, [:], modifier, documentType)
+        def result = createDocument(
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
+            coverType, project, null, data, [:], modifier, documentType
+        )
+
+        project.repositories.each { repo ->
+            repo.data.documents.remove(documentType)
+        }
+
+        return result
     }
 
     String createDTP(Map project) {
@@ -220,14 +228,9 @@ class LeVaDocumentUseCase {
             ]
         ]
 
-        def modifier = { document ->
-            project.data.documents[documentType] = document
-            return document
-        }
-
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, null, data, [:], modifier, null
+            documentType, project, null, data, [:], null, null
         )
     }
 
@@ -323,14 +326,9 @@ class LeVaDocumentUseCase {
             ]
         ]
 
-        def modifier = { document ->
-            project.data.documents[documentType] = document
-            return document
-        }
-
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, null, data, [:], modifier, null
+            documentType, project, null, data, [:], null, null
         )
     }
 
@@ -404,14 +402,9 @@ class LeVaDocumentUseCase {
             ]
         ]
 
-        def modifier = { document ->
-            project.data.documents[documentType] = document
-            return document
-        }
-
         return createDocument(
             [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
-            documentType, project, null, data, [:], modifier, null
+            documentType, project, null, data, [:], null, null
         )
     }
 
