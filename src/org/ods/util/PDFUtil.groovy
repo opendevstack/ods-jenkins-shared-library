@@ -41,7 +41,7 @@ class PDFUtil {
             doc.save(os)
             result = os.toByteArray()
         } catch (e) {
-            throw new RuntimeException("Error: unable to add watermark to PDF document: ${e.message}")
+            throw new RuntimeException("Error: unable to add watermark to PDF document: ${e.message}").initCause(e)
         } finally {
             doc.close()
         }
@@ -102,7 +102,7 @@ class PDFUtil {
 
             result = os.toByteArray()
         } catch (e) {
-            throw new RuntimeException("Error: unable to convert Word document to PDF: ${e.message}")
+            throw new RuntimeException("Error: unable to convert Word document to PDF: ${e.message}").initCause(e)
         }
 
         return result
@@ -124,7 +124,7 @@ class PDFUtil {
             merger.mergeDocuments()
             result = tmp.bytes
         } catch (e) {
-            throw new RuntimeException("Error: unable to merge PDF documents: ${e.message}")
+            throw new RuntimeException("Error: unable to merge PDF documents: ${e.message}").initCause(e)
         } finally {
             tmp.delete()
         }
