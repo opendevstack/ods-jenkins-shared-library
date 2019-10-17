@@ -9,9 +9,6 @@ def call(Map project, List<Set<Map>> repos) {
 
     echo "Finalizing deployment of project '${project.id}' into environment '${env.MULTI_REPO_ENV}'"
 
-    echo "Creating and archiving an overall Technical Installation Report for project '${project.id}'"
-    levaDoc.createOverallTIR(project)
-
     // Check if the target environment exists in OpenShift
     def environment = "${project.id}-${env.MULTI_REPO_ENV}".toLowerCase()
     if (!os.envExists(environment)) {
@@ -21,6 +18,11 @@ def call(Map project, List<Set<Map>> repos) {
     project.data.gitLocation = os.exportProject(env.MULTI_REPO_ENV, project.id.toLowerCase(), env.RELEASE_PARAM_CHANGE_ID)
 
     echo "Project ${project}"
+
+    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)) {
+        echo "Creating and archiving an overall Technical Installation Report for project '${project.id}'"
+        levaDoc.createOverallTIR(project)
+    }
 }
 
 return this

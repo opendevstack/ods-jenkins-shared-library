@@ -25,6 +25,295 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         return new LeVaDocumentUseCase(steps, util, docGen, jenkins, jira, levaFiles, nexus, os, pdf)
     }
 
+    def "applies to project"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def usecase = createUseCase(
+            steps,
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def project = createProject()
+        def repo = project.repositories.first()
+
+        when:
+        def result = usecase.appliesToProject("myType", project)
+
+        then:
+        !result
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTP, project)
+
+        then:
+        !result // no supported repo type in project
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)
+
+        then:
+        !result
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCP, project)
+
+        then:
+        !result // no supported repo type in project
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)
+
+        then:
+        !result
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIP, project)
+
+        then:
+        result
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTP, project)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)
+
+        then:
+        result // overall document
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCP, project)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)
+
+        then:
+        result // overall document
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIP, project)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)
+
+        then:
+        result // overall document
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTP, project)
+
+        then:
+        !result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)
+
+        then:
+        !result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCP, project)
+
+        then:
+        !result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)
+
+        then:
+        !result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIP, project)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)
+
+        then:
+        result
+    }
+
+    def "applies to repo"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def usecase = createUseCase(
+            steps,
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def repo = createProject().repositories.first()
+
+        when:
+        def result = usecase.appliesToRepo("myType", repo)
+
+        then:
+        !result
+
+        when:
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, repo)
+
+        then:
+        !result
+
+        when:
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)
+
+        then:
+        !result
+
+        when:
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, repo)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, repo)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, repo)
+
+        then:
+        result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, repo)
+
+        then:
+        !result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)
+
+        then:
+        !result
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIP, repo)
+
+        then:
+        !result // applies at project level
+
+        when:
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, repo)
+
+        then:
+        result
+    }
+
     def "compute DTR discrepancies"() {
         given:
         def steps = Spy(util.PipelineSteps)

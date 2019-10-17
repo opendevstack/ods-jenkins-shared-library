@@ -63,6 +63,55 @@ class LeVaDocumentUseCase {
         this.pdf = pdf
     }
 
+    static boolean appliesToProject(String documentType, Map project) {
+        // approve creation of a DTP iff at least one repo is eligible to create a DTR
+        if (documentType == LeVaDocumentUseCase.DocumentTypes.DTP) {
+            return project.repositories.any {
+                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, it)
+            }
+        // approve creation of a (overall) DTR iff at least one repo is eligible to create one
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.DTR) {
+            return project.repositories.any {
+                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, it)
+            }
+        // approve creation of an SCP iff at least one repo is eligible to create a SCR
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCP) {
+            return project.repositories.any {
+                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, it)
+            }
+        // approve creation of a (overall) SCR iff at least one repo is eligible to create one
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
+            return project.repositories.any {
+                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, it)
+            }
+        // approve creation of a TIP iff at least one repo is eligible to create a TIR
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIP) {
+            return project.repositories.any {
+                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, it)
+            }
+        // approve creation of a (overall) TIR iff at least one repo is eligible to create one
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
+            return project.repositories.any {
+                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, it)
+            }
+        }
+
+        return false
+    }
+
+    static boolean appliesToRepo(String documentType, Map repo) {
+        if (documentType == LeVaDocumentUseCase.DocumentTypes.DTR) {
+            return repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
+            return repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
+        // approve creation of a TIR for all repo types
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
+            return true
+        }
+
+        return false
+    }
+
     private static String computeDocumentFileBaseName(String type, IPipelineSteps steps, Map buildParams, Map project, Map repo = null) {
         def result = project.id
 

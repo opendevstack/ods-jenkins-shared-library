@@ -19,6 +19,7 @@ class MROPipelineUtil extends PipelineUtil {
         static final String FILE_NAME = ".pipeline-config.yml"
 
         static final String REPO_TYPE_ODS = "ods"
+        static final String REPO_TYPE_ODS_SERVICE = "ods-service"
 
         static final String PHASE_EXECUTOR_TYPE_MAKEFILE = "Makefile"
         static final String PHASE_EXECUTOR_TYPE_SHELLSCRIPT = "ShellScript"
