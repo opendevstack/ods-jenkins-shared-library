@@ -248,12 +248,12 @@ class OdsPipeline implements Serializable {
         }
       }
 
-      if (environmentExists(context.targetProject)) {
+      if (OpenshiftUtils.environmentExists(script, context.targetProject)) {
         logger.info "Target Environment ${context.targetProject} exists already ..."
         return
       }
 
-      if (!environmentExists("${context.projectId.toLowerCase()}-${context.cloneSourceEnv}")) {
+      if (!OpenshiftUtils.environmentExists(script, "${context.projectId.toLowerCase()}-${context.cloneSourceEnv}")) {
         logger.info "Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ..."
         return
       }
@@ -292,15 +292,6 @@ class OdsPipeline implements Serializable {
     if (context.displayNameUpdateEnabled) {
       script.currentBuild.result = status
     }
-  }
-
-  private boolean environmentExists(String name) {
-    def statusCode = script.sh(
-      script:"oc project ${name} &> /dev/null",
-      label : "check if OCP environment exists",
-      returnStatus: true
-    )
-    return statusCode == 0
   }
 
   private void checkoutWithGit(boolean lfsEnabled){
