@@ -101,6 +101,9 @@ class OdsContext implements Context {
     if (!config.containsKey('openshiftBuildTimeout')) {
       config.openshiftBuildTimeout = 15 // minutes
     }
+    if (!config.containsKey('openshiftRolloutTimeout')) {
+      config.openshiftRolloutTimeout = 2 // minutes
+    }
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
     }
@@ -337,6 +340,10 @@ class OdsContext implements Context {
       config.openshiftBuildTimeout
   }
 
+  int getOpenshiftRolloutTimeout() {
+      config.openshiftRolloutTimeout
+  }
+
   boolean getCiSkipEnabled() {
     return config.ciSkipEnabled
   }
@@ -447,6 +454,15 @@ class OdsContext implements Context {
     ).toLowerCase().contains('[ci skip]')
   }
 
+  boolean environmentExists(String name) {
+    def statusCode = script.sh(
+      script:"oc project ${name} &> /dev/null",
+      label: "check if OCP environment ${name} exists",
+      returnStatus: true
+    )
+    return statusCode == 0
+  }
+
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
@@ -528,7 +544,7 @@ class OdsContext implements Context {
 
     config.cloneSourceEnv = config.autoCloneEnvironmentsFromSourceMapping[genericEnv]
     def autoCloneEnabled = !!config.cloneSourceEnv
-    if (autoCloneEnabled || OpenshiftUtils.environmentExists(script, specifcEnv)) {
+    if (autoCloneEnabled || environmentExists(specifcEnv)) {
       config.environment = specifcEnv
     } else {
       config.environment = genericEnv

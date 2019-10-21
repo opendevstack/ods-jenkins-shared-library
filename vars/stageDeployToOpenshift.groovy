@@ -1,39 +1,56 @@
 def call(def context) {
   stage('Deploy to Openshift') {
     if (!context.environment) {
-      println("Skipping for empty environment ...")
+      echo "Skipping for empty environment ..."
       return
     }
 
-    openshiftTag(
-      srcStream: context.componentId,
-      srcTag: context.tagversion,
-      destStream: context.componentId,
-      destTag: "latest",
-      namespace: context.targetProject
+    def deploymentConfigExists = utilsOpenshift.deploymentConfigExists(
+      context,
+      context.targetProject,
+      context.componentId
+    )
+    if (!deploymentConfigExists) {
+      error "No DeploymentConfig ${context.componentId} found in ${context.targetProject}."
+    }
+    def imageStreamExists = utilsOpenshift.imageStreamExists(
+      context,
+      context.targetProject,
+      context.componentId
+    )
+    if (!imageStreamExists) {
+      error "No ImageStream ${context.componentId} found in ${context.targetProject}."
+    }
+
+    def imageTriggerEnabled = utilsOpenshift.automaticImageChangeTriggerEnabled(
+      context,
+      context.targetProject,
+      context.componentId
     )
 
-    def ocpLatestImage = sh(returnStdout: true, script:"oc get istag ${context.componentId}:latest -n ${context.targetProject} -o jsonpath='{.image.dockerImageReference}'", label : "find last image").trim()
-      
-    def ocpDeployment
-    timeout(context.openshiftBuildTimeout) {
-      while(true) {
-        ocpDeployment = sh(returnStdout: true, script:"sleep 10 && oc describe dc ${context.componentId} -n ${context.targetProject} | grep -e ${ocpLatestImage} -e Status -e 'Latest Version'", label : "find new deployment").trim().split(/\s+/)
-        
-        echo ("Found last deployment id: ${ocpDeployment[2]} - status ${ocpDeployment[6]}")
-        if (ocpDeployment[6] != "Pending" && ocpDeployment[6] != "Running") {
-            echo "OCP Deployment done - reporting status"
-            break
-        }
-      }
+    utilsOpenshift.setLatestImageTag(
+      context,
+      context.targetProject,
+      context.componentId,
+      context.tagversion
+    )
+
+    def deployment = utilsOpenshift.rolloutDeployment(
+      context,
+      context.targetProject,
+      context.componentId,
+      context.openshiftRolloutTimeout,
+      !imageTriggerEnabled
+    )
+
+    if (deployment == null) {
+      error "Deployment failed, please check the error in the OCP console."
+    } else if (deployment.status.toLowerCase() != "complete") {
+      error "Deployment ${deployment.id} failed with status '${deployment.status}', please check the error in the OCP console."
+    } else {
+      echo "Deployment ${deployment.id} successfully rolled out."
+      context.addArtifactURI("OCP Deployment Id", deployment.id)
     }
-    
-    if (ocpDeployment == null || ocpDeployment[6] != "Complete") {
-      error "Deployment ${context.componentId}${ocpDeployment[2]} failed (status: ${ocpDeployment[6]}), please check the error in the OCP console"
-    }
-    
-    deploymentId = "${context.componentId}-${ocpDeployment[2]}"
-    context.addArtifactURI("OCP Deployment Id", deploymentId)
   }
 }
 

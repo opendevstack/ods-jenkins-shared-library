@@ -248,12 +248,12 @@ class OdsPipeline implements Serializable {
         }
       }
 
-      if (OpenshiftUtils.environmentExists(script, context.targetProject)) {
+      if (context.environmentExists(context.targetProject)) {
         logger.info "Target Environment ${context.targetProject} exists already ..."
         return
       }
 
-      if (!OpenshiftUtils.environmentExists(script, "${context.projectId.toLowerCase()}-${context.cloneSourceEnv}")) {
+      if (!context.environmentExists("${context.projectId.toLowerCase()}-${context.cloneSourceEnv}")) {
         logger.info "Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ..."
         return
       }
