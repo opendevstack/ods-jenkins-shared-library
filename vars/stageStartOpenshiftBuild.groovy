@@ -1,33 +1,45 @@
 def call(def context, def buildArgs = [:], def imageLabels = [:]) {
   stage('Build Openshift Image') {
     if (!context.environment) {
-      println("Skipping for empty environment ...")
+      echo "Skipping for empty environment ..."
       return
     }
 
+    def buildId = null
+    def startBuildInfo = ''
     timeout(context.openshiftBuildTimeout) {
       patchBuildConfig(context, buildArgs, imageLabels)
-      sh (script: "oc start-build ${context.componentId} --from-dir docker --follow -n ${context.targetProject}", label : "start openshift build")
+      startBuildInfo = sh (
+        script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir docker --follow",
+        label: "Start OpenShift build",
+        returnStdout: true
+      ).trim()
+      echo startBuildInfo
+      buildId = startBuildInfo.split(' ').first().split('/').last()
     }
 
-    def ocpbuildId
-    def ocpbuildStatus
-
-    while (ocpbuildStatus == null || ocpbuildStatus.toString().trim().toLowerCase() == "running")
-    {
-      def ocpbuild = sh(returnStdout: true, script:"sleep 10 && oc get build --sort-by=.status.startTimestamp -o jsonpath='{.items[-1:].metadata.name},{.items[-1:].status.phase}' -n ${context.targetProject} -l buildconfig=${context.componentId}", label : "find last build").trim().split(',')
-      ocpbuildId = ocpbuild[0]
-      ocpbuildStatus = ocpbuild[1]
+    if (buildId == null) {
+      error "Got '${startBuildInfo}' as build start result, which cannot be parsed to get the build ID ..."
     }
 
-    if (ocpbuildStatus.toString().trim().toLowerCase() != "complete") {
-      error "OCP Build ${ocpbuildId} was not successfull - status ${ocpbuildStatus}"
+    def buildStatus = sh(
+      returnStdout: true,
+      script:"oc -n ${context.targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
+      label: "find last build"
+    ).trim()
+
+    if (buildStatus.toLowerCase() != "complete") {
+      error "OCP Build ${buildId} was not successful - status ${buildStatus}"
     }
 
-    def ocpCurrentImage = sh(returnStdout: true, script:"oc get istag ${context.componentId}:${context.getTagversion()} -n ${context.targetProject} -o jsonpath='{.image.dockerImageReference}'", label : "find new image sha").trim()
+    def currentImage = sh(
+      returnStdout: true,
+      script:"oc get -n ${context.targetProject} istag ${context.componentId}:${context.tagversion} -o jsonpath='{.image.dockerImageReference}'",
+      label: "find new image sha"
+    ).trim()
 
-    context.addArtifactURI("OCP Build Id", ocpbuildId)
-    context.addArtifactURI("OCP Docker image", ocpCurrentImage)
+    context.addArtifactURI("OCP Build Id", buildId)
+    context.addArtifactURI("OCP Docker image", currentImage)
   }
 }
 

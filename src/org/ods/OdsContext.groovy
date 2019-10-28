@@ -99,7 +99,10 @@ class OdsContext implements Context {
       config.environmentLimit = 5
     }
     if (!config.containsKey('openshiftBuildTimeout')) {
-      config.openshiftBuildTimeout = 15
+      config.openshiftBuildTimeout = 15 // minutes
+    }
+    if (!config.containsKey('openshiftRolloutTimeout')) {
+      config.openshiftRolloutTimeout = 2 // minutes
     }
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
@@ -337,6 +340,10 @@ class OdsContext implements Context {
     config.openshiftBuildTimeout
   }
 
+  int getOpenshiftRolloutTimeout() {
+      config.openshiftRolloutTimeout
+  }
+
   boolean getCiSkipEnabled() {
     return config.ciSkipEnabled
   }
@@ -447,6 +454,15 @@ class OdsContext implements Context {
     ).toLowerCase().contains('[ci skip]')
   }
 
+  boolean environmentExists(String name) {
+    def statusCode = script.sh(
+      script:"oc project ${name} &> /dev/null",
+      label: "check if OCP environment ${name} exists",
+      returnStatus: true
+    )
+    return statusCode == 0
+  }
+
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
@@ -545,15 +561,6 @@ class OdsContext implements Context {
       return ""
     }
     return tokens[1]
-  }
-
-  protected boolean environmentExists(String name) {
-    def statusCode = script.sh(
-      script:"oc project ${name} &> /dev/null",
-      label : 'checking for OCP env ${name}',
-      returnStatus: true
-    )
-    return statusCode == 0
   }
 
   public Map<String, String> getBuildArtifactURIs() {

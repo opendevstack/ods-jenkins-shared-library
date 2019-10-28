@@ -123,12 +123,12 @@ class OdsContextTest extends GroovyTestCase {
     //resets config.environment and call determineEnvironment on newly created OdsContext object
     void determineEnvironment(config, existingEnvironments, String branch) {
         config.environment = null
+        config.gitBranch = branch
         def uut = new OdsContext(script, config, logger) {
-            protected boolean environmentExists(String name) {
+            boolean environmentExists(String name) {
                 existingEnvironments.contains(name)
             }
         }
-        config.gitBranch = branch
         uut.determineEnvironment()
 
     }
