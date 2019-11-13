@@ -122,6 +122,8 @@ class OdsContext implements Context {
           name: 'jnlp',
           image: config.image,
           workingDir: '/tmp',
+          resourceRequestCpu: '10m',
+          resourceLimitCpu: '300m',
           resourceRequestMemory: '1Gi',
           resourceLimitMemory: '2Gi',
           alwaysPullImage: config.podAlwaysPullImage,
