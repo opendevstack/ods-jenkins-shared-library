@@ -282,8 +282,32 @@ determine whether this image should be refreshed on each build. The setting
 `podVolumes` allows to mount persistent volume claims to the pod (the value is
 passed to the `podTemplate` call as `volumes`). To control the container pods
 completely, set `podContainers` (which is passed to the `podTemplate` call
-as `containers`). See the
-https://github.com/jenkinsci/kubernetes-plugin[kubernetes-plugin]
+as `containers`).
+
+Configuring of a customized slave in a `Jenkinsfile`
+----
+odsPipeline(
+  projectId: projectId,
+  podContainers: [
+    containerTemplate(
+      name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
+      image: "${dockerRegistry}/hugo/jenkins-slave-custom",
+      workingDir: '/tmp',
+      resourceRequestCpu: '100m',
+      resourceLimitCpu: '500m',
+      resourceRequestMemory: '1Gi',
+      resourceLimitMemory: '4Gi',
+      alwaysPullImage: true,
+      args: '${computer.jnlpmac} ${computer.name}'
+    )
+  ],
+  ...
+  ) { context ->
+  stageBuild(context)
+  ...
+}
+----
+See the https://github.com/jenkinsci/kubernetes-plugin[kubernetes-plugin]
 documentation for possible configuration.
 
 == Versioning
