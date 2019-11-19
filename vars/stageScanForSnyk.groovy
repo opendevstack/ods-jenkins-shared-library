@@ -15,7 +15,8 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
   } else {
     stage('Snyk Security Scan') {
       withEnv(["SNYK_AUTHENTICATION_CODE=${snykAuthenticationCode}", "PROJECT_NAME=${context.targetProject}",
-               "COMPONENT_NAME=${context.componentId}", "BUILD_FILE=${buildFile}", "ORGANISATION=${organisation}"]) {
+               "COMPONENT_NAME=${context.componentId}", "BUILD_FILE=${buildFile}", "ORGANISATION=${organisation}",
+               "NEXUS_HOST=${context.nexusHost}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}"]) {
         // Verify that snyk is installed
         def status = sh(script: "snyk version", returnStatus: true, label : "getting snyk version")
         if (status != 0) {
