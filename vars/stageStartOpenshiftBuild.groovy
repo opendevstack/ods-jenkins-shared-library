@@ -15,7 +15,12 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
         returnStdout: true
       ).trim()
       echo startBuildInfo
-      buildId = startBuildInfo.split(' ').first().split('/').last()
+      def match = (startBuildInfo =~ /\"[a-z_A-Z0-9\s-\/]*\"/)
+      if(match.find()) {
+        buildId = match.group(0).replace('"','')
+      } else {
+        buildId = startBuildInfo.split(' ').first().split('/').last()
+      }	    
     }
 
     if (buildId == null) {
