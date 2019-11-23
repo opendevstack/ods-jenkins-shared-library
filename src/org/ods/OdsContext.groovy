@@ -45,7 +45,7 @@ class OdsContext implements Context {
     config.nexusPassword = script.env.NEXUS_PASSWORD
     config.openshiftHost = script.env.OPENSHIFT_API_URL
     config.bitbucketHost = script.env.BITBUCKET_HOST
-    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label : 'getting ODS shared lib version')
+    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label : 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
     if (!config.jobName) {
