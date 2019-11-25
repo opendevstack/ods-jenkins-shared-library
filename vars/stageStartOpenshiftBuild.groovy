@@ -15,12 +15,13 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
         returnStdout: true
       ).trim()
       echo startBuildInfo
-      def match = (startBuildInfo =~ /\"[a-z_A-Z0-9\s-\/]*\"/)
-      if(match.find()) {
-        buildId = match.group(0).replace('"','')
+      def startBuildInfoHeader = startBuildInfo.split('\n').first()
+      def match = (startBuildInfoHeader =~ /${context.componentId}-[0-9]+/)
+      if (match.find()) {
+        buildId = match[0]
       } else {
-        buildId = startBuildInfo.split(' ').first().split('/').last()
-      }	    
+        error "Did not find build ID in build start result '${startBuildInfoHeader}'"
+      }    
     }
 
     if (buildId == null) {
