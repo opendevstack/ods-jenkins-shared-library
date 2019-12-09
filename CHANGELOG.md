@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+### Added
+- Optionally fail Jenkins if SonarQube scan fails ([#22](https://github.com/opendevstack/ods-jenkins-shared-library/issues/22))
+- Improve deployment stage, e.g. rollout manually when no triggers are defined ([#144](https://github.com/opendevstack/ods-jenkins-shared-library/issues/144))
+
+### Changed
+- Method environmentExists check exists twice ([#138](https://github.com/opendevstack/ods-jenkins-shared-library/issues/138))
+
+### Fixed
+- Snyk scan may fail because Nexus is not configured properly ([#156](https://github.com/opendevstack/ods-jenkins-shared-library/issues/156))
+- Seldom error in stageDeployToOpenshift (ArrayIndexOutOfBounds)- when checking for new deployment ([#142](https://github.com/opendevstack/ods-jenkins-shared-library/issues/142))
+- Special characters in last commit message break build ([#158](https://github.com/opendevstack/ods-jenkins-shared-library/issues/158))
+
 ## [1.2.0] - 2019-10-10
 ### Added
 - Make ODS pipeline configurable for MRO ([#97](https://github.com/opendevstack/ods-jenkins-shared-library/issues/97))
