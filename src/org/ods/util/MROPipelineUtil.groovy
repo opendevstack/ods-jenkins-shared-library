@@ -16,7 +16,8 @@ import org.yaml.snakeyaml.Yaml
 class MROPipelineUtil extends PipelineUtil {
 
     class PipelineConfig {
-        static final String FILE_NAME = ".pipeline-config.yml"
+        // TODO: deprecate .pipeline-config.yml in favor of release-manager.yml
+        static final List FILE_NAMES = ["release-manager.yml", ".pipeline-config.yml"]
 
         static final String REPO_TYPE_ODS = "ods"
         static final String REPO_TYPE_ODS_SERVICE = "ods-service"
@@ -144,37 +145,39 @@ class MROPipelineUtil extends PipelineUtil {
 
         repo.pipelineConfig = [:]
 
-        def file = Paths.get(path, PipelineConfig.FILE_NAME).toFile()
-        if (file.exists()) {
-            def config = new Yaml().load(file.text) ?: [:]
+        PipelineConfig.FILE_NAMES.each { filename ->
+            def file = Paths.get(path, filename).toFile()
+            if (file.exists()) {
+                def config = new Yaml().load(file.text) ?: [:]
 
-            // Resolve pipeline phase config, if provided
-            if (config.phases) {
-                config.phases.each { name, phase ->
-                    // Check for existence of required attribute 'type'
-                    if (!phase?.type?.trim()) {
-                        throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.type' is undefined in phase '${name}'.")
-                    }
-
-                    // Check for validity of required attribute 'type'
-                    if (!PipelineConfig.PHASE_EXECUTOR_TYPES.contains(phase.type)) {
-                        throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Attribute 'phase.type' contains an unsupported value '${phase.type}' in phase '${name}'. Supported types are: ${PipelineConfig.PHASE_EXECUTOR_TYPES}.")
-                    }
-
-                    // Check for validity of an executor type's supporting attributes
-                    if (phase.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
-                        if (!phase.target?.trim()) {
-                            throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.target' is undefined in phase '${name}'.")
+                // Resolve pipeline phase config, if provided
+                if (config.phases) {
+                    config.phases.each { name, phase ->
+                        // Check for existence of required attribute 'type'
+                        if (!phase?.type?.trim()) {
+                            throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.type' is undefined in phase '${name}'.")
                         }
-                    } else if (phase.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
-                        if (!phase.script?.trim()) {
-                            throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.script' is undefined in phase '${name}'.")
+
+                        // Check for validity of required attribute 'type'
+                        if (!PipelineConfig.PHASE_EXECUTOR_TYPES.contains(phase.type)) {
+                            throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Attribute 'phase.type' contains an unsupported value '${phase.type}' in phase '${name}'. Supported types are: ${PipelineConfig.PHASE_EXECUTOR_TYPES}.")
+                        }
+
+                        // Check for validity of an executor type's supporting attributes
+                        if (phase.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
+                            if (!phase.target?.trim()) {
+                                throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.target' is undefined in phase '${name}'.")
+                            }
+                        } else if (phase.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
+                            if (!phase.script?.trim()) {
+                                throw new IllegalArgumentException("Error: unable to parse pipeline phase config. Required attribute 'phase.script' is undefined in phase '${name}'.")
+                            }
                         }
                     }
                 }
-            }
 
-            repo.pipelineConfig = config
+                repo.pipelineConfig = config
+            }
         }
 
         return repo

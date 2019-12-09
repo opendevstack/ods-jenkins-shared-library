@@ -26,7 +26,7 @@ repositories:
   - id: C
 ```
 
-If a named repository wants to announce a dependency on another repo, the dependency needs to be listed in that repository's `.pipeline-config.yml`, simply by referring to its `repo.id` as defined in `metadata.yml`:
+If a named repository wants to announce a dependency on another repo, the dependency needs to be listed in that repository's `release-manager.yml`, simply by referring to its `repo.id` as defined in `metadata.yml`:
 
 ```
 dependencies:

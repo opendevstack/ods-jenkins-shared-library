@@ -128,7 +128,7 @@ def call() {
         echo "Environment configuration: ${env.getEnvironment()}"
     })
 
-    // Load pipeline configs from each repo's .pipeline-config.yml
+    // Load configs from each repo's release-manager.yml
     util.loadPipelineConfigs(repos)
 
     // Compute groups of repository configs for convenient parallelization

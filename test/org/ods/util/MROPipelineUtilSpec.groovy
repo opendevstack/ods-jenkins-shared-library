@@ -444,7 +444,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         def repoDir = util.createDirectory(repoPath)
         def repos = createProject().repositories
 
-        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAME)
+        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         when:
         file << """
@@ -524,7 +524,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         def repoDir = util.createDirectory(repoPath)
         def repos = createProject().repositories
 
-        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAME)
+        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         when:
         file << """
@@ -584,7 +584,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         def repoDir = util.createDirectory(repoPath)
         def repos = createProject().repositories
 
-        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAME)
+        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         when:
         file << """
@@ -626,7 +626,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         def repoDir = util.createDirectory(repoPath)
         def repos = createProject().repositories
 
-        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAME)
+        def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         when:
         file << """
@@ -666,15 +666,15 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         def repoPathA = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDirA = util.createDirectory(repoPathA)
-        def fileA = Paths.get(repoPathA, MROPipelineUtil.PipelineConfig.FILE_NAME)
+        def fileA = Paths.get(repoPathA, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         def repoPathB = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "B").toString()
         def repoDirB = util.createDirectory(repoPathB)
-        def fileB = Paths.get(repoPathB, MROPipelineUtil.PipelineConfig.FILE_NAME)
+        def fileB = Paths.get(repoPathB, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         def repoPathC = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "C").toString()
         def repoDirC = util.createDirectory(repoPathC)
-        def fileC = Paths.get(repoPathC, MROPipelineUtil.PipelineConfig.FILE_NAME)
+        def fileC = Paths.get(repoPathC, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         def repos = createProject().repositories
 
