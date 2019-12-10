@@ -47,7 +47,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
           )
           sh(
                   label : "Rename report to SCRR",
-                  script: "mv $SNYK_REPORT artifacts/SCRR/$TARGET_SQ_REPORT && ls -lart . && ls -lart artifacts/SCRR"
+                  script: "mv $SNYK_REPORT artifacts/$TARGET_SQ_REPORT && ls -lart . && ls -lart artifacts/SCRR"
           )
           archiveArtifacts "artifacts/SCRR*"
           stash(
