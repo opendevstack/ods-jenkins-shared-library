@@ -47,11 +47,11 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
           )
           sh(
                   label : "Rename report to SCRR",
-                  script: "mv $SNYK_REPORT artifacts/SCRR/$TARGET_SQ_REPORT"
+                  script: "mv $SNYK_REPORT artifacts/SCRR/$TARGET_SQ_REPORT && ls -lart . && ls -lart artifacts/SCRR"
           )
           archiveArtifacts "artifacts/SCRR*"
           stash(
-                  name: "scsr-report-${context.componentId}-${context.buildNumber}",
+                  name: "scrr-report-${context.componentId}-${context.buildNumber}",
                   includes: 'artifacts/SCRR*',
                   allowEmpty : true
           )
