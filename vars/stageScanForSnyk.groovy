@@ -39,23 +39,23 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
         // archive report
 
         def projectKey = context.componentId
-        def targetSQreport = "SCRR-" + projectKey + "-" + snykReport
+        def targetSQreport = "SCSR-" + projectKey + "-" + snykReport
         withEnv (["SQ_PROJECT=${projectKey}", "TARGET_SQ_REPORT=${targetSQreport}", "SNYK_REPORT=${snykReport}"]) {
           sh(
                   label : "Create artifacts dir",
-                  script: "mkdir -p artifacts/SCRR"
+                  script: "mkdir -p artifacts/SCSR"
           )
           sh(
-                  label : "Rename report to SCRR",
-                  script: "mv $SNYK_REPORT artifacts/$TARGET_SQ_REPORT && ls -lart . && ls -lart artifacts/SCRR"
+                  label : "Rename report to SCSR",
+                  script: "mv $SNYK_REPORT artifacts/$TARGET_SQ_REPORT && ls -lart . && ls -lart artifacts/SCSR"
           )
-          archiveArtifacts "artifacts/SCRR*"
+          archiveArtifacts "artifacts/SCSR*"
           stash(
-                  name: "scrr-report-${context.componentId}-${context.buildNumber}",
-                  includes: 'artifacts/SCRR*',
+                  name: "scsr-report-${context.componentId}-${context.buildNumber}",
+                  includes: 'artifacts/SCSR*',
                   allowEmpty : true
           )
-          context.addArtifactURI("SCRR", targetSQreport)
+          context.addArtifactURI("SCSR", targetSQreport)
         }
 
 
