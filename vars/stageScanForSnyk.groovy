@@ -18,25 +18,44 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
       withEnv(["SNYK_AUTHENTICATION_CODE=${snykAuthenticationCode}", "PROJECT_NAME=${context.targetProject}", "SNYK_REPORT=${snykReport}",
                "COMPONENT_NAME=${context.componentId}", "BUILD_FILE=${buildFile}", "ORGANISATION=${organisation}",
                "NEXUS_HOST=${context.nexusHost}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}"]) {
-        // Verify that snyk is installed
-        def status = sh(script: "snyk version | tee $SNYK_REPORT", returnStatus: true, label : "getting snyk version")
-        if (status != 0) {
-          error "snyk is not installed!"
-        }
-        // Authorise snyk
-        status = sh(script: "snyk auth $SNYK_AUTHENTICATION_CODE | tee $SNYK_REPORT", returnStatus: true, label : "authenticating to snyk")
-        if (status != 0) {
-          error "something went wrong by authorising snyk (SNYK_AUTHENTICATION_CODE=$SNYK_AUTHENTICATION_CODE)!"
-        }
-        // first monitor project
-        status = sh(script: "snyk monitor --org=$ORGANISATION --file=$BUILD_FILE --project-name=$COMPONENT_NAME --all-sub-projects | tee $SNYK_REPORT", returnStatus: true, label : "start monitoring in snyk")
-        if (status != 0) {
-          error "something went wrong with snyk monitor command!"
-        }
-        // fail if vulnerabilites are found
-        status = sh(script: "snyk test --org=$ORGANISATION --file=$BUILD_FILE --all-sub-projects | tee $SNYK_REPORT", returnStatus: true, label : "run snyk test")
 
-        // archive report
+        boolean failed = false;
+        String errorMessage = null;
+
+        // Verify that snyk is installed
+        def status = sh(script: "snyk version | tee -a $SNYK_REPORT", returnStatus: true, label : "getting snyk version")
+        if (status != 0) {
+          failed = true;
+          errorMessage = "snyk is not installed!"
+        }
+
+        // Authorise snyk
+        if (!failed) {
+          // TODO do we need to report auth call?!
+          status = sh(script: "snyk auth $SNYK_AUTHENTICATION_CODE | tee -a $SNYK_REPORT", returnStatus: true, label : "authenticating to snyk")
+          if (status != 0) {
+            failed = true;
+            errorMessage = "snyh auth failed!"
+          }
+        }
+
+        // Monitor project
+        if (!failed) {
+          status = sh(script: "snyk monitor --org=$ORGANISATION --file=$BUILD_FILE --project-name=$COMPONENT_NAME --all-sub-projects | tee -a $SNYK_REPORT", returnStatus: true, label : "start monitoring in snyk")
+          if (status != 0) {
+            failed = true;
+            errorMessage = "snyk monitor command failed!"
+          }
+        }
+
+        // fail if vulnerabilites are found!
+        if (!failed) {
+          status = sh(script: "snyk test --org=$ORGANISATION --file=$BUILD_FILE --all-sub-projects | tee -a $SNYK_REPORT", returnStatus: true, label : "run snyk test")
+          if (status != 0) {
+            failed = true;
+            errorMessage = "snyk test command failed!"
+          }
+        }
 
         def projectKey = context.componentId
         def targetSQreport = "SCSR-" + context.projectId + "-" + projectKey + "-" + snykReport
@@ -58,8 +77,8 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
           context.addArtifactURI("SCSR", targetSQreport)
         }
 
-        if (status != 0 && context.failOnSnykScanVulnerabilities) {
-          error "snyk test found vulnerabilities (see snyk report above for details!)!"
+        if (failed && context.failOnSnykScanVulnerabilities) {
+          error "snyk scan stage failed (see snyk report for details) due: " + errorMessage
         }
       }
     }
