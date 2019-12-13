@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+
+## [2.0] - 2019-12-13
+
 ### Added
 - Optionally fail Jenkins if SonarQube scan fails ([#22](https://github.com/opendevstack/ods-jenkins-shared-library/issues/22))
 - Improve deployment stage, e.g. rollout manually when no triggers are defined ([#144](https://github.com/opendevstack/ods-jenkins-shared-library/issues/144))
