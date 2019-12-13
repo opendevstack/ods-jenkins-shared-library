@@ -39,7 +39,7 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
         // archive report
 
         def projectKey = context.componentId
-        def targetSQreport = "SCSR-" + projectId + "-" + projectKey + "-" + snykReport
+        def targetSQreport = "SCSR-" + context.projectId + "-" + projectKey + "-" + snykReport
         withEnv (["SQ_PROJECT=${projectKey}", "TARGET_SQ_REPORT=${targetSQreport}", "SNYK_REPORT=${snykReport}"]) {
           sh(
                   label : "Create artifacts dir",
@@ -57,7 +57,6 @@ def call(def context, def snykAuthenticationCode, def buildFile, def organisatio
           )
           context.addArtifactURI("SCSR", targetSQreport)
         }
-
 
         if (status != 0 && context.failOnSnykScanVulnerabilities) {
           error "snyk test found vulnerabilities (see snyk report above for details!)!"
