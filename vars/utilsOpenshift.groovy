@@ -94,16 +94,17 @@ OpenshiftDeployment watchRollout(Context context, String targetProject, String c
         label: "Watch rollout of latest deployment of dc/${componentId}",
         returnStdout: true
       ).trim()
+      debug(context, rolloutResult)
     }
     // rolloutResult is e.g.: replication controller "foo-123" successfully rolled out
     // Unfortunately there does not seem a more structured way to retrieve this information.
     def rolloutInfo = rolloutResult.split('"')
     if (rolloutInfo.size() < 2) {
-      error "Got '${rolloutInfo}' as rollout status, which cannot be parsed properly ..."
+      error "Got '${rolloutResult}' as rollout status, which cannot be parsed properly ..."
     }
     def rolloutId = rolloutInfo[1] // part within the quotes
-    if (!rolloutId.startsWith(componentId)) {
-      error "Got '${rolloutInfo}' as rollout status, which cannot be parsed properly ..."
+    if (!rolloutId.startsWith("${componentId}-")) {
+      error "Got '${rolloutResult}' as rollout status, which cannot be parsed properly ..."
     }
     def rolloutStatus = sh(
       script: "oc -n ${targetProject} get rc/${rolloutId} -o jsonpath='{.metadata.annotations.openshift\\.io/deployment\\.phase}'",
@@ -112,7 +113,7 @@ OpenshiftDeployment watchRollout(Context context, String targetProject, String c
     ).trim()
     return new OpenshiftDeployment(rolloutId, rolloutStatus)
   } catch (ex) {
-    debug(context, "Rollout exceeded ${rolloutTimeout}, cancelling ...")
+    debug(context, "Rollout exceeded ${rolloutTimeout} minutes, cancelling ...")
     cancelRollout(context, targetProject, componentId)
     throw ex
   }
