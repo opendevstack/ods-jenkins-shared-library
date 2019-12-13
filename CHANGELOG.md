@@ -12,6 +12,7 @@
 - Snyk scan may fail because Nexus is not configured properly ([#156](https://github.com/opendevstack/ods-jenkins-shared-library/issues/156))
 - Seldom error in stageDeployToOpenshift (ArrayIndexOutOfBounds)- when checking for new deployment ([#142](https://github.com/opendevstack/ods-jenkins-shared-library/issues/142))
 - Special characters in last commit message break build ([#158](https://github.com/opendevstack/ods-jenkins-shared-library/issues/158))
+- Find last build in stageStartOpenshiftBuild fails on some clusters ([#159](https://github.com/opendevstack/ods-jenkins-shared-library/issues/159))
 
 ## [1.2.0] - 2019-10-10
 ### Added
