@@ -450,7 +450,15 @@ class MROPipelineUtilSpec extends SpecHelper {
         file << """
         dependencies:
           - B
-        
+
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+          version: myVersion
+          references: myReferences
+
         phases:
           build:
             type: Makefile
@@ -466,6 +474,16 @@ class MROPipelineUtilSpec extends SpecHelper {
         def expected = repos[0] << [
             pipelineConfig: [
                 dependencies: ["B"],
+
+                metadata: [
+                    id: "myId",
+                    name: "myName",
+                    description: "myDescription",
+                    supplier: "mySupplier",
+                    version: "myVersion",
+                    references: "myReferences"
+                ],
+
                 phases: [
                     build: [
                         type: "Makefile",
@@ -527,7 +545,88 @@ class MROPipelineUtilSpec extends SpecHelper {
         def file = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
 
         when:
-        file << """
+        file << ""
+
+        util.loadPipelineConfig(repoPath, repos[0])
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse pipeline config. Required attribute 'metadata' is undefined for repository '${repos.first().id}'."
+
+        when:
+        file.text = """
+        metadata: {}
+        """
+
+        util.loadPipelineConfig(repoPath, repos[0])
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse pipeline config. Required attribute 'metadata' is undefined for repository '${repos.first().id}'."
+
+        when:
+        file.text = """
+        metadata:
+          id: myId
+        """
+
+        util.loadPipelineConfig(repoPath, repos[0])
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse pipeline config. Required attribute 'metadata.name' is undefined for repository '${repos.first().id}'."
+
+        when:
+        file.text = """
+        metadata:
+          id: myId
+          name: myName
+        """
+
+        util.loadPipelineConfig(repoPath, repos[0])
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse pipeline config. Required attribute 'metadata.description' is undefined for repository '${repos.first().id}'."
+
+        when:
+        file.text = """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+        """
+
+        util.loadPipelineConfig(repoPath, repos[0])
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse pipeline config. Required attribute 'metadata.supplier' is undefined for repository '${repos.first().id}'."
+
+        when:
+        file.text = """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+        """
+
+        util.loadPipelineConfig(repoPath, repos[0])
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse pipeline config. Required attribute 'metadata.version' is undefined for repository '${repos.first().id}'."
+
+        when:
+        file.text = """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+          version: myVersion
+
         phases:
           build:
         """
@@ -535,11 +634,19 @@ class MROPipelineUtilSpec extends SpecHelper {
         util.loadPipelineConfig(repoPath, repos[0])
 
         then:
-        def e = thrown(IllegalArgumentException)
+        e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse pipeline phase config. Required attribute 'phase.type' is undefined in phase 'build'."
 
         when:
         file.text = """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+          version: myVersion
+          references: myReferences
+
         phases:
           build:
             type: someType
@@ -588,6 +695,14 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         when:
         file << """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+          version: myVersion
+          references: myReferences
+
         phases:
           build:
             type: Makefile
@@ -601,6 +716,14 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         when:
         file.text = """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+          version: myVersion
+          references: myReferences
+
         phases:
           build:
             type: Makefile
@@ -630,6 +753,14 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         when:
         file << """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+          version: myVersion
+          references: myReferences
+
         phases:
           build:
             type: ShellScript
@@ -643,6 +774,14 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         when:
         file.text = """
+        metadata:
+          id: myId
+          name: myName
+          description: myDescription
+          supplier: mySupplier
+          version: myVersion
+          references: myReferences
+
         phases:
           build:
             type: ShellScript
@@ -679,12 +818,28 @@ class MROPipelineUtilSpec extends SpecHelper {
         def repos = createProject().repositories
 
         when:
-        fileA << ""
+        fileA << """
+        metadata:
+          id: myId-A
+          name: myName-A
+          description: myDescription-A
+          supplier: mySupplier-A
+          version: myVersion-A
+          references: myReferences-A
+        """
 
         fileB << """
         dependencies:
           - A
         
+        metadata:
+          id: myId-B
+          name: myName-B
+          description: myDescription-B
+          supplier: mySupplier-B
+          version: myVersion-B
+          references: myReferences-B
+
         phases:
           build:
             type: Makefile
@@ -695,6 +850,14 @@ class MROPipelineUtilSpec extends SpecHelper {
         dependencies:
           - B
         
+        metadata:
+          id: myId-C
+          name: myName-C
+          description: myDescription-C
+          supplier: mySupplier-C
+          version: myVersion-C
+          references: myReferences-C
+
         phases:
           test:
             type: ShellScript
@@ -706,11 +869,28 @@ class MROPipelineUtilSpec extends SpecHelper {
         then:
         def expected = [
             repos[0] << [
-                pipelineConfig: []
+                pipelineConfig: [
+                    metadata: [
+                        id: "myId-A",
+                        name: "myName-A",
+                        description: "myDescription-A",
+                        supplier: "mySupplier-A",
+                        version: "myVersion-A",
+                        references: "myReferences-A"
+                    ]
+                ]
             ],
             repos[1] << [
                 pipelineConfig: [
                     dependencies: ["A"],
+                    metadata: [
+                        id: "myId-B",
+                        name: "myName-B",
+                        description: "myDescription-B",
+                        supplier: "mySupplier-B",
+                        version: "myVersion-B",
+                        references: "myReferences-B"
+                    ],
                     phases: [
                         build: [
                             type: "Makefile",
@@ -722,6 +902,14 @@ class MROPipelineUtilSpec extends SpecHelper {
             repos[2] << [
                 pipelineConfig: [
                     dependencies: ["B"],
+                    metadata: [
+                        id: "myId-C",
+                        name: "myName-C",
+                        description: "myDescription-C",
+                        supplier: "mySupplier-C",
+                        version: "myVersion-C",
+                        references: "myReferences-C"
+                    ],
                     phases: [
                         test: [
                             type: "ShellScript",

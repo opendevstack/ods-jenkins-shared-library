@@ -1,6 +1,6 @@
 package org.ods.service
 
-@Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
+@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
 import com.cloudbees.groovy.cps.NonCPS
 
@@ -228,6 +228,48 @@ class JiraService {
     }
 
     @NonCPS
+    Map getFileFromJira(String url) {
+        def response = Unirest.get(url)
+            .basicAuth(this.username, this.password)
+            .asBytes()
+
+        response.ifFailure {
+            def message = "Error: unable to get file from Jira. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get file from Jira. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return [
+            contentType: response.getHeaders()["Content-Type"][0],
+            data: response.getBody()
+        ]
+    }
+
+    @NonCPS
+    List getFields() {
+        def response = Unirest.get("${this.baseURL}/rest/api/2/field")
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get Jira fields. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get Jira fields. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    @NonCPS
     List getIssuesForJQLQuery(Map query) {
         return searchByJQLQuery(query).issues
     }
@@ -273,6 +315,13 @@ class JiraService {
     Map searchByJQLQuery(Map query) {
         if (!query) {
             throw new IllegalArgumentException("Error: unable to get Jira issues for JQL query. 'query' is undefined.")
+        }
+
+        if (!query.maxResults) {
+            // FIXME: Jira returns a maximum of 50 results per default.
+            // Here, we set it to Jira's allowed maximum of 1000 results.
+            // If > 1000 results are expected, a paged solution is needed.
+            query.maxResults = 1000
         }
 
         def response = Unirest.post("${this.baseURL}/rest/api/2/search")

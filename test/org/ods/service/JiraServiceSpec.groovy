@@ -938,6 +938,111 @@ class JiraServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
+    Map getFieldsRequestData(Map mixins = [:]) {
+        def result = [
+            headers: [
+                "Accept": "application/json"
+            ],
+            password: "password",
+            path: "/rest/api/2/field",
+            username: "username"
+        ]
+
+        return result << mixins
+    }
+
+    Map getFieldsResponseData(Map mixins = [:]) {
+        def result = [
+            body: JsonOutput.toJson(["customfield_001", "customfield_002", "customfield_003"]),
+            status: 200
+        ]
+
+        return result << mixins
+    }
+
+    def "get fields"() {
+        given:
+        def request = getFieldsRequestData()
+        def response = getFieldsResponseData()
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.getFields()
+
+        then:
+        result == ["customfield_001", "customfield_002", "customfield_003"]
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "get fields with HTTP 400 failure"() {
+        given:
+        def request = getFieldsRequestData()
+        def response = getFieldsResponseData([
+            body: "Sorry, doesn't work!",
+            status: 400
+        ])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.getFields()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to get Jira fields. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "get fields with HTTP 404 failure"() {
+        given:
+        def request = getFieldsRequestData()
+        def response = getFieldsResponseData([
+            status: 404
+        ])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.getFields()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to get Jira fields. Jira could not be found at: 'http://localhost:${server.port()}'."
+
+        cleanup:
+        stopServer(server)
+    }
+
+    def "get fields with HTTP 500 failure"() {
+        given:
+        def request = getFieldsRequestData()
+        def response = getFieldsResponseData([
+            body: "Sorry, doesn't work!",
+            status: 500
+        ])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        service.getFields()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to get Jira fields. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+
+        cleanup:
+        stopServer(server)
+    }
+
 
     Map getIssuesForJQLQueryRequestData(Map mixins = [:]) {
         def result = [

@@ -170,6 +170,63 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         result
     }
 
+    def "applies to project for documents only applicable when Jira is configured"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def usecase = createUseCase(
+            steps,
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def project = createProject()
+
+        when:
+        def result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.CS, project)
+
+        then:
+        result
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.FS, project)
+
+        then:
+        result
+
+        when:
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.URS, project)
+
+        then:
+        result
+
+        when:
+        project.services.jira = null
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.CS, project)
+
+        then:
+        !result // not applicable if Jira is not configured
+
+        when:
+        project.services.jira = null
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.FS, project)
+
+        then:
+        !result // not applicable if Jira is not configured
+
+        when:
+        project.services.jira = null
+        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.URS, project)
+
+        then:
+        !result // not applicable if Jira is not configured
+    }
+
     def "applies to repo"() {
         given:
         def steps = Spy(util.PipelineSteps)
@@ -445,6 +502,48 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         result == "${type}-${project.id}-${buildParams.version}-${steps.env.BUILD_ID}"
     }
 
+    // CS only works with JIRA
+    def "create CS"() {
+        given:
+        def buildParams = createBuildEnvironment(env)
+
+        def util = Mock(MROPipelineUtil)
+        def jenkins = Mock(JenkinsService)
+        def jira = Mock(JiraUseCase)
+        def levaFiles = Mock(LeVaDocumentChaptersFileService)
+        def os = Mock(OpenShiftService)
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            util,
+            Mock(DocGenService),
+            jenkins,
+            jira,
+            levaFiles,
+            Mock(NexusService),
+            os,
+            Mock(PDFUtil)
+        )
+
+        GroovyMock(LeVaDocumentUseCase, global: true)
+
+        def project = createProject()
+        def type = LeVaDocumentUseCase.DocumentTypes.CS
+
+        when:
+        usecase.createCS(project)
+
+        then:
+        1 * jira.getDocumentChapterData(project.id, type) >> ["sec1": "myContent"]
+        0 * levaFiles.getDocumentChapterData(type)
+
+        then:
+        1 * jira.getIssuesForComponent(project.id, "${type}:Configurable Items", ["Configuration Specification Task"], [], false, _) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Interfaces",         ["Configuration Specification Task"], [], false, _) >> [:]
+
+        then:
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
+    }
+
     def "create document"() {
         given:
         def buildParams = createBuildParams()
@@ -614,6 +713,46 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * nexus.storeArtifact(_, _, { "${type}-${project.id}-${version}.zip" }, *_) >> nexusUri
+    }
+
+    // DSD only works with Jira
+    def "create DSD"() {
+        given:
+        createBuildEnvironment(env)
+
+        def steps = Spy(util.PipelineSteps)
+        def jira = Mock(JiraUseCase)
+        def junit = new JUnitTestReportsUseCase(steps)
+        def levaFiles = Mock(LeVaDocumentChaptersFileService)
+        def usecase = createUseCase(
+            steps,
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            jira,
+            levaFiles,
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        GroovyMock(LeVaDocumentUseCase, global: true)
+
+        def project = createProject()
+        def type = LeVaDocumentUseCase.DocumentTypes.DSD
+
+        when:
+        usecase.createDSD(project)
+
+        then:
+        1 * jira.getDocumentChapterData(project.id, type) >> ["sec1": "myContent"]
+        0 * levaFiles.getDocumentChapterData(type)
+
+        then:
+        1 * jira.getIssuesForComponent(project.id, null, ["System Design Specification Task"], [], false, _) >> [:]
+
+        then:
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], null, null)
     }
 
     def "create DTP"() {
@@ -786,6 +925,52 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.getAutomatedTestIssues(project.id, "Technology_${repo.id}") >> []
+    }
+
+    // FS only works with JIRA
+    def "create FS"() {
+        given:
+        def buildParams = createBuildEnvironment(env)
+
+        def util = Mock(MROPipelineUtil)
+        def jenkins = Mock(JenkinsService)
+        def jira = Mock(JiraUseCase)
+        def levaFiles = Mock(LeVaDocumentChaptersFileService)
+        def os = Mock(OpenShiftService)
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            util,
+            Mock(DocGenService),
+            jenkins,
+            jira,
+            levaFiles,
+            Mock(NexusService),
+            os,
+            Mock(PDFUtil)
+        )
+
+        GroovyMock(LeVaDocumentUseCase, global: true)
+
+        def project = createProject()
+        def type = LeVaDocumentUseCase.DocumentTypes.FS
+
+        when:
+        usecase.createFS(project)
+
+        then:
+        1 * jira.getDocumentChapterData(project.id, type) >> ["sec1": "myContent"]
+        0 * levaFiles.getDocumentChapterData(type)
+
+        then:
+        1 * jira.getIssuesForComponent(project.id, "${type}:Constraints",             ["Functional Specification Task"], [], false, _) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Data",                    ["Functional Specification Task"], [], false, _) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Function",                ["Functional Specification Task"], [], false, _) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Interfaces",              ["Functional Specification Task"], [], false, _) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Operational Environment", ["Functional Specification Task"], [], false, _) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Roles",                   ["Functional Specification Task"], [], false, _) >> [:]
+
+        then:
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
     }
 
     def "create SCP"() {
@@ -1067,6 +1252,7 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         GroovyMock(LeVaDocumentUseCase, global: true)
 
         def project = createProject()
+        project.services.jira = null
         def repo = project.repositories.first()
 
         def type = LeVaDocumentUseCase.DocumentTypes.TIR
@@ -1080,5 +1266,52 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         then:
         1 * jira.getDocumentChapterData(project.id, type) >> [:]
         1 * levaFiles.getDocumentChapterData(type)
+    }
+
+    // URS only works with JIRA
+    def "create URS"() {
+        given:
+        def buildParams = createBuildEnvironment(env)
+
+        def util = Mock(MROPipelineUtil)
+        def jenkins = Mock(JenkinsService)
+        def jira = Mock(JiraUseCase)
+        def levaFiles = Mock(LeVaDocumentChaptersFileService)
+        def os = Mock(OpenShiftService)
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            util,
+            Mock(DocGenService),
+            jenkins,
+            jira,
+            levaFiles,
+            Mock(NexusService),
+            os,
+            Mock(PDFUtil)
+        )
+
+        GroovyMock(LeVaDocumentUseCase, global: true)
+
+        def project = createProject()
+        def type = LeVaDocumentUseCase.DocumentTypes.URS
+
+        when:
+        usecase.createURS(project)
+
+        then:
+        1 * jira.getDocumentChapterData(project.id, type) >> ["sec1": "myContent"]
+        0 * levaFiles.getDocumentChapterData(type)
+
+        then:
+        1 * jira.getIssuesForComponent(project.id, "${type}:Availability",            ["Epic"], ["Story"]) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Compatibility",           ["Epic"], ["Story"]) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Interfaces",              ["Epic"], ["Story"]) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Operational",             ["Epic"], ["Story"]) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Operational Environment", ["Epic"], ["Story"]) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Performance",             ["Epic"], ["Story"]) >> [:]
+        1 * jira.getIssuesForComponent(project.id, "${type}:Procedural Constraints",  ["Epic"], ["Story"]) >> [:]
+
+        then:
+        1 * LeVaDocumentUseCase.createDocument(_, type, project, null, _, [:], _, null)
     }
 }

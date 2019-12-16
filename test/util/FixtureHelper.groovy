@@ -25,6 +25,16 @@ class FixtureHelper {
         ]
     }
 
+    static Map createJiraField(String id, String name = null) {
+        def result = [
+            id: id
+        ]
+
+        result.name = name ?: "${id}-name"
+
+        return result
+    }
+
     static Map createJiraIssue(String id, String summary = null, String description = null) {
         def result = [
             id: id,
@@ -43,19 +53,19 @@ class FixtureHelper {
         def result = []
 
         // Create some parents
-        def issue0815 = createJiraIssue("0815", "0815-summary", "0815-description")
-        def issue4711 = createJiraIssue("4711", "4711-summary", "4711-description")
+        def issue0815 = createJiraIssue("0815")
+        def issue4711 = createJiraIssue("4711")
 
         // Create some children
-        def issue123 = createJiraIssue("123", "123-summary", "123-description")
+        def issue123 = createJiraIssue("123")
         issue123.fields.parent = issue0815
         result << issue123
 
-        def issue456 = createJiraIssue("456", "456-summary", "456-description")
+        def issue456 = createJiraIssue("456")
         issue456.fields.parent = issue0815
         result << issue456
 
-        def issue789 = createJiraIssue("789", "789-summary", "789-description")
+        def issue789 = createJiraIssue("789")
         issue789.fields.parent = issue4711
         result << issue789
 
@@ -63,6 +73,87 @@ class FixtureHelper {
         result << issue4711
 
         return result
+    }
+
+    static Map createJiraIssueLink(String id, Map inwardIssue = null, Map outwardIssue = null) {
+        def result = [
+            id: id,
+            type: [
+                name: "Relate",
+                inward: "is related to",
+                outward: "relates to"
+            ],
+            self: "http://${id}"
+        ]
+
+        if (inwardIssue) {
+            result.inwardIssue = inwardIssue
+        }
+
+        if (outwardIssue) {
+            result.outwardIssue = outwardIssue
+        }
+
+        if (!inwardIssue && !outwardIssue) {
+            result.outwardIssue = result.inwardIssue = createIssue(id)
+        }
+
+        return result
+    }
+
+    static List createJiraIssuesWithComponents() {
+        def result = []
+
+        // Create an issue belonging to 3 components and 2 outward links
+        def issue1 = createJiraIssue("1")
+        issue1.fields.components = [
+            [ name: "myComponentA" ],
+            [ name: "myComponentB" ],
+            [ name: "myComponentC" ]
+        ]
+        issue1.fields.issuelinks = [
+            createJiraIssueLink("1", null, createJiraIssue("100")),
+            createJiraIssueLink("2", null, createJiraIssue("101"))
+        ]
+        issue1.fields.issuetype = [
+            name: "Story"
+        ]
+        result << issue1
+
+        // Create an issue belonging to 2 components and 1 outward link
+        def issue2 = createJiraIssue("2")
+        issue2.fields.components = [
+            [ name: "myComponentA" ],
+            [ name: "myComponentB" ]
+        ]
+        issue2.fields.issuelinks = [
+            createJiraIssueLink("1", createJiraIssue("200")),
+            createJiraIssueLink("2", null, createJiraIssue("201")),
+        ]
+        issue2.fields.issuetype = [
+            name: "Story"
+        ]
+        result << issue2
+
+        // Create an issue belonging to 1 component and 0 outward links
+        def issue3 = createJiraIssue("3")
+        issue3.fields.components = [
+            [ name: "myComponentA" ]
+        ]
+        issue3.fields.issuelinks = []
+        issue3.fields.issuetype = [
+            name: "Story"
+        ]
+        result << issue3
+
+        // Create an issue belonging to 0 components and 0 outward links
+        def issue4 = createJiraIssue("4")
+        issue4.fields.components = []
+        issue4.fields.issuelinks = []
+        issue4.fields.issuetype = [
+            name: "Story"
+        ]
+        result << issue4
     }
 
     static List createJiraDocumentIssues() {

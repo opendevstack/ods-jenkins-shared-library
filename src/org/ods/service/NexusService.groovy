@@ -1,6 +1,6 @@
 package org.ods.service
 
-@Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
+@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
 import com.cloudbees.groovy.cps.NonCPS
 

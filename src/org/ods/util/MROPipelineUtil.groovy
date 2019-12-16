@@ -150,6 +150,29 @@ class MROPipelineUtil extends PipelineUtil {
             if (file.exists()) {
                 def config = new Yaml().load(file.text) ?: [:]
 
+                if (!config.metadata) {
+                    throw new IllegalArgumentException("Error: unable to parse pipeline config. Required attribute 'metadata' is undefined for repository '${repo.id}'.")
+                }
+
+                // Resolve pipeline metadata, if provided
+                if (config.metadata) {
+                    if (!config.metadata.name?.trim()) {
+                        throw new IllegalArgumentException("Error: unable to parse pipeline config. Required attribute 'metadata.name' is undefined for repository '${repo.id}'.")
+                    }
+
+                    if (!config.metadata.description?.trim()) {
+                        throw new IllegalArgumentException("Error: unable to parse pipeline config. Required attribute 'metadata.description' is undefined for repository '${repo.id}'.")
+                    }
+
+                    if (!config.metadata.supplier?.trim()) {
+                        throw new IllegalArgumentException("Error: unable to parse pipeline config. Required attribute 'metadata.supplier' is undefined for repository '${repo.id}'.")
+                    }
+
+                    if (!config.metadata.version?.trim()) {
+                        throw new IllegalArgumentException("Error: unable to parse pipeline config. Required attribute 'metadata.version' is undefined for repository '${repo.id}'.")
+                    }
+                }
+
                 // Resolve pipeline phase config, if provided
                 if (config.phases) {
                     config.phases.each { name, phase ->

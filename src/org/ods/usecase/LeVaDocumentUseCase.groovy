@@ -21,24 +21,32 @@ import org.ods.util.PDFUtil
 class LeVaDocumentUseCase {
 
     class DocumentTypes {
+        static final String CS = "CS"
+        static final String DSD = "DSD"
         static final String DTP = "DTP"
         static final String DTR = "DTR"
+        static final String FS = "FS"
         static final String SCP = "SCP"
         static final String SCR = "SCR"
         static final String TIP = "TIP"
         static final String TIR = "TIR"
+        static final String URS = "URS"
 
         static final String OVERALL_COVER = "Overall-Cover"
         static final String OVERALL_TIR_COVER = "Overall-TIR-Cover"
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
+        (DocumentTypes.CS): "Configuration Specification",
+        (DocumentTypes.DSD): "System Design Specification",
         (DocumentTypes.DTP): "Software Development Testing Plan",
         (DocumentTypes.DTR): "Software Development Testing Report",
+        (DocumentTypes.FS): "Functional Specification",
         (DocumentTypes.SCP): "Software Development (Coding and Code Review) Plan",
         (DocumentTypes.SCR): "Software Development (Coding and Code Review) Report",
         (DocumentTypes.TIP): "Technical Installation Plan",
-        (DocumentTypes.TIR): "Technical Installation Report"
+        (DocumentTypes.TIR): "Technical Installation Report",
+        (DocumentTypes.URS): "User Requirements Specification"
     ]
 
     private IPipelineSteps steps
@@ -64,33 +72,41 @@ class LeVaDocumentUseCase {
     }
 
     static boolean appliesToProject(String documentType, Map project) {
-        // approve creation of a DTP iff at least one repo is eligible to create a DTR
+        if (documentType == LeVaDocumentUseCase.DocumentTypes.CS
+         || documentType == LeVaDocumentUseCase.DocumentTypes.DSD
+         || documentType == LeVaDocumentUseCase.DocumentTypes.FS
+         || documentType == LeVaDocumentUseCase.DocumentTypes.URS) {
+            // approve creation of document iff Jira has been configured
+            return project.services?.jira != null
+        }
+
         if (documentType == LeVaDocumentUseCase.DocumentTypes.DTP) {
+            // approve creation of a DTP iff at least one repo is eligible to create a DTR
             return project.repositories.any {
                 appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, it)
             }
-        // approve creation of a (overall) DTR iff at least one repo is eligible to create one
         } else if (documentType == LeVaDocumentUseCase.DocumentTypes.DTR) {
+            // approve creation of a (overall) DTR iff at least one repo is eligible to create one
             return project.repositories.any {
                 appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, it)
             }
-        // approve creation of an SCP iff at least one repo is eligible to create a SCR
         } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCP) {
+            // approve creation of an SCP iff at least one repo is eligible to create an SCR
             return project.repositories.any {
                 appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, it)
             }
-        // approve creation of a (overall) SCR iff at least one repo is eligible to create one
         } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
+            // approve creation of a (overall) SCR iff at least one repo is eligible to create one
             return project.repositories.any {
                 appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, it)
             }
-        // approve creation of a TIP iff at least one repo is eligible to create a TIR
         } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIP) {
+            // approve creation of a TIP iff at least one repo is eligible to create a TIR
             return project.repositories.any {
                 appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, it)
             }
-        // approve creation of a (overall) TIR iff at least one repo is eligible to create one
         } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
+            // approve creation of a (overall) TIR iff at least one repo is eligible to create one
             return project.repositories.any {
                 appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, it)
             }
@@ -168,6 +184,82 @@ class LeVaDocumentUseCase {
         return result
     }
 
+    String createCS(Map project) {
+        def documentType = DocumentTypes.CS
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        // Configurable Items
+        def configurableItems = this.jira.getIssuesForComponent(project.id, "${documentType}:Configurable Items", ["Configuration Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }.findAll { it.key != "${documentType}:Configurable Items" }
+
+        if (!sections."sec3") {
+            sections."sec3" = [:]
+        }
+
+        if (!configurableItems.isEmpty()) {
+            def configurableItemsIssuesList = configurableItems.collect { name, issues ->
+                // Remove the Technology_ prefix for ODS components
+                def matcher = name =~ /^Technology_/
+                if (matcher.find()) {
+                    name = matcher.replaceAll("")
+                }
+
+                // Reduce the issues to the data points required by the document
+                def items = issues.collect { issue ->
+                    return issue.subMap(["key", "description"]) << [
+                        // Map the key of a linked user requirement
+                        ur_key: issue.issuelinks.first().issue.key
+                    ]
+                }
+
+                return [
+                    name: name,
+                    items: this.sortIssuesByProperties(items, ["ur_key", "key"])
+                ]
+            }
+
+            sections."sec3".components = this.sortIssuesByProperties(configurableItemsIssuesList, ["name"])
+        }
+
+        // Interfaces
+        def interfaces = this.jira.getIssuesForComponent(project.id, "${documentType}:Interfaces", ["Configuration Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }
+
+        if (!sections."sec4") {
+            sections."sec4" = [:]
+        }
+
+        if (!interfaces.isEmpty()) {
+            def interfacesIssuesList = interfaces["${documentType}:Interfaces"].collect { issue ->
+                // Reduce the issues to the data points required by the document
+                return issue.subMap(["key", "description"]) << [
+                    // Map the key of a linked user requirement
+                    ur_key: issue.issuelinks.first().issue.key
+                ]
+            }
+
+            sections."sec4".items = this.sortIssuesByProperties(interfacesIssuesList, ["ur_key", "key"])
+        }
+
+        def data = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                sections: sections
+            ]
+        ]
+
+        return createDocument(
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
+            documentType, project, null, data, [:], null, null
+        )
+    }
+
     private static String createDocument(Map deps, String type, Map project, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String typeName = null) {
         def buildParams = deps.util.getBuildParams()
 
@@ -207,7 +299,7 @@ class LeVaDocumentUseCase {
             "application/zip"
         )
 
-        deps.jira.notifyLeVaDocumentTrackingIssue(project.id, typeName ?: type, "A new ${DOCUMENT_TYPE_NAMES[type]} has been generated and is available at: ${uri}.")
+        deps.jira.notifyLeVaDocumentTrackingIssue(project.id, typeName ?: type, "A new ${DOCUMENT_TYPE_NAMES[typeName ?: type]} has been generated and is available at: ${uri}.")
 
         return uri.toString()
     }
@@ -249,6 +341,105 @@ class LeVaDocumentUseCase {
         }
 
         return result
+    }
+
+    String createDSD(Map project) {
+        def documentType = DocumentTypes.DSD
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        // A mapping of component names to issues
+        def specifications = this.jira.getIssuesForComponent(project.id, null, ["System Design Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }
+
+        // System Design Specifications
+        if (!sections."sec3") {
+            sections."sec3" = [:]
+        }
+
+        if (!specifications.isEmpty()) {
+            // Create a collection of disjoint issues across all components
+            def specificationsIssuesList = specifications.values().flatten().toSet()
+            
+            specificationsIssuesList = specificationsIssuesList.collect { issue ->
+                // Reduce the issues to the data points required by the document
+                return issue.subMap(["key", "description"]) << [
+                    // Map the key of a linked user requirement
+                    ur_key: issue.issuelinks.first().issue.key
+                ]
+            }
+
+            sections."sec3".specifications = this.sortIssuesByProperties(specificationsIssuesList, ["ur_key", "key"])
+        }
+
+        // A mapping of component names starting with Technology_ to issues
+        def specificationsForTechnologyComponents = specifications.findAll { it.key.startsWith("Technology_") }
+
+        // A mapping of component names to corresponding repository metadata
+        def componentsMetadata = specificationsForTechnologyComponents.collectEntries { componentName, issues ->
+            def normalizedComponentName = componentName.replaceAll("Technology_", "")
+
+            def repo = project.repositories.find { [it.id, it.name].contains(normalizedComponentName) }
+            if (!repo) {
+                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository definition with id or name equal to '${normalizedComponentName}' for Jira component '${componentName}' in project '${project.id}'.")
+            }
+
+            def metadata = repo.pipelineConfig.metadata
+
+            return [
+                componentName,
+                [
+                    componentId: metadata.id ?: "N/A - part of this application",
+                    componentType: (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS) ? "ODS Component" : "Software",
+                    description: metadata.description,
+                    nameOfSoftware: metadata.name,
+                    references: metadata.references ?: "N/A",
+                    supplier: metadata.supplier,
+                    version: metadata.version
+                ]
+            ]
+        }
+
+        // System Components List
+        if (!sections."sec5s1") {
+            sections."sec5s1" = [:]
+        }
+
+        if (!specificationsForTechnologyComponents.isEmpty()) {
+            // Create a collection of disjoint issues across all components starting with Technology_
+            def specificationsForTechnologyComponentsIssuesList = specificationsForTechnologyComponents.values().flatten().toSet()
+
+            specificationsForTechnologyComponentsIssuesList = specificationsForTechnologyComponentsIssuesList.collect { issue ->
+                // Reduce the issues to the data points required by the document
+                def result = issue.subMap(["key"])
+
+                // Mix-in compnoent metadata
+                def componentName = issue.components.first()
+                result << componentsMetadata[componentName]
+
+                return result
+            }
+
+            sections."sec5s1".specifications = this.sortIssuesByProperties(specificationsForTechnologyComponentsIssuesList, ["key"])
+        }
+
+        // System Components Specification (fully contained in data for System Components List)
+
+        def data = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                sections: sections
+            ]
+        ]
+
+        return createDocument(
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
+            documentType, project, null, data, [:], null, null
+        )
     }
 
     String createDTP(Map project) {
@@ -357,6 +548,176 @@ class LeVaDocumentUseCase {
 
     String createOverallDTR(Map project) {
         return createOverallDocument(DocumentTypes.OVERALL_COVER, DocumentTypes.DTR, project)
+    }
+
+    String createFS(Map project) {
+        def documentType = DocumentTypes.FS
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        // Constraints
+        def constraints = this.jira.getIssuesForComponent(project.id, "${documentType}:Constraints", ["Functional Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }
+
+        if (!sections."sec8") {
+            sections."sec8" = [:]
+        }
+
+        if (!constraints.isEmpty()) {
+            def constraintsIssuesList = constraints["${documentType}:Constraints"].collect { issue ->
+                // Reduce the issues to the data points required by the document
+                return issue.subMap(["key", "description"]) << [
+                    // Map the key of a linked user requirement
+                    ur_key: issue.issuelinks.first().issue.key
+                ]
+            }
+
+            sections."sec8".items = this.sortIssuesByProperties(constraintsIssuesList, ["ur_key", "key"])
+        }
+
+        // Data
+        def data = this.jira.getIssuesForComponent(project.id, "${documentType}:Data", ["Functional Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }
+
+        if (!sections."sec5") {
+            sections."sec5" = [:]
+        }
+
+        if (!data.isEmpty()) {
+            def dataIssuesList = data["${documentType}:Data"].collect { issue ->
+                // Reduce the issues to the data points required by the document
+                return issue.subMap(["key", "description"]) << [
+                    // Map the key of a linked user requirement
+                    ur_key: issue.issuelinks.first().issue.key
+                ]
+            }
+
+            sections."sec5".items = this.sortIssuesByProperties(dataIssuesList, ["ur_key", "key"])
+        }
+
+        // Function
+        def functions = this.jira.getIssuesForComponent(project.id, "${documentType}:Function", ["Functional Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }.findAll { it.key != "${documentType}:Function" }
+
+        if (!sections."sec3") {
+            sections."sec3" = [:]
+        }
+
+        if (!functions.isEmpty()) {
+            def functionsIssuesList = functions.collect { name, issues ->
+                // Reduce the issues to the data points required by the document
+                def items = issues.collect { issue ->
+                    return issue.subMap(["key", "description"]) << [
+                        // Map the key of a linked user requirement
+                        ur_key: issue.issuelinks.first().issue.key
+                    ]
+                }
+
+                return [
+                    name: name,
+                    items: this.sortIssuesByProperties(items, ["ur_key", "key"])
+                ]
+            }
+
+            sections."sec3".components = this.sortIssuesByProperties(functionsIssuesList, ["name"])
+        }
+
+        // Interfaces
+        def interfaces = this.jira.getIssuesForComponent(project.id, "${documentType}:Interfaces", ["Functional Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }
+
+        if (!sections."sec6") {
+            sections."sec6" = [:]
+        }
+
+        if (!interfaces.isEmpty()) {
+            def interfacesIssuesList = interfaces["${documentType}:Interfaces"].collect { issue ->
+                // Reduce the issues to the data points required by the document
+                return issue.subMap(["key", "description"]) << [
+                    // Map the key of a linked user requirement
+                    ur_key: issue.issuelinks.first().issue.key
+                ]
+            }
+
+            sections."sec6".items = this.sortIssuesByProperties(interfacesIssuesList, ["ur_key", "key"])
+        }
+
+        // Operational Environment
+        def environment = this.jira.getIssuesForComponent(project.id, "${documentType}:Operational Environment", ["Functional Specification Task"], [], false) { issuelink ->
+            return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }
+
+        if (!sections."sec7") {
+            sections."sec7" = [:]
+        }
+
+        if (!environment.isEmpty()) {
+            def environmentIssuesList = environment["${documentType}:Operational Environment"].collect { issue ->
+                // Reduce the issues to the data points required by the document
+                return issue.subMap(["key", "description"]) << [
+                    // Map the key of a linked user requirement
+                    ur_key: issue.issuelinks.first().issue.key
+                ]
+            }
+
+            sections."sec7".items = this.sortIssuesByProperties(environmentIssuesList, ["ur_key", "key"])
+        }
+
+        // Roles
+        def roles = this.jira.getIssuesForComponent(project.id, "${documentType}:Roles", ["Functional Specification Task"], [], false) { issuelink ->
+            return (issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")) || (issuelink.type.relation == "is detailed by" && (issuelink.issue.issuetype.name == "Functional Specification Task"))
+        }
+
+        if (!sections."sec4") {
+            sections."sec4" = [:]
+        }
+
+        if (!roles.isEmpty()) {
+            def rolesIssuesList = roles["${documentType}:Roles"].collect { issue ->
+                // Find the user requirement this functional specification task specifies
+                def epic = issue.issuelinks.find { it.type.relation == "specifies" }.issue
+
+                // Find the functional specification tasks that provide further detail to this task
+                def items = issue.issuelinks.findAll { it.type.relation == "is detailed by" }.collect { issuelink ->
+                    // Reduce the issues to the data points required by the document
+                    return issuelink.issue.subMap(["key", "description"]) << [
+                        // Map the key of the linked user requirement
+                        ur_key: epic.key
+                    ]
+                }
+
+                // Reduce the issues to the data points required by the document
+                return issue.subMap(["key"]) << [
+                    name: issue.summary,
+                    items: this.sortIssuesByProperties(items, ["ur_key", "key"])
+                ]
+            }
+
+            def index = 0
+            sections."sec4".roles = this.sortIssuesByProperties(rolesIssuesList, ["name"]).collect { issue ->
+                // Add a custom heading number
+                issue << [ number: ++index ]
+            }
+        }
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                sections: sections
+            ]
+        ]
+
+        return createDocument(
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
+            documentType, project, null, data_, [:], null, null
+        )
     }
 
     String createSCP(Map project) {
@@ -513,6 +874,195 @@ class LeVaDocumentUseCase {
         }
     }
 
+    String createURS(Map project) {
+        def documentType = DocumentTypes.URS
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        // Availability
+        def availability = this.jira.getIssuesForComponent(project.id, "${documentType}:Availability", ["Epic"], ["Story"])
+
+        if (!sections."sec3s3s2") {
+            sections."sec3s3s2" = [:]
+        }
+
+        if (!availability.isEmpty()) {
+            def availabilityIssuesList = availability["${documentType}:Availability"].collect { epic ->
+                // Reduce the issues to the data points required by the document
+                def issues = epic.issues.collect { story ->
+                    return story.subMap(["key", "description"])
+                }
+
+                return epic.subMap(["key", "description"]) << [
+                    issues: this.sortIssuesByProperties(issues, ["key"])
+                ]
+            }
+
+            sections."sec3s3s2".requirements = this.sortIssuesByProperties(availabilityIssuesList, ["key"])
+        }
+
+        // Compatibility
+        def compatibility = this.jira.getIssuesForComponent(project.id, "${documentType}:Compatibility", ["Epic"], ["Story"])
+
+        if (!sections."sec4s1") {
+            sections."sec4s1" = [:]
+        }
+
+        if (!compatibility.isEmpty()) {
+            def compatibilityIssuesList = compatibility["${documentType}:Compatibility"].collect { epic ->
+                // Reduce the issues to the data points required by the document
+                def issues = epic.issues.collect { story ->
+                    return story.subMap(["key", "description"])
+                }
+
+                return epic.subMap(["key", "description"]) << [
+                    issues: this.sortIssuesByProperties(issues, ["key"])
+                ]
+            }
+
+            sections."sec4s1".requirements = this.sortIssuesByProperties(compatibilityIssuesList, ["key"])
+        }
+
+        // Interfaces
+        def interfaces = this.jira.getIssuesForComponent(project.id, "${documentType}:Interfaces", ["Epic"], ["Story"])
+
+        if (!sections."sec3s4") {
+            sections."sec3s4" = [:]
+        }
+
+        if (!interfaces.isEmpty()) {
+            def interfacesIssuesList = interfaces["${documentType}:Interfaces"].collect { epic ->
+                // Reduce the issues to the data points required by the document
+                def issues = epic.issues.collect { story ->
+                    return story.subMap(["key", "description"])
+                }
+
+                return epic.subMap(["key", "description"]) << [
+                    issues: this.sortIssuesByProperties(issues, ["key"])
+                ]
+            }
+
+            sections."sec3s4".requirements = this.sortIssuesByProperties(interfacesIssuesList, ["key"])
+        }
+
+        // Operational
+        def operational = this.jira.getIssuesForComponent(project.id, "${documentType}:Operational", ["Epic"], ["Story"])
+            .findAll { it.key != "${documentType}:Operational" }
+
+        if (!sections."sec3s2") {
+            sections."sec3s2" = [:]
+        }
+
+        if (!operational.isEmpty()) {
+            def operationalIssuesList = operational.collect { name, epics ->
+                // Remove the Technology_ prefix for ODS components
+                def matcher = name =~ /^Technology_/
+                if (matcher.find()) {
+                    name = matcher.replaceAll("")
+                }
+
+                // Reduce the issues to the data points required by the document
+                def requirements = epics.collect { epic ->
+                    def issues = epic.issues.collect { story ->
+                        return story.subMap(["key", "description"])
+                    }
+
+                    return epic.subMap(["key", "description"]) << [
+                        issues: this.sortIssuesByProperties(issues, ["key"])
+                    ]
+                }
+
+                return [
+                    name: name,
+                    requirements: this.sortIssuesByProperties(requirements, ["key"])
+                ]
+            }
+
+            sections."sec3s2".components = this.sortIssuesByProperties(operationalIssuesList, ["name"])
+        }
+
+        // Operational Environment
+        def environment = this.jira.getIssuesForComponent(project.id, "${documentType}:Operational Environment", ["Epic"], ["Story"])
+
+        if (!sections."sec3s5") {
+            sections."sec3s5" = [:]
+        }
+
+        if (!environment.isEmpty()) {
+            def environmentIssuesList = environment["${documentType}:Operational Environment"].collect { epic ->
+                // Reduce the issues to the data points required by the document
+                def issues = epic.issues.collect { story ->
+                    return story.subMap(["key", "description"])
+                }
+
+                return epic.subMap(["key", "description"]) << [
+                    issues: this.sortIssuesByProperties(issues, ["key"])
+                ]
+            }
+
+            sections."sec3s5".requirements = this.sortIssuesByProperties(environmentIssuesList, ["key"])
+        }
+
+        // Performance
+        def performance = this.jira.getIssuesForComponent(project.id, "${documentType}:Performance", ["Epic"], ["Story"])
+
+        if (!sections."sec3s3s1") {
+            sections."sec3s3s1" = [:]
+        }
+
+        if (!performance.isEmpty()) {
+            def performanceIssuesList = performance["${documentType}:Performance"].collect { epic ->
+                // Reduce the issues to the data points required by the document
+                def issues = epic.issues.collect { story ->
+                    return story.subMap(["key", "description"])
+                }
+
+                return epic.subMap(["key", "description"]) << [
+                    issues: this.sortIssuesByProperties(issues, ["key"])
+                ]
+            }
+
+            sections."sec3s3s1".requirements = this.sortIssuesByProperties(performanceIssuesList, ["key"])
+        }
+
+        // Procedural Constraints
+        def procedural = this.jira.getIssuesForComponent(project.id, "${documentType}:Procedural Constraints", ["Epic"], ["Story"])
+
+        if (!sections."sec4s2") {
+            sections."sec4s2" = [:]
+        }
+
+        if (!procedural.isEmpty()) {
+            def proceduralIssuesList = procedural["${documentType}:Procedural Constraints"].collect { epic ->
+                // Reduce the issues to the data points required by the document
+                def issues = epic.issues.collect { story ->
+                    return story.subMap(["key", "description"])
+                }
+
+                return epic.subMap(["key", "description"]) << [
+                    issues: this.sortIssuesByProperties(issues, ["key"])
+                ]
+            }
+
+            sections."sec4s2".requirements = this.sortIssuesByProperties(proceduralIssuesList, ["key"])
+        }
+
+        def data = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                sections: sections
+            ]
+        ]
+
+        return createDocument(
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
+            documentType, project, null, data, [:], null, null
+        )
+    }
+
     private Map getDocumentMetadata(String type, Map project, Map repo = null) {
         def name = project.name
         if (repo) {
@@ -534,5 +1084,13 @@ class LeVaDocumentUseCase {
                 jobName: this.steps.env.JOB_NAME
             ]
         ]
+    }
+
+    @NonCPS
+    // Sorts a collection of maps in the order of the keys in properties
+    private List<Map> sortIssuesByProperties(Collection<Map> issues, List properties) {
+        return issues.sort { issue ->
+            issue.subMap(properties).values().join("-")
+        }
     }
 }

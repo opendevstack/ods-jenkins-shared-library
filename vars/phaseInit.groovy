@@ -1,4 +1,4 @@
-@Grab(group="com.konghq", module="unirest-java", version="2.3.08", classifier="standalone")
+@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
 import kong.unirest.Unirest
 
@@ -56,7 +56,7 @@ def call() {
         )
     )
 
-    if (project.services.jira) {
+    if (project.services?.jira) {
         withCredentials([ usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
             registry.add(JiraService.class.name,
                 new JiraService(
@@ -122,6 +122,9 @@ def call() {
         )
     )
 
+
+    def levaDoc = registry.get(LeVaDocumentUseCase.class.name)
+
     // Checkout repositories into the workspace
     parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
         echo "Repository: ${repo}"
@@ -133,6 +136,26 @@ def call() {
 
     // Compute groups of repository configs for convenient parallelization
     repos = util.computeRepoGroups(repos)
+
+    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.URS, project)) {
+        echo "Creating and archiving a User Requirements Specification for project '${project.id}'"
+        levaDoc.createURS(project)
+    }
+
+    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.FS, project)) {
+        echo "Creating and archiving a Functional Specification for project '${project.id}'"
+        levaDoc.createFS(project)
+    }
+
+    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.CS, project)) {
+        echo "Creating and archiving a Configuration Specification for project '${project.id}'"
+        levaDoc.createCS(project)
+    }
+
+    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DSD, project)) {
+        echo "Creating and archiving a System Design Specification for project '${project.id}'"
+        levaDoc.createDSD(project)
+    }
 
     return [ project: project, repos: repos ]
 }

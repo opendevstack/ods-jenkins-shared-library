@@ -1,7 +1,5 @@
 package org.ods.usecase
 
-import groovy.json.JsonOutput
-
 import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
 import org.ods.util.IPipelineSteps
@@ -33,6 +31,19 @@ class JiraUseCase {
         return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
     }
 
+    private String convertHTMLImageSrcIntoBase64Data(String html) {
+        def server = this.jira.baseURL
+
+        def pattern = ~/src="(${server}.*\.(?:gif|jpg|jpeg|png))"/
+        def result = html.replaceAll(pattern) { match ->
+            def src = match[1]
+            def img = this.jira.getFileFromJira(src)
+            return "src=\"data:${img.contentType};base64,${img.data.encodeBase64()}\""
+        }
+
+        return result
+    }
+
     void createBugsAndBlockImpactedTestCases(String projectId, List jiraTestIssues, Set failures, String comment) {
         if (!this.jira) return
 
@@ -47,12 +58,13 @@ class JiraUseCase {
         }
     }
 
-    List getAutomatedTestIssues(String projectId, String componentId = null) {
+    // TODO: replace by getIssuesForComponent (needs to support labels)
+    List getAutomatedTestIssues(String projectId, String componentName = null) {
         if (!this.jira) return []
 
         def query = "project = ${projectId} AND issuetype = Test AND labels = AutomatedTest"
-        if (componentId) {
-            query += " AND component = '${componentId}'"
+        if (componentName) {
+            query += " AND component = '${componentName}'"
         }
 
         def jqlQuery = [
@@ -69,17 +81,22 @@ class JiraUseCase {
 
         def jqlQuery = [
             jql: "project = ${projectId} AND issuetype = '${IssueTypes.DOCUMENT_CHAPTER}' AND labels = LeVA_Doc:${documentType}",
-            expand: [ "names", "renderedFields" ]
+            expand: ["names", "renderedFields"]
         ]
 
         def result = this.jira.searchByJQLQuery(jqlQuery)
+        if (!result) return [:]
 
-        def contentFieldKey = result.names.find { it.value == CustomIssueFields.CONTENT }.key
         def numberKey = result.names.find { it.value == CustomIssueFields.HEADING_NUMBER }.key
+        def contentFieldKey = result.names.find { it.value == CustomIssueFields.CONTENT }.key
 
         return result.issues.collectEntries { issue ->
-            def content = issue.renderedFields[contentFieldKey]
             def number = issue.fields[numberKey]?.trim()
+
+            def content = issue.renderedFields[contentFieldKey]
+            if (content.contains("<img")) {
+                content = convertHTMLImageSrcIntoBase64Data(content)
+            }
 
             return [
                 "sec${number.replaceAll(/\./, "s")}".toString(),
@@ -90,6 +107,154 @@ class JiraUseCase {
                 ]
             ]
         }
+    }
+
+    Map getIssuesForEpics(List<String> epicKeys, List<String> issueTypes = []) {
+        def result = [:]
+        if (!this.jira) result
+
+        def epicLinkField = this.jira.getFields().find { it.name == "Epic Link" }
+        if (!epicLinkField) {
+            throw new RuntimeException("Error: unable to get Jira field 'Epic Link'. Jira returned an empty reponse.")
+        }
+
+        def query = "'Epic Link' in (" +  epicKeys.join(", ") + ")"
+        if (issueTypes) {
+            query += " AND issuetype in (" + issueTypes.collect { "'${it}'" }.join(", ") + ")"
+        }
+
+        def jqlQuery = [
+            jql: query,
+            expand: ["renderedFields"],
+            fields: [epicLinkField.id, "description", "summary"]
+        ]
+
+        def issues = this.jira.getIssuesForJQLQuery(jqlQuery)
+        issues.each { issue ->
+            // Derive the epicKey through the Epic Link field's id
+            def epicKey = issue.fields[epicLinkField.id]
+
+            if (!result[epicKey]) {
+                result[epicKey] = []
+            }
+
+            result[epicKey] << toSimpleIssue(issue)
+        }
+
+        return result
+    }
+
+    Map getIssuesForComponent(String projectKey, String componentName = null, List<String> issueTypesSelector = [], List<String> epicIssueTypesSelector = [], boolean throwOnMissingLinks = false, Closure issueLinkFilter = null) {
+        def result = [:]
+        if (!this.jira) return result
+
+        // Fetch the component's issues and filter by issuetype
+        def query = "project = ${projectKey}"
+
+        if (componentName) {
+            query += " AND component = '${componentName}'"
+        }
+
+        if (issueTypesSelector) {
+            query += " AND issuetype in (" + issueTypesSelector.collect{"'${it}'"}.join(", ") +  ")"
+        }
+
+        def linkedIssuesKeys = [] as Set
+        def issueTypeEpicKeys = []
+        def issuesWithoutLinks = [] as Set
+
+        def issues = this.jira.getIssuesForJQLQuery([
+            jql: query,
+            expand: ["renderedFields"],
+            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
+        ])
+
+        issues.each { issue ->
+            // Construct simple issue link representations and filter issue links if applicable
+            issue.fields.issuelinks = issue.fields.issuelinks.collect { toSimpleIssueLink(it) }
+            if (issueLinkFilter) {
+                issue.fields.issuelinks.retainAll { issueLinkFilter(it) }
+            }
+
+            if (!issue.fields.issuelinks.isEmpty()) {
+                // Track keys of linked issues for later retrieval
+                linkedIssuesKeys.addAll(
+                    issue.fields.issuelinks.collect { issuelink ->
+                        // Resolve the linked issue
+                        return issuelink.issue.key
+                    }
+                )
+            } else {
+                // Track issues that have no issue links
+                issuesWithoutLinks << issue.key
+            }
+
+            // Track issues of type Epic
+            if (issue.fields.issuetype.name == "Epic") {
+                issueTypeEpicKeys << issue.key
+            }
+        }
+
+        // Escalate the existence of issues without links to other issues if applicable
+        if (!issuesWithoutLinks.isEmpty() && throwOnMissingLinks) {
+            throw new RuntimeException("Error: links are missing for issues: ${issuesWithoutLinks.join(', ')}.")
+        }
+
+        // Fetch the Epics' issues if applicable
+        def issuesInEpics = [:]
+        if (!issueTypeEpicKeys.isEmpty()) {
+            issuesInEpics = getIssuesForEpics(issueTypeEpicKeys, epicIssueTypesSelector)
+        }
+
+        // Fetch the linked issues if applicable
+        def linkedIssues = [:]
+        if (!linkedIssuesKeys.isEmpty()) {
+            linkedIssues = this.jira.getIssuesForJQLQuery([
+                jql: "key in (" + linkedIssuesKeys.join(", ") + ")",
+                expand: ["renderedFields"],
+                fields: ["description"]
+            ]).collectEntries { [ (it.key.toString()): it ] }
+        }
+
+        issues.each { issue ->
+            // Construct a simple issue representation
+            def simpleIssue = toSimpleIssue(issue)
+
+            simpleIssue.issuelinks = issue.fields.issuelinks.collect { issuelink ->
+                if (linkedIssues[issuelink.issue.key]) {
+                    // Mix-in any issues linked to the current issue
+                    issuelink.issue += toSimpleIssue(linkedIssues[issuelink.issue.key])
+                }
+
+                return issuelink
+            }
+
+            if (issue.fields.issuetype.name == "Epic") {
+                // Mix-in any issues contained in the Epic
+                simpleIssue.issues = issuesInEpics[issue.key] ?: []
+            }
+
+            if (issue.fields.components.isEmpty()) {
+                issue.fields.components << [ name: "undefined" ]
+            }
+
+            issue.fields.components.each { component ->
+                if (!result[component.name]) {
+                    result[component.name] = []
+                }
+
+                if (issueLinkFilter) {
+                    // Return issue iff filtering yielded a non-empty result
+                    if (!simpleIssue.issuelinks.isEmpty()) {
+                        result[component.name] << simpleIssue
+                    }
+                } else {
+                    result[component.name] << simpleIssue
+                }
+            }
+        }
+
+        return result
     }
 
     List getLinkedIssuesForIssue(String issueKey, String relationType = "") {
@@ -105,16 +270,6 @@ class JiraUseCase {
 
         def jqlQuery = [
             jql: query
-        ]
-
-        return this.jira.getIssuesForJQLQuery(jqlQuery)
-    }
-
-    List getStoriesInEpic(String epicKey) {
-        if (!this.jira) return []
-
-        def jqlQuery = [
-            jql: "issuetype = Story AND 'Epic Link' = ${epicKey}"
         ]
 
         return this.jira.getIssuesForJQLQuery(jqlQuery)
@@ -197,11 +352,11 @@ class JiraUseCase {
         this.jira.appendCommentToIssue(jiraIssues.first().key, message)
     }
 
-    void reportTestResultsForComponent(String projectId, String componentId, Map testResults) {
+    void reportTestResultsForComponent(String projectId, String componentName, Map testResults) {
         if (!this.jira) return
 
         // Get automated test case definitions from Jira
-        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentId)
+        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentName)
 
         // Label test cases according to their test results
         this.labelTestIssuesWithTestResults(jiraTestIssues, testResults)
@@ -226,5 +381,57 @@ class JiraUseCase {
                 visitor(issue, testcase, isMatch)
             }
         }
+    }
+
+    static Map toSimpleIssue(Map issue, Map mixins = [:]) {
+        def result = [
+            key: issue.key,
+            summary: issue.fields.summary
+        ]
+
+        if (issue.fields.components) {
+            result.components = issue.fields.components.collect { it.name }
+        }
+
+        if (issue.fields.issuetype) {
+            result.issuetype = [
+                name: issue.fields.issuetype.name
+            ]
+        }
+
+        if (issue.fields.status) {
+            result.status = [
+                name: issue.fields.status.name
+            ]
+        }
+
+        result.description = (issue.renderedFields?.description) ? issue.renderedFields.description : issue.fields.description
+        if (result.description) {
+            result.description = result.description.replaceAll("\u00a0", " ")
+        }
+
+        return result << mixins
+    }
+
+    static Map toSimpleIssueLink(Map issuelink, Map mixins = [:]) {
+        def result = [
+            id: issuelink.id,
+            type: [
+                name: issuelink.type.name
+            ]
+        ]
+
+        if (issuelink.inwardIssue) {
+            result.issue = toSimpleIssue(issuelink.inwardIssue)
+            result.type.relation = issuelink.type.inward
+
+        }
+
+        if (issuelink.outwardIssue) {
+            result.issue = toSimpleIssue(issuelink.outwardIssue)
+            result.type.relation = issuelink.type.outward
+        }
+
+        return result << mixins
     }
 }
