@@ -83,6 +83,9 @@ class OdsContext implements Context {
     if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
       config.autoCloneEnvironmentsFromSourceMapping = [:]
     }
+    if (!config.containsKey('cloneProjectScriptBranch')) {
+      config.cloneProjectScriptBranch = 'production'
+    }
     if (!config.containsKey('sonarQubeBranch')) {
       config.sonarQubeBranch = 'master'
     }
@@ -266,6 +269,10 @@ class OdsContext implements Context {
 
   void setCloneSourceEnv(String cloneSourceEnv) {
     config.cloneSourceEnv = cloneSourceEnv
+  }
+
+  String getCloneProjectScriptBranch() {
+    config.cloneProjectScriptBranch
   }
 
   String getEnvironment() {
@@ -556,6 +563,17 @@ class OdsContext implements Context {
       return ""
     }
     return tokens[1]
+  }
+
+  Map<String, String> getCloneProjectScriptUrls() {
+    def scripts = ['clone-project.sh', 'import-project.sh',  'export-project.sh']
+    def m = [:]
+    def branch = getCloneProjectScriptBranch().replace('/','%2F')
+    for (script in scripts) {
+      def url = "https://bitbucket.bix-digital.com/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts/${script}?at=refs%2Fheads%2F${branch}"
+      m.put(script, url)
+    }
+    return m
   }
 
   public Map<String, String> getBuildArtifactURIs() {

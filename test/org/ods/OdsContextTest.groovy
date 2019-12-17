@@ -132,4 +132,56 @@ class OdsContextTest extends GroovyTestCase {
         uut.determineEnvironment()
 
     }
+
+    def bbBaseUrl = 'https://bitbucket.bix-digital.com/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts'
+
+    void testCloneProjectScriptUrlsDefault() {
+        def m = getCloneProjectScriptUrls([
+                podContainers: [],
+                jobName: 'test-job-name',
+                environment: 'foo-dev',
+        ])
+
+
+        def expected = [
+                'clone-project.sh': 'clone-project.sh?at=refs%2Fheads%2Fproduction',
+                'export-project.sh': 'export-project.sh?at=refs%2Fheads%2Fproduction',
+                'import-project.sh': 'import-project.sh?at=refs%2Fheads%2Fproduction',
+        ]
+        assertEquals(['clone-project.sh', 'import-project.sh', 'export-project.sh'].toSet(), m.keySet())
+        for (e in expected) {
+            assertScript(m, e.key, "${bbBaseUrl}/${e.value}")
+            print "${bbBaseUrl}/${e.value}\n"
+        }
+    }
+
+    void testCloneProjectScriptUrlsAtBranch() {
+        def m = getCloneProjectScriptUrls([
+                podContainers: [],
+                environment: 'foo-dev',
+                cloneProjectScriptBranch: 'fix/gh318-test',
+        ])
+        def expected = [
+                'clone-project.sh': 'clone-project.sh?at=refs%2Fheads%2Ffix%2Fgh318-test',
+                'export-project.sh': 'export-project.sh?at=refs%2Fheads%2Ffix%2Fgh318-test',
+                'import-project.sh': 'import-project.sh?at=refs%2Fheads%2Ffix%2Fgh318-test',
+        ]
+        assertEquals(['clone-project.sh', 'import-project.sh', 'export-project.sh'].toSet(), m.keySet())
+        for (e in expected) {
+            assertScript(m, e.key, "${bbBaseUrl}/${e.value}")
+        }
+    }
+
+    Map<String,String> getCloneProjectScriptUrls(config) {
+        def uut = new OdsContext(script, config, logger)
+        uut.assemble()
+        return uut.getCloneProjectScriptUrls()
+    }
+
+    private assertScript(Map<String, String> m, String script, String expectedUrl) {
+        def url = m[script]
+        assertEquals(expectedUrl, url)
+        assertTrue('script name should be some as in url', url.contains(script))
+        print "${url}\n"  // for manual opening links
+    }
 }
