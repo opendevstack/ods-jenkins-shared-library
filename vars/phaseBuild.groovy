@@ -30,7 +30,14 @@ def call(Map project, List<Set<Map>> repos) {
         levaDoc.createDTP(project)
     }
 
-    def groups = util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.BUILD, repos, null) { steps, repo ->
+    def preExecute = { steps, repo -> 
+        if (LeVaDocumentUseCase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SDS, repo)) {
+            echo "Creating and archiving a Software Design Specification for repo '${repo.id}'"
+            levaDoc.createSDS(project, repo)
+        }
+    }
+
+    def postExecute = { steps, repo ->
         // Software Development (Coding and Code Review) Report
         if (LeVaDocumentUseCase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)) {
             def sqReportsPath = "sonarqube/${repo.id}"
@@ -78,10 +85,10 @@ def call(Map project, List<Set<Map>> repos) {
         }
     }
 
-    // Execute phase for groups of independent repos
-    groups.each { group ->
-        parallel(group)
-    }
+    util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.BUILD, repos, preExecute, postExecute)
+        .each { group ->
+            parallel(group)
+        }
 
     if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)) {
         echo "Creating and archiving an overall Software Development (Coding and Code Review) Report for project '${project.id}'"
@@ -91,6 +98,11 @@ def call(Map project, List<Set<Map>> repos) {
     if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)) {
         echo "Creating and archiving an overall Software Development Testing Report for project '${project.id}'"
         levaDoc.createOverallDTR(project)
+    }
+
+    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SDS, project)) {
+        echo "Creating and archiving an overall Software Design Specification for project '${project.id}'"
+        levaDoc.createOverallSDS(project)
     }
 }
 

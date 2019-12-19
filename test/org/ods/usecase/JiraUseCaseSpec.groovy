@@ -94,26 +94,20 @@ class JiraUseCaseSpec extends SpecHelper {
         def project = createProject()
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype = Test AND labels = AutomatedTest"
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('AutomatedTest')",
+            expand: [ "renderedFields" ],
+            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
-        def testIssues = createJiraIssues()[0..2]
-        def relatedIssues = createJiraIssues()[3..4]
+
+        def issues = createJiraIssues()
 
         when:
         usecase.getAutomatedTestIssues(project.id)
 
         then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> testIssues
+        1 * jira.getIssuesForJQLQuery(jqlQuery)
 
-        then:
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('${testIssues[0].key}', 'is related to')" ]) >> [relatedIssues[0]]
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('${testIssues[1].key}', 'is related to')" ]) >> [relatedIssues[0]]
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('${testIssues[2].key}', 'is related to')" ]) >> [relatedIssues[1]]
-
-        then:
-        testIssues[0].isRelatedTo == [relatedIssues[0]]
-        testIssues[1].isRelatedTo == [relatedIssues[0]]
-        testIssues[2].isRelatedTo == [relatedIssues[1]]
+        // TODO: test that we expect a specific relation type to an Epic or a Story
     }
 
     def "get automated test issues with componentName"() {
@@ -126,21 +120,39 @@ class JiraUseCaseSpec extends SpecHelper {
         def componentName = "myComponent"
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype = Test AND labels = AutomatedTest AND component = '${componentName}'"
+            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('Test') AND labels in ('AutomatedTest')",
+            expand: [ "renderedFields" ],
+            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
-        def testIssues = createJiraIssues()[0..2]
-        def relatedIssues = createJiraIssues()[3..4]
 
         when:
         usecase.getAutomatedTestIssues(project.id, componentName)
 
         then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> testIssues
+        1 * jira.getIssuesForJQLQuery(jqlQuery)
+    }
+
+    def "get automated test issues with labelsSelector"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def jira = Mock(JiraService)
+        def usecase = createUseCase(steps, jira)
+
+        def project = createProject()
+        def componentName = "myComponent"
+        def labelsSelector = ["UnitTest"]
+
+        def jqlQuery = [
+            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('Test') AND labels in ('UnitTest', 'AutomatedTest')",
+            expand: [ "renderedFields" ],
+            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
+        ]
+
+        when:
+        usecase.getAutomatedTestIssues(project.id, componentName, labelsSelector)
 
         then:
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('${testIssues[0].key}', 'is related to')" ]) >> [] // don't care
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('${testIssues[1].key}', 'is related to')" ]) >> [] // don't care
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('${testIssues[2].key}', 'is related to')" ]) >> [] // don't care
+        1 * jira.getIssuesForJQLQuery(jqlQuery)
     }
 
     def "get document chapter data"() {
@@ -277,7 +289,7 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
     }
 
-    def "get issues for component"() {
+    def "get issues for project"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
@@ -291,13 +303,13 @@ class JiraUseCaseSpec extends SpecHelper {
             fields: ["components", "description", "issuelinks", "issuetype", "summary"]
         ]
 
-        def issues1 = createJiraIssuesWithComponents()
-        issues1.find{ it.key == "JIRA-1" }.fields.issuetype = [
+        def issues1 = createJiraIssues()
+        issues1[0].fields.issuetype = [
             name: "Epic"
         ]
 
         def jqlQuery2 = [
-            jql: "key in (JIRA-100, JIRA-101, JIRA-200, JIRA-201)",
+            jql: "key in (JIRA-100, JIRA-101, JIRA-200)",
             expand: ["renderedFields"],
             fields: ["description"]
         ]
@@ -305,12 +317,11 @@ class JiraUseCaseSpec extends SpecHelper {
         def issues2 = [
             createJiraIssue("100"),
             createJiraIssue("101"),
-            createJiraIssue("200"),
-            createJiraIssue("201")
+            createJiraIssue("200")
         ]
 
         when:
-        def components = usecase.getIssuesForComponent(project.id)
+        def components = usecase.getIssuesForProject(project.id)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery1) >> issues1
@@ -328,8 +339,8 @@ class JiraUseCaseSpec extends SpecHelper {
                 "myComponentC"
             ],
             issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", null, createJiraIssue("100"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("101")))
+                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("100"))),
+                usecase.toSimpleIssueLink(createJiraIssueLink("2", createJiraIssue("101")))
             ],
             issues: [],
             issuetype: [
@@ -343,8 +354,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 "myComponentB"
             ],
             issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("201")))
+                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200")))
             ],
             issuetype: [
                 name: "Story"
@@ -381,7 +391,7 @@ class JiraUseCaseSpec extends SpecHelper {
         components["undefined"] == [ issue4 ]
     }
 
-    def "get issues for component with componentName"() {
+    def "get issues for project with componentName"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
@@ -390,20 +400,20 @@ class JiraUseCaseSpec extends SpecHelper {
         def project = createProject()
         def componentName = "myComponent"
 
-        def jqlQuery1 = [
+        def jqlQuery = [
             jql: "project = ${project.id} AND component = '${componentName}'",
             expand: ["renderedFields"],
             fields: ["components", "description", "issuelinks", "issuetype", "summary"]
         ]
 
         when:
-        usecase.getIssuesForComponent(project.id, componentName)
+        usecase.getIssuesForProject(project.id, componentName)
 
         then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery1) >> [] // don't care
+        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
     }
 
-    def "get issues for component with componentIssueTypesSelector"() {
+    def "get issues for project with issueTypesSelector"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
@@ -411,22 +421,22 @@ class JiraUseCaseSpec extends SpecHelper {
 
         def project = createProject()
         def componentName = "myComponent"
-        def componentIssueTypesSelector = ["myIssueType-1", "myIssueType-2"]
+        def issueTypesSelector = ["myIssueType-1", "myIssueType-2"]
 
-        def jqlQuery1 = [
-            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${componentIssueTypesSelector[0]}', '${componentIssueTypesSelector[1]}')",
+        def jqlQuery = [
+            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}', '${issueTypesSelector[1]}')",
             expand: ["renderedFields"],
             fields: ["components", "description", "issuelinks", "issuetype", "summary"]
         ]
 
         when:
-        usecase.getIssuesForComponent(project.id, componentName, componentIssueTypesSelector)
+        usecase.getIssuesForProject(project.id, componentName, issueTypesSelector)
 
         then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery1) >> [] // don't care
+        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
     }
 
-    def "get issues for component with componentIssueTypesSelector including Epic"() {
+    def "get issues for project with issueTypesSelector including Epic"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
@@ -434,15 +444,15 @@ class JiraUseCaseSpec extends SpecHelper {
 
         def project = createProject()
         def componentName = "myComponent"
-        def componentIssueTypesSelector = ["Epic"]
+        def issueTypesSelector = ["Epic"]
 
         def jqlQuery1 = [
-            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${componentIssueTypesSelector[0]}')",
+            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}')",
             expand: ["renderedFields"],
             fields: ["components", "description", "issuelinks", "issuetype", "summary"]
         ]
 
-        def issues1 = createJiraIssuesWithComponents()
+        def issues1 = createJiraIssues()
         issues1.find{ it.key == "JIRA-1" }.fields.issuetype = [
             name: "Epic"
         ]
@@ -456,124 +466,7 @@ class JiraUseCaseSpec extends SpecHelper {
         def epicLinkField = createJiraField("customfield_001", "Epic Link")
 
         def jqlQuery2 = [
-            jql: "'Epic Link' in (JIRA-1, JIRA-2, JIRA-3)",
-            expand: ["renderedFields"],
-            fields: [epicLinkField.id, "description", "summary"]
-        ]
-
-        def issues2 = [ createJiraIssue("10"), createJiraIssue("20") ]
-        issues2[0].fields[epicLinkField.id] = "JIRA-1"
-        issues2[1].fields[epicLinkField.id] = "JIRA-2"
-
-        def jqlQuery3 = [
-            jql: "key in (JIRA-100, JIRA-101, JIRA-200, JIRA-201)",
-            expand: ["renderedFields"],
-            fields: ["description"]
-        ]
-
-        def issues3 = [
-            createJiraIssue("100"),
-            createJiraIssue("101"),
-            createJiraIssue("200"),
-            createJiraIssue("201")
-        ]
-
-        when:
-        def components = usecase.getIssuesForComponent(project.id, componentName, componentIssueTypesSelector)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery1) >> issues1
-
-        then:
-        1 * jira.getFields() >> [epicLinkField]
-        1 * jira.getIssuesForJQLQuery(jqlQuery2) >> issues2
-        1 * jira.getIssuesForJQLQuery(jqlQuery3) >> issues3
-
-        then:
-        def issue1 = usecase.toSimpleIssue(createJiraIssue("1"), [
-            components: [
-                "myComponentA",
-                "myComponentB",
-                "myComponentC"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", null, createJiraIssue("100"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("101")))
-            ],
-            issues: [ usecase.toSimpleIssue(issues2[0]) ],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        def issue2 = usecase.toSimpleIssue(createJiraIssue("2"), [
-            components: [
-                "myComponentA",
-                "myComponentB"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("201")))
-            ],
-            issues: [ usecase.toSimpleIssue(issues2[1]) ],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        def issue3 = usecase.toSimpleIssue(createJiraIssue("3"), [
-            components: [
-                "myComponentA"
-            ],
-            issuelinks: [],
-            issues: [],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        components["myComponentA"].size == 3
-        components["myComponentA"] == [ issue1, issue2, issue3 ]
-
-        components["myComponentB"].size == 2
-        components["myComponentB"] == [ issue1, issue2 ]
-
-        components["myComponentC"].size == 1
-        components["myComponentC"] == [ issue1 ]
-    }
-
-    def "get issues for component with epicIssueTypesSelector"() {
-        given:
-        def steps = Spy(util.PipelineSteps)
-        def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
-
-        def project = createProject()
-        def componentName = "myComponent"
-        def componentIssueTypesSelector = ["Epic"]
-        def epicIssueTypesSelector = ["Story"]
-
-        def jqlQuery1 = [
-            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${componentIssueTypesSelector[0]}')",
-            expand: ["renderedFields"],
-            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
-        ]
-
-        def issues1 = createJiraIssuesWithComponents()
-        issues1.find{ it.key == "JIRA-1" }.fields.issuetype = [
-            name: "Epic"
-        ]
-        issues1.find{ it.key == "JIRA-2" }.fields.issuetype = [
-            name: "Epic"
-        ]
-        issues1.find{ it.key == "JIRA-3" }.fields.issuetype = [
-            name: "Epic"
-        ]
-
-        def epicLinkField = createJiraField("customfield_001", "Epic Link")
-
-        def jqlQuery2 = [
-            jql: "'Epic Link' in (JIRA-1, JIRA-2, JIRA-3) AND issuetype in ('${epicIssueTypesSelector[0]}')",
+            jql: "'Epic Link' in (JIRA-1, JIRA-2, JIRA-3) AND issuetype in ('Story')",
             expand: ["renderedFields"],
             fields: [epicLinkField.id, "description", "summary"]
         ]
@@ -585,7 +478,7 @@ class JiraUseCaseSpec extends SpecHelper {
         issues2[1].fields.issuetype = [ name: "Story" ]
 
         def jqlQuery3 = [
-            jql: "key in (JIRA-100, JIRA-101, JIRA-200, JIRA-201)",
+            jql: "key in (JIRA-100, JIRA-101, JIRA-200)",
             expand: ["renderedFields"],
             fields: ["description"]
         ]
@@ -593,12 +486,11 @@ class JiraUseCaseSpec extends SpecHelper {
         def issues3 = [
             createJiraIssue("100"),
             createJiraIssue("101"),
-            createJiraIssue("200"),
-            createJiraIssue("201")
+            createJiraIssue("200")
         ]
 
         when:
-        def components = usecase.getIssuesForComponent(project.id, componentName, componentIssueTypesSelector, epicIssueTypesSelector)
+        def components = usecase.getIssuesForProject(project.id, componentName, issueTypesSelector)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery1) >> issues1
@@ -614,8 +506,8 @@ class JiraUseCaseSpec extends SpecHelper {
                 "myComponentC"
             ],
             issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", null, createJiraIssue("100"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("101")))
+                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("100"))),
+                usecase.toSimpleIssueLink(createJiraIssueLink("2", createJiraIssue("101")))
             ],
             issues: [usecase.toSimpleIssue(issues2[0])],
             issuetype: [
@@ -629,8 +521,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 "myComponentB"
             ],
             issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("201")))
+                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200")))
             ],
             issues: [usecase.toSimpleIssue(issues2[1])],
             issuetype: [
@@ -659,7 +550,31 @@ class JiraUseCaseSpec extends SpecHelper {
         components["myComponentC"] == [ issue1 ]
     }
 
-    def "get issues for component with issueLinkFilter"() {
+    def "get issues for project with labelsSelector"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def jira = Mock(JiraService)
+        def usecase = createUseCase(steps, jira)
+
+        def project = createProject()
+        def componentName = "myComponent"
+        def issueTypesSelector = ["Story"]
+        def labelsSelector = ["myLabel1", "myLabel2"]
+
+        def jqlQuery = [
+            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}') AND labels in ('${labelsSelector[0]}', '${labelsSelector[1]}')",
+            expand: ["renderedFields"],
+            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
+        ]
+
+        when:
+        def components = usecase.getIssuesForProject(project.id, componentName, issueTypesSelector, labelsSelector)
+
+        then:
+        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
+    }
+
+    def "get issues for project with issueLinkFilter"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
@@ -671,8 +586,8 @@ class JiraUseCaseSpec extends SpecHelper {
             return issuelink.type.relation == "relates to"
         }
 
-        def issues1 = createJiraIssuesWithComponents()
-        issues1.find{ it.key == "JIRA-1" }.fields.issuetype = [
+        def issues1 = createJiraIssues()
+        issues1[0].fields.issuetype = [
             name: "Epic"
         ]
 
@@ -681,12 +596,11 @@ class JiraUseCaseSpec extends SpecHelper {
         def issues2 = [
             createJiraIssue("100"),
             createJiraIssue("101"),
-            createJiraIssue("200"),
-            createJiraIssue("201")
+            createJiraIssue("200")
         ]
 
         when:
-        def components = usecase.getIssuesForComponent(project.id, componentName, [], [], false, issueLinkFilter)
+        def components = usecase.getIssuesForProject(project.id, componentName, [], [], false, issueLinkFilter)
 
         then:
         1 * jira.getIssuesForJQLQuery(_) >> issues1
@@ -702,8 +616,8 @@ class JiraUseCaseSpec extends SpecHelper {
                 "myComponentC"
             ],
             issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", null, createJiraIssue("100"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("101")))
+                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("100"))),
+                usecase.toSimpleIssueLink(createJiraIssueLink("2", createJiraIssue("101")))
             ],
             issues: [],
             issuetype: [
@@ -717,7 +631,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 "myComponentB"
             ],
             issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", null, createJiraIssue("201")))
+                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200")))
             ],
             issuetype: [
                 name: "Story"
@@ -734,7 +648,7 @@ class JiraUseCaseSpec extends SpecHelper {
         components["myComponentC"] == [ issue1 ]
     }
 
-    def "get issues for component with throwOnMissingLinks"() {
+    def "get issues for project with throwOnMissingLinks"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def jira = Mock(JiraService)
@@ -743,10 +657,10 @@ class JiraUseCaseSpec extends SpecHelper {
         def project = createProject()
         def componentName = "myComponent"
 
-        def issues = createJiraIssuesWithComponents()
+        def issues = createJiraIssues()
 
         when:
-        usecase.getIssuesForComponent(project.id, componentName, [], [], true)
+        usecase.getIssuesForProject(project.id, componentName, [], [], true)
 
         then:
         1 * jira.getIssuesForJQLQuery(_) >> issues
@@ -754,41 +668,6 @@ class JiraUseCaseSpec extends SpecHelper {
         then:
         def e = thrown(RuntimeException)
         e.message == "Error: links are missing for issues: JIRA-3, JIRA-4."
-    }
-
-    def "get linked issues for issue"() {
-        given:
-        def steps = Spy(util.PipelineSteps)
-        def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
-
-        def issueKey = "0815"
-
-        def jqlQuery = [ jql: "issue in linkedIssues('${issueKey}')" ]
-
-        when:
-        usecase.getLinkedIssuesForIssue(issueKey)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
-    }
-
-    def "get linked issues for issue with relation type"() {
-        given:
-        def steps = Spy(util.PipelineSteps)
-        def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
-
-        def issueKey = "0815"
-        def relationType = "is related to"
-
-        def jqlQuery = [ jql: "issue in linkedIssues('${issueKey}', '${relationType}')" ]
-
-        when:
-        usecase.getLinkedIssuesForIssue(issueKey, relationType)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
     }
 
     def "label test issues with test results"() {
@@ -936,7 +815,14 @@ class JiraUseCaseSpec extends SpecHelper {
         def componentName = "myComponent"
         def testResults = createTestResults()
 
+        def jqlQuery = [
+            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('Test') AND labels in ('AutomatedTest')",
+            expand: [ "renderedFields" ],
+            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
+        ]
+
         def testIssues = createJiraTestIssues()
+        def testIssuesLinkedIssueKeys = testIssues.collect{ it.fields.issuelinks[0].outwardIssue.key }
         def error = createTestResultErrors().first()
         def errorBug = [ key: "JIRA-BUG-1" ]
         def failure = createTestResultFailures().first()
@@ -946,14 +832,10 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.reportTestResultsForComponent(project.id, componentName, testResults)
 
         then:
-        1 * jira.getIssuesForJQLQuery([ jql: "project = ${project.id} AND issuetype = Test AND labels = AutomatedTest AND component = '${componentName}'" ]) >> testIssues
+        1 * jira.getIssuesForJQLQuery(jqlQuery) >> testIssues
 
         then:
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('JIRA-1', 'is related to')" ]) >> [] // don't care
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('JIRA-2', 'is related to')" ]) >> [] // don't care
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('JIRA-3', 'is related to')" ]) >> [] // don't care
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('JIRA-4', 'is related to')" ]) >> [] // don't care
-        1 * jira.getIssuesForJQLQuery([ jql: "issue in linkedIssues('JIRA-5', 'is related to')" ]) >> [] // don't care
+        1 * jira.getIssuesForJQLQuery([ jql: "key in (${testIssuesLinkedIssueKeys.join(', ')})", expand: ["renderedFields"], fields: ["description"] ]) >> testIssues[0..1]
 
         then:
         1 * jira.removeLabelsFromIssue("1", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })

@@ -28,6 +28,7 @@ class LeVaDocumentUseCase {
         static final String FS = "FS"
         static final String SCP = "SCP"
         static final String SCR = "SCR"
+        static final String SDS = "SDS"
         static final String TIP = "TIP"
         static final String TIR = "TIR"
         static final String URS = "URS"
@@ -44,6 +45,7 @@ class LeVaDocumentUseCase {
         (DocumentTypes.FS): "Functional Specification",
         (DocumentTypes.SCP): "Software Development (Coding and Code Review) Plan",
         (DocumentTypes.SCR): "Software Development (Coding and Code Review) Report",
+        (DocumentTypes.SDS): "Software Design Specification",
         (DocumentTypes.TIP): "Technical Installation Plan",
         (DocumentTypes.TIR): "Technical Installation Report",
         (DocumentTypes.URS): "User Requirements Specification"
@@ -75,6 +77,7 @@ class LeVaDocumentUseCase {
         if (documentType == LeVaDocumentUseCase.DocumentTypes.CS
          || documentType == LeVaDocumentUseCase.DocumentTypes.DSD
          || documentType == LeVaDocumentUseCase.DocumentTypes.FS
+         || documentType == LeVaDocumentUseCase.DocumentTypes.SDS
          || documentType == LeVaDocumentUseCase.DocumentTypes.URS) {
             // approve creation of document iff Jira has been configured
             return project.services?.jira != null
@@ -120,8 +123,9 @@ class LeVaDocumentUseCase {
             return repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
         } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
             return repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        // approve creation of a TIR for all repo types
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
+        // approve creation specific documents for all repo types
+        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SDS
+                || documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
             return true
         }
 
@@ -193,7 +197,7 @@ class LeVaDocumentUseCase {
         }
 
         // Configurable Items
-        def configurableItems = this.jira.getIssuesForComponent(project.id, "${documentType}:Configurable Items", ["Configuration Specification Task"], [], false) { issuelink ->
+        def configurableItems = this.jira.getIssuesForProject(project.id, "${documentType}:Configurable Items", ["Configuration Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }.findAll { it.key != "${documentType}:Configurable Items" }
 
@@ -227,7 +231,7 @@ class LeVaDocumentUseCase {
         }
 
         // Interfaces
-        def interfaces = this.jira.getIssuesForComponent(project.id, "${documentType}:Interfaces", ["Configuration Specification Task"], [], false) { issuelink ->
+        def interfaces = this.jira.getIssuesForProject(project.id, "${documentType}:Interfaces", ["Configuration Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }
 
@@ -352,7 +356,7 @@ class LeVaDocumentUseCase {
         }
 
         // A mapping of component names to issues
-        def specifications = this.jira.getIssuesForComponent(project.id, null, ["System Design Specification Task"], [], false) { issuelink ->
+        def specifications = this.jira.getIssuesForProject(project.id, null, ["System Design Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }
 
@@ -456,12 +460,13 @@ class LeVaDocumentUseCase {
                 project: project,
                 sections: sections,
                 tests: this.jira.getAutomatedTestIssues(project.id).collectEntries { issue ->
+                    this.steps.echo("??? issue: ${issue}")
                     [
                         issue.key,
                         [
                             key: issue.key,
-                            description: issue.fields.description ?: "",
-                            isRelatedTo: issue.isRelatedTo ? issue.isRelatedTo.first().key : "N/A"
+                            description: issue.description ?: "",
+                            isRelatedTo: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A"
                         ]
                     ]
                 }
@@ -512,8 +517,8 @@ class LeVaDocumentUseCase {
                         issue.key,
                         [
                             key: issue.key,
-                            description: issue.fields.description ?: "",
-                            isRelatedTo: issue.isRelatedTo ? issue.isRelatedTo.first().key : "N/A",
+                            description: issue.description ?: "",
+                            isRelatedTo: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A",
                             success: issue.isSuccess ? "Y" : "N",
                             remarks: issue.isMissing ? "not executed" : ""
                         ]
@@ -559,7 +564,7 @@ class LeVaDocumentUseCase {
         }
 
         // Constraints
-        def constraints = this.jira.getIssuesForComponent(project.id, "${documentType}:Constraints", ["Functional Specification Task"], [], false) { issuelink ->
+        def constraints = this.jira.getIssuesForProject(project.id, "${documentType}:Constraints", ["Functional Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }
 
@@ -580,7 +585,7 @@ class LeVaDocumentUseCase {
         }
 
         // Data
-        def data = this.jira.getIssuesForComponent(project.id, "${documentType}:Data", ["Functional Specification Task"], [], false) { issuelink ->
+        def data = this.jira.getIssuesForProject(project.id, "${documentType}:Data", ["Functional Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }
 
@@ -601,7 +606,7 @@ class LeVaDocumentUseCase {
         }
 
         // Function
-        def functions = this.jira.getIssuesForComponent(project.id, "${documentType}:Function", ["Functional Specification Task"], [], false) { issuelink ->
+        def functions = this.jira.getIssuesForProject(project.id, "${documentType}:Function", ["Functional Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }.findAll { it.key != "${documentType}:Function" }
 
@@ -629,7 +634,7 @@ class LeVaDocumentUseCase {
         }
 
         // Interfaces
-        def interfaces = this.jira.getIssuesForComponent(project.id, "${documentType}:Interfaces", ["Functional Specification Task"], [], false) { issuelink ->
+        def interfaces = this.jira.getIssuesForProject(project.id, "${documentType}:Interfaces", ["Functional Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }
 
@@ -650,7 +655,7 @@ class LeVaDocumentUseCase {
         }
 
         // Operational Environment
-        def environment = this.jira.getIssuesForComponent(project.id, "${documentType}:Operational Environment", ["Functional Specification Task"], [], false) { issuelink ->
+        def environment = this.jira.getIssuesForProject(project.id, "${documentType}:Operational Environment", ["Functional Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }
 
@@ -671,7 +676,7 @@ class LeVaDocumentUseCase {
         }
 
         // Roles
-        def roles = this.jira.getIssuesForComponent(project.id, "${documentType}:Roles", ["Functional Specification Task"], [], false) { issuelink ->
+        def roles = this.jira.getIssuesForProject(project.id, "${documentType}:Roles", ["Functional Specification Task"], [], false) { issuelink ->
             return (issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")) || (issuelink.type.relation == "is detailed by" && (issuelink.issue.issuetype.name == "Functional Specification Task"))
         }
 
@@ -795,6 +800,37 @@ class LeVaDocumentUseCase {
         return createOverallDocument(DocumentTypes.OVERALL_COVER, DocumentTypes.SCR, project)
     }
 
+    String createSDS(Map project, Map repo) {
+        def documentType = DocumentTypes.SDS
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        def data = [
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project, repo),
+            data: [
+                repo: repo,
+                sections: sections
+            ]
+        ]
+
+        def modifier = { document ->
+            repo.data.documents[documentType] = document
+            return document
+        }
+
+        return createDocument(
+            [steps: this.steps, docGen: this.docGen, jira: this.jira, nexus: this.nexus, pdf: this.pdf, util: this.util],
+            documentType, project, repo, data, [:], modifier, null
+        )
+    }
+
+    String createOverallSDS(Map project) {
+        return createOverallDocument(DocumentTypes.OVERALL_COVER, DocumentTypes.SDS, project)
+    }
+
     String createTIP(Map project) {
         def documentType = DocumentTypes.TIP
 
@@ -883,7 +919,7 @@ class LeVaDocumentUseCase {
         }
 
         // Availability
-        def availability = this.jira.getIssuesForComponent(project.id, "${documentType}:Availability", ["Epic"], ["Story"])
+        def availability = this.jira.getIssuesForProject(project.id, "${documentType}:Availability", ["Epic"])
 
         if (!sections."sec3s3s2") {
             sections."sec3s3s2" = [:]
@@ -905,7 +941,7 @@ class LeVaDocumentUseCase {
         }
 
         // Compatibility
-        def compatibility = this.jira.getIssuesForComponent(project.id, "${documentType}:Compatibility", ["Epic"], ["Story"])
+        def compatibility = this.jira.getIssuesForProject(project.id, "${documentType}:Compatibility", ["Epic"])
 
         if (!sections."sec4s1") {
             sections."sec4s1" = [:]
@@ -927,7 +963,7 @@ class LeVaDocumentUseCase {
         }
 
         // Interfaces
-        def interfaces = this.jira.getIssuesForComponent(project.id, "${documentType}:Interfaces", ["Epic"], ["Story"])
+        def interfaces = this.jira.getIssuesForProject(project.id, "${documentType}:Interfaces", ["Epic"])
 
         if (!sections."sec3s4") {
             sections."sec3s4" = [:]
@@ -949,7 +985,7 @@ class LeVaDocumentUseCase {
         }
 
         // Operational
-        def operational = this.jira.getIssuesForComponent(project.id, "${documentType}:Operational", ["Epic"], ["Story"])
+        def operational = this.jira.getIssuesForProject(project.id, "${documentType}:Operational", ["Epic"])
             .findAll { it.key != "${documentType}:Operational" }
 
         if (!sections."sec3s2") {
@@ -985,7 +1021,7 @@ class LeVaDocumentUseCase {
         }
 
         // Operational Environment
-        def environment = this.jira.getIssuesForComponent(project.id, "${documentType}:Operational Environment", ["Epic"], ["Story"])
+        def environment = this.jira.getIssuesForProject(project.id, "${documentType}:Operational Environment", ["Epic"])
 
         if (!sections."sec3s5") {
             sections."sec3s5" = [:]
@@ -1007,7 +1043,7 @@ class LeVaDocumentUseCase {
         }
 
         // Performance
-        def performance = this.jira.getIssuesForComponent(project.id, "${documentType}:Performance", ["Epic"], ["Story"])
+        def performance = this.jira.getIssuesForProject(project.id, "${documentType}:Performance", ["Epic"])
 
         if (!sections."sec3s3s1") {
             sections."sec3s3s1" = [:]
@@ -1029,7 +1065,7 @@ class LeVaDocumentUseCase {
         }
 
         // Procedural Constraints
-        def procedural = this.jira.getIssuesForComponent(project.id, "${documentType}:Procedural Constraints", ["Epic"], ["Story"])
+        def procedural = this.jira.getIssuesForProject(project.id, "${documentType}:Procedural Constraints", ["Epic"])
 
         if (!sections."sec4s2") {
             sections."sec4s2" = [:]

@@ -35,7 +35,7 @@ class FixtureHelper {
         return result
     }
 
-    static Map createJiraIssue(String id, String summary = null, String description = null) {
+    static Map createJiraIssue(String id, String issuetype = "Story", String summary = null, String description = null) {
         def result = [
             id: id,
             key: "JIRA-${id}",
@@ -46,31 +46,11 @@ class FixtureHelper {
         result.fields.summary = summary ?: "${id}-summary"
         result.fields.description = description ?: "${id}-description"
 
-        return result
-    }
-
-    static List createJiraIssues() {
-        def result = []
-
-        // Create some parents
-        def issue0815 = createJiraIssue("0815")
-        def issue4711 = createJiraIssue("4711")
-
-        // Create some children
-        def issue123 = createJiraIssue("123")
-        issue123.fields.parent = issue0815
-        result << issue123
-
-        def issue456 = createJiraIssue("456")
-        issue456.fields.parent = issue0815
-        result << issue456
-
-        def issue789 = createJiraIssue("789")
-        issue789.fields.parent = issue4711
-        result << issue789
-
-        result << issue0815
-        result << issue4711
+        result.fields.components = []
+        result.fields.issuelinks = []
+        result.fields.issuetype = [
+            name: issuetype
+        ]
 
         return result
     }
@@ -80,8 +60,8 @@ class FixtureHelper {
             id: id,
             type: [
                 name: "Relate",
-                inward: "is related to",
-                outward: "relates to"
+                inward: "relates to",
+                outward: "is related to"
             ],
             self: "http://${id}"
         ]
@@ -101,59 +81,42 @@ class FixtureHelper {
         return result
     }
 
-    static List createJiraIssuesWithComponents() {
+    static List createJiraIssues(def issuetype = "Story") {
         def result = []
 
-        // Create an issue belonging to 3 components and 2 outward links
-        def issue1 = createJiraIssue("1")
+        // Create an issue belonging to 3 components and 2 inward links
+        def issue1 = createJiraIssue("1", issuetype)
         issue1.fields.components = [
             [ name: "myComponentA" ],
             [ name: "myComponentB" ],
             [ name: "myComponentC" ]
         ]
         issue1.fields.issuelinks = [
-            createJiraIssueLink("1", null, createJiraIssue("100")),
-            createJiraIssueLink("2", null, createJiraIssue("101"))
-        ]
-        issue1.fields.issuetype = [
-            name: "Story"
+            createJiraIssueLink("1", createJiraIssue("100")),
+            createJiraIssueLink("2", createJiraIssue("101"))
         ]
         result << issue1
 
-        // Create an issue belonging to 2 components and 1 outward link
-        def issue2 = createJiraIssue("2")
+        // Create an issue belonging to 2 components and 1 outward links
+        def issue2 = createJiraIssue("2", issuetype)
         issue2.fields.components = [
             [ name: "myComponentA" ],
             [ name: "myComponentB" ]
         ]
         issue2.fields.issuelinks = [
-            createJiraIssueLink("1", createJiraIssue("200")),
-            createJiraIssueLink("2", null, createJiraIssue("201")),
-        ]
-        issue2.fields.issuetype = [
-            name: "Story"
+            createJiraIssueLink("1", createJiraIssue("200"))
         ]
         result << issue2
 
         // Create an issue belonging to 1 component and 0 outward links
-        def issue3 = createJiraIssue("3")
+        def issue3 = createJiraIssue("3", issuetype)
         issue3.fields.components = [
             [ name: "myComponentA" ]
-        ]
-        issue3.fields.issuelinks = []
-        issue3.fields.issuetype = [
-            name: "Story"
         ]
         result << issue3
 
         // Create an issue belonging to 0 components and 0 outward links
-        def issue4 = createJiraIssue("4")
-        issue4.fields.components = []
-        issue4.fields.issuelinks = []
-        issue4.fields.issuetype = [
-            name: "Story"
-        ]
-        result << issue4
+        result << createJiraIssue("4")
     }
 
     static List createJiraDocumentIssues() {
@@ -167,13 +130,33 @@ class FixtureHelper {
     }
 
     static List createJiraTestIssues() {
-        def result = []
+        def result = createJiraIssues("Test")
 
-        result << createJiraIssue("1", "my-testcase-1", "Test Case 1")
-        result << createJiraIssue("2", "my-testcase-2", "Test Case 2")
-        result << createJiraIssue("3", "my-testcase-3", "Test Case 3")
-        result << createJiraIssue("4", "my-testcase-4", "Test Case 4")
-        result << createJiraIssue("5", "my-testcase-5", "Test Case 5")
+        def issue1 = result[0]
+        issue1.fields.issuelinks = [
+            createJiraIssueLink("1", null, createJiraIssue("100"))
+        ]
+
+        def issue2 = result[1]
+        issue2.fields.issuelinks = [
+            createJiraIssueLink("1", null, createJiraIssue("200")),
+        ]
+
+        def issue3 = result[2]
+        issue3.fields.issuelinks = [
+            createJiraIssueLink("1", null, createJiraIssue("300"))
+        ]
+
+        def issue4 = result[3]
+        issue4.fields.issuelinks = [
+            createJiraIssueLink("1", null, createJiraIssue("400")),
+        ]
+
+        def issue5 = createJiraIssue("5", "Test")
+        issue5.fields.issuelinks = [
+            createJiraIssueLink("1", null, createJiraIssue("500")),
+        ]
+        result << issue5
 
         return result
     }

@@ -58,22 +58,12 @@ class JiraUseCase {
         }
     }
 
-    // TODO: replace by getIssuesForComponent (needs to support labels)
-    List getAutomatedTestIssues(String projectId, String componentName = null) {
+    List getAutomatedTestIssues(String projectId, String componentName = null, List<String> labelsSelector = []) {
         if (!this.jira) return []
 
-        def query = "project = ${projectId} AND issuetype = Test AND labels = AutomatedTest"
-        if (componentName) {
-            query += " AND component = '${componentName}'"
-        }
-
-        def jqlQuery = [
-            jql: query
-        ]
-
-        return this.jira.getIssuesForJQLQuery(jqlQuery).each { issue ->
-            issue.isRelatedTo = this.getLinkedIssuesForIssue(issue.key, "is related to") ?: []
-        }
+        return getIssuesForProject(projectId, componentName, ["Test"], labelsSelector << "AutomatedTest", false) { issuelink ->
+            return issuelink.type.relation == "is related to" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
+        }.values().flatten()
     }
 
     Map getDocumentChapterData(String projectId, String documentType) {
@@ -144,7 +134,7 @@ class JiraUseCase {
         return result
     }
 
-    Map getIssuesForComponent(String projectKey, String componentName = null, List<String> issueTypesSelector = [], List<String> epicIssueTypesSelector = [], boolean throwOnMissingLinks = false, Closure issueLinkFilter = null) {
+    Map getIssuesForProject(String projectKey, String componentName = null, List<String> issueTypesSelector = [], List<String> labelsSelector = [], boolean throwOnMissingLinks = false, Closure issueLinkFilter = null) {
         def result = [:]
         if (!this.jira) return result
 
@@ -157,6 +147,10 @@ class JiraUseCase {
 
         if (issueTypesSelector) {
             query += " AND issuetype in (" + issueTypesSelector.collect{"'${it}'"}.join(", ") +  ")"
+        }
+
+        if (labelsSelector) {
+            query += " AND labels in (" + labelsSelector.collect{"'${it}'"}.join(", ") +  ")"
         }
 
         def linkedIssuesKeys = [] as Set
@@ -203,7 +197,7 @@ class JiraUseCase {
         // Fetch the Epics' issues if applicable
         def issuesInEpics = [:]
         if (!issueTypeEpicKeys.isEmpty()) {
-            issuesInEpics = getIssuesForEpics(issueTypeEpicKeys, epicIssueTypesSelector)
+            issuesInEpics = getIssuesForEpics(issueTypeEpicKeys, ["Story"])
         }
 
         // Fetch the linked issues if applicable
@@ -255,24 +249,6 @@ class JiraUseCase {
         }
 
         return result
-    }
-
-    List getLinkedIssuesForIssue(String issueKey, String relationType = "") {
-        if (!this.jira) return []
-
-        def query = "issue in linkedIssues('${issueKey}'"
-
-        if (relationType.trim()) {
-            query += ", '${relationType}'"
-        }
-
-        query += ")"
-
-        def jqlQuery = [
-            jql: query
-        ]
-
-        return this.jira.getIssuesForJQLQuery(jqlQuery)
     }
 
     void labelTestIssuesWithTestResults(List jiraTestIssues, Map testResults) {
@@ -385,6 +361,7 @@ class JiraUseCase {
 
     static Map toSimpleIssue(Map issue, Map mixins = [:]) {
         def result = [
+            id: issue.id,
             key: issue.key,
             summary: issue.fields.summary
         ]
