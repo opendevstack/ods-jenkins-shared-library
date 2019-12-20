@@ -24,7 +24,7 @@ library identifier: 'ods-library@production', retriever: modernSCM(
    credentialsId: credentialsId])
 
 odsPipeline(
-  image: "${dockerRegistry}/cd/jenkins-slave-maven",
+  image: "${dockerRegistry}/cd/jenkins-slave-maven:latest",
   projectId: projectId,
   componentId: componentId,
   branchToEnvironmentMapping: [
@@ -165,17 +165,29 @@ When you write stages, you have access to both global variables (defined without
 | image
 | Container image to use for the Jenkins agent container. This value is not used when "podContainers" is set.
 
+| alwaysPullImage
+| Determine whether to always pull the container image before each build run. This value is not used when "podContainers" is set.
+
+| resourceRequestMemory
+| How much memory the container requests - defaults to 1Gi. This value is not used when "podContainers" is set.
+
+| resourceLimitMemory
+| Maximum memory the container can use - defaults to 2Gi. This value is not used when "podContainers" is set.
+
+| resourceRequestCpu
+| How much CPU the container requests - defaults to 10mi. This value is not used when "podContainers" is set.
+
+| resourceLimitCpu
+| Maximum CPU the container can use - defaults to 300mi. This value is not used when "podContainers" is set.
+
 | podLabel
 | Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds.
 
 | podContainers
-| Custom pod containers to use. By default, only one container is used, and it is configure automatically. If you need to run multiple containers (e.g. app and database), then you can configure the containers via this property.
+| Custom pod containers to use if the default, automatically configured container is not suitable for your use case (e.g. if you need multiple containers such as app and database). Please see https://github.com/jenkinsci/kubernetes-plugin#pod-and-container-template-configuration for more information.
 
 | podVolumes
 | Volumes to make available to the pod.
-
-| podAlwaysPullImage
-| Determine whether to always pull the container image before each build run.
 
 | podServiceAccount
 | Serviceaccount to use when running the pod.
@@ -277,7 +289,7 @@ When you write stages, you have access to both global variables (defined without
 == Slave customization
 
 The slave used to build your code can be customized by specifying the image to
-use. Further, `podAlwaysPullImage` (defaulting to `true`) can be used to
+use. Further, `alwaysPullImage` (defaulting to `true`) can be used to
 determine whether this image should be refreshed on each build. The setting
 `podVolumes` allows to mount persistent volume claims to the pod (the value is
 passed to the `podTemplate` call as `volumes`). To control the container pods
