@@ -53,6 +53,7 @@ class OdsContext implements Context {
       config.bitbucketUrl = "https://${config.bitbucketHost}"
     }
 
+    config.bitbucketToken = script.env.BITBUCKET_TOKEN
     config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label : 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
@@ -165,6 +166,15 @@ class OdsContext implements Context {
       config.podLabel = "pod-${UUID.randomUUID().toString()}"
     }
 
+    logger.debug "Reading ODS configuration ..."
+    def odsConfigFile = '/etc/opendevstack/config.json'
+    config.odsConfig = [:]
+    try {
+      config.odsConfig = script.readJSON(file: odsConfigFile)
+    } catch (Exception ex) {
+      logger.info "WARN: ODS configuration at ${odsConfigFile} could not be read. Error was: ${ex}"
+    }
+
     logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
     config.gitBranch = retrieveGitBranch()
@@ -193,6 +203,12 @@ class OdsContext implements Context {
       config.dockerDir = 'docker'
     }
 
+    if (!config.containsKey('analysePullRequestsWithSonarQube')) {
+      // If the Jenkinsfile author did not specify explicitly, we'll default to
+      // what can be derived from ODS configuration.
+      config.analysePullRequestsWithSonarQube = null
+    }
+
     logger.debug "Setting environment ..."
     determineEnvironment()
     if (config.environment) {
@@ -206,6 +222,10 @@ class OdsContext implements Context {
 
   boolean getDebug() {
       config.debug
+  }
+
+  def getOdsConfig() {
+    config.odsConfig
   }
 
   String getJobName() {
@@ -396,6 +416,10 @@ class OdsContext implements Context {
     config.bitbucketHost
   }
 
+  String getBitbucketToken() {
+      config.bitbucketToken
+  }
+
   int getOpenshiftBuildTimeout() {
       config.openshiftBuildTimeout
   }
@@ -405,11 +429,15 @@ class OdsContext implements Context {
   }
 
   boolean getCiSkipEnabled() {
-    return config.ciSkipEnabled
+    config.ciSkipEnabled
   }
 
   void setCiSkipEnabled(boolean ciSkipEnabled) {
     config.ciSkipEnabled = ciSkipEnabled
+  }
+
+  boolean getAnalysePullRequestsWithSonarQube() {
+    config.analysePullRequestsWithSonarQube
   }
 
   boolean getBitbucketNotificationEnabled() {
@@ -421,11 +449,11 @@ class OdsContext implements Context {
   }
 
   boolean getLocalCheckoutEnabled() {
-    return config.localCheckoutEnabled
+    config.localCheckoutEnabled
   }
 
   boolean getTestResults () {
-    return config.testResults
+    config.testResults
   }
 
   void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
@@ -433,7 +461,7 @@ class OdsContext implements Context {
   }
 
   boolean getDisplayNameUpdateEnabled() {
-    return config.displayNameUpdateEnabled
+    config.displayNameUpdateEnabled
   }
 
   void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {

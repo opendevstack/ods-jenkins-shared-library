@@ -293,6 +293,9 @@ When you write stages, you have access to both global variables (defined without
 
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
+
+| analysePullRequestsWithSonarQube
+| Whether to analyse PRs with SonarQube. If not set (which is the default), PR analysis is performed if the PR analysis feature is considered to be available in the SonarQube server, which is decided based on the SonarQube configuration file baked into the Jenkins agent base image. The PR analysis feature is only available in commercial distributions of SonarQube.
 |===
 
 == Slave customization

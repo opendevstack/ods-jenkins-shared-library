@@ -7,6 +7,9 @@ interface Context {
     // Get debug mode
     boolean getDebug()
 
+    // Get ODS configuration.
+    def getOdsConfig()
+
     // Get the location of the xmlunit results
     boolean getTestResults()
 
@@ -154,6 +157,9 @@ interface Context {
     // BitBucket host - value derived from getBitbucketUrl.
     String getBitbucketHost()
 
+    // BitBucket personal access token - value taken from BITBUCKET_TOKEN.
+    String getBitbucketToken()
+
     // Timeout for the OpenShift build of the container image in minutes.
     int getOpenshiftBuildTimeout()
 
@@ -168,6 +174,11 @@ interface Context {
 
     // Enable/disable CI skip is enabled
     void setCiSkipEnabled(boolean ciSkipEnabled)
+
+    // Whether to analyse PRs with SonarQube. Defaults to availability of PR
+    // analysis feature in SonarQube, which is decided based on the ODS
+    // configuration file baked into the Jenkins master image.
+    boolean getAnalysePullRequestsWithSonarQube()
 
     // Whether Bitbucket notification is enabled
     boolean getBitbucketNotificationEnabled()
