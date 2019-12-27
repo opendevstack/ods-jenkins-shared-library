@@ -566,7 +566,7 @@ class OdsContext implements Context {
   }
 
   Map<String, String> getCloneProjectScriptUrls() {
-    def scripts = ['clone-project.sh', 'import-project.sh',  'export-project.sh']
+    def scripts = ['clone-project-no-curl.sh', 'import-project.sh',  'export-project.sh']
     def m = [:]
     def branch = getCloneProjectScriptBranch().replace('/','%2F')
     for (script in scripts) {

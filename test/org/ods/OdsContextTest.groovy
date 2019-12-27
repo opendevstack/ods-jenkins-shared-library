@@ -144,11 +144,11 @@ class OdsContextTest extends GroovyTestCase {
 
 
         def expected = [
-                'clone-project.sh': 'clone-project.sh?at=refs%2Fheads%2Fproduction',
+                'clone-project-no-curl.sh': 'clone-project-no-curl.sh?at=refs%2Fheads%2Fproduction',
                 'export-project.sh': 'export-project.sh?at=refs%2Fheads%2Fproduction',
                 'import-project.sh': 'import-project.sh?at=refs%2Fheads%2Fproduction',
         ]
-        assertEquals(['clone-project.sh', 'import-project.sh', 'export-project.sh'].toSet(), m.keySet())
+        assertEquals(['clone-project-no-curl.sh', 'import-project.sh', 'export-project.sh'].toSet(), m.keySet())
         for (e in expected) {
             assertScript(m, e.key, "${bbBaseUrl}/${e.value}")
             print "${bbBaseUrl}/${e.value}\n"
@@ -162,11 +162,11 @@ class OdsContextTest extends GroovyTestCase {
                 cloneProjectScriptBranch: 'fix/gh318-test',
         ])
         def expected = [
-                'clone-project.sh': 'clone-project.sh?at=refs%2Fheads%2Ffix%2Fgh318-test',
+                'clone-project-no-curl.sh': 'clone-project-no-curl.sh?at=refs%2Fheads%2Ffix%2Fgh318-test',
                 'export-project.sh': 'export-project.sh?at=refs%2Fheads%2Ffix%2Fgh318-test',
                 'import-project.sh': 'import-project.sh?at=refs%2Fheads%2Ffix%2Fgh318-test',
         ]
-        assertEquals(['clone-project.sh', 'import-project.sh', 'export-project.sh'].toSet(), m.keySet())
+        assertEquals(['clone-project-no-curl.sh', 'import-project.sh', 'export-project.sh'].toSet(), m.keySet())
         for (e in expected) {
             assertScript(m, e.key, "${bbBaseUrl}/${e.value}")
         }

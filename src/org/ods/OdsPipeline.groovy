@@ -279,7 +279,7 @@ class OdsPipeline implements Serializable {
           debugMode = "--debug"
         }
         userPass = userPass.replace('@', '\\@')
-        script.sh(script: "sh clone-project.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -gb ${branchName} -t ${context.environment} ${debugMode}")
+        script.sh(script: "sh clone-project-no-curl.sh -o ${context.openshiftHost} -b ${context.bitbucketHost} -c ${userPass} -p ${context.projectId} -s ${context.cloneSourceEnv} -gb ${branchName} -t ${context.environment} ${debugMode}")
         logger.info 'Environment created!'
       }
     }
