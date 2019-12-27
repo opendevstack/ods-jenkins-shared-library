@@ -268,12 +268,11 @@ class OdsPipeline implements Serializable {
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
         def userPass = script.USERPASS.replace('$', '\'$\'')
         def branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
-        logger.info 'Calculated branch name: ${branchName}'
+        logger.info "Calculated branch name: ${branchName}"
         def scriptToUrls = context.getCloneProjectScriptUrls()
-        for ( e in scriptToUrls) {
-          def script = e.key
-          def url = e.value
-          script.sh(script: "curl --fail -s --user ${userPass} -G '${url}' -d raw -o '${script}'")
+        // NOTE: a for loop did not work here due to https://issues.jenkins-ci.org/browse/JENKINS-49732
+        scriptToUrls.each { scriptName, url ->
+          script.sh(script: "curl --fail -s --user ${userPass} -G '${url}' -d raw -o '${scriptName}'")
         }
         def debugMode = ""
         if (context.getDebug()) {
