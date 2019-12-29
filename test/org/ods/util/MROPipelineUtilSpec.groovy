@@ -970,6 +970,7 @@ class MROPipelineUtilSpec extends SpecHelper {
                     id: "A",
                     url: "https://github.com/my-org/my-repo-A.git",
                     branch: "master",
+                    type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
                     data: [
                         documents: [:]
                     ]
@@ -978,6 +979,7 @@ class MROPipelineUtilSpec extends SpecHelper {
                     id: "B",
                     url: "https://github.com/my-org/my-repo-B.git",
                     branch: "master",
+                    type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
                     data: [
                         documents: [:]
                     ]
@@ -986,6 +988,7 @@ class MROPipelineUtilSpec extends SpecHelper {
                     id: "C",
                     url: "https://github.com/my-org/myid-C.git",
                     branch: "master",
+                    type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
                     data: [
                         documents: [:]
                     ]

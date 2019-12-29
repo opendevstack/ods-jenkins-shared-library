@@ -19,8 +19,9 @@ class MROPipelineUtil extends PipelineUtil {
         // TODO: deprecate .pipeline-config.yml in favor of release-manager.yml
         static final List FILE_NAMES = ["release-manager.yml", ".pipeline-config.yml"]
 
-        static final String REPO_TYPE_ODS = "ods"
+        static final String REPO_TYPE_ODS_CODE = "ods"
         static final String REPO_TYPE_ODS_SERVICE = "ods-service"
+        static final String REPO_TYPE_ODS_TEST = "ods-test"
 
         static final String PHASE_EXECUTOR_TYPE_MAKEFILE = "Makefile"
         static final String PHASE_EXECUTOR_TYPE_SHELLSCRIPT = "ShellScript"
@@ -41,6 +42,7 @@ class MROPipelineUtil extends PipelineUtil {
         static final String BUILD = "Build"
         static final String DEPLOY = "Deploy"
         static final String FINALIZE = "Finalize"
+        static final String INIT = "Init"
         static final String RELEASE = "Release"
         static final String TEST = "Test"
 
@@ -87,6 +89,20 @@ class MROPipelineUtil extends PipelineUtil {
             this.steps.echo(e.message)
             hudson.Functions.printThrowable(e)
             throw e
+        }
+    }
+
+    private void executeODSComponent(Map repo, String baseDir) {
+        this.steps.dir(baseDir) {
+            def job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+
+            // Collect ODS build artifacts for repo
+            repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
+            this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+
+            if (repo.data.odsBuildArtifacts?.failedStage) {
+                throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
+            }
         }
     }
 
@@ -263,6 +279,11 @@ class MROPipelineUtil extends PipelineUtil {
             repo.data = [:]
             repo.data.documents = [:]
 
+            // Set repo type, if not provided
+            if (!repo.type?.trim()) {
+                repo.type = PipelineConfig.REPO_TYPE_ODS_CODE
+            }
+
             // Resolve repo URL, if not provided
             if (!repo.url?.trim()) {
                 this.steps.echo("Could not determine Git URL for repo '${repo.id}' from project meta data. Attempting to resolve automatically...")
@@ -345,24 +366,28 @@ class MROPipelineUtil extends PipelineUtil {
                         preExecute(this.steps, repo)
                     }
 
-                    if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS) {
-                        if (name == PipelinePhases.BUILD) {
-                            this.steps.stage('ODS') {
-                                this.steps.dir(baseDir) {
-                                    def job = loadGroovySourceFile("${baseDir}/Jenkinsfile")
-
-                                    // Collect ODS build artifacts for repo
-                                    repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
-                                    this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
-
-                                    if (repo.data.odsBuildArtifacts?.failedStage) {
-                                        throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
-                                    }
-                                }
+                    if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
+                        this.steps.stage('ODS Code Component') {
+                            if (name == PipelinePhases.BUILD) {
+                                executeODSComponent(repo, baseDir)
+                            } else {
+                                this.steps.echo("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}'")
                             }
-                        } else {
-                            this.steps.stage('ODS') {
-                                this.steps.echo("Repo '${repo.id}' is of type ODS Component. Nothing to do in phase '${name}'")
+                        }
+                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
+                        this.steps.stage('ODS Service Component') {
+                            if (name == PipelinePhases.BUILD) {
+                                executeODSComponent(repo, baseDir)
+                            } else {
+                                this.steps.echo("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}'")
+                            }
+                        }
+                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
+                        this.steps.stage('ODS Test Component') {
+                            if (name == PipelinePhases.TEST) {
+                                executeODSComponent(repo, baseDir)
+                            } else {
+                                this.steps.echo("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}'")
                             }
                         }
                     } else {

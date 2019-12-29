@@ -20,18 +20,20 @@ def call(Map project, List<Set<Map>> repos) {
     def sq      = ServiceRegistry.instance.get(SonarQubeUseCase.class.name)
     def util    = ServiceRegistry.instance.get(PipelineUtil.class.name)
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCP, project)) {
+    def phase = MROPipelineUtil.PipelinePhases.BUILD
+
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.SCP, phase)) {
         echo "Creating and archiving a Software Development (Coding and Code Review) Plan for project '${project.id}'"
         levaDoc.createSCP(project)
     }
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTP, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.DTP, phase)) {
         echo "Creating and archiving a Software Development Testing Plan for project '${project.id}'"
         levaDoc.createDTP(project)
     }
 
     def preExecute = { steps, repo -> 
-        if (LeVaDocumentUseCase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SDS, repo)) {
+        if (LeVaDocumentUseCase.appliesToRepo(repo, LeVaDocumentUseCase.DocumentTypes.SDS, phase)) {
             echo "Creating and archiving a Software Design Specification for repo '${repo.id}'"
             levaDoc.createSDS(project, repo)
         }
@@ -39,7 +41,7 @@ def call(Map project, List<Set<Map>> repos) {
 
     def postExecute = { steps, repo ->
         // Software Development (Coding and Code Review) Report
-        if (LeVaDocumentUseCase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)) {
+        if (LeVaDocumentUseCase.appliesToRepo(repo, LeVaDocumentUseCase.DocumentTypes.SCR, phase)) {
             def sqReportsPath = "sonarqube/${repo.id}"
 
             echo "Collecting SonarQube Report for repo '${repo.id}'"
@@ -60,7 +62,7 @@ def call(Map project, List<Set<Map>> repos) {
         }
 
         // Software Development Testing Report
-        if (LeVaDocumentUseCase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, repo)) {
+        if (LeVaDocumentUseCase.appliesToRepo(repo, LeVaDocumentUseCase.DocumentTypes.DTR, phase)) {
             def testReportsPath = "junit/${repo.id}"
 
             echo "Collecting JUnit XML Reports for ${repo.id}"
@@ -72,7 +74,7 @@ def call(Map project, List<Set<Map>> repos) {
             }
 
             // Load JUnit test report files from path
-            def testReportFiles = junit.loadTestReportsFromPath("${steps.env.WORKSPACE}/${testReportsPath}")
+            def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
 
             // Parse JUnit test report files into a report
             def testResults = junit.parseTestReportFiles(testReportFiles)
@@ -85,22 +87,18 @@ def call(Map project, List<Set<Map>> repos) {
         }
     }
 
-    util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.BUILD, repos, preExecute, postExecute)
+    // Execute phase for each repository
+    util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecute, postExecute)
         .each { group ->
             parallel(group)
         }
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)) {
-        echo "Creating and archiving an overall Software Development (Coding and Code Review) Report for project '${project.id}'"
-        levaDoc.createOverallSCR(project)
-    }
-
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.DTR, phase)) {
         echo "Creating and archiving an overall Software Development Testing Report for project '${project.id}'"
         levaDoc.createOverallDTR(project)
     }
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SDS, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.SDS, phase)) {
         echo "Creating and archiving an overall Software Design Specification for project '${project.id}'"
         levaDoc.createOverallSDS(project)
     }

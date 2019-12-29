@@ -7,6 +7,8 @@ def call(Map project, List<Set<Map>> repos) {
     def levaDoc = ServiceRegistry.instance.get(LeVaDocumentUseCase.class.name)
     def os      = ServiceRegistry.instance.get(OpenShiftService.class.name)
 
+    def phase = MROPipelineUtil.PipelinePhases.FINALIZE
+
     echo "Finalizing deployment of project '${project.id}' into environment '${env.MULTI_REPO_ENV}'"
 
     // Check if the target environment exists in OpenShift
@@ -19,7 +21,7 @@ def call(Map project, List<Set<Map>> repos) {
 
     echo "Project ${project}"
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.TIR, phase)) {
         echo "Creating and archiving an overall Technical Installation Report for project '${project.id}'"
         levaDoc.createOverallTIR(project)
     }

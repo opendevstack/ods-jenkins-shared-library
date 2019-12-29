@@ -7,22 +7,25 @@ def call(Map project, List<Set<Map>> repos) {
     def levaDoc = ServiceRegistry.instance.get(LeVaDocumentUseCase.class.name)
     def util    = ServiceRegistry.instance.get(PipelineUtil.class.name)
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIP, project)) {
+    def phase = MROPipelineUtil.PipelinePhases.DEPLOY
+
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.TIP, phase)) {
         echo "Creating and archiving a Technical Installation Plan for project '${project.id}'"
         levaDoc.createTIP(project)
     }
 
-    def groups = util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.DEPLOY, repos, null) { steps, repo ->
-        if (LeVaDocumentUseCase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, repo)) {
+    def postExecute = { steps, repo ->
+        if (LeVaDocumentUseCase.appliesToRepo(repo, LeVaDocumentUseCase.DocumentTypes.TIR, phase)) {
             echo "Creating and archiving a Technical Installation Report for repo '${repo.id}'"
             levaDoc.createTIR(project, repo)
         }
     }
 
-    // Execute phase for groups of independent repos
-    groups.each { group ->
-        parallel(group)
-    }
+    // Execute phase for each repository
+    util.prepareExecutePhaseForReposNamedJob(phase, repos, null, postExecute)
+        .each { group ->
+            parallel(group)
+        }
 }
 
 return this

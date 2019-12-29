@@ -73,60 +73,79 @@ class LeVaDocumentUseCase {
         this.pdf = pdf
     }
 
-    static boolean appliesToProject(String documentType, Map project) {
-        if (documentType == LeVaDocumentUseCase.DocumentTypes.CS
-         || documentType == LeVaDocumentUseCase.DocumentTypes.DSD
-         || documentType == LeVaDocumentUseCase.DocumentTypes.FS
-         || documentType == LeVaDocumentUseCase.DocumentTypes.SDS
-         || documentType == LeVaDocumentUseCase.DocumentTypes.URS) {
-            // approve creation of document iff Jira has been configured
-            return project.services?.jira != null
+    static boolean appliesToProject(Map project, String documentType, String phase) {
+        if (phase == MROPipelineUtil.PipelinePhases.INIT) {
+            if (documentType == LeVaDocumentUseCase.DocumentTypes.CS
+             || documentType == LeVaDocumentUseCase.DocumentTypes.DSD
+             || documentType == LeVaDocumentUseCase.DocumentTypes.FS
+             || documentType == LeVaDocumentUseCase.DocumentTypes.URS) {
+                return project.services?.jira != null
+            }
         }
 
-        if (documentType == LeVaDocumentUseCase.DocumentTypes.DTP) {
-            // approve creation of a DTP iff at least one repo is eligible to create a DTR
-            return project.repositories.any {
-                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, it)
+        if (phase == MROPipelineUtil.PipelinePhases.BUILD) {
+            if (documentType == LeVaDocumentUseCase.DocumentTypes.DTP
+             || documentType == LeVaDocumentUseCase.DocumentTypes.DTR
+             || documentType == LeVaDocumentUseCase.DocumentTypes.SCP
+             || documentType == LeVaDocumentUseCase.DocumentTypes.SDS) {
+                 return true
             }
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.DTR) {
-            // approve creation of a (overall) DTR iff at least one repo is eligible to create one
-            return project.repositories.any {
-                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, it)
-            }
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCP) {
-            // approve creation of an SCP iff at least one repo is eligible to create an SCR
-            return project.repositories.any {
-                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, it)
-            }
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
-            // approve creation of a (overall) SCR iff at least one repo is eligible to create one
-            return project.repositories.any {
-                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, it)
-            }
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIP) {
-            // approve creation of a TIP iff at least one repo is eligible to create a TIR
-            return project.repositories.any {
-                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, it)
-            }
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
-            // approve creation of a (overall) TIR iff at least one repo is eligible to create one
-            return project.repositories.any {
-                appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, it)
+        }
+
+        if (phase == MROPipelineUtil.PipelinePhases.DEPLOY) {
+            if (documentType == LeVaDocumentUseCase.DocumentTypes.TIP) {
+                 return true
+             }
+        }
+
+        if (phase == MROPipelineUtil.PipelinePhases.TEST) {
+            if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
+                 return true
+             }
+        }
+
+        if (phase == MROPipelineUtil.PipelinePhases.FINALIZE) {
+            if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
+                return true
             }
         }
 
         return false
     }
 
-    static boolean appliesToRepo(String documentType, Map repo) {
-        if (documentType == LeVaDocumentUseCase.DocumentTypes.DTR) {
-            return repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
-            return repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        // approve creation specific documents for all repo types
-        } else if (documentType == LeVaDocumentUseCase.DocumentTypes.SDS
-                || documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
-            return true
+    static boolean appliesToRepo(Map repo, String documentType, String phase = null) {
+        if (phase == null || phase == MROPipelineUtil.PipelinePhases.BUILD) {
+            if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
+                if (documentType == LeVaDocumentUseCase.DocumentTypes.DTR
+                 || documentType == LeVaDocumentUseCase.DocumentTypes.SCR
+                 || documentType == LeVaDocumentUseCase.DocumentTypes.SDS) {
+                    return true
+                }
+            } else if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
+                if (documentType == LeVaDocumentUseCase.DocumentTypes.SDS) {
+                    return true
+                }
+            }
+        }
+
+        if (phase == null || phase == MROPipelineUtil.PipelinePhases.TEST) {
+            if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
+                if (documentType == LeVaDocumentUseCase.DocumentTypes.SCR) {
+                    return true
+                }
+            }
+        }
+
+        if (phase == null || phase == MROPipelineUtil.PipelinePhases.DEPLOY) {
+            if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
+                if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
+                    return true
+                }
+            } else if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE) {
+                if (documentType == LeVaDocumentUseCase.DocumentTypes.TIR) {
+                    return true
+                }
+            }
         }
 
         return false
@@ -313,7 +332,11 @@ class LeVaDocumentUseCase {
         def sections = []
 
         project.repositories.each { repo ->
-            documents << repo.data.documents[documentType]
+            def document = repo.data.documents[documentType]
+            if (document) {
+                documents << document
+            }
+
             sections << [
                 heading: repo.id
             ]
@@ -398,7 +421,7 @@ class LeVaDocumentUseCase {
                 componentName,
                 [
                     componentId: metadata.id ?: "N/A - part of this application",
-                    componentType: (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS) ? "ODS Component" : "Software",
+                    componentType: (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
                     description: metadata.description,
                     nameOfSoftware: metadata.name,
                     references: metadata.references ?: "N/A",
@@ -460,7 +483,6 @@ class LeVaDocumentUseCase {
                 project: project,
                 sections: sections,
                 tests: this.jira.getAutomatedTestIssues(project.id).collectEntries { issue ->
-                    this.steps.echo("??? issue: ${issue}")
                     [
                         issue.key,
                         [

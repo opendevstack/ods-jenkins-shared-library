@@ -25,7 +25,30 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
         return new LeVaDocumentUseCase(steps, util, docGen, jenkins, jira, levaFiles, nexus, os, pdf)
     }
 
-    def "applies to project"() {
+    def "applies creation of a document in random phase of random type"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def project = createProject()
+
+        when:
+        def result = usecase.appliesToProject(project, "myType", "myPhase")
+
+        then:
+        !result // unsupported phase and unsupported repo type
+    }
+
+    def "applies creation of a document of type CS"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def usecase = createUseCase(
@@ -40,141 +63,356 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
             Mock(PDFUtil)
         )
 
+        def type = LeVaDocumentUseCase.DocumentTypes.CS
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        project.services.jira = null
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // not applicable as Jira is not configured
+    }
+
+    def "applies creation of a document of type DSD"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def usecase = createUseCase(
+            steps,
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.DSD
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        project.services.jira = null
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // not applicable as Jira is not configured
+    }
+
+    def "applies creation of a document of type DTP at the project level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.DTP
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+    }
+
+    def "applies creation of a document of type DTP at the repo level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.DTP
         def project = createProject()
         def repo = project.repositories.first()
 
         when:
-        def result = usecase.appliesToProject("myType", project)
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        def result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTP, project)
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result // no supported repo type in project
+        !result // only supported at project level
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCP, project)
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result // no supported repo type in project
+        !result // only supported at project level
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIP, project)
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        result
+        !result // only supported at project level
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)
-
-        then:
-        result
-
-        when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTP, project)
-
-        then:
-        result
-
-        when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)
-
-        then:
-        result // overall document
-
-        when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCP, project)
-
-        then:
-        result
-
-        when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)
-
-        then:
-        result // overall document
-
-        when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIP, project)
-
-        then:
-        result
-
-        when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)
-
-        then:
-        result // overall document
-
-        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTP, project)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DTR, project)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCP, project)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SCR, project)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIP, project)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.TIR, project)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        result
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
     }
 
-    def "applies to project for documents only applicable when Jira is configured"() {
+    def "applies creation of a document of type DTR at the project level"() {
         given:
-        def steps = Spy(util.PipelineSteps)
         def usecase = createUseCase(
-            steps,
+            Spy(util.PipelineSteps),
             Mock(MROPipelineUtil),
             Mock(DocGenService),
             Mock(JenkinsService),
@@ -185,75 +423,216 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
             Mock(PDFUtil)
         )
 
+        def type = LeVaDocumentUseCase.DocumentTypes.DTR
         def project = createProject()
 
         when:
-        def result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.CS, project)
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
         result
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DSD, project)
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        result
+        !result // unsupported phase
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.FS, project)
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        result
+        !result // unsupported phase
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SDS, project)
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        result
+        !result // unsupported phase
 
         when:
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.URS, project)
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        result
-
-        when:
-        project.services.jira = null
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.CS, project)
-
-        then:
-        !result // not applicable if Jira is not configured
-
-        when:
-        project.services.jira = null
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DSD, project)
-
-        then:
-        !result // not applicable if Jira is not configured
-
-        when:
-        project.services.jira = null
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.FS, project)
-
-        then:
-        !result // not applicable if Jira is not configured
-
-        when:
-        project.services.jira = null
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.SDS, project)
-
-        then:
-        !result // not applicable if Jira is not configured
-
-        when:
-        project.services.jira = null
-        result = usecase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.URS, project)
-
-        then:
-        !result // not applicable if Jira is not configured
+        !result // unsupported phase
     }
 
-    def "applies to repo"() {
+    def "applies creation of a document of type DTR at the repo level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.DTR
+        def project = createProject()
+        def repo = project.repositories.first()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        def result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+    }
+
+    def "applies creation of a document of type FS"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def usecase = createUseCase(
@@ -268,146 +647,1242 @@ class LeVaDocumentUseCaseSpec extends SpecHelper {
             Mock(PDFUtil)
         )
 
-        def repo = createProject().repositories.first()
+        def type = LeVaDocumentUseCase.DocumentTypes.FS
+        def project = createProject()
 
         when:
-        def result = usecase.appliesToRepo("myType", repo)
-
-        then:
-        !result
-
-        when:
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTP, repo)
-
-        then:
-        !result // applies at project level
-
-        when:
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, repo)
-
-        then:
-        !result
-
-        when:
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCP, repo)
-
-        then:
-        !result // applies at project level
-
-        when:
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)
-
-        then:
-        !result
-
-        when:
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SDS, repo)
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
 
         then:
         result
 
         when:
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIP, repo)
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        !result // applies at project level
+        !result // unsupported phase
 
         when:
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, repo)
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        project.services.jira = null
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // not applicable as Jira is not configured
+    }
+
+    def "applies creation of a document of type SCP at the project level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.SCP
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
         result
 
         when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTP, repo)
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        !result // applies at project level
+        !result // unsupported phase
 
         when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, repo)
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        result
+        !result // unsupported phase
 
         when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCP, repo)
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        !result // applies at project level
+        !result // unsupported phase
 
         when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
-        result
+        !result // unsupported phase
+    }
+
+    def "applies creation of a document of type SCP at the repo level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.SCP
+        def project = createProject()
+        def repo = project.repositories.first()
 
         when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SDS, repo)
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        def result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        result
+        !result // only supported at project level
 
         when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIP, repo)
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result // applies at project level
+        !result // only supported at project level
 
         when:
-        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, repo)
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTP, repo)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result // applies at project level
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.DTR, repo)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCP, repo)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result // applies at project level
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.SCR, repo)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIP, repo)
+        result = usecase.appliesToRepo(repo, type, phase)
 
         then:
-        !result // applies at project level
+        !result // only supported at project level
 
         when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
         repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
-        result = usecase.appliesToRepo(LeVaDocumentUseCase.DocumentTypes.TIR, repo)
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+    }
+
+    def "applies creation of a document of type SCR at the project level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.SCR
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
 
         then:
         result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+    }
+
+    def "applies creation of a document of type SCR at the repo level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.SCR
+        def project = createProject()
+        def repo = project.repositories.first()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        def result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+    }
+
+    def "applies creation of a document of type SDS at the project level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.SDS
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+    }
+
+    def "applies creation of a document of type SDS at the repo level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.SDS
+        def project = createProject()
+        def repo = project.repositories.first()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        def result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+    }
+
+    def "applies creation of a document of type TIP at the project level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.TIP
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+    }
+
+    def "applies creation of a document of type TIP at the repo level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.TIP
+        def project = createProject()
+        def repo = project.repositories.first()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        def result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // only supported at project level
+    }
+
+    def "applies creation of a document of type TIR at the project level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.TIR
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        result
+    }
+
+    def "applies creation of a document of type TIR at the repo level"() {
+        given:
+        def usecase = createUseCase(
+            Spy(util.PipelineSteps),
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.TIR
+        def project = createProject()
+        def repo = project.repositories.first()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        def result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        repo.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+        result = usecase.appliesToRepo(repo, type, phase)
+
+        then:
+        !result // unsupported repo type
+    }
+
+    def "applies creation of a document of type URS"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def usecase = createUseCase(
+            steps,
+            Mock(MROPipelineUtil),
+            Mock(DocGenService),
+            Mock(JenkinsService),
+            Mock(JiraUseCase),
+            Mock(LeVaDocumentChaptersFileService),
+            Mock(NexusService),
+            Mock(OpenShiftService),
+            Mock(PDFUtil)
+        )
+
+        def type = LeVaDocumentUseCase.DocumentTypes.URS
+        def project = createProject()
+
+        when:
+        def phase = MROPipelineUtil.PipelinePhases.INIT
+        def result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        result
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.BUILD
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.TEST
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.RELEASE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.FINALIZE
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // unsupported phase
+
+        when:
+        phase = MROPipelineUtil.PipelinePhases.INIT
+        project.services.jira = null
+        result = usecase.appliesToProject(project, type, phase)
+
+        then:
+        !result // not applicable as Jira is not configured
     }
 
     def "compute DTR discrepancies"() {

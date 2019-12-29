@@ -125,6 +125,8 @@ def call() {
 
     def levaDoc = registry.get(LeVaDocumentUseCase.class.name)
 
+    def phase = MROPipelineUtil.PipelinePhases.INIT
+
     // Checkout repositories into the workspace
     parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
         echo "Repository: ${repo}"
@@ -137,22 +139,22 @@ def call() {
     // Compute groups of repository configs for convenient parallelization
     repos = util.computeRepoGroups(repos)
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.URS, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.URS, phase)) {
         echo "Creating and archiving a User Requirements Specification for project '${project.id}'"
         levaDoc.createURS(project)
     }
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.FS, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.FS, phase)) {
         echo "Creating and archiving a Functional Specification for project '${project.id}'"
         levaDoc.createFS(project)
     }
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.CS, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.CS, phase)) {
         echo "Creating and archiving a Configuration Specification for project '${project.id}'"
         levaDoc.createCS(project)
     }
 
-    if (LeVaDocumentUseCase.appliesToProject(LeVaDocumentUseCase.DocumentTypes.DSD, project)) {
+    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.DSD, phase)) {
         echo "Creating and archiving a System Design Specification for project '${project.id}'"
         levaDoc.createDSD(project)
     }
