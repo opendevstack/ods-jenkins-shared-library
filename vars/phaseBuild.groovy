@@ -83,7 +83,7 @@ def call(Map project, List<Set<Map>> repos) {
             levaDoc.createDTR(project, repo, testResults, testReportFiles)
 
             // Report test results to corresponding test cases in Jira
-            jira.reportTestResultsForComponent(project.id, "Technology_${repo.id}", testResults)            
+            jira.reportTestResultsForComponent(project.id, "Technology_${repo.id}", "UnitTest", testResults)            
         }
     }
 

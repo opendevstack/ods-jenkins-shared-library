@@ -11,6 +11,8 @@ import org.ods.service.OpenShiftService
 import org.ods.service.ServiceRegistry
 import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
+import org.ods.usecase.JiraUseCaseSupport
+import org.ods.usecase.JiraUseCaseZephyrSupport
 import org.ods.usecase.LeVaDocumentUseCase
 import org.ods.usecase.SonarQubeUseCase
 import org.ods.util.GitUtil
@@ -88,12 +90,18 @@ def call() {
         )
     }
 
-    registry.add(JiraUseCase.class.name,
-        new JiraUseCase(
-            registry.get(PipelineSteps.class.name),
-            registry.get(JiraService.class.name)
-        )
+    def jiraUseCase = new JiraUseCase(
+        registry.get(PipelineSteps.class.name),
+        registry.get(JiraService.class.name)
     )
+
+    jiraUseCase.setSupport(
+        project.capabilities.contains("zephyr")
+            ? new JiraUseCaseZephyrSupport(jiraUseCase)
+            : new JiraUseCaseSupport(jiraUseCase)
+    )
+
+    registry.add(JiraUseCase.class.name, jiraUseCase)
 
     registry.add(JUnitTestReportsUseCase.class.name,
         new JUnitTestReportsUseCase(

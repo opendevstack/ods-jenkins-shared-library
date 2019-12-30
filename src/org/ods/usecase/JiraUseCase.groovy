@@ -20,10 +20,15 @@ class JiraUseCase {
 
     private JiraService jira
     private IPipelineSteps steps
+    private AbstractJiraUseCaseSupport support
 
     JiraUseCase(IPipelineSteps steps, JiraService jira) {
         this.steps = steps
         this.jira = jira
+    }
+
+    void setSupport(AbstractJiraUseCaseSupport support) {
+        this.support = support
     }
 
     private boolean checkJiraIssueMatchesTestCase(Map issue, String testcaseName) {
@@ -59,11 +64,7 @@ class JiraUseCase {
     }
 
     List getAutomatedTestIssues(String projectId, String componentName = null, List<String> labelsSelector = []) {
-        if (!this.jira) return []
-
-        return getIssuesForProject(projectId, componentName, ["Test"], labelsSelector << "AutomatedTest", false) { issuelink ->
-            return issuelink.type.relation == "is related to" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
-        }.values().flatten()
+        return this.support.getAutomatedTestIssues(projectId, componentName, labelsSelector)
     }
 
     Map getDocumentChapterData(String projectId, String documentType) {
@@ -251,44 +252,6 @@ class JiraUseCase {
         return result
     }
 
-    void labelTestIssuesWithTestResults(List jiraTestIssues, Map testResults) {
-        if (!this.jira) return
-
-        // Handle Jira issues for which a corresponding test exists in testResults
-        def matchedHandler = { result ->
-            result.each { issue, testcase ->
-                this.jira.removeLabelsFromIssue(issue.id, this.JIRA_TEST_CASE_LABELS)
-
-                def labelsToApply = ["Succeeded"]
-                if (testcase.skipped || testcase.error || testcase.failure) {
-                    if (testcase.error) {
-                        labelsToApply = ["Error"]
-                    }
-
-                    if (testcase.failure) {
-                        labelsToApply = ["Failed"]
-                    }
-
-                    if (testcase.skipped) {
-                        labelsToApply = ["Skipped"]
-                    }
-                }
-
-                this.jira.addLabelsToIssue(issue.id, labelsToApply)
-            }
-        }
-
-        // Handle Jira issues for which no corresponding test exists in testResults
-        def unmatchedHandler = { result ->
-            result.each { issue ->
-                this.jira.removeLabelsFromIssue(issue.id, JIRA_TEST_CASE_LABELS)
-                this.jira.addLabelsToIssue(issue.id, ["Missing"])
-            }
-        }
-
-        this.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, testResults, matchedHandler, unmatchedHandler)
-    }
-
     void matchJiraTestIssuesAgainstTestResults(List jiraTestIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
         def result = [
             matched: [:],
@@ -328,14 +291,14 @@ class JiraUseCase {
         this.jira.appendCommentToIssue(jiraIssues.first().key, message)
     }
 
-    void reportTestResultsForComponent(String projectId, String componentName, Map testResults) {
+    void reportTestResultsForComponent(String projectId, String componentName, String testType, Map testResults) {
         if (!this.jira) return
 
         // Get automated test case definitions from Jira
-        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentName)
+        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentName, [testType])
 
-        // Label test cases according to their test results
-        this.labelTestIssuesWithTestResults(jiraTestIssues, testResults)
+        // Apply test results to the test case definitions in Jira
+        this.support.applyTestResultsToAutomatedTestIssues(jiraTestIssues, testResults)
 
         // Create Jira bugs for erroneous test cases
         def errors = JUnitParser.Helper.getErrors(testResults)
