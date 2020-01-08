@@ -220,19 +220,27 @@ class FixtureHelper {
                 id: "A",
                 url: "https://github.com/my-org/my-repo-A.git",
                 branch: "master",
-                data: [:]
+                data: [
+                    documents: [:]
+                ]
             ],
             [
                 id: "B",
                 name: "my-repo-B",
                 branch: "master",
-                data: [:]
+                data: [
+                    documents: [:]
+                ]
             ],
             [
                 id: "C",
-                data: [:]
+                data: [
+                    documents: [:]
+                ]
             ]
         ]
+
+        result.capabilities = []
 
         return result
     }

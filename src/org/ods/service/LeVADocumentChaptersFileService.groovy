@@ -7,13 +7,13 @@ import java.nio.file.Paths
 import org.ods.util.IPipelineSteps
 import org.yaml.snakeyaml.Yaml
 
-class LeVaDocumentChaptersFileService {
+class LeVADocumentChaptersFileService {
 
     static final String DOCUMENT_CHAPTERS_BASE_DIR = "docs"
 
     private IPipelineSteps steps
 
-    LeVaDocumentChaptersFileService(IPipelineSteps steps) {
+    LeVADocumentChaptersFileService(IPipelineSteps steps) {
         this.steps = steps
     }
 

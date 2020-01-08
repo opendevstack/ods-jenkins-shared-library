@@ -13,15 +13,11 @@ import util.*
 
 class SonarQubeUseCaseSpec extends SpecHelper {
 
-    SonarQubeUseCase createUseCase(PipelineSteps steps, NexusService nexus) {
-        return new SonarQubeUseCase(steps, nexus)
-    }
-
     def "load reports from path"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def nexus = Mock(NexusService)
-        def usecase = createUseCase(steps, nexus)
+        def usecase = new SonarQubeUseCase(steps, nexus)
 
         def sqFiles = Files.createTempDirectory("sq-reports-")
         def sqFile1 = Files.createTempFile(sqFiles, "sq", ".docx") << "SQ Report 1"
@@ -40,9 +36,9 @@ class SonarQubeUseCaseSpec extends SpecHelper {
 
     def "load SQ reports from path with empty path"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def nexus = Mock(NexusService)
-        def usecase = createUseCase(steps, nexus)
+        def usecase = new SonarQubeUseCase(steps, nexus)
 
         def sqFiles = Files.createTempDirectory("sq-reports-")
 
@@ -58,9 +54,9 @@ class SonarQubeUseCaseSpec extends SpecHelper {
 
     def "upload SQ reports to Nexus"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def nexus = Mock(NexusService)
-        def usecase = createUseCase(steps, nexus)
+        def usecase = new SonarQubeUseCase(steps, nexus)
 
         def version = "0.1"
         def project = createProject()

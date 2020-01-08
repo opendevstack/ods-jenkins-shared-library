@@ -12,14 +12,10 @@ import util.*
 
 class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
-    JUnitTestReportsUseCase createUseCase(PipelineSteps steps) {
-        return new JUnitTestReportsUseCase(steps)
-    }
-
     def "load test reports from path"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def usecase = createUseCase(steps)
+        def steps = Spy(PipelineSteps)
+        def usecase = new JUnitTestReportsUseCase(steps)
 
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
         def xmlFile1 = Files.createTempFile(xmlFiles, "junit", ".xml") << "JUnit XML Report 1"
@@ -38,8 +34,8 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def "load test reports from path with empty path"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def usecase = createUseCase(steps)
+        def steps = Spy(PipelineSteps)
+        def usecase = new JUnitTestReportsUseCase(steps)
 
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
 
@@ -55,8 +51,8 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def "parse test report files"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def usecase = createUseCase(steps)
+        def steps = Spy(PipelineSteps)
+        def usecase = new JUnitTestReportsUseCase(steps)
 
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
         def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml").toFile()
@@ -78,8 +74,8 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def "report test reports from path to Jenkins"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def usecase = createUseCase(steps)
+        def steps = Spy(PipelineSteps)
+        def usecase = new JUnitTestReportsUseCase(steps)
 
         def path = "myPath"
 

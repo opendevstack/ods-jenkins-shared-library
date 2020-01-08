@@ -10,17 +10,11 @@ import util.*
 
 class JiraUseCaseSpec extends SpecHelper {
 
-    JiraUseCase createUseCase(PipelineSteps steps, JiraService jira, JiraUseCaseSupport support = null) {
-        def result = new JiraUseCase(steps, jira)
-        result.setSupport(support)
-        return result
-    }
-
     def "check Jira issue matches test case"() {
         given:
         def steps   = Spy(PipelineSteps)
         def jira    = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         when:
         def issue = [key: "JIRA-123"]
@@ -60,9 +54,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "create bugs and block impacted test cases"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def testIssues = createJiraTestIssues()
@@ -89,10 +83,11 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get automated test issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def support = Mock(JiraUseCaseSupport)
-        def usecase = createUseCase(steps, jira, support)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
 
         def project = createProject()
         def issues = createJiraIssues()
@@ -106,10 +101,11 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get automated test issues with componentName"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def support = Mock(JiraUseCaseSupport)
-        def usecase = createUseCase(steps, jira, support)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -123,10 +119,11 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get automated test issues with labelsSelector"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def support = Mock(JiraUseCaseSupport)
-        def usecase = createUseCase(steps, jira, support)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -141,9 +138,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get document chapter data"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def documentType = "myDocumentType"
@@ -209,9 +206,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for epics"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def epicKeys = ["myEpic-1", "myEpic-2"]
 
@@ -250,9 +247,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for epics with issueTypes"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def epicKeys = ["myEpic-1", "myEpic-2"]
         def issueTypes = ["Story"]
@@ -275,9 +272,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for project"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
 
@@ -377,9 +374,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for project with componentName"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -399,9 +396,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for project with issueTypesSelector"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -422,9 +419,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for project with issueTypesSelector including Epic"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -536,9 +533,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for project with labelsSelector"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -560,9 +557,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for project with issueLinkFilter"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -634,9 +631,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "get issues for project with throwOnMissingLinks"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -656,9 +653,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "match Jira test issues against test results"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def testIssues = createJiraTestIssues()
         def testResults = createTestResults()
@@ -696,9 +693,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "notify LeVA document issue"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def documentType = "myType"
@@ -719,9 +716,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "notify LeVA document issue with query returning != 1 issue"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def project = createProject()
         def documentType = "myType"
@@ -753,10 +750,11 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "report test results for component"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def support = Mock(JiraUseCaseSupport)
-        def usecase = createUseCase(steps, jira, support)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
 
         def project = createProject()
         def componentName = "myComponent"
@@ -808,9 +806,9 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "walk Jira test issues and test results"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, jira)
 
         def testIssues = createJiraTestIssues()
         def testResults = createTestResults()

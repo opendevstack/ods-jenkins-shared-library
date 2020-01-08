@@ -11,16 +11,10 @@ import util.*
 
 class MROPipelineUtilSpec extends SpecHelper {
 
-    MROPipelineUtil createUtil(IPipelineSteps steps, GitUtil git) {
-        return new MROPipelineUtil(steps, git)
-    }
-
     def "get build environment for DEBUG"() {
         given:
-        def util = createUtil(
-            Spy(util.PipelineSteps),
-            Mock(GitUtil)
-        )
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         def result = util.getBuildEnvironment()
@@ -43,10 +37,8 @@ class MROPipelineUtilSpec extends SpecHelper {
 
     def "get build environment for MULTI_REPO_BUILD"() {
         given:
-        def util = createUtil(
-            Spy(util.PipelineSteps),
-            Mock(GitUtil)
-        )
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         def result = util.getBuildEnvironment()
@@ -58,7 +50,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build environment for MULTI_REPO_ENV"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.environment = null
@@ -85,7 +77,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CHANGE_ID"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.changeId = null
@@ -118,7 +110,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CHANGE_DESC"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.changeDescription = null
@@ -145,7 +137,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CONFIG_ITEM"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.configItem = null
@@ -172,7 +164,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_VERSION"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.version = null
@@ -199,7 +191,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build environment for SOURCE_CLONE_ENV"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.environment = "myEnv"
@@ -229,7 +221,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build param for changeDescription"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.changeDescription = null
@@ -256,7 +248,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build param for changeId"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.changeId = null
@@ -289,7 +281,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build param for configItem"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.configItem = null
@@ -316,7 +308,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build param for sourceEnvironmentToClone"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.environment = "myEnv"
@@ -346,7 +338,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build param for targetEnvironment"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.environment = null
@@ -373,7 +365,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "get build param for version"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.version = null
@@ -400,7 +392,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "is triggered by change management process"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         steps.env.changeId = "0815"
@@ -438,7 +430,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load a repo's pipeline config"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
@@ -506,7 +498,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load a repo's pipeline config with invalid path"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def repos = createProject().repositories
 
@@ -536,7 +528,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load a repo's pipeline config with invalid repo"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
@@ -665,7 +657,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load a repo's pipeline config with invalid phase type"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         util.loadPipelineConfig(steps.env.WORKSPACE, null)
@@ -685,7 +677,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load a repo's pipeline config with invalid target for phase type Makefile"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
@@ -743,7 +735,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load a repo's pipeline config with invalid target for phase type ShellScript"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
@@ -801,7 +793,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load multiple repos' pipeline configs"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def repoPathA = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDirA = util.createDirectory(repoPathA)
@@ -933,7 +925,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         steps.sh(_) >> "https://github.com/my-org/my-pipeline-repo.git"
         def git = Mock(GitUtil)
-        def util = createUtil(steps, git)
+        def util = new MROPipelineUtil(steps, git)
 
         def file = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "metadata-", ".yml").toFile()
 
@@ -1005,10 +997,8 @@ class MROPipelineUtilSpec extends SpecHelper {
 
     def "load project metadata with invalid file"() {
         given:
-        def util = createUtil(
-            Spy(util.PipelineSteps),
-            Mock(GitUtil)
-        )
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         util.loadProjectMetadata(null)
@@ -1021,7 +1011,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load project metadata with non-existent file"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         when:
         def filename = "myFile"
@@ -1035,7 +1025,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load project metadata with invalid id"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def file = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "metadata-", ".yml").toFile()
 
@@ -1056,7 +1046,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load project metadata with invalid name"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def file = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "metadata-", ".yml").toFile()
 
@@ -1077,7 +1067,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load project metadata with invalid description"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def file = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "metadata-", ".yml").toFile()
 
@@ -1100,7 +1090,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load project metadata with invalid repositories"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def file = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "metadata-", ".yml").toFile()
 
@@ -1122,7 +1112,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load project metadata with invalid repository id"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def file = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "metadata-", ".yml").toFile()
 
@@ -1160,7 +1150,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load project metadata with invalid repository url"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def file = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "metadata-", ".yml").toFile()
 
@@ -1198,7 +1188,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "walk repo directories"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps, Mock(GitUtil))
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
 
         def repoDirA = util.createDirectory(Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString())
         def repoDirB = util.createDirectory(Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "B").toString())

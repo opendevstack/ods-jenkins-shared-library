@@ -6,20 +6,16 @@ import spock.lang.*
 
 import util.*
 
-class LeVaDocumentChaptersFileServiceSpec extends SpecHelper {
-
-    LeVaDocumentChaptersFileService createService(PipelineSteps steps) {
-        return new LeVaDocumentChaptersFileService(steps)
-    }
+class LeVADocumentChaptersFileServiceSpec extends SpecHelper {
 
     def "get document chapter data"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = createService(steps)
+        def service = new LeVADocumentChaptersFileService(steps)
 
         def type = "myType"
 
-        def levaPath = Paths.get(steps.env.WORKSPACE, LeVaDocumentChaptersFileService.DOCUMENT_CHAPTERS_BASE_DIR)
+        def levaPath = Paths.get(steps.env.WORKSPACE, LeVADocumentChaptersFileService.DOCUMENT_CHAPTERS_BASE_DIR)
         levaPath.toFile().mkdirs()
 
         def levaFile = Paths.get(levaPath.toString(), "${type}.yaml")
@@ -58,7 +54,7 @@ class LeVaDocumentChaptersFileServiceSpec extends SpecHelper {
     def "get document chapter data with invalid documentType"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = createService(steps)
+        def service = new LeVADocumentChaptersFileService(steps)
 
         when:
         service.getDocumentChapterData(null)
@@ -80,6 +76,6 @@ class LeVaDocumentChaptersFileServiceSpec extends SpecHelper {
 
         then:
         e = thrown(RuntimeException)
-        e.message == "Error: unable to load document chapters. File '${Paths.get(steps.env.WORKSPACE, LeVaDocumentChaptersFileService.DOCUMENT_CHAPTERS_BASE_DIR, type)}.yaml' does not exist."        
+        e.message == "Error: unable to load document chapters. File '${Paths.get(steps.env.WORKSPACE, LeVADocumentChaptersFileService.DOCUMENT_CHAPTERS_BASE_DIR, type)}.yaml' does not exist."        
     }
 }

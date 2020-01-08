@@ -13,13 +13,9 @@ import util.*
 
 class PDFUtilSpec extends SpecHelper {
 
-    PDFUtil createUtil() {
-        return new PDFUtil()
-    }
-
     def "add watermark text"() {
         given:
-        def util = createUtil()
+        def util = new PDFUtil()
 
         def pdfFile = getResource("Test-1.pdf")
         def text = "myWatermark"
@@ -35,7 +31,7 @@ class PDFUtilSpec extends SpecHelper {
 
     def "convert from Microsoft Word document"() {
         given:
-        def util = createUtil()
+        def util = new PDFUtil()
 
         def docFile = getResource("Test.docx")
 
@@ -48,7 +44,7 @@ class PDFUtilSpec extends SpecHelper {
 
     def "merge documents"() {
         given:
-        def util = createUtil()
+        def util = new PDFUtil()
 
         def docFile1 = getResource("Test-1.pdf")
         def docFile2 = getResource("Test-2.pdf")

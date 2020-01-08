@@ -13,14 +13,10 @@ import util.*
 
 class PipelineUtilSpec extends SpecHelper {
 
-    PipelineUtil createUtil(IPipelineSteps steps) {
-        return new PipelineUtil(steps)
-    }
-
     def "archive artifact"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         def path = "${steps.env.WORKSPACE}/myPath"
@@ -34,7 +30,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "archive artifact with invalid path"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.archiveArtifact(null, new byte[0])
@@ -63,7 +59,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "create directory"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         def path = Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString(), "a", "b", "c")
@@ -79,7 +75,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "create directory with invalid path"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.createDirectory(null)
@@ -96,11 +92,10 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to create directory. 'path' is undefined."
     }
 
-    @Ignore
     def "create Zip artifact"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = Spy(new PipelineUtil(steps))
 
         def logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
         def logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
@@ -129,7 +124,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "create Zip artifact with invalid name"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.createZipArtifact(null, [:])
@@ -149,7 +144,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "create Zip artifact with invalid files"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.createZipArtifact("myZipArtifact", null)
@@ -162,7 +157,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "create Zip file"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         def logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
         def logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
@@ -184,7 +179,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "create Zip file with invalid name"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.createZipFile(null, [:])
@@ -204,7 +199,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "create Zip file with invalid files"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.createZipFile("my.zip", null)
@@ -217,7 +212,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "get Git URL"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         def path = "${steps.env.WORKSPACE}/a/b/c"
         def origin = "upstream"
@@ -238,7 +233,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "get Git URL with default arguments"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         def result = util.getGitURL()
@@ -256,7 +251,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "get Git URL with invalid path"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.getGitURL(null)
@@ -284,7 +279,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "get Git URL with invalid remote"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.getGitURL(steps.env.WORKSPACE, null)
@@ -304,7 +299,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "load Groovy source file"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         def groovyFile = Files.createTempFile(Paths.get(steps.env.WORKSPACE), "groovy-", ".groovy").toFile() << "Groovy Script"
 
@@ -322,7 +317,7 @@ class PipelineUtilSpec extends SpecHelper {
     def "load Groovy source file with invalid path"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def util = createUtil(steps)
+        def util = new PipelineUtil(steps)
 
         when:
         util.loadGroovySourceFile(null)

@@ -1,11 +1,11 @@
+import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.OpenShiftService
 import org.ods.service.ServiceRegistry
-import org.ods.usecase.LeVaDocumentUseCase
 import org.ods.util.MROPipelineUtil
 
 def call(Map project, List<Set<Map>> repos) {
-    def levaDoc = ServiceRegistry.instance.get(LeVaDocumentUseCase.class.name)
-    def os      = ServiceRegistry.instance.get(OpenShiftService.class.name)
+    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler.class.name)
+    def os               = ServiceRegistry.instance.get(OpenShiftService.class.name)
 
     def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
@@ -21,10 +21,8 @@ def call(Map project, List<Set<Map>> repos) {
 
     echo "Project ${project}"
 
-    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.TIR, phase)) {
-        echo "Creating and archiving an overall Technical Installation Report for project '${project.id}'"
-        levaDoc.createOverallTIR(project)
-    }
+    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 }
 
 return this
+

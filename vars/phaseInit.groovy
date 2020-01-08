@@ -2,10 +2,11 @@
 
 import kong.unirest.Unirest
 
+import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.DocGenService
 import org.ods.service.JenkinsService
 import org.ods.service.JiraService
-import org.ods.service.LeVaDocumentChaptersFileService
+import org.ods.service.LeVADocumentChaptersFileService
 import org.ods.service.NexusService
 import org.ods.service.OpenShiftService
 import org.ods.service.ServiceRegistry
@@ -13,7 +14,7 @@ import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
 import org.ods.usecase.JiraUseCaseSupport
 import org.ods.usecase.JiraUseCaseZephyrSupport
-import org.ods.usecase.LeVaDocumentUseCase
+import org.ods.usecase.LeVADocumentUseCase
 import org.ods.usecase.SonarQubeUseCase
 import org.ods.util.GitUtil
 import org.ods.util.MROPipelineUtil
@@ -48,8 +49,8 @@ def call() {
         new DocGenService(env.DOCGEN_URL)
     )
 
-    registry.add(LeVaDocumentChaptersFileService.class.name,
-        new LeVaDocumentChaptersFileService(steps)
+    registry.add(LeVADocumentChaptersFileService.class.name,
+        new LeVADocumentChaptersFileService(steps)
     )
 
     registry.add(JenkinsService.class.name,
@@ -109,20 +110,6 @@ def call() {
         )
     )
 
-    registry.add(LeVaDocumentUseCase.class.name,
-        new LeVaDocumentUseCase(
-            registry.get(PipelineSteps.class.name),
-            registry.get(PipelineUtil.class.name),
-            registry.get(DocGenService.class.name),
-            registry.get(JenkinsService.class.name),
-            registry.get(JiraUseCase.class.name),
-            registry.get(LeVaDocumentChaptersFileService.class.name),
-            registry.get(NexusService.class.name),
-            registry.get(OpenShiftService.class.name),
-            registry.get(PDFUtil.class.name)
-        )
-    )
-
     registry.add(SonarQubeUseCase.class.name,
         new SonarQubeUseCase(
             registry.get(PipelineSteps.class.name),
@@ -130,8 +117,27 @@ def call() {
         )
     )
 
+    registry.add(LeVADocumentUseCase.class.name,
+        new LeVADocumentUseCase(
+            registry.get(PipelineSteps.class.name),
+            registry.get(PipelineUtil.class.name),
+            registry.get(DocGenService.class.name),
+            registry.get(JenkinsService.class.name),
+            registry.get(JiraUseCase.class.name),
+            registry.get(LeVADocumentChaptersFileService.class.name),
+            registry.get(NexusService.class.name),
+            registry.get(OpenShiftService.class.name),
+            registry.get(PDFUtil.class.name),
+            registry.get(SonarQubeUseCase.class.name)
+        )
+    )
 
-    def levaDoc = registry.get(LeVaDocumentUseCase.class.name)
+    registry.add(LeVADocumentScheduler.class.name,
+        new LeVADocumentScheduler(
+            registry.get(PipelineSteps.class.name),
+            registry.get(LeVADocumentUseCase.class.name)
+        )
+    )
 
     def phase = MROPipelineUtil.PipelinePhases.INIT
 
@@ -147,25 +153,7 @@ def call() {
     // Compute groups of repository configs for convenient parallelization
     repos = util.computeRepoGroups(repos)
 
-    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.URS, phase)) {
-        echo "Creating and archiving a User Requirements Specification for project '${project.id}'"
-        levaDoc.createURS(project)
-    }
-
-    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.FS, phase)) {
-        echo "Creating and archiving a Functional Specification for project '${project.id}'"
-        levaDoc.createFS(project)
-    }
-
-    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.CS, phase)) {
-        echo "Creating and archiving a Configuration Specification for project '${project.id}'"
-        levaDoc.createCS(project)
-    }
-
-    if (LeVaDocumentUseCase.appliesToProject(project, LeVaDocumentUseCase.DocumentTypes.DSD, phase)) {
-        echo "Creating and archiving a System Design Specification for project '${project.id}'"
-        levaDoc.createDSD(project)
-    }
+    registry.get(LeVADocumentScheduler.class.name).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
     return [ project: project, repos: repos ]
 }
