@@ -128,10 +128,12 @@ class OdsContext implements Context {
       config.resourceLimitMemory = '2Gi'
     }
     if (!config.containsKey('resourceRequestCpu')) {
-      config.resourceRequestCpu = '10m'
+      config.resourceRequestCpu = '100m'
     }
     if (!config.containsKey('resourceLimitCpu')) {
-      config.resourceLimitCpu = '300m'
+      // 1 core is a lot but this directly influences build time.
+      // Quickstarters should set a lower value if possible.
+      config.resourceLimitCpu = '1'
     }
     if (!config.containsKey('podContainers')) {
       config.podContainers = [
