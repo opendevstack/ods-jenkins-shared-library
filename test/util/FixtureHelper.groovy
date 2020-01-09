@@ -136,25 +136,40 @@ class FixtureHelper {
         issue1.fields.issuelinks = [
             createJiraIssueLink("1", null, createJiraIssue("100"))
         ]
+        issue1.test = [
+            description: issue1.description
+        ]
 
         def issue2 = result[1]
         issue2.fields.issuelinks = [
             createJiraIssueLink("1", null, createJiraIssue("200")),
+        ]
+        issue2.test = [
+            description: issue2.description
         ]
 
         def issue3 = result[2]
         issue3.fields.issuelinks = [
             createJiraIssueLink("1", null, createJiraIssue("300"))
         ]
+        issue3.test = [
+            description: issue3.description
+        ]
 
         def issue4 = result[3]
         issue4.fields.issuelinks = [
             createJiraIssueLink("1", null, createJiraIssue("400")),
         ]
+        issue4.test = [
+            description: issue4.description
+        ]
 
         def issue5 = createJiraIssue("5", "Test")
         issue5.fields.issuelinks = [
             createJiraIssueLink("1", null, createJiraIssue("500")),
+        ]
+        issue5.test = [
+            description: issue5.description
         ]
         result << issue5
 

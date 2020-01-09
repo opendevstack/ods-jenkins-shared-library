@@ -6,6 +6,7 @@ import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.DocGenService
 import org.ods.service.JenkinsService
 import org.ods.service.JiraService
+import org.ods.service.JiraZephyrService
 import org.ods.service.LeVADocumentChaptersFileService
 import org.ods.service.NexusService
 import org.ods.service.OpenShiftService
@@ -68,6 +69,16 @@ def call() {
                     env.JIRA_PASSWORD
                 )
             )
+
+            if (project.capabilities.contains("zephyr")) {
+                registry.add(JiraZephyrService.class.name,
+                    new JiraZephyrService(
+                        env.JIRA_URL,
+                        env.JIRA_USERNAME,
+                        env.JIRA_PASSWORD
+                    )
+                )
+            }
         }
     }
 
@@ -98,8 +109,8 @@ def call() {
 
     jiraUseCase.setSupport(
         project.capabilities.contains("zephyr")
-            ? new JiraUseCaseZephyrSupport(jiraUseCase)
-            : new JiraUseCaseSupport(jiraUseCase)
+            ? new JiraUseCaseZephyrSupport(steps, jiraUseCase, registry.get(JiraZephyrService.class.name))
+            : new JiraUseCaseSupport(steps, jiraUseCase)
     )
 
     registry.add(JiraUseCase.class.name, jiraUseCase)

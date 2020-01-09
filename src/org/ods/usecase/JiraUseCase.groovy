@@ -31,7 +31,7 @@ class JiraUseCase {
         this.support = support
     }
 
-    private boolean checkJiraIssueMatchesTestCase(Map issue, String testcaseName) {
+    boolean checkJiraIssueMatchesTestCase(Map issue, String testcaseName) {
         def issueKeyClean = issue.key.replaceAll("-", "")
         return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
     }
@@ -198,7 +198,7 @@ class JiraUseCase {
         // Fetch the Epics' issues if applicable
         def issuesInEpics = [:]
         if (!issueTypeEpicKeys.isEmpty()) {
-            issuesInEpics = getIssuesForEpics(issueTypeEpicKeys, ["Story"])
+            issuesInEpics = this.getIssuesForEpics(issueTypeEpicKeys, ["Story"])
         }
 
         // Fetch the linked issues if applicable
@@ -349,7 +349,7 @@ class JiraUseCase {
         if (result.description) {
             result.description = result.description.replaceAll("\u00a0", " ")
         }
-
+              
         return result << mixins
     }
 

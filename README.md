@@ -130,6 +130,21 @@ In this case, the library will fall back to the document chapter templates locat
 
 If you want your *target environment* to be created from an existing *source environment* such as `dev` or `test` on the fly, you need to provide the `environment` and `sourceEnvironmentToClone` environment variables to your Jenkins run, respectively. Their values will be combined with your project ID in the form `${project-id}-${environment}` to create the project (namespace) name in your OpenShift cluster.
 
+## Additional Capabilities
+
+The library supports the activation of various capabilities through the `capabilities:` field in `metadata.yml`.
+
+### Zephyr for Jira
+
+```
+capabilities:
+  - Zephyr
+```
+
+The Zephyr for Jira capability currently supports:
+
+- Reporting the result of a test execution to Zephyr for Jira
+
 ## Requirements
 
 - `git` - Git CLI
