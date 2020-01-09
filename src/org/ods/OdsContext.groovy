@@ -110,11 +110,30 @@ class OdsContext implements Context {
     if (!config.podVolumes) {
       config.podVolumes = []
     }
-    if (!config.containsKey('podAlwaysPullImage')) {
-      config.podAlwaysPullImage = true
-    }
     if (!config.containsKey('podServiceAccount')) {
       config.podServiceAccount = 'jenkins'
+    }
+    if (!config.containsKey('alwaysPullImage')) {
+      config.alwaysPullImage = true
+    }
+    if (!config.containsKey('resourceRequestMemory')) {
+      config.resourceRequestMemory = '1Gi'
+    }
+    if (!config.containsKey('resourceLimitMemory')) {
+      // 2Gi is required for e.g. jenkins-slave-maven, which selects the Java
+      // version based on available memory.
+      // Also, e.g. Angular is known to use a lot of memory during production
+      // builds.
+      // Quickstarters should set a lower value if possible.
+      config.resourceLimitMemory = '2Gi'
+    }
+    if (!config.containsKey('resourceRequestCpu')) {
+      config.resourceRequestCpu = '100m'
+    }
+    if (!config.containsKey('resourceLimitCpu')) {
+      // 1 core is a lot but this directly influences build time.
+      // Quickstarters should set a lower value if possible.
+      config.resourceLimitCpu = '1'
     }
     if (!config.containsKey('podContainers')) {
       config.podContainers = [
@@ -122,9 +141,11 @@ class OdsContext implements Context {
           name: 'jnlp',
           image: config.image,
           workingDir: '/tmp',
-          resourceRequestMemory: '1Gi',
-          resourceLimitMemory: '2Gi',
-          alwaysPullImage: config.podAlwaysPullImage,
+          resourceRequestMemory: config.resourceRequestMemory,
+          resourceLimitMemory: config.resourceLimitMemory,
+          resourceRequestCpu: config.resourceRequestCpu,
+          resourceLimitCpu: config.resourceLimitCpu,
+          alwaysPullImage: config.alwaysPullImage,
           args: '${computer.jnlpmac} ${computer.name}'
         )
       ]
@@ -212,8 +233,24 @@ class OdsContext implements Context {
     config.podVolumes
   }
 
-  boolean getPodAlwaysPullImage() {
-    config.podAlwaysPullImage
+  boolean getAlwaysPullImage() {
+    config.alwaysPullImage
+  }
+
+  String getResourceRequestMemory() {
+    config.resourceRequestMemory
+  }
+
+  String getResourceLimitMemory() {
+    config.resourceRequestMemory
+  }
+
+  String getResourceRequestCpu() {
+    config.resourceRequestCpu
+  }
+
+  String getResourceLimitCpu() {
+    config.resourceLimitCpu
   }
 
   String getPodServiceAccount() {
