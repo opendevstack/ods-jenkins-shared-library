@@ -216,6 +216,9 @@ When you write stages, you have access to both global variables (defined without
 | targetProject
 | Target project, based on the environment. E.g. "foo-dev".
 
+| cloneProjectScriptBranch
+| Branch on `ods-core` used for the `clone-project.sh` and dependent scripts. Default is `production`.
+
 | groupId
 | Group ID, defaults to: org.opendevstack.+++<projectID>+++.+++</projectID>+++
 
