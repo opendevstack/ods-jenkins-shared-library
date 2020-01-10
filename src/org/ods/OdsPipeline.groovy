@@ -267,10 +267,13 @@ class OdsPipeline implements Serializable {
       logger.info 'Environment does not exist yet. Creating now ...'
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
         def userPass = script.USERPASS.replace('$', '\'$\'')
-        def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-core/raw/ocp-scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
         def branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
-        logger.info 'Calculated branch name: ${branchName}'
-        script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
+        logger.info "Calculated branch name: ${branchName}"
+        def scriptToUrls = context.getCloneProjectScriptUrls()
+        // NOTE: a for loop did not work here due to https://issues.jenkins-ci.org/browse/JENKINS-49732
+        scriptToUrls.each { scriptName, url ->
+          script.sh(script: "curl --fail -s --user ${userPass} -G '${url}' -d raw -o '${scriptName}'")
+        }
         def debugMode = ""
         if (context.getDebug()) {
           debugMode = "--debug"

@@ -88,6 +88,12 @@ interface Context {
     // Set the environment to clone
     void setCloneSourceEnv( String cloneSourceEnv)
 
+    // The branch in which the clone-project.sh script is used
+    String getCloneProjectScriptBranch()
+
+    Map<String, String> getCloneProjectScriptUrls()
+
+
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
 
