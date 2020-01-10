@@ -1,6 +1,6 @@
 name: ods-jenkins-shared-library
 title: Jenkins Shared Library
-version: latest
+version: 2.0
 nav: 
 - modules/ROOT/nav.adoc
 
