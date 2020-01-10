@@ -299,7 +299,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jira.getAutomatedTestIssues(project.id, "Technology_${repo.id}") >> testIssues
+        1 * jira.getAutomatedTestIssues(project.id, "Technology-${repo.id}") >> testIssues
         1 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
         //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
@@ -356,7 +356,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
 
         then:
-        1 * jira.getAutomatedTestIssues(project.id, "Technology_${repo.id}") >> testIssues
+        1 * jira.getAutomatedTestIssues(project.id, "Technology-${repo.id}") >> testIssues
         1 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
         //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
