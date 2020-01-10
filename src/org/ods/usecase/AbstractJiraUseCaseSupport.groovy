@@ -12,7 +12,7 @@ abstract class AbstractJiraUseCaseSupport {
         this.usecase = usecase
     }
 
-    abstract void applyTestResultsToAutomatedTestIssues(List jiraTestIssues, Map testResults)
+    abstract void applyTestResultsToTestIssues(List jiraTestIssues, Map testResults)
 
     abstract List getAutomatedTestIssues(String projectId, String componentName = null, List<String> labelsSelector = [])
 

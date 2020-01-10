@@ -12,118 +12,93 @@ import util.*
 
 class JiraUseCaseZephyrSupportSpec extends SpecHelper {
 
-    JiraUseCase createUseCase(PipelineSteps steps, JiraService jira) {
-        return new JiraUseCase(steps, jira)
-    }
-
-    JiraUseCaseZephyrSupport createUseCaseZephyrSupport(PipelineSteps steps, JiraUseCase usecase, JiraZephyrService zephyr) {
-        return new JiraUseCaseZephyrSupport(steps, usecase, zephyr)
-    }
-
-    def "apply test results to Jira issues - test case Passed"() {
+    def "apply test results as test execution statii"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
+        def usecase = new JiraUseCase(steps, jira)
+
         def zephyr = Mock(JiraZephyrService)
-        def usecase = createUseCase(steps, jira)
-        def support = createUseCaseZephyrSupport(steps, usecase, zephyr)
-        
-        def issuesList = [
-            [id: '1', key: 'JIRA-1', projectId: '1234']
-        ]
-        def Map execution1 = ['123':[]]
+        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr)
+        usecase.setSupport(support)
+
+        def project = createProject()
+        def testIssues = createJiraTestIssues().each { it.projectId = project.id }
+        def testResults = createTestResults()
 
         when:
-        support.applyTestResultsToAutomatedTestIssues(issuesList, createTestResults())
+        support.applyTestResultsAsTestExecutionStatii(testIssues, testResults)
 
         then:
-        1 * zephyr.createTestExecutionForIssue('1', '1234') >> execution1
-        1 * zephyr.updateExecutionForIssuePass('123')
+        1 * zephyr.createTestExecutionForIssue("1", project.id) >> ["11": []]
+        1 * zephyr.updateExecutionForIssuePass("11")
+        0 * zephyr./^updateExecutionForIssue.*/("11")
+
+        then:
+        1 * zephyr.createTestExecutionForIssue("2", project.id) >> ["12": []]
+        1 * zephyr.updateExecutionForIssueFail("12")
+        0 * zephyr./^updateExecutionForIssue.*/("12")
+
+        then:
+        1 * zephyr.createTestExecutionForIssue("3", project.id) >> ["13": []]
+        1 * zephyr.updateExecutionForIssueFail("13")
+        0 * zephyr./^updateExecutionForIssue.*/("13")
+
+        then:
+        1 * zephyr.createTestExecutionForIssue("4", project.id) >> ["14": []]
+        1 * zephyr.updateExecutionForIssueBlocked("14")
+        0 * zephyr./^updateExecutionForIssue.*/("14")
+
+        then:
+        // Leave test execution at initial status UNEXECUTED otherwise
+        1 * zephyr.createTestExecutionForIssue("5", project.id) >> ["15": []]
+        0 * zephyr./^updateExecutionForIssue.*/("15")
     }
 
-    def "apply test results to Jira issues - test case Error"() {
+    def "apply test results to test issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def jira = Mock(JiraService)
-        def zephyr = Mock(JiraZephyrService)
-        def usecase = createUseCase(steps, jira)
-        def support = createUseCaseZephyrSupport(steps, usecase, zephyr)
+        def steps = Spy(PipelineSteps)
+        def usecase = Mock(JiraUseCase)
 
-        def issuesList = [
-            [id: '2', key: 'JIRA-2', projectId: '1234']
-        ]
-        def Map execution1 = ['123':[]]
+        def zephyr = Mock(JiraZephyrService)
+        def support = Spy(new JiraUseCaseZephyrSupport(steps, usecase, zephyr))
+        usecase.setSupport(support)
+
+        def testIssues = createJiraTestIssues()
+        def testResults = createTestResults()
 
         when:
-        support.applyTestResultsToAutomatedTestIssues(issuesList, createTestResults())
+        support.applyTestResultsToTestIssues(testIssues, testResults)
 
         then:
-        1 * zephyr.createTestExecutionForIssue('2', '1234') >> execution1
-        1 * zephyr.updateExecutionForIssueFail('123')
+        1 * usecase.applyTestResultsAsTestIssueLabels(testIssues, testResults)
+        _ * zephyr.createTestExecutionForIssue(*_) >> ["1": []]
+        1 * support.applyTestResultsAsTestExecutionStatii(testIssues, testResults)
     }
 
-    def "apply test results to Jira issues - test case Failed"() {
+    def "get automated test issues for project"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
+        def usecase = new JiraUseCase(steps, jira)
+
         def zephyr = Mock(JiraZephyrService)
-        def usecase = createUseCase(steps, jira)
-        def support = createUseCaseZephyrSupport(steps, usecase, zephyr)
+        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr)
+        usecase.setSupport(support)
 
-        def issuesList = [
-            [id: '3', key: 'JIRA-3', projectId: '1234']
-        ]
-        def Map execution1 = ['123':[]]
-
-        when:
-        support.applyTestResultsToAutomatedTestIssues(issuesList, createTestResults())
-
-        then:
-        1 * zephyr.createTestExecutionForIssue('3', '1234') >> execution1
-        1 * zephyr.updateExecutionForIssueFail('123')
-    }
-
-    def "apply test results to Jira issues - test case Skipped"() {
-        given:
-        def steps = Spy(util.PipelineSteps)
-        def jira = Mock(JiraService)
-        def zephyr = Mock(JiraZephyrService)
-        def usecase = createUseCase(steps, jira)
-        def support = createUseCaseZephyrSupport(steps, usecase, zephyr)
-
-        def issuesList = [
-            [id: '4', key: 'JIRA-4', projectId: '1234']
-        ]
-        def Map execution1 = ['123':[]]
-
-        when:
-        support.applyTestResultsToAutomatedTestIssues(issuesList, createTestResults())
-
-        then:
-        1 * zephyr.createTestExecutionForIssue('4', '1234') >> execution1
-        0 * zephyr.updateExecutionForIssueFail('123')
-        0 * zephyr.updateExecutionForIssuePass('123')
-    }
-
-    def "get automated test issues for project - no results"() {
-        given:
-        def steps = Spy(util.PipelineSteps)
-        def jira = Mock(JiraService)
-        def zephyr = Mock(JiraZephyrService)
-        def usecase = createUseCase(steps, jira)
-        def support = createUseCaseZephyrSupport(steps, usecase, zephyr)
+        def project = createProject()
 
         def jqlQuery = [
-            jql: "project = PROJECT1 AND issuetype in ('Test') AND labels in ('AutomatedTest')",
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('AutomatedTest')",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
 
         when:
-        support.getAutomatedTestIssues("PROJECT1")
+        support.getAutomatedTestIssues(project.id)
 
         then:
-        1 * zephyr.getProject("PROJECT1")
+        1 * zephyr.getProject(project.id)
         1 * jira.getIssuesForJQLQuery(jqlQuery)
     }
 }

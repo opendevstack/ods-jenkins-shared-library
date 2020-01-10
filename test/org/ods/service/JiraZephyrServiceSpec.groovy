@@ -587,16 +587,17 @@ class JiraZephyrServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    def "update execution for issue - Pass"() {
+
+    def "update execution for issue - Blocked"() {
         given:
-        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.PASS)
-        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.PASS)
+        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.BLOCKED)
+        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.BLOCKED)
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssuePass("123456")
+        def result = service.updateExecutionForIssueBlocked("123456")
 
         then:
         noExceptionThrown()
@@ -623,6 +624,24 @@ class JiraZephyrServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
+    def "update execution for issue - Pass"() {
+        given:
+        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.PASS)
+        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.PASS)
+
+        def server = createServer(WireMock.&put, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.updateExecutionForIssuePass("123456")
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        stopServer(server)
+    }
+
     def "update execution for issue - WIP"() {
         given:
         def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.WIP)
@@ -633,24 +652,6 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
         when:
         def result = service.updateExecutionForIssueWip("123456")
-
-        then:
-        noExceptionThrown()
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "update execution for issue - Blocked"() {
-        given:
-        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.BLOCKED)
-        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.BLOCKED)
-
-        def server = createServer(WireMock.&put, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.updateExecutionForIssueBlocked("123456")
 
         then:
         noExceptionThrown()

@@ -10,6 +10,44 @@ import util.*
 
 class JiraUseCaseSpec extends SpecHelper {
 
+    def "apply test results as test issue labels"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
+        def usecase = new JiraUseCase(steps, jira)
+
+        def testIssues = createJiraTestIssues()
+        def testResults = createTestResults()
+
+        when:
+        usecase.applyTestResultsAsTestIssueLabels(testIssues, testResults)
+
+        then:
+        1 * jira.removeLabelsFromIssue("1", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
+        1 * jira.addLabelsToIssue("1", ["Succeeded"])
+        0 * jira.addLabelsToIssue("1", _)
+
+        then:
+        1 * jira.removeLabelsFromIssue("2", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
+        1 * jira.addLabelsToIssue("2", ["Error"])
+        0 * jira.addLabelsToIssue("2", _)
+
+        then:
+        1 * jira.removeLabelsFromIssue("3", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
+        1 * jira.addLabelsToIssue("3", ["Failed"])
+        0 * jira.addLabelsToIssue("3", _)
+
+        then:
+        1 * jira.removeLabelsFromIssue("4", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
+        1 * jira.addLabelsToIssue("4", ["Skipped"])
+        0 * jira.addLabelsToIssue("4", _)
+
+        then:
+        1 * jira.removeLabelsFromIssue("5", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
+        1 * jira.addLabelsToIssue("5", ["Missing"])
+        0 * jira.addLabelsToIssue("5", _)
+    }
+
     def "check Jira issue matches test case"() {
         given:
         def steps   = Spy(PipelineSteps)
@@ -775,7 +813,7 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * support.getAutomatedTestIssues(project.id, componentName, [testType]) >> testIssues
 
         then:
-        1 * support.applyTestResultsToAutomatedTestIssues(testIssues, testResults)
+        1 * support.applyTestResultsToTestIssues(testIssues, testResults)
 
         // create bug and block impacted test cases for error
         then:

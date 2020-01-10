@@ -15,7 +15,7 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         this.zephyr = zephyr
     }
 
-    void applyTestResultsToAutomatedTestIssues(List jiraTestIssues, Map testResults) {
+    void applyTestResultsAsTestExecutionStatii(List jiraTestIssues, Map testResults) {
         if (!this.usecase.jira) return
         if (!this.zephyr) return
 
@@ -26,14 +26,9 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
             testResults.testsuites.each { testsuite ->
                 testsuite.testcases.each { testcase ->
                     if (this.usecase.checkJiraIssueMatchesTestCase(issue, testcase.name)) {
-                        def succeeded = !(testcase.error || testcase.failure || testcase.skipped)
                         def failed = testcase.error || testcase.failure
                         def skipped = testcase.skipped
-
-                        // TODO: an unexecuted test currently doesn't get a stage assigned
-                        // Unfortunately, in Zephyr, a test with status UNEXECUTED shows
-                        // the last concrete state in the Test Cycle overview.
-                        // Example: a serveral times UNEXECUTED test can show PASSED
+                        def succeeded = !(testcase.error || testcase.failure || testcase.skipped)
 
                         if (succeeded) {
                             this.zephyr.updateExecutionForIssuePass(execution)
@@ -46,6 +41,11 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
                 }
             }
         }
+    }
+
+    void applyTestResultsToTestIssues(List jiraTestIssues, Map testResults) {
+        this.usecase.applyTestResultsAsTestIssueLabels(jiraTestIssues, testResults)
+        this.applyTestResultsAsTestExecutionStatii(jiraTestIssues, testResults)
     }
 
     List getAutomatedTestIssues(String projectId, String componentName = null, List<String> labelsSelector = []) {

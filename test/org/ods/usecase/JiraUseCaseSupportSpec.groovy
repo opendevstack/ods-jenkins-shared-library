@@ -18,50 +18,28 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         return new JiraUseCaseSupport(steps, usecase)
     }
 
-    def "apply test results to automated test issues"() {
+    def "apply test results to test issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
-        def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def steps = Spy(PipelineSteps)
+        def usecase = Mock(JiraUseCase)
 
-        def support = createUseCaseSupport(steps, usecase)
+        def zephyr = Mock(JiraZephyrService)
+        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr)
         usecase.setSupport(support)
 
         def testIssues = createJiraTestIssues()
         def testResults = createTestResults()
 
         when:
-        support.applyTestResultsToAutomatedTestIssues(testIssues, testResults)
+        support.applyTestResultsToTestIssues(testIssues, testResults)
 
         then:
-        1 * jira.removeLabelsFromIssue("1", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("1", ["Succeeded"])
-        0 * jira.addLabelsToIssue("1", _)
-
-        then:
-        1 * jira.removeLabelsFromIssue("2", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("2", ["Error"])
-        0 * jira.addLabelsToIssue("2", _)
-
-        then:
-        1 * jira.removeLabelsFromIssue("3", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("3", ["Failed"])
-        0 * jira.addLabelsToIssue("3", _)
-
-        then:
-        1 * jira.removeLabelsFromIssue("4", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("4", ["Skipped"])
-        0 * jira.addLabelsToIssue("4", _)
-
-        then:
-        1 * jira.removeLabelsFromIssue("5", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("5", ["Missing"])
-        0 * jira.addLabelsToIssue("5", _)
+        1 * usecase.applyTestResultsAsTestIssueLabels(testIssues, testResults)
     }
 
     def "get automated test issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -85,7 +63,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test issues with componentId"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -110,7 +88,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test issues with labelsSelector"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -136,7 +114,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (unit test) issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -160,7 +138,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (unit test) issues with componentId"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -185,7 +163,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (integration test) issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -209,7 +187,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (integration test) issues with componentId"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -234,7 +212,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (acceptance test) issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -258,7 +236,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (acceptance test) issues with componentId"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -283,7 +261,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (installation test) issues"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 
@@ -307,7 +285,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def "get automated test (installation test) issues with componentId"() {
         given:
-        def steps = Spy(util.PipelineSteps)
+        def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
         def usecase = createUseCase(steps, jira)
 

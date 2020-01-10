@@ -141,19 +141,19 @@ class JiraZephyrService extends JiraService {
         }
     }
 
-    void updateExecutionForIssuePass(String executionId) {
-        this.updateExecutionForIssue(executionId, ExecutionStatus.PASS)
+    void updateExecutionForIssueBlocked(String executionId) {
+        this.updateExecutionForIssue(executionId, ExecutionStatus.BLOCKED)
     }
 
     void updateExecutionForIssueFail(String executionId) {
         this.updateExecutionForIssue(executionId, ExecutionStatus.FAIL)
     }
 
-    void updateExecutionForIssueWip(String executionId) {
-        this.updateExecutionForIssue(executionId, ExecutionStatus.WIP)
+    void updateExecutionForIssuePass(String executionId) {
+        this.updateExecutionForIssue(executionId, ExecutionStatus.PASS)
     }
 
-    void updateExecutionForIssueBlocked(String executionId) {
-        this.updateExecutionForIssue(executionId, ExecutionStatus.BLOCKED)
+    void updateExecutionForIssueWip(String executionId) {
+        this.updateExecutionForIssue(executionId, ExecutionStatus.WIP)
     }
 }

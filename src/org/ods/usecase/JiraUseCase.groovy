@@ -31,6 +31,44 @@ class JiraUseCase {
         this.support = support
     }
 
+    void applyTestResultsAsTestIssueLabels(List jiraTestIssues, Map testResults) {
+        if (!this.jira) return
+
+        // Handle Jira issues for which a corresponding test exists in testResults
+        def matchedHandler = { result ->
+            result.each { issue, testcase ->
+                this.jira.removeLabelsFromIssue(issue.id, this.JIRA_TEST_CASE_LABELS)
+
+                def labelsToApply = ["Succeeded"]
+                if (testcase.skipped || testcase.error || testcase.failure) {
+                    if (testcase.error) {
+                        labelsToApply = ["Error"]
+                    }
+
+                    if (testcase.failure) {
+                        labelsToApply = ["Failed"]
+                    }
+
+                    if (testcase.skipped) {
+                        labelsToApply = ["Skipped"]
+                    }
+                }
+
+                this.jira.addLabelsToIssue(issue.id, labelsToApply)
+            }
+        }
+
+        // Handle Jira issues for which no corresponding test exists in testResults
+        def unmatchedHandler = { result ->
+            result.each { issue ->
+                this.jira.removeLabelsFromIssue(issue.id, this.JIRA_TEST_CASE_LABELS)
+                this.jira.addLabelsToIssue(issue.id, ["Missing"])
+            }
+        }
+
+        this.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, testResults, matchedHandler, unmatchedHandler)
+    }
+
     boolean checkJiraIssueMatchesTestCase(Map issue, String testcaseName) {
         def issueKeyClean = issue.key.replaceAll("-", "")
         return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
@@ -298,7 +336,7 @@ class JiraUseCase {
         def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentName, [testType])
 
         // Apply test results to the test case definitions in Jira
-        this.support.applyTestResultsToAutomatedTestIssues(jiraTestIssues, testResults)
+        this.support.applyTestResultsToTestIssues(jiraTestIssues, testResults)
 
         // Create Jira bugs for erroneous test cases
         def errors = JUnitParser.Helper.getErrors(testResults)
