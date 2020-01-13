@@ -74,6 +74,33 @@ class MROPipelineUtilSpec extends SpecHelper {
         result.find { it == "MULTI_REPO_ENV=myEnv" }
     }
 
+    def "get build environment for MULTI_REPO_ENV_TOKEN"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
+
+        when:
+        steps.env.environment = "dev"
+        def result = util.getBuildEnvironment()
+
+        then:
+        result.find { it == "MULTI_REPO_ENV_TOKEN=D" }
+
+        when:
+        steps.env.environment = "qa"
+        result = util.getBuildEnvironment()
+
+        then:
+        result.find { it == "MULTI_REPO_ENV_TOKEN=Q" }
+
+        when:
+        steps.env.environment = "prod"
+        result = util.getBuildEnvironment()
+
+        then:
+        result.find { it == "MULTI_REPO_ENV_TOKEN=P" }
+    }
+
     def "get build environment for RELEASE_PARAM_CHANGE_ID"() {
         given:
         def steps = Spy(util.PipelineSteps)
@@ -218,6 +245,33 @@ class MROPipelineUtilSpec extends SpecHelper {
         result.find { it == "SOURCE_CLONE_ENV=mySourceEnv" }
     }
 
+    def "get build environment for SOURCE_CLONE_ENV_TOKEN"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
+
+        when:
+        steps.env.sourceEnvironmentToClone = "dev"
+        def result = util.getBuildEnvironment()
+
+        then:
+        result.find { it == "SOURCE_CLONE_ENV_TOKEN=D" }
+
+        when:
+        steps.env.sourceEnvironmentToClone = "qa"
+        result = util.getBuildEnvironment()
+
+        then:
+        result.find { it == "SOURCE_CLONE_ENV_TOKEN=Q" }
+
+        when:
+        steps.env.sourceEnvironmentToClone = "prod"
+        result = util.getBuildEnvironment()
+
+        then:
+        result.find { it == "SOURCE_CLONE_ENV_TOKEN=P" }
+    }
+
     def "get build param for changeDescription"() {
         given:
         def steps = Spy(util.PipelineSteps)
@@ -335,6 +389,33 @@ class MROPipelineUtilSpec extends SpecHelper {
         result.sourceEnvironmentToClone == "mySourceEnv"
     }
 
+    def "get build param for sourceEnvironmentToCloneToken"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
+
+        when:
+        steps.env.sourceEnvironmentToClone = "dev"
+        def result = util.getBuildParams()
+
+        then:
+        result.sourceEnvironmentToCloneToken == "D"
+
+        when:
+        steps.env.sourceEnvironmentToClone = "qa"
+        result = util.getBuildParams()
+
+        then:
+        result.sourceEnvironmentToCloneToken == "Q"
+
+        when:
+        steps.env.sourceEnvironmentToClone = "prod"
+        result = util.getBuildParams()
+
+        then:
+        result.sourceEnvironmentToCloneToken == "P"
+    }
+
     def "get build param for targetEnvironment"() {
         given:
         def steps = Spy(util.PipelineSteps)
@@ -360,6 +441,33 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         then:
         result.targetEnvironment == "myEnv"
+    }
+
+    def "get build param for targetEnvironmentToken"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
+
+        when:
+        steps.env.environment = "dev"
+        def result = util.getBuildParams()
+
+        then:
+        result.targetEnvironmentToken == "D"
+
+        when:
+        steps.env.environment = "qa"
+        result = util.getBuildParams()
+
+        then:
+        result.targetEnvironmentToken == "Q"
+
+        when:
+        steps.env.environment = "prod"
+        result = util.getBuildParams()
+
+        then:
+        result.targetEnvironmentToken == "P"
     }
 
     def "get build param for version"() {

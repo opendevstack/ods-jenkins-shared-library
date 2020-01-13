@@ -120,18 +120,22 @@ class MROPipelineUtil extends PipelineUtil {
             "DEBUG=${debug}",
             "MULTI_REPO_BUILD=true",
             "MULTI_REPO_ENV=${params.targetEnvironment}",
+            "MULTI_REPO_ENV_TOKEN=${params.targetEnvironmentToken}",
             "RELEASE_PARAM_CHANGE_ID=${params.changeId}",
             "RELEASE_PARAM_CHANGE_DESC=${params.changeDescription}",
             "RELEASE_PARAM_CONFIG_ITEM=${params.configItem}",
             "RELEASE_PARAM_VERSION=${params.version}",
-            "SOURCE_CLONE_ENV=${params.sourceEnvironmentToClone}"
+            "SOURCE_CLONE_ENV=${params.sourceEnvironmentToClone}",
+            "SOURCE_CLONE_ENV_TOKEN=${params.sourceEnvironmentToCloneToken}"
         ]
     }
 
     Map getBuildParams() {
         def version = this.steps.env.version?.trim() ?: "WIP"
         def targetEnvironment = this.steps.env.environment?.trim() ?: "dev"
+        def targetEnvironmentToken = targetEnvironment[0].toUpperCase()
         def sourceEnvironmentToClone = this.steps.env.sourceEnvironmentToClone?.trim() ?: targetEnvironment
+        def sourceEnvironmentToCloneToken = sourceEnvironmentToClone[0].toUpperCase()
 
         def changeId = this.steps.env.changeId?.trim() ?: "${version}-${targetEnvironment}"
         def configItem = this.steps.env.configItem?.trim() ?: "UNDEFINED"
@@ -142,7 +146,9 @@ class MROPipelineUtil extends PipelineUtil {
             changeId: changeId,
             configItem: configItem,
             sourceEnvironmentToClone: sourceEnvironmentToClone,
+            sourceEnvironmentToCloneToken: sourceEnvironmentToCloneToken,
             targetEnvironment: targetEnvironment,
+            targetEnvironmentToken: targetEnvironmentToken,
             version: version
         ]
     }
