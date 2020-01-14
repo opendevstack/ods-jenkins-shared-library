@@ -384,12 +384,12 @@ class OdsContext implements Context {
     config.odsSharedLibVersion
   }
 
-  String getBitbucketHost() {
-    config.bitbucketHost
-  }
-
   String getBitbucketUrl() {
     config.bitbucketUrl
+  }
+
+  String getBitbucketHost() {
+    config.bitbucketHost
   }
 
   int getOpenshiftBuildTimeout() {

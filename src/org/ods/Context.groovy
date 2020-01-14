@@ -148,11 +148,11 @@ interface Context {
     // ODS Jenkins shared library version, taken from reference in Jenkinsfile.
     String getOdsSharedLibVersion()
 
-    // BitBucket host - value taken from BITBUCKET_URL.
-    String getBitbucketHost()
-
     // BitBucket URL - value taken from BITBUCKET_URL.
     String getBitbucketUrl()
+
+    // BitBucket host - value derived from getBitbucketUrl.
+    String getBitbucketHost()
 
     // Timeout for the OpenShift build of the container image in minutes.
     int getOpenshiftBuildTimeout()
