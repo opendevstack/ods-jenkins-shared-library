@@ -40,9 +40,18 @@ class OdsContext implements Context {
     config.buildNumber = script.env.BUILD_NUMBER
     config.buildUrl = script.env.BUILD_URL
     config.buildTime = new Date()
-    config.nexusHost = script.env.NEXUS_HOST
+
+    if (script.env.NEXUS_URL) {
+      config.nexusUrl = script.env.NEXUS_URL
+      config.nexusHost = config.nexusUrl.minus(~/^https?:\/\//)
+    } else if (script.env.NEXUS_HOST) {
+      // Weirdly, NEXUS_HOST contained the scheme as well ...
+      config.nexusUrl = script.env.NEXUS_HOST
+      config.nexusHost = config.nexusUrl.minus(~/^https?:\/\//)
+    }
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
+
     config.openshiftHost = script.env.OPENSHIFT_API_URL
     config.bitbucketHost = script.env.BITBUCKET_HOST
     config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label : 'getting ODS shared lib version').trim()
@@ -54,8 +63,8 @@ class OdsContext implements Context {
     if (!config.buildNumber) {
       logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
     }
-    if (!config.nexusHost) {
-      logger.error 'NEXUS_HOST is required, but not set'
+    if (!config.nexusUrl) {
+      logger.error 'NEXUS_URL is required, but not set'
     }
     if (!config.nexusUsername) {
       logger.error 'NEXUS_USERNAME is required, but not set'
@@ -276,6 +285,10 @@ class OdsContext implements Context {
     config.notifyNotGreen = notifyNotGreen
   }
 
+  String getNexusUrl() {
+      config.nexusUrl
+  }
+
   String getNexusHost() {
       config.nexusHost
   }
@@ -288,8 +301,8 @@ class OdsContext implements Context {
       config.nexusPassword
   }
 
-  String getNexusHostWithBasicAuth() {
-    config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
+  String getNexusUrlWithBasicAuth() {
+    config.nexusUrl.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
   }
 
   String getBranchToEnvironmentMapping() {

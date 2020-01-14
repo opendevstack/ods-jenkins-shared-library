@@ -64,7 +64,10 @@ interface Context {
     // Enable/disable notifications
     void setNotifyNotGreen(boolean notifyNotGreen)
 
-    // Nexus host (with scheme).
+    // Nexus URL (with scheme).
+    String getNexusUrl()
+
+    // Nexus host (without scheme).
     String getNexusHost()
 
     // Nexus username.
@@ -73,8 +76,8 @@ interface Context {
     // Nexus password.
     String getNexusPassword()
 
-    // Nexus host (with scheme), including username and password as BasicAuth.
-    String getNexusHostWithBasicAuth()
+    // Nexus URL (with scheme), including username and password as BasicAuth.
+    String getNexusUrlWithBasicAuth()
 
     // Define which branches are deployed to which environments.
     String getBranchToEnvironmentMapping()

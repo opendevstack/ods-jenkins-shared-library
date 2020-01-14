@@ -201,8 +201,11 @@ When you write stages, you have access to both global variables (defined without
 | notifyNotGreen
 | Whether to send notifications if the build is not successful.
 
+| nexusUrl
+| Nexus URL (with scheme).
+
 | nexusHost
-| Nexus host (with scheme).
+| Nexus host (without scheme).
 
 | nexusUsername
 | Nexus username.
@@ -210,8 +213,8 @@ When you write stages, you have access to both global variables (defined without
 | nexusPassword
 | Nexus password.
 
-| nexusHostWithBasicAuth
-| Nexus host (with scheme), including username and password as BasicAuth.
+| nexusUrlWithBasicAuth
+| Nexus URL (with scheme), including username and password as BasicAuth.
 
 | branchToEnvironmentMapping
 | Define which branches are deployed to which environments.
