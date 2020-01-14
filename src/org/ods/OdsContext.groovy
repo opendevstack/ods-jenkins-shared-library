@@ -44,7 +44,15 @@ class OdsContext implements Context {
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
     config.openshiftHost = script.env.OPENSHIFT_API_URL
-    config.bitbucketHost = script.env.BITBUCKET_HOST
+
+    if (script.env.BITBUCKET_URL) {
+      config.bitbucketUrl = script.env.BITBUCKET_URL
+      config.bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
+    } else if (script.env.BITBUCKET_HOST) {
+      config.bitbucketHost = script.env.BITBUCKET_HOST
+      config.bitbucketUrl = "https://${config.bitbucketHost}"
+    }
+
     config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label : 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
@@ -66,8 +74,8 @@ class OdsContext implements Context {
     if (!config.openshiftHost) {
       logger.error 'OPENSHIFT_API_URL is required, but not set'
     }
-    if (!config.bitbucketHost) {
-      logger.error 'BITBUCKET_HOST is required, but not set'
+    if (!config.bitbucketUrl) {
+      logger.error 'BITBUCKET_URL is required, but not set'
     }
     if (!config.buildUrl) {
       logger.info 'BUILD_URL is required to set a proper build status in ' +
@@ -377,7 +385,11 @@ class OdsContext implements Context {
   }
 
   String getBitbucketHost() {
-      config.bitbucketHost
+    config.bitbucketHost
+  }
+
+  String getBitbucketUrl() {
+    config.bitbucketUrl
   }
 
   int getOpenshiftBuildTimeout() {

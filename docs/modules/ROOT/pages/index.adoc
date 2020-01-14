@@ -276,8 +276,11 @@ When you write stages, you have access to both global variables (defined without
 | odsSharedLibVersion
 | ODS Jenkins shared library version, taken from reference in Jenkinsfile.
 
+| bitbucketUrl
+| BitBucket URL - value taken from BITBUCKET_URL. If BITBUCKET_URL is not present, it will default to https://<BITBUCKET_HOST>.
+
 | bitbucketHost
-| BitBucket host - value taken from BITBUCKET_HOST.
+| BitBucket host - value taken from bitbucketUrl.
 
 | environmentCreated
 | Whether an environment has been created during the build.
