@@ -13,6 +13,8 @@ import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
 import org.ods.util.SortUtil
 
+import groovy.json.JsonOutput
+
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
@@ -297,12 +299,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
 
+        // TODO: get automated test issues of type InstallationTest
         def data = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
                 sections: sections,
-                tests: this.jira.getAutomatedTestIssues(project.id).collectEntries { issue ->
+                tests: this.jira.getAutomatedTestIssues(project.id, null, ["UnitTest"]).collectEntries { issue ->
                     [
                         issue.key,
                         [
@@ -326,7 +329,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
 
-        def jiraTestIssues = this.jira.getAutomatedTestIssues(project.id, "Technology-${repo.id}")
+        def jiraTestIssues = this.jira.getAutomatedTestIssues(project.id, "Technology-${repo.id}", ["UnitTest"])
 
         def matchedHandler = { result ->
             result.each { issue, testcase ->
@@ -565,8 +568,32 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createIVP(Map project) {
-        // TODO: not yet implemented
-        return "http://nexus"
+        def documentType = DocumentType.IVP as String
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        def data = [
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                project: project,
+                sections: sections,
+                tests: this.jira.getAutomatedTestIssues(project.id, null, ["InstallationTest"]).collectEntries { issue ->
+                    [
+                        issue.key,
+                        [
+                            key: issue.key,
+                            summary: issue.summary,
+                            test: issue.test
+                        ]
+                    ]
+                }
+            ]
+        ]
+
+        return this.createDocument(documentType, project, null, data, [:], null, null)
     }
 
     String createIVR(Map project, Map repo, Map data) {
