@@ -186,7 +186,7 @@ class OdsPipeline implements Serializable {
     if (!context.getBitbucketNotificationEnabled()) {
       return
     }
-    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
+    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketUrl || !context.gitCommit) {
       logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
       return
     }
@@ -205,7 +205,7 @@ class OdsPipeline implements Serializable {
             --request POST \\
             --header \"Content-Type: application/json\" \\
             --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
-            https://${context.bitbucketHost}/rest/build-status/1.0/commits/${context.gitCommit}
+            ${context.bitbucketUrl}/rest/build-status/1.0/commits/${context.gitCommit}
           """
         }
         return
