@@ -209,7 +209,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jira.getAutomatedTestIssues(project.id, null, ["UnitTest"]) >> testIssues
+        1 * jira.getAutomatedUnitTestIssues(project.id) >> testIssues
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
         1 * usecase.createDocument(documentType, project, null, _, [:], _, null)
         _ * util.getBuildParams() >> buildParams
@@ -248,7 +248,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
 
         then:
-        1 * jira.getAutomatedTestIssues(project.id, null, ["UnitTest"]) >> testIssues
+        1 * jira.getAutomatedUnitTestIssues(project.id) >> testIssues
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
         1 * usecase.createDocument(documentType, project, null, _, [:], _, null)
         _ * util.getBuildParams() >> buildParams
@@ -277,8 +277,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def testReportFiles = [xmlFile]
         def testResults = new JUnitTestReportsUseCase(steps).parseTestReportFiles(testReportFiles)
         def data = [
-            testReportFiles: testReportFiles,
-            testResults: testResults
+            tests: [
+                unit: [
+                    testReportFiles: testReportFiles,
+                    testResults: testResults
+                ]
+            ]
         ]
 
         // Argument Constraints
@@ -299,7 +303,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jira.getAutomatedTestIssues(project.id, "Technology-${repo.id}", ["UnitTest"]) >> testIssues
+        1 * jira.getAutomatedUnitTestIssues(project.id, "Technology-${repo.id}") >> testIssues
         1 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
         //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
@@ -334,8 +338,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def testReportFiles = [xmlFile]
         def testResults = new JUnitTestReportsUseCase(steps).parseTestReportFiles(testReportFiles)
         def data = [
-            testReportFiles: testReportFiles,
-            testResults: testResults
+            tests: [
+                unit: [
+                    testReportFiles: testReportFiles,
+                    testResults: testResults
+                ]
+            ]
         ]
 
         // Argument Constraints
@@ -356,7 +364,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
 
         then:
-        1 * jira.getAutomatedTestIssues(project.id, "Technology-${repo.id}", ["UnitTest"]) >> testIssues
+        1 * jira.getAutomatedUnitTestIssues(project.id, "Technology-${repo.id}") >> testIssues
         1 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
         //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
@@ -441,10 +449,70 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jira.getAutomatedTestIssues(project.id, null, ["InstallationTest"]) >> testIssues
+        1 * jira.getAutomatedInstallationTestIssues(project.id) >> testIssues
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
         1 * usecase.createDocument(documentType, project, null, _, [:], _, null)
         _ * util.getBuildParams() >> buildParams
+    }
+
+    def "create IVR"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
+        def docGen = Mock(DocGenService)
+        def jenkins = Mock(JenkinsService)
+        def jira = Mock(JiraUseCase)
+        def levaFiles = Mock(LeVADocumentChaptersFileService)
+        def nexus = Mock(NexusService)
+        def os = Mock(OpenShiftService)
+        def pdf = Mock(PDFUtil)
+        def sq = Mock(SonarQubeUseCase)
+        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jira, levaFiles, nexus, os, pdf, sq))
+
+        // Test Parameters
+        def xmlFile = Files.createTempFile("junit", ".xml").toFile()
+        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
+
+        def project = createProject()
+        def repo = project.repositories.first()
+        def testReportFiles = [xmlFile]
+        def testResults = new JUnitTestReportsUseCase(steps).parseTestReportFiles(testReportFiles)
+        def data = [
+            tests: [
+                installation: [
+                    testReportFiles: testReportFiles,
+                    testResults: testResults
+                ]
+            ]
+        ]
+
+        // Argument Constraints
+        def documentType = LeVADocumentUseCase.DocumentType.IVR as String
+        def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
+
+        // Stubbed Method Responses
+        def buildParams = createBuildEnvironment(env)
+        def chapterData = ["sec1": "myContent"]
+        def document = "myDocument".bytes
+        def testIssues = createJiraTestIssues()
+
+        when:
+        usecase.createIVR(project, null, data)
+
+        then:
+        1 * jira.getDocumentChapterData(project.id, documentType) >> chapterData
+        0 * levaFiles.getDocumentChapterData(documentType)
+
+        then:
+        1 * jira.getAutomatedInstallationTestIssues(project.id) >> testIssues
+        1 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
+        //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
+        1 * usecase.createDocument(documentType, project, null, _, files, null, null) >> document
+        _ * util.getBuildParams() >> buildParams
+
+        cleanup:
+        xmlFile.delete()
     }
 
     def "create SCP"() {
@@ -997,7 +1065,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def result = usecase.getSupportedDocuments()
 
         then:
-        result.size() == 19
+        result.size() == 20
 
         then:
         result.contains("CS")
@@ -1016,6 +1084,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result.contains("TIR")
         result.contains("URS")
         result.contains("OVERALL_DTR")
+        result.contains("OVERALL_IVR")
         result.contains("OVERALL_SCR")
         result.contains("OVERALL_SDS")
         result.contains("OVERALL_TIR")

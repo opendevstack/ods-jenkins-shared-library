@@ -105,6 +105,22 @@ class JiraUseCase {
         return this.support.getAutomatedTestIssues(projectId, componentName, labelsSelector)
     }
 
+    List getAutomatedAcceptanceTestIssues(String projectId, String componentName = null) {
+        return this.support.getAutomatedAcceptanceTestIssues(projectId, componentName)
+    }
+
+    List getAutomatedInstallationTestIssues(String projectId, String componentName = null) {
+        return this.support.getAutomatedInstallationTestIssues(projectId, componentName)
+    }
+
+    List getAutomatedIntegrationTestIssues(String projectId, String componentName = null) {
+        return this.support.getAutomatedIntegrationTestIssues(projectId, componentName)
+    }
+
+    List getAutomatedUnitTestIssues(String projectId, String componentName = null) {
+        return this.support.getAutomatedUnitTestIssues(projectId, componentName)
+    }
+
     Map getDocumentChapterData(String projectId, String documentType) {
         if (!this.jira) return [:]
 
@@ -188,8 +204,8 @@ class JiraUseCase {
             query += " AND issuetype in (" + issueTypesSelector.collect{"'${it}'"}.join(", ") +  ")"
         }
 
-        if (labelsSelector) {
-            query += " AND labels in (" + labelsSelector.collect{"'${it}'"}.join(", ") +  ")"
+        labelsSelector.each {
+            query += " AND labels = '${it}'"
         }
 
         def linkedIssuesKeys = [] as Set

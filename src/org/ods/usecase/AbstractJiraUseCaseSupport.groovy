@@ -27,19 +27,19 @@ abstract class AbstractJiraUseCaseSupport {
     }
     */
 
-    List getAcceptanceTestIssues(String projectId, String componentName = null) {
+    List getAutomatedAcceptanceTestIssues(String projectId, String componentName = null) {
         return this.getAutomatedTestIssues(projectId, componentName, ["AcceptanceTest"])
     }
 
-    List getInstallationTestIssues(String projectId, String componentName = null) {
+    List getAutomatedInstallationTestIssues(String projectId, String componentName = null) {
         return this.getAutomatedTestIssues(projectId, componentName, ["InstallationTest"])
     }
 
-    List getIntegrationTestIssues(String projectId, String componentName = null) {
+    List getAutomatedIntegrationTestIssues(String projectId, String componentName = null) {
         return this.getAutomatedTestIssues(projectId, componentName, ["IntegrationTest"])
     }
 
-    List getUnitTestIssues(String projectId, String componentName = null) {
+    List getAutomatedUnitTestIssues(String projectId, String componentName = null) {
         return this.getAutomatedTestIssues(projectId, componentName, ["UnitTest"])
     }
 }

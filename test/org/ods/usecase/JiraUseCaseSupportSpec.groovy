@@ -49,7 +49,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def project = createProject()
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('AutomatedTest')",
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
@@ -74,7 +74,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def componentId = "myComponent"
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels in ('AutomatedTest')",
+            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
@@ -100,7 +100,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def labelsSelector = ["UnitTest"]
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels in ('UnitTest', 'AutomatedTest')",
+            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels = 'UnitTest' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
@@ -112,7 +112,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
     }
 
-    def "get automated test (unit test) issues"() {
+    def "get automated acceptance test issues"() {
         given:
         def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
@@ -124,19 +124,19 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def project = createProject()
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('UnitTest', 'AutomatedTest')",
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels = 'AcceptanceTest' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
 
         when:
-        support.getUnitTestIssues(project.id)
+        support.getAutomatedAcceptanceTestIssues(project.id)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
     }
 
-    def "get automated test (unit test) issues with componentId"() {
+    def "get automated acceptance test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
@@ -149,19 +149,19 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def componentId = "myComponent"
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels in ('UnitTest', 'AutomatedTest')",
+            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels = 'AcceptanceTest' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
 
         when:
-        support.getUnitTestIssues(project.id, componentId)
+        support.getAutomatedAcceptanceTestIssues(project.id, componentId)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
     }
 
-    def "get automated test (integration test) issues"() {
+    def "get automated installation test issues"() {
         given:
         def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
@@ -173,68 +173,19 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def project = createProject()
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('IntegrationTest', 'AutomatedTest')",
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels = 'InstallationTest' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
 
         when:
-        support.getIntegrationTestIssues(project.id)
+        support.getAutomatedInstallationTestIssues(project.id)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
     }
 
-    def "get automated test (integration test) issues with componentId"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
-
-        def support = createUseCaseSupport(steps, usecase)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def componentId = "myComponent"
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels in ('IntegrationTest', 'AutomatedTest')",
-            expand: [ "renderedFields" ],
-            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
-        ]
-
-        when:
-        support.getIntegrationTestIssues(project.id, componentId)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
-    }
-
-    def "get automated test (acceptance test) issues"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
-
-        def support = createUseCaseSupport(steps, usecase)
-        usecase.setSupport(support)
-
-        def project = createProject()
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('AcceptanceTest', 'AutomatedTest')",
-            expand: [ "renderedFields" ],
-            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
-        ]
-
-        when:
-        support.getAcceptanceTestIssues(project.id)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
-    }
-
-    def "get automated test (acceptance test) issues with componentId"() {
+    def "get automated installation test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
@@ -247,19 +198,19 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def componentId = "myComponent"
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels in ('AcceptanceTest', 'AutomatedTest')",
+            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels = 'InstallationTest' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
 
         when:
-        support.getAcceptanceTestIssues(project.id, componentId)
+        support.getAutomatedInstallationTestIssues(project.id, componentId)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
     }
 
-    def "get automated test (installation test) issues"() {
+    def "get automated integration test issues"() {
         given:
         def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
@@ -271,19 +222,19 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def project = createProject()
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('InstallationTest', 'AutomatedTest')",
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels = 'IntegrationTest' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
 
         when:
-        support.getInstallationTestIssues(project.id)
+        support.getAutomatedIntegrationTestIssues(project.id)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
     }
 
-    def "get automated test (installation test) issues with componentId"() {
+    def "get automated integration test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
         def jira = Mock(JiraService)
@@ -296,13 +247,62 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def componentId = "myComponent"
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels in ('InstallationTest', 'AutomatedTest')",
+            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels = 'IntegrationTest' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
 
         when:
-        support.getInstallationTestIssues(project.id, componentId)
+        support.getAutomatedIntegrationTestIssues(project.id, componentId)
+
+        then:
+        1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
+    }
+
+    def "get automated unit test issues"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
+        def usecase = createUseCase(steps, jira)
+
+        def support = createUseCaseSupport(steps, usecase)
+        usecase.setSupport(support)
+
+        def project = createProject()
+
+        def jqlQuery = [
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels = 'UnitTest' AND labels = 'AutomatedTest'",
+            expand: [ "renderedFields" ],
+            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
+        ]
+
+        when:
+        support.getAutomatedUnitTestIssues(project.id)
+
+        then:
+        1 * jira.getIssuesForJQLQuery(jqlQuery) >> []
+    }
+
+    def "get automated unit test test issues with componentId"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
+        def usecase = createUseCase(steps, jira)
+
+        def support = createUseCaseSupport(steps, usecase)
+        usecase.setSupport(support)
+
+        def project = createProject()
+        def componentId = "myComponent"
+
+        def jqlQuery = [
+            jql: "project = ${project.id} AND component = '${componentId}' AND issuetype in ('Test') AND labels = 'UnitTest' AND labels = 'AutomatedTest'",
+            expand: [ "renderedFields" ],
+            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
+        ]
+
+        when:
+        support.getAutomatedUnitTestIssues(project.id, componentId)
 
         then:
         1 * jira.getIssuesForJQLQuery(jqlQuery) >> []

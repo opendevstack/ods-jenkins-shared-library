@@ -34,6 +34,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         TIR,
         URS,
         OVERALL_DTR,
+        OVERALL_IVR,
         OVERALL_SCR,
         OVERALL_SDS,
         OVERALL_TIR
@@ -56,6 +57,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.TIR as String): "Technical Installation Report",
         (DocumentType.URS as String): "User Requirements Specification",
         (DocumentType.OVERALL_DTR as String): "Overall Software Development Testing Report",
+        (DocumentType.OVERALL_IVR as String): "Overall Configuration and Installation Testing Report",
         (DocumentType.OVERALL_SCR as String): "Overall Software Development (Coding and Code Review) Report",
         (DocumentType.OVERALL_SDS as String): "Overall Software Design Specification",
         (DocumentType.OVERALL_TIR as String): "Overall Technical Installation Report"
@@ -305,7 +307,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data: [
                 project: project,
                 sections: sections,
-                tests: this.jira.getAutomatedTestIssues(project.id, null, ["UnitTest"]).collectEntries { issue ->
+                tests: this.jira.getAutomatedUnitTestIssues(project.id).collectEntries { issue ->
                     [
                         issue.key,
                         [
@@ -324,12 +326,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDTR(Map project, Map repo, Map data) {
         def documentType = DocumentType.DTR as String
 
+        data = data.tests.unit
+
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
         if (!sections) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
 
-        def jiraTestIssues = this.jira.getAutomatedTestIssues(project.id, "Technology-${repo.id}", ["UnitTest"])
+        def jiraTestIssues = this.jira.getAutomatedUnitTestIssues(project.id, "Technology-${repo.id}")
 
         def matchedHandler = { result ->
             result.each { issue, testcase ->
@@ -345,7 +349,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        this.jira.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, data.testResults, matchedHandler, unmatchedHandler)
+        this.jira.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, data?.testResults ?: [:], matchedHandler, unmatchedHandler)
 
         def discrepancies = this.computeTestDiscrepancies("Development Tests", jiraTestIssues)
 
@@ -580,7 +584,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data: [
                 project: project,
                 sections: sections,
-                tests: this.jira.getAutomatedTestIssues(project.id, null, ["InstallationTest"]).collectEntries { issue ->
+                tests: this.jira.getAutomatedInstallationTestIssues(project.id).collectEntries { issue ->
                     [
                         issue.key,
                         [
@@ -597,8 +601,71 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createIVR(Map project, Map repo, Map data) {
-        // TODO: not yet implemented
-        return "http://nexus"
+        def documentType = DocumentType.IVR as String
+
+        data = data.tests.installation
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            sections = this.levaFiles.getDocumentChapterData(documentType)
+        }
+
+        def jiraTestIssues = this.jira.getAutomatedInstallationTestIssues(project.id)
+
+        def matchedHandler = { result ->
+            result.each { issue, testcase ->
+                issue.test.isSuccess = !(testcase.error || testcase.failure || testcase.skipped)
+                issue.test.isMissing = false
+            }
+        }
+
+        def unmatchedHandler = { result ->
+            result.each { issue ->
+                issue.test.isSuccess = false
+                issue.test.isMissing = true
+            }
+        }
+
+        this.jira.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, data?.testResults ?: [:], matchedHandler, unmatchedHandler)
+
+        def discrepancies = this.computeTestDiscrepancies("Installation and Configuration Tests", jiraTestIssues)
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                project: project,
+                sections: sections,
+                tests: jiraTestIssues.collectEntries { issue ->
+                    [
+                        issue.key,
+                        [
+                            key: issue.key,
+                            description: issue.test.description ?: "",
+                            isRelatedTo: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A",
+                            remarks: issue.test.isMissing ? "not executed" : "",
+                            summary: issue.summary,
+                            success: issue.test.isSuccess ? "Y" : "N",
+                            test: issue.test
+                        ]
+                    ]
+                },
+                testfiles: data.testReportFiles.collect { file ->
+                    [ name: file.getName(), path: file.getPath() ]
+                },
+                testsuites: data.testResults,
+                discrepancies: discrepancies.discrepancies,
+                conclusion: [
+                    summary: discrepancies.conclusion.summary,
+                    statement : discrepancies.conclusion.statement
+                ]
+            ]
+        ]
+
+        def files = data.testReportFiles.collectEntries { file ->
+            [ "raw/${file.getName()}", file.getBytes() ]
+        }
+
+        return this.createDocument(documentType, project, null, data_, files, null, null)
     }
 
     String createSCP(Map project) {
@@ -951,6 +1018,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String createOverallDTR(Map project) {
         def documentType = DocumentType.OVERALL_DTR as String
+        def metadata = this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project)
+        return this.createOverallDocument("Overall-Cover", documentType, metadata, project)
+    }
+
+    String createOverallIVR(Map project) {
+        def documentType = DocumentType.OVERALL_IVR as String
         def metadata = this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project)
         return this.createOverallDocument("Overall-Cover", documentType, metadata, project)
     }

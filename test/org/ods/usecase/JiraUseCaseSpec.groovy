@@ -174,6 +174,78 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * support.getAutomatedTestIssues(project.id, componentName, labelsSelector) >> []
     }
 
+    def "get automated acceptance test issues"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
+        def support = Mock(JiraUseCaseSupport)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
+
+        def project = createProject()
+        def issues = createJiraIssues()
+
+        when:
+        usecase.getAutomatedAcceptanceTestIssues(project.id)
+
+        then:
+        1 * support.getAutomatedAcceptanceTestIssues(project.id, null) >> []
+    }
+
+    def "get automated installation test issues"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
+        def support = Mock(JiraUseCaseSupport)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
+
+        def project = createProject()
+        def issues = createJiraIssues()
+
+        when:
+        usecase.getAutomatedInstallationTestIssues(project.id)
+
+        then:
+        1 * support.getAutomatedInstallationTestIssues(project.id, null) >> []
+    }
+
+    def "get automated integration test issues"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
+        def support = Mock(JiraUseCaseSupport)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
+
+        def project = createProject()
+        def issues = createJiraIssues()
+
+        when:
+        usecase.getAutomatedIntegrationTestIssues(project.id)
+
+        then:
+        1 * support.getAutomatedIntegrationTestIssues(project.id, null) >> []
+    }
+
+    def "get automated unit test issues"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def jira = Mock(JiraService)
+        def support = Mock(JiraUseCaseSupport)
+        def usecase = new JiraUseCase(steps, jira)
+        usecase.setSupport(support)
+
+        def project = createProject()
+        def issues = createJiraIssues()
+
+        when:
+        usecase.getAutomatedUnitTestIssues(project.id)
+
+        then:
+        1 * support.getAutomatedUnitTestIssues(project.id, null) >> []
+    }
+
     def "get document chapter data"() {
         given:
         def steps = Spy(PipelineSteps)
@@ -581,7 +653,7 @@ class JiraUseCaseSpec extends SpecHelper {
         def labelsSelector = ["myLabel1", "myLabel2"]
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}') AND labels in ('${labelsSelector[0]}', '${labelsSelector[1]}')",
+            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}') AND labels = '${labelsSelector[0]}' AND labels = '${labelsSelector[1]}'",
             expand: ["renderedFields"],
             fields: ["components", "description", "issuelinks", "issuetype", "summary"]
         ]

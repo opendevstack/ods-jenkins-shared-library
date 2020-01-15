@@ -89,7 +89,7 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
         def project = createProject()
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('AutomatedTest')",
+            jql: "project = ${project.id} AND issuetype in ('Test') AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
             fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
         ]
