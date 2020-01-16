@@ -94,7 +94,7 @@ class OdsContextTest extends GroovyTestCase {
 
     }
 
-    void testDetermineEnvironment_autoclone_without_branchprefix() {
+    void testDetermineEnvironmentAutocloneWithoutBranchprefix() {
         def existingEnvironments = ["dev", "prod"]
         def config = [
                 projectId                             : 'foo',
