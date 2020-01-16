@@ -242,14 +242,16 @@ class OdsPipeline implements Serializable {
           logger.info "MRO Build - skipping env mapping"
       } else {
         def assumedEnvironments = context.branchToEnvironmentMapping.values()
-        if (assumedEnvironments.contains(context.environment)) {
+        def envExists = context.environmentExists(context.targetProject)
+        logger.debug "context.environment: $context.environment, context.cloneSourceEnv: $context.cloneSourceEnv, context.targetProject: $context.targetProject, envExists: $envExists "
+        if (assumedEnvironments.contains(context.environment) && (envExists)) {
           logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
           return
         }
       }
 
       if (context.environmentExists(context.targetProject)) {
-        logger.info "Target Environment ${context.targetProject} exists already ..."
+        logger.info "Target environment $context.targetProject exists already ..."
         return
       }
 

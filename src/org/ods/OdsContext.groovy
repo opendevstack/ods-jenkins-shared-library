@@ -546,7 +546,9 @@ class OdsContext implements Context {
     def env = config.branchToEnvironmentMapping[config.gitBranch]
     if (env) {
       config.environment = env
-      config.cloneSourceEnv = null
+      config.cloneSourceEnv = environmentExists(env)
+              ? false
+              : config.autoCloneEnvironmentsFromSourceMapping[env]
       return
     }
 
