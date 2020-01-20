@@ -66,19 +66,19 @@ class LeVADocumentScheduler extends DocGenScheduler {
     // Document types per pipeline phase with an optional lifecycle constraint
     private static Map PIPELINE_PHASES = [
         (MROPipelineUtil.PipelinePhases.INIT): [
-            (LeVADocumentUseCase.DocumentType.CS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.DSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.URS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.FS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.URS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
+            (LeVADocumentUseCase.DocumentType.CS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.DSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.BUILD): [
-            (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
-            (LeVADocumentUseCase.DocumentType.SCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
             (LeVADocumentUseCase.DocumentType.SDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO,
-            (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.OVERALL_SDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
+            (LeVADocumentUseCase.DocumentType.OVERALL_SDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.SCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+            (LeVADocumentUseCase.DocumentType.DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+            (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.DEPLOY): [
             (LeVADocumentUseCase.DocumentType.TIP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
@@ -117,6 +117,15 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ]
     ]
 
+    // Document types at the project level which require repositories
+    private static List REQUIRING_REPOSITORIES = [
+        LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
+        // TODO
+        //LeVADocumentUseCase.DocumentType.FTR as String,
+        LeVADocumentUseCase.DocumentType.IVR as String
+    ]
+
     LeVADocumentScheduler(IPipelineSteps steps, LeVADocumentUseCase usecase) {
         super(steps, usecase)
     }
@@ -147,7 +156,11 @@ class LeVADocumentScheduler extends DocGenScheduler {
             throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${project.id}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
         }
 
-        def result = isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && !isRepositoryLevelDocument(documentType)
+        def result = isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
+        if (isDocumentRequiringRepositories(documentType)) {
+            result = result && !project.repositories.isEmpty()
+        }
+
         // Applicable for certain document types only if the Jira service is configured in the release manager configuration
         if ([LeVADocumentUseCase.DocumentType.CS, LeVADocumentUseCase.DocumentType.DSD, LeVADocumentUseCase.DocumentType.FS, LeVADocumentUseCase.DocumentType.URS].contains(documentType as LeVADocumentUseCase.DocumentType)) {
             result = result && project.services?.jira != null
@@ -179,6 +192,14 @@ class LeVADocumentScheduler extends DocGenScheduler {
         }
 
         return result
+    }
+
+    private boolean isDocumentRequiringRepositories(String documentType) {
+        return this.REQUIRING_REPOSITORIES.contains(documentType)
+    }
+
+    private boolean isProjectLevelDocument(String documentType) {
+        return !this.isRepositoryLevelDocument(documentType)
     }
 
     private boolean isRepositoryLevelDocument(String documentType) {

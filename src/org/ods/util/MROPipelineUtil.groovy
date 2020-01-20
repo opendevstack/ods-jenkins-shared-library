@@ -270,9 +270,8 @@ class MROPipelineUtil extends PipelineUtil {
             result.description = ""
         }
 
-        // Check for existence of required attribute 'repositories'
-        if (!result.repositories) {
-            throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories' is undefined.")
+        if (result.repositories == null) {
+            result.repositories = []
         }
 
         result.data = [:]

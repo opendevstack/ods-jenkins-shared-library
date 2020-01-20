@@ -25,6 +25,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     static def PROJECT_GAMP_4
     static def PROJECT_GAMP_5
     static def PROJECT_GAMP_5_WITHOUT_JIRA
+    static def PROJECT_GAMP_5_WITHOUT_REPOS
 
     static def REPO_ODS_CODE
     static def REPO_ODS_SERVICE
@@ -57,6 +58,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         PROJECT_GAMP_5_WITHOUT_JIRA = createProject()
         PROJECT_GAMP_5_WITHOUT_JIRA.capabilities << [ LeVADocs: [ GAMPCategory: "5" ] ]
         PROJECT_GAMP_5_WITHOUT_JIRA.services.jira = null
+
+        PROJECT_GAMP_5_WITHOUT_REPOS = createProject()
+        PROJECT_GAMP_5_WITHOUT_REPOS.capabilities << [ LeVADocs: [ GAMPCategory: "5" ] ]
+        PROJECT_GAMP_5_WITHOUT_REPOS.repositories = []
     }
 
     @Unroll
@@ -7686,6 +7691,33 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         LeVADocumentUseCase.DocumentType.URS | PROJECT_GAMP_5              | null | MROPipelineUtil.PipelinePhases.INIT | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || true
         LeVADocumentUseCase.DocumentType.URS | PROJECT_GAMP_5_WITHOUT_JIRA | null | MROPipelineUtil.PipelinePhases.INIT | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
+    }
+
+    def "is document applicable in the absence of repositories"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def usecase = Mock(LeVADocumentUseCase)
+        def scheduler = Spy(new LeVADocumentScheduler(steps, usecase))
+
+        expect:
+        scheduler.isDocumentApplicable(documentType as String, phase, stage, project, repo) == result
+
+        where:
+        documentType                                 | project                      | repo | phase                                | stage                                               || result
+        LeVADocumentUseCase.DocumentType.OVERALL_DTR | PROJECT_GAMP_5               | null | MROPipelineUtil.PipelinePhases.BUILD | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || true
+        LeVADocumentUseCase.DocumentType.OVERALL_DTR | PROJECT_GAMP_5_WITHOUT_REPOS | null | MROPipelineUtil.PipelinePhases.BUILD | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
+
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | PROJECT_GAMP_5               | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || true
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | PROJECT_GAMP_5_WITHOUT_REPOS | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
+
+        // TODO
+        /*
+        LeVADocumentUseCase.DocumentType.FTR | PROJECT_GAMP_5               | REPO_ODS_CODE | MROPipelineUtil.PipelinePhases.TEST | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || true
+        LeVADocumentUseCase.DocumentType.FTR | PROJECT_GAMP_5_WITHOUT_REPOS | REPO_ODS_CODE | MROPipelineUtil.PipelinePhases.TEST | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        */
+
+        LeVADocumentUseCase.DocumentType.IVR | PROJECT_GAMP_5               | null | MROPipelineUtil.PipelinePhases.TEST | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || true
+        LeVADocumentUseCase.DocumentType.IVR | PROJECT_GAMP_5_WITHOUT_REPOS | null | MROPipelineUtil.PipelinePhases.TEST | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
     }
 
     def "run for GAMP category 1"() {

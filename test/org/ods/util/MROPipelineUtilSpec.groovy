@@ -1195,7 +1195,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         file.delete()
     }
     
-    def "load project metadata with invalid repositories"() {
+    def "load project metadata with undefined repositories"() {
         given:
         def steps = Spy(util.PipelineSteps)
         def util = new MROPipelineUtil(steps, Mock(GitUtil))
@@ -1207,11 +1207,10 @@ class MROPipelineUtilSpec extends SpecHelper {
             id: myId
             name: myName
         """
-        util.loadProjectMetadata(file.name)
+        def result = util.loadProjectMetadata(file.name)
 
         then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to parse project meta data. Required attribute 'repositories' is undefined."
+        result.repositories == []
 
         cleanup:
         file.delete()
