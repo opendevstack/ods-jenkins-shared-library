@@ -102,7 +102,7 @@ class OdsContext implements Context {
       config.openshiftBuildTimeout = 15 // minutes
     }
     if (!config.containsKey('openshiftRolloutTimeout')) {
-      config.openshiftRolloutTimeout = 2 // minutes
+      config.openshiftRolloutTimeout = 5 // minutes
     }
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
