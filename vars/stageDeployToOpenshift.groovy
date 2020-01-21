@@ -18,7 +18,11 @@ def call(def context, def tailorSelector = '') {
         context.componentId
       )
       if (deploymentConfigExists) {
-        def configTriggerEnabled = utilsOpenshift.automaticConfigChangeTriggerEnabled(context)
+        def configTriggerEnabled = utilsOpenshift.automaticConfigChangeTriggerEnabled(
+          context,
+          context.targetProject,
+          context.componentId
+        )
         rolloutDeployment(
           context,
           context.targetProject,
