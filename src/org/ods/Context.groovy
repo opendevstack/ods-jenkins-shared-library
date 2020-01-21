@@ -187,6 +187,9 @@ interface Context {
     // Enable/disable display name update
     void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
 
+    // The docker directory to use when building the image in openshift
+    String getDockerDir()
+
     // get any build artifact URIs there were created
     public Map<String, String> getBuildArtifactURIs()
 

@@ -189,6 +189,10 @@ class OdsContext implements Context {
       config.ciSkipEnabled = true
     }
 
+    if (!config.containsKey('dockerDir')) {
+      config.dockerDir = 'docker'
+    }
+
     logger.debug "Setting environment ..."
     determineEnvironment()
     if (config.environment) {
@@ -434,6 +438,10 @@ class OdsContext implements Context {
 
   void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
     config.displayNameUpdateEnabled = displayNameUpdateEnabled
+  }
+
+  String getDockerDir() {
+    return config.dockerDir
   }
 
   private String retrieveGitUrl() {
