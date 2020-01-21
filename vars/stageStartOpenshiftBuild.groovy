@@ -48,7 +48,7 @@ private String checkForBuildStatus(String targetProject, String buildId) {
   def buildStatus = 'unknown'
   def retries = 3
   for(def i = 0; i < retries; i++) {
-    buildStatus = getBuildStatus(context.targetProject, buildId)
+    buildStatus = getBuildStatus(targetProject, buildId)
     if (buildStatus == "complete") {
       return buildStatus
     }
