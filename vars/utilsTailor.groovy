@@ -11,7 +11,6 @@ String getVersion() {
 }
 
 boolean privateKeyExists(def privateKeyCredentialsId) {
-  echo "Check if credentials ${privateKeyCredentialsId} exist ..."
   try {
     withCredentials([
       sshUserPrivateKey(
@@ -19,11 +18,9 @@ boolean privateKeyExists(def privateKeyCredentialsId) {
         keyFileVariable: 'irrelevant'
       )
     ]) {
-      echo "Credentials ${id} exist."
       true
     }
   } catch (_) {
-    echo "Credentials ${id} do not exist."
     false
   }
 }
