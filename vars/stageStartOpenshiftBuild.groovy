@@ -92,11 +92,9 @@ private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
       '{"op": "replace", "path": "/spec/source", "value": {"type":"Binary"}}',
       """{"op": "${imageLabelsOp}", "path": "/spec/output/imageLabels", "value": [
         ${odsImageLabels.join(",")}
-      ]}"""
+      ]}""",
+      """{"op": "replace", "path": "/spec/output/to/name", "value": "${context.componentId}:${context.tagversion}"}"""
   ]
-  if (!utilsTailor.enabled()) {
-    patches.push("""{"op": "replace", "path": "/spec/output/to/name", "value": "${context.componentId}:${context.tagversion}"}""")
-  }
 
   // add build args
   def buildArgsItems = []

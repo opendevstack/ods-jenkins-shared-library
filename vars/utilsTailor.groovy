@@ -85,7 +85,7 @@ String assembleUpdateArgsAndFlags(def context, ArrayList<String> include, ArrayL
   // Do not touch BuildConfig paths that have been touched in stageStartOpenshiftBuild.
   def ignorePaths = ''
   if (include.contains('buildconfig') || !exclude.contains('buildconfig')) {
-    ignorePaths = '--ignore-path bc:/spec/output/imageLabels --ignore-path bc:/spec/strategy/dockerStrategy/buildArgs'
+    ignorePaths = '--ignore-path bc:/spec/output/imageLabels --ignore-path bc:/spec/output/to/name --ignore-path bc:/spec/strategy/dockerStrategy/buildArgs'
   }
   // Handle included and excluded resource kinds.
   def kindsArg = ''
