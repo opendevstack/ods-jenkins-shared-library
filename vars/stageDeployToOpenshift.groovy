@@ -23,6 +23,21 @@ def call(def context, def tailorSelector = '') {
           context.targetProject,
           context.componentId
         )
+
+        def imageStreamExists = utilsOpenshift.imageStreamExists(
+          context,
+          context.targetProject,
+          context.componentId
+        )
+        if (imageStreamExists) {
+          utilsOpenshift.setLatestImageTag(
+            context,
+            context.targetProject,
+            context.componentId,
+            context.tagversion
+          )
+        }
+
         rolloutDeployment(
           context,
           context.targetProject,
