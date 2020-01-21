@@ -10,10 +10,15 @@ String getVersion() {
   ).trim()
 }
 
-boolean privateKeyExists(def id) {
-  echo "Check if credentials ${id} exist ..."
+boolean privateKeyExists(def privateKeyCredentialsId) {
+  echo "Check if credentials ${privateKeyCredentialsId} exist ..."
   try {
-    withCredentials([string(credentialsId: id, variable: 'irrelevant')]) {
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: privateKeyCredentialsId,
+        keyFileVariable: 'irrelevant'
+      )
+    ]) {
       echo "Credentials ${id} exist."
       true
     }
