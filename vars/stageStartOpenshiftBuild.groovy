@@ -28,13 +28,8 @@ def call(def context, def buildArgs = [:], def imageLabels = [:], def tailorSele
       error "Got '${startBuildInfo}' as build start result, which cannot be parsed to get the build ID ..."
     }
 
-    def buildStatus = sh(
-      returnStdout: true,
-      script:"oc -n ${context.targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
-      label: "find last build"
-    ).trim()
-
-    if (buildStatus.toLowerCase() != "complete") {
+    def buildStatus = checkForBuildStatus(context.targetProject, buildId)
+    if (buildStatus != "complete") {
       error "OCP Build ${buildId} was not successful - status ${buildStatus}"
     }
 
@@ -47,6 +42,30 @@ def call(def context, def buildArgs = [:], def imageLabels = [:], def tailorSele
     context.addArtifactURI("OCP Build Id", buildId)
     context.addArtifactURI("OCP Docker image", currentImage)
   }
+}
+
+private String checkForBuildStatus(String targetProject, String buildId) {
+  def buildStatus = 'unknown'
+  def retries = 3
+  for(def i = 0; i < retries; i++) {
+    buildStatus = getBuildStatus(context.targetProject, buildId)
+    if (buildStatus == "complete") {
+      return buildStatus
+    }
+    // Wait 5 seconds before asking again.
+    sleep 5
+  }
+  return buildStatus
+}
+
+private String getBuildStatus(String targetProject, String buildId) {
+  def buildStatus = sh(
+    returnStdout: true,
+    script:"oc -n ${targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
+    label: "find last build"
+  ).trim()
+
+  return buildStatus.toLowerCase()
 }
 
 private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
