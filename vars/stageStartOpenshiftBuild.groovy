@@ -7,7 +7,7 @@ def call(def context, def buildArgs = [:], def imageLabels = [:], def tailorSele
 
     if (utilsTailor.enabled()) {
       def tailorVersion = utilsTailor.getVersion()
-      echo "Using Tailor (${tailorVersion}) to update build environment."
+      echo "Using Tailor (${tailorVersion}) to update build part of component."
       utilsTailor.execBuildUpdate(context, tailorSelector)
     }
     patchBuildConfig(context, buildArgs, imageLabels)

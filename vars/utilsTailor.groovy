@@ -11,11 +11,14 @@ String getVersion() {
 }
 
 boolean privateKeyExists(def id) {
+  echo "Check if credentials ${id} exist ..."
   try {
     withCredentials([string(credentialsId: id, variable: 'irrelevant')]) {
+      echo "Credentials ${id} exist."
       true
     }
   } catch (_) {
+    echo "Credentials ${id} do not exist."
     false
   }
 }

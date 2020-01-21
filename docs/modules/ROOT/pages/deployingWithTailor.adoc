@@ -1,0 +1,48 @@
+# Using Tailor to Deploy
+
+If you want to control the configuration of the OpenShift resources of one
+component using code ("infrastructure-as-code"), you may use Tailor to do so.
+The step `stageDeployToOpenshift` from the jenkins-shared-library has support
+baked-in. This guide will explain how to get started, and how to customise the
+behaviour.
+
+## Getting Started
+
+The first step is to export the current configuration from the OCP cluster.
+All resources within one component are created by the quickstarter process with
+the same label, which is `app=<PROJECT-ID>-<COMPONENT-ID>`. We can use this
+label now to export just the resources related to the component.
+
+First, create a folder named `openshift` in the root of your repository.
+
+Then, run
+`tailor export -l app=<PROJECT-ID>-<COMPONENT-ID> > openshift/template.yml` to
+export the resources to a template file. The name of the file to create does not
+matter, but it must have the `.yml` extension.
+
+Next, it is recommended to verify that Tailor currently detects no drift between
+the local templates ("desired state") and the resources in the cluster
+("current state").
+
+Finally, when the new file is committed to the repository, the pipeline for the
+commit will run and apply the desired state via Tailor. Before doing this
+though, it is recommended to read this documentation completely to understand
+the behaviour of `stageDeployToOpenshift` and how it can be customised.
+
+## Parameters and Environments
+
+Usually, an application is deployed to multiple environments (OpenShift
+projects). Tailor is built on the assumption that the configuration is the same
+across environments, but the values may differ between them. To support this,
+it is possible to define different parameter values per environment. By default,
+parameters are read from a `.env` file in the `openshift` folder. However, if a
+more specific environment file exists, it has precedence. For example, you may
+create two files `foo-dev.env` and `foo-test.env` to specify different values
+for OpenShift project `foo-dev` and `foo-test`.
+
+# Options
+
+The behaviour of Tailor itself can be customised by adding a `Tailorfile` into
+the `openshift` folder. If you need different options per environment, you may
+create more specific files such as `Tailorfile.foo-dev` and
+`Tailorfile.foo-test`.

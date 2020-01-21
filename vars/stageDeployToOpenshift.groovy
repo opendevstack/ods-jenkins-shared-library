@@ -26,9 +26,10 @@ def call(def context, def tailorSelector = '') {
           context.openshiftRolloutTimeout,
           configTriggerEnabled
         )
-        // NOTE: If you want to control multiple deployments via Tailor, this
-        // pre-built stage does not work and you'll need to build your own stage
-        // using the building blocks provided by utilsOpenshift and utilsTailor.
+        // NOTE: This stage does not support multiple deployments via Tailor. If
+        // you need to control multiple deployments from one repository, you'll
+        // need to build your own stage, using the building blocks provided by
+        // utilsOpenshift and utilsTailor.
       } else {
         echo "Update applied, but no DeploymentConfig ${context.componentId} found in ${context.targetProject}."
       }
