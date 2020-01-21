@@ -292,7 +292,7 @@ When you write stages, you have access to both global variables (defined without
 | Whether the build should be skipped, based on the Git commit message.
 
 | dockerDir
-| The docker directory to use when building the image in openshift
+| The docker directory to use when building the image in openshift. Defaults to `docker`.
 |===
 
 == Slave customization
