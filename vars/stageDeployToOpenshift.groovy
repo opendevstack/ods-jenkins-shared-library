@@ -87,7 +87,7 @@ def rolloutDeployment(def context, def targetProject, def componentId, def rollo
     context,
     targetProject,
     componentId,
-    openshiftRolloutTimeout,
+    rolloutTimeout,
     !automaticRollout
   )
 
