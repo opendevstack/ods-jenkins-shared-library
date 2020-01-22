@@ -31,7 +31,7 @@ def call(Map project, List<Set<Map>> repos) {
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, repo, data)
 
             echo "Reporting unit test results to corresponding test cases in Jira for ${repo.id}"
-            jira.reportTestResultsForComponent(project.id, "Technology-${repo.id}", "UnitTest", data.tests.unit.testResults)
+            jira.reportTestResultsForComponent(project.id, "Technology-${repo.id}", ["UnitTest"], data.tests.unit.testResults)
         }
     }
 
@@ -50,7 +50,7 @@ private List getTestResults(def steps, Map repo) {
     def jenkins = ServiceRegistry.instance.get(JenkinsService.class.name)
     def junit   = ServiceRegistry.instance.get(JUnitTestReportsUseCase.class.name)
 
-    def testReportsPath = "junit/${repo.id}"
+    def testReportsPath = "junit/${repo.id}/unit"
 
     echo "Collecting JUnit XML Reports for ${repo.id}"
     def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"

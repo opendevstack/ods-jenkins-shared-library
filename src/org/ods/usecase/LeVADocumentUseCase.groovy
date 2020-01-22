@@ -562,13 +562,133 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createFTP(Map project) {
-        // TODO: not yet implemented
-        return "http://nexus"
+        def documentType = DocumentType.FTP as String
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        def jiraAcceptanceTestIssues = this.jira.getAutomatedAcceptanceTestIssues(project.id)
+        def jiraIntegrationTestIssues = this.jira.getAutomatedIntegrationTestIssues(project.id)
+
+        def data = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                project: project,
+                sections: sections,
+                acceptanceTests: jiraAcceptanceTestIssues.collectEntries { issue ->
+                    [
+                        issue.key,
+                        [
+                            key: issue.key,
+                            description: issue.description ?: "",
+                            ur_key: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A",
+                            risk_key: "TODO" // TODO: implement once a test case can reference the risk
+                        ]
+                    ]
+                },
+                integrationTests: jiraIntegrationTestIssues.collectEntries { issue ->
+                    [
+                        issue.key,
+                        [
+                            key: issue.key,
+                            description: issue.description ?: "",
+                            ur_key: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A",
+                            risk_key: "TODO"
+                        ]
+                    ]
+                }
+            ]
+        ]
+
+        return this.createDocument(documentType, project, null, data, [:], null, null)
     }
 
     String createFTR(Map project, Map repo, Map data) {
-        // TODO: not yet implemented
-        return "http://nexus"
+        def documentType = DocumentType.FTR as String
+
+        def acceptanceTestData = data.tests.acceptance
+        def integrationTestData = data.tests.integration
+
+        def sections = this.jira.getDocumentChapterData(project.id, documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        def matchedHandler = { result ->
+            result.each { issue, testcase ->
+                issue.test.isSuccess = !(testcase.error || testcase.failure || testcase.skipped)
+                issue.test.isMissing = false
+                issue.test.timestamp = testcase.timestamp
+            }
+        }
+
+        def unmatchedHandler = { result ->
+            result.each { issue ->
+                issue.test.isSuccess = false
+                issue.test.isMissing = true
+            }
+        }
+
+        def jiraAcceptanceTestIssues = this.jira.getAutomatedAcceptanceTestIssues(project.id)
+        this.jira.matchJiraTestIssuesAgainstTestResults(jiraAcceptanceTestIssues, acceptanceTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
+
+        def jiraIntegrationTestIssues = this.jira.getAutomatedIntegrationTestIssues(project.id)
+        this.jira.matchJiraTestIssuesAgainstTestResults(jiraIntegrationTestIssues, integrationTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
+
+        def discrepancies = this.computeTestDiscrepancies("Functional and Requirements Tests", (jiraAcceptanceTestIssues + jiraIntegrationTestIssues))
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
+            data: [
+                project: project,
+                sections: sections,
+                acceptanceTests: jiraAcceptanceTestIssues.collectEntries { issue ->
+                    [
+                        issue.key,
+                        [
+                            key: issue.key,
+                            datetime: issue.test.timestamp ? issue.test.timestamp.replaceAll("T", "</br>") : "N/A",
+                            description: issue.test.description ?: "",
+                            isRelatedTo: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A",
+                            remarks: issue.test.isMissing ? "not executed" : "",
+                            risk_key: "TODO", // TODO: implement once a test case can reference the risk
+                            success: issue.test.isSuccess ? "Y" : "N",
+                            ur_key: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A"
+                        ]
+                    ]
+                },
+                integrationTests: jiraIntegrationTestIssues.collectEntries { issue ->
+                    [
+                        issue.key,
+                        [
+                            key: issue.key,
+                            datetime: issue.test.timestamp ? issue.test.timestamp.replaceAll("T", "</br>") : "N/A",
+                            description: issue.test.description ?: "",
+                            isRelatedTo: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A",
+                            remarks: issue.test.isMissing ? "not executed" : "",
+                            risk_key: "TODO", // TODO: implement once a test case can reference the risk
+                            success: issue.test.isSuccess ? "Y" : "N",
+                            ur_key: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A"
+                        ]
+                    ]
+                },
+                testfiles: (acceptanceTestData + integrationTestData).testReportFiles.collect { file ->
+                    [ name: file.getName(), path: file.getPath() ]
+                },
+                conclusion: [
+                    summary: discrepancies.conclusion.summary,
+                    statement : discrepancies.conclusion.statement
+                ]
+            ]
+        ]
+
+        def files = (acceptanceTestData + integrationTestData).testReportFiles.collectEntries { file ->
+            [ "raw/${file.getName()}", file.getBytes() ]
+        }
+
+        return this.createDocument(documentType, project, null, data_, files, null, null)
     }
 
     String createIVP(Map project) {
@@ -590,6 +710,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         [
                             key: issue.key,
                             summary: issue.summary,
+                            isRelatedTo: issue.issuelinks ? issue.issuelinks.first().issue.key : "N/A",
                             test: issue.test
                         ]
                     ]
@@ -628,8 +749,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         this.jira.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, data?.testResults ?: [:], matchedHandler, unmatchedHandler)
 
-        def discrepancies = this.computeTestDiscrepancies("Installation and Configuration Tests", jiraTestIssues)
-
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
@@ -651,13 +770,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 },
                 testfiles: data.testReportFiles.collect { file ->
                     [ name: file.getName(), path: file.getPath() ]
-                },
-                testsuites: data.testResults,
-                discrepancies: discrepancies.discrepancies,
-                conclusion: [
-                    summary: discrepancies.conclusion.summary,
-                    statement : discrepancies.conclusion.statement
-                ]
+                }
             ]
         ]
 

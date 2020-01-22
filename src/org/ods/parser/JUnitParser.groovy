@@ -84,7 +84,15 @@ class JUnitParser {
         // Parse <testsuite>/<testcase> elements
         result << [ "testcases": testsuite."*"
             .findAll { it.name() == "testcase" }
-            .collect { parseJUnitXMLTestCaseElement(it) }
+            .collect {
+                def testcase = parseJUnitXMLTestCaseElement(it)
+
+                if (result.timestamp) {
+                    testcase.timestamp = result.timestamp
+                }
+
+                return testcase
+            }
         ]
 
         // Parse <testsuite>/<system-out> elements

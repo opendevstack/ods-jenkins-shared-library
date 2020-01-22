@@ -262,7 +262,7 @@ class JUnitParserSpec extends SpecHelper {
 
         where:
         xmlString << [
-            '<testsuite name="my-suite" tests="0" failures="0" errors="0" skipped="0"/>',
+            '<testsuite name="my-suite" tests="0" failures="0" errors="0" skipped="0" timestamp="2000-01-01T00:00:00"/>',
             """
             <testsuite name="my-suite" tests="0">
                 <testcase name="my-testcase"/>
@@ -282,7 +282,8 @@ class JUnitParserSpec extends SpecHelper {
                         properties: [],
                         testcases: [],
                         systemOut: "",
-                        systemErr: ""
+                        systemErr: "",
+                        timestamp: "2000-01-01T00:00:00"
                     ]
                 ]
             ],

@@ -3,6 +3,8 @@ package org.ods.usecase
 import org.ods.parser.JUnitParser
 import org.ods.util.IPipelineSteps
 
+import groovy.json.JsonOutput
+
 class JUnitTestReportsUseCase {
 
     private IPipelineSteps steps

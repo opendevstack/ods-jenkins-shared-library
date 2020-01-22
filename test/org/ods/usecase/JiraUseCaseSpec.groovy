@@ -868,7 +868,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         def project = createProject()
         def componentName = "myComponent"
-        def testType = "myTestType"
+        def testTypes = ["myTestType"]
         def testResults = createTestResults()
 
         def testIssues = createJiraTestIssues()
@@ -879,10 +879,10 @@ class JiraUseCaseSpec extends SpecHelper {
         def failureBug = [ key: "JIRA-BUG-2" ]
 
         when:
-        usecase.reportTestResultsForComponent(project.id, componentName, testType, testResults)
+        usecase.reportTestResultsForComponent(project.id, componentName, testTypes, testResults)
 
         then:
-        1 * support.getAutomatedTestIssues(project.id, componentName, [testType]) >> testIssues
+        1 * support.getAutomatedTestIssues(project.id, componentName, testTypes) >> testIssues
 
         then:
         1 * support.applyTestResultsToTestIssues(testIssues, testResults)

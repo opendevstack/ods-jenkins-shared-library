@@ -88,7 +88,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.IVR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.FTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.FTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+            (LeVADocumentUseCase.DocumentType.FTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
             (LeVADocumentUseCase.DocumentType.OVERALL_SCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
@@ -103,7 +103,6 @@ class LeVADocumentScheduler extends DocGenScheduler {
     private static Map REPSITORY_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
             (LeVADocumentUseCase.DocumentType.DTR as String): null,
-            (LeVADocumentUseCase.DocumentType.FTR as String): null,
             (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhases.BUILD,
             (LeVADocumentUseCase.DocumentType.SDS as String): null,
             (LeVADocumentUseCase.DocumentType.TIR as String): null
@@ -121,8 +120,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
     private static List REQUIRING_REPOSITORIES = [
         LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
         LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
-        // TODO
-        //LeVADocumentUseCase.DocumentType.FTR as String,
+        LeVADocumentUseCase.DocumentType.FTR as String,
         LeVADocumentUseCase.DocumentType.IVR as String
     ]
 

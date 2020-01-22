@@ -372,6 +372,109 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         _ * util.getBuildParams() >> buildParams
     }
 
+    def "create FTP"() {
+        given:
+        def util = Mock(MROPipelineUtil)
+        def docGen = Mock(DocGenService)
+        def jenkins = Mock(JenkinsService)
+        def jira = Mock(JiraUseCase)
+        def levaFiles = Mock(LeVADocumentChaptersFileService)
+        def nexus = Mock(NexusService)
+        def os = Mock(OpenShiftService)
+        def pdf = Mock(PDFUtil)
+        def sq = Mock(SonarQubeUseCase)
+        def usecase = Spy(new LeVADocumentUseCase(Spy(PipelineSteps), util, docGen, jenkins, jira, levaFiles, nexus, os, pdf, sq))
+
+        // Test Parameters
+        def project = createProject()
+
+        // Argument Constraints
+        def documentType = LeVADocumentUseCase.DocumentType.FTP as String
+
+        // Stubbed Method Responses
+        def buildParams = createBuildEnvironment(env)
+        def chapterData = ["sec1": "myContent"]
+        def testIssues = createJiraTestIssues()
+
+        when:
+        usecase.createFTP(project)
+
+        then:
+        1 * jira.getDocumentChapterData(project.id, documentType) >> chapterData
+        0 * levaFiles.getDocumentChapterData(documentType)
+
+        then:
+        1 * jira.getAutomatedAcceptanceTestIssues(project.id) >> testIssues
+        1 * jira.getAutomatedIntegrationTestIssues(project.id) >> testIssues
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
+        1 * usecase.createDocument(documentType, project, null, _, [:], _, null)
+        _ * util.getBuildParams() >> buildParams
+    }
+
+    def "create FTR"() {
+        given:
+        def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
+        def docGen = Mock(DocGenService)
+        def jenkins = Mock(JenkinsService)
+        def jira = Mock(JiraUseCase)
+        def levaFiles = Mock(LeVADocumentChaptersFileService)
+        def nexus = Mock(NexusService)
+        def os = Mock(OpenShiftService)
+        def pdf = Mock(PDFUtil)
+        def sq = Mock(SonarQubeUseCase)
+        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jira, levaFiles, nexus, os, pdf, sq))
+
+        // Test Parameters
+        def xmlFile = Files.createTempFile("junit", ".xml").toFile()
+        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
+
+        def project = createProject()
+        def repo = project.repositories.first()
+        def testReportFiles = [xmlFile]
+        def testResults = new JUnitTestReportsUseCase(steps).parseTestReportFiles(testReportFiles)
+        def data = [
+            tests: [
+                acceptance: [
+                    testReportFiles: testReportFiles,
+                    testResults: testResults
+                ],
+                integration: [
+                    testReportFiles: testReportFiles,
+                    testResults: testResults
+                ]
+            ]
+        ]
+
+        // Argument Constraints
+        def documentType = LeVADocumentUseCase.DocumentType.FTR as String
+        def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
+
+        // Stubbed Method Responses
+        def buildParams = createBuildEnvironment(env)
+        def chapterData = ["sec1": "myContent"]
+        def document = "myDocument".bytes
+        def testIssues = createJiraTestIssues()
+
+        when:
+        usecase.createFTR(project, null, data)
+
+        then:
+        1 * jira.getDocumentChapterData(project.id, documentType) >> chapterData
+        0 * levaFiles.getDocumentChapterData(documentType)
+
+        then:
+        1 * jira.getAutomatedAcceptanceTestIssues(project.id) >> testIssues
+        1 * jira.getAutomatedIntegrationTestIssues(project.id) >> testIssues
+        2 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
+        1 * usecase.createDocument(documentType, project, null, _, files, null, null) >> document
+        _ * util.getBuildParams() >> buildParams
+
+        cleanup:
+        xmlFile.delete()
+    }
+
     def "create FS"() {
         given:
         def util = Mock(MROPipelineUtil)
@@ -506,7 +609,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * jira.getAutomatedInstallationTestIssues(project.id) >> testIssues
         1 * jira.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
-        //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
         1 * usecase.createDocument(documentType, project, null, _, files, null, null) >> document
         _ * util.getBuildParams() >> buildParams

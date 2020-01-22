@@ -345,11 +345,11 @@ class JiraUseCase {
         this.jira.appendCommentToIssue(jiraIssues.first().key, message)
     }
 
-    void reportTestResultsForComponent(String projectId, String componentName, String testType, Map testResults) {
+    void reportTestResultsForComponent(String projectId, String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
         // Get automated test case definitions from Jira
-        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentName, [testType])
+        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentName, testTypes)
 
         // Apply test results to the test case definitions in Jira
         this.support.applyTestResultsToTestIssues(jiraTestIssues, testResults)
