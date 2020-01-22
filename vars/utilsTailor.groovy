@@ -97,7 +97,7 @@ String assembleUpdateArgsAndFlags(def context, ArrayList<String> include, ArrayL
     excludeFlag = "--exclude ${exclude.join(',')}"
   }
   // Pass tagversion to set the correct container image.
-  def tailorFlagsAndArgs = "--non-interactive --namespace ${context.targetProject} --selector ${selector} ${excludeFlag} update ${kindsArg} ${ignorePaths} ${paramFile} --ignore-unknown-parameters --param TAGVERSION=${context.tagversion}"
+  def tailorFlagsAndArgs = "--non-interactive --namespace ${context.targetProject} --selector ${selector} ${excludeFlag} update ${kindsArg} ${ignorePaths} ${paramFile} --param TAGVERSION=${context.tagversion}"
   // Detect any Tailorfile.<targetProject> or Tailorfile files.
   if (fileExists("openshift/Tailorfile.${context.targetProject}")) {
     tailorFlagsAndArgs = "--file Tailorfile.${context.targetProject} ${tailorFlagsAndArgs}"
