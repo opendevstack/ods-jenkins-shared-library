@@ -137,7 +137,6 @@ class JiraUseCase {
 
         return result.issues.collectEntries { issue ->
             def number = issue.fields[numberKey]?.trim()
-
             def content = issue.renderedFields[contentFieldKey]
             if (content.contains("<img")) {
                 content = convertHTMLImageSrcIntoBase64Data(content)
