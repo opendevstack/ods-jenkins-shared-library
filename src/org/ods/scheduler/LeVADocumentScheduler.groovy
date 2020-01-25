@@ -219,4 +219,20 @@ class LeVADocumentScheduler extends DocGenScheduler {
           ? isDocumentApplicableForProject(documentType, gampCategory, phase, stage, project)
           : isDocumentApplicableForRepo(documentType, gampCategory, phase, stage, project, repo)
     }
+
+    void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map project, Map repo = null, Map data = null) {
+        def documents = this.usecase.getSupportedDocuments()
+        documents.each { documentType ->
+            def args = [project, repo, data]
+
+            if (this.isDocumentApplicable(documentType, phase, stage, project, repo)) {
+                def message = "Creating document of type '${documentType}' for project '${project.id}'"
+                if (repo) message += " and repo '${repo.id}'"
+                this.steps.echo(message)
+
+                // Apply args according to the method's parameters length
+                this.usecase.invokeMethod(this.getMethodNameForDocumentType(documentType), args as Object[])
+            }
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package org.ods.usecase
 
+import groovy.json.JsonOutput
+
 import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
 import org.ods.util.IPipelineSteps

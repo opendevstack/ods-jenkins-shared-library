@@ -23,13 +23,19 @@ class JiraZephyrService extends JiraService {
     }
 
     @NonCPS
-    Map createTestExecutionForIssue(String issueId, String projectId) {
+    Map createTestExecutionForIssue(String issueId, String projectId, String cycleId) {
         if (!issueId?.trim()) {
             throw new IllegalArgumentException("Error: unable to create test execution for Jira issue. 'issueId' is undefined.")
         }
-
         if (!projectId?.trim()) {
             throw new IllegalArgumentException("Error: unable to create test execution for Jira issue. 'projectId' is undefined.")
+        }
+        if (!cycleId?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create test execution for Jira issue. 'cycleId' is undefined.")
+        }
+
+        if (!cycleId?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create test execution for Jira issue. 'cycleId' is undefined.")
         }
 
         def response = Unirest.post("${this.baseURL}/rest/zapi/latest/execution/")
@@ -39,7 +45,8 @@ class JiraZephyrService extends JiraService {
             .body(JsonOutput.toJson(
                 [
                     issueId: issueId,
-                    projectId: projectId
+                    projectId: projectId,
+                    cycleId: cycleId
                 ]
             ))
             .asString()
@@ -112,10 +119,10 @@ class JiraZephyrService extends JiraService {
         if (!executionId?.trim()) {
             throw new IllegalArgumentException("Error: unable to update test execution for Jira issue. 'executionId' is undefined.")
         }
+
         if (!status?.trim()) {
             throw new IllegalArgumentException("Error: unable to update test execution for Jira issue. 'status' is undefined.")
         }
-
 
         def response = Unirest.put("${this.baseURL}/rest/zapi/latest/execution/{executionId}/execute")
             .routeParam("executionId", executionId)
@@ -128,7 +135,6 @@ class JiraZephyrService extends JiraService {
                 ]
             ))
             .asString()
-
 
         response.ifFailure {
             def message = "Error: unable to update test execution for Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
@@ -155,5 +161,109 @@ class JiraZephyrService extends JiraService {
 
     void updateExecutionForIssueWip(String executionId) {
         this.updateExecutionForIssue(executionId, ExecutionStatus.WIP)
+    }
+
+    @NonCPS
+    Map createTestCycle(String projectId, String versionId, String name, String build, String environment) {
+        if (!projectId?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create test cycle for Jira issues. 'projectId' is undefined.")
+        }
+
+        if (!versionId?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create test cycle for Jira issues. 'versionId' is undefined.")
+        }
+
+        if (!name?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create test cycle for Jira issues. 'name' is undefined.")
+        }
+
+        if (!build?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create test cycle for Jira issues. 'build' is undefined.")
+        }
+
+        if (!environment?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create test cycle for Jira issues. 'environment' is undefined.")
+        }
+
+        def response = Unirest.post("${this.baseURL}/rest/zapi/latest/cycle/")
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(JsonOutput.toJson(
+                [
+                    projectId: projectId,
+                    versionId: versionId,
+                    name: name,
+                    build: build,
+                    environment: environment
+                ]
+            ))
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to create test cycle for Jira issues. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to create test cycle for Jira issues. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    @NonCPS
+    List getProjectVersions(String projectKey) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException("Error: unable to get project versions from Jira. 'projectKey' is undefined.")
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}/versions")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get project versions. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get project versions. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody()) ?: []
+    }
+
+    @NonCPS
+    Map getProjectCycles(String projectId, String versionId) {
+        if (!projectId?.trim()) {
+            throw new IllegalArgumentException("Error: unable to get project cycles from Jira. 'projectId' is undefined.")
+        }
+        if (!versionId?.trim()) {
+            throw new IllegalArgumentException("Error: unable to get project cycles from Jira. 'versionId' is undefined.")
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/zapi/latest/cycle")
+            .queryString("projectId", projectId)
+            .queryString("versionId", versionId)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get project cycles. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get project cycles. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
     }
 }

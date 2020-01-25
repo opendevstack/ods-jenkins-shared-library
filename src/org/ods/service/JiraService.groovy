@@ -192,7 +192,7 @@ class JiraService {
                 [
                     fields: [
                         project: [
-                            key: projectKey
+                            key: projectKey.toUpperCase()
                         ],
                         summary: summary,
                         description: description,

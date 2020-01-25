@@ -23,8 +23,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         def steps = Spy(PipelineSteps)
         def usecase = Mock(JiraUseCase)
 
-        def zephyr = Mock(JiraZephyrService)
-        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr)
+        def support = new JiraUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
 
         def testIssues = createJiraTestIssues()

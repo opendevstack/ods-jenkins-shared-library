@@ -25,8 +25,8 @@ import org.ods.util.PipelineUtil
 
 def call() {
     Unirest.config()
-        .socketTimeout(600000)
-        .connectTimeout(60000)
+        .socketTimeout(1200000)
+        .connectTimeout(120000)
 
     def steps = new PipelineSteps(this)
     def git = new GitUtil(steps)
@@ -109,7 +109,7 @@ def call() {
 
     jiraUseCase.setSupport(
         project.capabilities.contains("Zephyr")
-            ? new JiraUseCaseZephyrSupport(steps, jiraUseCase, registry.get(JiraZephyrService.class.name))
+            ? new JiraUseCaseZephyrSupport(steps, jiraUseCase, registry.get(JiraZephyrService.class.name), registry.get(PipelineUtil.class.name))
             : new JiraUseCaseSupport(steps, jiraUseCase)
     )
 

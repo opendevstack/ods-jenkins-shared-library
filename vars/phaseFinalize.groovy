@@ -19,7 +19,13 @@ def call(Map project, List<Set<Map>> repos) {
 
     project.data.gitLocation = os.exportProject(env.MULTI_REPO_ENV, project.id.toLowerCase(), env.RELEASE_PARAM_CHANGE_ID)
 
-    echo "Project ${project}"
+    // Dump a simple representation of the project
+    def simpleProject = project.getClass().newInstance(project)
+    simpleProject.repositories.each { repo ->
+        repo.data.documents = []
+    }
+
+    echo "Project ${simpleProject}"
 
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 }

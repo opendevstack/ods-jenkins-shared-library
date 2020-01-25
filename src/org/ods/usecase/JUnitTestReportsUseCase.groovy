@@ -1,9 +1,9 @@
 package org.ods.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import org.ods.parser.JUnitParser
 import org.ods.util.IPipelineSteps
-
-import groovy.json.JsonOutput
 
 class JUnitTestReportsUseCase {
 
@@ -13,6 +13,7 @@ class JUnitTestReportsUseCase {
         this.steps = steps
     }
 
+    @NonCPS
     List<File> loadTestReportsFromPath(String path) {
         def result = []
 
@@ -28,9 +29,9 @@ class JUnitTestReportsUseCase {
     Map parseTestReportFiles(List<File> files) {
         def result = [ testsuites: [] ]
 
-        files.inject(result) { sum, current ->
-            def testResult = JUnitParser.parseJUnitXML(current.text)
-            sum.testsuites.addAll(testResult.testsuites)
+        files.each { file ->
+            def testResult = JUnitParser.parseJUnitXML(file.text)
+            result.testsuites.addAll(testResult.testsuites)
         }
 
         return result

@@ -124,7 +124,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return result
     }
 
-    String createCS(Map project) {
+    String createCS(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.CS as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -187,19 +187,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections."sec4".items = SortUtil.sortIssuesByProperties(interfacesIssuesList, ["ur_key", "key"])
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 sections: sections
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
-    String createDSD(Map project) {
+    String createDSD(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.DSD as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -239,18 +239,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def componentsMetadata = specificationsForTechnologyComponents.collectEntries { componentName, issues ->
             def normalizedComponentName = componentName.replaceAll("Technology-", "")
 
-            def repo = project.repositories.find { [it.id, it.name].contains(normalizedComponentName) }
-            if (!repo) {
+            def repo_ = project.repositories.find { [it.id, it.name].contains(normalizedComponentName) }
+            if (!repo_) {
                 throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository definition with id or name equal to '${normalizedComponentName}' for Jira component '${componentName}' in project '${project.id}'.")
             }
 
-            def metadata = repo.pipelineConfig.metadata
+            def metadata = repo_.pipelineConfig.metadata
 
             return [
                 componentName,
                 [
                     componentId: metadata.id ?: "N/A - part of this application",
-                    componentType: (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
+                    componentType: (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
                     description: metadata.description,
                     nameOfSoftware: metadata.name,
                     references: metadata.references ?: "N/A",
@@ -285,19 +285,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // System Components Specification (fully contained in data for System Components List)
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 sections: sections
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
-    String createDTP(Map project) {
+    String createDTP(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.DTP as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -306,7 +306,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         // TODO: get automated test issues of type InstallationTest
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
@@ -324,7 +324,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
@@ -400,7 +400,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.createDocument(documentType, project, repo, data_, files, modifier, null)
     }
 
-    String createFS(Map project) {
+    String createFS(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.FS as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -430,7 +430,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         // Data
-        def data = this.jira.getIssuesForProject(project.id, "${documentType}:Data", ["Functional Specification Task"], [], false) { issuelink ->
+        def data_ = this.jira.getIssuesForProject(project.id, "${documentType}:Data", ["Functional Specification Task"], [], false) { issuelink ->
             return issuelink.type.relation == "specifies" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
         }
 
@@ -438,8 +438,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections."sec5" = [:]
         }
 
-        if (!data.isEmpty()) {
-            def dataIssuesList = data["${documentType}:Data"].collect { issue ->
+        if (!data_.isEmpty()) {
+            def dataIssuesList = data_["${documentType}:Data"].collect { issue ->
                 // Reduce the issues to the data points required by the document
                 return issue.subMap(["key", "description"]) << [
                     // Map the key of a linked user requirement
@@ -557,19 +557,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        def data_ = [
+        def data__ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 sections: sections
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data__, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
-    String createFTP(Map project) {
+    String createFTP(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.FTP as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -580,7 +580,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def jiraAcceptanceTestIssues = this.jira.getAutomatedAcceptanceTestIssues(project.id)
         def jiraIntegrationTestIssues = this.jira.getAutomatedIntegrationTestIssues(project.id)
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
@@ -610,7 +610,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
@@ -703,7 +703,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createIVP(Map project) {
+    String createIVP(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.IVP as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -711,7 +711,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
@@ -730,7 +730,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
@@ -797,7 +797,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createSCP(Map project) {
+    String createSCP(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.SCP as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -805,7 +805,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
@@ -813,12 +813,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
-    String createSCR(Map project, Map repo) {
+    String createSCR(Map project, Map repo, Map data = null) {
         def documentType = DocumentType.SCR as String
 
         def sqReportsPath = "sonarqube/${repo.id}"
@@ -841,7 +841,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project, repo),
             data: [
                 sections: sections
@@ -875,10 +875,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(documentType, project, repo, data, files, modifier, null)
+        return this.createDocument(documentType, project, repo, data_, files, modifier, null)
     }
 
-    String createSDS(Map project, Map repo) {
+    String createSDS(Map project, Map repo, Map data = null) {
         def documentType = DocumentType.SDS as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -886,7 +886,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project, repo),
             data: [
                 repo: repo,
@@ -899,10 +899,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(documentType, project, repo, data, [:], modifier, null)
+        return this.createDocument(documentType, project, repo, data_, [:], modifier, null)
     }
 
-    String createTIP(Map project) {
+    String createTIP(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.TIP as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -910,7 +910,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 project: project,
@@ -919,12 +919,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
-    String createTIR(Map project, Map repo) {
+    String createTIR(Map project, Map repo, Map data = null) {
         def documentType = DocumentType.TIR as String
 
         def pods = this.os.getPodDataForComponent(repo.id)
@@ -934,7 +934,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project, repo),
             openShiftData: [
                 ocpBuildId           : repo?.data.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
@@ -960,10 +960,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(documentType, project, repo, data, [:], modifier, null)
+        return this.createDocument(documentType, project, repo, data_, [:], modifier, null)
     }
 
-    String createURS(Map project) {
+    String createURS(Map project, Map repo = null, Map data = null) {
         def documentType = DocumentType.URS as String
 
         def sections = this.jira.getDocumentChapterData(project.id, documentType)
@@ -1139,19 +1139,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
             sections."sec4s2".requirements = SortUtil.sortIssuesByProperties(proceduralIssuesList, ["key"])
         }
 
-        def data = [
+        def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], project),
             data: [
                 sections: sections
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data, [:], null, null)
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
         this.jira.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
-    String createOverallDTR(Map project) {
+    String createOverallDTR(Map project, Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
@@ -1161,7 +1161,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createOverallSCR(Map project) {
+    String createOverallSCR(Map project, Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_SCR as String]
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
@@ -1171,7 +1171,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createOverallSDS(Map project) {
+    String createOverallSDS(Map project, Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_SDS as String]
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
@@ -1181,19 +1181,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createOverallTIR(Map project) {
+    String createOverallTIR(Map project, Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
         def documentType = DocumentType.TIR as String
-        def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, project) { data ->
+        def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, project) { data_ ->
             // Append another section for the Jenkins build log
-            data.sections << [
+            data_.sections << [
                 heading: "Jenkins Build Log"
             ]
 
             // Add Jenkins build log data
-            data.jenkinsData = [
+            data_.jenkinsData = [
                 log: this.jenkins.getCurrentBuildLogAsText()
             ]
         }

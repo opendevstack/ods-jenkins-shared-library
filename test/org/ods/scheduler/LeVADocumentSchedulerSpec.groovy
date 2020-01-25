@@ -7751,33 +7751,33 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createDSD", [project] as Object[])
-        1 * usecase.invokeMethod("createFS", [project] as Object[])
+        1 * usecase.invokeMethod("createDSD", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createFS", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
 
         then:
-        1 * usecase.invokeMethod("createTIP", [project] as Object[])
+        1 * usecase.invokeMethod("createTIP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_CODE] as Object[])
+        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_CODE, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_SERVICE] as Object[])
+        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_SERVICE, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
 
         then:
-        1 * usecase.invokeMethod("createFTP", [project] as Object[])
-        1 * usecase.invokeMethod("createIVP", [project] as Object[])
+        1 * usecase.invokeMethod("createFTP", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
@@ -7795,7 +7795,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createOverallTIR", [project] as Object[])
+        1 * usecase.invokeMethod("createOverallTIR", [project, null, null] as Object[])
     }
 
     def "run for GAMP category 3"() {
@@ -7832,14 +7832,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createDSD", [project] as Object[])
-        1 * usecase.invokeMethod("createURS", [project] as Object[])
+        1 * usecase.invokeMethod("createDSD", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createURS", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
 
         then:
-        1 * usecase.invokeMethod("createIVP", [project] as Object[])
+        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
@@ -7882,16 +7882,16 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createCS", [project] as Object[])
-        1 * usecase.invokeMethod("createDSD", [project] as Object[])
-        1 * usecase.invokeMethod("createURS", [project] as Object[])
+        1 * usecase.invokeMethod("createCS", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createDSD", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createURS", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
 
         then:
-        1 * usecase.invokeMethod("createFTP", [project] as Object[])
-        1 * usecase.invokeMethod("createIVP", [project] as Object[])
+        1 * usecase.invokeMethod("createFTP", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
@@ -7940,24 +7940,24 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createCS", [project] as Object[])
-        1 * usecase.invokeMethod("createDSD", [project] as Object[])
-        1 * usecase.invokeMethod("createFS", [project] as Object[])
-        1 * usecase.invokeMethod("createURS", [project] as Object[])
+        1 * usecase.invokeMethod("createCS", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createDSD", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createFS", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createURS", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
 
         then:
-        1 * usecase.invokeMethod("createDTP", [project] as Object[])
-        1 * usecase.invokeMethod("createSCP", [project] as Object[])
+        1 * usecase.invokeMethod("createDTP", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createSCP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createOverallDTR", [project] as Object[])
-        1 * usecase.invokeMethod("createOverallSDS", [project] as Object[])
+        1 * usecase.invokeMethod("createOverallDTR", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createOverallSDS", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_CODE, data)
@@ -7969,56 +7969,56 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createSCR", [project, REPO_ODS_CODE] as Object[])
+        1 * usecase.invokeMethod("createSCR", [project, REPO_ODS_CODE, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, project, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createSDS", [project, REPO_ODS_CODE] as Object[])
+        1 * usecase.invokeMethod("createSDS", [project, REPO_ODS_CODE, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, project, REPO_ODS_TEST)
 
         then:
-        1 * usecase.invokeMethod("createSDS", [project, REPO_ODS_TEST] as Object[])
+        1 * usecase.invokeMethod("createSDS", [project, REPO_ODS_TEST, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
 
         then:
-        1 * usecase.invokeMethod("createTIP", [project] as Object[])
+        1 * usecase.invokeMethod("createTIP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_CODE] as Object[])
+        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_CODE, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_SERVICE] as Object[])
+        1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_SERVICE, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
 
         then:
-        1 * usecase.invokeMethod("createFTP", [project] as Object[])
-        1 * usecase.invokeMethod("createIVP", [project] as Object[])
+        1 * usecase.invokeMethod("createFTP", [project, null, null] as Object[])
+        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_TEST)
 
         then:
-        1 * usecase.invokeMethod("createSCR", [project, REPO_ODS_TEST] as Object[])
+        1 * usecase.invokeMethod("createSCR", [project, REPO_ODS_TEST, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createOverallSCR", [project] as Object[])
+        1 * usecase.invokeMethod("createOverallSCR", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
@@ -8036,6 +8036,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
         then:
-        1 * usecase.invokeMethod("createOverallTIR", [project] as Object[])
+        1 * usecase.invokeMethod("createOverallTIR", [project, null, null] as Object[])
     }
 }
