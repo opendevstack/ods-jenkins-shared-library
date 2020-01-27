@@ -1,5 +1,8 @@
 package org.ods
 
+
+import static org.assertj.core.api.Assertions.assertThat
+
 class OdsContextTest extends GroovyTestCase {
 
     PipelineScript script
@@ -37,28 +40,35 @@ class OdsContextTest extends GroovyTestCase {
                 autoCloneEnvironmentsFromSourceMapping: [:]
         ]
 
-        determineEnvironment(config,existingEnvironments,'master')
+        determineEnvironment(config, existingEnvironments, 'master')
         assertEquals("prod", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
 
-        determineEnvironment(config,existingEnvironments,'develop')
+        determineEnvironment(config, existingEnvironments, 'develop')
         assertEquals("dev", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
 
-        determineEnvironment(config,existingEnvironments,'release/1.0.0')
+        determineEnvironment(config, existingEnvironments, 'release/1.0.0')
         assertEquals("rel", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
 
-        determineEnvironment(config,existingEnvironments,'hotfix/foo-123-bar')
+        determineEnvironment(config, existingEnvironments, 'hotfix/foo-123-bar')
         assertEquals("hotfix", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
 
-        determineEnvironment(config,existingEnvironments,'feature/foo-123-bar')
+        determineEnvironment(config, existingEnvironments, 'feature/foo-123-bar')
         assertEquals("preview", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
 
         existingEnvironments = ['preview-123']
-        determineEnvironment(config,existingEnvironments,'feature/foo-123-bar')
+        determineEnvironment(config, existingEnvironments, 'feature/foo-123-bar')
         assertEquals("preview-123", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
 
         existingEnvironments = ['preview-foo-bar']
-        determineEnvironment(config,existingEnvironments,'foo-bar')
+        determineEnvironment(config, existingEnvironments, 'foo-bar')
         assertEquals("preview-foo-bar", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
     }
 
     void testDetermineEnvironment_githubflow() {
@@ -74,11 +84,38 @@ class OdsContextTest extends GroovyTestCase {
                 ]
         ]
 
-        determineEnvironment(config,existingEnvironments, 'master')
+        determineEnvironment(config, existingEnvironments, 'master')
         assertEquals("prod", config.environment)
+        assertThat(config.cloneSourceEnv).isNull()
 
-        determineEnvironment(config,existingEnvironments,'feature/foo-123-bar')
+        determineEnvironment(config, existingEnvironments, 'feature/foo-123-bar')
         assertEquals("preview-123", config.environment)
+        assertThat(config.cloneSourceEnv).isEqualTo("prod")
+
+    }
+
+    void testDetermineEnvironmentAutocloneWithoutBranchprefix() {
+        def existingEnvironments = ["dev", "prod"]
+        def config = [
+                projectId                             : 'foo',
+                branchToEnvironmentMapping            : [
+                        'master'     : 'prod',
+                        'develop'    : 'dev',
+                        'integration': 'int'
+                ],
+                autoCloneEnvironmentsFromSourceMapping: [
+                        'int': 'dev'
+                ]
+        ]
+
+        determineEnvironment(config, existingEnvironments, 'integration')
+        assertEquals("int", config.environment)
+        assertEquals("dev", config.cloneSourceEnv)
+
+        determineEnvironment(config, ["int"], 'integration')
+        assertThat(config.cloneSourceEnv)
+                .as("Already existing environment is not created again")
+                .isEqualTo(false);
     }
 
     void testDetermineEnvironment_autoclone() {
@@ -99,7 +136,7 @@ class OdsContextTest extends GroovyTestCase {
                 ]
         ]
 
-        determineEnvironment(config,existingEnvironments,'release/1.0.0')
+        determineEnvironment(config, existingEnvironments, 'release/1.0.0')
         assertEquals("rel-1.0.0", config.environment)
         assertEquals("dev", config.cloneSourceEnv)
 
@@ -124,6 +161,7 @@ class OdsContextTest extends GroovyTestCase {
     void determineEnvironment(config, existingEnvironments, String branch) {
         config.environment = null
         config.gitBranch = branch
+        config.cloneSourceEnv = null
         def uut = new OdsContext(script, config, logger) {
             boolean environmentExists(String name) {
                 existingEnvironments.contains(name)
