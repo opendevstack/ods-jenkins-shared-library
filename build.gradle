@@ -7,7 +7,7 @@ group "org.ods"
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
-ext 
+ext
 {
     nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
     nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')

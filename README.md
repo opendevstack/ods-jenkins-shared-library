@@ -1,5 +1,7 @@
 # Multi-Repo Orchestration (MRO) Jenkins Shared Library
 
+![](https://github.com/opendevstack/ods-mro-jenkins-shared-library/workflows/MRO%20Library%20Build/badge.svg?branch=master)
+
 A Jenkins shared library to support the orchestration of multiple repositories into a live application by the *Release Manager* quickstarter.
 
 ## Usage
