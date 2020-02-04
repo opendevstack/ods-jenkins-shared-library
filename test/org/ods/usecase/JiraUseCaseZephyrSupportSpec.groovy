@@ -1,9 +1,7 @@
 package org.ods.usecase
 
-import org.ods.service.*
-
 import org.ods.parser.JUnitParser
-
+import org.ods.service.*
 import org.ods.util.MROPipelineUtil
 
 import spock.lang.*
@@ -19,11 +17,11 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
         def buildParams = createBuildParams()
 
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, util, jira)
 
         def zephyr = Mock(JiraZephyrService)
-        def util = Mock(MROPipelineUtil)
         def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
         usecase.setSupport(support)
 
@@ -73,11 +71,11 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
         def buildParams = createBuildParams()
 
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, util, jira)
 
         def zephyr = Mock(JiraZephyrService)
-        def util = Mock(MROPipelineUtil)
         def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
         usecase.setSupport(support)
 
@@ -119,20 +117,20 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
     def "get automated test issues for project"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, util, jira)
 
         def zephyr = Mock(JiraZephyrService)
-        def util = Mock(MROPipelineUtil)
         def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
         usecase.setSupport(support)
 
         def project = createProject()
 
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels = 'AutomatedTest'",
+            jql: "project = ${project.id} AND issuetype = Test AND status = 'Ready to Test' AND labels = 'AutomatedTest'",
             expand: [ "renderedFields" ],
-            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
+            fields: [ "description", "summary" ]
         ]
 
         when:
@@ -146,11 +144,11 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
     def "get versions for project - version not found in Jira"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, util, jira)
 
         def zephyr = Mock(JiraZephyrService)
-        def util = Mock(MROPipelineUtil)
         def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
         usecase.setSupport(support)
 
@@ -174,11 +172,11 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
     def "get versions for project - version found in Jira"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, jira)
+        def usecase = new JiraUseCase(steps, util, jira)
 
         def zephyr = Mock(JiraZephyrService)
-        def util = Mock(MROPipelineUtil)
         def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
         usecase.setSupport(support)
 

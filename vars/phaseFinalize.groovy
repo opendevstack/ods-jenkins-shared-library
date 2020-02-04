@@ -1,3 +1,6 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurperClassic
+
 import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.OpenShiftService
 import org.ods.service.ServiceRegistry
@@ -20,7 +23,7 @@ def call(Map project, List<Set<Map>> repos) {
     project.data.gitLocation = os.exportProject(env.MULTI_REPO_ENV, project.id.toLowerCase(), env.RELEASE_PARAM_CHANGE_ID)
 
     // Dump a simple representation of the project
-    def simpleProject = project.getClass().newInstance(project)
+    def simpleProject = new JsonSlurperClassic().parseText(JsonOutput.toJson(project)) // clone
     simpleProject.repositories.each { repo ->
         repo.data.documents = []
     }

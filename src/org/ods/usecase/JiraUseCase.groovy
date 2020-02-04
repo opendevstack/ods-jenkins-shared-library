@@ -5,6 +5,7 @@ import groovy.json.JsonOutput
 import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
 import org.ods.util.IPipelineSteps
+import org.ods.util.MROPipelineUtil
 
 class JiraUseCase {
 
@@ -23,9 +24,11 @@ class JiraUseCase {
     private JiraService jira
     private IPipelineSteps steps
     private AbstractJiraUseCaseSupport support
+    private MROPipelineUtil util
 
-    JiraUseCase(IPipelineSteps steps, JiraService jira) {
+    JiraUseCase(IPipelineSteps steps, MROPipelineUtil util, JiraService jira) {
         this.steps = steps
+        this.util = util
         this.jira = jira
     }
 
@@ -355,13 +358,15 @@ class JiraUseCase {
         // Apply test results to the test case definitions in Jira
         this.support.applyTestResultsToTestIssues(jiraTestIssues, testResults)
 
-        // Create Jira bugs for erroneous test cases
-        def errors = JUnitParser.Helper.getErrors(testResults)
-        this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, errors, this.steps.env.RUN_DISPLAY_URL)
+        if (["Q", "P"].contains(this.util.getBuildParams().targetEnvironmentToken)) {
+            // Create Jira bugs for erroneous test cases
+            def errors = JUnitParser.Helper.getErrors(testResults)
+            this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, errors, this.steps.env.RUN_DISPLAY_URL)
 
-        // Create Jira bugs for failed test cases
-        def failures = JUnitParser.Helper.getFailures(testResults)
-        this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, failures, this.steps.env.RUN_DISPLAY_URL)
+            // Create Jira bugs for failed test cases
+            def failures = JUnitParser.Helper.getFailures(testResults)
+            this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, failures, this.steps.env.RUN_DISPLAY_URL)
+        }
     }
 
     private void walkJiraTestIssuesAndTestResults(List jiraTestIssues, Map testResults, Closure visitor) {

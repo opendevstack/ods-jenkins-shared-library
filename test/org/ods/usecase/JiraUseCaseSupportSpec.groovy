@@ -1,6 +1,7 @@
 package org.ods.usecase
 
 import org.ods.service.*
+import org.ods.util.MROPipelineUtil
 
 import spock.lang.*
 
@@ -10,8 +11,8 @@ import util.*
 
 class JiraUseCaseSupportSpec extends SpecHelper {
 
-    JiraUseCase createUseCase(PipelineSteps steps, JiraService jira) {
-        return new JiraUseCase(steps, jira)
+    JiraUseCase createUseCase(PipelineSteps steps, MROPipelineUtil util, JiraService jira) {
+        return new JiraUseCase(steps, util, jira)
     }
 
     JiraUseCaseSupport createUseCaseSupport(PipelineSteps steps, JiraUseCase usecase) {
@@ -39,8 +40,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated test issues"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -63,8 +65,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -88,8 +91,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated test issues with labelsSelector"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -114,8 +118,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated acceptance test issues"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -138,8 +143,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated acceptance test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -163,8 +169,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated installation test issues"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -187,8 +194,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated installation test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -212,8 +220,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated integration test issues"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -236,8 +245,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated integration test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -261,8 +271,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated unit test issues"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)
@@ -285,8 +296,9 @@ class JiraUseCaseSupportSpec extends SpecHelper {
     def "get automated unit test test issues with componentId"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def jira = Mock(JiraService)
-        def usecase = createUseCase(steps, jira)
+        def usecase = createUseCase(steps, util, jira)
 
         def support = createUseCaseSupport(steps, usecase)
         usecase.setSupport(support)

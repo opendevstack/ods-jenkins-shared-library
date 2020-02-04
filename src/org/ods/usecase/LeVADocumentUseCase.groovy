@@ -1,5 +1,7 @@
 package org.ods.usecase
 
+import groovy.json.JsonOutput
+
 import java.time.LocalDateTime
 
 import org.apache.commons.io.FilenameUtils
@@ -12,8 +14,6 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
 import org.ods.util.SortUtil
-
-import groovy.json.JsonOutput
 
 class LeVADocumentUseCase extends DocGenUseCase {
 
@@ -1208,7 +1208,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             name += ": ${repo.id}"
         }
 
-        return [
+        def metadata = [
             id: null, // unused
             name: name,
             description: project.description,
@@ -1223,6 +1223,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 jobName: this.steps.env.JOB_NAME
             ]
         ]
+
+        metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]
+
+        return metadata
     }
 
     List<String> getSupportedDocuments() {

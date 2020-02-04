@@ -20,7 +20,9 @@ class FixtureHelper {
             changeId: "0815",
             configItem: "myItem",
             sourceEnvironmentToClone: "dev",
+            sourceEnvironmentToCloneToken: "D",
             targetEnvironment: "dev",
+            targetEnvironmentToken: "D",
             version: "0.1"
         ]
     }

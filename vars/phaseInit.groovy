@@ -104,6 +104,7 @@ def call() {
 
     def jiraUseCase = new JiraUseCase(
         registry.get(PipelineSteps.class.name),
+        registry.get(PipelineUtil.class.name),
         registry.get(JiraService.class.name)
     )
 

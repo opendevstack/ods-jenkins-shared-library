@@ -75,9 +75,22 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
 
         def project = this.zephyr.getProject(projectId)
 
-        def issues = this.usecase.getIssuesForProject(projectId, componentName, ["Test"], labelsSelector << "AutomatedTest", false) { issuelink ->
-            return issuelink.type.relation == "is related to" && (issuelink.issue.issuetype.name == "Epic" || issuelink.issue.issuetype.name == "Story")
-        }.values().flatten()
+        def query = "project = ${projectId} AND issuetype = Test AND status = 'Ready to Test'"
+
+        if (componentName) {
+            query += " AND component = '${componentName}'"
+        }
+
+        labelsSelector << "AutomatedTest"
+        labelsSelector.each {
+            query += " AND labels = '${it}'"
+        }
+
+        def issues = this.usecase.jira.getIssuesForJQLQuery([
+            jql: query,
+            expand: ["renderedFields"],
+            fields: ["description", "summary"]
+        ]).collect { JiraUseCase.toSimpleIssue(it) }
 
         return issues.each { issue ->
             issue.test = [
