@@ -871,6 +871,26 @@ class MROPipelineUtilSpec extends SpecHelper {
         repoDir.deleteDir()
     }
 
+    def "load a repo's pipeline config with missing metadata.yml"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = new MROPipelineUtil(steps, Mock(GitUtil))
+
+        def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
+        def repoDir = util.createDirectory(repoPath)
+        def repos = createProject().repositories
+
+        when:
+        util.loadPipelineConfig(repoPath, repos[0])
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse component metadata. Required file '${MROPipelineUtil.COMPONENT_METADATA_FILE_NAME}' does not exist in repository '${repos[0].id}'."
+
+        cleanup:
+        repoDir.deleteDir()
+    }
+
     def "load multiple repos' pipeline configs"() {
         given:
         def steps = Spy(util.PipelineSteps)

@@ -244,7 +244,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository definition with id or name equal to '${normalizedComponentName}' for Jira component '${componentName}' in project '${project.id}'.")
             }
 
-            def metadata = repo_.pipelineConfig.metadata
+            def metadata = repo_.metadata
 
             return [
                 componentName,

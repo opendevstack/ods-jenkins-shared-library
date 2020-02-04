@@ -211,30 +211,29 @@ class MROPipelineUtil extends PipelineUtil {
         }
 
         def file = Paths.get(path, COMPONENT_METADATA_FILE_NAME).toFile()
-        if (file.exists()) {
-            def metadata = new Yaml().load(file.text) ?: [:]
-
-            // Resolve component metadata
-            if (!metadata.name?.trim()) {
-                throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'name' is undefined for repository '${repo.id}'.")
-            }
-
-            if (!metadata.description?.trim()) {
-                throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'description' is undefined for repository '${repo.id}'.")
-            }
-
-            if (!metadata.supplier?.trim()) {
-                throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'supplier' is undefined for repository '${repo.id}'.")
-            }
-
-            if (!metadata.version?.trim()) {
-                throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'version' is undefined for repository '${repo.id}'.")
-            }
-
-            repo.metadata = metadata
-        } else {
+        if (!file.exists()) {
             throw new IllegalArgumentException("Error: unable to parse component metadata. Required file '${COMPONENT_METADATA_FILE_NAME}' does not exist in repository '${repo.id}'.")
         }
+
+        // Resolve component metadata
+        def metadata = new Yaml().load(file.text) ?: [:]
+        if (!metadata.name?.trim()) {
+            throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'name' is undefined for repository '${repo.id}'.")
+        }
+
+        if (!metadata.description?.trim()) {
+            throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'description' is undefined for repository '${repo.id}'.")
+        }
+
+        if (!metadata.supplier?.trim()) {
+            throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'supplier' is undefined for repository '${repo.id}'.")
+        }
+
+        if (!metadata.version?.toString()?.trim()) {
+            throw new IllegalArgumentException("Error: unable to parse component metadata. Required attribute 'version' is undefined for repository '${repo.id}'.")
+        }
+
+        repo.metadata = metadata
 
         return repo
     }
