@@ -19,7 +19,7 @@ class SpecHelper extends Specification {
         def server = startWireMockServer()
 
         def builder = b(WireMock.urlPathMatching(request.path))
-        
+
         // Request
         if (request.username && request.password) {
             builder.withBasicAuth(request.username, request.password)
@@ -79,8 +79,9 @@ class SpecHelper extends Specification {
         return bytes.encodeBase64().toString()
     }
 
-    File getResource(String name) {
-        return Paths.get(System.getProperty("user.dir"), "test", "resources", name).toFile()
+    File getResource(String path) {
+        path = path.startsWith('/') ? path : '/' + path
+        new File(getClass().getResource(path).toURI())
     }
 
     WireMockServer startWireMockServer() {

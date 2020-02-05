@@ -64,27 +64,29 @@ repositories {
 }
 
 dependencies {
-    compile "com.cloudbees:groovy-cps:1.29"
-    compile "com.konghq:unirest-java:2.3.08:standalone"
-    compile "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.2"
-    compile "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf:2.0.2"
-    compile "net.lingala.zip4j:zip4j:2.1.1"
-    compile "org.apache.ivy:ivy:2.2.0"
-    compile "org.apache.pdfbox:pdfbox:2.0.17"
-    compile "org.apache.poi:poi:4.0.1"
-    compile "org.codehaus.groovy:groovy-all:2.5.7"
-    compile "org.yaml:snakeyaml:1.24"
-    compile "org.jenkins-ci.main:jenkins-core:2.46.3"
-    compile group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-api', version: '2.36', ext: 'jar'
-    compile group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.41', ext: 'jar'
+    implementation "com.cloudbees:groovy-cps:1.29"
+    implementation "com.konghq:unirest-java:2.4.03:standalone"
+    implementation "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.2"
+    implementation "fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf:2.0.2"
+    implementation "net.lingala.zip4j:zip4j:2.1.1"
+    implementation "org.apache.ivy:ivy:2.2.0"
+    implementation "org.apache.pdfbox:pdfbox:2.0.17"
+    implementation "org.apache.poi:poi:4.0.1"
+    implementation "org.codehaus.groovy:groovy-all:2.5.7"
+    implementation "org.yaml:snakeyaml:1.24"
+    implementation "org.jenkins-ci.main:jenkins-core:2.46.3"
+    implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-api', version: '2.36', ext: 'jar'
+    implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.41', ext: 'jar'
+    implementation 'org.slf4j:jcl-over-slf4j:1.7.30'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
 
-    testCompile "cglib:cglib-nodep:3.3.0"                      // for mocking classes
-    testCompile "com.github.stefanbirkner:system-rules:1.19.0" // for managing environment variables
-    testCompile "com.github.tomakehurst:wiremock:2.23.2"       // for mocking HTTP server reponses
-    testCompile "net.bytebuddy:byte-buddy:1.10.1"              // for mocking classes
-    testCompile "org.hamcrest:hamcrest:2.1"
-    testCompile "org.objenesis:objenesis:3.0.1"                // for mocking final classes
-    testCompile "org.spockframework:spock-core:1.3-groovy-2.5"
+    testImplementation "cglib:cglib-nodep:3.3.0"                      // for mocking classes
+    testImplementation "com.github.stefanbirkner:system-rules:1.19.0" // for managing environment variables
+    testImplementation "com.github.tomakehurst:wiremock:2.23.2"       // for mocking HTTP server reponses
+    testImplementation "net.bytebuddy:byte-buddy:1.10.1"              // for mocking classes
+    testImplementation "org.hamcrest:hamcrest:2.1"
+    testImplementation "org.objenesis:objenesis:3.0.1"                // for mocking final classes
+    testImplementation "org.spockframework:spock-core:1.3-groovy-2.5"
 }
 
 sourceSets {
@@ -96,7 +98,10 @@ sourceSets {
 
     test {
         groovy {
-            srcDirs = ["test"]
+            srcDirs = ['test/groovy']
+        }
+        resources {
+            srcDir 'test/resources'
         }
     }
 }
