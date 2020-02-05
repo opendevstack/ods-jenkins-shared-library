@@ -4,6 +4,7 @@ import org.ods.util.IPipelineSteps
 
 class PipelineSteps implements IPipelineSteps {
 
+    private Map currentBuild = [:].withDefault { "default" }
     private Map env = [:].withDefault { "default" }
 
     PipelineSteps() {
@@ -25,7 +26,7 @@ class PipelineSteps implements IPipelineSteps {
     }
 
     def getCurrentBuild() {
-        return [:]
+        return currentBuild
     }
 
     Map getEnv() {

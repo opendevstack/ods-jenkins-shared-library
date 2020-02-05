@@ -77,11 +77,16 @@ def call(Map project, List<Set<Map>> repos) {
         }
 
     // Parse all test report files into a single data structure
-    data.tests.acceptance.testResults = junit.parseTestReportFiles(data.tests.acceptance.testReportFiles)
     data.tests.installation.testResults = junit.parseTestReportFiles(data.tests.installation.testReportFiles)
     data.tests.integration.testResults = junit.parseTestReportFiles(data.tests.integration.testReportFiles)
+    data.tests.acceptance.testResults = junit.parseTestReportFiles(data.tests.acceptance.testReportFiles)
 
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
+
+    // Fail the pipeline in case of failing tests
+    junit.failIfTestResultsContainFailure(data.tests.installation.testResults)
+    junit.failIfTestResultsContainFailure(data.tests.integration.testResults)
+    junit.failIfTestResultsContainFailure(data.tests.acceptance.testResults)
 }
 
 private List getAcceptanceTestResults(def steps, Map repo) {

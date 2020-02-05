@@ -4,13 +4,24 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.parser.JUnitParser
 import org.ods.util.IPipelineSteps
+import org.ods.util.MROPipelineUtil
 
 class JUnitTestReportsUseCase {
 
     private IPipelineSteps steps
+    private MROPipelineUtil util
 
-    JUnitTestReportsUseCase(IPipelineSteps steps) {
+    JUnitTestReportsUseCase(IPipelineSteps steps, MROPipelineUtil util) {
         this.steps = steps
+        this.util = util
+    }
+
+    void failIfTestResultsContainFailure(Map testResults) {
+        this.util.executeBlockWithFailFast {
+            if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
+                throw new IllegalStateException("Error: found failing tests in test reports.")
+            }
+        }
     }
 
     @NonCPS

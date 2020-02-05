@@ -87,19 +87,6 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private void executeBlockWithFailFast(Closure block) {
-        try {
-            block()
-        } catch (ConcurrentModificationException e) {
-            // FIXME: shut up for the moment
-        } catch (e) {
-            this.steps.currentBuild.result = "FAILURE"
-            this.steps.echo(e.message)
-            hudson.Functions.printThrowable(e)
-            throw e
-        }
-    }
-
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
             def job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
@@ -378,7 +365,7 @@ class MROPipelineUtil extends PipelineUtil {
         return [
             repo.id,
             {
-                executeBlockWithFailFast {
+                this.executeBlockWithFailFast {
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
 
                     if (preExecute) {

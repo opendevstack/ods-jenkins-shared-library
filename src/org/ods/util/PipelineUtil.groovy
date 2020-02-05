@@ -99,6 +99,17 @@ class PipelineUtil {
         return new File(path).getBytes()
     }
 
+    void executeBlockWithFailFast(Closure block) {
+        try {
+            block()
+        } catch (e) {
+            this.steps.currentBuild.result = "FAILURE"
+            this.steps.echo(e.message)
+            hudson.Functions.printThrowable(e)
+            throw e
+        }
+    }
+
     URI getGitURL(String path = this.steps.env.WORKSPACE, String remote = "origin") {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to get Git URL. 'path' is undefined.")

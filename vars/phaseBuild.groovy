@@ -14,6 +14,15 @@ def call(Map project, List<Set<Map>> repos) {
 
     def phase = MROPipelineUtil.PipelinePhases.BUILD
 
+    def data = [
+        tests: [
+            unit: [
+                testReportFiles: [],
+                testResults: [:]
+            ]
+        ]
+    ]
+
     def preExecuteRepo = { steps, repo ->
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, project, repo)
     }
@@ -22,11 +31,9 @@ def call(Map project, List<Set<Map>> repos) {
         // FIXME: we are mixing a generic scheduler capability with a data dependency and an explicit repository constraint.
         // We should turn the last argument 'data' of the scheduler into a closure that return data.
         if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
-            def data = [
-                tests: [
-                    unit: getTestResults(steps, repo)
-                ]
-            ]
+            // Add unit test report files to a global data structure
+            def unitTestResults = getUnitTestResults(steps, repo)
+            data.tests.unit.testReportFiles.addAll(unitTestResults.testReportFiles)
 
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, repo, data)
 
@@ -43,10 +50,16 @@ def call(Map project, List<Set<Map>> repos) {
             parallel(group)
         }
 
+    // Parse all test report files into a single data structure
+    data.tests.unit.testResults = junit.parseTestReportFiles(data.tests.unit.testReportFiles)
+
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
+
+    // Fail the pipeline in case of failing tests
+    junit.failIfTestResultsContainFailure(data.tests.unit.testResults)
 }
 
-private List getTestResults(def steps, Map repo) {
+private List getUnitTestResults(def steps, Map repo) {
     def jenkins = ServiceRegistry.instance.get(JenkinsService.class.name)
     def junit   = ServiceRegistry.instance.get(JUnitTestReportsUseCase.class.name)
 

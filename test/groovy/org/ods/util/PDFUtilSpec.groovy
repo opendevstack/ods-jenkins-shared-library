@@ -27,6 +27,7 @@ class PDFUtilSpec extends SpecHelper {
         def doc = PDDocument.load(result)
         doc.getNumberOfPages() == 1
         doc.getPage(0).getContents().text.contains(text)
+        doc.close()
     }
 
     def "convert from Microsoft Word document"() {
@@ -39,7 +40,9 @@ class PDFUtilSpec extends SpecHelper {
         def result = util.convertFromWordDoc(docFile)
 
         then:
-        PDDocument.load(result).getNumberOfPages() == 1
+        def doc = PDDocument.load(result)
+        doc.getNumberOfPages() == 1
+        doc.close()
     }
 
     def "merge documents"() {
@@ -56,6 +59,8 @@ class PDFUtilSpec extends SpecHelper {
         new String(result).startsWith("%PDF-1.4\n")
 
         then:
-        PDDocument.load(result).getNumberOfPages() == 2
+        def doc = PDDocument.load(result)
+        doc.getNumberOfPages() == 2
+        doc.close()
     }
 }
