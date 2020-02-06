@@ -124,8 +124,11 @@ class LeVADocumentScheduler extends DocGenScheduler {
         LeVADocumentUseCase.DocumentType.IVR as String
     ]
 
-    LeVADocumentScheduler(IPipelineSteps steps, LeVADocumentUseCase usecase) {
+    private MROPipelineUtil util
+
+    LeVADocumentScheduler(IPipelineSteps steps, MROPipelineUtil util, LeVADocumentUseCase usecase) {
         super(steps, usecase)
+        this.util = util
     }
 
     private boolean isDocumentApplicableForGampCategory(String documentType, String gampCategory) {
@@ -228,10 +231,18 @@ class LeVADocumentScheduler extends DocGenScheduler {
             if (this.isDocumentApplicable(documentType, phase, stage, project, repo)) {
                 def message = "Creating document of type '${documentType}' for project '${project.id}'"
                 if (repo) message += " and repo '${repo.id}'"
+                message += " in phase '${phase}' and stage '${stage}'"
                 this.steps.echo(message)
 
-                // Apply args according to the method's parameters length
-                this.usecase.invokeMethod(this.getMethodNameForDocumentType(documentType), args as Object[])
+                this.util.executeBlockWithFailFast {
+                    try {
+                        // Apply args according to the method's parameters length
+                        def method = this.getMethodNameForDocumentType(documentType)
+                        this.usecase.invokeMethod(method, args as Object[])
+                    } catch (e) {
+                        throw new IllegalStateException("Error: ${message} has failed: ${e.message}.")
+                    }
+                }
             }
         }
     }

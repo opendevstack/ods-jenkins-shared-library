@@ -148,6 +148,7 @@ def call() {
     registry.add(LeVADocumentScheduler.class.name,
         new LeVADocumentScheduler(
             registry.get(PipelineSteps.class.name),
+            registry.get(PipelineUtil.class.name),
             registry.get(LeVADocumentUseCase.class.name)
         )
     )
