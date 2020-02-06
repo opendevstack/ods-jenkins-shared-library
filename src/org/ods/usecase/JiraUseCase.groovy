@@ -11,7 +11,6 @@ class JiraUseCase {
 
     class IssueTypes {
         static final String DOCUMENT_CHAPTER = "Documentation Chapter"
-        static final String LEVA_DOCUMENTATION = "LeVA Documentation"
     }
 
     class CustomIssueFields {
@@ -332,21 +331,6 @@ class JiraUseCase {
 
         matchedHandler(result.matched)
         unmatchedHandler(result.mismatched)
-    }
-
-    void notifyLeVaDocumentTrackingIssue(String projectId, String documentType, String message) {
-        if (!this.jira) return
-
-        def jqlQuery = [ jql: "project = ${projectId} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = LeVA_Doc:${documentType}" ]
-
-        // Search for the Jira issue associated with the document
-        def jiraIssues = this.jira.getIssuesForJQLQuery(jqlQuery)
-        if (jiraIssues.size() != 1) {
-            throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jqlQuery}'.")
-        }
-
-        // Add a comment to the Jira issue with a link to the report
-        this.jira.appendCommentToIssue(jiraIssues.first().key, message)
     }
 
     void reportTestResultsForComponent(String projectId, String componentName, List<String> testTypes, Map testResults) {

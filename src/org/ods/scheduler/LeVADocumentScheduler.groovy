@@ -124,11 +124,27 @@ class LeVADocumentScheduler extends DocGenScheduler {
         LeVADocumentUseCase.DocumentType.IVR as String
     ]
 
-    private MROPipelineUtil util
+    // Document types per environment type token (MROPipelineUtil.getBuildParams().targetEnvironmentToken)
+    // Only Q and P, in D all types are generated
+    private static Map ENVIRONMENT_TYPE = [
+        "Q": [
+            LeVADocumentUseCase.DocumentType.IVP as String, 
+            LeVADocumentUseCase.DocumentType.IVR as String,
+            LeVADocumentUseCase.DocumentType.TIP as String,
+            LeVADocumentUseCase.DocumentType.TIR as String
+            /* LeVADocumentUseCase.DocumentType.DIL as String */
+        ],
+        "P": [
+            LeVADocumentUseCase.DocumentType.IVP as String,
+            LeVADocumentUseCase.DocumentType.IVR as String,
+            LeVADocumentUseCase.DocumentType.TIP as String,
+            LeVADocumentUseCase.DocumentType.TIR as String
+            /* LeVADocumentUseCase.DocumentType.DIL as String, */
+        ]
+    ]
 
     LeVADocumentScheduler(IPipelineSteps steps, MROPipelineUtil util, LeVADocumentUseCase usecase) {
-        super(steps, usecase)
-        this.util = util
+        super(steps, util, usecase)
     }
 
     private boolean isDocumentApplicableForGampCategory(String documentType, String gampCategory) {
@@ -223,24 +239,37 @@ class LeVADocumentScheduler extends DocGenScheduler {
           : isDocumentApplicableForRepo(documentType, gampCategory, phase, stage, project, repo)
     }
 
+    protected boolean isDocumentApplicableForEnvironment(String documentType, String environment) {
+        // In D always created
+        if ("D".equalsIgnoreCase(environment)) {
+            return true
+        }
+        
+        return this.ENVIRONMENT_TYPE[environment].contains(documentType)
+    }
+
     void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map project, Map repo = null, Map data = null) {
         def documents = this.usecase.getSupportedDocuments()
+        def environment = this.util.getBuildParams().targetEnvironmentToken
+
         documents.each { documentType ->
-            def args = [project, repo, data]
+            if (this.isDocumentApplicableForEnvironment(documentType, environment)) {
+                def args = [project, repo, data]
 
-            if (this.isDocumentApplicable(documentType, phase, stage, project, repo)) {
-                def message = "Creating document of type '${documentType}' for project '${project.id}'"
-                if (repo) message += " and repo '${repo.id}'"
-                message += " in phase '${phase}' and stage '${stage}'"
-                this.steps.echo(message)
+                if (this.isDocumentApplicable(documentType, phase, stage, project, repo)) {
+                    def message = "Creating document of type '${documentType}' for project '${project.id}'"
+                    if (repo) message += " and repo '${repo.id}'"
+                    message += " in phase '${phase}' and stage '${stage}'"
+                    this.steps.echo(message)
 
-                this.util.executeBlockWithFailFast {
-                    try {
-                        // Apply args according to the method's parameters length
-                        def method = this.getMethodNameForDocumentType(documentType)
-                        this.usecase.invokeMethod(method, args as Object[])
-                    } catch (e) {
-                        throw new IllegalStateException("Error: ${message} has failed: ${e.message}.")
+                    this.util.executeBlockWithFailFast {
+                        try {
+                            // Apply args according to the method's parameters length
+                            def method = this.getMethodNameForDocumentType(documentType)
+                            this.usecase.invokeMethod(method, args as Object[])
+                        } catch (e) {
+                            throw new IllegalStateException("Error: ${message} has failed: ${e.message}.")
+                        }
                     }
                 }
             }

@@ -29,8 +29,8 @@ class DocGenSchedulerSpec extends SpecHelper {
     }
 
     class DocGenSchedulerImpl extends DocGenScheduler {
-        DocGenSchedulerImpl(PipelineSteps steps, DocGenUseCase docGen) {
-            super(steps, docGen)
+        DocGenSchedulerImpl(PipelineSteps steps, MROPipelineUtil util, DocGenUseCase docGen) {
+            super(steps, util, docGen)
         }
 
         protected boolean isDocumentApplicable(String documentType, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map project, Map repo = null) {
@@ -41,8 +41,9 @@ class DocGenSchedulerSpec extends SpecHelper {
     def "run"() {
         given:
         def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
         def usecase = Spy(new DocGenUseCaseImpl(steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil)))
-        def scheduler = Spy(new DocGenSchedulerImpl(steps, usecase))
+        def scheduler = Spy(new DocGenSchedulerImpl(steps, util, usecase))
 
         // Test Parameters
         def phase = "myPhase"

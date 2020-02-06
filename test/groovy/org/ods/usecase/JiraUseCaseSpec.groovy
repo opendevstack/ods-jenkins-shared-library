@@ -823,65 +823,6 @@ class JiraUseCaseSpec extends SpecHelper {
         mismatched == expectedMismatched
     }
 
-    def "notify LeVA document issue"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def documentType = "myType"
-        def message = "myMessage"
-
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-        def documentIssue = createJiraDocumentIssues().first()
-
-        when:
-        usecase.notifyLeVaDocumentTrackingIssue(project.id, documentType, message)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-
-        then:
-        1 * jira.appendCommentToIssue(documentIssue.key, message)
-    }
-
-    def "notify LeVA document issue with query returning != 1 issue"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def documentType = "myType"
-        def message = "myMessage"
-
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-        def documentIssues = createJiraDocumentIssues()
-
-        when:
-        usecase.notifyLeVaDocumentTrackingIssue(project.id, documentType, message)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: Jira query returned 0 issues: '${jqlQuery}'."
-
-        when:
-        usecase.notifyLeVaDocumentTrackingIssue(project.id, documentType, message)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> documentIssues
-
-        then:
-        e = thrown(RuntimeException)
-        e.message == "Error: Jira query returned 3 issues: '${jqlQuery}'."
-    }
-
     def "report test results for component in DEV"() {
         given:
         def steps = Spy(PipelineSteps)
