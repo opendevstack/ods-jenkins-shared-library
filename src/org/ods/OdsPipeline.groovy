@@ -39,7 +39,9 @@ class OdsPipeline implements Serializable {
       } catch (err) {
         updateBuildStatus('FAILURE')
         setBitbucketBuildStatus('FAILED')
-        notifyNotGreen()
+        if (context.notifyNotGreen) {
+          notifyNotGreen()
+        }
         throw err
       }
     }
