@@ -14,7 +14,7 @@ def call(Map project, List<Set<Map>> repos) {
 
     def phase = MROPipelineUtil.PipelinePhases.BUILD
 
-    def data = [
+    def globalData = [
         tests: [
             unit: [
                 testReportFiles: [],
@@ -31,14 +31,18 @@ def call(Map project, List<Set<Map>> repos) {
         // FIXME: we are mixing a generic scheduler capability with a data dependency and an explicit repository constraint.
         // We should turn the last argument 'data' of the scheduler into a closure that return data.
         if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
-            // Add unit test report files to a global data structure
-            def unitTestResults = getUnitTestResults(steps, repo)
-            data.tests.unit.testReportFiles.addAll(unitTestResults.testReportFiles)
+            def data = [
+                tests: [
+                    unit: getUnitTestResults(steps, repo)
+                ]
+            ]
 
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, repo, data)
 
             echo "Reporting unit test results to corresponding test cases in Jira for ${repo.id}"
             jira.reportTestResultsForComponent(project.id, "Technology-${repo.id}", ["UnitTest"], data.tests.unit.testResults)
+
+            globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)
         }
     }
 
@@ -51,7 +55,7 @@ def call(Map project, List<Set<Map>> repos) {
         }
 
     // Parse all test report files into a single data structure
-    data.tests.unit.testResults = junit.parseTestReportFiles(data.tests.unit.testReportFiles)
+    globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
 
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 

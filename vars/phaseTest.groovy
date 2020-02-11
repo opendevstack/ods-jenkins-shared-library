@@ -16,7 +16,7 @@ def call(Map project, List<Set<Map>> repos) {
 
     def phase = MROPipelineUtil.PipelinePhases.TEST
 
-    def data = [
+    def globalData = [
         tests: [
             acceptance: [
                 testReportFiles: [],
@@ -39,32 +39,32 @@ def call(Map project, List<Set<Map>> repos) {
 
     def postExecuteRepo = { steps, repo ->
         if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-            // Add installation test report files to a global data structure
-            def installationTestResults = getInstallationTestResults(steps, repo)
-            data.tests.installation.testReportFiles.addAll(installationTestResults.testReportFiles)
-
-            // Add integration test report files to a global data structure
-            def integrationTestResults = getIntegrationTestResults(steps, repo)
-            data.tests.integration.testReportFiles.addAll(integrationTestResults.testReportFiles)
-
-            // Add acceptance test report files to a global data structure
-            def acceptanceTestResults = getAcceptanceTestResults(steps, repo)
-            data.tests.acceptance.testReportFiles.addAll(acceptanceTestResults.testReportFiles)
+            def data = [
+                tests: [
+                    acceptance: getAcceptanceTestResults(steps, repo),
+                    installation: getInstallationTestResults(steps, repo),
+                    integration: getIntegrationTestResults(steps, repo)
+                ]
+            ]
 
             project.repositories.each { repo_ ->
                 if (repo_.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                     echo "Reporting installation test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["InstallationTest"], installationTestResults.testResults)
+                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["InstallationTest"], data.tests.installation.testResults)
 
                     echo "Reporting integration test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["IntegrationTest"], integrationTestResults.testResults)
+                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["IntegrationTest"], data.tests.integration.testResults)
 
                     echo "Reporting acceptance test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["AcceptanceTest"], acceptanceTestResults.testResults)
+                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["AcceptanceTest"], data.tests.acceptance.testResults)
                 }
             }
 
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, repo)
+
+            globalData.tests.acceptance.testReportFiles.addAll(data.tests.acceptance.testReportFiles)
+            globalData.tests.installation.testReportFiles.addAll(data.tests.installation.testReportFiles)
+            globalData.tests.integration.testReportFiles.addAll(data.tests.integration.testReportFiles)
         }
     }
 
@@ -77,16 +77,16 @@ def call(Map project, List<Set<Map>> repos) {
         }
 
     // Parse all test report files into a single data structure
-    data.tests.installation.testResults = junit.parseTestReportFiles(data.tests.installation.testReportFiles)
-    data.tests.integration.testResults = junit.parseTestReportFiles(data.tests.integration.testReportFiles)
-    data.tests.acceptance.testResults = junit.parseTestReportFiles(data.tests.acceptance.testReportFiles)
+    globalData.tests.acceptance.testResults = junit.parseTestReportFiles(globalData.tests.acceptance.testReportFiles)
+    globalData.tests.installation.testResults = junit.parseTestReportFiles(globalData.tests.installation.testReportFiles)
+    globalData.tests.integration.testResults = junit.parseTestReportFiles(globalData.tests.integration.testReportFiles)
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
+    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], globalData)
 
     // Fail the pipeline in case of failing tests
-    junit.failIfTestResultsContainFailure(data.tests.installation.testResults)
-    junit.failIfTestResultsContainFailure(data.tests.integration.testResults)
-    junit.failIfTestResultsContainFailure(data.tests.acceptance.testResults)
+    junit.failIfTestResultsContainFailure(globalData.tests.installation.testResults)
+    junit.failIfTestResultsContainFailure(globalData.tests.integration.testResults)
+    junit.failIfTestResultsContainFailure(globalData.tests.acceptance.testResults)
 }
 
 private List getAcceptanceTestResults(def steps, Map repo) {
