@@ -14,7 +14,7 @@ import util.*
 
 class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
-    def "fail if test results contain failure"() {
+    def "warn if test results contain failure"() {
         given:
         def steps = Spy(PipelineSteps)
         def util = new MROPipelineUtil(steps, Mock(GitUtil))
@@ -24,17 +24,20 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
         def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
+        def project = createProject()
         def testResults = usecase.parseTestReportFiles([xmlFile])
 
         when:
-        usecase.failIfTestResultsContainFailure(testResults)
+        usecase.warnBuildIfTestResultsContainFailure(project, testResults)
 
         then:
-        steps.currentBuild.result == "FAILURE"
+        project.data.build.hasFailingTests == true
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "Error: found failing tests in test reports."
+        steps.currentBuild.result == "UNSTABLE"
+
+        then:
+        noExceptionThrown()
 
         cleanup:
         xmlFiles.deleteDir()

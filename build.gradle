@@ -86,7 +86,7 @@ dependencies {
     testImplementation "net.bytebuddy:byte-buddy:1.10.7"              // for mocking classes
     testImplementation "org.hamcrest:hamcrest:2.1"
     testImplementation "org.objenesis:objenesis:3.1"                  // for mocking final classes
-    testImplementation "org.spockframework:spock-core:2.0-M1-groovy-2.5"
+    testImplementation "org.spockframework:spock-core:1.2-groovy-2.5"
 }
 
 sourceSets {

@@ -1055,6 +1055,7 @@ class MROPipelineUtilSpec extends SpecHelper {
             name: "myName",
             description: "myDescription",
             data: [
+                build: [:],
                 documents: [:],
                 git: [
                     commit: git.getCommit(),

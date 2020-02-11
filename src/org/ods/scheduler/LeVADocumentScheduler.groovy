@@ -262,7 +262,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
                     message += " in phase '${phase}' and stage '${stage}'"
                     this.steps.echo(message)
 
-                    this.util.executeBlockWithFailFast {
+                    this.util.executeBlockAndFailBuild {
                         try {
                             // Apply args according to the method's parameters length
                             def method = this.getMethodNameForDocumentType(documentType)

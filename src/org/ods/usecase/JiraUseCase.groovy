@@ -74,6 +74,7 @@ class JiraUseCase {
     }
 
     boolean checkJiraIssueMatchesTestCase(Map issue, String testcaseName) {
+        // FIXME: the contents of this method have been duplicated below to allow the execution of tests
         def issueKeyClean = issue.key.replaceAll("-", "")
         return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
     }
@@ -357,7 +358,10 @@ class JiraUseCase {
         testResults.testsuites.each { testsuite ->
             testsuite.testcases.each { testcase ->
                 def issue = jiraTestIssues.find { issue ->
-                    this.checkJiraIssueMatchesTestCase(issue, testcase.name)
+                    // FIXME: invoking checkJiraIssueMatchesTestCase results in failing tests (supposed to be a bug in a test dependency)
+                    // this.checkJiraIssueMatchesTestCase(issue, testcase.name)
+                    def issueKeyClean = issue.key.replaceAll("-", "")
+                    return testcase.name.startsWith("${issueKeyClean} ") || testcase.name.startsWith("${issueKeyClean}-") || testcase.name.startsWith("${issueKeyClean}_")
                 }
 
                 def isMatch = issue != null

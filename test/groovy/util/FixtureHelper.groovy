@@ -211,7 +211,10 @@ class FixtureHelper {
             key: "PHOENIX-123",
             name: "Project Phoenix",
             description: "A super sophisticated project.",
-            data: [:]
+            data: [
+                build: [:],
+                documents: [:]
+            ]
         ]
 
         result.services = [

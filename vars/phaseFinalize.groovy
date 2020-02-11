@@ -9,6 +9,7 @@ import org.ods.util.MROPipelineUtil
 def call(Map project, List<Set<Map>> repos) {
     def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler.class.name)
     def os               = ServiceRegistry.instance.get(OpenShiftService.class.name)
+    def util             = ServiceRegistry.instance.get(PipelineUtil.class.name)
 
     def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
@@ -31,6 +32,11 @@ def call(Map project, List<Set<Map>> repos) {
     echo "Project ${simpleProject}"
 
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
+
+    // Fail the build in case of failing tests.
+    if (project.data.build.hasFailingTests) {
+        util.failBuild("Error: found failing tests.")
+    }
 }
 
 return this

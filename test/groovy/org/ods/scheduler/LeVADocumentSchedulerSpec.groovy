@@ -7740,8 +7740,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -7836,8 +7836,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -7896,8 +7896,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -7971,8 +7971,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8127,8 +8127,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8200,8 +8200,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8252,8 +8252,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8305,8 +8305,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8378,8 +8378,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8451,8 +8451,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8503,8 +8503,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8556,8 +8556,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 
@@ -8765,8 +8765,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         def utilObj = new MROPipelineUtil(steps, git)
         def util = Mock(MROPipelineUtil) {
-            executeBlockWithFailFast(_) >> { block ->
-                utilObj.executeBlockWithFailFast(block)
+            executeBlockAndFailBuild(_) >> { block ->
+                utilObj.executeBlockAndFailBuild(block)
             }
         }
 

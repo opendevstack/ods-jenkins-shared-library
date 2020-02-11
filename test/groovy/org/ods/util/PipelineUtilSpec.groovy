@@ -209,6 +209,50 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to create Zip file. 'files' is undefined."
     }
 
+    def "execute block and fail build"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = Spy(new PipelineUtil(steps))
+
+        def block = { throw new RuntimeException("some error") }
+
+        when:
+        util.executeBlockAndFailBuild(block)
+
+        then:
+        1 * util.failBuild("some error")
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "some error"
+    }
+
+    def "failBuild"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = new PipelineUtil(steps)
+
+        when:
+        util.failBuild("some error")
+
+        then:
+        steps.currentBuild.result == "FAILURE"
+        1 * steps.echo("some error")
+    }
+
+    def "warnBuild"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def util = new PipelineUtil(steps)
+
+        when:
+        util.warnBuild("some warning")
+
+        then:
+        steps.currentBuild.result == "UNSTABLE"
+        1 * steps.echo("some warning")
+    }
+
     def "get Git URL"() {
         given:
         def steps = Spy(util.PipelineSteps)
