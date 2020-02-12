@@ -4,13 +4,12 @@ import org.ods.service.ServiceRegistry
 import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
 import org.ods.util.MROPipelineUtil
-import org.ods.util.PipelineUtil
 
 def call(Map project, List<Set<Map>> repos) {
-    def jira             = ServiceRegistry.instance.get(JiraUseCase.class.name)
-    def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase.class.name)
-    def util             = ServiceRegistry.instance.get(PipelineUtil.class.name)
-    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler.class.name)
+    def jira             = ServiceRegistry.instance.get(JiraUseCase)
+    def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
+    def util             = ServiceRegistry.instance.get(MROPipelineUtil)
+    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
 
     def phase = MROPipelineUtil.PipelinePhases.BUILD
 
@@ -64,8 +63,8 @@ def call(Map project, List<Set<Map>> repos) {
 }
 
 private List getUnitTestResults(def steps, Map repo) {
-    def jenkins = ServiceRegistry.instance.get(JenkinsService.class.name)
-    def junit   = ServiceRegistry.instance.get(JUnitTestReportsUseCase.class.name)
+    def jenkins = ServiceRegistry.instance.get(JenkinsService)
+    def junit   = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
 
     def testReportsPath = "junit/${repo.id}/unit"
 

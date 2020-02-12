@@ -1,7 +1,5 @@
 package org.ods.service
 
-import spock.lang.*
-
 import util.*
 
 class ServiceRegistrySpec extends SpecHelper {
@@ -27,11 +25,11 @@ class ServiceRegistrySpec extends SpecHelper {
         def service = createService()
 
         when:
-        service.add("Service-A", new ServiceA())
-        service.add("Service-B", new ServiceB())
+        service.add(ServiceA, new ServiceA())
+        service.add(ServiceB, new ServiceB())
 
         then:
-        service.get("Service-A").run() == true
-        service.get("Service-B").run() == false
+        service.get(ServiceA).run()
+        !service.get(ServiceB).run()
     }
 }

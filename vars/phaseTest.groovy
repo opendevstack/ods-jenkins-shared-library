@@ -4,15 +4,14 @@ import org.ods.service.ServiceRegistry
 import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
 import org.ods.util.MROPipelineUtil
-import org.ods.util.PipelineUtil
 
 import groovy.json.JsonOutput
 
 def call(Map project, List<Set<Map>> repos) {
-    def jira             = ServiceRegistry.instance.get(JiraUseCase.class.name)
-    def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase.class.name)
-    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler.class.name)
-    def util             = ServiceRegistry.instance.get(PipelineUtil.class.name)
+    def jira             = ServiceRegistry.instance.get(JiraUseCase)
+    def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
+    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+    def util             = ServiceRegistry.instance.get(MROPipelineUtil)
 
     def phase = MROPipelineUtil.PipelinePhases.TEST
 
@@ -102,8 +101,8 @@ private List getIntegrationTestResults(def steps, Map repo) {
 }
 
 private List getTestResults(def steps, Map repo, String type) {
-    def jenkins = ServiceRegistry.instance.get(JenkinsService.class.name)
-    def junit   = ServiceRegistry.instance.get(JUnitTestReportsUseCase.class.name)
+    def jenkins = ServiceRegistry.instance.get(JenkinsService)
+    def junit   = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
 
     def testReportsPath = "junit/${repo.id}/${type}"
 
