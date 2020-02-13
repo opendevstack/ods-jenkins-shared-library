@@ -171,7 +171,7 @@ class OdsContextTest extends GroovyTestCase {
 
     }
 
-    def bbBaseUrl = 'https://bitbucket.bix-digital.com/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts'
+    def bbBaseUrl = 'https://bitbucket.example.com/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts'
 
     void testCloneProjectScriptUrlsDefault() {
         def m = getCloneProjectScriptUrls([
