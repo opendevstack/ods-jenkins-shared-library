@@ -5,6 +5,7 @@ import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.OpenShiftService
 import org.ods.service.ServiceRegistry
 import org.ods.util.MROPipelineUtil
+import org.ods.util.PipelineUtil
 
 def call(Map project, List<Set<Map>> repos) {
     def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler.class.name)
