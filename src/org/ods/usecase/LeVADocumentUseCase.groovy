@@ -5,6 +5,7 @@ import groovy.json.JsonOutput
 import java.time.LocalDateTime
 
 import org.apache.commons.io.FilenameUtils
+import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.DocGenService
 import org.ods.service.JenkinsService
 import org.ods.service.LeVADocumentChaptersFileService
@@ -66,6 +67,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.OVERALL_SDS as String): "Overall Software Design Specification",
         (DocumentType.OVERALL_TIR as String): "Overall Technical Installation Report"
     ]
+
+    private static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
 
     private JenkinsService jenkins
     private JiraUseCase jiraUseCase
@@ -198,8 +201,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -296,8 +299,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -328,8 +331,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -401,7 +404,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(documentType, project, repo, data_, files, modifier, null)
+        return this.createDocument(documentType, project, repo, data_, files, modifier, null, this.getWatermarkText(documentType))
     }
 
     String createFS(Map project, Map repo = null, Map data = null) {
@@ -568,8 +571,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data__, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data__, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -614,8 +617,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -702,8 +705,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [ "raw/${file.getName()}", file.getBytes() ]
         }
 
-        def uri = this.createDocument(documentType, project, null, data_, files, null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, files, null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -734,8 +737,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -796,8 +799,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [ "raw/${file.getName()}", file.getBytes() ]
         }
 
-        def uri = this.createDocument(documentType, project, null, data_, files, null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, files, null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -817,8 +820,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -879,7 +882,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(documentType, project, repo, data_, files, modifier, null)
+        return this.createDocument(documentType, project, repo, data_, files, modifier, null, this.getWatermarkText(documentType))
     }
 
     String createSDS(Map project, Map repo, Map data = null) {
@@ -903,7 +906,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(documentType, project, repo, data_, [:], modifier, null)
+        return this.createDocument(documentType, project, repo, data_, [:], modifier, null, this.getWatermarkText(documentType))
     }
 
     String createTIP(Map project, Map repo = null, Map data = null) {
@@ -923,8 +926,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -964,7 +967,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(documentType, project, repo, data_, [:], modifier, null)
+        return this.createDocument(documentType, project, repo, data_, [:], modifier, null, this.getWatermarkText(documentType))
     }
 
     String createURS(Map project, Map repo = null, Map data = null) {
@@ -1150,8 +1153,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, project, null, data_, [:], null, null)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        def uri = this.createDocument(documentType, project, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -1160,8 +1163,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
         def documentType = DocumentType.DTR as String
-        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, project)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
+
+        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, project, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -1170,8 +1174,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
         def documentType = DocumentType.SCR as String
-        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, project)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
+
+        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, project, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -1180,8 +1185,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
         def documentType = DocumentType.SDS as String
-        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, project)
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
+
+        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, project, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -1190,7 +1196,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(documentTypeName, project)
 
         def documentType = DocumentType.TIR as String
-        def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, project) { data_ ->
+
+        def visitor = { data_ ->
             // Append another section for the Jenkins build log
             data_.sections << [
                 heading: "Jenkins Build Log"
@@ -1202,7 +1209,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
-        this.notifyLeVaDocumentTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
+        def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, project, visitor, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(project.id, documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
         return uri
     }
 
@@ -1233,17 +1241,39 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return metadata
     }
 
+    private String getJiraTrackingIssueLabelForDocumentType(String documentType) {
+        def environment = this.util.getBuildParams().targetEnvironmentToken
+
+        def label = LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].get(documentType)
+        if (!label && environment.equals('D')) {
+            label = documentType
+        }
+
+        return "LeVA_Doc:${label}"
+    }
+
     List<String> getSupportedDocuments() {
         return DocumentType.values().collect { it as String }
     }
 
-    void notifyLeVaDocumentTrackingIssue(String projectId, String documentType, String message) {
+    private String getWatermarkText(String documentType) {
+        def environment = this.util.getBuildParams().targetEnvironmentToken
+
+        // The watermark only applies in DEV environment (for documents not to be delivered from that environment)
+        if (environment.equals('D') && !LeVADocumentScheduler.ENVIRONMENT_TYPE['D'].containsKey(documentType)){
+            return this.DEVELOPER_PREVIEW_WATERMARK
+        }
+
+        return null
+    }
+
+    void notifyJiraTrackingIssue(String projectId, String documentType, String message) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
 
-        documentType = this.getDocumentTypeWithEnviroment(documentType)
+        def jiraDocumentLabel = this.getJiraTrackingIssueLabelForDocumentType(documentType)
 
-        def jqlQuery = [ jql: "project = ${projectId} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${projectId} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = ${jiraDocumentLabel}" ]
 
         // Search for the Jira issue associated with the document
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
@@ -1253,15 +1283,5 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Add a comment to the Jira issue with a link to the report
         this.jiraUseCase.jira.appendCommentToIssue(jiraIssues.first().key, message)
-    }
-
-    private String getDocumentTypeWithEnviroment(String documentType) {
-        def environment = this.util.getBuildParams().targetEnvironmentToken
-
-        if(['Q', 'P'].contains(environment)) {
-            return "${documentType}_${environment}"
-        }
-
-        return documentType
     }
 }

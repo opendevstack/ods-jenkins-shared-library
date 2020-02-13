@@ -124,22 +124,26 @@ class LeVADocumentScheduler extends DocGenScheduler {
         LeVADocumentUseCase.DocumentType.IVR as String
     ]
 
-    // Document types per environment type token (MROPipelineUtil.getBuildParams().targetEnvironmentToken)
-    // Only Q and P, in D all types are generated
-    private static Map ENVIRONMENT_TYPE = [
+    // Document types per environment token (MROPipelineUtil.getBuildParams().targetEnvironmentToken) and label to track with Jira
+    public static Map ENVIRONMENT_TYPE = [
+        "D": [
+            (LeVADocumentUseCase.DocumentType.DTP as String): "${LeVADocumentUseCase.DocumentType.DTP}",
+            (LeVADocumentUseCase.DocumentType.FTP as String): "${LeVADocumentUseCase.DocumentType.FTP}",
+            (LeVADocumentUseCase.DocumentType.IVP as String): "${LeVADocumentUseCase.DocumentType.IVP}_Q",
+            (LeVADocumentUseCase.DocumentType.TIP as String): "${LeVADocumentUseCase.DocumentType.TIP}_Q"
+        ],
         "Q": [
-            LeVADocumentUseCase.DocumentType.IVP as String, 
-            LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
-            LeVADocumentUseCase.DocumentType.TIR as String
-            /* LeVADocumentUseCase.DocumentType.DIL as String */
+            (LeVADocumentUseCase.DocumentType.DTR as String): "${LeVADocumentUseCase.DocumentType.DTR}",
+            (LeVADocumentUseCase.DocumentType.FTR as String): "${LeVADocumentUseCase.DocumentType.FTR}",
+            (LeVADocumentUseCase.DocumentType.SCR as String): "${LeVADocumentUseCase.DocumentType.SCR}",
+            (LeVADocumentUseCase.DocumentType.IVR as String): "${LeVADocumentUseCase.DocumentType.IVR}_Q",
+            (LeVADocumentUseCase.DocumentType.TIR as String): "${LeVADocumentUseCase.DocumentType.TIR}_Q",
+            (LeVADocumentUseCase.DocumentType.IVP as String): "${LeVADocumentUseCase.DocumentType.IVP}_P",
+            (LeVADocumentUseCase.DocumentType.TIP as String): "${LeVADocumentUseCase.DocumentType.IVR}_P"
         ],
         "P": [
-            LeVADocumentUseCase.DocumentType.IVP as String,
-            LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
-            LeVADocumentUseCase.DocumentType.TIR as String
-            /* LeVADocumentUseCase.DocumentType.DIL as String, */
+            (LeVADocumentUseCase.DocumentType.IVR as String): "${LeVADocumentUseCase.DocumentType.IVR}_P",
+            (LeVADocumentUseCase.DocumentType.TIR as String): "${LeVADocumentUseCase.DocumentType.TIR}_P"
         ]
     ]
 
@@ -245,7 +249,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             return true
         }
         
-        return this.ENVIRONMENT_TYPE[environment].contains(documentType)
+        return this.ENVIRONMENT_TYPE[environment].containsKey(documentType)
     }
 
     void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map project, Map repo = null, Map data = null) {

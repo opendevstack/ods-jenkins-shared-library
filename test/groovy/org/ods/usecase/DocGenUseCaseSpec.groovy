@@ -220,6 +220,60 @@ class DocGenUseCaseSpec extends SpecHelper {
         1 * nexus.storeArtifact(*_) >> nexusUri
     }
 
+    def "create document with watermark"() {
+        def buildParams = createBuildParams()
+
+        def steps = Spy(PipelineSteps)
+        steps.env.BUILD_ID = "0815"
+
+        def util = Mock(MROPipelineUtil)
+        def docGen = Mock(DocGenService)
+        def nexus = Mock(NexusService)
+        def pdf = Spy(new PDFUtil())
+        def usecase = Spy(new DocGenUseCaseImpl(
+            steps,
+            util,
+            docGen,
+            nexus,
+            pdf
+        ))
+
+        def pdfUtil = new PDFUtil()
+
+        // Test Parameters
+        def documentType = "myDocumentType"
+        def version = buildParams.version
+        def project = createProject()
+        def repo = project.repositories.first()
+        def data = [ a: 1, b: 2, c: 3 ]
+        def watermarkText = "Watermark"
+
+        // Argument Constraints
+        def basename = "${documentType}-${project.id}-${repo.id}-${version}-${steps.env.BUILD_ID}"
+
+        // Stubbed Method Responses
+        def document = getResource("Test-1.pdf").bytes
+        def nexusUri = new URI("http://nexus")
+        def documentWithWatermark = pdfUtil.addWatermarkText(document, watermarkText)
+
+        when:
+        usecase.createDocument(documentType, project, repo, data, [:], null, null, watermarkText)
+
+        then:
+        1 * docGen.createDocument(*_) >> document
+        1 * pdf.addWatermarkText(document, watermarkText)
+        1 * util.getBuildParams() >> buildParams
+        1 * usecase.getDocumentBasename(documentType, buildParams.version, steps.env.BUILD_ID, project, repo)
+        1 * util.createZipArtifact(
+            "${basename}.zip",
+            [
+                "${basename}.pdf": documentWithWatermark,
+                "raw/${basename}.json": JsonOutput.toJson(data).bytes
+            ]
+        ) >> new byte[0]
+        1 * nexus.storeArtifact(*_) >> nexusUri
+    }
+
     def "create document with documentTypeEmbedded"() {
         def buildParams = createBuildParams()
 
@@ -302,7 +356,37 @@ class DocGenUseCaseSpec extends SpecHelper {
         usecase.createOverallDocument(coverType, documentType, metadata, project)
 
         then:
-        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType)
+        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType, null)
+        _ * util.getBuildParams() >> buildParams
+    }
+
+    def "create overall document with watermark"() {
+        def buildParams = createBuildParams()
+
+        def steps = Spy(PipelineSteps)
+        def util = Mock(MROPipelineUtil)
+        def docGen = Mock(DocGenService)
+        def nexus = Mock(NexusService)
+        def usecase = Spy(new DocGenUseCaseImpl(
+            steps,
+            util,
+            docGen,
+            nexus,
+            Mock(PDFUtil)
+        ))
+
+        // Test Parameters
+        def coverType = "myCoverType"
+        def documentType = "myDocumentType"
+        def metadata = [:]
+        def project = createProject()
+        def watermarkText = "Watermark"
+
+        when:
+        usecase.createOverallDocument(coverType, documentType, metadata, project, null, watermarkText)
+
+        then:
+        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType, watermarkText)
         _ * util.getBuildParams() >> buildParams
     }
 
@@ -332,7 +416,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         usecase.createOverallDocument(coverType, documentType, metadata, project)
 
         then:
-        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType)
+        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType, null)
         _ * util.getBuildParams() >> buildParams
 
         then:

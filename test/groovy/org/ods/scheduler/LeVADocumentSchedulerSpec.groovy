@@ -8401,13 +8401,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def data = [ testReportFiles: null, testResults: null ]
 
         when:
-        scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
-
-        then:
-        1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
-        1 * usecase.invokeMethod("createTIP", [project, null, null] as Object[])
-
-        when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_CODE)
 
         then:
@@ -8420,13 +8413,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
         1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_SERVICE, null] as Object[])
-
-        when:
-        scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
-
-        then:
-        1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
-        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
@@ -8474,13 +8460,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def data = [ testReportFiles: null, testResults: null ]
 
         when:
-        scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
-
-        then:
-        1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
-        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
-
-        when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
 
         then:
@@ -8525,14 +8504,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def project = PROJECT_GAMP_4
         def data = [ testReportFiles: null, testResults: null ]
 
-        when:
-        scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
-
-        then:
-        1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
-        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
-
-        
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
 
@@ -8579,13 +8550,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def data = [ testReportFiles: null, testResults: null ]
 
         when:
-        scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
-
-        then:
-        1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
-        1 * usecase.invokeMethod("createTIP", [project, null, null] as Object[])
-
-        when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, REPO_ODS_CODE)
 
         then:
@@ -8598,13 +8562,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
         1 * usecase.invokeMethod("createTIR", [project, REPO_ODS_SERVICE, null] as Object[])
-
-        when:
-        scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
-
-        then:
-        1 * util.getBuildParams() >> [targetEnvironment: "prod", targetEnvironmentToken: "P"]
-        1 * usecase.invokeMethod("createIVP", [project, null, null] as Object[])
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], data)
@@ -8682,10 +8639,13 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         // Test Parameters
         def qTypes = [ 
-            LeVADocumentUseCase.DocumentType.IVP as String, 
+            LeVADocumentUseCase.DocumentType.DTR as String,
+            LeVADocumentUseCase.DocumentType.FTR as String,
+            LeVADocumentUseCase.DocumentType.IVP as String,
             LeVADocumentUseCase.DocumentType.IVR as String,
             LeVADocumentUseCase.DocumentType.TIP as String,
-            LeVADocumentUseCase.DocumentType.TIR as String
+            LeVADocumentUseCase.DocumentType.TIR as String,
+            LeVADocumentUseCase.DocumentType.SCR as String
         ]
 
         def result = []
@@ -8730,9 +8690,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         // Test Parameters
         def pTypes = [ 
-            LeVADocumentUseCase.DocumentType.IVP as String,
             LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
             LeVADocumentUseCase.DocumentType.TIR as String
         ]
 

@@ -24,7 +24,7 @@ abstract class DocGenUseCase {
         this.pdf = pdf
     }
 
-    String createDocument(String documentType, Map project, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String documentTypeEmbedded = null) {
+    String createDocument(String documentType, Map project, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String documentTypeEmbedded = null, String watermarkText = null) {
         def buildParams = this.util.getBuildParams()
 
         // Create a PDF document via the DocGen service
@@ -33,6 +33,11 @@ abstract class DocGenUseCase {
         // Apply PDF document modifications, if provided
         if (modifier) {
             document = modifier(document)
+        }
+
+        // Apply PDF document watermark, if provided
+        if (watermarkText) {
+            document = this.pdf.addWatermarkText(document, watermarkText)
         }
 
         def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, buildParams.version, this.steps.env.BUILD_ID, project, repo)
@@ -60,7 +65,7 @@ abstract class DocGenUseCase {
         return uri.toString()
     }
 
-    String createOverallDocument(String coverType, String documentType, Map metadata, Map project, Closure visitor = null) {
+    String createOverallDocument(String coverType, String documentType, Map metadata, Map project, Closure visitor = null, String watermarkText = null) {
         def documents = []
         def sections = []
 
@@ -93,7 +98,7 @@ abstract class DocGenUseCase {
             return this.pdf.merge(documents)
         }
 
-        def result = this.createDocument(coverType, project, null, data, [:], modifier, documentType)
+        def result = this.createDocument(coverType, project, null, data, [:], modifier, documentType, watermarkText)
 
         // Clean up previously stored documents
         project.repositories.each { repo ->
