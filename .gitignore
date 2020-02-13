@@ -10,3 +10,4 @@ build
 # IntelliJ
 .idea
 *.iws
+out

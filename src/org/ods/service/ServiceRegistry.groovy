@@ -5,11 +5,11 @@ class ServiceRegistry {
 
     private registry = [:]
 
-    void add(def name, def service) {
-        registry[name] = service
+    void add(Class<?> type, def service) {
+        registry[type.name] = service
     }
 
-    def get(def name) {
-        return registry[name]
+    def <T> T get(Class<T> type) {
+        return registry[type.name] as T
     }
 }

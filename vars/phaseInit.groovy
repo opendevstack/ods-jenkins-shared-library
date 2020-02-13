@@ -21,7 +21,6 @@ import org.ods.util.GitUtil
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
 import org.ods.util.PipelineSteps
-import org.ods.util.PipelineUtil
 
 def call() {
     Unirest.config()
@@ -41,28 +40,28 @@ def call() {
 
     // Register global services
     def registry = ServiceRegistry.instance
-    registry.add(GitUtil.class.name, git)
-    registry.add(PDFUtil.class.name, new PDFUtil())
-    registry.add(PipelineSteps.class.name, steps)
-    registry.add(PipelineUtil.class.name, util)
+    registry.add(GitUtil, git)
+    registry.add(PDFUtil, new PDFUtil())
+    registry.add(PipelineSteps, steps)
+    registry.add(MROPipelineUtil, util)
 
-    registry.add(DocGenService.class.name,
+    registry.add(DocGenService,
         new DocGenService(env.DOCGEN_URL)
     )
 
-    registry.add(LeVADocumentChaptersFileService.class.name,
+    registry.add(LeVADocumentChaptersFileService,
         new LeVADocumentChaptersFileService(steps)
     )
 
-    registry.add(JenkinsService.class.name,
+    registry.add(JenkinsService,
         new JenkinsService(
-            registry.get(PipelineSteps.class.name)
+            registry.get(PipelineSteps)
         )
     )
 
     if (project.services?.jira) {
         withCredentials([ usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
-            registry.add(JiraService.class.name,
+            registry.add(JiraService,
                 new JiraService(
                     env.JIRA_URL,
                     env.JIRA_USERNAME,
@@ -71,7 +70,7 @@ def call() {
             )
 
             if (project.capabilities.contains("Zephyr")) {
-                registry.add(JiraZephyrService.class.name,
+                registry.add(JiraZephyrService,
                     new JiraZephyrService(
                         env.JIRA_URL,
                         env.JIRA_USERNAME,
@@ -82,7 +81,7 @@ def call() {
         }
     }
 
-    registry.add(NexusService.class.name,
+    registry.add(NexusService,
         new NexusService(
             env.NEXUS_URL,
             env.NEXUS_USERNAME,
@@ -91,9 +90,9 @@ def call() {
     )
 
     withCredentials([ usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: "BITBUCKET_USER", passwordVariable: "BITBUCKET_PW") ]) {
-        registry.add(OpenShiftService.class.name,
+        registry.add(OpenShiftService,
             new OpenShiftService(
-                registry.get(PipelineSteps.class.name),
+                registry.get(PipelineSteps),
                 env.OPENSHIFT_API_URL,
                 env.BITBUCKET_HOST,
                 env.BITBUCKET_USER,
@@ -103,53 +102,53 @@ def call() {
     }
 
     def jiraUseCase = new JiraUseCase(
-        registry.get(PipelineSteps.class.name),
-        registry.get(PipelineUtil.class.name),
-        registry.get(JiraService.class.name)
+        registry.get(PipelineSteps),
+        registry.get(MROPipelineUtil),
+        registry.get(JiraService)
     )
 
     jiraUseCase.setSupport(
         project.capabilities.contains("Zephyr")
-            ? new JiraUseCaseZephyrSupport(steps, jiraUseCase, registry.get(JiraZephyrService.class.name), registry.get(PipelineUtil.class.name))
+            ? new JiraUseCaseZephyrSupport(steps, jiraUseCase, registry.get(JiraZephyrService), registry.get(MROPipelineUtil))
             : new JiraUseCaseSupport(steps, jiraUseCase)
     )
 
-    registry.add(JiraUseCase.class.name, jiraUseCase)
+    registry.add(JiraUseCase, jiraUseCase)
 
-    registry.add(JUnitTestReportsUseCase.class.name,
+    registry.add(JUnitTestReportsUseCase,
         new JUnitTestReportsUseCase(
-            registry.get(PipelineSteps.class.name),
-            registry.get(PipelineUtil.class.name)
+            registry.get(PipelineSteps),
+            registry.get(MROPipelineUtil)
         )
     )
 
-    registry.add(SonarQubeUseCase.class.name,
+    registry.add(SonarQubeUseCase,
         new SonarQubeUseCase(
-            registry.get(PipelineSteps.class.name),
-            registry.get(NexusService.class.name)
+            registry.get(PipelineSteps),
+            registry.get(NexusService)
         )
     )
 
-    registry.add(LeVADocumentUseCase.class.name,
+    registry.add(LeVADocumentUseCase,
         new LeVADocumentUseCase(
-            registry.get(PipelineSteps.class.name),
-            registry.get(PipelineUtil.class.name),
-            registry.get(DocGenService.class.name),
-            registry.get(JenkinsService.class.name),
-            registry.get(JiraUseCase.class.name),
-            registry.get(LeVADocumentChaptersFileService.class.name),
-            registry.get(NexusService.class.name),
-            registry.get(OpenShiftService.class.name),
-            registry.get(PDFUtil.class.name),
-            registry.get(SonarQubeUseCase.class.name)
+            registry.get(PipelineSteps),
+            registry.get(MROPipelineUtil),
+            registry.get(DocGenService),
+            registry.get(JenkinsService),
+            registry.get(JiraUseCase),
+            registry.get(LeVADocumentChaptersFileService),
+            registry.get(NexusService),
+            registry.get(OpenShiftService),
+            registry.get(PDFUtil),
+            registry.get(SonarQubeUseCase)
         )
     )
 
-    registry.add(LeVADocumentScheduler.class.name,
+    registry.add(LeVADocumentScheduler,
         new LeVADocumentScheduler(
-            registry.get(PipelineSteps.class.name),
-            registry.get(PipelineUtil.class.name),
-            registry.get(LeVADocumentUseCase.class.name)
+            registry.get(PipelineSteps),
+            registry.get(MROPipelineUtil),
+            registry.get(LeVADocumentUseCase)
         )
     )
 
@@ -167,7 +166,7 @@ def call() {
     // Compute groups of repository configs for convenient parallelization
     repos = util.computeRepoGroups(repos)
 
-    registry.get(LeVADocumentScheduler.class.name).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
+    registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
 
     return [ project: project, repos: repos ]
 }

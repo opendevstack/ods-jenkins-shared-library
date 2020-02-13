@@ -8,9 +8,9 @@ import org.ods.util.MROPipelineUtil
 import org.ods.util.PipelineUtil
 
 def call(Map project, List<Set<Map>> repos) {
-    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler.class.name)
-    def os               = ServiceRegistry.instance.get(OpenShiftService.class.name)
-    def util             = ServiceRegistry.instance.get(PipelineUtil.class.name)
+    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+    def os               = ServiceRegistry.instance.get(OpenShiftService)
+    def util             = ServiceRegistry.instance.get(MROPipelineUtil)
 
     def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
