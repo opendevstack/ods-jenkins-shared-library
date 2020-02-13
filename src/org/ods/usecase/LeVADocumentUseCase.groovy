@@ -16,7 +16,7 @@ import org.ods.util.PDFUtil
 import org.ods.util.SortUtil
 
 class LeVADocumentUseCase extends DocGenUseCase {
-    
+
     class IssueTypes {
         static final String LEVA_DOCUMENTATION = "LeVA Documentation"
     }
@@ -95,11 +95,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def missing = []
 
         jiraTestIssues.each { issue ->
-            if (!issue.isSuccess && !issue.isMissing) {
+            if (!issue.test.isSuccess && !issue.test.isMissing) {
                 failed << issue.key
             }
 
-            if (!issue.isSuccess && issue.isMissing) {
+            if (!issue.test.isSuccess && issue.test.isMissing) {
                 missing << issue.key
             }
         }
@@ -224,7 +224,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!specifications.isEmpty()) {
             // Create a collection of disjoint issues across all components
             def specificationsIssuesList = specifications.values().flatten().toSet()
-            
+
             specificationsIssuesList = specificationsIssuesList.collect { issue ->
                 // Reduce the issues to the data points required by the document
                 return issue.subMap(["key", "description"]) << [
@@ -1240,7 +1240,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     void notifyLeVaDocumentTrackingIssue(String projectId, String documentType, String message) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
-        
+
         documentType = this.getDocumentTypeWithEnviroment(documentType)
 
         def jqlQuery = [ jql: "project = ${projectId} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = LeVA_Doc:${documentType}" ]
@@ -1257,11 +1257,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private String getDocumentTypeWithEnviroment(String documentType) {
         def environment = this.util.getBuildParams().targetEnvironmentToken
-        
+
         if(['Q', 'P'].contains(environment)) {
             return "${documentType}_${environment}"
         }
-        
+
         return documentType
     }
 }

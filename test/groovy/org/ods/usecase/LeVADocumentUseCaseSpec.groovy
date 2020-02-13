@@ -42,8 +42,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         def testIssues = createJiraTestIssues().each {
-            it.isMissing = false
-            it.isSuccess = true
+            it.test.isMissing = false
+            it.test.isSuccess = true
         }
 
         def result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -55,8 +55,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         testIssues = createJiraTestIssues().each {
-            it.isMissing = true
-            it.isSuccess = false
+            it.test.isMissing = true
+            it.test.isSuccess = false
         }
 
         result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -68,8 +68,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         testIssues = createJiraTestIssues().each {
-            it.isMissing = false
-            it.isSuccess = false
+            it.test.isMissing = false
+            it.test.isSuccess = false
         }
 
         result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -82,12 +82,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         when:
         testIssues = createJiraTestIssues()
         testIssues[0..1].each {
-            it.isMissing = true
-            it.isSuccess = false
+            it.test.isMissing = true
+            it.test.isSuccess = false
         }
         testIssues[2..4].each {
-            it.isMissing = false
-            it.isSuccess = false
+            it.test.isMissing = false
+            it.test.isSuccess = false
         }
 
         result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -478,7 +478,7 @@ def "create FTR"() {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.FTR as String
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]		
+        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
         def buildParams = createBuildEnvironment(env)
