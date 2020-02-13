@@ -629,7 +629,7 @@ class OdsContext implements Context {
     def m = [:]
     def branch = getCloneProjectScriptBranch().replace('/','%2F')
     for (script in scripts) {
-      def url = "https://bitbucket.bix-digital.com/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts/${script}?at=refs%2Fheads%2F${branch}"
+      def url = "${config.bitbucketUrl}/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts/${script}?at=refs%2Fheads%2F${branch}"
       m.put(script, url)
     }
     return m
