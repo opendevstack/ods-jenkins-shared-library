@@ -15,6 +15,8 @@ import org.yaml.snakeyaml.Yaml
 class PipelineUtil {
 
     static final String ARTIFACTS_BASE_DIR = "artifacts"
+    static final String SONARQUBE_BASE_DIR = "sonarqube"
+    static final String XUNIT_DOCUMENTS_BASE_DIR = "xunit"
 
     protected IPipelineSteps steps
 

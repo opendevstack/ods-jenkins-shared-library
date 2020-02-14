@@ -14,6 +14,7 @@ import org.ods.service.OpenShiftService
 import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
+import org.ods.util.PipelineUtil
 import org.ods.util.SortUtil
 
 class LeVADocumentUseCase extends DocGenUseCase {
@@ -828,7 +829,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createSCR(Map project, Map repo, Map data = null) {
         def documentType = DocumentType.SCR as String
 
-        def sqReportsPath = "sonarqube/${repo.id}"
+        def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${repo.id}"
         def sqReportsStashName = "scrr-report-${repo.id}-${this.steps.env.BUILD_ID}"
 
         // Unstash SonarQube reports into path

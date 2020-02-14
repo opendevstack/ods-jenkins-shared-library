@@ -1,5 +1,7 @@
 @Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
+import java.nio.file.Paths
+
 import kong.unirest.Unirest
 
 import org.ods.scheduler.LeVADocumentScheduler
@@ -21,6 +23,7 @@ import org.ods.util.GitUtil
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
 import org.ods.util.PipelineSteps
+import org.ods.util.PipelineUtil
 
 def call() {
     Unirest.config()
@@ -153,6 +156,12 @@ def call() {
     )
 
     def phase = MROPipelineUtil.PipelinePhases.INIT
+
+    // Clean workspace from previous runs
+    [PipelineUtil.ARTIFACTS_BASE_DIR, PipelineUtil.SONARQUBE_BASE_DIR, PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR, MROPipelineUtil.REPOS_BASE_DIR].each { name ->
+       echo "Cleaning workspace directory '${name}' from previous runs"
+       Paths.get(env.WORKSPACE, name).toFile().deleteDir()
+    }
 
     // Checkout repositories into the workspace
     parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
