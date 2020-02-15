@@ -1,3 +1,4 @@
+.gradle
 target
 bin
 out
@@ -9,3 +10,4 @@ out
 .classpath
 .factorypath
 .settings/
+build
