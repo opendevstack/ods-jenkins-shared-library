@@ -316,9 +316,7 @@ class MROPipelineUtil extends PipelineUtil {
         return result
     }
 
-    Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
-        def project = loadProjectMetadata()
-
+    Closure prepareCheckoutRepoNamedJob(Map project, Map repo, Closure preExecute = null, Closure postExecute = null) {
         return [
             repo.id,
             {
@@ -356,9 +354,9 @@ class MROPipelineUtil extends PipelineUtil {
         ]
     }
 
-    void prepareCheckoutReposNamedJob(List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
+    void prepareCheckoutReposNamedJob(Map project, List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
         repos.collectEntries { repo ->
-            prepareCheckoutRepoNamedJob(repo, preExecute, postExecute)
+            this.prepareCheckoutRepoNamedJob(project, repo, preExecute, postExecute)
         }
     }
 
