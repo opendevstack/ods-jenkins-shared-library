@@ -2,7 +2,9 @@ package org.ods.usecase
 
 import org.ods.parser.JUnitParser
 import org.ods.service.*
+import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
+import org.ods.util.Project
 
 import spock.lang.*
 
@@ -12,188 +14,102 @@ import util.*
 
 class JiraUseCaseZephyrSupportSpec extends SpecHelper {
 
-    def "apply test results as test execution statii"() {
-        given:
-        def buildParams = createBuildParams()
+    JiraService jira
+    Project project
+    IPipelineSteps steps
+    JiraUseCase usecase
+    MROPipelineUtil util
+    JiraZephyrService zephyr
+    JiraUseCaseZephyrSupport support
 
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
+    def setup() {
+        project = Spy(createProject())
+        steps = Spy(PipelineSteps)
+        util = Mock(MROPipelineUtil)
+        jira = Mock(JiraService)
+        usecase = Spy(new JiraUseCase(project, steps, util, jira))
 
-        def zephyr = Mock(JiraZephyrService)
-        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
+        zephyr = Mock(JiraZephyrService)
+        support = Spy(new JiraUseCaseZephyrSupport(project, steps, usecase, zephyr, util))
         usecase.setSupport(support)
-
-        def project = createProject()
-        def testIssues = createJiraTestIssues().each { it.projectId = project.id }
-        def testResults = createTestResults()
-
-        when:
-        support.applyTestResultsAsTestExecutionStatii(testIssues, testResults)
-
-        then:
-        _ * util.getBuildParams() >> buildParams
-
-        then:
-        1 * zephyr.getProjectVersions(project.id) >> []
-        1 * zephyr.getProjectCycles(project.id, "-1") 
-        1 * zephyr.createTestCycle(project.id, "-1", buildParams.targetEnvironmentToken + ": Build " + steps.env.BUILD_ID, steps.env.BUILD_URL, buildParams.targetEnvironment) >> [id: "111"]
-
-        then:
-        1 * zephyr.createTestExecutionForIssue("1", project.id, "111") >> ["11": []]
-        1 * zephyr.updateExecutionForIssuePass("11")
-        0 * zephyr./^updateExecutionForIssue.*/("11")
-
-        then:
-        1 * zephyr.createTestExecutionForIssue("2", project.id, "111") >> ["12": []]
-        1 * zephyr.updateExecutionForIssueFail("12")
-        0 * zephyr./^updateExecutionForIssue.*/("12")
-
-        then:
-        1 * zephyr.createTestExecutionForIssue("3", project.id, "111") >> ["13": []]
-        1 * zephyr.updateExecutionForIssueFail("13")
-        0 * zephyr./^updateExecutionForIssue.*/("13")
-
-        then:
-        1 * zephyr.createTestExecutionForIssue("4", project.id, "111") >> ["14": []]
-        1 * zephyr.updateExecutionForIssueBlocked("14")
-        0 * zephyr./^updateExecutionForIssue.*/("14")
-
-        then:
-        // Leave test execution at initial status UNEXECUTED otherwise
-        1 * zephyr.createTestExecutionForIssue("5", project.id, "111") >> ["15": []]
-        0 * zephyr./^updateExecutionForIssue.*/("15")
     }
 
-    def "apply test results as test execution statii without test issues"() {
+    def "apply xUnit test results as test execution statii"() {
         given:
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def zephyr = Mock(JiraZephyrService)
-        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def testIssues = []
-        def testResults = [:]
-
-        when:
-        support.applyTestResultsAsTestExecutionStatii(testIssues, testResults)
-
-        then:
-        _ * util.getBuildParams() >> buildParams
-        0 * zephyr.getProjectVersions(project.id)
-        0 * zephyr.createTestCycle(project.id, "-1", null, steps.env.BUILD_URL, buildParams.targetEnvironment)
-    }
-
-    def "apply test results to test issues"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def usecase = Mock(JiraUseCase)
-
-        def zephyr = Mock(JiraZephyrService)
-        def util = Mock(MROPipelineUtil)
-        def support = Spy(new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util))
-        usecase.setSupport(support)
-
         def testIssues = createJiraTestIssues()
         def testResults = createTestResults()
 
         when:
-        support.applyTestResultsToTestIssues(testIssues, testResults)
+        support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
 
         then:
-        1 * usecase.applyTestResultsAsTestIssueLabels(testIssues, testResults)
+        1 * zephyr.getProjectVersions(project.key) >> []
+        1 * zephyr.getTestCycles(project.id, "-1") 
+        1 * zephyr.createTestCycle(project.id, "-1", project.buildParams.targetEnvironmentToken + ": Build " + steps.env.BUILD_ID, steps.env.BUILD_URL, project.buildParams.targetEnvironment) >> [id: "111"]
+
+        then:
+        1 * zephyr.createTestExecutionForIssue("1", project.id, "111") >> ["11": []]
+        1 * zephyr.updateTestExecutionForIssuePass("11")
+        0 * zephyr./^updateTestExecutionForIssue.*/("11")
+
+        then:
+        1 * zephyr.createTestExecutionForIssue("2", project.id, "111") >> ["12": []]
+        1 * zephyr.updateTestExecutionForIssueFail("12")
+        0 * zephyr./^updateTestExecutionForIssue.*/("12")
+
+        then:
+        1 * zephyr.createTestExecutionForIssue("3", project.id, "111") >> ["13": []]
+        1 * zephyr.updateTestExecutionForIssueFail("13")
+        0 * zephyr./^updateTestExecutionForIssue.*/("13")
+
+        then:
+        1 * zephyr.createTestExecutionForIssue("4", project.id, "111") >> ["14": []]
+        1 * zephyr.updateTestExecutionForIssueBlocked("14")
+        0 * zephyr./^updateTestExecutionForIssue.*/("14")
+
+        then:
+        // Leave test execution at initial status UNEXECUTED otherwise
+        1 * zephyr.createTestExecutionForIssue("5", project.id, "111") >> ["15": []]
+        0 * zephyr./^updateTestExecutionForIssue.*/("15")
+    }
+
+    def "apply xUnit test results as test execution statii without test issues"() {
+        given:
+        def testIssues = []
+        def testResults = [:]
+
+        when:
+        support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
+
+        then:
+        0 * zephyr.getProjectVersions(project.key)
+        0 * zephyr.createTestCycle(project.id, "-1", null, steps.env.BUILD_URL, project.buildParams.targetEnvironment)
+    }
+
+    def "apply xUnit test results"() {
+        given:
+        def testIssues = createJiraTestIssues()
+        def testResults = createTestResults()
+
+        when:
+        support.applyXunitTestResults(testIssues, testResults)
+
+        then:
+        1 * usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
+        _ * zephyr.createTestCycle(*_) >> [id: "1"]
         _ * zephyr.createTestExecutionForIssue(*_) >> ["1": []]
-        1 * support.applyTestResultsAsTestExecutionStatii(testIssues, testResults)
+        1 * support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
     }
 
-    def "get automated test issues for project"() {
+    def "get project version"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def zephyr = Mock(JiraZephyrService)
-        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
-        usecase.setSupport(support)
-
-        def project = createProject()
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype = Test AND status = 'Ready to Test' AND labels = 'AutomatedTest'",
-            expand: [ "renderedFields" ],
-            fields: [ "description", "summary" ]
-        ]
+        project.buildParams.version = "0.1"
 
         when:
-        support.getAutomatedTestIssues(project.id)
+        def result = support.getProjectVersion(project.key)
 
         then:
-        1 * zephyr.getProject(project.id)
-        1 * jira.getIssuesForJQLQuery(jqlQuery)
-    }
-
-    def "get versions for project - version not found in Jira"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def zephyr = Mock(JiraZephyrService)
-        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
-        usecase.setSupport(support)
-
-        def project = createProject()
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('AutomatedTest')",
-            expand: [ "renderedFields" ],
-            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
-        ]
-
-        when:
-        def result = support.getVersionId(project.id)
-
-        then:
-        1 * util.getBuildParams() >> [version: "WIP"]
-        1 * zephyr.getProjectVersions(project.id) >> [[name: "0.1", id: "1234"]]
-        result == "-1"
-    }
-
-    def "get versions for project - version found in Jira"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def zephyr = Mock(JiraZephyrService)
-        def support = new JiraUseCaseZephyrSupport(steps, usecase, zephyr, util)
-        usecase.setSupport(support)
-
-        def project = createProject()
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype in ('Test') AND labels in ('AutomatedTest')",
-            expand: [ "renderedFields" ],
-            fields: [ "components", "description", "issuelinks", "issuetype", "summary" ]
-        ]
-
-        when:
-        def result = support.getVersionId(project.id)
-
-        then:
-        1 * util.getBuildParams() >> [version: "0.1"]
-        1 * zephyr.getProjectVersions(project.id) >> [[name: "0.1", id: "1234"]]
-        result == "1234"
+        1 * zephyr.getProjectVersions(project.key) >> [ [id: "1234", name: "0.1"] ]
+        result == [id: "1234", name: "0.1"]
     }
 }

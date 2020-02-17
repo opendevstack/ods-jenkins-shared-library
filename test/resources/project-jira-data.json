@@ -1,0 +1,179 @@
+{
+  "project": {
+    "name": "DEMO",
+    "description": "Sample Project with some fictional Issues"
+  },
+  "components": [
+    {
+      "key": "DEMO-CMP-1",
+      "name": "Component A",
+      "description": "This is Component A",
+      "epics": [
+        999
+      ],
+      "requirements": [
+        999
+      ],
+      "techSpecs": [
+        999
+      ],
+      "tests": [
+        999
+      ],
+      "mitigations": [
+        999
+      ]
+    }
+  ],
+  "epics": [
+    {
+      "key": "DEMO-EPC-1",
+      "name": "Epic 1",
+      "description": "This is Epic #1",
+      "version": "1.0",
+      "status": "TO DO",
+      "requirements": [
+        999
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "key": "DEMO-REQ-1",
+      "name": "Requirement 1",
+      "description": "This is Requirement #1",
+      "version": "1.0",
+      "status": "IN DESIGN",
+      "gampTopic": "availability requirements",
+      "acceptanceCriteria": "acceptance of SysReq-1 only if ...",
+      "configSpec": {
+        "name": "Configuration Specification 1",
+        "description": "This is the Configuration Specification for Requirement #1"
+      },
+      "funcSpec": {
+        "name": "Functional Specification 1",
+        "description": "This is the Functional Specification for Requirement #1",
+        "acceptanceritera": "Func.Spec accepted only, if SysReq-1 works as described here."
+      },
+      "components": [
+        0
+      ],
+      "epic": 999,
+      "risks": [
+        999
+      ],
+      "tests": [
+        999
+      ],
+      "mitigations": [
+        999
+      ],
+      "techSpecs": [
+        999
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "name": "Risk 1",
+      "description": "This is Risk #1",
+      "version": "1.0",
+      "status": "IN DESIGN",
+      "gxpRelevance": "Not relevant/EQUAL",
+      "probabilityOfOccurrence": "LOW",
+      "severityOfImpact": "Low",
+      "probabilityOfDetection": "After Impact",
+      "requirements": [
+        999
+      ],
+      "tests": [
+        999
+      ]
+    }
+  ],
+  "tests": [
+    {
+      "name": "Test 1",
+      "description": "This is Test #1",
+      "version": "1.0",
+      "status": "TO DO",
+      "testType": "Installation",
+      "executionType": "Automated",
+      "components": [
+        999
+      ],
+      "requirements": [
+        999
+      ],
+      "risks": [
+        999
+      ]
+    },
+    {
+      "name": "Test 2",
+      "description": "This is Test #2",
+      "version": "1.0",
+      "status": "TO DO",
+      "testType": "Unit",
+      "executionType": "Automated",
+      "components": [
+        999
+      ],
+      "requirements": [
+        999
+      ],
+      "risks": [
+        999
+      ]
+    },
+    {
+      "name": "Test 3",
+      "description": "This is Test #3",
+      "version": "1.0",
+      "status": "TO DO",
+      "testLevel": "Acceptance",
+      "executionType": "Automated",
+      "components": [
+        999
+      ],
+      "requirements": [
+        999
+      ],
+      "risks": [
+        999
+      ]
+    }
+  ],
+  "mitigations": [
+    {
+      "name": "Mitigation 1",
+      "description": "This is Mitigation #1",
+      "components": [
+        999
+      ],
+      "requirements": [
+        999
+      ],
+      "risks": [
+        999
+      ]
+    }
+  ],
+  "techSpecs": [
+    {
+      "name": "Technical Specification 1",
+      "description": "This is Technical Specification #1",
+      "version": "1.0",
+      "status": "IN DESIGN",
+      "components": [
+        999
+      ],
+      "requirements": [
+        999
+      ],
+      "tests": [
+        999
+      ]
+    }
+  ]
+}

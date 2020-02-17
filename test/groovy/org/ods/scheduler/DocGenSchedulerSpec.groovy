@@ -5,6 +5,7 @@ import org.ods.service.NexusService
 import org.ods.usecase.DocGenUseCase
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
+import org.ods.util.Project
 
 import spock.lang.*
 
@@ -15,13 +16,13 @@ import util.*
 class DocGenSchedulerSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends DocGenUseCase {
-        DocGenUseCaseImpl(PipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
-            super(steps, util, docGen, nexus, pdf)
+        DocGenUseCaseImpl(Project project, PipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
+            super(project, steps, util, docGen, nexus, pdf)
         }
 
-        void createA(Map project) {}
-        void createB(Map project, Map repo) {}
-        void createC(Map project, Map repo, Map data) {}
+        void createA() {}
+        void createB(Map repo) {}
+        void createC(Map repo, Map data) {}
 
         List<String> getSupportedDocuments() {
             return ["A", "B", "C"]
@@ -29,80 +30,81 @@ class DocGenSchedulerSpec extends SpecHelper {
     }
 
     class DocGenSchedulerImpl extends DocGenScheduler {
-        DocGenSchedulerImpl(PipelineSteps steps, MROPipelineUtil util, DocGenUseCase docGen) {
-            super(steps, util, docGen)
+        DocGenSchedulerImpl(Project project, PipelineSteps steps, MROPipelineUtil util, DocGenUseCase docGen) {
+            super(project, steps, util, docGen)
         }
 
-        protected boolean isDocumentApplicable(String documentType, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map project, Map repo = null) {
+        protected boolean isDocumentApplicable(String documentType, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null) {
             return true
         }
     }
 
     def "run"() {
         given:
+        def project = createProject()
+
         def steps = Spy(PipelineSteps)
         def util = Mock(MROPipelineUtil)
-        def usecase = Spy(new DocGenUseCaseImpl(steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil)))
-        def scheduler = Spy(new DocGenSchedulerImpl(steps, util, usecase))
+        def usecase = Spy(new DocGenUseCaseImpl(project, steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil)))
+        def scheduler = Spy(new DocGenSchedulerImpl(project, steps, util, usecase))
 
         // Test Parameters
         def phase = "myPhase"
-        def project = createProject()
         def repo = project.repositories.first()
         def data = [ a: 1, b: 2, c: 3 ]
 
         when:
-        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
+        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
         1 * usecase.getSupportedDocuments()
 
         then:
-        1 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, null)
-        1 * usecase.createA(project)
+        1 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * usecase.createA()
 
         then:
-        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, null)
-        1 * usecase.createB(project, null)
+        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * usecase.createB(null)
 
         then:
-        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, null)
-        1 * usecase.createC(project, null,  null)
+        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * usecase.createC(null,  null)
 
         when:
-        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo)
+        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
 
         then:
         1 * usecase.getSupportedDocuments()
 
         then:
-        0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo)
-        0 * usecase.createA(project)
+        0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        0 * usecase.createA()
 
         then:
-        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo)
-        1 * usecase.createB(project, repo)
+        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        1 * usecase.createB(repo)
 
         then:
-        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo)
-        1 * usecase.createC(project, repo,  null)
+        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        1 * usecase.createC(repo,  null)
 
         when:
-        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo, data)
+        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo, data)
 
         then:
         1 * usecase.getSupportedDocuments()
 
         then:
-        0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo)
-        0 * usecase.createA(project)
+        0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        0 * usecase.createA()
 
         then:
-        0 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo)
-        0 * usecase.createB(project, repo)
+        0 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        0 * usecase.createB(repo)
 
         then:
-        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, repo)
-        1 * usecase.createC(project, repo,  data)
+        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        1 * usecase.createC(repo,  data)
     }
 }

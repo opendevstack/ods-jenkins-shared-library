@@ -24,6 +24,7 @@ import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
 import org.ods.util.PipelineSteps
 import org.ods.util.PipelineUtil
+import org.ods.util.Project
 
 def call() {
     Unirest.config()
@@ -32,14 +33,12 @@ def call() {
 
     def steps = new PipelineSteps(this)
     def git = new GitUtil(steps)
-    def util = new MROPipelineUtil(steps, git)
-
-    // Gather metadata
-    def project = util.loadProjectMetadata()
+    def project = new Project(steps, git)
     def repos = project.repositories
+    def util = new MROPipelineUtil(project, steps)
 
     // Configure current build
-    currentBuild.description = "Build #${BUILD_NUMBER} - Change: ${env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.id}, Target Environment: ${project.id}-${env.MULTI_REPO_ENV}"
+    currentBuild.description = "Build #${BUILD_NUMBER} - Change: ${env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.key}, Target Environment: ${project.key}-${env.MULTI_REPO_ENV}"
 
     // Register global services
     def registry = ServiceRegistry.instance
@@ -47,6 +46,7 @@ def call() {
     registry.add(PDFUtil, new PDFUtil())
     registry.add(PipelineSteps, steps)
     registry.add(MROPipelineUtil, util)
+    registry.add(Project, project)
 
     registry.add(DocGenService,
         new DocGenService(env.DOCGEN_URL)
@@ -72,7 +72,7 @@ def call() {
                 )
             )
 
-            if (project.capabilities.contains("Zephyr")) {
+            if (project.capabilities*.toLowerCase().contains("zephyr")) {
                 registry.add(JiraZephyrService,
                     new JiraZephyrService(
                         env.JIRA_URL,
@@ -105,21 +105,23 @@ def call() {
     }
 
     def jiraUseCase = new JiraUseCase(
+        registry.get(Project),
         registry.get(PipelineSteps),
         registry.get(MROPipelineUtil),
         registry.get(JiraService)
     )
 
     jiraUseCase.setSupport(
-        project.capabilities.contains("Zephyr")
-            ? new JiraUseCaseZephyrSupport(steps, jiraUseCase, registry.get(JiraZephyrService), registry.get(MROPipelineUtil))
-            : new JiraUseCaseSupport(steps, jiraUseCase)
+        project.capabilities*.toLowerCase().contains("zephyr")
+            ? new JiraUseCaseZephyrSupport(project, steps, jiraUseCase, registry.get(JiraZephyrService), registry.get(MROPipelineUtil))
+            : new JiraUseCaseSupport(project, steps, jiraUseCase)
     )
 
     registry.add(JiraUseCase, jiraUseCase)
 
     registry.add(JUnitTestReportsUseCase,
         new JUnitTestReportsUseCase(
+            registry.get(Project),
             registry.get(PipelineSteps),
             registry.get(MROPipelineUtil)
         )
@@ -127,6 +129,7 @@ def call() {
 
     registry.add(SonarQubeUseCase,
         new SonarQubeUseCase(
+            registry.get(Project),
             registry.get(PipelineSteps),
             registry.get(NexusService)
         )
@@ -134,6 +137,7 @@ def call() {
 
     registry.add(LeVADocumentUseCase,
         new LeVADocumentUseCase(
+            registry.get(Project),
             registry.get(PipelineSteps),
             registry.get(MROPipelineUtil),
             registry.get(DocGenService),
@@ -149,6 +153,7 @@ def call() {
 
     registry.add(LeVADocumentScheduler,
         new LeVADocumentScheduler(
+            registry.get(Project),
             registry.get(PipelineSteps),
             registry.get(MROPipelineUtil),
             registry.get(LeVADocumentUseCase)
@@ -164,7 +169,7 @@ def call() {
     }
 
     // Checkout repositories into the workspace
-    parallel(util.prepareCheckoutReposNamedJob(project, repos) { steps_, repo ->
+    parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
         echo "Repository: ${repo}"
         echo "Environment configuration: ${env.getEnvironment()}"
     })
@@ -175,7 +180,7 @@ def call() {
     // Compute groups of repository configs for convenient parallelization
     repos = util.computeRepoGroups(repos)
 
-    registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
+    registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
     return [ project: project, repos: repos ]
 }

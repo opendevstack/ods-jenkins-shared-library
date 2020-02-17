@@ -6,6 +6,7 @@ import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
 import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
+import org.ods.util.Project
 
 class JiraUseCase {
 
@@ -18,14 +19,22 @@ class JiraUseCase {
         static final String HEADING_NUMBER = "Heading Number"
     }
 
-    static final List JIRA_TEST_CASE_LABELS = [ "Error", "Failed", "Missing", "Skipped", "Succeeded" ]
+    enum TestIssueLabels {
+        Error,
+        Failed,
+        Missing,
+        Skipped,
+        Succeeded
+    }
 
+    private Project project
     private JiraService jira
     private IPipelineSteps steps
     private AbstractJiraUseCaseSupport support
     private MROPipelineUtil util
 
-    JiraUseCase(IPipelineSteps steps, MROPipelineUtil util, JiraService jira) {
+    JiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, JiraService jira) {
+        this.project = project
         this.steps = steps
         this.util = util
         this.jira = jira
@@ -35,48 +44,47 @@ class JiraUseCase {
         this.support = support
     }
 
-    void applyTestResultsAsTestIssueLabels(List jiraTestIssues, Map testResults) {
+    void applyXunitTestResultsAsTestIssueLabels(List testIssues, Map testResults) {
         if (!this.jira) return
 
-        // Handle Jira issues for which a corresponding test exists in testResults
+        // Handle Jira test issues for which a corresponding test exists in testResults
         def matchedHandler = { result ->
-            result.each { issue, testcase ->
-                this.jira.removeLabelsFromIssue(issue.id, this.JIRA_TEST_CASE_LABELS)
-
-                def labelsToApply = ["Succeeded"]
-                if (testcase.skipped || testcase.error || testcase.failure) {
-                    if (testcase.error) {
-                        labelsToApply = ["Error"]
+            result.each { testIssue, testCase ->
+                def issueLabels = [TestIssueLabels.Succeeded as String]
+                if (testCase.skipped || testCase.error || testCase.failure) {
+                    if (testCase.error) {
+                        issueLabels = [TestIssueLabels.Error as String]
                     }
 
-                    if (testcase.failure) {
-                        labelsToApply = ["Failed"]
+                    if (testCase.failure) {
+                        issueLabels = [TestIssueLabels.Failed as String]
                     }
 
-                    if (testcase.skipped) {
-                        labelsToApply = ["Skipped"]
+                    if (testCase.skipped) {
+                        issueLabels = [TestIssueLabels.Skipped as String]
                     }
                 }
 
-                this.jira.addLabelsToIssue(issue.id, labelsToApply)
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values()*.toString())
+                this.jira.addLabelsToIssue(testIssue.key, issueLabels)
             }
         }
 
-        // Handle Jira issues for which no corresponding test exists in testResults
+        // Handle Jira test issues for which no corresponding test exists in testResults
         def unmatchedHandler = { result ->
-            result.each { issue ->
-                this.jira.removeLabelsFromIssue(issue.id, this.JIRA_TEST_CASE_LABELS)
-                this.jira.addLabelsToIssue(issue.id, ["Missing"])
+            result.each { testIssue ->
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values()*.toString())
+                this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
             }
         }
 
-        this.matchJiraTestIssuesAgainstTestResults(jiraTestIssues, testResults, matchedHandler, unmatchedHandler)
+        this.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, unmatchedHandler)
     }
 
-    boolean checkJiraIssueMatchesTestCase(Map issue, String testcaseName) {
+    boolean checkTestsIssueMatchesTestCase(Map testIssue, Map testCase) {
         // FIXME: the contents of this method have been duplicated below to allow the execution of tests
-        def issueKeyClean = issue.key.replaceAll("-", "")
-        return testcaseName.startsWith("${issueKeyClean} ") || testcaseName.startsWith("${issueKeyClean}-") || testcaseName.startsWith("${issueKeyClean}_")
+        def testIssueKeyClean = testIssue.key.replaceAll("-", "")
+        return testCase.name.startsWith("${testIssueKeyClean} ") || testCase.name.startsWith("${testIssueKeyClean}-") || testCase.name.startsWith("${testIssueKeyClean}_")
     }
 
     private String convertHTMLImageSrcIntoBase64Data(String html) {
@@ -92,45 +100,27 @@ class JiraUseCase {
         return result
     }
 
-    void createBugsAndBlockImpactedTestCases(String projectId, List jiraTestIssues, Set failures, String comment) {
+    void createBugsForFailedTestIssues(List testIssues, Set testFailures, String comment) {
         if (!this.jira) return
 
-        failures.each { failure ->
-            def bug = this.jira.createIssueTypeBug(projectId, failure.type, failure.text)
+        testFailures.each { failure ->
+            def bug = this.jira.createIssueTypeBug(this.project.key, failure.type, failure.text)
 
-            walkJiraTestIssuesAndTestResults(jiraTestIssues, failure) { issue, testcase, isMatch ->
-                if (isMatch) this.jira.createIssueLinkTypeBlocks(bug, issue)
+            this.walkTestIssuesAndTestResults(testIssues, failure) { testIssue, testCase, isMatch ->
+                if (isMatch) this.jira.createIssueLinkTypeBlocks(bug, testIssue)
             }
 
             this.jira.appendCommentToIssue(bug.key, comment)
         }
     }
 
-    List getAutomatedTestIssues(String projectId, String componentName = null, List<String> labelsSelector = []) {
-        return this.support.getAutomatedTestIssues(projectId, componentName, labelsSelector)
-    }
-
-    List getAutomatedAcceptanceTestIssues(String projectId, String componentName = null) {
-        return this.support.getAutomatedAcceptanceTestIssues(projectId, componentName)
-    }
-
-    List getAutomatedInstallationTestIssues(String projectId, String componentName = null) {
-        return this.support.getAutomatedInstallationTestIssues(projectId, componentName)
-    }
-
-    List getAutomatedIntegrationTestIssues(String projectId, String componentName = null) {
-        return this.support.getAutomatedIntegrationTestIssues(projectId, componentName)
-    }
-
-    List getAutomatedUnitTestIssues(String projectId, String componentName = null) {
-        return this.support.getAutomatedUnitTestIssues(projectId, componentName)
-    }
-
-    Map getDocumentChapterData(String projectId, String documentType) {
+    Map getDocumentChapterData(String documentType) {
         if (!this.jira) return [:]
 
+        def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
+
         def jqlQuery = [
-            jql: "project = ${projectId} AND issuetype = '${IssueTypes.DOCUMENT_CHAPTER}' AND labels = LeVA_Doc:${documentType}",
+            jql: "project = ${this.project.key} AND issuetype = '${IssueTypes.DOCUMENT_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
             expand: ["names", "renderedFields"]
         ]
 
@@ -144,7 +134,7 @@ class JiraUseCase {
             def number = issue.fields[numberKey]?.trim()
             def content = issue.renderedFields[contentFieldKey]
             if (content.contains("<img")) {
-                content = convertHTMLImageSrcIntoBase64Data(content)
+                content = this.convertHTMLImageSrcIntoBase64Data(content)
             }
 
             return [
@@ -158,268 +148,65 @@ class JiraUseCase {
         }
     }
 
-    Map getIssuesForEpics(List<String> epicKeys, List<String> issueTypes = []) {
-        def result = [:]
-        if (!this.jira) result
-
-        def epicLinkField = this.jira.getFields().find { it.name == "Epic Link" }
-        if (!epicLinkField) {
-            throw new RuntimeException("Error: unable to get Jira field 'Epic Link'. Jira returned an empty reponse.")
-        }
-
-        def query = "'Epic Link' in (" +  epicKeys.join(", ") + ")"
-        if (issueTypes) {
-            query += " AND issuetype in (" + issueTypes.collect { "'${it}'" }.join(", ") + ")"
-        }
-
-        def jqlQuery = [
-            jql: query,
-            expand: ["renderedFields"],
-            fields: [epicLinkField.id, "description", "summary"]
-        ]
-
-        def issues = this.jira.getIssuesForJQLQuery(jqlQuery)
-        issues.each { issue ->
-            // Derive the epicKey through the Epic Link field's id
-            def epicKey = issue.fields[epicLinkField.id]
-
-            if (!result[epicKey]) {
-                result[epicKey] = []
-            }
-
-            result[epicKey] << toSimpleIssue(issue)
-        }
-
-        return result
+    private String getDocumentChapterIssueLabelForDocumentType(String documentType) {
+        return "LeVA_Doc:${documentType}"
     }
 
-    Map getIssuesForProject(String projectKey, String componentName = null, List<String> issueTypesSelector = [], List<String> labelsSelector = [], boolean throwOnMissingLinks = false, Closure issueLinkFilter = null) {
-        def result = [:]
-        if (!this.jira) return result
-
-        // Fetch the component's issues and filter by issuetype
-        def query = "project = ${projectKey}"
-
-        if (componentName) {
-            query += " AND component = '${componentName}'"
-        }
-
-        if (issueTypesSelector) {
-            query += " AND issuetype in (" + issueTypesSelector.collect{"'${it}'"}.join(", ") +  ")"
-        }
-
-        labelsSelector.each {
-            query += " AND labels = '${it}'"
-        }
-
-        def linkedIssuesKeys = [] as Set
-        def issueTypeEpicKeys = []
-        def issuesWithoutLinks = [] as Set
-
-        def issues = this.jira.getIssuesForJQLQuery([
-            jql: query,
-            expand: ["renderedFields"],
-            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
-        ])
-
-        issues.each { issue ->
-            // Construct simple issue link representations and filter issue links if applicable
-            issue.fields.issuelinks = issue.fields.issuelinks.collect { toSimpleIssueLink(it) }
-            if (issueLinkFilter) {
-                issue.fields.issuelinks.retainAll { issueLinkFilter(it) }
-            }
-
-            if (!issue.fields.issuelinks.isEmpty()) {
-                // Track keys of linked issues for later retrieval
-                linkedIssuesKeys.addAll(
-                    issue.fields.issuelinks.collect { issuelink ->
-                        // Resolve the linked issue
-                        return issuelink.issue.key
-                    }
-                )
-            } else {
-                // Track issues that have no issue links
-                issuesWithoutLinks << issue.key
-            }
-
-            // Track issues of type Epic
-            if (issue.fields.issuetype.name == "Epic") {
-                issueTypeEpicKeys << issue.key
-            }
-        }
-
-        // Escalate the existence of issues without links to other issues if applicable
-        if (!issuesWithoutLinks.isEmpty() && throwOnMissingLinks) {
-            throw new RuntimeException("Error: links are missing for issues: ${issuesWithoutLinks.join(', ')}.")
-        }
-
-        // Fetch the Epics' issues if applicable
-        def issuesInEpics = [:]
-        if (!issueTypeEpicKeys.isEmpty()) {
-            issuesInEpics = this.getIssuesForEpics(issueTypeEpicKeys, ["Story"])
-        }
-
-        // Fetch the linked issues if applicable
-        def linkedIssues = [:]
-        if (!linkedIssuesKeys.isEmpty()) {
-            linkedIssues = this.jira.getIssuesForJQLQuery([
-                jql: "key in (" + linkedIssuesKeys.join(", ") + ")",
-                expand: ["renderedFields"],
-                fields: ["description"]
-            ]).collectEntries { [ (it.key.toString()): it ] }
-        }
-
-        issues.each { issue ->
-            // Construct a simple issue representation
-            def simpleIssue = toSimpleIssue(issue)
-
-            simpleIssue.issuelinks = issue.fields.issuelinks.collect { issuelink ->
-                if (linkedIssues[issuelink.issue.key]) {
-                    // Mix-in any issues linked to the current issue
-                    issuelink.issue += toSimpleIssue(linkedIssues[issuelink.issue.key])
-                }
-
-                return issuelink
-            }
-
-            if (issue.fields.issuetype.name == "Epic") {
-                // Mix-in any issues contained in the Epic
-                simpleIssue.issues = issuesInEpics[issue.key] ?: []
-            }
-
-            if (issue.fields.components.isEmpty()) {
-                issue.fields.components << [ name: "undefined" ]
-            }
-
-            issue.fields.components.each { component ->
-                if (!result[component.name]) {
-                    result[component.name] = []
-                }
-
-                if (issueLinkFilter) {
-                    // Return issue iff filtering yielded a non-empty result
-                    if (!simpleIssue.issuelinks.isEmpty()) {
-                        result[component.name] << simpleIssue
-                    }
-                } else {
-                    result[component.name] << simpleIssue
-                }
-            }
-        }
-
-        return result
-    }
-
-    void matchJiraTestIssuesAgainstTestResults(List jiraTestIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
+    void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
         def result = [
             matched: [:],
-            mismatched: []
+            unmatched: []
         ]
 
-        walkJiraTestIssuesAndTestResults(jiraTestIssues, testResults) { issue, testcase, isMatch ->
+        this.walkTestIssuesAndTestResults(testIssues, testResults) { testIssue, testCase, isMatch ->
             if (isMatch) {
                 result.matched << [
-                    (issue): testcase
+                    (testIssue): testCase
                 ]
             }
         }
 
-        jiraTestIssues.each { issue ->
-            if (!result.matched.keySet().contains(issue)) {
-                result.mismatched << issue
+        testIssues.each { testIssue ->
+            if (!result.matched.keySet().contains(testIssue)) {
+                result.unmatched << testIssue
             }
         }
 
         matchedHandler(result.matched)
-        unmatchedHandler(result.mismatched)
+        unmatchedHandler(result.unmatched)
     }
 
-    void reportTestResultsForComponent(String projectId, String componentName, List<String> testTypes, Map testResults) {
+    void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
-        // Get automated test case definitions from Jira
-        def jiraTestIssues = this.getAutomatedTestIssues(projectId, componentName, testTypes)
+        def testIssues = this.project.getAutomatedTests(componentName, testTypes)
 
-        // Apply test results to the test case definitions in Jira
-        this.support.applyTestResultsToTestIssues(jiraTestIssues, testResults)
+        this.support.applyXunitTestResults(testIssues, testResults)
 
-        if (["Q", "P"].contains(this.util.getBuildParams().targetEnvironmentToken)) {
-            // Create Jira bugs for erroneous test cases
+        if (["Q", "P"].contains(this.project.buildParams.targetEnvironmentToken)) {
+            // Create bugs for erroneous test issues
             def errors = JUnitParser.Helper.getErrors(testResults)
-            this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, errors, this.steps.env.RUN_DISPLAY_URL)
+            this.createBugsForFailedTestIssues(testIssues, errors, this.steps.env.RUN_DISPLAY_URL)
 
-            // Create Jira bugs for failed test cases
+            // Create bugs for failed test issues
             def failures = JUnitParser.Helper.getFailures(testResults)
-            this.createBugsAndBlockImpactedTestCases(projectId, jiraTestIssues, failures, this.steps.env.RUN_DISPLAY_URL)
+            this.createBugsForFailedTestIssues(testIssues, failures, this.steps.env.RUN_DISPLAY_URL)
         }
     }
 
-    private void walkJiraTestIssuesAndTestResults(List jiraTestIssues, Map testResults, Closure visitor) {
-        testResults.testsuites.each { testsuite ->
-            testsuite.testcases.each { testcase ->
-                def issue = jiraTestIssues.find { issue ->
-                    // FIXME: invoking checkJiraIssueMatchesTestCase results in failing tests (supposed to be a bug in a test dependency)
-                    // this.checkJiraIssueMatchesTestCase(issue, testcase.name)
-                    def issueKeyClean = issue.key.replaceAll("-", "")
-                    return testcase.name.startsWith("${issueKeyClean} ") || testcase.name.startsWith("${issueKeyClean}-") || testcase.name.startsWith("${issueKeyClean}_")
+    private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
+        testResults.testsuites.each { testSuite ->
+            testSuite.testcases.each { testCase ->
+                def testIssue = testIssues.find { testIssue ->
+                    // FIXME: invoking checkTestsIssueMatchesTestCase results in failing tests (presumably be a bug in a test dependency)
+                    // this.checkTestsIssueMatchesTestCase(testIssue, testCase)
+                    def testIssueKeyClean = testIssue.key.replaceAll("-", "")
+                    return testCase.name.startsWith("${testIssueKeyClean} ") || testCase.name.startsWith("${testIssueKeyClean}-") || testCase.name.startsWith("${testIssueKeyClean}_")
                 }
 
-                def isMatch = issue != null
-                visitor(issue, testcase, isMatch)
+                def isMatch = testIssue != null
+                visitor(testIssue, testCase, isMatch)
             }
         }
-    }
-
-    static Map toSimpleIssue(Map issue, Map mixins = [:]) {
-        def result = [
-            id: issue.id,
-            key: issue.key,
-            summary: issue.fields.summary
-        ]
-
-        if (issue.fields.components) {
-            result.components = issue.fields.components.collect { it.name }
-        }
-
-        if (issue.fields.issuetype) {
-            result.issuetype = [
-                name: issue.fields.issuetype.name
-            ]
-        }
-
-        if (issue.fields.status) {
-            result.status = [
-                name: issue.fields.status.name
-            ]
-        }
-
-        result.description = (issue.renderedFields?.description) ? issue.renderedFields.description : issue.fields.description
-        if (result.description) {
-            result.description = result.description.replaceAll("\u00a0", " ")
-        }
-              
-        return result << mixins
-    }
-
-    static Map toSimpleIssueLink(Map issuelink, Map mixins = [:]) {
-        def result = [
-            id: issuelink.id,
-            type: [
-                name: issuelink.type.name
-            ]
-        ]
-
-        if (issuelink.inwardIssue) {
-            result.issue = toSimpleIssue(issuelink.inwardIssue)
-            result.type.relation = issuelink.type.inward
-
-        }
-
-        if (issuelink.outwardIssue) {
-            result.issue = toSimpleIssue(issuelink.outwardIssue)
-            result.type.relation = issuelink.type.outward
-        }
-
-        return result << mixins
     }
 }

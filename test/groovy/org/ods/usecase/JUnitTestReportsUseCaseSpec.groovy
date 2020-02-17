@@ -3,8 +3,9 @@ package org.ods.usecase
 import java.nio.file.Files
 
 import org.ods.parser.JUnitParser
-import org.ods.util.GitUtil
+import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
+import org.ods.util.Project
 
 import spock.lang.*
 
@@ -14,24 +15,34 @@ import util.*
 
 class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
+    Project project
+    IPipelineSteps steps
+    JUnitTestReportsUseCase usecase
+    MROPipelineUtil util
+
+    def setup() {
+        project = createProject()
+        steps = Spy(PipelineSteps)
+        util = Mock(MROPipelineUtil)
+        usecase = new JUnitTestReportsUseCase(project, steps, util)
+    }
+
     def "warn if test results contain failure"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = new MROPipelineUtil(steps, Mock(GitUtil))
-        def usecase = new JUnitTestReportsUseCase(steps, util)
+        util = new MROPipelineUtil(project, steps)
+        usecase = new JUnitTestReportsUseCase(project, steps, util)
 
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
         def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
-        def project = createProject()
         def testResults = usecase.parseTestReportFiles([xmlFile])
 
         when:
-        usecase.warnBuildIfTestResultsContainFailure(project, testResults)
+        usecase.warnBuildIfTestResultsContainFailure(testResults)
 
         then:
-        project.data.build.hasFailingTests == true
+        project.hasFailingTests() == true
 
         then:
         steps.currentBuild.result == "UNSTABLE"
@@ -40,15 +51,11 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
         noExceptionThrown()
 
         cleanup:
-        xmlFiles.deleteDir()
+        xmlFiles.toFile().deleteDir()
     }
 
     def "load test reports from path"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def usecase = new JUnitTestReportsUseCase(steps, util)
-
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
         def xmlFile1 = Files.createTempFile(xmlFiles, "junit", ".xml") << "JUnit XML Report 1"
         def xmlFile2 = Files.createTempFile(xmlFiles, "junit", ".xml") << "JUnit XML Report 2"
@@ -66,10 +73,6 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def "load test reports from path with empty path"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def usecase = new JUnitTestReportsUseCase(steps, util)
-
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
 
         when:
@@ -84,10 +87,6 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def "parse test report files"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def usecase = new JUnitTestReportsUseCase(steps, util)
-
         def xmlFiles = Files.createTempDirectory("junit-test-reports-")
         def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
@@ -108,10 +107,6 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def "report test reports from path to Jenkins"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def usecase = new JUnitTestReportsUseCase(steps, util)
-
         def path = "myPath"
 
         when:

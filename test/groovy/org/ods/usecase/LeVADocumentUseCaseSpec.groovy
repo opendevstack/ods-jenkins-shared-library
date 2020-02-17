@@ -15,6 +15,7 @@ import org.ods.usecase.JiraUseCase
 import org.ods.usecase.SonarQubeUseCase
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
+import org.ods.util.Project
 
 import spock.lang.*
 
@@ -24,20 +25,36 @@ import util.*
 
 class LeVADocumentUseCaseSpec extends SpecHelper {
 
+    Project project
+    PipelineSteps steps
+    MROPipelineUtil util
+    DocGenService docGen
+    JenkinsService jenkins
+    JiraUseCase jiraUseCase
+    LeVADocumentChaptersFileService levaFiles
+    NexusService nexus
+    OpenShiftService os
+    PDFUtil pdf
+    SonarQubeUseCase sq
+    LeVADocumentUseCase usecase
+
+    def setup() {
+        project = Spy(createProject())
+        steps = Spy(PipelineSteps)
+        util = Mock(MROPipelineUtil)
+        docGen = Mock(DocGenService)
+        jenkins = Mock(JenkinsService)
+        jiraUseCase = Mock(JiraUseCase)
+        levaFiles = Mock(LeVADocumentChaptersFileService)
+        nexus = Mock(NexusService)
+        os = Mock(OpenShiftService)
+        pdf = Mock(PDFUtil)
+        sq = Mock(SonarQubeUseCase)
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+    }
+
     def "compute test discrepancies"() {
         given:
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(Spy(PipelineSteps), util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
         def name = "myTests"
 
         when:
@@ -100,207 +117,141 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create CS"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CS as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createCS(project)
+        usecase.createCS()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Configurable Items", ["Configuration Specification Task"], [], false, _) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Interfaces",         ["Configuration Specification Task"], [], false, _) >> [:]
-        0 * jiraUseCase.getIssuesForProject(project.id, *_)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * project.getSystemRequirementsTypeInterfaces()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create DSD"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
-        // Test Parameters
-        def project = createProject()
+        // Limit the project to a single repository that is name-mapped to the project's first component
+        def component = project.components.first()
+        def repository = project.repositories.first()
+        repository.id = component.name
+        project.repositories = [repository]
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DSD as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createDSD(project)
+        usecase.createDSD()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jiraUseCase.getIssuesForProject(project.id, null, ["System Design Specification Task"], [], false, _) >> [:]
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.computeComponentMetadata(documentType)
+        1 * project.getTechnicalSpecifications()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create DTP"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createDTP(project)
+        usecase.createDTP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedUnitTestIssues(project.id) >> testIssues
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * project.getAutomatedTestsTypeUnit()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create DTP without Jira"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
         project.services.jira = null
+
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createDTP(project)
+        usecase.createDTP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType)
+        1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
+        0 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedUnitTestIssues(project.id) >> testIssues
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * project.getAutomatedTestsTypeUnit()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create DTR"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
-        def project = createProject()
         def repo = project.repositories.first()
+        def testIssues = project.getAutomatedTestsTypeUnit()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 unit: [
@@ -315,24 +266,22 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
 
         when:
-        usecase.createDTR(project, repo, data)
+        usecase.createDTR(repo, data)
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedUnitTestIssues(project.id, "Technology-${repo.id}") >> testIssues
-        1 * jiraUseCase.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
-        //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
-        1 * usecase.createDocument(documentType, project, repo, _, files, _, null, _)
-        _ * util.getBuildParams() >> buildParams
+        1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
+        1 * jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults, _, _)
+        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
+        1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
 
         cleanup:
         xmlFile.delete()
@@ -340,27 +289,16 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create DTR without Jira"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        project.services.jira = null
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
-        def project = createProject()
-        project.services.jira = null
         def repo = project.repositories.first()
+        def testIssues = project.getAutomatedTestsTypeUnit()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 unit: [
@@ -375,93 +313,70 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
+        def buildParams = createProjectBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
 
         when:
-        usecase.createDTR(project, repo, data)
+        usecase.createDTR(repo, data)
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType)
+        1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
+        0 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedUnitTestIssues(project.id, "Technology-${repo.id}") >> testIssues
-        1 * jiraUseCase.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
-        //1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
-        1 * usecase.createDocument(documentType, project, repo, _, files, _, null, _)
-        _ * util.getBuildParams() >> buildParams
+        1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
+        1 * jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults, _, _)
+        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
+        1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
     }
 
     def "create FTP"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.FTP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createFTP(project)
+        usecase.createFTP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedAcceptanceTestIssues(project.id) >> testIssues
-        1 * jiraUseCase.getAutomatedIntegrationTestIssues(project.id) >> testIssues
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * project.getAutomatedTestsTypeAcceptance()
+        1 * project.getAutomatedTestsTypeIntegration()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.getWatermarkText(documentType)
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
 def "create FTR"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
-        def project = createProject()
         def repo = project.repositories.first()
+        def acceptanceTestIssues = project.getAutomatedTestsTypeAcceptance()
+        def integrationTestIssues = project.getAutomatedTestsTypeIntegration()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 acceptance: [
@@ -478,31 +393,30 @@ def "create FTR"() {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.FTR as String
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createFTR(project, null, data)
+        usecase.createFTR(null, data)
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedAcceptanceTestIssues(project.id) >> testIssues
-        1 * jiraUseCase.getAutomatedIntegrationTestIssues(project.id) >> testIssues
-        2 * jiraUseCase.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, files, null, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * project.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
+        1 * project.getAutomatedTestsTypeIntegration() >> integrationTestIssues
+        1 * jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, testResults, _, _)
+        1 * jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, testResults, _, _)
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.getWatermarkText(documentType)
+        1 * usecase.createDocument(documentType, null, _, files, null, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
 
         cleanup:
         xmlFile.delete()
@@ -510,121 +424,76 @@ def "create FTR"() {
 
     def "create FS"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.FS as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-
-        // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
-        def chapterData = ["sec1": "myContent"]
-        def uri = "http://nexus"
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
         def documentIssue = createJiraDocumentIssues().first()
 
+        // Stubbed Method Responses
+        def chapterData = ["sec1": "myContent"]
+        def uri = "http://nexus"
+
         when:
-        usecase.createFS(project)
+        usecase.createFS()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Constraints",             ["Functional Specification Task"], [], false, _) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Data",                    ["Functional Specification Task"], [], false, _) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Function",                ["Functional Specification Task"], [], false, _) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Interfaces",              ["Functional Specification Task"], [], false, _) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Operational Environment", ["Functional Specification Task"], [], false, _) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Roles",                   ["Functional Specification Task"], [], false, _) >> [:]
-        0 * jiraUseCase.getIssuesForProject(project.id, *_)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.getWatermarkText(documentType)
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create IVP"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createIVP(project)
+        usecase.createIVP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedInstallationTestIssues(project.id) >> testIssues
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * project.getAutomatedTestsTypeInstallation()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.getWatermarkText(documentType)
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create IVR"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
-        def project = createProject()
         def repo = project.repositories.first()
+        def testIssues = project.getAutomatedTestsTypeInstallation()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 installation: [
@@ -637,30 +506,28 @@ def "create FTR"() {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVR as String
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
-        def testIssues = createJiraTestIssues()
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createIVR(project, null, data)
+        usecase.createIVR(null, data)
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * jiraUseCase.getAutomatedInstallationTestIssues(project.id) >> testIssues
-        1 * jiraUseCase.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, _, _)
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, files, null, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * project.getAutomatedTestsTypeInstallation() >> testIssues
+        1 * jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults, _, _)
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, files, null, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
 
         cleanup:
         xmlFile.delete()
@@ -668,608 +535,399 @@ def "create FTR"() {
 
     def "create SCP"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SCP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createSCP(project)
+        usecase.createSCP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create SCP without Jira"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
         project.services.jira = null
+
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SCP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createSCP(project)
+        usecase.createSCP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType)
+        1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
+        0 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create SCR"() {
         given:
-        def buildParams = createBuildEnvironment(env)
-
-        def steps = Spy(PipelineSteps)
         steps.env.BUILD_ID = "0815"
 
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
         // Test Parameters
-        def project = createProject()
         def repo = project.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SCR as String
         def sqReportsPath = "sonarqube/${repo.id}"
         def sqReportsStashName = "scrr-report-${repo.id}-${steps.env.BUILD_ID}"
-        def files = [ "${usecase.getDocumentBasename("SCRR", buildParams.version, steps.env.BUILD_ID, project, repo)}.docx": getResource("Test.docx").bytes ]
+        def files = [ "${usecase.getDocumentBasename("SCRR", project.buildParams.version, steps.env.BUILD_ID, repo)}.docx": getResource("Test.docx").bytes ]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def sqReportFiles = [ getResource("Test.docx") ]
 
         when:
-        usecase.createSCR(project, repo)
+        usecase.createSCR(repo)
 
         then:
         1 * jenkins.unstashFilesIntoPath(sqReportsStashName, "${steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report") >> true
         1 * sq.loadReportsFromPath("${steps.env.WORKSPACE}/${sqReportsPath}") >> sqReportFiles
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
-        1 * usecase.createDocument(documentType, project, repo, _, files, _, null, _)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
+        1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
     }
 
     def "create SCR without Jira"() {
         given:
-        def buildParams = createBuildEnvironment(env)
-
-        def steps = Spy(PipelineSteps)
         steps.env.BUILD_ID = "0815"
-
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        project.services.jira = null
 
         // Test Parameters
-        def project = createProject()
-        project.services.jira = null
         def repo = project.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SCR as String
         def sqReportsPath = "sonarqube/${repo.id}"
         def sqReportsStashName = "scrr-report-${repo.id}-${steps.env.BUILD_ID}"
-        def files = [ "${usecase.getDocumentBasename("SCRR", buildParams.version, steps.env.BUILD_ID, project, repo)}.docx": getResource("Test.docx").bytes ]
+        def files = [ "${usecase.getDocumentBasename("SCRR", project.buildParams.version, steps.env.BUILD_ID, repo)}.docx": getResource("Test.docx").bytes ]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def sqReportFiles = [ getResource("Test.docx") ]
 
         when:
-        usecase.createSCR(project, repo)
+        usecase.createSCR(repo)
 
         then:
         1 * jenkins.unstashFilesIntoPath(sqReportsStashName, "${steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report") >> true
         1 * sq.loadReportsFromPath("${steps.env.WORKSPACE}/${sqReportsPath}") >> sqReportFiles
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType)
+        1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
+        0 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
-        1 * usecase.createDocument(documentType, project, repo, _, files, _, null, _)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
+        1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
     }
 
     def "create SDS"() {
         given:
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(Spy(PipelineSteps), util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
         // Test Parameters
-        def project = createProject()
         def repo = project.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SDS as String
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
 
         when:
-        usecase.createSDS(project, repo)
+        usecase.createSDS(repo)
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
-        1 * usecase.createDocument(documentType, project, repo, _, [:], _, null, _)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
+        1 * usecase.getWatermarkText(documentType)
+        1 * usecase.createDocument(documentType, repo, _, [:], _, null, _)
     }
 
     def "create TIP"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createTIP(project)
+        usecase.createTIP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create TIP without Jira"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
         project.services.jira = null
+
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createTIP(project)
+        usecase.createTIP()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType)
+        1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
+        0 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create TIR"() {
         given:
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(Spy(PipelineSteps), util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
         // Test Parameters
-        def project = createProject()
         def repo = project.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIR as String
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
 
         when:
-        usecase.createTIR(project, repo)
+        usecase.createTIR(repo)
 
         then:
         1 * os.getPodDataForComponent(repo.id) >> createOpenShiftPodDataForComponent()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
-        1 * usecase.createDocument(documentType, project, repo, _, [:], _, null, _)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
+        1 * usecase.createDocument(documentType, repo, _, [:], _, null, _)
     }
 
     def "create TIR without Jira"() {
         given:
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(Spy(PipelineSteps), util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        project.services.jira = null
 
         // Test Parameters
-        def project = createProject()
-        project.services.jira = null
         def repo = project.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIR as String
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
 
         when:
-        usecase.createTIR(project, repo)
+        usecase.createTIR(repo)
 
         then:
         1 * os.getPodDataForComponent(repo.id) >> createOpenShiftPodDataForComponent()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
+        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project, repo)
-        1 * usecase.createDocument(documentType, project, repo, _, [:], _, null, _)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
+        1 * usecase.createDocument(documentType, repo, _, [:], _, null, _)
     }
 
     def "create URS"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.URS as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createURS(project)
+        usecase.createURS()
 
         then:
-        1 * jiraUseCase.getDocumentChapterData(project.id, documentType) >> chapterData
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Availability",            ["Epic"]) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Compatibility",           ["Epic"]) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Interfaces",              ["Epic"]) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Operational",             ["Epic"]) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Operational Environment", ["Epic"]) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Performance",             ["Epic"]) >> [:]
-        1 * jiraUseCase.getIssuesForProject(project.id, "${documentType}:Procedural Constraints",  ["Epic"]) >> [:]
-        0 * jiraUseCase.getIssuesForProject(project.id, *_)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], project)
-        1 * usecase.createDocument(documentType, project, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.getWatermarkText(documentType)
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create overall DTR"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTR as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_DTR as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createOverallDTR(project)
+        usecase.createOverallDTR()
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName], project)
-        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, project, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
+        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create overall SCR"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SCR as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_SCR as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createOverallSCR(project)
+        usecase.createOverallSCR()
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName], project)
-        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, project, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
+        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create overall SDS"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SDS as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_SDS as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createOverallSDS(project)
+        usecase.createOverallSDS()
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName], project)
-        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, project, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
+        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "create overall TIR"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def project = createProject()
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIR as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
-        def buildParams = createBuildEnvironment(env)
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createOverallTIR(project)
+        usecase.createOverallTIR()
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName], project)
-        1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, project, _, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(project.id, documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
+        1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        _ * util.getBuildParams() >> buildParams
     }
 
     def "get supported documents"() {
-        given:
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(Spy(PipelineSteps), util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
         when:
         def result = usecase.getSupportedDocuments()
 
@@ -1301,60 +959,38 @@ def "create FTR"() {
 
     def "notify LeVA document issue in DEV"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
-        def project = createProject()
         def documentType = "myType"
         def message = "myMessage"
 
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.notifyJiraTrackingIssue(project.id, documentType, message)
+        usecase.notifyJiraTrackingIssue(documentType, message)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
         1 * jiraUseCase.jira.appendCommentToIssue(documentIssue.key, message)
     }
 
     def "notify LeVA document issue with query returning != 1 issue"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
-        def project = createProject()
         def documentType = "myType"
         def message = "myMessage"
 
-        def jqlQuery = [ jql: "project = ${project.id} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
         def documentIssues = createJiraDocumentIssues()
 
         when:
-        usecase.notifyJiraTrackingIssue(project.id, documentType, message)
+        usecase.notifyJiraTrackingIssue(documentType, message)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
 
         then:
@@ -1362,10 +998,9 @@ def "create FTR"() {
         e.message == "Error: Jira query returned 0 issues: '${jqlQuery}'."
 
         when:
-        usecase.notifyJiraTrackingIssue(project.id, documentType, message)
+        usecase.notifyJiraTrackingIssue(documentType, message)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> documentIssues
 
         then:
@@ -1375,156 +1010,129 @@ def "create FTR"() {
 
     def "docs with watermark text in DEV"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Spy(new JiraUseCase(steps, util, Mock(JiraService)))
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
-        def usecase = Spy(new LeVADocumentUseCase(steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        project.buildParams.targetEnvironment = "dev"
+
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         when:
         def result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CS as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DSD as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTP as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == null
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.FS as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.FTP as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == null
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.FTR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.IVP as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == null
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.IVR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SCP as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SCR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SDS as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TIP as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == null
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TIR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.URS as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_DTR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_SCR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_SDS as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)
 
         then:
-        1 * util.getBuildParams() >> [targetEnvironment: "dev", targetEnvironmentToken: "D"]
         result == "Developer Preview"
     }
 }

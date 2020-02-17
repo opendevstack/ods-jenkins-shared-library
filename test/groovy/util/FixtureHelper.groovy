@@ -1,12 +1,73 @@
 package util
 
+import groovy.json.JsonSlurper
+import groovy.transform.InheritConstructors
+
+import org.apache.http.client.utils.URIBuilder
+import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
+import org.ods.util.GitUtil
+import org.ods.util.IPipelineSteps
+import org.ods.util.Project
+
+import util.*
+
+@InheritConstructors
+class FakeGitUtil extends GitUtil {
+    String getCommit() {
+        return "my-commit"
+    }
+
+    String getURL() {
+        return "https://github.com/my-org/my-repo-A.git"
+    }
+}
+
+@InheritConstructors
+class FakeProject extends Project {
+    static List getBuildEnvironment(IPipelineSteps steps, boolean debug) {
+        def env = new EnvironmentVariables()
+        return FixtureHelper.createProjectBuildEnvironment(env)
+    }
+
+    protected URI getGitURLFromPath(String path, String remote) {
+        def url = "https://github.com/my-org/my-repo-A.git"
+        return new URIBuilder(url).build()
+    }
+
+    private File getResource(String path) {
+        path = path.startsWith('/') ? path : '/' + path
+        new File(getClass().getResource(path).toURI())
+    }
+
+    protected Map loadBuildParams() {
+        return FixtureHelper.createProjectBuildParams()
+    }
+
+    protected Map loadJiraData(String projectKey) {
+        def file = this.getResource("project-jira-data.json")
+        return new JsonSlurper().parse(file)
+    }
+
+    protected Map loadMetadata(String filename) {
+        return FixtureHelper.createProjectMetadata()
+    }
+
+    void setRepositories(List repos) {
+        this.data.metadata.repositories = repos
+    }
+}
 
 class FixtureHelper {
+    static Project createProject() {
+        def steps = new PipelineSteps()
+        def git = new FakeGitUtil(steps)
+        return new FakeProject(steps, git)
+    }
 
-    static Map createBuildEnvironment(def env) {
-        def params = createBuildParams()
+    static Map createProjectBuildEnvironment(def env) {
+        def params = createProjectBuildParams()
         params.each { key, value ->
             env.set(key, value)
         }
@@ -14,7 +75,7 @@ class FixtureHelper {
         return params
     }
 
-    static Map createBuildParams() {
+    static Map createProjectBuildParams() {
         return [
             changeDescription: "The change I've wanted.",
             changeId: "0815",
@@ -27,12 +88,86 @@ class FixtureHelper {
         ]
     }
 
-    static Map createJiraField(String id, String name = null) {
+    static Map createProjectMetadata() {
         def result = [
-            id: id
+            id: "PHOENIX",
+            key: "PHOENIX-123",
+            name: "Project Phoenix",
+            description: "A super sophisticated project.",
+            data: [
+                build: [:],
+                documents: [:]
+            ]
         ]
 
-        result.name = name ?: "${id}-name"
+        result.services = [
+            bitbucket: [
+                credentials: [
+                    id: "myBitBucketCredentials"
+                ]
+            ],
+            jira: [
+                credentials: [
+                    id: "myJiraCredentials"
+                ]
+            ],
+            nexus: [
+                repository: [
+                    name: "myNexusRepository"
+                ]
+            ]
+        ]
+
+        result.repositories = [
+            [
+                id: "A",
+                url: "https://github.com/my-org/my-repo-A.git",
+                branch: "master",
+                data: [
+                    documents: [:]
+                ],
+                metadata: [
+                    id: "A",
+                    name: "Component A",
+                    description: "This is component A.",
+                    references: "",
+                    supplier: "N/A",
+                    version: "1.0"
+                ]
+            ],
+            [
+                id: "B",
+                name: "my-repo-B",
+                branch: "master",
+                data: [
+                    documents: [:]
+                ],
+                metadata: [
+                    id: "B",
+                    name: "Component B",
+                    description: "This is component B.",
+                    references: "",
+                    supplier: "N/A",
+                    version: "1.0"
+                ]
+            ],
+            [
+                id: "C",
+                data: [
+                    documents: [:]
+                ],
+                metadata: [
+                    id: "C",
+                    name: "Component C",
+                    description: "This is component C.",
+                    references: "",
+                    supplier: "N/A",
+                    version: "1.0"
+                ]
+            ]
+        ]
+
+        result.capabilities = []
 
         return result
     }
@@ -203,66 +338,6 @@ class FixtureHelper {
             </testsuite>
         </testsuites>
         """
-    }
-
-    static Map createProject() {
-        def result = [
-            id: "PHOENIX",
-            key: "PHOENIX-123",
-            name: "Project Phoenix",
-            description: "A super sophisticated project.",
-            data: [
-                build: [:],
-                documents: [:]
-            ]
-        ]
-
-        result.services = [
-            bitbucket: [
-                credentials: [
-                    id: "myBitBucketCredentials"
-                ]
-            ],
-            jira: [
-                credentials: [
-                    id: "myJiraCredentials"
-                ]
-            ],
-            nexus: [
-                repository: [
-                    name: "myNexusRepository"
-                ]
-            ]
-        ]
-
-        result.repositories = [
-            [
-                id: "A",
-                url: "https://github.com/my-org/my-repo-A.git",
-                branch: "master",
-                data: [
-                    documents: [:]
-                ]
-            ],
-            [
-                id: "B",
-                name: "my-repo-B",
-                branch: "master",
-                data: [
-                    documents: [:]
-                ]
-            ],
-            [
-                id: "C",
-                data: [
-                    documents: [:]
-                ]
-            ]
-        ]
-
-        result.capabilities = []
-
-        return result
     }
 
     static Map createOpenShiftPodDataForComponent() {

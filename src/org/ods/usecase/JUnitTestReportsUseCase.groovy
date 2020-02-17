@@ -5,20 +5,23 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.parser.JUnitParser
 import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
+import org.ods.util.Project
 
 class JUnitTestReportsUseCase {
 
+    private Project project
     private IPipelineSteps steps
     private MROPipelineUtil util
 
-    JUnitTestReportsUseCase(IPipelineSteps steps, MROPipelineUtil util) {
+    JUnitTestReportsUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util) {
+        this.project = project
         this.steps = steps
         this.util = util
     }
 
-    void warnBuildIfTestResultsContainFailure(Map project, Map testResults) {
+    void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
-            project.data.build.hasFailingTests = true
+            this.project.setHasFailingTests(true)
             this.util.warnBuild("Warning: found failing tests in test reports.")
         }
     }

@@ -5,8 +5,9 @@ import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PipelineUtil
+import org.ods.util.Project
 
-def call(Map project, List<Set<Map>> repos) {
+def call(Project project, List<Set<Map>> repos) {
     def jira             = ServiceRegistry.instance.get(JiraUseCase)
     def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
     def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -32,7 +33,7 @@ def call(Map project, List<Set<Map>> repos) {
     ]
 
     def preExecuteRepo = { steps, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, project, repo)
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
     }
 
     def postExecuteRepo = { steps, repo ->
@@ -48,17 +49,17 @@ def call(Map project, List<Set<Map>> repos) {
             project.repositories.each { repo_ ->
                 if (repo_.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                     echo "Reporting installation test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["InstallationTest"], data.tests.installation.testResults)
+                    jira.reportTestResultsForComponent("Technology-${repo_.id}", ["InstallationTest"], data.tests.installation.testResults)
 
                     echo "Reporting integration test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["IntegrationTest"], data.tests.integration.testResults)
+                    jira.reportTestResultsForComponent("Technology-${repo_.id}", ["IntegrationTest"], data.tests.integration.testResults)
 
                     echo "Reporting acceptance test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent(project.id, "Technology-${repo_.id}", ["AcceptanceTest"], data.tests.acceptance.testResults)
+                    jira.reportTestResultsForComponent("Technology-${repo_.id}", ["AcceptanceTest"], data.tests.acceptance.testResults)
                 }
             }
 
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, repo)
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
             globalData.tests.acceptance.testReportFiles.addAll(data.tests.acceptance.testReportFiles)
             globalData.tests.installation.testReportFiles.addAll(data.tests.installation.testReportFiles)
@@ -66,7 +67,7 @@ def call(Map project, List<Set<Map>> repos) {
         }
     }
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
+    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
     // Execute phase for each repository
     util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
@@ -79,12 +80,12 @@ def call(Map project, List<Set<Map>> repos) {
     globalData.tests.installation.testResults = junit.parseTestReportFiles(globalData.tests.installation.testReportFiles)
     globalData.tests.integration.testResults = junit.parseTestReportFiles(globalData.tests.integration.testReportFiles)
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project, [:], globalData)
+    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
 
     // Warn the build in case of failing tests
-    junit.warnBuildIfTestResultsContainFailure(project, globalData.tests.installation.testResults)
-    junit.warnBuildIfTestResultsContainFailure(project, globalData.tests.integration.testResults)
-    junit.warnBuildIfTestResultsContainFailure(project, globalData.tests.acceptance.testResults)
+    junit.warnBuildIfTestResultsContainFailure(globalData.tests.installation.testResults)
+    junit.warnBuildIfTestResultsContainFailure(globalData.tests.integration.testResults)
+    junit.warnBuildIfTestResultsContainFailure(globalData.tests.acceptance.testResults)
 }
 
 private List getAcceptanceTestResults(def steps, Map repo) {

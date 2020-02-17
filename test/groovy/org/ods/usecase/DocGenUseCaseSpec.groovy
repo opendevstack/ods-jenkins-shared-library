@@ -6,8 +6,10 @@ import java.nio.file.Files
 
 import org.ods.service.DocGenService
 import org.ods.service.NexusService
+import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
+import org.ods.util.Project
 
 import spock.lang.*
 
@@ -18,38 +20,41 @@ import util.*
 class DocGenUseCaseSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends DocGenUseCase {
-        DocGenUseCaseImpl(PipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
-            super(steps, util, docGen, nexus, pdf)
+        DocGenUseCaseImpl(Project project, PipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
+            super(project, steps, util, docGen, nexus, pdf)
         }
 
         List<String> getSupportedDocuments() {}
     }
 
-    def "create document"() {
-        given:
-        def buildParams = createBuildParams()
+    DocGenService docGen
+    NexusService nexus
+    PDFUtil pdf
+    Project project
+    IPipelineSteps steps
+    DocGenUseCase usecase
+    MROPipelineUtil util
 
-        def steps = Spy(PipelineSteps)
+    def setup() {
+        steps = Spy(PipelineSteps)
         steps.env.BUILD_ID = "0815"
 
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
+        project = createProject()
+        util = Mock(MROPipelineUtil)
+        docGen = Mock(DocGenService)
+        nexus = Mock(NexusService)
+        pdf = Mock(PDFUtil)
+        usecase = Spy(new DocGenUseCaseImpl(project, steps, util, docGen, nexus, pdf))
+    }
 
+    def "create document"() {
+        given:
         // Test Parameters
         def logFile1 = Files.createTempFile("raw", ".log").toFile() << "Log File 1"
         def logFile2 = Files.createTempFile("raw", ".log").toFile() << "Log File 2"
 
         def documentType = "myDocumentType"
-        def version = buildParams.version
-        def project = createProject()
+        def version = project.buildParams.version
         def repo = project.repositories.first()
         def data = [ a: 1, b: 2, c: 3 ]
         def files = [
@@ -58,7 +63,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         ]
 
         // Argument Constraints
-        def basename = "${documentType}-${project.id}-${repo.id}-${version}-${steps.env.BUILD_ID}"
+        def basename = "${documentType}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
         def document = "PDF".bytes
@@ -66,16 +71,13 @@ class DocGenUseCaseSpec extends SpecHelper {
         def nexusUri = new URI("http://nexus")
 
         when:
-        def result = usecase.createDocument(documentType, project, repo, data, files)
-
-        then:
-        1 * util.getBuildParams() >> buildParams
+        def result = usecase.createDocument(documentType, repo, data, files)
 
         then:
         1 * docGen.createDocument(documentType, "0.1", data) >> document
 
         then:
-        1 * usecase.getDocumentBasename(documentType, buildParams.version, steps.env.BUILD_ID, project, repo)
+        1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID,repo)
 
         then:
         1 * util.createZipArtifact(
@@ -91,7 +93,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         then:
         1 * nexus.storeArtifact(
             project.services.nexus.repository.name,
-            "${project.id.toLowerCase()}-${version}",
+            "${project.key.toLowerCase()}-${version}",
             "${basename}.zip",
             archive,
             "application/zip"
@@ -106,47 +108,28 @@ class DocGenUseCaseSpec extends SpecHelper {
     }
 
     def "create document without repo"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        steps.env.BUILD_ID = "0815"
-
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def documentType = "myDocumentType"
-        def version = buildParams.version
-        def project = createProject()
+        def version = project.buildParams.version
         def repo = null
         def data = [ a: 1, b: 2, c: 3 ]
 
         // Argument Constraints
-        def basename = "${documentType}-${project.id}-${version}-${steps.env.BUILD_ID}"
+        def basename = "${documentType}-${project.key}-${version}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
         def document = "PDF".bytes
         def nexusUri = new URI("http://nexus")
 
         when:
-        def result = usecase.createDocument(documentType, project, repo, data)
-
-        then:
-        1 * util.getBuildParams() >> buildParams
+        def result = usecase.createDocument(documentType, repo, data)
 
         then:
         1 * docGen.createDocument(*_) >> document
 
         then:
-        1 * usecase.getDocumentBasename(documentType, buildParams.version, steps.env.BUILD_ID, project, repo)
+        1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID, repo)
 
         then:
         1 * util.createZipArtifact(
@@ -162,26 +145,10 @@ class DocGenUseCaseSpec extends SpecHelper {
     }
 
     def "create document with modifier"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        steps.env.BUILD_ID = "0815"
-
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def documentType = "myDocumentType"
-        def version = buildParams.version
-        def project = createProject()
+        def version = project.buildParams.version
         def repo = project.repositories.first()
         def data = [ a: 1, b: 2, c: 3 ]
         def modifier = { document ->
@@ -189,23 +156,20 @@ class DocGenUseCaseSpec extends SpecHelper {
         }
 
         // Argument Constraints
-        def basename = "${documentType}-${project.id}-${repo.id}-${version}-${steps.env.BUILD_ID}"
+        def basename = "${documentType}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
         def document = "PDF".bytes
         def nexusUri = new URI("http://nexus")
 
         when:
-        def result = usecase.createDocument(documentType, project, repo, data, [:], modifier)
-
-        then:
-        1 * util.getBuildParams() >> buildParams
+        def result = usecase.createDocument(documentType, repo, data, [:], modifier)
 
         then:
         1 * docGen.createDocument(*_) >> document
 
         then:
-        1 * usecase.getDocumentBasename(documentType, buildParams.version, steps.env.BUILD_ID, project, repo)
+        1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID, repo)
 
         then:
         1 * util.createZipArtifact(
@@ -221,49 +185,29 @@ class DocGenUseCaseSpec extends SpecHelper {
     }
 
     def "create document with watermark"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        steps.env.BUILD_ID = "0815"
-
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def pdf = Spy(new PDFUtil())
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            pdf
-        ))
-
-        def pdfUtil = new PDFUtil()
-
+        given:
         // Test Parameters
         def documentType = "myDocumentType"
-        def version = buildParams.version
-        def project = createProject()
+        def version = project.buildParams.version
         def repo = project.repositories.first()
         def data = [ a: 1, b: 2, c: 3 ]
         def watermarkText = "Watermark"
 
         // Argument Constraints
-        def basename = "${documentType}-${project.id}-${repo.id}-${version}-${steps.env.BUILD_ID}"
+        def basename = "${documentType}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
         def document = getResource("Test-1.pdf").bytes
         def nexusUri = new URI("http://nexus")
-        def documentWithWatermark = pdfUtil.addWatermarkText(document, watermarkText)
+        def documentWithWatermark = pdf.addWatermarkText(document, watermarkText)
 
         when:
-        usecase.createDocument(documentType, project, repo, data, [:], null, null, watermarkText)
+        usecase.createDocument(documentType, repo, data, [:], null, null, watermarkText)
 
         then:
         1 * docGen.createDocument(*_) >> document
         1 * pdf.addWatermarkText(document, watermarkText)
-        1 * util.getBuildParams() >> buildParams
-        1 * usecase.getDocumentBasename(documentType, buildParams.version, steps.env.BUILD_ID, project, repo)
+        1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID, repo)
         1 * util.createZipArtifact(
             "${basename}.zip",
             [
@@ -275,48 +219,29 @@ class DocGenUseCaseSpec extends SpecHelper {
     }
 
     def "create document with documentTypeEmbedded"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        steps.env.BUILD_ID = "0815"
-
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def documentType = "myDocumentType"
-        def version = buildParams.version
-        def project = createProject()
+        def version = project.buildParams.version
         def repo = project.repositories.first()
         def data = [ a: 1, b: 2, c: 3 ]
         def documentTypeEmbedded = "myEmbeddedDocumentType"
 
         // Argument Constraints
-        def basename = "${documentTypeEmbedded}-${project.id}-${repo.id}-${version}-${steps.env.BUILD_ID}"
+        def basename = "${documentTypeEmbedded}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
         def document = "PDF".bytes
         def nexusUri = new URI("http://nexus")
 
         when:
-        def result = usecase.createDocument(documentType, project, repo, data, [:], null, documentTypeEmbedded)
-
-        then:
-        1 * util.getBuildParams() >> buildParams
+        def result = usecase.createDocument(documentType, repo, data, [:], null, documentTypeEmbedded)
 
         then:
         1 * docGen.createDocument(*_) >> document
 
         then:
-        1 * usecase.getDocumentBasename(documentTypeEmbedded, buildParams.version, steps.env.BUILD_ID, project, repo)
+        1 * usecase.getDocumentBasename(documentTypeEmbedded, version, steps.env.BUILD_ID, repo)
 
         then:
         1 * util.createZipArtifact(
@@ -332,156 +257,79 @@ class DocGenUseCaseSpec extends SpecHelper {
     }
 
     def "create overall document"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def coverType = "myCoverType"
         def documentType = "myDocumentType"
         def metadata = [:]
-        def project = createProject()
 
         when:
-        usecase.createOverallDocument(coverType, documentType, metadata, project)
+        usecase.createOverallDocument(coverType, documentType, metadata)
 
         then:
-        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType, null)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.createDocument(coverType, null, _, [:], _, documentType, null)
     }
 
     def "create overall document with watermark"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def coverType = "myCoverType"
         def documentType = "myDocumentType"
         def metadata = [:]
-        def project = createProject()
         def watermarkText = "Watermark"
 
         when:
-        usecase.createOverallDocument(coverType, documentType, metadata, project, null, watermarkText)
+        usecase.createOverallDocument(coverType, documentType, metadata, null, watermarkText)
 
         then:
-        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType, watermarkText)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.createDocument(coverType, null, _, [:], _, documentType, watermarkText)
     }
 
     def "create overall document removes previously stored repository-level documents"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def coverType = "myCoverType"
         def documentType = "myDocumentType"
-        def metadata = [:]
-        def project = createProject()
         project.repositories.first().data.documents[documentType] = "myDocument".bytes
+        def metadata = [:]
 
         when:
-        usecase.createOverallDocument(coverType, documentType, metadata, project)
+        usecase.createOverallDocument(coverType, documentType, metadata)
 
         then:
-        1 * usecase.createDocument(coverType, project, null, _, [:], _, documentType, null)
-        _ * util.getBuildParams() >> buildParams
+        1 * usecase.createDocument(coverType, null, _, [:], _, documentType, null)
 
         then:
         project.repositories.first().data.documents[documentType] == null
     }
 
     def "get document basename"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        steps.env.BUILD_ID = "0815"
-
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def documentType = "myDocumentType"
-        def version = buildParams.version
+        def version = project.buildParams.version
         def build = "0815"
-        def project = createProject()
         def repo = null
 
         when:
-        def result = usecase.getDocumentBasename(documentType, version, build, project, repo)
+        def result = usecase.getDocumentBasename(documentType, version, build, repo)
 
         then:
-        result == "${documentType}-${project.id}-${version}-${build}"
+        result == "${documentType}-${project.key}-${version}-${build}"
     }
 
     def "get document basename with repo"() {
-        def buildParams = createBuildParams()
-
-        def steps = Spy(PipelineSteps)
-        steps.env.BUILD_ID = "0815"
-
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
-        def nexus = Mock(NexusService)
-        def usecase = Spy(new DocGenUseCaseImpl(
-            steps,
-            util,
-            docGen,
-            nexus,
-            Mock(PDFUtil)
-        ))
-
+        given:
         // Test Parameters
         def documentType = "myDocumentType"
-        def version = buildParams.version
+        def version = project.buildParams.version
         def build = "0815"
-        def project = createProject()
         def repo = project.repositories.first()
 
         when:
-        def result = usecase.getDocumentBasename(documentType, version, build, project, repo)
+        def result = usecase.getDocumentBasename(documentType, version, build, repo)
 
         then:
-        result == "${documentType}-${project.id}-${repo.id}-${version}-${build}"
+        result == "${documentType}-${project.key}-${repo.id}-${version}-${build}"
     }
 }

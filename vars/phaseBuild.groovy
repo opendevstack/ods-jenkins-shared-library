@@ -5,8 +5,9 @@ import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PipelineUtil
+import org.ods.util.Project
 
-def call(Map project, List<Set<Map>> repos) {
+def call(Project project, List<Set<Map>> repos) {
     def jira             = ServiceRegistry.instance.get(JiraUseCase)
     def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
     def util             = ServiceRegistry.instance.get(MROPipelineUtil)
@@ -24,7 +25,7 @@ def call(Map project, List<Set<Map>> repos) {
     ]
 
     def preExecuteRepo = { steps, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, project, repo)
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
     }
 
     def postExecuteRepo = { steps, repo ->
@@ -37,16 +38,16 @@ def call(Map project, List<Set<Map>> repos) {
                 ]
             ]
 
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, repo, data)
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, data)
 
             echo "Reporting unit test results to corresponding test cases in Jira for ${repo.id}"
-            jira.reportTestResultsForComponent(project.id, "Technology-${repo.id}", ["UnitTest"], data.tests.unit.testResults)
+            jira.reportTestResultsForComponent("Technology-${repo.id}", ["UnitTest"], data.tests.unit.testResults)
 
             globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)
         }
     }
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
+    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
     // Execute phase for each repository
     util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
@@ -57,10 +58,10 @@ def call(Map project, List<Set<Map>> repos) {
     // Parse all test report files into a single data structure
     globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
+    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
     // Warn the build in case of failing tests
-    junit.warnBuildIfTestResultsContainFailure(project, globalData.tests.unit.testResults)
+    junit.warnBuildIfTestResultsContainFailure(globalData.tests.unit.testResults)
 }
 
 private List getUnitTestResults(def steps, Map repo) {

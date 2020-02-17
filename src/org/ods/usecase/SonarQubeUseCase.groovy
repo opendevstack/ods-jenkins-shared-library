@@ -2,13 +2,16 @@ package org.ods.usecase
 
 import org.ods.service.NexusService
 import org.ods.util.IPipelineSteps
+import org.ods.util.Project
 
 class SonarQubeUseCase {
 
+    private Project project
     private NexusService nexus
     private IPipelineSteps steps
 
-    SonarQubeUseCase(IPipelineSteps steps, nexus) {
+    SonarQubeUseCase(Project project, IPipelineSteps steps, nexus) {
+        this.project = project
         this.steps = steps
         this.nexus = nexus
     }
@@ -25,10 +28,10 @@ class SonarQubeUseCase {
         return result
     }
 
-    String uploadReportToNexus(String version, Map project, Map repo, String type, File artifact) {
+    String uploadReportToNexus(String version, Map repo, String type, File artifact) {
         return this.nexus.storeArtifactFromFile(
-            project.services.nexus.repository.name,
-            "${project.id.toLowerCase()}-${version}",
+            this.project.services.nexus.repository.name,
+            "${this.project.key.toLowerCase()}-${version}",
             "${type}-${repo.id}-${version}.docx",
             artifact,
             "application/docx"

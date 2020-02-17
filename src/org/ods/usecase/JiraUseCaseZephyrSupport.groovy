@@ -5,6 +5,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.service.JiraZephyrService
 import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
+import org.ods.util.Project
 import org.ods.util.SortUtil
 
 class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
@@ -12,51 +13,51 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
     private JiraZephyrService zephyr
     private MROPipelineUtil util
 
-    JiraUseCaseZephyrSupport(IPipelineSteps steps, JiraUseCase usecase, JiraZephyrService zephyr, MROPipelineUtil util) {
-        super(steps, usecase)
+    JiraUseCaseZephyrSupport(Project project, IPipelineSteps steps, JiraUseCase usecase, JiraZephyrService zephyr, MROPipelineUtil util) {
+        super(project, steps, usecase)
         this.zephyr = zephyr
         this.util = util
     }
 
-    void applyTestResultsAsTestExecutionStatii(List jiraTestIssues, Map testResults) {
+    void applyXunitTestResultsAsTestExecutionStatii(List testIssues, Map testResults) {
         if (!this.usecase.jira) return
         if (!this.zephyr) return
 
-        def buildParams = this.util.getBuildParams()
-
         def testCycleId = "-1"
-        if (!jiraTestIssues?.isEmpty()) {
-            def projectId = jiraTestIssues.first()?.projectId ?: ""
-            def versionId = this.getVersionId(projectId)
-            def cycles = this.zephyr.getProjectCycles(projectId, versionId)
+        if (!testIssues?.isEmpty()) {
+            def buildParams = this.project.buildParams
 
+            def versionId = this.getProjectVersion(this.project.key)?.id ?: "-1"
+            def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
+
+            // Zephyr test cycle properties
             def name = buildParams.targetEnvironmentToken + ": Build " + this.steps.env.BUILD_ID
             def build = this.steps.env.BUILD_URL
             def environment = buildParams.targetEnvironment
 
-            testCycleId = cycles.find { it.value instanceof Map && it.value.name == name && it.value.build == build && it.value.environment == environment }?.key
+            testCycleId = testCycles.find { it.value instanceof Map && it.value.name == name && it.value.build == build && it.value.environment == environment }?.key
             if (!testCycleId) {
-                testCycleId = this.zephyr.createTestCycle(projectId, versionId, name, build, environment).id
+                testCycleId = this.zephyr.createTestCycle(this.project.id, versionId, name, build, environment).id
             }
         }
 
-        jiraTestIssues.each { issue ->
+        testIssues.each { testIssue ->
             // Create a new execution with status UNEXECUTED
-            def execution = this.zephyr.createTestExecutionForIssue(issue.id, issue.projectId, testCycleId).keySet().first()
+            def testExecutionId = this.zephyr.createTestExecutionForIssue(testIssue.id, this.project.id, testCycleId).keySet().first()
 
-            testResults.testsuites.each { testsuite ->
-                testsuite.testcases.each { testcase ->
-                    if (this.usecase.checkJiraIssueMatchesTestCase(issue, testcase.name)) {
-                        def failed = testcase.error || testcase.failure
-                        def skipped = testcase.skipped
-                        def succeeded = !(testcase.error || testcase.failure || testcase.skipped)
+            testResults.testsuites.each { testSuite ->
+                testSuite.testcases.each { testCase ->
+                    if (this.usecase.checkTestsIssueMatchesTestCase(testIssue, testCase)) {
+                        def failed = testCase.error || testCase.failure
+                        def skipped = testCase.skipped
+                        def succeeded = !(testCase.error || testCase.failure || testCase.skipped)
 
                         if (succeeded) {
-                            this.zephyr.updateExecutionForIssuePass(execution)
+                            this.zephyr.updateTestExecutionForIssuePass(testExecutionId)
                         } else if (failed) {
-                            this.zephyr.updateExecutionForIssueFail(execution)
+                            this.zephyr.updateTestExecutionForIssueFail(testExecutionId)
                         } else if (skipped) {
-                            this.zephyr.updateExecutionForIssueBlocked(execution)
+                            this.zephyr.updateTestExecutionForIssueBlocked(testExecutionId)
                         }
                     }
                 }
@@ -64,57 +65,16 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         }
     }
 
-    void applyTestResultsToTestIssues(List jiraTestIssues, Map testResults) {
-        this.usecase.applyTestResultsAsTestIssueLabels(jiraTestIssues, testResults)
-        this.applyTestResultsAsTestExecutionStatii(jiraTestIssues, testResults)
+    void applyXunitTestResults(List testIssues, Map testResults) {
+        this.usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
+        this.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
     }
 
-    List getAutomatedTestIssues(String projectId, String componentName = null, List<String> labelsSelector = []) {
-        if (!this.usecase.jira) return []
-        if (!this.zephyr) return []
+    private Map getProjectVersion(String projectKey) {
+        List versions = this.zephyr.getProjectVersions(projectKey)
 
-        def project = this.zephyr.getProject(projectId)
-
-        def query = "project = ${projectId} AND issuetype = Test AND status = 'Ready to Test'"
-
-        if (componentName) {
-            query += " AND component = '${componentName}'"
+        return versions.find { version ->
+            this.project.buildParams?.version == version.name
         }
-
-        labelsSelector << "AutomatedTest"
-        labelsSelector.each {
-            query += " AND labels = '${it}'"
-        }
-
-        def issues = this.usecase.jira.getIssuesForJQLQuery([
-            jql: query,
-            expand: ["renderedFields"],
-            fields: ["description", "summary"]
-        ]).collect { JiraUseCase.toSimpleIssue(it) }
-
-        return issues.each { issue ->
-            issue.test = [
-                description: issue.description,
-                details: []
-            ]
-
-            def testDetails = this.zephyr.getTestDetailsForIssue(issue.id).collect { testDetails ->
-                return testDetails.subMap(["step", "data", "result"])
-            }
-
-            issue.test.details = SortUtil.sortIssuesByProperties(testDetails, ["orderId"])
-
-            // The project ID (not key) is mandatory to generate new executions
-            issue.projectId = project.id
-        }
-    }
-
-    String getVersionId(String projectId) {
-        String jenkinsVersion = this.util.getBuildParams()?.version
-        
-        List versions = this.zephyr.getProjectVersions(projectId)
-        def versionId = versions.find { version -> jenkinsVersion.equalsIgnoreCase(version.name) }
-
-        return versionId?.id ?: "-1" // UNSCHEDULED
     }
 }
