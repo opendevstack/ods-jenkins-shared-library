@@ -1,6 +1,6 @@
 package org.ods.util
 
-import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 
 import java.nio.file.Paths
 
@@ -1206,7 +1206,7 @@ class Project {
     }
 
     protected Map loadJiraData(String projectKey) {
-        return new JsonSlurper().parseText(TEMP_FAKE_JIRA_DATA)
+        return new JsonSlurperClassic().parseText(TEMP_FAKE_JIRA_DATA)
     }
 
     protected Map loadMetadata(String filename = METADATA_FILE_NAME) {
