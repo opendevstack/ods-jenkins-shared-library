@@ -72,7 +72,7 @@ def call() {
                 )
             )
 
-            if (project.capabilities.collect{ it.toLowerCase() }.contains("zephyr")) {
+            if (hasCapability(project.capabilities, "Zephyr")) {
                 registry.add(JiraZephyrService,
                     new JiraZephyrService(
                         env.JIRA_URL,
@@ -112,7 +112,7 @@ def call() {
     )
 
     jiraUseCase.setSupport(
-        project.capabilities.collect{ it.toLowerCase() }.contains("zephyr")
+        hasCapability(project.capabilities, "Zephyr")
             ? new JiraUseCaseZephyrSupport(project, steps, jiraUseCase, registry.get(JiraZephyrService), registry.get(MROPipelineUtil))
             : new JiraUseCaseSupport(project, steps, jiraUseCase)
     )
@@ -183,6 +183,14 @@ def call() {
     registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
     return [ project: project, repos: repos ]
+}
+
+private boolean hasCapability(List capabilities, String name) {
+    def collector = {
+        return (it instanceof Map) ? it.keySet().first().toLowerCase() : it.toLowerCase()
+    }
+
+    return capabilities.collect(collector).contains(name.toLowerCase())
 }
 
 return this
