@@ -36,8 +36,8 @@ class Project {
     },
     "components": [
         {
-        "name": "Technology-Comp-1",
-        "description": "Technology component demo-technology-comp-1 stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/demo-technology-comp-1/browse",
+        "name": "Technology-demo-app-front-end",
+        "description": "Technology component demo-app-front-end stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-front-end/browse",
         "key": "DEMO-2",
         "epics": [
             "DEMO-5",
@@ -84,8 +84,8 @@ class Project {
         ]
         },
         {
-        "name": "Technology-Comp-2",
-        "description": "Technology component demo-technology-comp-2 stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/demo-technology-comp-2/browse",
+        "name": "Technology-demo-app-carts",
+        "description": "Technology component demo-app-carts stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-carts/browse",
         "key": "DEMO-3",
         "epics": [
             "DEMO-5",
@@ -132,8 +132,8 @@ class Project {
         ]
         },
         {
-        "name": "Technology-Comp-3",
-        "description": "Technology component demo-technology-comp-3 stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/demo-technology-comp-3/browse",
+        "name": "Technology-demo-app-catalogue",
+        "description": "Technology component demo-app-catalogue stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-catalogue/browse",
         "key": "DEMO-4",
         "epics": [
             "DEMO-5",
