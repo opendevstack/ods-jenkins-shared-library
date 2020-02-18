@@ -33,7 +33,9 @@ class Project {
     Project(IPipelineSteps steps, GitUtil git) {
         this.steps = steps
         this.git = git
+    }
 
+    Project load() {
         this.data.build = [:]
         this.data.build.hasFailingTests = false
 
@@ -41,6 +43,8 @@ class Project {
         this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
         this.data.jira = this.loadJiraData(this.data.metadata.id)
+
+        return this
     }
 
     List<Map> getAutomatedTests(String componentName = null, List<String> testTypes = []) {

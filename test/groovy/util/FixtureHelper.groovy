@@ -63,7 +63,7 @@ class FixtureHelper {
     static Project createProject() {
         def steps = new PipelineSteps()
         def git = new FakeGitUtil(steps)
-        return new FakeProject(steps, git)
+        return new FakeProject(steps, git).load()
     }
 
     static Map createProjectBuildEnvironment(def env) {

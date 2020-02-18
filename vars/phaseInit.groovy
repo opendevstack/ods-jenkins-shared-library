@@ -33,7 +33,7 @@ def call() {
 
     def steps = new PipelineSteps(this)
     def git = new GitUtil(steps)
-    def project = new Project(steps, git)
+    def project = new Project(steps, git).load()
     def repos = project.repositories
     def util = new MROPipelineUtil(project, steps)
 

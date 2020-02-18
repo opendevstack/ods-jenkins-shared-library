@@ -19,7 +19,7 @@ class ProjectSpec extends SpecHelper {
         steps = Spy(util.PipelineSteps)
         git = Mock(GitUtil)
         metadataFile = createProjectMetadataFile(this.steps.env.WORKSPACE, steps)
-        project = new Project(this.steps, this.git)
+        project = new Project(this.steps, this.git).load()
     }
 
     def cleanup() {
