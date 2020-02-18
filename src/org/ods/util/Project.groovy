@@ -48,11 +48,11 @@ class Project {
             def result = testIssue.status.toLowerCase() == "ready to test"
 
             if (result && componentName) {
-                result = testIssue.components*.toLowerCase().contains(componentName.toLowerCase()) 
+                result = testIssue.components.collect{ it.toLowerCase() }.contains(componentName.toLowerCase()) 
             }
 
             if (result && testTypes) {
-                result = testTypes*.toLowerCase().contains(testIssue.testType.toLowerCase()) 
+                result = testTypes.collect{ it.toLowerCase() }.contains(testIssue.testType.toLowerCase()) 
             }
 
             return result
@@ -168,11 +168,11 @@ class Project {
             def result = true
 
             if (result && componentName) {
-                result = req.components*.toLowerCase().contains(componentName.toLowerCase())
+                result = req.components.collect{ it.toLowerCase() }.contains(componentName.toLowerCase())
             }
 
             if (result && gampTopics) {
-                result = gampTopics*.toLowerCase().contains(req.gampTopic.toLowerCase())
+                result = gampTopics.collect{ it.toLowerCase() }.contains(req.gampTopic.toLowerCase())
             }
 
             return result
@@ -200,7 +200,7 @@ class Project {
             def result = true
 
             if (result && componentName) {
-                result = techSpec.components*.toLowerCase().contains(componentName.toLowerCase())
+                result = techSpec.components.collect{ it.toLowerCase() }.contains(componentName.toLowerCase())
             }
 
             return result

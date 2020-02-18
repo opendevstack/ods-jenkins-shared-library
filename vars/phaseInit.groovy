@@ -72,7 +72,7 @@ def call() {
                 )
             )
 
-            if (project.capabilities*.toLowerCase().contains("zephyr")) {
+            if (project.capabilities.collect{ it.toLowerCase() }.contains("zephyr")) {
                 registry.add(JiraZephyrService,
                     new JiraZephyrService(
                         env.JIRA_URL,
@@ -112,7 +112,7 @@ def call() {
     )
 
     jiraUseCase.setSupport(
-        project.capabilities*.toLowerCase().contains("zephyr")
+        project.capabilities.collect{ it.toLowerCase() }.contains("zephyr")
             ? new JiraUseCaseZephyrSupport(project, steps, jiraUseCase, registry.get(JiraZephyrService), registry.get(MROPipelineUtil))
             : new JiraUseCaseSupport(project, steps, jiraUseCase)
     )

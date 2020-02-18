@@ -65,7 +65,7 @@ class JiraUseCase {
                     }
                 }
 
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values()*.toString())
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect{ it.toString() })
                 this.jira.addLabelsToIssue(testIssue.key, issueLabels)
             }
         }
@@ -73,7 +73,7 @@ class JiraUseCase {
         // Handle Jira test issues for which no corresponding test exists in testResults
         def unmatchedHandler = { result ->
             result.each { testIssue ->
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values()*.toString())
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect{ it.toString() })
                 this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
             }
         }
