@@ -53,28 +53,11 @@ class Project {
             "DEMO-26"
         ],
         "tests": [
-            "DEMO-63",
-            "DEMO-52",
-            "DEMO-30",
-            "DEMO-72",
-            "DEMO-71",
-            "DEMO-70",
-            "DEMO-38",
-            "DEMO-37",
-            "DEMO-59",
-            "DEMO-69",
-            "DEMO-58",
-            "DEMO-36",
-            "DEMO-68",
-            "DEMO-57",
-            "DEMO-35",
-            "DEMO-67",
-            "DEMO-56",
-            "DEMO-34",
-            "DEMO-33",
-            "DEMO-64",
-            "DEMO-53",
-            "DEMO-29"
+            "PLTFMDEV-549",
+            "PLTFMDEV-550",
+            "PLTFMDEV-551",
+            "PLTFMDEV-552",
+            "PLTFMDEV-553"
         ],
         "mitigations": [
             "DEMO-8",
@@ -101,28 +84,7 @@ class Project {
             "DEMO-26"
         ],
         "tests": [
-            "DEMO-52",
-            "DEMO-30",
-            "DEMO-72",
-            "DEMO-71",
-            "DEMO-38",
-            "DEMO-37",
-            "DEMO-59",
-            "DEMO-58",
-            "DEMO-25",
-            "DEMO-36",
-            "DEMO-57",
-            "DEMO-24",
-            "DEMO-35",
-            "DEMO-56",
-            "DEMO-23",
-            "DEMO-34",
-            "DEMO-22",
-            "DEMO-33",
-            "DEMO-53",
-            "DEMO-19",
-            "DEMO-18",
-            "DEMO-29"
+            "PLTFMDEV-1045"
         ],
         "mitigations": [
             "DEMO-8",
@@ -147,24 +109,7 @@ class Project {
             "DEMO-60",
             "DEMO-15"
         ],
-        "tests": [
-            "DEMO-63",
-            "DEMO-72",
-            "DEMO-71",
-            "DEMO-70",
-            "DEMO-38",
-            "DEMO-37",
-            "DEMO-69",
-            "DEMO-25",
-            "DEMO-68",
-            "DEMO-24",
-            "DEMO-67",
-            "DEMO-23",
-            "DEMO-22",
-            "DEMO-64",
-            "DEMO-19",
-            "DEMO-18"
-        ],
+        "tests": [],
         "mitigations": [
             "DEMO-8",
             "DEMO-46",
@@ -495,639 +440,90 @@ class Project {
     ],
     "tests": [
         {
-        "name": "RiskTest-1 for DEMO-7",
-        "description": "RiskTest-1 for DEMO-7 is described here...",
-        "key": "DEMO-9",
+        "name": "User interacts with the cart",
+        "description": "User interacts with the cart",
+        "key": "PLTFMDEV-549",
         "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
+        "status": "READY TO TEST",
+        "testType": "Acceptance",
         "executionType": "Automated",
         "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
+            "DEMO-2"
         ],
         "requirements": [
             "DEMO-6"
         ]
         },
         {
-        "name": "RiskTest-2 for DEMO-7",
-        "description": "RiskTest-2 for DEMO-7 is described here...",
-        "key": "DEMO-10",
+        "name": "User shows catalogue",
+        "description": "User shows catalogue",
+        "key": "PLTFMDEV-550",
         "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
+        "status": "READY TO TEST",
+        "testType": "Acceptance",
         "executionType": "Automated",
         "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
+            "DEMO-2"
         ],
         "requirements": [
             "DEMO-6"
         ]
         },
         {
-        "name": "RiskTest-1 for DEMO-11",
-        "description": "RiskTest-1 for DEMO-11 is described here...",
-        "key": "DEMO-13",
+        "name": "User buys some socks",
+        "description": "User buys some socks",
+        "key": "PLTFMDEV-551",
         "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-11",
-        "description": "RiskTest-2 for DEMO-11 is described here...",
-        "key": "DEMO-14",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-16",
-        "description": "RiskTest-1 for DEMO-16 is described here...",
-        "key": "DEMO-18",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-16",
-        "description": "RiskTest-2 for DEMO-16 is described here...",
-        "key": "DEMO-19",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-20",
-        "description": "RiskTest-1 for DEMO-20 is described here...",
-        "key": "DEMO-22",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Unit",
+        "status": "READY TO TEST",
+        "testType": "Acceptance",
         "executionType": "Automated",
         "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
+            "DEMO-2"
         ],
         "requirements": [
             "DEMO-6"
         ]
         },
         {
-        "name": "RiskTest-2 for DEMO-20",
-        "description": "RiskTest-2 for DEMO-20 is described here...",
-        "key": "DEMO-23",
+        "name": "Home page looks sexy",
+        "description": "Home page looks sexy",
+        "key": "PLTFMDEV-552",
         "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Manual",
+        "status": "READY TO TEST",
+        "testType": "Acceptance",
         "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
+            "DEMO-2"
         ],
         "requirements": [
             "DEMO-6"
         ]
         },
         {
-        "name": "TechSpec_AccTest-1 for DEMO-15",
-        "description": "TechSpec_AccTest-1 for DEMO-15 is described here...",
-        "key": "DEMO-24",
+        "name": "User logs in",
+        "description": "User logs in",
+        "key": "PLTFMDEV-553",
         "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Manual",
+        "status": "READY TO TEST",
+        "testType": "Acceptance",
         "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ],
-        "techSpecs": [
-            "DEMO-15"
-        ]
-        },
-        {
-        "name": "TechSpec_AccTest-2 for DEMO-15",
-        "description": "TechSpec_AccTest-2 for DEMO-15 is described here...",
-        "key": "DEMO-25",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ],
-        "techSpecs": [
-            "DEMO-15"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-27",
-        "description": "RiskTest-1 for DEMO-27 is described here...",
-        "key": "DEMO-29",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Unit",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
+            "DEMO-2"
         ],
         "requirements": [
             "DEMO-6"
         ]
         },
         {
-        "name": "RiskTest-2 for DEMO-27",
-        "description": "RiskTest-2 for DEMO-27 is described here...",
-        "key": "DEMO-30",
+        "name": "FirstResultOrDefault returns the default for an empty list",
+        "description": "FirstResultOrDefault returns the default for an empty list",
+        "key": "PLTFMDEV-1045",
         "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Manual",
+        "status": "READY TO TEST",
+        "testType": "Unit",
         "components": [
-            "DEMO-4",
-            "DEMO-2",
             "DEMO-3"
         ],
         "requirements": [
             "DEMO-6"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-31",
-        "description": "RiskTest-1 for DEMO-31 is described here...",
-        "key": "DEMO-33",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-31",
-        "description": "RiskTest-2 for DEMO-31 is described here...",
-        "key": "DEMO-34",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "TechSpec_AccTest-1 for DEMO-26",
-        "description": "TechSpec_AccTest-1 for DEMO-26 is described here...",
-        "key": "DEMO-35",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ],
-        "techSpecs": [
-            "DEMO-26"
-        ]
-        },
-        {
-        "name": "TechSpec_AccTest-2 for DEMO-26",
-        "description": "TechSpec_AccTest-2 for DEMO-26 is described here...",
-        "key": "DEMO-36",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Unit",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ],
-        "techSpecs": [
-            "DEMO-26"
-        ]
-        },
-        {
-        "name": "Req_AccTest-1 for DEMO-6",
-        "description": "Req_AccTest-1 for DEMO-6 is described here...",
-        "key": "DEMO-37",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "Req_AccTest-2 for DEMO-6",
-        "description": "Req_AccTest-2 for DEMO-6 is described here...",
-        "key": "DEMO-38",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-6"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-41",
-        "description": "RiskTest-1 for DEMO-41 is described here...",
-        "key": "DEMO-43",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-41",
-        "description": "RiskTest-2 for DEMO-41 is described here...",
-        "key": "DEMO-44",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-45",
-        "description": "RiskTest-1 for DEMO-45 is described here...",
-        "key": "DEMO-47",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-45",
-        "description": "RiskTest-2 for DEMO-45 is described here...",
-        "key": "DEMO-48",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Unit",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-50",
-        "description": "RiskTest-1 for DEMO-50 is described here...",
-        "key": "DEMO-52",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-50",
-        "description": "RiskTest-2 for DEMO-50 is described here...",
-        "key": "DEMO-53",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-54",
-        "description": "RiskTest-1 for DEMO-54 is described here...",
-        "key": "DEMO-56",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-54",
-        "description": "RiskTest-2 for DEMO-54 is described here...",
-        "key": "DEMO-57",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "TechSpec_AccTest-1 for DEMO-49",
-        "description": "TechSpec_AccTest-1 for DEMO-49 is described here...",
-        "key": "DEMO-58",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ],
-        "techSpecs": [
-            "DEMO-49"
-        ]
-        },
-        {
-        "name": "TechSpec_AccTest-2 for DEMO-49",
-        "description": "TechSpec_AccTest-2 for DEMO-49 is described here...",
-        "key": "DEMO-59",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ],
-        "techSpecs": [
-            "DEMO-49"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-61",
-        "description": "RiskTest-1 for DEMO-61 is described here...",
-        "key": "DEMO-63",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Unit",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-61",
-        "description": "RiskTest-2 for DEMO-61 is described here...",
-        "key": "DEMO-64",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-1 for DEMO-65",
-        "description": "RiskTest-1 for DEMO-65 is described here...",
-        "key": "DEMO-67",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "RiskTest-2 for DEMO-65",
-        "description": "RiskTest-2 for DEMO-65 is described here...",
-        "key": "DEMO-68",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Unit",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "TechSpec_AccTest-1 for DEMO-60",
-        "description": "TechSpec_AccTest-1 for DEMO-60 is described here...",
-        "key": "DEMO-69",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Integration",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ],
-        "techSpecs": [
-            "DEMO-60"
-        ]
-        },
-        {
-        "name": "TechSpec_AccTest-2 for DEMO-60",
-        "description": "TechSpec_AccTest-2 for DEMO-60 is described here...",
-        "key": "DEMO-70",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Unit",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ],
-        "techSpecs": [
-            "DEMO-60"
-        ]
-        },
-        {
-        "name": "Req_AccTest-1 for DEMO-40",
-        "description": "Req_AccTest-1 for DEMO-40 is described here...",
-        "key": "DEMO-71",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Installation",
-        "executionType": "Manual",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
-        ]
-        },
-        {
-        "name": "Req_AccTest-2 for DEMO-40",
-        "description": "Req_AccTest-2 for DEMO-40 is described here...",
-        "key": "DEMO-72",
-        "version": "1.0",
-        "status": "TO DO",
-        "testLevel": "Acceptance",
-        "executionType": "Automated",
-        "components": [
-            "DEMO-4",
-            "DEMO-2",
-            "DEMO-3"
-        ],
-        "requirements": [
-            "DEMO-40"
         ]
         }
     ],
@@ -1469,6 +865,7 @@ class Project {
 
     List<Map> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { testIssue ->
+            this.steps.echo("??? testIssue: ${testIssue}")
             def result = testIssue.status.toLowerCase() == "ready to test"
 
             if (result && componentName) {
