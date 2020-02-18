@@ -41,7 +41,7 @@ class FakeProject extends Project {
         new File(getClass().getResource(path).toURI())
     }
 
-    protected Map loadBuildParams() {
+    static Map loadBuildParams() {
         return FixtureHelper.createProjectBuildParams()
     }
 

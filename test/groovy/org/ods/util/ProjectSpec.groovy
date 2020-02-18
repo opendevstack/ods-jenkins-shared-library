@@ -48,19 +48,19 @@ class ProjectSpec extends SpecHelper {
 
     def "get build environment for DEBUG"() {
         when:
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "DEBUG=false" }
 
         when:
-        result = project.getBuildEnvironment(true)
+        result = Project.getBuildEnvironment(steps, true)
 
         then:
         result.find { it == "DEBUG=true" }
 
         when:
-        result = project.getBuildEnvironment(false)
+        result = Project.getBuildEnvironment(steps, false)
 
         then:
         result.find { it == "DEBUG=false" }
@@ -68,7 +68,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get build environment for MULTI_REPO_BUILD"() {
         when:
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_BUILD=true" }
@@ -77,21 +77,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for MULTI_REPO_ENV"() {
         when:
         steps.env.environment = null
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV=dev" }
 
         when:
         steps.env.environment = ""
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV=dev" }
 
         when:
         steps.env.environment = "myEnv"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV=myEnv" }
@@ -100,21 +100,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for MULTI_REPO_ENV_TOKEN"() {
         when:
         steps.env.environment = "dev"
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV_TOKEN=D" }
 
         when:
         steps.env.environment = "qa"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV_TOKEN=Q" }
 
         when:
         steps.env.environment = "prod"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV_TOKEN=P" }
@@ -125,7 +125,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = null
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=0.1-myEnv" }
@@ -134,7 +134,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = ""
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=0.1-myEnv" }
@@ -143,7 +143,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = "myId"
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=myId" }
@@ -152,21 +152,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CHANGE_DESC"() {
         when:
         steps.env.changeDescription = null
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=UNDEFINED" }
 
         when:
         steps.env.changeDescription = ""
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=UNDEFINED" }
 
         when:
         steps.env.changeDescription = "myDescription"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=myDescription" }
@@ -175,21 +175,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CONFIG_ITEM"() {
         when:
         steps.env.configItem = null
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=UNDEFINED" }
 
         when:
         steps.env.configItem = ""
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=UNDEFINED" }
 
         when:
         steps.env.configItem = "myItem"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=myItem" }
@@ -198,21 +198,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_VERSION"() {
         when:
         steps.env.version = null
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=WIP" }
 
         when:
         steps.env.version = ""
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=WIP" }
 
         when:
         steps.env.version = "0.1"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=0.1" }
@@ -222,7 +222,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "myEnv"
         steps.env.sourceEnvironmentToClone = null
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "SOURCE_CLONE_ENV=myEnv" }
@@ -230,7 +230,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "myEnv"
         steps.env.sourceEnvironmentToClone = ""
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "SOURCE_CLONE_ENV=myEnv" }
@@ -238,7 +238,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "mvEnv"
         steps.env.sourceEnvironmentToClone = "mySourceEnv"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "SOURCE_CLONE_ENV=mySourceEnv" }
@@ -247,21 +247,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for SOURCE_CLONE_ENV_TOKEN"() {
         when:
         steps.env.sourceEnvironmentToClone = "dev"
-        def result = project.getBuildEnvironment()
+        def result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "SOURCE_CLONE_ENV_TOKEN=D" }
 
         when:
         steps.env.sourceEnvironmentToClone = "qa"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "SOURCE_CLONE_ENV_TOKEN=Q" }
 
         when:
         steps.env.sourceEnvironmentToClone = "prod"
-        result = project.getBuildEnvironment()
+        result = Project.getBuildEnvironment(steps, )
 
         then:
         result.find { it == "SOURCE_CLONE_ENV_TOKEN=P" }
@@ -360,21 +360,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param changeDescription"() {
         when:
         steps.env.changeDescription = null
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.changeDescription == "UNDEFINED"
 
         when:
         steps.env.changeDescription = ""
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.changeDescription == "UNDEFINED"
 
         when:
         steps.env.changeDescription = "myDescription"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.changeDescription == "myDescription"
@@ -385,7 +385,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = null
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.changeId == "0.1-myEnv"
@@ -394,7 +394,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = ""
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.changeId == "0.1-myEnv"
@@ -403,7 +403,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = "myId"
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.changeId == "myId"
@@ -412,21 +412,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param configItem"() {
         when:
         steps.env.configItem = null
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.configItem == "UNDEFINED"
 
         when:
         steps.env.configItem = ""
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.configItem == "UNDEFINED"
 
         when:
         steps.env.configItem = "myItem"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.configItem == "myItem"
@@ -436,7 +436,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "myEnv"
         steps.env.sourceEnvironmentToClone = null
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.sourceEnvironmentToClone == "myEnv"
@@ -444,7 +444,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "myEnv"
         steps.env.sourceEnvironmentToClone = ""
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.sourceEnvironmentToClone == "myEnv"
@@ -452,7 +452,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "mvEnv"
         steps.env.sourceEnvironmentToClone = "mySourceEnv"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.sourceEnvironmentToClone == "mySourceEnv"
@@ -461,21 +461,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param sourceEnvironmentToCloneToken"() {
         when:
         steps.env.sourceEnvironmentToClone = "dev"
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.sourceEnvironmentToCloneToken == "D"
 
         when:
         steps.env.sourceEnvironmentToClone = "qa"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.sourceEnvironmentToCloneToken == "Q"
 
         when:
         steps.env.sourceEnvironmentToClone = "prod"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.sourceEnvironmentToCloneToken == "P"
@@ -484,21 +484,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param targetEnvironment"() {
         when:
         steps.env.environment = null
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.targetEnvironment == "dev"
 
         when:
         steps.env.environment = ""
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.targetEnvironment == "dev"
 
         when:
         steps.env.environment = "myEnv"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.targetEnvironment == "myEnv"
@@ -507,21 +507,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param targetEnvironmentToken"() {
         when:
         steps.env.environment = "dev"
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.targetEnvironmentToken == "D"
 
         when:
         steps.env.environment = "qa"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.targetEnvironmentToken == "Q"
 
         when:
         steps.env.environment = "prod"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.targetEnvironmentToken == "P"
@@ -530,21 +530,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param version"() {
         when:
         steps.env.version = null
-        def result = project.loadBuildParams()
+        def result = Project.loadBuildParams(steps)
 
         then:
         result.version == "WIP"
 
         when:
         steps.env.version = ""
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.version == "WIP"
 
         when:
         steps.env.version = "0.1"
-        result = project.loadBuildParams()
+        result = Project.loadBuildParams(steps)
 
         then:
         result.version == "0.1"

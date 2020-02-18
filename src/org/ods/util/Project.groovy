@@ -37,7 +37,7 @@ class Project {
         this.data.build = [:]
         this.data.build.hasFailingTests = false
 
-        this.data.buildParams = this.loadBuildParams()
+        this.data.buildParams = loadBuildParams(steps)
         this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
         this.data.jira = this.loadJiraData(this.data.metadata.id)
@@ -79,8 +79,8 @@ class Project {
         return this.data.buildParams
     }
 
-    List getBuildEnvironment(boolean debug = false) {
-        def params = this.loadBuildParams()
+    static List getBuildEnvironment(IPipelineSteps steps, boolean debug = false) {
+        def params = loadBuildParams(steps)
 
         return [
             "DEBUG=${debug}",
@@ -211,16 +211,16 @@ class Project {
         return this.data.build.hasFailingTests
     }
 
-    protected Map loadBuildParams() {
-        def version = this.steps.env.version?.trim() ?: "WIP"
-        def targetEnvironment = this.steps.env.environment?.trim() ?: "dev"
+    static Map loadBuildParams(IPipelineSteps steps) {
+        def version = steps.env.version?.trim() ?: "WIP"
+        def targetEnvironment = steps.env.environment?.trim() ?: "dev"
         def targetEnvironmentToken = targetEnvironment[0].toUpperCase()
-        def sourceEnvironmentToClone = this.steps.env.sourceEnvironmentToClone?.trim() ?: targetEnvironment
+        def sourceEnvironmentToClone = steps.env.sourceEnvironmentToClone?.trim() ?: targetEnvironment
         def sourceEnvironmentToCloneToken = sourceEnvironmentToClone[0].toUpperCase()
 
-        def changeId = this.steps.env.changeId?.trim() ?: "${version}-${targetEnvironment}"
-        def configItem = this.steps.env.configItem?.trim() ?: "UNDEFINED"
-        def changeDescription = this.steps.env.changeDescription?.trim() ?: "UNDEFINED"
+        def changeId = steps.env.changeId?.trim() ?: "${version}-${targetEnvironment}"
+        def configItem = steps.env.configItem?.trim() ?: "UNDEFINED"
+        def changeDescription = steps.env.changeDescription?.trim() ?: "UNDEFINED"
 
         return [
             changeDescription: changeDescription,
