@@ -79,7 +79,7 @@ class Project {
         return this.data.buildParams
     }
 
-    static List getBuildEnvironment(IPipelineSteps steps, boolean debug = false) {
+    static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug = false) {
         def params = loadBuildParams(steps)
 
         return [

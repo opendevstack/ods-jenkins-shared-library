@@ -26,7 +26,7 @@ class FakeGitUtil extends GitUtil {
 
 @InheritConstructors
 class FakeProject extends Project {
-    static List getBuildEnvironment(IPipelineSteps steps, boolean debug) {
+    static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug) {
         def env = new EnvironmentVariables()
         return FixtureHelper.createProjectBuildEnvironment(env)
     }
