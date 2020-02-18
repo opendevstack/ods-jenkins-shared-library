@@ -1119,7 +1119,7 @@ class Project {
     }
 
     String getKey() {
-        return this.data.metadata.key
+        return this.data.metadata.id
     }
 
     String getName() {
