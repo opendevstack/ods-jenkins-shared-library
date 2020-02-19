@@ -1,0 +1,101 @@
+plugins {
+    id 'jacoco'
+    id 'groovy'
+}
+
+group "org.ods"
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+ext {
+    nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
+    nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
+    nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
+    no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
+}
+
+repositories {
+    if (no_nexus) {
+        println("using repositories 'jcenter' and 'mavenCentral'")
+        jcenter()
+        mavenCentral()
+
+        maven {
+            url "https://repo1.maven.org/maven2/"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+
+        maven {
+            url "https://repo.jenkins-ci.org/releases"
+            mavenContent {
+                releasesOnly()
+            }
+        }
+    } else {
+        println("using nexus repositories")
+        if (!nexus_url) {
+            throw new GradleException('Nexus URL not specified!')
+        }
+        maven() {
+            url "${nexus_url}/repository/jcenter/"
+            credentials() {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven() {
+            url "${nexus_url}/repository/maven-public/"
+            credentials() {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven() {
+            url "${nexus_url}/repository/atlassian_public/"
+            credentials {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation "org.codehaus.groovy:groovy-all:2.4.12"
+    implementation "org.jenkins-ci.main:jenkins-core:2.46.3"
+    implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-api', version: '2.36', ext: 'jar'
+    implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-step-api', version: '2.13', ext: 'jar'
+    implementation 'org.slf4j:jcl-over-slf4j:1.7.30'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+
+    testImplementation "org.spockframework:spock-core:1.3-groovy-2.4"
+}
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ["src", "vars"]
+        }
+    }
+
+    test {
+        groovy {
+            srcDirs = ['test/groovy']
+        }
+        resources {
+            srcDir 'test/resources'
+        }
+    }
+}
+
+compileGroovy {
+    groovyOptions.configurationScript = file("gradle/config.groovy")
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+    }
+}
