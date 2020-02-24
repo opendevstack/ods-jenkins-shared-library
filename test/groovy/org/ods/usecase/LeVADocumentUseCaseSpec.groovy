@@ -59,8 +59,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         def testIssues = createJiraTestIssues().each {
-            it.test.isMissing = false
-            it.test.isSuccess = true
+            it.isMissing = false
+            it.isSuccess = true
         }
 
         def result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -72,8 +72,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         testIssues = createJiraTestIssues().each {
-            it.test.isMissing = true
-            it.test.isSuccess = false
+            it.isMissing = true
+            it.isSuccess = false
         }
 
         result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -85,8 +85,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         when:
         testIssues = createJiraTestIssues().each {
-            it.test.isMissing = false
-            it.test.isSuccess = false
+            it.isMissing = false
+            it.isSuccess = false
         }
 
         result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -99,12 +99,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         when:
         testIssues = createJiraTestIssues()
         testIssues[0..1].each {
-            it.test.isMissing = true
-            it.test.isSuccess = false
+            it.isMissing = true
+            it.isSuccess = false
         }
         testIssues[2..4].each {
-            it.test.isMissing = false
-            it.test.isSuccess = false
+            it.isMissing = false
+            it.isSuccess = false
         }
 
         result = usecase.computeTestDiscrepancies(name, testIssues)
@@ -115,13 +115,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result.conclusion.statement == "Some discrepancies occured as tests did fail. It is not recommended to continue!"
     }
 
-    def "create CS"() {
+    def "create CSD"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.CS as String
+        def documentType = LeVADocumentUseCase.DocumentType.CSD as String
         def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
@@ -130,7 +130,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createCS()
+        usecase.createCSD()
 
         then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
@@ -138,42 +138,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * project.getSystemRequirementsTypeInterfaces()
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
-        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-    }
-
-    def "create DSD"() {
-        given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Limit the project to a single repository that is name-mapped to the project's first component
-        def component = project.components.first()
-        def repository = project.repositories.first()
-        repository.id = component.name
-        project.repositories = [repository]
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.DSD as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": "myContent"]
-        def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
-
-        when:
-        usecase.createDSD()
-
-        then:
-        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
-        0 * levaFiles.getDocumentChapterData(documentType)
-
-        then:
-        1 * usecase.computeComponentMetadata(documentType)
-        1 * project.getTechnicalSpecifications()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
@@ -214,7 +178,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         given:
         project.services.jira = null
 
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, null))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -239,7 +203,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create DTR"() {
@@ -422,35 +385,6 @@ def "create FTR"() {
         xmlFile.delete()
     }
 
-    def "create FS"() {
-        given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.FS as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-        def documentIssue = createJiraDocumentIssues().first()
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": "myContent"]
-        def uri = "http://nexus"
-
-        when:
-        usecase.createFS()
-
-        then:
-        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
-        0 * levaFiles.getDocumentChapterData(documentType)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
-        1 * usecase.getWatermarkText(documentType)
-        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-    }
-
     def "create IVP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
@@ -533,13 +467,13 @@ def "create FTR"() {
         xmlFile.delete()
     }
 
-    def "create SCP"() {
+    def "create SSDS"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SCP as String
+        def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
         def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
@@ -548,142 +482,21 @@ def "create FTR"() {
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createSCP()
+        usecase.createSSDS()
 
         then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
-        1 * usecase.getWatermarkText(documentType)
 
         then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+		1 * usecase.computeComponentMetadata(documentType)
+		1 * project.getTechnicalSpecifications()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
+        1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+		1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-    }
 
-    def "create SCP without Jira"() {
-        given:
-        project.services.jira = null
-
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SCP as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": "myContent"]
-        def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
-
-        when:
-        usecase.createSCP()
-
-        then:
-        1 * jiraUseCase.getDocumentChapterData(documentType)
-        1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
-        0 * usecase.getWatermarkText(documentType)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
-        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-    }
-
-    def "create SCR"() {
-        given:
-        steps.env.BUILD_ID = "0815"
-
-        // Test Parameters
-        def repo = project.repositories.first()
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SCR as String
-        def sqReportsPath = "sonarqube/${repo.id}"
-        def sqReportsStashName = "scrr-report-${repo.id}-${steps.env.BUILD_ID}"
-        def files = [ "${usecase.getDocumentBasename("SCRR", project.buildParams.version, steps.env.BUILD_ID, repo)}.docx": getResource("Test.docx").bytes ]
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": "myContent"]
-        def sqReportFiles = [ getResource("Test.docx") ]
-
-        when:
-        usecase.createSCR(repo)
-
-        then:
-        1 * jenkins.unstashFilesIntoPath(sqReportsStashName, "${steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report") >> true
-        1 * sq.loadReportsFromPath("${steps.env.WORKSPACE}/${sqReportsPath}") >> sqReportFiles
-
-        then:
-        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
-        0 * levaFiles.getDocumentChapterData(documentType)
-        1 * usecase.getWatermarkText(documentType)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
-        1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
-    }
-
-    def "create SCR without Jira"() {
-        given:
-        steps.env.BUILD_ID = "0815"
-        project.services.jira = null
-
-        // Test Parameters
-        def repo = project.repositories.first()
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SCR as String
-        def sqReportsPath = "sonarqube/${repo.id}"
-        def sqReportsStashName = "scrr-report-${repo.id}-${steps.env.BUILD_ID}"
-        def files = [ "${usecase.getDocumentBasename("SCRR", project.buildParams.version, steps.env.BUILD_ID, repo)}.docx": getResource("Test.docx").bytes ]
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": "myContent"]
-        def sqReportFiles = [ getResource("Test.docx") ]
-
-        when:
-        usecase.createSCR(repo)
-
-        then:
-        1 * jenkins.unstashFilesIntoPath(sqReportsStashName, "${steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report") >> true
-        1 * sq.loadReportsFromPath("${steps.env.WORKSPACE}/${sqReportsPath}") >> sqReportFiles
-
-        then:
-        1 * jiraUseCase.getDocumentChapterData(documentType)
-        1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
-        0 * usecase.getWatermarkText(documentType)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
-        1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
-    }
-
-    def "create SDS"() {
-        given:
-        // Test Parameters
-        def repo = project.repositories.first()
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SDS as String
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": "myContent"]
-
-        when:
-        usecase.createSDS(repo)
-
-        then:
-        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
-        0 * levaFiles.getDocumentChapterData(documentType)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
-        1 * usecase.getWatermarkText(documentType)
-        1 * usecase.createDocument(documentType, repo, _, [:], _, null, _)
     }
 
     def "create TIP"() {
@@ -719,7 +532,7 @@ def "create FTR"() {
         given:
         project.services.jira = null
 
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, null))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -743,7 +556,6 @@ def "create FTR"() {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create TIR"() {
@@ -802,35 +614,6 @@ def "create FTR"() {
         1 * usecase.createDocument(documentType, repo, _, [:], _, null, _)
     }
 
-    def "create URS"() {
-        given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.URS as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": "myContent"]
-        def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
-
-        when:
-        usecase.createURS()
-
-        then:
-        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
-        0 * levaFiles.getDocumentChapterData(documentType)
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
-        1 * usecase.getWatermarkText(documentType)
-        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-    }
-
     def "create overall DTR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
@@ -855,14 +638,14 @@ def "create FTR"() {
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
-    def "create overall SCR"() {
+    def "create overall SSDS"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SCR as String
-        def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_SCR as String
+        def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
+        def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_SSDS as String
         def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
@@ -870,31 +653,7 @@ def "create FTR"() {
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createOverallSCR()
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
-        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-    }
-
-    def "create overall SDS"() {
-        given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SDS as String
-        def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_SDS as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-
-        // Stubbed Method Responses
-        def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
-
-        when:
-        usecase.createOverallSDS()
+        usecase.createOverallSSDS()
 
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
@@ -932,28 +691,22 @@ def "create FTR"() {
         def result = usecase.getSupportedDocuments()
 
         then:
-        result.size() == 20
+        result.size() == 14
 
         then:
-        result.contains("CS")
-        result.contains("DSD")
+        result.contains("CSD")
         result.contains("DTP")
         result.contains("DTR")
-        result.contains("FS")
         result.contains("FTP")
         result.contains("FTR")
         result.contains("IVP")
         result.contains("IVR")
-        result.contains("SCP")
-        result.contains("SCR")
-        result.contains("SDS")
+        result.contains("SSDS")
         result.contains("TIP")
         result.contains("TIR")
-        result.contains("URS")
         result.contains("OVERALL_DTR")
         result.contains("OVERALL_IVR")
-        result.contains("OVERALL_SCR")
-        result.contains("OVERALL_SDS")
+        result.contains("OVERALL_SSDS")
         result.contains("OVERALL_TIR")
     }
 
@@ -1016,13 +769,7 @@ def "create FTR"() {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         when:
-        def result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CS as String)
-
-        then:
-        result == "Developer Preview"
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DSD as String)
+        def result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CSD as String)
 
         then:
         result == "Developer Preview"
@@ -1035,12 +782,6 @@ def "create FTR"() {
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTR as String)
-
-        then:
-        result == "Developer Preview"
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.FS as String)
 
         then:
         result == "Developer Preview"
@@ -1070,19 +811,7 @@ def "create FTR"() {
         result == "Developer Preview"
 
         when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SCP as String)
-
-        then:
-        result == "Developer Preview"
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SCR as String)
-
-        then:
-        result == "Developer Preview"
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SDS as String)
+        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SSDS as String)
 
         then:
         result == "Developer Preview"
@@ -1100,12 +829,6 @@ def "create FTR"() {
         result == "Developer Preview"
 
         when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.URS as String)
-
-        then:
-        result == "Developer Preview"
-
-        when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_DTR as String)
 
         then:
@@ -1118,13 +841,7 @@ def "create FTR"() {
         result == "Developer Preview"
 
         when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_SCR as String)
-
-        then:
-        result == "Developer Preview"
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_SDS as String)
+        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_SSDS as String)
 
         then:
         result == "Developer Preview"

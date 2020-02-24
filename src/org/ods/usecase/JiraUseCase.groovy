@@ -125,8 +125,8 @@ class JiraUseCase {
         ]
 
         def result = this.jira.searchByJQLQuery(jqlQuery)
-        if (!result) return [:]
-
+        // We should fail the document if no matching documentation issues are found
+        if (!result || result.total == 0) throw new IllegalStateException("No documents found in JIRA for jqlQuery ${jqlQuery}")
         def numberKey = result.names.find { it.value == CustomIssueFields.HEADING_NUMBER }.key
         def contentFieldKey = result.names.find { it.value == CustomIssueFields.CONTENT }.key
 

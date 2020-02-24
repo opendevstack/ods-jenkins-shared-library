@@ -10,8 +10,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
     // Document types per GAMP category
     private static Map GAMP_CATEGORIES = [
         "1": [
-            LeVADocumentUseCase.DocumentType.DSD as String,
-            LeVADocumentUseCase.DocumentType.FS as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
+            LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.FTP as String,
             LeVADocumentUseCase.DocumentType.FTR as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
@@ -21,43 +21,36 @@ class LeVADocumentScheduler extends DocGenScheduler {
             LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
         ],
         "3": [
-            LeVADocumentUseCase.DocumentType.DSD as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
             LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.URS as String,
+            LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.TIP as String,
             LeVADocumentUseCase.DocumentType.TIR as String,
             LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
         ],
         "4": [
-            LeVADocumentUseCase.DocumentType.CS as String,
-            LeVADocumentUseCase.DocumentType.DSD as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
+            LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.FTP as String,
             LeVADocumentUseCase.DocumentType.FTR as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
             LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.URS as String,
             LeVADocumentUseCase.DocumentType.TIP as String,
             LeVADocumentUseCase.DocumentType.TIR as String,
             LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
         ],
         "5": [
-            LeVADocumentUseCase.DocumentType.CS as String,
-            LeVADocumentUseCase.DocumentType.DSD as String,
+            LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.DTP as String,
             LeVADocumentUseCase.DocumentType.DTR as String,
             LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
-            LeVADocumentUseCase.DocumentType.FS as String,
             LeVADocumentUseCase.DocumentType.FTP as String,
             LeVADocumentUseCase.DocumentType.FTR as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
             LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.SCP as String,
-            LeVADocumentUseCase.DocumentType.SCR as String,
-            LeVADocumentUseCase.DocumentType.OVERALL_SCR as String,
-            LeVADocumentUseCase.DocumentType.SDS as String,
-            LeVADocumentUseCase.DocumentType.OVERALL_SDS as String,
-            LeVADocumentUseCase.DocumentType.URS as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
+            //LeVADocumentUseCase.DocumentType.OVERALL_SSDS as String, // TODO fixme
             LeVADocumentUseCase.DocumentType.TIP as String,
             LeVADocumentUseCase.DocumentType.TIR as String,
             LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
@@ -67,17 +60,11 @@ class LeVADocumentScheduler extends DocGenScheduler {
     // Document types per pipeline phase with an optional lifecycle constraint
     private static Map PIPELINE_PHASES = [
         (MROPipelineUtil.PipelinePhases.INIT): [
-            (LeVADocumentUseCase.DocumentType.URS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.FS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.CS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.DSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
+            (LeVADocumentUseCase.DocumentType.CSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.BUILD): [
-            (LeVADocumentUseCase.DocumentType.SDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO,
-            (LeVADocumentUseCase.DocumentType.OVERALL_SDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.SCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.OVERALL_SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
             (LeVADocumentUseCase.DocumentType.DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
             (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
@@ -86,12 +73,11 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
         ],
         (MROPipelineUtil.PipelinePhases.TEST): [
+            (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.IVR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.FTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.FTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
-            (LeVADocumentUseCase.DocumentType.OVERALL_SCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.RELEASE): [
         ],
@@ -104,16 +90,13 @@ class LeVADocumentScheduler extends DocGenScheduler {
     private static Map REPSITORY_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
             (LeVADocumentUseCase.DocumentType.DTR as String): null,
-            (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhases.BUILD,
-            (LeVADocumentUseCase.DocumentType.SDS as String): null,
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [
-            (LeVADocumentUseCase.DocumentType.SCR as String): MROPipelineUtil.PipelinePhases.TEST,
-            (LeVADocumentUseCase.DocumentType.SDS as String): null
+            :
         ]
     ]
 
@@ -136,7 +119,6 @@ class LeVADocumentScheduler extends DocGenScheduler {
         "Q": [
             (LeVADocumentUseCase.DocumentType.DTR as String): "${LeVADocumentUseCase.DocumentType.DTR}",
             (LeVADocumentUseCase.DocumentType.FTR as String): "${LeVADocumentUseCase.DocumentType.FTR}",
-            (LeVADocumentUseCase.DocumentType.SCR as String): "${LeVADocumentUseCase.DocumentType.SCR}",
             (LeVADocumentUseCase.DocumentType.IVR as String): "${LeVADocumentUseCase.DocumentType.IVR}_Q",
             (LeVADocumentUseCase.DocumentType.TIR as String): "${LeVADocumentUseCase.DocumentType.TIR}_Q",
             (LeVADocumentUseCase.DocumentType.IVP as String): "${LeVADocumentUseCase.DocumentType.IVP}_P",
@@ -184,7 +166,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         }
 
         // Applicable for certain document types only if the Jira service is configured in the release manager configuration
-        if ([LeVADocumentUseCase.DocumentType.CS, LeVADocumentUseCase.DocumentType.DSD, LeVADocumentUseCase.DocumentType.FS, LeVADocumentUseCase.DocumentType.URS].contains(documentType as LeVADocumentUseCase.DocumentType)) {
+        if ([LeVADocumentUseCase.DocumentType.CSD, LeVADocumentUseCase.DocumentType.SSDS].contains(documentType as LeVADocumentUseCase.DocumentType)) {
             result = result && this.project.services?.jira != null
         }
 
@@ -249,7 +231,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         if ("D".equalsIgnoreCase(environment)) {
             return true
         }
-        
+
         return this.ENVIRONMENT_TYPE[environment].containsKey(documentType)
     }
 
@@ -273,7 +255,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
                             def method = this.getMethodNameForDocumentType(documentType)
                             this.usecase.invokeMethod(method, args as Object[])
                         } catch (e) {
-                            throw new IllegalStateException("Error: ${message} has failed: ${e.message}.")
+                            throw new IllegalStateException("Error: ${message} has failed: ${e.message}.", e)
                         }
                     }
                 }

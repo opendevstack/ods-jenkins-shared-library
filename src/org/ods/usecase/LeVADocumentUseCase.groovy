@@ -25,48 +25,36 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     enum DocumentType {
-        CS,
-        DSD,
+        CSD,
         DTP,
         DTR,
-        FS,
         FTP,
         FTR,
         IVP,
         IVR,
-        SCP,
-        SCR,
-        SDS,
+        SSDS,
         TIP,
         TIR,
-        URS,
         OVERALL_DTR,
         OVERALL_IVR,
-        OVERALL_SCR,
-        OVERALL_SDS,
+        OVERALL_SSDS,
         OVERALL_TIR
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
-        (DocumentType.CS as String): "Configuration Specification",
-        (DocumentType.DSD as String): "System Design Specification",
+        (DocumentType.CSD as String): "Configuration Specification", // TODO Change me for the good name
         (DocumentType.DTP as String): "Software Development Testing Plan",
         (DocumentType.DTR as String): "Software Development Testing Report",
-        (DocumentType.FS as String): "Functional Specification",
         (DocumentType.FTP as String): "Functional and Requirements Testing Plan",
         (DocumentType.FTR as String): "Functional and Requirements Testing Report",
         (DocumentType.IVP as String): "Configuration and Installation Testing Plan",
         (DocumentType.IVR as String): "Configuration and Installation Testing Report",
-        (DocumentType.SCP as String): "Software Development (Coding and Code Review) Plan",
-        (DocumentType.SCR as String): "Software Development (Coding and Code Review) Report",
-        (DocumentType.SDS as String): "Software Design Specification",
+        (DocumentType.SSDS as String): "Software Design Specification",
         (DocumentType.TIP as String): "Technical Installation Plan",
         (DocumentType.TIR as String): "Technical Installation Report",
-        (DocumentType.URS as String): "User Requirements Specification",
         (DocumentType.OVERALL_DTR as String): "Overall Software Development Testing Report",
         (DocumentType.OVERALL_IVR as String): "Overall Configuration and Installation Testing Report",
-        (DocumentType.OVERALL_SCR as String): "Overall Software Development (Coding and Code Review) Report",
-        (DocumentType.OVERALL_SDS as String): "Overall Software Design Specification",
+        (DocumentType.OVERALL_SSDS as String): "Overall Software Design Specification",
         (DocumentType.OVERALL_TIR as String): "Overall Technical Installation Report"
     ]
 
@@ -90,8 +78,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected Map computeComponentMetadata(String documentType) {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll("Technology-", "")
-
-            def repo_ = this.project.repositories.find { [it.id, it.name].contains(normComponentName) }
+            def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
                 throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'.")
             }
@@ -99,15 +86,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def metadata = repo_.metadata
 
             return [
-                component.name,
+                component.name, 
                 [
-                    componentId: metadata.id ?: "N/A - part of this application",
-                    componentType: (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
-                    description: metadata.description,
-                    nameOfSoftware: metadata.name,
-                    references: metadata.references ?: "N/A",
-                    supplier: metadata.supplier,
-                    version: metadata.version
+                   key: component.key,
+                   componentName: component.name,
+                   componentId: metadata.id ?: "N/A - part of this application",
+                   componentType: (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
+                   description: metadata.description,
+                   nameOfSoftware: metadata.name,
+                   references: metadata.references ?: "N/A",
+                   supplier: metadata.supplier,
+                   version: metadata.version
                 ]
             ]
         }
@@ -128,11 +117,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def missing = []
 
         testIssues.each { issue ->
-            if (!issue.test.isSuccess && !issue.test.isMissing) {
+            if (!issue.isSuccess && !issue.isMissing) {
                 failed << issue.key
             }
 
-            if (!issue.test.isSuccess && issue.test.isMissing) {
+            if (!issue.isSuccess && issue.isMissing) {
                 missing << issue.key
             }
         }
@@ -161,8 +150,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return result
     }
 
-    String createCS(Map repo = null, Map data = null) {
-        def documentType = DocumentType.CS as String
+    String createCSD(Map repo = null, Map data = null) {
+	    // TODO Crete full reimplementation for the union of CS, FS and URS. 
+	    // See old commits in order to obtain the information on how those documents were implemented
+        def documentType = DocumentType.CSD as String
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -180,47 +171,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec4") sections."sec4" = [:]
         sections."sec4".items = SortUtil.sortIssuesByProperties(interfaces, ["req_key", "key"])
-
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                sections: sections
-            ]
-        ]
-
-        def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
-        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        return uri
-    }
-
-    String createDSD(Map repo = null, Map data = null) {
-        def documentType = DocumentType.DSD as String
-
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        def componentMetadata = this.computeComponentMetadata(documentType)
-
-        def systemDesignSpecifications = this.project.getTechnicalSpecifications().collect { techSpec ->
-            [
-                key: techSpec.key,
-                // TODO: change ur_key to req_key and make column content-wrappable in template
-                req_key: techSpec.requirements.collect{ it }.join(", "),
-                description: techSpec.systemDesignSpec,
-                // TODO: prefix properties in sec5s1 with .metadata in template 
-                metadata: techSpec.components.collect { componentName ->
-                    return componentMetadata[componentName]
-                }.join(", ")
-            ]
-        }
-
-        if (!sections."sec3") sections."sec3" = [:]
-        sections."sec3".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
-
-        if (!sections."sec5s1") sections."sec5s1" = [:]
-        sections."sec5s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["key"])
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
@@ -258,7 +208,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             key: testIssue.key,
                             description: testIssue.description ?: "",
                             // TODO: change template from isRelatedTo to systemRequirement
-                            systemRequirement: testIssue.requirements.collect{ it.key }.join(", ")
+                            systemRequirement: testIssue.requirements.join(", ")
                         ]
                     ]
                 }
@@ -315,7 +265,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             key: testIssue.key,
                             description: testIssue.description ?: "",
                             // TODO: change template from isRelatedTo to systemRequirement
-                            systemRequirement: testIssue.requirements.collect{ it.key }.join(", "),
+                            systemRequirement: testIssue.requirements.join(", "),
                             success: testIssue.isSuccess ? "Y" : "N",
                             remarks: testIssue.isMissing ? "not executed" : ""
                         ]
@@ -347,27 +297,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createFS(Map repo = null, Map data = null) {
-        def documentType = DocumentType.FS as String
-
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // TODO: create full re-implementation
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                sections: sections
-            ]
-        ]
-
-        def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
-        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        return uri
-    }
-
     String createFTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.FTP as String
 
@@ -389,8 +318,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         [
                             key: testIssue.key,
                             description: testIssue.description ?: "",
-                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A",
-                            risk_key: tetsIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A"
                         ]
                     ]
                 },
@@ -400,8 +329,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         [
                             key: testIssue.key,
                             description: testIssue.description ?: "",
-                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A",
-                            risk_key: tetsIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A"
                         ]
                     ]
                 }
@@ -459,9 +388,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             datetime: testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
                             description: testIssue.description ?: "",
                             remarks: testIssue.isMissing ? "not executed" : "",
-                            risk_key: tetsIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                             success: testIssue.sSuccess ? "Y" : "N",
-                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
                         ]
                     ]
                 },
@@ -473,9 +402,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             datetime: testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
                             description: testIssue.description ?: "",
                             remarks: testIssue.isMissing ? "not executed" : "",
-                            risk_key: tetsIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                             success: testIssue.sSuccess ? "Y" : "N",
-                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
                         ]
                     ]
                 },
@@ -597,116 +526,133 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createSCP(Map repo = null, Map data = null) {
-        def documentType = DocumentType.SCP as String
+    // TODO deleteme when implementing SSDS
+    //String createSCP(Map repo = null, Map data = null) {
+    //    def documentType = DocumentType.SCP as String
 
-        def watermarkText
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        } else {
-            watermarkText = this.getWatermarkText(documentType)
-        }
+    //    def watermarkText
+    //    def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+    //    if (!sections) {
+    //        sections = this.levaFiles.getDocumentChapterData(documentType)
+    //    } else {
+    //        watermarkText = this.getWatermarkText(documentType)
+    //    }
 
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                // TODO: change data.project.repositories to data.repositories in template
-                repositories: this.project.repositories,
-                sections: sections
-            ]
-        ]
+    //    def data_ = [
+    //        metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+    //        data: [
+    //            // TODO: change data.project.repositories to data.repositories in template
+    //            repositories: this.project.repositories,
+    //            sections: sections
+    //        ]
+    //    ]
 
-        def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
-        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        return uri
-    }
+    //    def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
+    //    this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+    //    return uri
+    //}
 
-    String createSCR(Map repo, Map data = null) {
-        def documentType = DocumentType.SCR as String
+    //String createSCR(Map repo, Map data = null) {
+    //    def documentType = DocumentType.SCR as String
 
-        def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${repo.id}"
-        def sqReportsStashName = "scrr-report-${repo.id}-${this.steps.env.BUILD_ID}"
+    //    def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${repo.id}"
+    //    def sqReportsStashName = "scrr-report-${repo.id}-${this.steps.env.BUILD_ID}"
 
-        // Unstash SonarQube reports into path
-        def hasStashedSonarQubeReports = this.jenkins.unstashFilesIntoPath(sqReportsStashName, "${this.steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report")
-        if (!hasStashedSonarQubeReports) {
-            throw new RuntimeException("Error: unable to unstash SonarQube reports for repo '${repo.id}' from stash '${sqReportsStashName}'.")
-        }
+    //    // Unstash SonarQube reports into path
+    //    def hasStashedSonarQubeReports = this.jenkins.unstashFilesIntoPath(sqReportsStashName, "${this.steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report")
+    //    if (!hasStashedSonarQubeReports) {
+    //        throw new RuntimeException("Error: unable to unstash SonarQube reports for repo '${repo.id}' from stash '${sqReportsStashName}'.")
+    //    }
 
-        // Load SonarQube report files from path
-        def sqReportFiles = this.sq.loadReportsFromPath("${this.steps.env.WORKSPACE}/${sqReportsPath}")
-        if (sqReportFiles.isEmpty()) {
-            throw new RuntimeException("Error: unable to load SonarQube reports for repo '${repo.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
-        }
+    //    // Load SonarQube report files from path
+    //    def sqReportFiles = this.sq.loadReportsFromPath("${this.steps.env.WORKSPACE}/${sqReportsPath}")
+    //    if (sqReportFiles.isEmpty()) {
+    //        throw new RuntimeException("Error: unable to load SonarQube reports for repo '${repo.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
+    //    }
 
-        def watermarkText
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        } else {
-            watermarkText = this.getWatermarkText(documentType)
-        }
+    //    def watermarkText
+    //    def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+    //    if (!sections) {
+    //        sections = this.levaFiles.getDocumentChapterData(documentType)
+    //    } else {
+    //        watermarkText = this.getWatermarkText(documentType)
+    //    }
 
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-            data: [
-                sections: sections
-            ]
-        ]
+    //    def data_ = [
+    //        metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+    //        data: [
+    //            sections: sections
+    //        ]
+    //    ]
 
-        def files = [:]
-        /*
-        // TODO: conversion of a SonarQube report results in an ambiguous NPE.
-        // Research did not reveal any meaningful results. Further, Apache POI
-        // depends on Commons Compress, but unfortunately Jenkins puts an older
-        // version onto the classpath which results in an error. Therefore, iff
-        // the NPE can be fixed, this code would need to run outside of Jenkins,
-        // such as the DocGen service.
+    //    def files = [:]
+    //    /*
+    //    // TODO: conversion of a SonarQube report results in an ambiguous NPE.
+    //    // Research did not reveal any meaningful results. Further, Apache POI
+    //    // depends on Commons Compress, but unfortunately Jenkins puts an older
+    //    // version onto the classpath which results in an error. Therefore, iff
+    //    // the NPE can be fixed, this code would need to run outside of Jenkins,
+    //    // such as the DocGen service.
 
-        def sonarQubePDFDoc = this.pdf.convertFromWordDoc(sonarQubeWordDoc)
-        modifier = { document ->
-            // Merge the current document with the SonarQube report
-            return this.pdf.merge([ document, sonarQubePDFDoc ])
-        }
+    //    def sonarQubePDFDoc = this.pdf.convertFromWordDoc(sonarQubeWordDoc)
+    //    modifier = { document ->
+    //        // Merge the current document with the SonarQube report
+    //        return this.pdf.merge([ document, sonarQubePDFDoc ])
+    //    }
 
-        // As our plan B below, we instead add the SonarQube report into the
-        // SCR's .zip archive.
-        */
-        def name = this.getDocumentBasename("SCRR", this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
-        def sqReportFile = sqReportFiles.first()
-        files << [ "${name}.${FilenameUtils.getExtension(sqReportFile.getName())}": sqReportFile.getBytes() ]
+    //    // As our plan B below, we instead add the SonarQube report into the
+    //    // SCR's .zip archive.
+    //    */
+    //    def name = this.getDocumentBasename("SCRR", this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
+    //    def sqReportFile = sqReportFiles.first()
+    //    files << [ "${name}.${FilenameUtils.getExtension(sqReportFile.getName())}": sqReportFile.getBytes() ]
 
-        def modifier = { document ->
-            repo.data.documents[documentType] = document
-            return document
-        }
+    //    def modifier = { document ->
+    //        repo.data.documents[documentType] = document
+    //        return document
+    //    }
 
-        return this.createDocument(documentType, repo, data_, files, modifier, null, watermarkText)
-    }
+    //    return this.createDocument(documentType, repo, data_, files, modifier, null, watermarkText)
+    //}
 
-    String createSDS(Map repo, Map data = null) {
-        def documentType = DocumentType.SDS as String
+    String createSSDS(Map repo = null, Map data = null) {
+		def documentType = DocumentType.SSDS as String
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
         }
 
+        def componentsMetadata = this.computeComponentMetadata(documentType).collect { it.value }
+        def systemDesignSpecifications = this.project.getTechnicalSpecifications().collect { techSpec ->
+            [
+                key: techSpec.key,
+                req_key: techSpec.requirements.collect{ it }.join(", "),
+                description: techSpec.description
+                // TODO: prefix properties in sec5s1 with .metadata in template 
+                //metadata: techSpec.components.collect { componentKey ->
+                //    return componentsMetadata[componentKey]
+                //}//.join(", ")
+            ]
+        }
+
+        if (!sections."sec3s1") sections."sec3s1" = [:]
+        sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
+
+        if (!sections."sec5s1") sections."sec5s1" = [:]
+		// TODO change this to .components here and in HTML template
+        sections."sec5s1".specifications = SortUtil.sortIssuesByProperties(componentsMetadata, ["key"])
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data: [
-                repo: repo,
                 sections: sections
             ]
         ]
 
-        def modifier = { document ->
-            repo.data.documents[documentType] = document
-            return document
-        }
-
-        return this.createDocument(documentType, repo, data_, [:], modifier, null, this.getWatermarkText(documentType))
+        def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        return uri
     }
 
     String createTIP(Map repo = null, Map data = null) {
@@ -777,27 +723,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.createDocument(documentType, repo, data_, [:], modifier, null, watermarkText)
     }
 
-    String createURS(Map repo = null, Map data = null) {
-        def documentType = DocumentType.URS as String
-
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // TODO: complete re-implementation
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                sections: sections
-            ]
-        ]
-
-        def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
-        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        return uri
-    }
-
     String createOverallDTR(Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
         def metadata = this.getDocumentMetadata(documentTypeName)
@@ -809,22 +734,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createOverallSCR(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_SCR as String]
+    String createOverallSSDS(Map repo = null, Map data = null) {
+        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_SSDS as String]
         def metadata = this.getDocumentMetadata(documentTypeName)
 
-        def documentType = DocumentType.SCR as String
-
-        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, this.getWatermarkText(documentType))
-        this.notifyJiraTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
-        return uri
-    }
-
-    String createOverallSDS(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_SDS as String]
-        def metadata = this.getDocumentMetadata(documentTypeName)
-
-        def documentType = DocumentType.SDS as String
+        def documentType = DocumentType.SSDS as String
 
         def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, this.getWatermarkText(documentType))
         this.notifyJiraTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")

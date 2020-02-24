@@ -190,6 +190,29 @@ class JiraUseCaseSpec extends SpecHelper {
         result == expected
     }
 
+    // TODO configure mocked JIRA for the test specification
+    @Ignore
+    def "handle with a meaningful error when jquery returns 0 JIRA issues as a response"() {
+        given:
+        // Test Parameters
+        def documentType = "myDocumentType"
+
+        when:
+        def jiraResult = [
+            "total": 0,
+            "maxResults":1000,
+            "issues":[]
+        ]
+
+        then: 
+        // Expect an error
+        def msg = shouldFail IllegalStateException, {
+            usecase.getDocumentChapterData(documentType)
+        }
+        assert msg.contains('No documents found') && msg.contains("JIRA")
+        
+    }
+
     def "match Jira test issues against test results"() {
         given:
         def testIssues = createJiraTestIssues()
