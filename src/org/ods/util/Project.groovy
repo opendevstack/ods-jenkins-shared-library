@@ -23,6 +23,7 @@ class Project {
         static final String INTERFACE_REQUIREMENT = "Interface Requirement"
     }
 
+    protected static final List JIRA_DATA_REFERENCE_TYPES = ["components", "epic", "epics", "mitigations", "requirements", "risks", "techSpecs", "tests"]
     protected static final String METADATA_FILE_NAME = "metadata.yml"
 
     private static final TEMP_FAKE_JIRA_DATA = """
@@ -858,14 +859,13 @@ class Project {
         this.data.buildParams = loadBuildParams(steps)
         this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
-        this.data.jira = this.loadJiraData(this.data.metadata.id)
+        this.data.jira = this.resolveJiraDataReferences(this.loadJiraData(this.data.metadata.id))
 
         return this
     }
 
     List<Map> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { testIssue ->
-            this.steps.echo("??? testIssue: ${testIssue}")
             def result = testIssue.status.toLowerCase() == "ready to test"
 
             if (result && componentName) {
@@ -1127,7 +1127,41 @@ class Project {
         return result
     }
 
+    protected resolveJiraDataReferences(Map data) {
+        data.each { name, values ->
+            if (values instanceof Collection) {
+                values.each { item ->
+                    JIRA_DATA_REFERENCE_TYPES.each { referenceType ->
+                        if (item.containsKey(referenceType)) {
+                            if (item[referenceType] instanceof Collection) {
+                                item[referenceType].eachWithIndex { referenceKey, index ->
+                                    // FIXME: turn global collections of items, such as components, tests, etc. into Maps
+                                    item[referenceType][index] = data[referenceType].find { it.key == referenceKey }
+                                }
+                            } else if (item[referenceType] instanceof String && referenceType == "epic") {
+                                // FIXME: turn global collections of items, such as components, tests, etc. into Maps
+                                item[referenceType] = data["epics"].find { it.key == item[referenceType] }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     void setHasFailingTests(boolean status) {
         this.data.build.hasFailingTests = status
+    }
+
+    String toString() {
+        // We don't serialize Jira data as prior reference resolution results in stack overflow
+        def result = this.data.subMap(["build", "buildParams", "git", "metadata"])
+
+        // We don't serialize temporarily stored document artefacts which clutter the log
+        result.metadata.repositories.each { repo ->
+            repo.data.documents = [:]
+        }
+
+        return result.toString()
     }
 }

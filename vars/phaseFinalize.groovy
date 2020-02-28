@@ -1,5 +1,4 @@
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurperClassic
 
 import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.OpenShiftService
@@ -25,13 +24,8 @@ def call(Project project, List<Set<Map>> repos) {
 
     project.gitData.location = os.exportProject(env.MULTI_REPO_ENV, project.key.toLowerCase(), env.RELEASE_PARAM_CHANGE_ID)
 
-    // Dump a simple representation of the project
-    def simpleProject = new JsonSlurperClassic().parseText(JsonOutput.toJson(project)) // clone
-    simpleProject.repositories.each { repo ->
-        repo.data.documents = []
-    }
-
-    echo "Project ${simpleProject}"
+    // Dump a representation of the project
+    echo "Project ${JsonOutput.toJson(project)}"
 
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
