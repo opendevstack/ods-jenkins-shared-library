@@ -265,7 +265,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             key: testIssue.key,
                             description: testIssue.description ?: "",
                             // TODO: change template from isRelatedTo to systemRequirement
-                            systemRequirement: testIssue.requirements.join(", "),
+                            systemRequirement: testIssue.requirements.collect{ it.key }.join(", "),
                             success: testIssue.isSuccess ? "Y" : "N",
                             remarks: testIssue.isMissing ? "not executed" : ""
                         ]
@@ -318,8 +318,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         [
                             key: testIssue.key,
                             description: testIssue.description ?: "",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A"
                         ]
                     ]
                 },
@@ -329,8 +329,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         [
                             key: testIssue.key,
                             description: testIssue.description ?: "",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A"
                         ]
                     ]
                 }
@@ -388,9 +388,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             datetime: testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
                             description: testIssue.description ?: "",
                             remarks: testIssue.isMissing ? "not executed" : "",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A",
                             success: testIssue.isSuccess ? "Y" : "N",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A"
                         ]
                     ]
                 },
@@ -402,9 +402,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             datetime: testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
                             description: testIssue.description ?: "",
                             remarks: testIssue.isMissing ? "not executed" : "",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                            risk_key: testIssue.risks ? testIssue.risks.collect{ it.key }.join(", ") : "N/A",
                             success: testIssue.isSuccess ? "Y" : "N",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                            ur_key: testIssue.requirements ? testIssue.requirements.collect{ it.key }.join(", ") : "N/A"
                         ]
                     ]
                 },
@@ -627,7 +627,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def systemDesignSpecifications = this.project.getTechnicalSpecifications().collect { techSpec ->
             [
                 key: techSpec.key,
-                req_key: techSpec.requirements.collect{ it }.join(", "),
+                req_key: techSpec.requirements.collect{ it.key }.join(", "),
                 description: techSpec.description
                 // TODO: prefix properties in sec5s1 with .metadata in template 
                 //metadata: techSpec.components.collect { componentKey ->
