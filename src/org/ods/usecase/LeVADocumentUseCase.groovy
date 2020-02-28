@@ -208,7 +208,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             key: testIssue.key,
                             description: testIssue.description ?: "",
                             // TODO: change template from isRelatedTo to systemRequirement
-                            systemRequirement: testIssue.requirements.join(", ")
+                            systemRequirement: testIssue.requirements.collect{ it.key }.join(", ")
                         ]
                     ]
                 }
