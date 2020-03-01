@@ -41,7 +41,7 @@ class Project {
 
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
         private List<Map> getResolvedReferences(String type) {
-            def item = Project.this.data.jiraResolved[this.type][this.getAt("key")]
+            def item = this.project.data.jiraResolved[this.type][this.getAt("key")]
             return item[type] ?: []
         }
 
