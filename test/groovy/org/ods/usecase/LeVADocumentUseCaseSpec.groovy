@@ -471,6 +471,7 @@ def "create FTR"() {
         xmlFile.delete()
     }
 
+    @Ignore
     def "create SSDS"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
