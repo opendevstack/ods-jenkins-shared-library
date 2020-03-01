@@ -10,8 +10,6 @@ import org.yaml.snakeyaml.Yaml
 class Project {
 
     class JiraDataItem extends HashMap {
-        private final String type
-
         static final String TYPE_BUGS = "bugs"
         static final String TYPE_COMPONENTS = "components"
         static final String TYPE_EPICS = "epics"
@@ -32,9 +30,13 @@ class Project {
             TYPE_TESTS
         ]
 
-        JiraDataItem(Map map, String type) {
+        private String type
+        private Project project
+
+        JiraDataItem(Map map, String type, Project project) {
             super(map)
             this.type = type
+            this.project = project
         }
 
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
@@ -873,7 +875,7 @@ class Project {
             }
 
             data[type] = data[type].collectEntries { key, item ->
-                return [key, new JiraDataItem(item, type)]
+                return [key, new JiraDataItem(item, type, this)]
             }
         }        
 
