@@ -1,5 +1,7 @@
 package org.ods.util
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import groovy.json.JsonSlurperClassic
 
 import java.nio.file.Paths
@@ -30,18 +32,17 @@ class Project {
             TYPE_TESTS
         ]
 
-        private String type
-        private Project project
+        private final String type
 
-        JiraDataItem(Map map, String type, Project project) {
+        JiraDataItem(Map map, String type) {
             super(map)
             this.type = type
-            this.project = project
         }
 
+        @NonCPS
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
         private List<Map> getResolvedReferences(String type) {
-            def item = this.project.data.jiraResolved[this.type][this.getAt("key")]
+            def item = Project.this.data.jiraResolved[this.type][this.getAt("key")]
             return item[type] ?: []
         }
 
@@ -875,7 +876,7 @@ class Project {
             }
 
             data[type] = data[type].collectEntries { key, item ->
-                return [key, new JiraDataItem(item, type, this)]
+                return [key, new JiraDataItem(item, type)]
             }
         }        
 
