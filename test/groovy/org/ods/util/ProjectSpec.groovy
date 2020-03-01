@@ -357,6 +357,97 @@ class ProjectSpec extends SpecHelper {
         metadataFile.delete()
     }
 
+
+    def "load"() {
+        given:
+        def component1 = [ key: "CMP-1", name: "Component 1" ]
+        def epic1 = [ key: "EPC-1", name: "Epic 1" ]
+        def mitigation1 = [ key: "MTG-1", name: "Mitigation 1" ]
+        def requirement1 = [ key: "REQ-1", name: "Requirement 1" ]
+        def risk1 = [ key: "RSK-1", name: "Risk 1" ]
+        def techSpec1 = [ key: "TS-1", name: "Technical Specification 1" ]
+        def test1 = [ key: "TST-1", name: "Test 1" ]
+        def test2 = [ key: "TST-2", name: "Test 2" ]
+
+        // Define key-based references
+        component1.epics = [epic1.key]
+        component1.mitigations = [mitigation1.key]
+        component1.requirements = [requirement1.key]
+        component1.risks = [risk1.key]
+        component1.tests = [test1.key, test2.key]
+        component1.techSpecs = [techSpec1.key]
+
+        epic1.components = [component1.key]
+        epic1.requirements = [requirement1.key]
+
+        mitigation1.components = [component1.key]
+        mitigation1.requirements = [requirement1.key]
+        mitigation1.risks = [risk1.key]
+
+        requirement1.components = [component1.key]
+        requirement1.epics = [epic1.key]
+        requirement1.mitigations = [mitigation1.key]
+        requirement1.risks = [risk1.key]
+        requirement1.tests = [test1.key, test2.key]
+
+        risk1.components = [component1.key]
+        risk1.requirements = [requirement1.key]
+        risk1.tests = [test1.key, test2.key]
+
+        techSpec1.components = [component1.key]
+
+        test1.components = [component1.key]
+        test1.requirements = [requirement1.key]
+        test1.risks = [risk1.key]
+
+        test2.components = [component1.key]
+        test2.requirements = [requirement1.key]
+        test2.risks = [risk1.key]
+
+        when:
+        project.load()
+
+        then:
+        1 * project.loadJiraData(_) >> [
+            project: [ name: "my-project" ],
+            bugs: [],
+            components: [(component1.key): component1],
+            epics: [(epic1.key): epic1],
+            mitigations: [(mitigation1.key): mitigation1],
+            requirements: [(requirement1.key): requirement1],
+            risks: [(risk1.key): risk1],
+            tests: [(test1.key): test1, (test2.key): test2],
+            techSpecs: [(techSpec1.key): techSpec1]
+        ]
+
+        then:
+        def components = project.components
+        components.first() == component1
+
+        // Unresolved references
+        components.first().epics == [epic1.key]
+        components.first().mitigations == [mitigation1.key]
+        components.first().requirements == [requirement1.key]
+        components.first().risks == [risk1.key]
+        components.first().tests == [test1.key, test2.key]
+        components.first().techSpecs == [techSpec1.key]
+
+        // Resolved references
+        components.first().getResolvedEpics() == [epic1]
+        components.first().getResolvedMitigations() == [mitigation1]
+        components.first().getResolvedSystemRequirements() == [requirement1]
+        components.first().getResolvedRisks() == [risk1]
+        components.first().getResolvedTests() == [test1, test2]
+        components.first().getResolvedTechnicalSpecifications() == [techSpec1]
+
+        // Resolved transitive references
+        components.first().getResolvedEpics().first().getResolvedComponents() == [component1]
+        components.first().getResolvedEpics().first().getResolvedSystemRequirements() == [requirement1]
+        components.first().getResolvedEpics().first().getResolvedSystemRequirements().first().getResolvedMitigations() == [mitigation1]
+        components.first().getResolvedEpics().first().getResolvedSystemRequirements().first().getResolvedTests() == [test1, test2]
+        components.first().getResolvedEpics().first().getResolvedSystemRequirements().first().getResolvedTests().first().getResolvedRisks() == [risk1]
+    }
+
     def "load build param changeDescription"() {
         when:
         steps.env.changeDescription = null
@@ -730,115 +821,5 @@ class ProjectSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project meta data. Required attribute 'repositories[1].id' is undefined."
-    }
-
-    def "resolve Jira data references"() {
-        given:
-        def component1 = [ key: "CMP-1", name: "Component 1" ]
-        def epic1 = [ key: "EPC-1", name: "Epic 1" ]
-        def mitigation1 = [ key: "MTG-1", name: "Mitigation 1" ]
-        def requirement1 = [ key: "REQ-1", name: "Requirement 1" ]
-        def risk1 = [ key: "RSK-1", name: "Risk 1" ]
-        def techSpec1 = [ key: "TS-1", name: "Technical Specification 1" ]
-        def test1 = [ key: "TST-1", name: "Test 1" ]
-        def test2 = [ key: "TST-2", name: "Test 2" ]
-
-        // Define key-based references
-        component1.epics = [epic1.key]
-        component1.mitigations = [mitigation1.key]
-        component1.requirements = [requirement1.key]
-        component1.risks = [risk1.key]
-        component1.tests = [test1.key, test2.key]
-        component1.techSpecs = [techSpec1.key]
-
-        epic1.components = [component1.key]
-        epic1.requirements = [requirement1.key]
-
-        mitigation1.components = [component1.key]
-        mitigation1.requirements = [requirement1.key]
-        mitigation1.risks = [risk1.key]
-
-        requirement1.components = [component1.key]
-        requirement1.epic = epic1.key
-        requirement1.mitigations = [mitigation1.key]
-        requirement1.risks = [risk1.key]
-        requirement1.tests = [test1.key, test2.key]
-
-        risk1.components = [component1.key]
-        risk1.requirements = [requirement1.key]
-        risk1.tests = [test1.key, test2.key]
-
-        techSpec1.components = [component1.key]
-
-        test1.components = [component1.key]
-        test1.requirements = [requirement1.key]
-        test1.risks = [risk1.key]
-
-        test2.components = [component1.key]
-        test2.requirements = [requirement1.key]
-        test2.risks = [risk1.key]
-
-        when:
-        project.load()
-
-        then:
-        1 * project.loadJiraData(_) >> [
-            project: [ name: "my-project" ],
-            components: [component1],
-            epics: [epic1],
-            mitigations: [mitigation1],
-            requirements: [requirement1],
-            risks: [risk1],
-            tests: [test1, test2],
-            techSpecs: [techSpec1]
-        ]
-
-        then:
-        // We expect references resolved to entities
-        def projectComponent1 = project.data.jira.components.first()
-        projectComponent1.epics.first().name == epic1.name
-        projectComponent1.mitigations.first().name == mitigation1.name
-        projectComponent1.requirements.first().name == requirement1.name
-        projectComponent1.risks.first().name == risk1.name
-        projectComponent1.tests.first().name == test1.name
-        projectComponent1.tests.last().name == test2.name
-        projectComponent1.techSpecs.first().name == techSpec1.name
-        println project.toString()
-
-        def projectEpic1 = project.data.jira.epics.first()
-        projectEpic1.components.first().name == component1.name
-        projectEpic1.requirements.first().name == requirement1.name
-
-        def projectMitigation1 = project.data.jira.mitigations.first()
-        projectMitigation1.components.first().name == component1.name
-        projectMitigation1.requirements.first().name == requirement1.name
-        projectMitigation1.risks.first().name == risk1.name
-
-        def projectRequirement1 = project.data.jira.requirements.first()
-        requirement1.components.first().name == component1.name
-        requirement1.epic.name == epic1.name
-        requirement1.mitigations.first().name == mitigation1.name
-        requirement1.risks.first().name == risk1.name
-        requirement1.tests.first().name == test1.name
-        requirement1.tests.last().name == test2.name
-
-        def projectRisk1 = project.data.jira.risks.first()
-        projectRisk1.components.first().name == component1.name
-        projectRisk1.requirements.first().name == requirement1.name
-        projectRisk1.tests.first().name == test1.name
-        projectRisk1.tests.last().name == test2.name
-
-        def projectTechSpec1 = project.data.jira.techSpecs.first()
-        projectTechSpec1.components.first().name == component1.name
-
-        def projectTest1 = project.data.jira.tests.first()
-        projectTest1.components.first().name == component1.name
-        projectTest1.requirements.first().name == requirement1.name
-        projectTest1.risks.first().name == risk1.name
-
-        def projectTest2 = project.data.jira.tests.last()
-        test2.components.first().name == component1.name
-        test2.requirements.first().name == requirement1.name
-        test2.risks.first().name == risk1.name
     }
 }
