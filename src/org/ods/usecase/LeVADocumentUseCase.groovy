@@ -42,20 +42,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
-        (DocumentType.CSD as String): "Configuration Specification", // TODO Change me for the good name
-        (DocumentType.DTP as String): "Software Development Testing Plan",
-        (DocumentType.DTR as String): "Software Development Testing Report",
-        (DocumentType.FTP as String): "Functional and Requirements Testing Plan",
-        (DocumentType.FTR as String): "Functional and Requirements Testing Report",
-        (DocumentType.IVP as String): "Configuration and Installation Testing Plan",
-        (DocumentType.IVR as String): "Configuration and Installation Testing Report",
-        (DocumentType.SSDS as String): "Software Design Specification",
-        (DocumentType.TIP as String): "Technical Installation Plan",
-        (DocumentType.TIR as String): "Technical Installation Report",
-        (DocumentType.OVERALL_DTR as String): "Overall Software Development Testing Report",
-        (DocumentType.OVERALL_IVR as String): "Overall Configuration and Installation Testing Report",
-        (DocumentType.OVERALL_SSDS as String): "Overall Software Design Specification",
-        (DocumentType.OVERALL_TIR as String): "Overall Technical Installation Report"
+            (DocumentType.CSD as String)         : "Configuration Specification", // TODO Change me for the good name
+            (DocumentType.DTP as String)         : "Software Development Testing Plan",
+            (DocumentType.DTR as String)         : "Software Development Testing Report",
+            (DocumentType.FTP as String)         : "Functional and Requirements Testing Plan",
+            (DocumentType.FTR as String)         : "Functional and Requirements Testing Report",
+            (DocumentType.IVP as String)         : "Configuration and Installation Testing Plan",
+            (DocumentType.IVR as String)         : "Configuration and Installation Testing Report",
+            (DocumentType.SSDS as String)        : "Software Design Specification",
+            (DocumentType.TIP as String)         : "Technical Installation Plan",
+            (DocumentType.TIR as String)         : "Technical Installation Report",
+            (DocumentType.OVERALL_DTR as String) : "Overall Software Development Testing Report",
+            (DocumentType.OVERALL_IVR as String) : "Overall Configuration and Installation Testing Report",
+            (DocumentType.OVERALL_SSDS as String): "Overall Software Design Specification",
+            (DocumentType.OVERALL_TIR as String) : "Overall Technical Installation Report"
     ]
 
     private static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
@@ -86,18 +86,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def metadata = repo_.metadata
 
             return [
-                component.name, 
-                [
-                   key: component.key,
-                   componentName: component.name,
-                   componentId: metadata.id ?: "N/A - part of this application",
-                   componentType: (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
-                   description: metadata.description,
-                   nameOfSoftware: metadata.name,
-                   references: metadata.references ?: "N/A",
-                   supplier: metadata.supplier,
-                   version: metadata.version
-                ]
+                    component.name,
+                    [
+                            key           : component.key,
+                            componentName : component.name,
+                            componentId   : metadata.id ?: "N/A - part of this application",
+                            componentType : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
+                            description   : metadata.description,
+                            nameOfSoftware: metadata.name,
+                            references    : metadata.references ?: "N/A",
+                            supplier      : metadata.supplier,
+                            version       : metadata.version
+                    ]
             ]
         }
     }
@@ -106,11 +106,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
     // since we want to report all executed tests (and draw conclusions from them)
     protected Map computeTestDiscrepancies(String name, List testIssues) {
         def result = [
-            discrepancies: "No discrepancies found.",
-            conclusion: [
-                summary: "Complete success, no discrepancies",
-                statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
-            ]
+                discrepancies: "No discrepancies found.",
+                conclusion   : [
+                        summary  : "Complete success, no discrepancies",
+                        statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+                ]
         ]
 
         def failed = []
@@ -130,8 +130,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             result.discrepancies = "The following minor discrepancies were found during testing: ${missing.join(", ")}."
 
             result.conclusion = [
-               summary: "Success - minor discrepancies found",
-               statement: "Some discrepancies were found as tests were not executed, this may be per design."
+                    summary  : "Success - minor discrepancies found",
+                    statement: "Some discrepancies were found as tests were not executed, this may be per design."
             ]
         } else if (!failed.isEmpty()) {
             if (!missing.isEmpty()) {
@@ -142,8 +142,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             result.discrepancies = "The following major discrepancies were found during testing: ${(failed).join(", ")}."
 
             result.conclusion = [
-               summary: "No success - major discrepancies found",
-               statement: "Some discrepancies occured as tests did fail. It is not recommended to continue!"
+                    summary  : "No success - major discrepancies found",
+                    statement: "Some discrepancies occured as tests did fail. It is not recommended to continue!"
             ]
         }
 
@@ -151,8 +151,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createCSD(Map repo = null, Map data = null) {
-	    // TODO Crete full reimplementation for the union of CS, FS and URS. 
-	    // See old commits in order to obtain the information on how those documents were implemented
+        // TODO Crete full reimplementation for the union of CS, FS and URS.
+        // See old commits in order to obtain the information on how those documents were implemented
         def documentType = DocumentType.CSD as String
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
@@ -162,10 +162,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def interfaces = this.project.getSystemRequirementsTypeInterfaces().collect { req ->
             [
-                key: req.configSpec.key,
-                // TODO: change ur_key to req_key in template
-                req_key: req.key,
-                description: req.description
+                    key        : req.configSpec.key,
+                    // TODO: change ur_key to req_key in template
+                    req_key    : req.key,
+                    description: req.description
             ]
         }
 
@@ -173,10 +173,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         sections."sec4".items = SortUtil.sortIssuesByProperties(interfaces, ["req_key", "key"])
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                sections: sections
-            ]
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+                data    : [
+                        sections: sections
+                ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
@@ -196,23 +196,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                // TODO: change template from this.project.repositories to repositories
-                repositories: this.project.repositories,
-                sections: sections,
-                tests: this.project.getAutomatedTestsTypeUnit().collectEntries { testIssue ->
-                    [
-                        testIssue.key,
-                        [
-                            key: testIssue.key,
-                            description: testIssue.description ?: "",
-                            // TODO: change template from isRelatedTo to systemRequirement
-                            systemRequirement: testIssue.requirements.join(", ")
-                        ]
-                    ]
-                }
-            ]
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+                data    : [
+                        // TODO: change template from this.project.repositories to repositories
+                        repositories: this.project.repositories,
+                        sections    : sections,
+                        tests       : this.project.getAutomatedTestsTypeUnit().collectEntries { testIssue ->
+                            [
+                                    testIssue.key,
+                                    [
+                                            key              : testIssue.key,
+                                            description      : testIssue.description ?: "",
+                                            // TODO: change template from isRelatedTo to systemRequirement
+                                            systemRequirement: testIssue.requirements.join(", ")
+                                    ]
+                            ]
+                        }
+                ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
@@ -254,37 +254,37 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues)
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-            data: [
-                repo: repo,
-                sections: sections,
-                tests: testIssues.collectEntries { testIssue ->
-                    [
-                        testIssue.key,
-                        [
-                            key: testIssue.key,
-                            description: testIssue.description ?: "",
-                            // TODO: change template from isRelatedTo to systemRequirement
-                            systemRequirement: testIssue.requirements.join(", "),
-                            success: testIssue.isSuccess ? "Y" : "N",
-                            remarks: testIssue.isMissing ? "not executed" : ""
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+                data    : [
+                        repo         : repo,
+                        sections     : sections,
+                        tests        : testIssues.collectEntries { testIssue ->
+                            [
+                                    testIssue.key,
+                                    [
+                                            key              : testIssue.key,
+                                            description      : testIssue.description ?: "",
+                                            // TODO: change template from isRelatedTo to systemRequirement
+                                            systemRequirement: testIssue.requirements.join(", "),
+                                            success          : testIssue.isSuccess ? "Y" : "N",
+                                            remarks          : testIssue.isMissing ? "not executed" : ""
+                                    ]
+                            ]
+                        },
+                        testfiles    : data.testReportFiles.collect { file ->
+                            [name: file.getName(), path: file.getPath()]
+                        },
+                        testsuites   : data.testResults,
+                        discrepancies: discrepancies.discrepancies,
+                        conclusion   : [
+                                summary  : discrepancies.conclusion.summary,
+                                statement: discrepancies.conclusion.statement
                         ]
-                    ]
-                },
-                testfiles: data.testReportFiles.collect { file ->
-                    [ name: file.getName(), path: file.getPath() ]
-                },
-                testsuites: data.testResults,
-                discrepancies: discrepancies.discrepancies,
-                conclusion: [
-                    summary: discrepancies.conclusion.summary,
-                    statement : discrepancies.conclusion.statement
                 ]
-            ]
         ]
 
         def files = data.testReportFiles.collectEntries { file ->
-            [ "raw/${file.getName()}", file.getBytes() ]
+            ["raw/${file.getName()}", file.getBytes()]
         }
 
         def modifier = { document ->
@@ -309,32 +309,32 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                sections: sections,
-                acceptanceTests: acceptanceTestIssues.collectEntries { testIssue ->
-                    [
-                        testIssue.key,
-                        [
-                            key: testIssue.key,
-                            description: testIssue.description ?: "",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A"
-                        ]
-                    ]
-                },
-                integrationTests: integrationTestIssues.collectEntries { testIssue ->
-                    [
-                        issue.key,
-                        [
-                            key: testIssue.key,
-                            description: testIssue.description ?: "",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A"
-                        ]
-                    ]
-                }
-            ]
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+                data    : [
+                        sections        : sections,
+                        acceptanceTests : acceptanceTestIssues.collectEntries { testIssue ->
+                            [
+                                    testIssue.key,
+                                    [
+                                            key        : testIssue.key,
+                                            description: testIssue.description ?: "",
+                                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
+                                    ]
+                            ]
+                        },
+                        integrationTests: integrationTestIssues.collectEntries { testIssue ->
+                            [
+                                    issue.key,
+                                    [
+                                            key        : testIssue.key,
+                                            description: testIssue.description ?: "",
+                                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
+                                    ]
+                            ]
+                        }
+                ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
@@ -377,49 +377,49 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def discrepancies = this.computeTestDiscrepancies("Functional and Requirements Tests", (acceptanceTestIssues + integrationTestIssues))
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                sections: sections,
-                acceptanceTests: acceptanceTestIssues.collectEntries { testIssue ->
-                    [
-                        testIssue.key,
-                        [
-                            key: testIssue.key,
-                            datetime: testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                            description: testIssue.description ?: "",
-                            remarks: testIssue.isMissing ? "not executed" : "",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A",
-                            success: testIssue.isSuccess ? "Y" : "N",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+                data    : [
+                        sections        : sections,
+                        acceptanceTests : acceptanceTestIssues.collectEntries { testIssue ->
+                            [
+                                    testIssue.key,
+                                    [
+                                            key        : testIssue.key,
+                                            datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
+                                            description: testIssue.description ?: "",
+                                            remarks    : testIssue.isMissing ? "not executed" : "",
+                                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                                            success    : testIssue.isSuccess ? "Y" : "N",
+                                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                                    ]
+                            ]
+                        },
+                        integrationTests: integrationTestIssues.collectEntries { testIssue ->
+                            [
+                                    testIssue.key,
+                                    [
+                                            key        : testIssue.key,
+                                            datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
+                                            description: testIssue.description ?: "",
+                                            remarks    : testIssue.isMissing ? "not executed" : "",
+                                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                                            success    : testIssue.isSuccess ? "Y" : "N",
+                                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                                    ]
+                            ]
+                        },
+                        testfiles       : (acceptanceTestData + integrationTestData).testReportFiles.collect { file ->
+                            [name: file.getName(), path: file.getPath()]
+                        },
+                        conclusion      : [
+                                summary  : discrepancies.conclusion.summary,
+                                statement: discrepancies.conclusion.statement
                         ]
-                    ]
-                },
-                integrationTests: integrationTestIssues.collectEntries { testIssue ->
-                    [
-                        testIssue.key,
-                        [
-                            key: testIssue.key,
-                            datetime: testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                            description: testIssue.description ?: "",
-                            remarks: testIssue.isMissing ? "not executed" : "",
-                            risk_key: testIssue.risks ? testIssue.risks.join(", ") : "N/A",
-                            success: testIssue.isSuccess ? "Y" : "N",
-                            ur_key: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
-                        ]
-                    ]
-                },
-                testfiles: (acceptanceTestData + integrationTestData).testReportFiles.collect { file ->
-                    [ name: file.getName(), path: file.getPath() ]
-                },
-                conclusion: [
-                    summary: discrepancies.conclusion.summary,
-                    statement : discrepancies.conclusion.statement
                 ]
-            ]
         ]
 
         def files = (acceptanceTestData + integrationTestData).testReportFiles.collectEntries { file ->
-            [ "raw/${file.getName()}", file.getBytes() ]
+            ["raw/${file.getName()}", file.getBytes()]
         }
 
         def uri = this.createDocument(documentType, null, data_, files, null, null, this.getWatermarkText(documentType))
@@ -430,32 +430,68 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createIVP(Map repo = null, Map data = null) {
         def documentType = DocumentType.IVP as String
 
+        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        } else {
+            watermarkText = this.getWatermarkText(documentType)
+        }
+
+        def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
+
+        // TODO factor this into a method of its own
+        def testsGroupedByRepoType = installationTestIssues.collect { test ->
+            def components = test.getResolvedComponents()
+            test.repoTypes = components.collect { component ->
+                def normalizedComponentName = component.name.replaceAll("Technology-", "")
+                def repository = project.repositories.find { repository ->
+                    [repository.id, repository.name].contains(normalizedComponentName)
+                }
+
+                if (!repository) {
+                    throw new IllegalArgumentException("Error: unable to create ${documentType}. Could not find a repository definition with id or name equal to '${normalizedComponentName}' for Jira component '${component.name}' in project '${this.project.id}'.")
+                }
+
+                return repository.type
+            } as Set
+
+            return test
+        }.groupBy { it.repoTypes }
+
+        def testsOfRepoTypeOds = []
+        def testsOfRepoTypeOdsService = []
+        testsGroupedByRepoType.each { repoTypes, tests ->
+            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE)) {
+                testsOfRepoTypeOds.addAll(tests)
+            }
+
+            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)) {
+                testsOfRepoTypeOdsService.addAll(tests)
+            }
         }
 
         def data_ = [
-            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                // TODO: change data.project.repositories to data.repositories in template
-                repositories: this.project.repositories,
-                sections: sections,
-                tests: this.project.getAutomatedTestsTypeInstallation().collectEntries { testIssue ->
-                    [
-                        testIssue.key,
-                        [
-                            key: testIssue.key,
-                            summary: testIssue.name,
-                            // TODO: change template from isRelatedTo to techSpec
-                            techSpec: testIssue.techSpecs.join(", ")
-                        ]
-                    ]
-                }
-            ]
+                metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
+                data    : [
+                        repositories   : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                        sections       : sections,
+                        tests          : installationTestIssues.collectEntries { testIssue ->
+                            [
+                                    testIssue.key,
+                                    [
+                                            key     : testIssue.key,
+                                            summary : testIssue.name,
+                                            techSpec: testIssue.techSpecs.join(", ")
+                                    ]
+                            ]
+                        },
+                        testsOdsService: testsOfRepoTypeOdsService,
+                        testsOds       : testsOfRepoTypeOds
+                ]
         ]
 
-        def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
@@ -492,33 +528,33 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, data?.testResults ?: [:], matchedHandler, unmatchedHandler)
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                // TODO: change data.project.repositories to data.repositories in template
-                repositories: this.project.repositories,
-                sections: sections,
-                tests: testIssues.collectEntries { testIssue ->
-                    [
-                        testIssue.key,
-                        [
-                            key: testIssue.key,
-                            description: testIssue.description ?: "",
-                            remarks: testIssue.isMissing ? "not executed" : "",
-                            success: testIssue.isSuccess ? "Y" : "N",
-                            summary: testIssue.name,
-                            // TODO: change template from isRelatedTo to techSpec
-                            techSpec: testIssue.techSpecs.join(", ")
-                        ]
-                    ]
-                },
-                testfiles: data.testReportFiles.collect { file ->
-                    [ name: file.getName(), path: file.getPath() ]
-                }
-            ]
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+                data    : [
+                        // TODO: change data.project.repositories to data.repositories in template
+                        repositories: this.project.repositories,
+                        sections    : sections,
+                        tests       : testIssues.collectEntries { testIssue ->
+                            [
+                                    testIssue.key,
+                                    [
+                                            key        : testIssue.key,
+                                            description: testIssue.description ?: "",
+                                            remarks    : testIssue.isMissing ? "not executed" : "",
+                                            success    : testIssue.isSuccess ? "Y" : "N",
+                                            summary    : testIssue.name,
+                                            // TODO: change template from isRelatedTo to techSpec
+                                            techSpec   : testIssue.techSpecs.join(", ")
+                                    ]
+                            ]
+                        },
+                        testfiles   : data.testReportFiles.collect { file ->
+                            [name: file.getName(), path: file.getPath()]
+                        }
+                ]
         ]
 
         def files = data.testReportFiles.collectEntries { file ->
-            [ "raw/${file.getName()}", file.getBytes() ]
+            ["raw/${file.getName()}", file.getBytes()]
         }
 
         def uri = this.createDocument(documentType, null, data_, files, null, null, watermarkText)
@@ -616,7 +652,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     //}
 
     String createSSDS(Map repo = null, Map data = null) {
-		def documentType = DocumentType.SSDS as String
+        def documentType = DocumentType.SSDS as String
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -626,13 +662,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def componentsMetadata = this.computeComponentMetadata(documentType).collect { it.value }
         def systemDesignSpecifications = this.project.getTechnicalSpecifications().collect { techSpec ->
             [
-                key: techSpec.key,
-                req_key: techSpec.requirements.join(", "),
-                description: techSpec.description
-                // TODO: prefix properties in sec5s1 with .metadata in template 
-                //metadata: techSpec.components.collect { componentKey ->
-                //    return componentsMetadata[componentKey]
-                //}//.join(", ")
+                    key        : techSpec.key,
+                    req_key    : techSpec.requirements.join(", "),
+                    description: techSpec.description
+                    // TODO: prefix properties in sec5s1 with .metadata in template
+                    //metadata: techSpec.components.collect { componentKey ->
+                    //    return componentsMetadata[componentKey]
+                    //}//.join(", ")
             ]
         }
 
@@ -640,14 +676,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
 
         if (!sections."sec5s1") sections."sec5s1" = [:]
-		// TODO change this to .components here and in HTML template
+        // TODO change this to .components here and in HTML template
         sections."sec5s1".specifications = SortUtil.sortIssuesByProperties(componentsMetadata, ["key"])
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-            data: [
-                sections: sections
-            ]
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+                data    : [
+                        sections: sections
+                ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
@@ -667,14 +703,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data: [
-                // TODO: change this.project.id to project_key in template
-                project_key: this.project.key,
-                // TODO: change data.project.repositories and data.repos to data.repositories in template
-                repositories: this.project.repositories,
-                sections: sections
-            ]
+                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+                data    : [
+                        // TODO: change this.project.id to project_key in template
+                        project_key : this.project.key,
+                        // TODO: change data.project.repositories and data.repos to data.repositories in template
+                        repositories: this.project.repositories,
+                        sections    : sections
+                ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
@@ -696,23 +732,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-            openShiftData: [
-                ocpBuildId           : repo?.data.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
-                ocpDockerImage       : repo?.data.odsBuildArtifacts?."OCP Docker image" ?: "N/A",
-                ocpDeploymentId      : repo?.data.odsBuildArtifacts?."OCP Deployment Id" ?: "N/A",
-                podName              : pods?.items[0]?.metadata?.name ?: "N/A",
-                podNamespace         : pods?.items[0]?.metadata?.namespace ?: "N/A",
-                podCreationTimestamp : pods?.items[0]?.metadata?.creationTimestamp ?: "N/A",
-                podEnvironment       : pods?.items[0]?.metadata?.labels?.env ?: "N/A",
-                podNode              : pods?.items[0]?.spec?.nodeName ?: "N/A",
-                podIp                : pods?.items[0]?.status?.podIP ?: "N/A",
-                podStatus            : pods?.items[0]?.status?.phase ?: "N/A"
-            ],
-            data: [
-                repo: repo,
-                sections: sections
-            ]
+                metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+                openShiftData: [
+                        ocpBuildId          : repo?.data.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
+                        ocpDockerImage      : repo?.data.odsBuildArtifacts?."OCP Docker image" ?: "N/A",
+                        ocpDeploymentId     : repo?.data.odsBuildArtifacts?."OCP Deployment Id" ?: "N/A",
+                        podName             : pods?.items[0]?.metadata?.name ?: "N/A",
+                        podNamespace        : pods?.items[0]?.metadata?.namespace ?: "N/A",
+                        podCreationTimestamp: pods?.items[0]?.metadata?.creationTimestamp ?: "N/A",
+                        podEnvironment      : pods?.items[0]?.metadata?.labels?.env ?: "N/A",
+                        podNode             : pods?.items[0]?.spec?.nodeName ?: "N/A",
+                        podIp               : pods?.items[0]?.status?.podIP ?: "N/A",
+                        podStatus           : pods?.items[0]?.status?.phase ?: "N/A"
+                ],
+                data         : [
+                        repo    : repo,
+                        sections: sections
+                ]
         ]
 
         def modifier = { document ->
@@ -754,12 +790,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def visitor = { data_ ->
             // Append another section for the Jenkins build log
             data_.sections << [
-                heading: "Jenkins Build Log"
+                    heading: "Jenkins Build Log"
             ]
 
             // Add Jenkins build log data
             data_.jenkinsData = [
-                log: this.jenkins.getCurrentBuildLogAsText()
+                    log: this.jenkins.getCurrentBuildLogAsText()
             ]
         }
 
@@ -775,19 +811,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def metadata = [
-            id: null, // unused
-            name: name,
-            description: this.project.description,
-            type: documentTypeName,
-            version: this.steps.env.RELEASE_PARAM_VERSION,
-            date_created: LocalDateTime.now().toString(),
-            buildParameter: this.project.buildParams,
-            git: repo ? repo.data.git : this.project.gitData,
-            jenkins: [
-                buildNumber: this.steps.env.BUILD_NUMBER,
-                buildUrl: this.steps.env.BUILD_URL,
-                jobName: this.steps.env.JOB_NAME
-            ]
+                id            : null, // unused
+                name          : name,
+                description   : this.project.description,
+                type          : documentTypeName,
+                version       : this.steps.env.RELEASE_PARAM_VERSION,
+                date_created  : LocalDateTime.now().toString(),
+                buildParameter: this.project.buildParams,
+                git           : repo ? repo.data.git : this.project.gitData,
+                jenkins       : [
+                        buildNumber: this.steps.env.BUILD_NUMBER,
+                        buildUrl   : this.steps.env.BUILD_URL,
+                        jobName    : this.steps.env.JOB_NAME
+                ]
         ]
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]
@@ -814,7 +850,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def environment = this.project.buildParams.targetEnvironmentToken
 
         // The watermark only applies in DEV environment (for documents not to be delivered from that environment)
-        if (environment.equals('D') && !LeVADocumentScheduler.ENVIRONMENT_TYPE['D'].containsKey(documentType)){
+        if (environment.equals('D') && !LeVADocumentScheduler.ENVIRONMENT_TYPE['D'].containsKey(documentType)) {
             return this.DEVELOPER_PREVIEW_WATERMARK
         }
 
@@ -827,7 +863,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def jiraDocumentLabel = this.getJiraTrackingIssueLabelForDocumentType(documentType)
 
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = ${jiraDocumentLabel}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = ${jiraDocumentLabel}"]
 
         // Search for the Jira issue associated with the document
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)

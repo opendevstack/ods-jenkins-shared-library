@@ -26,6 +26,21 @@ class FakeGitUtil extends GitUtil {
 
 @InheritConstructors
 class FakeProject extends Project {
+
+    @Override
+    Project load() {
+        this.data.build = [:]
+        this.data.build.hasFailingTests = false
+
+        this.data.buildParams = loadBuildParams(steps)
+        this.data.git = [commit: git.getCommit(), url: git.getURL() ]
+        this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
+        this.data.jira = this.convertJiraDataToJiraDataItems(this.loadJiraData(this.data.metadata.id))
+        this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
+
+        return this
+    }
+
     static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug) {
         def env = new EnvironmentVariables()
         return FixtureHelper.createProjectBuildEnvironment(env)
@@ -41,7 +56,7 @@ class FakeProject extends Project {
         new File(getClass().getResource(path).toURI())
     }
 
-    static Map loadBuildParams() {
+    static Map loadBuildParams(IPipelineSteps steps) {
         return FixtureHelper.createProjectBuildParams()
     }
 
@@ -90,84 +105,74 @@ class FixtureHelper {
 
     static Map createProjectMetadata() {
         def result = [
-            id: "PHOENIX",
-            key: "PHOENIX-123",
-            name: "Project Phoenix",
-            description: "A super sophisticated project.",
-            data: [
-                build: [:],
-                documents: [:]
-            ]
+                id          : "pltfmdev",
+                name        : "Sock Shop",
+                description : "A socks-selling e-commerce demo application.",
+                services    : [
+                        bitbucket: [
+                                credentials: [
+                                        id: "pltfmdev-cd-cd-user-with-password"
+                                ]
+                        ],
+                        jira     : [
+                                credentials: [
+                                        id: "pltfmdev-cd-cd-user-with-password"
+                                ]
+                        ],
+                        nexus    : [
+                                repository: [
+                                        name: "leva-documentation"
+                                ]
+                        ]
+                ],
+                repositories: [
+                        [
+                                id  : "demo-app-carts",
+                                type: "ods-service",
+                                data: [
+                                        documents: [:]
+                                ]
+                        ],
+                        [
+                                id  : "demo-app-catalogue",
+                                type: "ods",
+                                data: [
+                                        documents: [:]
+                                ]
+                        ],
+                        [
+                                id  : "demo-app-front-end",
+                                type: "ods",
+                                data: [
+                                        documents: [:]
+                                ]
+                        ],
+                        [
+                                id  : "demo-app-test",
+                                type: "ods-test",
+                                data: [
+                                        documents: [:]
+                                ]
+                        ]
+                ],
+                capabilities: []
         ]
 
-        result.services = [
-            bitbucket: [
-                credentials: [
-                    id: "myBitBucketCredentials"
-                ]
-            ],
-            jira: [
-                credentials: [
-                    id: "myJiraCredentials"
-                ]
-            ],
-            nexus: [
-                repository: [
-                    name: "myNexusRepository"
-                ]
+        result.repositories.each { repo ->
+            repo.data?.git = [
+                    branch: "origin/master",
+                    commit: UUID.randomUUID().toString().replaceAll("-", ""),
+                    previousCommit: UUID.randomUUID().toString().replaceAll("-", ""),
+                    previousSucessfulCommit: UUID.randomUUID().toString().replaceAll("-", ""),
+                    url: "https://cd_user@somescm.com/scm/someproject/${repo.id}.git"
             ]
-        ]
-
-        result.repositories = [
-            [
-                id: "A",
-                url: "https://github.com/my-org/my-repo-A.git",
-                branch: "master",
-                data: [
-                    documents: [:]
-                ],
-                metadata: [
-                    id: "A",
-                    name: "Component A",
-                    description: "This is component A.",
-                    references: "",
-                    supplier: "N/A",
+            repo.metadata = [
+                    name: "Sock Shop: ${repo.id}",
+                    description: "Some description for ${repo.id}",
+                    supplier: "https://github.com/microservices-demo/",
                     version: "1.0"
-                ]
-            ],
-            [
-                id: "B",
-                name: "my-repo-B",
-                branch: "master",
-                data: [
-                    documents: [:]
-                ],
-                metadata: [
-                    id: "B",
-                    name: "Component B",
-                    description: "This is component B.",
-                    references: "",
-                    supplier: "N/A",
-                    version: "1.0"
-                ]
-            ],
-            [
-                id: "C",
-                data: [
-                    documents: [:]
-                ],
-                metadata: [
-                    id: "C",
-                    name: "Component C",
-                    description: "This is component C.",
-                    references: "",
-                    supplier: "N/A",
-                    version: "1.0"
-                ]
             ]
-        ]
-
-        result.capabilities = []
+        }
 
         return result
     }
@@ -338,6 +343,10 @@ class FixtureHelper {
             </testsuite>
         </testsuites>
         """
+    }
+
+    static String createSockShopJUnitXmlTestResults() {
+        // TODO  Sock Shop based test results
     }
 
     static Map createOpenShiftPodDataForComponent() {
