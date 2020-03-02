@@ -394,9 +394,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         ]
                     ]
                 },
-                integrationTests: integrationTestIssues.collectEntries { issue ->
+                integrationTests: integrationTestIssues.collectEntries { testIssue ->
                     [
-                        issue.key,
+                        testIssue.key,
                         [
                             key: testIssue.key,
                             datetime: testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
