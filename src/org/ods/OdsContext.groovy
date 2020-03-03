@@ -86,6 +86,8 @@ class OdsContext implements Context {
     logger.debug "Deriving configuration from input ..."
     config.openshiftProjectId = "${config.projectId}-cd"
     config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
+    config.bitbucketTokenSecretName = 'cd-user-bitbucket-token'
+    config.bitbucketTokenCredentialsId = "${config.openshiftProjectId}-${config.bitbucketTokenSecretName}"
 
     logger.debug "Setting defaults ..."
     if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
@@ -165,6 +167,15 @@ class OdsContext implements Context {
       config.podLabel = "pod-${UUID.randomUUID().toString()}"
     }
 
+    logger.debug "Reading ODS configuration ..."
+    def odsConfigFile = '/etc/opendevstack/config.json'
+    config.odsConfig = [:]
+    try {
+      config.odsConfig = script.readJSON(file: odsConfigFile)
+    } catch (Exception ex) {
+      logger.info "WARN: ODS configuration at ${odsConfigFile} could not be read. Error was: ${ex}"
+    }
+
     logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
     config.gitBranch = retrieveGitBranch()
@@ -193,6 +204,8 @@ class OdsContext implements Context {
       config.dockerDir = 'docker'
     }
 
+    createBitbucketTokenIfMissing()
+
     logger.debug "Setting environment ..."
     determineEnvironment()
     if (config.environment) {
@@ -206,6 +219,10 @@ class OdsContext implements Context {
 
   boolean getDebug() {
       config.debug
+  }
+
+  def getOdsConfig() {
+    config.odsConfig
   }
 
   String getJobName() {
@@ -405,7 +422,7 @@ class OdsContext implements Context {
   }
 
   boolean getCiSkipEnabled() {
-    return config.ciSkipEnabled
+    config.ciSkipEnabled
   }
 
   void setCiSkipEnabled(boolean ciSkipEnabled) {
@@ -421,11 +438,11 @@ class OdsContext implements Context {
   }
 
   boolean getLocalCheckoutEnabled() {
-    return config.localCheckoutEnabled
+    config.localCheckoutEnabled
   }
 
   boolean getTestResults () {
-    return config.testResults
+    config.testResults
   }
 
   void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
@@ -433,7 +450,7 @@ class OdsContext implements Context {
   }
 
   boolean getDisplayNameUpdateEnabled() {
-    return config.displayNameUpdateEnabled
+    config.displayNameUpdateEnabled
   }
 
   void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
@@ -441,7 +458,11 @@ class OdsContext implements Context {
   }
 
   String getDockerDir() {
-    return config.dockerDir
+    config.dockerDir
+  }
+
+  String getBitbucketTokenCredentialsId() {
+    config.bitbucketTokenCredentialsId
   }
 
   private String retrieveGitUrl() {
@@ -643,4 +664,64 @@ class OdsContext implements Context {
     this.artifactUriStore.put(key, value)
   }
 
+  private boolean getBitbucketTokenExists() {
+    try {
+      script.withCredentials([
+        script.usernamePassword(
+          credentialsId: config.bitbucketTokenCredentialsId,
+          usernameVariable: 'USERNAME',
+          passwordVariable: 'TOKEN'
+        )
+      ]) {
+        true
+      }
+    } catch (_) {
+      false
+    }
+  }
+
+  private void createBitbucketTokenIfMissing() {
+    if (!getBitbucketTokenExists()) {
+      logger.info "Secret ${config.bitbucketTokenCredentialsId} does not exist yet, it will be created now."
+      def tokenMap = createBitbucketToken()
+      if (tokenMap['password']) {
+        createBitbucketTokenSecret(tokenMap['username'], tokenMap['password'])
+      }
+    }
+  }
+
+  private Map<String, String> createBitbucketToken() {
+    def tokenMap = [username:'', password: '']
+    def res = ""
+    script.withCredentials([script.usernamePassword(credentialsId: config.credentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+      tokenMap['username'] = script.USERNAME
+      res = script.sh(
+        returnStdout: true,
+        script: """curl \\
+          --fail \\
+          --silent \\
+          --user ${script.USERNAME.replace('$', '\'$\'')}:${script.PASSWORD.replace('$', '\'$\'')} \\
+          --request PUT \\
+          --header \"Content-Type: application/json\" \\
+          --data '{\"name\":\"ods-jenkins-shared-library\",\"permissions\":[\"PROJECT_WRITE\", \"REPO_WRITE\"]}' \\
+          ${config.bitbucketUrl}/rest/access-tokens/1.0/users/${script.USERNAME.replace('@', '_')}
+        """
+      ).trim()
+    }
+    try {
+      def js = script.readJSON(text: res)
+      tokenMap['password'] = js['token']
+    } catch (Exception ex) {
+      logger.info "WARN: Could not understand API response. Error was: ${ex}"
+    }
+    return tokenMap
+  }
+
+  private void createBitbucketTokenSecret(String username, String password) {
+    script.sh """
+      set +x
+      oc -n ${config.openshiftProjectId} create secret generic ${config.bitbucketTokenSecretName} --from-literal=password=${password} --from-literal=username=${username} --type=\"kubernetes.io/basic-auth\"
+      oc -n ${config.openshiftProjectId} label secret ${config.bitbucketTokenSecretName} credential.sync.jenkins.openshift.io=true
+    """
+  }
 }

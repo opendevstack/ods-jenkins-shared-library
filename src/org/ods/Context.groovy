@@ -7,6 +7,9 @@ interface Context {
     // Get debug mode
     boolean getDebug()
 
+    // Get ODS configuration.
+    def getOdsConfig()
+
     // Get the location of the xmlunit results
     boolean getTestResults()
 
@@ -189,6 +192,9 @@ interface Context {
 
     // The docker directory to use when building the image in openshift
     String getDockerDir()
+
+    // Credentials ID of Bitbucket token
+    String getBitbucketTokenCredentialsId()
 
     // get any build artifact URIs there were created
     public Map<String, String> getBuildArtifactURIs()
