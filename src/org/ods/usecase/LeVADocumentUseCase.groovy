@@ -42,7 +42,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
-            (DocumentType.CSD as String)         : "Configuration Specification", // TODO Change me for the good name
+            (DocumentType.CSD as String)         : "Combined Specification Document",
             (DocumentType.DTP as String)         : "Software Development Testing Plan",
             (DocumentType.DTR as String)         : "Software Development Testing Report",
             (DocumentType.FTP as String)         : "Functional and Requirements Testing Plan",
@@ -151,8 +151,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createCSD(Map repo = null, Map data = null) {
-        // TODO Crete full reimplementation for the union of CS, FS and URS.
-        // See old commits in order to obtain the information on how those documents were implemented
         def documentType = DocumentType.CSD as String
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
@@ -160,23 +158,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
         }
 
-        def interfaces = this.project.getSystemRequirementsTypeInterfaces().collect { req ->
-            [
-                    key        : req.configSpec.key,
-                    // TODO: change ur_key to req_key in template
-                    req_key    : req.key,
-                    description: req.description
-            ]
-        }
-
-        if (!sections."sec4") sections."sec4" = [:]
-        sections."sec4".items = SortUtil.sortIssuesByProperties(interfaces, ["req_key", "key"])
-
+        def requirements = this.project.getSystemRequirements()
+            .groupBy{ it.gampTopic.toLowerCase() }.collectEntries{ k, v -> 
+            [ 
+                k.replaceAll(" ","").toLowerCase(), 
+                SortUtil.sortIssuesByProperties(v.collect{ req ->
+                [
+                   key: req.key,
+                   applicability: "Mandatory",
+                   ursName: req.name,
+                   csName: req.configSpec.name,
+                   fsName: req.funcSpec.name
+                ]}, ["key"])
+             ]}
         def data_ = [
-                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-                data    : [
-                        sections: sections
-                ]
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            data: [
+                sections: sections,
+                requirements: requirements
+            ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))

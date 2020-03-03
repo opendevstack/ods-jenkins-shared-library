@@ -137,7 +137,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-        1 * project.getSystemRequirementsTypeInterfaces()
+        1 * project.getSystemRequirements()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
