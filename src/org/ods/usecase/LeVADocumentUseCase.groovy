@@ -196,23 +196,30 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def data_ = [
-                metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-                data    : [
-                        // TODO: change template from this.project.repositories to repositories
-                        repositories: this.project.repositories,
-                        sections    : sections,
-                        tests       : this.project.getAutomatedTestsTypeUnit().collectEntries { testIssue ->
-                            [
-                                    testIssue.key,
-                                    [
-                                            key              : testIssue.key,
-                                            description      : testIssue.description ?: "",
-                                            // TODO: change template from isRelatedTo to systemRequirement
-                                            systemRequirement: testIssue.requirements.join(", ")
-                                    ]
-                            ]
-                        }
-                ]
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            data: [
+                repositories: this.project.repositories.collect { repo_ ->
+                    [
+                        id: repo_.id,
+                        description: repo_.metadata.description,
+                        url: repo_.url
+                    ]
+                },
+                sections: sections,
+                tests: this.project.getAutomatedTestsTypeUnit().collectEntries { testIssue ->
+                    def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
+
+                    [
+                        testIssue.key,
+                        [
+                            key: testIssue.key,
+                            description: testIssue.description ?: "",
+                            systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                            softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A"
+                        ]
+                    ]
+                }
+            ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
