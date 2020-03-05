@@ -28,8 +28,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         CSD,
         DTP,
         DTR,
-        FTP,
-        FTR,
+        CFTP,
+        CFTR,
         IVP,
         IVR,
         SSDS,
@@ -45,8 +45,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             (DocumentType.CSD as String)         : "Combined Specification Document",
             (DocumentType.DTP as String)         : "Software Development Testing Plan",
             (DocumentType.DTR as String)         : "Software Development Testing Report",
-            (DocumentType.FTP as String)         : "Functional and Requirements Testing Plan",
-            (DocumentType.FTR as String)         : "Functional and Requirements Testing Report",
+            (DocumentType.CFTP as String)        : "Combined Functional and Requirements Testing Plan",
+            (DocumentType.CFTR as String)        : "Combined Functional and Requirements Testing Report",
             (DocumentType.IVP as String)         : "Configuration and Installation Testing Plan",
             (DocumentType.IVR as String)         : "Configuration and Installation Testing Report",
             (DocumentType.SSDS as String)        : "Software Design Specification",
@@ -304,8 +304,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createFTP(Map repo = null, Map data = null) {
-        def documentType = DocumentType.FTP as String
+    String createCFTP(Map repo = null, Map data = null) {
+        def documentType = DocumentType.CFTP as String
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -332,7 +332,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         },
                         integrationTests: integrationTestIssues.collectEntries { testIssue ->
                             [
-                                    issue.key,
+                                    testIssue.key,
                                     [
                                             key        : testIssue.key,
                                             description: testIssue.description ?: "",
@@ -349,11 +349,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createFTR(Map repo, Map data) {
-        def documentType = DocumentType.FTR as String
+    String createCFTR(Map repo, Map data) {
+        def documentType = DocumentType.CFTR as String
 
         def acceptanceTestData = data.tests.acceptance
         def integrationTestData = data.tests.integration
+
+        // Obtain the total number of test in report
+        def numberAcceptanceTest = getNumberOfTest(acceptanceTestData.testResults)
+        def numberIntegrationTest = getNumberOfTest(integrationTestData.testResults)
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -377,9 +381,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
         this.jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, acceptanceTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
+        acceptanceTestIssues = SortUtil.sortIssuesByProperties(acceptanceTestIssues ?: [], ["key"])
 
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
         this.jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, integrationTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
+        integrationTestIssues = SortUtil.sortIssuesByProperties(integrationTestIssues ?: [], ["key"])
 
         def discrepancies = this.computeTestDiscrepancies("Functional and Requirements Tests", (acceptanceTestIssues + integrationTestIssues))
 
@@ -387,43 +393,51 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
                 data    : [
                         sections        : sections,
-                        acceptanceTests : acceptanceTestIssues.collectEntries { testIssue ->
-                            [
-                                    testIssue.key,
-                                    [
-                                            key        : testIssue.key,
-                                            datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                                            description: testIssue.description ?: "",
-                                            remarks    : testIssue.isMissing ? "not executed" : "",
-                                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
-                                            success    : testIssue.isSuccess ? "Y" : "N",
-                                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
-                                    ]
-                            ]
-                        },
-                        integrationTests: integrationTestIssues.collectEntries { testIssue ->
-                            [
-                                    testIssue.key,
-                                    [
-                                            key        : testIssue.key,
-                                            datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                                            description: testIssue.description ?: "",
-                                            remarks    : testIssue.isMissing ? "not executed" : "",
-                                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
-                                            success    : testIssue.isSuccess ? "Y" : "N",
-                                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
-                                    ]
-                            ]
-                        },
+                        additionalAcceptanceTests: numberAcceptanceTest - acceptanceTestIssues.count { !it.isMissing }, 
+                        additionalIntegrationTests: numberIntegrationTest - integrationTestIssues.count { !it.isMissing }, 
                         testfiles       : (acceptanceTestData + integrationTestData).testReportFiles.collect { file ->
                             [name: file.getName(), path: file.getPath()]
                         },
                         conclusion      : [
-                                summary  : discrepancies.conclusion.summary,
-                                statement: discrepancies.conclusion.statement
+                            summary  : discrepancies.conclusion.summary,
+                            statement: discrepancies.conclusion.statement
                         ]
                 ]
         ]
+
+        if (!acceptanceTestIssues.isEmpty()) {
+            data_.data.acceptanceTests = acceptanceTestIssues.collectEntries { testIssue ->
+                [
+                    testIssue.key,
+                    [
+                            key        : testIssue.key,
+                            datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
+                            description: testIssue.description ?: "",
+                            remarks    : testIssue.isMissing ? "not executed" : "",
+                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                            success    : testIssue.isSuccess ? "Y" : "N",
+                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                    ]
+                ]
+            }
+        }
+
+        if (!integrationTestIssues.isEmpty()) {
+            data_.data.integrationTests = integrationTestIssues.collectEntries { testIssue ->
+                [
+                    testIssue.key,
+                    [
+                            key        : testIssue.key,
+                            datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
+                            description: testIssue.description ?: "",
+                            remarks    : testIssue.isMissing ? "not executed" : "",
+                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                            success    : testIssue.isSuccess ? "Y" : "N",
+                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                    ]
+                ]
+            }
+        }
 
         def files = (acceptanceTestData + integrationTestData).testReportFiles.collectEntries { file ->
             ["raw/${file.getName()}", file.getBytes()]
@@ -880,5 +894,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Add a comment to the Jira issue with a link to the report
         this.jiraUseCase.jira.appendCommentToIssue(jiraIssues.first().key, message)
+    }
+
+    protected Integer getNumberOfTest(Map testResults) {
+        def count = 0
+        testResults.testsuites.each { testSuite ->
+            count += testSuite.testcases.size()
+        }
+
+        return count
     }
 }

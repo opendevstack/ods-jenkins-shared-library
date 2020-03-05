@@ -299,13 +299,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
     }
 
-    def "create FTP"() {
+    def "create CFTP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.FTP as String
+        def documentType = LeVADocumentUseCase.DocumentType.CFTP as String
         def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
         // Stubbed Method Responses
@@ -314,7 +314,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createFTP()
+        usecase.createCFTP()
 
         then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
@@ -330,7 +330,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
-def "create FTR"() {
+def "create CFTR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
@@ -358,7 +358,7 @@ def "create FTR"() {
         ]
 
         // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.FTR as String
+        def documentType = LeVADocumentUseCase.DocumentType.CFTR as String
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
         def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
 
@@ -368,7 +368,7 @@ def "create FTR"() {
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createFTR(null, data)
+        usecase.createCFTR(null, data)
 
         then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
@@ -702,8 +702,8 @@ def "create FTR"() {
         result.contains("CSD")
         result.contains("DTP")
         result.contains("DTR")
-        result.contains("FTP")
-        result.contains("FTR")
+        result.contains("CFTP")
+        result.contains("CFTR")
         result.contains("IVP")
         result.contains("IVR")
         result.contains("SSDS")
@@ -792,13 +792,13 @@ def "create FTR"() {
         result == "Developer Preview"
 
         when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.FTP as String)
+        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CFTP as String)
 
         then:
         result == null
 
         when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.FTR as String)
+        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CFTR as String)
 
         then:
         result == "Developer Preview"
