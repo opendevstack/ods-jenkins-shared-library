@@ -269,12 +269,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             [
                                     testIssue.key,
                                     [
-                                            key              : testIssue.key,
-                                            description      : testIssue.description ?: "",
+                                            key               : testIssue.key,
+                                            description       : testIssue.description ?: "",
                                             // TODO: change template from isRelatedTo to systemRequirement
-                                            systemRequirement: testIssue.requirements.join(", "),
-                                            success          : testIssue.isSuccess ? "Y" : "N",
-                                            remarks          : testIssue.isMissing ? "not executed" : ""
+                                            systemRequirement : testIssue.requirements.join(", "),
+                                            success           : testIssue.isSuccess ? "Y" : "N",
+                                            remarks           : testIssue.isMissing ? "not executed" : "",
+                                            softwareDesignSpec: testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec } ?
+                                                                testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }.join(", ") : "N/A"
                                     ]
                             ]
                         },
