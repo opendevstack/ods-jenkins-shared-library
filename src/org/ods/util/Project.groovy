@@ -517,6 +517,11 @@ class Project {
           ],
           "requirements": [
               "DEMO-6"
+          ],
+          "bugs": [
+              "PLTFMDEV-658",
+              "PLTFMDEV-674",
+              "PLTFMDEV-690"
           ]
       },
       "PLTFMDEV-552": {
@@ -601,8 +606,8 @@ class Project {
           ]
       },
       "PLTFMDEV-554": {
-          "name": "User doesn't exists in system",
-          "description": "User doesn't exists in system",
+          "name": "User exists in system",
+          "description": "User exists in system",
           "key": "PLTFMDEV-554",
           "version": "1.0",
           "status": "READY TO TEST",
@@ -613,6 +618,14 @@ class Project {
           ],
           "requirements": [
               "DEMO-6"
+          ],
+          "techSpecs": [
+              "DEMO-15", "DEMO-26"
+          ],
+          "bugs": [
+              "PLTFMDEV-10658",
+              "PLTFMDEV-10674",
+              "PLTFMDEV-10690"
           ]
       }
   },
@@ -904,7 +917,57 @@ class Project {
           "tests": []
       }
   },
-  "bugs": {}
+  "bugs": {
+      "PLTFMDEV-658": {
+          "key": "PLTFMDEV-658",
+          "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
+          "assignee": "Unassigned",
+          "dueDate": "",
+          "status": "TO DO",
+          "tests": ["PLTFMDEV-551"]
+      },
+      "PLTFMDEV-674": {
+          "key": "PLTFMDEV-674",
+          "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
+          "assignee": "Unassigned",
+          "dueDate": "",
+          "status": "TO DO",
+          "tests": ["PLTFMDEV-551"]
+      },
+      "PLTFMDEV-690": {
+          "key": "PLTFMDEV-690",
+          "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
+          "assignee": "Unassigned",
+          "dueDate": "",
+          "status": "TO DO",
+          "tests": ["PLTFMDEV-551"]
+      },
+      "PLTFMDEV-10658": {
+          "key": "PLTFMDEV-10658",
+          "name": "One org.spockframework.runtime. ConditionFailedWithExceptionError",
+          "assignee": "Unassigned",
+          "dueDate": "",
+          "status": "TO DO",
+          "tests": ["PLTFMDEV-554"]
+      },
+      "PLTFMDEV-10674": {
+          "key": "PLTFMDEV-10674",
+          "name": "Two org.spockframework.runtime. ConditionFailedWithExceptionError",
+          "assignee": "Unassigned",
+          "dueDate": "",
+          "status": "TO DO",
+          "tests": ["PLTFMDEV-554"]
+      },
+      "PLTFMDEV-10690": {
+          "key": "PLTFMDEV-10690",
+          "name": "Three org.spockframework.runtime. ConditionFailedWithExceptionError",
+          "assignee": "Unassigned",
+          "dueDate": "",
+          "status": "TO DO",
+          "tests": ["PLTFMDEV-554"]
+      }
+
+  }
 }"""
 
     protected IPipelineSteps steps
@@ -939,7 +1002,7 @@ class Project {
             data[type] = data[type].collectEntries { key, item ->
                 return [key, new JiraDataItem(item, type)]
             }
-        }        
+        }
 
         return data
     }
@@ -949,7 +1012,7 @@ class Project {
             def result = testIssue.status.toLowerCase() == "ready to test"
 
             if (result && componentName) {
-                result = testIssue.getResolvedComponents().collect{ it.name.toLowerCase() }.contains(componentName.toLowerCase()) 
+                result = testIssue.getResolvedComponents().collect{ it.name.toLowerCase() }.contains(componentName.toLowerCase())
             }
 
             if (result && testTypes) {

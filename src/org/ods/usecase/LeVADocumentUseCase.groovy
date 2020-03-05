@@ -26,6 +26,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
         CSD,
+        DIL,
         DTP,
         DTR,
         CFTP,
@@ -43,6 +44,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private static Map DOCUMENT_TYPE_NAMES = [
             (DocumentType.CSD as String)         : "Combined Specification Document",
+            (DocumentType.DIL as String)         : "Discrepancy Log",
             (DocumentType.DTP as String)         : "Software Development Testing Plan",
             (DocumentType.DTR as String)         : "Software Development Testing Report",
             (DocumentType.CFTP as String)        : "Combined Functional and Requirements Testing Plan",
@@ -181,6 +183,87 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        return uri
+    }
+
+    String createDIL(Map repo = null, Map data = null) {
+        def documentType = DocumentType.DIL as String
+
+        def watermarkText = this.getWatermarkText(documentType)
+
+        def bugs = this.project.getBugs().each { bug ->
+            bug.tests = bug.getResolvedTests()
+        }
+
+        def acceptanceTestBugs = bugs.findAll{
+            bug -> bug.tests.findAll{
+                test -> test.testType == Project.TestType.ACCEPTANCE}
+            }
+
+        def integrationTestBugs = bugs.findAll{
+            bug -> bug.tests.findAll{
+                test -> test.testType == Project.TestType.INTEGRATION}
+            }
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            data: [:]
+        ]
+
+        if (!integrationTestBugs.isEmpty()) {
+            data_.data.integrationTests = integrationTestBugs.collectEntries { bug ->
+                [
+                    bug.key,
+                    [
+                        //Discrepancy ID -> BUG Issue ID
+                        discrepancyID: bug.key,
+                        //Test Case No. -> JIRA (Test Case Key)
+                        testcaseID: bug.tests.first().key,
+                        //-	Level of Test Case = Unit / Integration / Acceptance / Installation
+                        level: "Integration",
+                        //Description of Failure or Discrepancy -> Bug Issue Summary
+                        description: bug.name,
+                        //Remediation Action -> "To be fixed"
+                        remediation: "To be fixed",
+                        //Responsible / Due Date -> JIRA (assignee, Due date)
+                        responsibleAndDueDate: "${bug.assignee ? bug.assignee : 'N/A'} / ${bug.dueDate ? bug.dueDate : 'N/A'}",
+                        //Outcome of the Resolution -> Bug Status
+                        outcomeResolution: bug.status,
+                        //Resolved Y/N -> JIRA Status -> Done = Yes
+                        resolved: bug.status == "Done" ? "Yes" : "No"
+                    ]
+                ]
+            }
+        }
+
+        if (!acceptanceTestBugs.isEmpty()) {
+            data_.data.acceptanceTests = acceptanceTestBugs.collectEntries { bug ->
+                    [
+                        bug.key,
+                        [
+                            //Discrepancy ID -> BUG Issue ID
+                            discrepancyID: bug.key,
+                            //Test Case No. -> JIRA (Test Case Key)
+                            testcaseID: bug.tests.first().key,
+                            //-	Level of Test Case = Unit / Integration / Acceptance / Installation
+                            level: "Acceptance",
+                            //Description of Failure or Discrepancy -> Bug Issue Summary
+                            description: bug.name,
+                            //Remediation Action -> "To be fixed"
+                            remediation: "To be fixed",
+                            //Responsible / Due Date -> JIRA (assignee, Due date)
+                            responsibleAndDueDate: "${bug.assignee ? bug.assignee : 'N/A'} / ${bug.dueDate ? bug.dueDate : 'N/A'}",
+                            //Outcome of the Resolution -> Bug Status
+                            outcomeResolution: bug.status,
+                            //Resolved Y/N -> JIRA Status -> Done = Yes
+                            resolved: bug.status == "Done" ? "Yes" : "No"
+                        ]
+                    ]
+                }
+        }
+
+        def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
+        this.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
 
