@@ -39,7 +39,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         TIR,
         OVERALL_DTR,
         OVERALL_IVR,
-        OVERALL_SSDS,
         OVERALL_TIR
     }
 
@@ -58,7 +57,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             (DocumentType.TIR as String)         : "Technical Installation Report",
             (DocumentType.OVERALL_DTR as String) : "Overall Software Development Testing Report",
             (DocumentType.OVERALL_IVR as String) : "Overall Configuration and Installation Testing Report",
-            (DocumentType.OVERALL_SSDS as String): "Overall Software Design Specification",
             (DocumentType.OVERALL_TIR as String) : "Overall Technical Installation Report"
     ]
 
@@ -79,6 +77,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.sq = sq
     }
 
+    /**
+     * This computes the information related to the components (modules) that are being developed
+     * @param documentType
+     * @return
+     */
     protected Map computeComponentMetadata(String documentType) {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll("Technology-", "")
@@ -86,23 +89,57 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (!repo_) {
                 throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'.")
             }
-
             def metadata = repo_.metadata
-
+        
             return [
-                    component.name,
-                    [
-                            key           : component.key,
-                            componentName : component.name,
-                            componentId   : metadata.id ?: "N/A - part of this application",
-                            componentType : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
-                            description   : metadata.description,
-                            nameOfSoftware: metadata.name,
-                            references    : metadata.references ?: "N/A",
-                            supplier      : metadata.supplier,
-                            version       : metadata.version
-                    ]
+                component.name, 
+                [
+                   key: component.key,
+                   componentName: component.name,
+                   componentId: metadata.id ?: "N/A - part of this application",
+                   componentType: (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
+                   odsRepoType: repo_.type?.toLowerCase(),
+                   description: metadata.description,
+                   nameOfSoftware: metadata.name,
+                   references: metadata.references ?: "N/A",
+                   supplier: metadata.supplier,
+                   version: metadata.version,
+                   requirements: component.getResolvedSystemRequirements(),
+                   softwareDesignSpec: component.getResolvedTechnicalSpecifications().findAll{ 
+                       it.softwareDesignSpec }.collect { 
+                           [key: it.key, softwareDesignSpec: it.softwareDesignSpec ]}
+                ]
             ]
+        }
+    }
+
+    private Map obtainCodeReviewReport(List<Map> repos) {
+        return repos.collectEntries { r ->
+            def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
+            def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
+
+            // Unstash SonarQube reports into path
+            def hasStashedSonarQubeReports = this.jenkins.unstashFilesIntoPath(sqReportsStashName, "${this.steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report")
+            if (!hasStashedSonarQubeReports) {
+                throw new RuntimeException("Error: unable to unstash SonarQube reports for repo '${r.id}' from stash '${sqReportsStashName}'.")
+            }
+
+            // Load SonarQube report files from path
+            def sqReportFiles = this.sq.loadReportsFromPath("${this.steps.env.WORKSPACE}/${sqReportsPath}")
+            if (sqReportFiles.isEmpty()) {
+                throw new RuntimeException("Error: unable to load SonarQube reports for repo '${r.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
+            }
+
+            def name = this.getDocumentBasename("SCRR", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
+            def sqReportFile = sqReportFiles.first()
+
+            // TODO transform sq reports to PDF
+            // This is not possible right now due to what it seems to be an issue with the documents themselves,
+            // where the tables are malformed (it says that we have 1 column but more are in the rows)
+            // See the PDFUtils method for more details
+            //def sonarQubePDFDoc = this.pdf.convertFromWordDoc(sqReportFile)
+            // Plan B is to add the docX files to the SSDS' zip file
+            return ["${name}.${FilenameUtils.getExtension(sqReportFile.getName())}" ,  sqReportFile.getBytes()]
         }
     }
 
@@ -733,95 +770,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    // TODO deleteme when implementing SSDS
-    //String createSCP(Map repo = null, Map data = null) {
-    //    def documentType = DocumentType.SCP as String
-
-    //    def watermarkText
-    //    def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-    //    if (!sections) {
-    //        sections = this.levaFiles.getDocumentChapterData(documentType)
-    //    } else {
-    //        watermarkText = this.getWatermarkText(documentType)
-    //    }
-
-    //    def data_ = [
-    //        metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-    //        data: [
-    //            // TODO: change data.project.repositories to data.repositories in template
-    //            repositories: this.project.repositories,
-    //            sections: sections
-    //        ]
-    //    ]
-
-    //    def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
-    //    this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-    //    return uri
-    //}
-
-    //String createSCR(Map repo, Map data = null) {
-    //    def documentType = DocumentType.SCR as String
-
-    //    def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${repo.id}"
-    //    def sqReportsStashName = "scrr-report-${repo.id}-${this.steps.env.BUILD_ID}"
-
-    //    // Unstash SonarQube reports into path
-    //    def hasStashedSonarQubeReports = this.jenkins.unstashFilesIntoPath(sqReportsStashName, "${this.steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report")
-    //    if (!hasStashedSonarQubeReports) {
-    //        throw new RuntimeException("Error: unable to unstash SonarQube reports for repo '${repo.id}' from stash '${sqReportsStashName}'.")
-    //    }
-
-    //    // Load SonarQube report files from path
-    //    def sqReportFiles = this.sq.loadReportsFromPath("${this.steps.env.WORKSPACE}/${sqReportsPath}")
-    //    if (sqReportFiles.isEmpty()) {
-    //        throw new RuntimeException("Error: unable to load SonarQube reports for repo '${repo.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
-    //    }
-
-    //    def watermarkText
-    //    def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-    //    if (!sections) {
-    //        sections = this.levaFiles.getDocumentChapterData(documentType)
-    //    } else {
-    //        watermarkText = this.getWatermarkText(documentType)
-    //    }
-
-    //    def data_ = [
-    //        metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-    //        data: [
-    //            sections: sections
-    //        ]
-    //    ]
-
-    //    def files = [:]
-    //    /*
-    //    // TODO: conversion of a SonarQube report results in an ambiguous NPE.
-    //    // Research did not reveal any meaningful results. Further, Apache POI
-    //    // depends on Commons Compress, but unfortunately Jenkins puts an older
-    //    // version onto the classpath which results in an error. Therefore, iff
-    //    // the NPE can be fixed, this code would need to run outside of Jenkins,
-    //    // such as the DocGen service.
-
-    //    def sonarQubePDFDoc = this.pdf.convertFromWordDoc(sonarQubeWordDoc)
-    //    modifier = { document ->
-    //        // Merge the current document with the SonarQube report
-    //        return this.pdf.merge([ document, sonarQubePDFDoc ])
-    //    }
-
-    //    // As our plan B below, we instead add the SonarQube report into the
-    //    // SCR's .zip archive.
-    //    */
-    //    def name = this.getDocumentBasename("SCRR", this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
-    //    def sqReportFile = sqReportFiles.first()
-    //    files << [ "${name}.${FilenameUtils.getExtension(sqReportFile.getName())}": sqReportFile.getBytes() ]
-
-    //    def modifier = { document ->
-    //        repo.data.documents[documentType] = document
-    //        return document
-    //    }
-
-    //    return this.createDocument(documentType, repo, data_, files, modifier, null, watermarkText)
-    //}
-
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
 
@@ -830,25 +778,45 @@ class LeVADocumentUseCase extends DocGenUseCase {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
         }
 
-        def componentsMetadata = this.computeComponentMetadata(documentType).collect { it.value }
-        def systemDesignSpecifications = this.project.getTechnicalSpecifications().collect { techSpec ->
-            [
-                    key        : techSpec.key,
-                    req_key    : techSpec.requirements.join(", "),
-                    description: techSpec.description
-                    // TODO: prefix properties in sec5s1 with .metadata in template
-                    //metadata: techSpec.components.collect { componentKey ->
-                    //    return componentsMetadata[componentKey]
-                    //}//.join(", ")
-            ]
-        }
+        def componentsMetadata = SortUtil.sortIssuesByProperties(this.computeComponentMetadata(documentType).collect { it.value }, ["key"])
+        def systemDesignSpecifications = this.project.getTechnicalSpecifications()
+            .findAll { it.systemDesignSpec }
+            .collect { techSpec ->
+                [
+                    key: techSpec.key,
+                    req_key: techSpec.requirements.join(", "),
+                    description: techSpec.systemDesignSpec
+                ]
+            }
 
         if (!sections."sec3s1") sections."sec3s1" = [:]
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
 
         if (!sections."sec5s1") sections."sec5s1" = [:]
-        // TODO change this to .components here and in HTML template
-        sections."sec5s1".specifications = SortUtil.sortIssuesByProperties(componentsMetadata, ["key"])
+        sections."sec5s1".components = componentsMetadata.collect { c ->
+            [key: c.key, nameOfSoftware: c.nameOfSoftware, componentType: c.componentType, 
+            componentId: c.componentId, description: c.description, supplier: c.supplier,
+            version: c.version, references: c.references] }
+
+        // Get the components that we consider modules in SSDS (the ones you have to code)
+        def modules = componentsMetadata.findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }.collect { component ->
+            // We will set-up a double loop in the template. For moustache limitations we need to have lists
+            component.requirements = component.requirements.collect {r ->
+                [ key: r.key, name: r.name, gampTopic: r.gampTopic ] 
+            }.groupBy{ it.gampTopic.toLowerCase() }.collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
+            component
+        }
+        if (!sections."sec10") sections."sec10" = [:]
+        sections."sec10".modules = modules
+
+        // Code review part
+        // TODO append PDF files when issues with docx to PDF conversion is solved
+        // since we can't convert the reports to PDF yet, plan B is to add them to the zip as docx
+        def repos_ = (!repo) ? this.project.repositories : [repo]
+        def files = obtainCodeReviewReport(repos_)
+        def fileNames = files.collect { file -> [name: file.key] }
+        if (!sections."sec14") sections."sec14" = [:]
+        sections."sec14".referencedocs = fileNames
 
         def data_ = [
                 metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -857,7 +825,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ]
         ]
 
-        def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        def uri = this.createDocument(documentType, null, data_, files, null, null, this.getWatermarkText(documentType))
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
@@ -935,17 +903,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(documentTypeName)
 
         def documentType = DocumentType.DTR as String
-
-        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, this.getWatermarkText(documentType))
-        this.notifyJiraTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
-        return uri
-    }
-
-    String createOverallSSDS(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_SSDS as String]
-        def metadata = this.getDocumentMetadata(documentTypeName)
-
-        def documentType = DocumentType.SSDS as String
 
         def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, this.getWatermarkText(documentType))
         this.notifyJiraTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")

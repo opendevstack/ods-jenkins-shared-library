@@ -961,8 +961,8 @@ class Project {
           "key": "DEMO-15",
           "version": "1.0",
           "status": "IN DESIGN",
-          "systemDesignSpec": "Some system design specification.",
-          "softwareDesignSpec": "Some software design specification.",
+		  "systemDesignSpec" : "SystemDesignSpec for DEMO-15",
+      	  "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-15",
           "components": [
               "DEMO-4",
               "DEMO-3"
@@ -982,8 +982,11 @@ class Project {
           "name": "TechSpec-2",
           "description": "TechSpec-2 is described here...",
           "key": "DEMO-26",
+          "softwareDesignSpec": "true",
           "version": "1.0",
           "status": "IN DESIGN",
+		  "systemDesignSpec" : "SystemDesignSpec for DEMO-26",
+          "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-26",
           "components": [
               "DEMO-2",
               "DEMO-3"
@@ -995,7 +998,7 @@ class Project {
               "DEMO-27",
               "DEMO-31"
           ],
-          "tests": []
+          "tests": [ ]
       },
       "DEMO-49": {
           "name": "TechSpec-1",
@@ -1003,6 +1006,8 @@ class Project {
           "key": "DEMO-49",
           "version": "1.0",
           "status": "IN DESIGN",
+		  "systemDesignSpec" : "SystemDesignSpec for DEMO-49",
+ 	      "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-49",
           "components": [
               "DEMO-2",
               "DEMO-3"
@@ -1014,7 +1019,7 @@ class Project {
               "DEMO-50",
               "DEMO-54"
           ],
-          "tests": []
+          "tests": [ ]
       },
       "DEMO-60": {
           "name": "TechSpec-2",
@@ -1022,6 +1027,8 @@ class Project {
           "key": "DEMO-60",
           "version": "1.0",
           "status": "IN DESIGN",
+          "systemDesignSpec" : "SystemDesignSpec for DEMO-60",
+          "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-60",
           "components": [
               "DEMO-4",
               "DEMO-2"
@@ -1033,7 +1040,7 @@ class Project {
               "DEMO-61",
               "DEMO-65"
           ],
-          "tests": []
+          "tests": [ ]
       }
   },
   "bugs": {

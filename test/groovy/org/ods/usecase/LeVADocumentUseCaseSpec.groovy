@@ -497,21 +497,44 @@ def "create CFTR"() {
         xmlFile.delete()
     }
 
-    @Ignore
     def "create SSDS"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        steps.env.BUILD_ID = "0815"
+
+        // Test Parameters
+        def repo = project.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
         def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def sqReportsPath = "sonarqube/${repo.id}"
+        def sqReportsStashName = "scrr-report-${repo.id}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
         def documentIssue = createJiraDocumentIssues().first()
-
+        def sqReportFiles = [ getResource("Test.docx") ]
+        def requirement = [ key: "REQ-1", name: "This is the req 1", gampTopic: "roles" ]
+        def techSpec = [ key: "TS-1", softwareDesignSpec: "This is the software design spec for TS-1", name: "techSpec 1"]
+        def compMetadata = [
+            "demo-app-front-end": [
+                key: "Front-key",
+                componentName: "demo-app-front-end",
+                componentId: "front",
+                componentType: "ODS Component",
+                odsRepoType: "ods",
+                description: "Example description",
+                nameOfSoftware: "Stock Shop frontend",
+                references: "N/A",
+                supplier: "N/A",
+                version: "0.1",
+                requirements: [ requirement ],
+                techSpecs: [ techSpec ]
+            ]
+        ]
         when:
         usecase.createSSDS()
 
@@ -520,11 +543,15 @@ def "create CFTR"() {
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-		1 * usecase.computeComponentMetadata(documentType)
+		1 * usecase.computeComponentMetadata(documentType) >> compMetadata
 		1 * project.getTechnicalSpecifications()
+        jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
+        sq.loadReportsFromPath(_) >> sqReportFiles
+
+        then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.getWatermarkText(documentType)
-        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.createDocument(documentType, null, _, _, _, null, _) >> uri
 		1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
 
@@ -699,30 +726,6 @@ def "create CFTR"() {
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
-    def "create overall SSDS"() {
-        given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
-        def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_SSDS as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
-
-        // Stubbed Method Responses
-        def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
-
-        when:
-        usecase.createOverallSSDS()
-
-        then:
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
-        1 * usecase.createOverallDocument("Overall-Cover", documentType, _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-    }
-
     def "create overall TIR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
@@ -752,7 +755,7 @@ def "create CFTR"() {
         def result = usecase.getSupportedDocuments()
 
         then:
-        result.size() == 16
+        result.size() == 15
 
         then:
         result.contains("CSD")
@@ -769,7 +772,6 @@ def "create CFTR"() {
         result.contains("TIR")
         result.contains("OVERALL_DTR")
         result.contains("OVERALL_IVR")
-        result.contains("OVERALL_SSDS")
         result.contains("OVERALL_TIR")
     }
 
@@ -905,12 +907,6 @@ def "create CFTR"() {
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)
-
-        then:
-        result == "Developer Preview"
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_SSDS as String)
 
         then:
         result == "Developer Preview"
