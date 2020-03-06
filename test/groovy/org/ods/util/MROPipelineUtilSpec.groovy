@@ -1,7 +1,9 @@
 package org.ods.util
 
+import java.nio.file.Files
 import java.nio.file.Paths
 
+import org.ods.parser.JUnitParser
 import org.ods.util.IPipelineSteps
 import org.ods.util.Project
 
@@ -526,5 +528,50 @@ class MROPipelineUtilSpec extends SpecHelper {
         repoDirA.deleteDir()
         repoDirB.deleteDir()
         repoDirC.deleteDir()
+    }
+
+    def "warn if test results contain failure"() {
+        given:
+        def testResults = [
+            testsuites: [
+                [
+                    name: "my-suite",
+                    errors: 1
+                ]
+            ]
+        ]
+
+        when:
+        util.warnBuildIfTestResultsContainFailure(testResults)
+
+        then:
+        project.hasFailingTests() == true
+
+        then:
+        steps.currentBuild.result == "UNSTABLE"
+        1 * steps.echo("Warning: found failing tests in test reports.")
+
+        then:
+        noExceptionThrown() // pipeline does not stop here
+    }
+
+    def "warn if jira tests are unexecuted"() {
+        given:
+        def unexecutedJiraTests = [
+            [ key: "KEY-1"], [ key: "KEY-2"], [ key: "KEY-3"]
+        ]
+
+        when:
+        util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
+
+        then:
+        project.hasUnexecutedJiraTests() == true
+
+        then:
+        steps.currentBuild.result == "UNSTABLE"
+        1 * steps.echo("Warning: found unexecuted Jira tests: KEY-1, KEY-2, KEY-3.")
+
+        then:
+        noExceptionThrown() // pipeline does not stop here
     }
 }

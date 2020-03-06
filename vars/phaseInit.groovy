@@ -122,8 +122,7 @@ def call() {
     registry.add(JUnitTestReportsUseCase,
         new JUnitTestReportsUseCase(
             registry.get(Project),
-            registry.get(PipelineSteps),
-            registry.get(MROPipelineUtil)
+            registry.get(PipelineSteps)
         )
     )
 

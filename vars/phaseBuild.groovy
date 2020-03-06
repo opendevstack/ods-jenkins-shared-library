@@ -59,9 +59,6 @@ def call(Project project, List<Set<Map>> repos) {
     globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
 
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
-
-    // Warn the build in case of failing tests
-    junit.warnBuildIfTestResultsContainFailure(globalData.tests.unit.testResults)
 }
 
 private List getUnitTestResults(def steps, Map repo) {

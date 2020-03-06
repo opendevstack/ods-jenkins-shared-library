@@ -30,8 +30,23 @@ def call(Project project, List<Set<Map>> repos) {
     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
     // Fail the build in case of failing tests.
-    if (project.hasFailingTests()) {
-        util.failBuild("Error: found failing tests.")
+    if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
+        def message = "Error: "
+
+        if (project.hasFailingTests()) {
+            message += "found failing tests"
+        }
+
+        if (project.hasFailingTests() && project.hasUnexecutedJiraTests()) {
+            message += " and "
+        }
+
+        if (project.hasUnexecutedJiraTests()) {
+            message += "found unexecuted Jira tests"
+        }
+
+        message += "."
+        util.failBuild(message)
     }
 }
 

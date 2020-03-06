@@ -122,7 +122,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CSD as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -152,7 +152,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DIL as String
 
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]       
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
         def documentIssue = createJiraDocumentIssues().first()
         def uri = "http://nexus"
 
@@ -165,7 +165,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * project.getBugs()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
-        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri        
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
@@ -177,7 +177,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -209,7 +209,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -242,19 +242,19 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         def testIssues = project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 unit: [
                     testReportFiles: testReportFiles,
-                    testResults: testResults
+                    testResults    : testResults
                 ]
             ]
         ]
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTR as String
-        def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
+        def files = ["raw/${xmlFile.name}": xmlFile.bytes]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -291,19 +291,19 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         def testIssues = project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 unit: [
                     testReportFiles: testReportFiles,
-                    testResults: testResults
+                    testResults    : testResults
                 ]
             ]
         ]
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTR as String
-        def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
+        def files = ["raw/${xmlFile.name}": xmlFile.bytes]
 
         // Stubbed Method Responses
         def buildParams = createProjectBuildEnvironment(env)
@@ -356,7 +356,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
-def "create CFTR"() {
+    def "create FTR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
@@ -369,16 +369,16 @@ def "create CFTR"() {
         def acceptanceTestIssues = project.getAutomatedTestsTypeAcceptance()
         def integrationTestIssues = project.getAutomatedTestsTypeIntegration()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
-                acceptance: [
+                acceptance : [
                     testReportFiles: testReportFiles,
-                    testResults: testResults
+                    testResults    : testResults
                 ],
                 integration: [
                     testReportFiles: testReportFiles,
-                    testResults: testResults
+                    testResults    : testResults
                 ]
             ]
         ]
@@ -422,7 +422,7 @@ def "create CFTR"() {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVP as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -452,25 +452,25 @@ def "create CFTR"() {
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
-        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
+        xmlFile << "<?xml version='1.0' ?>\n" + createSockShopJUnitXmlTestResults()
 
         def repo = project.repositories.first()
         def testIssues = project.getAutomatedTestsTypeInstallation()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps, util).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 installation: [
                     testReportFiles: testReportFiles,
-                    testResults: testResults
+                    testResults    : testResults
                 ]
             ]
         ]
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVR as String
-        def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def files = ["raw/${xmlFile.name}": xmlFile.bytes]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -579,7 +579,7 @@ def "create CFTR"() {
         0 * levaFiles.getDocumentChapterData(documentType)
 
         then:
-		2 * project.getRisks() 
+		2 * project.getRisks()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
@@ -594,7 +594,7 @@ def "create CFTR"() {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -625,7 +625,7 @@ def "create CFTR"() {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}_Q"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
@@ -710,7 +710,7 @@ def "create CFTR"() {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTR as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_DTR as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
 
         // Stubbed Method Responses
         def uri = "http://nexus"
@@ -734,7 +734,7 @@ def "create CFTR"() {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIR as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
 
         // Stubbed Method Responses
         def uri = "http://nexus"
@@ -783,7 +783,7 @@ def "create CFTR"() {
         def documentType = "myType"
         def message = "myMessage"
 
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
@@ -802,7 +802,7 @@ def "create CFTR"() {
         def documentType = "myType"
         def message = "myMessage"
 
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
         def documentIssues = createJiraDocumentIssues()
 
         when:

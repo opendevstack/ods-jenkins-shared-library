@@ -2,16 +2,12 @@ package util
 
 import groovy.json.JsonSlurper
 import groovy.transform.InheritConstructors
-
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.ods.parser.JUnitParser
-import org.ods.service.JiraService
 import org.ods.util.GitUtil
 import org.ods.util.IPipelineSteps
 import org.ods.util.Project
-
-import util.*
 
 @InheritConstructors
 class FakeGitUtil extends GitUtil {
@@ -33,7 +29,7 @@ class FakeProject extends Project {
         this.data.build.hasFailingTests = false
 
         this.data.buildParams = loadBuildParams(steps)
-        this.data.git = [commit: git.getCommit(), url: git.getURL() ]
+        this.data.git = [commit: git.getCommit(), url: git.getURL()]
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.loadJiraData(this.data.metadata.id))
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
@@ -92,85 +88,85 @@ class FixtureHelper {
 
     static Map createProjectBuildParams() {
         return [
-            changeDescription: "The change I've wanted.",
-            changeId: "0815",
-            configItem: "myItem",
-            sourceEnvironmentToClone: "dev",
+            changeDescription            : "The change I've wanted.",
+            changeId                     : "0815",
+            configItem                   : "myItem",
+            sourceEnvironmentToClone     : "dev",
             sourceEnvironmentToCloneToken: "D",
-            targetEnvironment: "dev",
-            targetEnvironmentToken: "D",
-            version: "0.1"
+            targetEnvironment            : "dev",
+            targetEnvironmentToken       : "D",
+            version                      : "0.1"
         ]
     }
 
     static Map createProjectMetadata() {
         def result = [
-                id          : "pltfmdev",
-                name        : "Sock Shop",
-                description : "A socks-selling e-commerce demo application.",
-                services    : [
-                        bitbucket: [
-                                credentials: [
-                                        id: "pltfmdev-cd-cd-user-with-password"
-                                ]
-                        ],
-                        jira     : [
-                                credentials: [
-                                        id: "pltfmdev-cd-cd-user-with-password"
-                                ]
-                        ],
-                        nexus    : [
-                                repository: [
-                                        name: "leva-documentation"
-                                ]
-                        ]
+            id          : "pltfmdev",
+            name        : "Sock Shop",
+            description : "A socks-selling e-commerce demo application.",
+            services    : [
+                bitbucket: [
+                    credentials: [
+                        id: "pltfmdev-cd-cd-user-with-password"
+                    ]
                 ],
-                repositories: [
-                        [
-                                id  : "demo-app-carts",
-                                type: "ods-service",
-                                data: [
-                                        documents: [:]
-                                ]
-                        ],
-                        [
-                                id  : "demo-app-catalogue",
-                                type: "ods",
-                                data: [
-                                        documents: [:]
-                                ]
-                        ],
-                        [
-                                id  : "demo-app-front-end",
-                                type: "ods",
-                                data: [
-                                        documents: [:]
-                                ]
-                        ],
-                        [
-                                id  : "demo-app-test",
-                                type: "ods-test",
-                                data: [
-                                        documents: [:]
-                                ]
-                        ]
+                jira     : [
+                    credentials: [
+                        id: "pltfmdev-cd-cd-user-with-password"
+                    ]
                 ],
-                capabilities: []
+                nexus    : [
+                    repository: [
+                        name: "leva-documentation"
+                    ]
+                ]
+            ],
+            repositories: [
+                [
+                    id  : "demo-app-carts",
+                    type: "ods-service",
+                    data: [
+                        documents: [:]
+                    ]
+                ],
+                [
+                    id  : "demo-app-catalogue",
+                    type: "ods",
+                    data: [
+                        documents: [:]
+                    ]
+                ],
+                [
+                    id  : "demo-app-front-end",
+                    type: "ods",
+                    data: [
+                        documents: [:]
+                    ]
+                ],
+                [
+                    id  : "demo-app-test",
+                    type: "ods-test",
+                    data: [
+                        documents: [:]
+                    ]
+                ]
+            ],
+            capabilities: []
         ]
 
         result.repositories.each { repo ->
             repo.data?.git = [
-                    branch: "origin/master",
-                    commit: UUID.randomUUID().toString().replaceAll("-", ""),
-                    previousCommit: UUID.randomUUID().toString().replaceAll("-", ""),
-                    previousSucessfulCommit: UUID.randomUUID().toString().replaceAll("-", ""),
-                    url: "https://cd_user@somescm.com/scm/someproject/${repo.id}.git"
+                branch                 : "origin/master",
+                commit                 : UUID.randomUUID().toString().replaceAll("-", ""),
+                previousCommit         : UUID.randomUUID().toString().replaceAll("-", ""),
+                previousSucessfulCommit: UUID.randomUUID().toString().replaceAll("-", ""),
+                url                    : "https://cd_user@somescm.com/scm/someproject/${repo.id}.git"
             ]
             repo.metadata = [
-                    name: "Sock Shop: ${repo.id}",
-                    description: "Some description for ${repo.id}",
-                    supplier: "https://github.com/microservices-demo/",
-                    version: "1.0"
+                name       : "Sock Shop: ${repo.id}",
+                description: "Some description for ${repo.id}",
+                supplier   : "https://github.com/microservices-demo/",
+                version    : "1.0"
             ]
         }
 
@@ -179,10 +175,10 @@ class FixtureHelper {
 
     static Map createJiraIssue(String id, String issuetype = "Story", String summary = null, String description = null) {
         def result = [
-            id: id,
-            key: "JIRA-${id}",
+            id    : id,
+            key   : "JIRA-${id}",
             fields: [:],
-            self: "http://${id}"
+            self  : "http://${id}"
         ]
 
         result.fields.summary = summary ?: "${id}-summary"
@@ -199,10 +195,10 @@ class FixtureHelper {
 
     static Map createJiraIssueLink(String id, Map inwardIssue = null, Map outwardIssue = null) {
         def result = [
-            id: id,
+            id  : id,
             type: [
-                name: "Relate",
-                inward: "relates to",
+                name   : "Relate",
+                inward : "relates to",
                 outward: "is related to"
             ],
             self: "http://${id}"
@@ -229,9 +225,9 @@ class FixtureHelper {
         // Create an issue belonging to 3 components and 2 inward links
         def issue1 = createJiraIssue("1", issuetype)
         issue1.fields.components = [
-            [ name: "myComponentA" ],
-            [ name: "myComponentB" ],
-            [ name: "myComponentC" ]
+            [name: "myComponentA"],
+            [name: "myComponentB"],
+            [name: "myComponentC"]
         ]
         issue1.fields.issuelinks = [
             createJiraIssueLink("1", createJiraIssue("100")),
@@ -242,8 +238,8 @@ class FixtureHelper {
         // Create an issue belonging to 2 components and 1 outward links
         def issue2 = createJiraIssue("2", issuetype)
         issue2.fields.components = [
-            [ name: "myComponentA" ],
-            [ name: "myComponentB" ]
+            [name: "myComponentA"],
+            [name: "myComponentB"]
         ]
         issue2.fields.issuelinks = [
             createJiraIssueLink("1", createJiraIssue("200"))
@@ -253,7 +249,7 @@ class FixtureHelper {
         // Create an issue belonging to 1 component and 0 outward links
         def issue3 = createJiraIssue("3", issuetype)
         issue3.fields.components = [
-            [ name: "myComponentA" ]
+            [name: "myComponentA"]
         ]
         result << issue3
 
@@ -346,7 +342,30 @@ class FixtureHelper {
     }
 
     static String createSockShopJUnitXmlTestResults() {
-        // TODO  Sock Shop based test results
+        """
+        <testsuites name="sockshop-suites" tests="4" failures="1" errors="1">
+            <testsuite name="sockshop-suite-1" tests="2" failures="0" errors="1" skipped="0">
+                <properties>
+                    <property name="my-property-a" value="my-property-a-value"/>
+                </properties>
+                <testcase name="PLTFMDEV401_verify-database-setup" classname="org.sockshop.DatabaseSetupTest" status="Succeeded" time="1"/>
+                <testcase name="PLTFMDEV1060_verfify-database-installation" classname="org.sockshop.DatabaseInstallationTest" status="Error" time="2">
+                    <error type="my-error-type" message="my-error-message">This is an error.</error>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-2" tests="2" failures="1" errors="0" skipped="1">
+                <testcase name="PLTFMDEV1061_verify-database-is-operational" classname="org.sockshop.DatabaseOperationalTest" status="Failed" time="3">
+                    <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
+                </testcase>
+                <testcase name="PLTFMDEV1062_verify-databse-authentication" classname="org.sockshop.DatabaseAuthenticationTest" status="Missing" time="4">
+                    <skipped/>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-3" tests="1" failures="0" errors="0" skipped="0">
+                <testcase name="PLTFMDEV1046_verify-frontend-is-setup-correctly" classname="org.sockshop.FrontendSetupTest" status="Succeeded" time="5"/>
+            </testsuite>
+        </testsuites>
+        """
     }
 
     static Map createOpenShiftPodDataForComponent() {
@@ -354,17 +373,17 @@ class FixtureHelper {
             items: [
                 [
                     metadata: [
-                        name: "myPodName",
-                        namespace: "myPodNamespace",
+                        name             : "myPodName",
+                        namespace        : "myPodNamespace",
                         creationTimestamp: "myPodCreationTimestamp",
-                        labels: [
+                        labels           : [
                             env: "myPodEnvironment"
                         ]
                     ],
-                    spec: [
+                    spec    : [
                         nodeName: "myPodNode"
                     ],
-                    status: [
+                    status  : [
                         podIP: "1.2.3.4",
                         phase: "myPodStatus"
                     ]

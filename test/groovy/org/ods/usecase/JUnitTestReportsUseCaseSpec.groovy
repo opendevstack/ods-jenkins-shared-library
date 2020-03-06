@@ -18,40 +18,11 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
     Project project
     IPipelineSteps steps
     JUnitTestReportsUseCase usecase
-    MROPipelineUtil util
 
     def setup() {
         project = createProject()
         steps = Spy(PipelineSteps)
-        util = Mock(MROPipelineUtil)
-        usecase = new JUnitTestReportsUseCase(project, steps, util)
-    }
-
-    def "warn if test results contain failure"() {
-        given:
-        util = new MROPipelineUtil(project, steps)
-        usecase = new JUnitTestReportsUseCase(project, steps, util)
-
-        def xmlFiles = Files.createTempDirectory("junit-test-reports-")
-        def xmlFile = Files.createTempFile(xmlFiles, "junit", ".xml").toFile()
-        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
-
-        def testResults = usecase.parseTestReportFiles([xmlFile])
-
-        when:
-        usecase.warnBuildIfTestResultsContainFailure(testResults)
-
-        then:
-        project.hasFailingTests() == true
-
-        then:
-        steps.currentBuild.result == "UNSTABLE"
-
-        then:
-        noExceptionThrown()
-
-        cleanup:
-        xmlFiles.toFile().deleteDir()
+        usecase = new JUnitTestReportsUseCase(project, steps)
     }
 
     def "load test reports from path"() {

@@ -172,14 +172,26 @@ class JiraUseCase {
             }
         }
 
-        matchedHandler(result.matched)
-        unmatchedHandler(result.unmatched)
+        if (matchedHandler) {
+            matchedHandler(result.matched)
+        }
+
+        if (unmatchedHandler) {
+            unmatchedHandler(result.unmatched)
+        }
     }
 
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
+
+        this.util.warnBuildIfTestResultsContainFailure(testResults)
+        this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
+            if (!unexecutedJiraTests.isEmpty()) {
+                this.util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
+            }
+        }
 
         this.support.applyXunitTestResults(testIssues, testResults)
 

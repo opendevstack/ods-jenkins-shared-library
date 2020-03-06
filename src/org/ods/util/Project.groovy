@@ -97,1004 +97,1185 @@ class Project {
 
     private static final TEMP_FAKE_JIRA_DATA = """
 {
-  "project": {
-      "name": "PLTFMDEV",
-      "description": "Sample Project with 68 fictional Issues",
-      "key": "PLTFMDEV",
-      "id": 4711,
-      "jiraBaseUrl": "http://localhost:2990/jira/DEMO",
-	  "gampTopics" : [ "operational requirements", "functional requirements", "data requirements", "technical requirements", "interface requirements", "environment requirements", "performance requirements", "availability requirements", "security requirements", "maintenance requirements", "regulatory requirements", "roles", "compatibility", "procedural constraints", "overarching requirements" ],
-    "projectProperties" : {
-      "PROJECT.POO_CAT.HIGH" : "Frequency of the usage of the related function is >10 times per week.",
-      "PROJECT.POO_CAT.LOW" : "Frequency of the usage of the related function is <10 times per year.",
-      "PROJECT.POO_CAT.MEDIUM" : "Frequency of the usage of the related function is <10 times per week.",
-      "PROJECT.USES_POO" : "true"
-      },
-      "enumDictionary" : {
-        "ProbabilityOfDetection" : {
-          "1" : {
-            "value" : 1,
-            "text" : "Immediate",
-            "short" : "I"
-          },
-          "2" : {
-            "value" : 2,
-            "text" : "Before Impact",
-            "short" : "B"
-          },
-          "3" : {
-            "value" : 3,
-            "text" : "After Impact",
-            "short" : "A"
-          }
+    "project": {
+        "name": "PLTFMDEV",
+        "description": "Sample Project with 68 fictional Issues",
+        "key": "PLTFMDEV",
+        "id": 4711,
+        "jiraBaseUrl": "http://localhost:2990/jira/DEMO",
+        "gampTopics": [
+            "operational requirements",
+            "functional requirements",
+            "data requirements",
+            "technical requirements",
+            "interface requirements",
+            "environment requirements",
+            "performance requirements",
+            "availability requirements",
+            "security requirements",
+            "maintenance requirements",
+            "regulatory requirements",
+            "roles",
+            "compatibility",
+            "procedural constraints",
+            "overarching requirements"
+        ],
+        "projectProperties": {
+            "PROJECT.POO_CAT.HIGH": "Frequency of the usage of the related function is >10 times per week.",
+            "PROJECT.POO_CAT.LOW": "Frequency of the usage of the related function is <10 times per year.",
+            "PROJECT.POO_CAT.MEDIUM": "Frequency of the usage of the related function is <10 times per week.",
+            "PROJECT.USES_POO": "true"
         },
-        "SeverityOfImpact" : {
-          "1" : {
-            "value" : 1,
-            "text" : "Low",
-            "short" : "L"
-          },
-          "2" : {
-            "value" : 2,
-            "text" : "Medium",
-            "short" : "M"
-          },
-          "3" : {
-            "value" : 3,
-            "text" : "High",
-            "short" : "H"
-          }
-        },
-        "ProbabilityOfOccurrence" : {
-          "1" : {
-            "value" : 1,
-            "text" : "LOW",
-            "short" : "L"
-          },
-          "2" : {
-            "value" : 2,
-            "text" : "MEDIUM",
-            "short" : "M"
-          },
-          "3" : {
-            "value" : 3,
-            "text" : "HIGH",
-            "short" : "H"
-          }
-        },
-        "RiskPriority" : {
-          "0" : {
-            "value" : 0,
-            "text" : "N/A",
-            "short" : "N"
-          },
-          "1" : {
-            "value" : 1,
-            "text" : "HIGH",
-            "short" : "H"
-          },
-          "2" : {
-            "value" : 2,
-            "text" : "MEDIUM",
-            "short" : "M"
-          },
-          "3" : {
-            "value" : 3,
-            "text" : "LOW",
-            "short" : "L"
-          }
-        },
-        "GxPRelevance" : {
-          "R2" : {
-            "value" : 2,
-            "text" : "Relevant",
-            "short" : "R2"
-          },
-          "N0" : {
-            "value" : 0,
-            "text" : "Not relevant/ZERO",
-            "short" : "N0"
-          },
-          "N1" : {
-            "value" : 1,
-            "text" : "Not relevant/LESS",
-            "short" : "N1"
-          },
-          "N2" : {
-            "value" : 2,
-            "text" : "Not relevant/EQUAL",
-            "short" : "N2"
-          }
+        "enumDictionary": {
+            "ProbabilityOfDetection": {
+                "1": {
+                    "value": 1,
+                    "text": "Immediate",
+                    "short": "I"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "Before Impact",
+                    "short": "B"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "After Impact",
+                    "short": "A"
+                }
+            },
+            "SeverityOfImpact": {
+                "1": {
+                    "value": 1,
+                    "text": "Low",
+                    "short": "L"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "Medium",
+                    "short": "M"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "High",
+                    "short": "H"
+                }
+            },
+            "ProbabilityOfOccurrence": {
+                "1": {
+                    "value": 1,
+                    "text": "LOW",
+                    "short": "L"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "MEDIUM",
+                    "short": "M"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "HIGH",
+                    "short": "H"
+                }
+            },
+            "RiskPriority": {
+                "0": {
+                    "value": 0,
+                    "text": "N/A",
+                    "short": "N"
+                },
+                "1": {
+                    "value": 1,
+                    "text": "HIGH",
+                    "short": "H"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "MEDIUM",
+                    "short": "M"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "LOW",
+                    "short": "L"
+                }
+            },
+            "GxPRelevance": {
+                "R2": {
+                    "value": 2,
+                    "text": "Relevant",
+                    "short": "R2"
+                },
+                "N0": {
+                    "value": 0,
+                    "text": "Not relevant/ZERO",
+                    "short": "N0"
+                },
+                "N1": {
+                    "value": 1,
+                    "text": "Not relevant/LESS",
+                    "short": "N1"
+                },
+                "N2": {
+                    "value": 2,
+                    "text": "Not relevant/EQUAL",
+                    "short": "N2"
+                }
+            }
         }
-      }
-  },
-  "components": {
-      "DEMO-2": {
-          "name": "Technology-demo-app-front-end",
-          "description": "Technology component demo-app-front-end stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-front-end/browse",
-          "key": "DEMO-2",
-          "epics": [
-              "DEMO-5",
-              "DEMO-39"
-          ],
-          "requirements": [
-              "DEMO-40",
-              "DEMO-6"
-          ],
-          "techSpecs": [
-              "DEMO-60",
-              "DEMO-49",
-              "DEMO-26"
-          ],
-          "tests": [
-              "PLTFMDEV-549",
-              "PLTFMDEV-550",
-              "PLTFMDEV-551",
-              "PLTFMDEV-552",
-              "PLTFMDEV-553",
-              "PLTFMDEV-554",
-              "PLTFMDEV-1046"
-          ],
-          "mitigations": [
-              "DEMO-8",
-              "DEMO-46",
-              "DEMO-12",
-              "DEMO-42"
-          ]
-      },
-      "DEMO-3": {
-          "name": "Technology-demo-app-carts",
-          "description": "Technology component demo-app-carts stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-carts/browse",
-          "key": "DEMO-3",
-          "epics": [
-              "DEMO-5",
-              "DEMO-39"
-          ],
-          "requirements": [
-              "DEMO-40",
-              "DEMO-6"
-          ],
-          "techSpecs": [
-              "DEMO-49",
-              "DEMO-15",
-              "DEMO-26"
-          ],
-          "tests": [
-              "PLTFMDEV-1045",
-              "PLTFMDEV-401"
-          ],
-          "mitigations": [
-              "DEMO-8",
-              "DEMO-46",
-              "DEMO-12",
-              "DEMO-42"
-          ]
-      },
-      "DEMO-4": {
-          "name": "Technology-demo-app-catalogue",
-          "description": "Technology component demo-app-catalogue stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-catalogue/browse",
-          "key": "DEMO-4",
-          "epics": [
-              "DEMO-5",
-              "DEMO-39"
-          ],
-          "requirements": [
-              "DEMO-40",
-              "DEMO-6"
-          ],
-          "techSpecs": [
-              "DEMO-60",
-              "DEMO-15"
-          ],
-          "tests": [],
-          "mitigations": [
-              "DEMO-8",
-              "DEMO-46",
-              "DEMO-12",
-              "DEMO-42"
-          ]
-      }
-  },
-  "epics": {
-      "DEMO-5": {
-          "name": "Epic-1",
-          "description": "Epic-1 is described here...",
-          "key": "DEMO-5",
-          "version": "1.0",
-          "status": "TO DO",
-          "epicName": "Epic-1",
-          "requirements": [
-              "DEMO-6"
-          ]
-      },
-      "DEMO-39": {
-          "name": "Epic-2",
-          "description": "Epic-2 is described here...",
-          "key": "DEMO-39",
-          "version": "1.0",
-          "status": "TO DO",
-          "epicName": "Epic-2",
-          "requirements": [
-              "DEMO-40"
-          ]
-      }
-  },
-  "requirements": {
-      "DEMO-6": {
-          "name": "Req-1",
-          "description": "Req-1 is described here...",
-          "key": "DEMO-6",
-          "version": "1.0",
-          "status": "IN DESIGN",
-          "gampTopic": "performance requirements",
-          "acceptanceCriteria": "acceptance of Req-1 only if ...",
-          "configSpec": {
-              "name": "Config.Spec for Req-1",
-              "description": "Config.Spec for Req-1 description: ..."
-          },
-          "funcSpec": {
-              "name": "Func.Spec for Req-1",
-              "description": "Func.Spec for Req-1 description: ...",
-              "acceptanceCriteria": "Func.Spec accepted only, if Req-1 works as described here."
-          },
-          "components": [
-              "DEMO-2"
-          ],
-          "epics": [
-              "DEMO-5"
-          ],
-          "risks": [
-              "DEMO-7",
-              "DEMO-11"
-          ],
-          "tests": [],
-          "mitigations": [
-              "DEMO-8",
-              "DEMO-12"
-          ],
-          "techSpecs": [
-              "DEMO-15",
-              "DEMO-26"
-          ]
-      },
-      "DEMO-40": {
-          "name": "Req-2",
-          "description": "Req-2 is described here...",
-          "key": "DEMO-40",
-          "version": "1.0",
-          "status": "IN DESIGN",
-          "gampTopic": "compatibility",
-          "acceptanceCriteria": "acceptance of Req-2 only if ...",
-          "configSpec": {
-              "name": "Config.Spec for Req-2",
-              "description": "Config.Spec for Req-2 description: ..."
-          },
-          "funcSpec": {
-              "name": "Func.Spec for Req-2",
-              "description": "Func.Spec for Req-2 description: ...",
-              "acceptanceCriteria": "Func.Spec accepted only, if Req-2 works as described here."
-          },
-          "components": [
-              "DEMO-4"
-          ],
-          "epics": [
-              "DEMO-39"
-          ],
-          "risks": [
-              "DEMO-41",
-              "DEMO-45"
-          ],
-          "tests": [],
-          "mitigations": [
-              "DEMO-46",
-              "DEMO-42"
-          ],
-          "techSpecs": [
-              "DEMO-60",
-              "DEMO-49"
-          ]
-      }
-  },
-  "risks": {
-    "DEMO-41" : {
-      "name" : "Risk-1 on Req DEMO-40",
-      "description" : "Risk-1 on Req DEMO-40 is described here...",
-      "key" : "DEMO-41",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N0",
-      "probabilityOfOccurrence" : 1,
-      "severityOfImpact" : 3,
-      "probabilityOfDetection" : 2,
-      "riskPriorityNumber" : 0,
-      "riskPriority" : 0,
-      "mitigations" : [ "DEMO-42" ],
-      "requirements" : [ "DEMO-40" ],
-      "tests" : ["PLTFMDEV-1045", "PLTFMDEV-553" ]
     },
-    "DEMO-61" : {
-      "name" : "Risk-1 on TechSpec DEMO-60",
-      "description" : "Risk-1 on TechSpec DEMO-60 is described here...",
-      "key" : "DEMO-61",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N0",
-      "probabilityOfOccurrence" : 3,
-      "severityOfImpact" : 2,
-      "probabilityOfDetection" : 2,
-      "riskPriorityNumber" : 0,
-      "riskPriority" : 0,
-      "mitigations" : [ "DEMO-62" ],
-      "requirements" : [ "DEMO-40" ],
-      "tests" : [ ]
+    "components": {
+        "DEMO-2": {
+            "name": "Technology-demo-app-front-end",
+            "description": "Technology component demo-app-front-end stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-front-end/browse",
+            "key": "DEMO-2",
+            "epics": [
+                "DEMO-5",
+                "DEMO-39"
+            ],
+            "requirements": [
+                "DEMO-40",
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-60",
+                "DEMO-49",
+                "DEMO-26"
+            ],
+            "tests": [
+                "PLTFMDEV-549",
+                "PLTFMDEV-550",
+                "PLTFMDEV-551",
+                "PLTFMDEV-552",
+                "PLTFMDEV-553",
+                "PLTFMDEV-554",
+                "PLTFMDEV-1046"
+            ],
+            "mitigations": [
+                "DEMO-8",
+                "DEMO-46",
+                "DEMO-12",
+                "DEMO-42"
+            ]
+        },
+        "DEMO-3": {
+            "name": "Technology-demo-app-carts",
+            "description": "Technology component demo-app-carts stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-carts/browse",
+            "key": "DEMO-3",
+            "epics": [
+                "DEMO-5",
+                "DEMO-39"
+            ],
+            "requirements": [
+                "DEMO-40",
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-49",
+                "DEMO-15",
+                "DEMO-26"
+            ],
+            "tests": [
+                "PLTFMDEV-1045",
+                "PLTFMDEV-401",
+                "PLTFMDEV-1060",
+                "PLTFMDEV-1061",
+                "PLTFMDEV-1062"
+            ],
+            "mitigations": [
+                "DEMO-8",
+                "DEMO-46",
+                "DEMO-12",
+                "DEMO-42"
+            ]
+        },
+        "DEMO-4": {
+            "name": "Technology-demo-app-catalogue",
+            "description": "Technology component demo-app-catalogue stored at https://bitbucket-dev.biscrum.com/projects/PLTFMDEV/repos/pltfmdev-demo-app-catalogue/browse",
+            "key": "DEMO-4",
+            "epics": [
+                "DEMO-5",
+                "DEMO-39"
+            ],
+            "requirements": [
+                "DEMO-40",
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-60",
+                "DEMO-15"
+            ],
+            "tests": [],
+            "mitigations": [
+                "DEMO-8",
+                "DEMO-46",
+                "DEMO-12",
+                "DEMO-42"
+            ]
+        }
     },
-    "DEMO-50" : {
-      "name" : "Risk-1 on TechSpec DEMO-49",
-      "description" : "Risk-1 on TechSpec DEMO-49 is described here...",
-      "key" : "DEMO-50",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N1",
-      "probabilityOfOccurrence" : 2,
-      "severityOfImpact" : 3,
-      "probabilityOfDetection" : 2,
-      "riskPriorityNumber" : 12,
-      "riskPriority" : 2,
-      "mitigations" : [ "DEMO-51" ],
-      "requirements" : [ "DEMO-40" ],
-      "tests" : []
+    "epics": {
+        "DEMO-5": {
+            "name": "Epic-1",
+            "description": "Epic-1 is described here...",
+            "key": "DEMO-5",
+            "version": "1.0",
+            "status": "TO DO",
+            "epicName": "Epic-1",
+            "requirements": [
+                "DEMO-6"
+            ]
+        },
+        "DEMO-39": {
+            "name": "Epic-2",
+            "description": "Epic-2 is described here...",
+            "key": "DEMO-39",
+            "version": "1.0",
+            "status": "TO DO",
+            "epicName": "Epic-2",
+            "requirements": [
+                "DEMO-40"
+            ]
+        }
     },
-    "DEMO-7" : {
-      "name" : "Risk-1 on Req DEMO-6",
-      "description" : "Risk-1 on Req DEMO-6 is described here...",
-      "key" : "DEMO-7",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N0",
-      "probabilityOfOccurrence" : 3,
-      "severityOfImpact" : 2,
-      "probabilityOfDetection" : 3,
-      "riskPriorityNumber" : 0,
-      "riskPriority" : 0,
-      "mitigations" : [ "DEMO-8" ],
-      "requirements" : [ "DEMO-6" ],
-      "tests" : []
+    "requirements": {
+        "DEMO-6": {
+            "name": "Req-1",
+            "description": "Req-1 is described here...",
+            "key": "DEMO-6",
+            "version": "1.0",
+            "status": "IN DESIGN",
+            "gampTopic": "performance requirements",
+            "acceptanceCriteria": "acceptance of Req-1 only if ...",
+            "configSpec": {
+                "name": "Config.Spec for Req-1",
+                "description": "Config.Spec for Req-1 description: ..."
+            },
+            "funcSpec": {
+                "name": "Func.Spec for Req-1",
+                "description": "Func.Spec for Req-1 description: ...",
+                "acceptanceCriteria": "Func.Spec accepted only, if Req-1 works as described here."
+            },
+            "components": [
+                "DEMO-2"
+            ],
+            "epics": [
+                "DEMO-5"
+            ],
+            "risks": [
+                "DEMO-7",
+                "DEMO-11"
+            ],
+            "tests": [],
+            "mitigations": [
+                "DEMO-8",
+                "DEMO-12"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ]
+        },
+        "DEMO-40": {
+            "name": "Req-2",
+            "description": "Req-2 is described here...",
+            "key": "DEMO-40",
+            "version": "1.0",
+            "status": "IN DESIGN",
+            "gampTopic": "compatibility",
+            "acceptanceCriteria": "acceptance of Req-2 only if ...",
+            "configSpec": {
+                "name": "Config.Spec for Req-2",
+                "description": "Config.Spec for Req-2 description: ..."
+            },
+            "funcSpec": {
+                "name": "Func.Spec for Req-2",
+                "description": "Func.Spec for Req-2 description: ...",
+                "acceptanceCriteria": "Func.Spec accepted only, if Req-2 works as described here."
+            },
+            "components": [
+                "DEMO-4"
+            ],
+            "epics": [
+                "DEMO-39"
+            ],
+            "risks": [
+                "DEMO-41",
+                "DEMO-45"
+            ],
+            "tests": [],
+            "mitigations": [
+                "DEMO-46",
+                "DEMO-42"
+            ],
+            "techSpecs": [
+                "DEMO-60",
+                "DEMO-49"
+            ]
+        }
     },
-    "DEMO-27" : {
-      "name" : "Risk-1 on TechSpec DEMO-26",
-      "description" : "Risk-1 on TechSpec DEMO-26 is described here...",
-      "key" : "DEMO-27",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "R2",
-      "probabilityOfOccurrence" : 2,
-      "severityOfImpact" : 2,
-      "probabilityOfDetection" : 2,
-      "riskPriorityNumber" : 16,
-      "riskPriority" : 2,
-      "mitigations" : [ "DEMO-28" ],
-      "requirements" : [ "DEMO-6" ],
-      "tests" : []
+    "risks": {
+        "DEMO-41": {
+            "name": "Risk-1 on Req DEMO-40",
+            "description": "Risk-1 on Req DEMO-40 is described here...",
+            "key": "DEMO-41",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N0",
+            "probabilityOfOccurrence": 1,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 2,
+            "riskPriorityNumber": 0,
+            "riskPriority": 0,
+            "mitigations": [
+                "DEMO-42"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "tests": []
+        },
+        "DEMO-61": {
+            "name": "Risk-1 on TechSpec DEMO-60",
+            "description": "Risk-1 on TechSpec DEMO-60 is described here...",
+            "key": "DEMO-61",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N0",
+            "probabilityOfOccurrence": 3,
+            "severityOfImpact": 2,
+            "probabilityOfDetection": 2,
+            "riskPriorityNumber": 0,
+            "riskPriority": 0,
+            "mitigations": [
+                "DEMO-62"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "tests": []
+        },
+        "DEMO-50": {
+            "name": "Risk-1 on TechSpec DEMO-49",
+            "description": "Risk-1 on TechSpec DEMO-49 is described here...",
+            "key": "DEMO-50",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N1",
+            "probabilityOfOccurrence": 2,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 2,
+            "riskPriorityNumber": 12,
+            "riskPriority": 2,
+            "mitigations": [
+                "DEMO-51"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "tests": []
+        },
+        "DEMO-7": {
+            "name": "Risk-1 on Req DEMO-6",
+            "description": "Risk-1 on Req DEMO-6 is described here...",
+            "key": "DEMO-7",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N0",
+            "probabilityOfOccurrence": 3,
+            "severityOfImpact": 2,
+            "probabilityOfDetection": 3,
+            "riskPriorityNumber": 0,
+            "riskPriority": 0,
+            "mitigations": [
+                "DEMO-8"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "tests": []
+        },
+        "DEMO-27": {
+            "name": "Risk-1 on TechSpec DEMO-26",
+            "description": "Risk-1 on TechSpec DEMO-26 is described here...",
+            "key": "DEMO-27",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "R2",
+            "probabilityOfOccurrence": 2,
+            "severityOfImpact": 2,
+            "probabilityOfDetection": 2,
+            "riskPriorityNumber": 16,
+            "riskPriority": 2,
+            "mitigations": [
+                "DEMO-28"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "tests": []
+        },
+        "DEMO-16": {
+            "name": "Risk-1 on TechSpec DEMO-15",
+            "description": "Risk-1 on TechSpec DEMO-15 is described here...",
+            "key": "DEMO-16",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N1",
+            "probabilityOfOccurrence": 3,
+            "severityOfImpact": 1,
+            "probabilityOfDetection": 3,
+            "riskPriorityNumber": 9,
+            "riskPriority": 2,
+            "mitigations": [
+                "DEMO-17"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "tests": []
+        },
+        "DEMO-45": {
+            "name": "Risk-2 on Req DEMO-40",
+            "description": "Risk-2 on Req DEMO-40 is described here...",
+            "key": "DEMO-45",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N0",
+            "probabilityOfOccurrence": 3,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 1,
+            "riskPriorityNumber": 0,
+            "riskPriority": 0,
+            "mitigations": [
+                "DEMO-46"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "tests": []
+        },
+        "DEMO-11": {
+            "name": "Risk-2 on Req DEMO-6",
+            "description": "Risk-2 on Req DEMO-6 is described here...",
+            "key": "DEMO-11",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N0",
+            "probabilityOfOccurrence": 3,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 3,
+            "riskPriorityNumber": 0,
+            "riskPriority": 0,
+            "mitigations": [
+                "DEMO-12"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "tests": []
+        },
+        "DEMO-65": {
+            "name": "Risk-2 on TechSpec DEMO-60",
+            "description": "Risk-2 on TechSpec DEMO-60 is described here...",
+            "key": "DEMO-65",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N1",
+            "probabilityOfOccurrence": 2,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 3,
+            "riskPriorityNumber": 18,
+            "riskPriority": 1,
+            "mitigations": [
+                "DEMO-66"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "tests": []
+        },
+        "DEMO-54": {
+            "name": "Risk-2 on TechSpec DEMO-49",
+            "description": "Risk-2 on TechSpec DEMO-49 is described here...",
+            "key": "DEMO-54",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N2",
+            "probabilityOfOccurrence": 1,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 3,
+            "riskPriorityNumber": 18,
+            "riskPriority": 1,
+            "mitigations": [
+                "DEMO-55"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "tests": []
+        },
+        "DEMO-31": {
+            "name": "Risk-2 on TechSpec DEMO-26",
+            "description": "Risk-2 on TechSpec DEMO-26 is described here...",
+            "key": "DEMO-31",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "N2",
+            "probabilityOfOccurrence": 3,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 2,
+            "riskPriorityNumber": 36,
+            "riskPriority": 1,
+            "mitigations": [
+                "DEMO-32"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "tests": []
+        },
+        "DEMO-20": {
+            "name": "Risk-2 on TechSpec DEMO-15",
+            "description": "Risk-2 on TechSpec DEMO-15 is described here...",
+            "key": "DEMO-20",
+            "version": "1.0",
+            "status": "TO DO",
+            "gxpRelevance": "R2",
+            "probabilityOfOccurrence": 2,
+            "severityOfImpact": 2,
+            "probabilityOfDetection": 2,
+            "riskPriorityNumber": 16,
+            "riskPriority": 2,
+            "mitigations": [
+                "DEMO-21"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "tests": []
+        }
     },
-    "DEMO-16" : {
-      "name" : "Risk-1 on TechSpec DEMO-15",
-      "description" : "Risk-1 on TechSpec DEMO-15 is described here...",
-      "key" : "DEMO-16",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N1",
-      "probabilityOfOccurrence" : 3,
-      "severityOfImpact" : 1,
-      "probabilityOfDetection" : 3,
-      "riskPriorityNumber" : 9,
-      "riskPriority" : 2,
-      "mitigations" : [ "DEMO-17" ],
-      "requirements" : [ "DEMO-6" ],
-      "tests" : [ ]
+    "tests": {
+        "PLTFMDEV-549": {
+            "name": "User interacts with the cart",
+            "description": "User interacts with the cart",
+            "key": "PLTFMDEV-549",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ]
+        },
+        "PLTFMDEV-550": {
+            "name": "User shows catalogue",
+            "description": "User shows catalogue",
+            "key": "PLTFMDEV-550",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ]
+        },
+        "PLTFMDEV-551": {
+            "name": "User buys some socks",
+            "description": "User buys some socks",
+            "key": "PLTFMDEV-551",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "bugs": [
+                "PLTFMDEV-658",
+                "PLTFMDEV-674",
+                "PLTFMDEV-690"
+            ]
+        },
+        "PLTFMDEV-552": {
+            "name": "Home page looks sexy",
+            "description": "Home page looks sexy",
+            "key": "PLTFMDEV-552",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ]
+        },
+        "PLTFMDEV-553": {
+            "name": "User logs in",
+            "description": "User logs in",
+            "key": "PLTFMDEV-553",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ]
+        },
+        "PLTFMDEV-1045": {
+            "name": "FirstResultOrDefault returns the default for an empty list",
+            "description": "FirstResultOrDefault returns the default for an empty list",
+            "key": "PLTFMDEV-1045",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Unit",
+            "components": [
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15"
+            ]
+        },
+        "PLTFMDEV-401": {
+            "name": "verify database is correctly installed",
+            "description": "verify database is correctly setup. Outcome: Succeeded",
+            "key": "PLTFMDEV-401",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to database",
+                    "data": "database credentials",
+                    "expectedResult": "Connection to database is available and user is authenticated"
+                },
+                {
+                    "index": 1,
+                    "step": "List and verify databases",
+                    "data": "database credentials; Sock Shop DB",
+                    "expectedResult": "authenticated user sees all required databases"
+                },
+                {
+                    "index": 2,
+                    "step": "Use Sock Shop database",
+                    "data": "SockShopDB",
+                    "expectedResult": "Authenticated user can switch to Sock Shop DB and see tables"
+                }
+            ],
+            "components": [
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ]
+        },
+        "PLTFMDEV-1060": {
+            "name": "verify payment service is correctly installed",
+            "description": "verify payment service is correctly setup. Outcome: Error",
+            "key": "PLTFMDEV-1060",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ]
+        },
+        "PLTFMDEV-1061": {
+            "name": "verify order service is correctly installed",
+            "description": "verify order service is correctly installed. Outcome: Failed",
+            "key": "PLTFMDEV-1061",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ]
+        },
+        "PLTFMDEV-1062": {
+            "name": "verify shipping service is correctly installed",
+            "description": "verify shipping service is correctly installed. Outcome: Missing",
+            "key": "PLTFMDEV-1062",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ]
+        },
+        "PLTFMDEV-1046": {
+            "name": "verify frontend is correctly installed",
+            "description": "verify frontend is correctly installed. Outcome: Succeeded",
+            "key": "PLTFMDEV-1046",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ]
+        },
+        "PLTFMDEV-554": {
+            "name": "User exists in system",
+            "description": "User exists in system",
+            "key": "PLTFMDEV-554",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Integration",
+            "executionType": "Automated",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ],
+            "bugs": [
+                "PLTFMDEV-10658",
+                "PLTFMDEV-10674",
+                "PLTFMDEV-10690"
+            ]
+        }
     },
-    "DEMO-45" : {
-      "name" : "Risk-2 on Req DEMO-40",
-      "description" : "Risk-2 on Req DEMO-40 is described here...",
-      "key" : "DEMO-45",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N0",
-      "probabilityOfOccurrence" : 3,
-      "severityOfImpact" : 3,
-      "probabilityOfDetection" : 1,
-      "riskPriorityNumber" : 0,
-      "riskPriority" : 0,
-      "mitigations" : [ "DEMO-46" ],
-      "requirements" : [ "DEMO-40" ],
-      "tests" : []
+    "mitigations": {
+        "DEMO-8": {
+            "name": "Mitigation-1 for Risk-1 on Req DEMO-6",
+            "description": "Mitigation-1 for Risk-1 on Req DEMO-6 is described here...",
+            "key": "DEMO-8",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-7"
+            ]
+        },
+        "DEMO-12": {
+            "name": "Mitigation-1 for Risk-2 on Req DEMO-6",
+            "description": "Mitigation-1 for Risk-2 on Req DEMO-6 is described here...",
+            "key": "DEMO-12",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-11"
+            ]
+        },
+        "DEMO-17": {
+            "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-15",
+            "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-15 is described here...",
+            "key": "DEMO-17",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4",
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-16"
+            ]
+        },
+        "DEMO-21": {
+            "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-15",
+            "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-15 is described here...",
+            "key": "DEMO-21",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4",
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-20"
+            ]
+        },
+        "DEMO-28": {
+            "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-26",
+            "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-26 is described here...",
+            "key": "DEMO-28",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-27"
+            ]
+        },
+        "DEMO-32": {
+            "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-26",
+            "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-26 is described here...",
+            "key": "DEMO-32",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-31"
+            ]
+        },
+        "DEMO-42": {
+            "name": "Mitigation-1 for Risk-1 on Req DEMO-40",
+            "description": "Mitigation-1 for Risk-1 on Req DEMO-40 is described here...",
+            "key": "DEMO-42",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-41"
+            ]
+        },
+        "DEMO-46": {
+            "name": "Mitigation-1 for Risk-2 on Req DEMO-40",
+            "description": "Mitigation-1 for Risk-2 on Req DEMO-40 is described here...",
+            "key": "DEMO-46",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-45"
+            ]
+        },
+        "DEMO-51": {
+            "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-49",
+            "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-49 is described here...",
+            "key": "DEMO-51",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4",
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-50"
+            ]
+        },
+        "DEMO-55": {
+            "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-49",
+            "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-49 is described here...",
+            "key": "DEMO-55",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4",
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-54"
+            ]
+        },
+        "DEMO-62": {
+            "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-60",
+            "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-60 is described here...",
+            "key": "DEMO-62",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4",
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-61"
+            ]
+        },
+        "DEMO-66": {
+            "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-60",
+            "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-60 is described here...",
+            "key": "DEMO-66",
+            "version": "1.0",
+            "status": "TO DO",
+            "components": [
+                "DEMO-4",
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-65"
+            ]
+        }
     },
-    "DEMO-11" : {
-      "name" : "Risk-2 on Req DEMO-6",
-      "description" : "Risk-2 on Req DEMO-6 is described here...",
-      "key" : "DEMO-11",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N0",
-      "probabilityOfOccurrence" : 3,
-      "severityOfImpact" : 3,
-      "probabilityOfDetection" : 3,
-      "riskPriorityNumber" : 0,
-      "riskPriority" : 0,
-      "mitigations" : [ "DEMO-12" ],
-      "requirements" : [ "DEMO-6" ],
-      "tests" : [ ]
+    "techSpecs": {
+        "DEMO-15": {
+            "name": "TechSpec-1",
+            "description": "TechSpec-1 is described here...",
+            "key": "DEMO-15",
+            "version": "1.0",
+            "status": "IN DESIGN",
+            "systemDesignSpec": "Some system design specification.",
+            "softwareDesignSpec": "Some software design specification.",
+            "components": [
+                "DEMO-4",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-16",
+                "DEMO-20"
+            ],
+            "tests": [
+                "PLTFMDEV-1045"
+            ]
+        },
+        "DEMO-26": {
+            "name": "TechSpec-2",
+            "description": "TechSpec-2 is described here...",
+            "key": "DEMO-26",
+            "version": "1.0",
+            "status": "IN DESIGN",
+            "components": [
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "risks": [
+                "DEMO-27",
+                "DEMO-31"
+            ],
+            "tests": []
+        },
+        "DEMO-49": {
+            "name": "TechSpec-1",
+            "description": "TechSpec-1 is described here...",
+            "key": "DEMO-49",
+            "version": "1.0",
+            "status": "IN DESIGN",
+            "components": [
+                "DEMO-2",
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-50",
+                "DEMO-54"
+            ],
+            "tests": []
+        },
+        "DEMO-60": {
+            "name": "TechSpec-2",
+            "description": "TechSpec-2 is described here...",
+            "key": "DEMO-60",
+            "version": "1.0",
+            "status": "IN DESIGN",
+            "components": [
+                "DEMO-4",
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-40"
+            ],
+            "risks": [
+                "DEMO-61",
+                "DEMO-65"
+            ],
+            "tests": []
+        }
     },
-    "DEMO-65" : {
-      "name" : "Risk-2 on TechSpec DEMO-60",
-      "description" : "Risk-2 on TechSpec DEMO-60 is described here...",
-      "key" : "DEMO-65",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N1",
-      "probabilityOfOccurrence" : 2,
-      "severityOfImpact" : 3,
-      "probabilityOfDetection" : 3,
-      "riskPriorityNumber" : 18,
-      "riskPriority" : 1,
-      "mitigations" : [ "DEMO-66" ],
-      "requirements" : [ "DEMO-40" ],
-      "tests" : []
-    },
-    "DEMO-54" : {
-      "name" : "Risk-2 on TechSpec DEMO-49",
-      "description" : "Risk-2 on TechSpec DEMO-49 is described here...",
-      "key" : "DEMO-54",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N2",
-      "probabilityOfOccurrence" : 1,
-      "severityOfImpact" : 3,
-      "probabilityOfDetection" : 3,
-      "riskPriorityNumber" : 18,
-      "riskPriority" : 1,
-      "mitigations" : [ "DEMO-55" ],
-      "requirements" : [ "DEMO-40" ],
-      "tests" : [ "PLTFMDEV-551" ]
-    },
-    "DEMO-31" : {
-      "name" : "Risk-2 on TechSpec DEMO-26",
-      "description" : "Risk-2 on TechSpec DEMO-26 is described here...",
-      "key" : "DEMO-31",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "N2",
-      "probabilityOfOccurrence" : 3,
-      "severityOfImpact" : 3,
-      "probabilityOfDetection" : 2,
-      "riskPriorityNumber" : 36,
-      "riskPriority" : 1,
-      "mitigations" : [ "DEMO-32" ],
-      "requirements" : [ "DEMO-6" ],
-      "tests" : [ ]
-    },
-    "DEMO-20" : {
-      "name" : "Risk-2 on TechSpec DEMO-15",
-      "description" : "Risk-2 on TechSpec DEMO-15 is described here...",
-      "key" : "DEMO-20",
-      "version" : "1.0",
-      "status" : "TO DO",
-      "gxpRelevance" : "R2",
-      "probabilityOfOccurrence" : 2,
-      "severityOfImpact" : 2,
-      "probabilityOfDetection" : 2,
-      "riskPriorityNumber" : 16,
-      "riskPriority" : 2,
-      "mitigations" : [ "DEMO-21" ],
-      "requirements" : [ "DEMO-6" ],
-      "tests" : [ "PLTFMDEV-549" ]
+    "bugs": {
+        "PLTFMDEV-658": {
+            "key": "PLTFMDEV-658",
+            "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
+            "assignee": "Unassigned",
+            "dueDate": "",
+            "status": "TO DO",
+            "tests": [
+                "PLTFMDEV-551"
+            ]
+        },
+        "PLTFMDEV-674": {
+            "key": "PLTFMDEV-674",
+            "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
+            "assignee": "Unassigned",
+            "dueDate": "",
+            "status": "TO DO",
+            "tests": [
+                "PLTFMDEV-551"
+            ]
+        },
+        "PLTFMDEV-690": {
+            "key": "PLTFMDEV-690",
+            "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
+            "assignee": "Unassigned",
+            "dueDate": "",
+            "status": "TO DO",
+            "tests": [
+                "PLTFMDEV-551"
+            ]
+        },
+        "PLTFMDEV-10658": {
+            "key": "PLTFMDEV-10658",
+            "name": "One org.spockframework.runtime. ConditionFailedWithExceptionError",
+            "assignee": "Unassigned",
+            "dueDate": "",
+            "status": "TO DO",
+            "tests": [
+                "PLTFMDEV-554"
+            ]
+        },
+        "PLTFMDEV-10674": {
+            "key": "PLTFMDEV-10674",
+            "name": "Two org.spockframework.runtime. ConditionFailedWithExceptionError",
+            "assignee": "Unassigned",
+            "dueDate": "",
+            "status": "TO DO",
+            "tests": [
+                "PLTFMDEV-554"
+            ]
+        },
+        "PLTFMDEV-10690": {
+            "key": "PLTFMDEV-10690",
+            "name": "Three org.spockframework.runtime. ConditionFailedWithExceptionError",
+            "assignee": "Unassigned",
+            "dueDate": "",
+            "status": "TO DO",
+            "tests": [
+                "PLTFMDEV-554"
+            ]
+        }
     }
-  },
-  "tests": {
-      "PLTFMDEV-549": {
-          "name": "User interacts with the cart",
-          "description": "User interacts with the cart",
-          "key": "PLTFMDEV-549",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Acceptance",
-          "executionType": "Automated",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ]
-      },
-      "PLTFMDEV-550": {
-          "name": "User shows catalogue",
-          "description": "User shows catalogue",
-          "key": "PLTFMDEV-550",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Acceptance",
-          "executionType": "Automated",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ]
-      },
-      "PLTFMDEV-551": {
-          "name": "User buys some socks",
-          "description": "User buys some socks",
-          "key": "PLTFMDEV-551",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Acceptance",
-          "executionType": "Automated",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "bugs": [
-              "PLTFMDEV-658",
-              "PLTFMDEV-674",
-              "PLTFMDEV-690"
-          ]
-      },
-      "PLTFMDEV-552": {
-          "name": "Home page looks sexy",
-          "description": "Home page looks sexy",
-          "key": "PLTFMDEV-552",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Acceptance",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ]
-      },
-      "PLTFMDEV-553": {
-          "name": "User logs in",
-          "description": "User logs in",
-          "key": "PLTFMDEV-553",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Acceptance",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ]
-      },
-      "PLTFMDEV-1045": {
-          "name": "FirstResultOrDefault returns the default for an empty list",
-          "description": "FirstResultOrDefault returns the default for an empty list",
-          "key": "PLTFMDEV-1045",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Unit",
-          "components": [
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-8"
-          ],
-          "techSpecs": [
-              "DEMO-15"
-          ]
-      },
-      "PLTFMDEV-401": {
-          "name": "verify database is correctly setup",
-          "description": "verify database is correctly setup",
-          "key": "PLTFMDEV-401",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Installation",
-          "executionType": "Automated",
-          "components": [
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "techSpecs": [
-              "DEMO-15", "DEMO-26"
-          ]
-      },
-      "PLTFMDEV-1046": {
-          "name": "verify frontend is correctly setup",
-          "description": "verify frontend is correctly setup",
-          "key": "PLTFMDEV-1046",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Installation",
-          "executionType": "Automated",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "techSpecs": [
-              "DEMO-15", "DEMO-26"
-          ]
-      },
-      "PLTFMDEV-554": {
-          "name": "User exists in system",
-          "description": "User exists in system",
-          "key": "PLTFMDEV-554",
-          "version": "1.0",
-          "status": "READY TO TEST",
-          "testType": "Integration",
-          "executionType": "Automated",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "techSpecs": [
-              "DEMO-15", "DEMO-26"
-          ],
-          "bugs": [
-              "PLTFMDEV-10658",
-              "PLTFMDEV-10674",
-              "PLTFMDEV-10690"
-          ]
-      }
-  },
-  "mitigations": {
-      "DEMO-8": {
-          "name": "Mitigation-1 for Risk-1 on Req DEMO-6",
-          "description": "Mitigation-1 for Risk-1 on Req DEMO-6 is described here...",
-          "key": "DEMO-8",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-7"
-          ]
-      },
-      "DEMO-12": {
-          "name": "Mitigation-1 for Risk-2 on Req DEMO-6",
-          "description": "Mitigation-1 for Risk-2 on Req DEMO-6 is described here...",
-          "key": "DEMO-12",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-11"
-          ]
-      },
-      "DEMO-17": {
-          "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-15",
-          "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-15 is described here...",
-          "key": "DEMO-17",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4",
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-16"
-          ]
-      },
-      "DEMO-21": {
-          "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-15",
-          "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-15 is described here...",
-          "key": "DEMO-21",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4",
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-20"
-          ]
-      },
-      "DEMO-28": {
-          "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-26",
-          "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-26 is described here...",
-          "key": "DEMO-28",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-27"
-          ]
-      },
-      "DEMO-32": {
-          "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-26",
-          "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-26 is described here...",
-          "key": "DEMO-32",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-31"
-          ]
-      },
-      "DEMO-42": {
-          "name": "Mitigation-1 for Risk-1 on Req DEMO-40",
-          "description": "Mitigation-1 for Risk-1 on Req DEMO-40 is described here...",
-          "key": "DEMO-42",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-41"
-          ]
-      },
-      "DEMO-46": {
-          "name": "Mitigation-1 for Risk-2 on Req DEMO-40",
-          "description": "Mitigation-1 for Risk-2 on Req DEMO-40 is described here...",
-          "key": "DEMO-46",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-45"
-          ]
-      },
-      "DEMO-51": {
-          "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-49",
-          "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-49 is described here...",
-          "key": "DEMO-51",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4",
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-50"
-          ]
-      },
-      "DEMO-55": {
-          "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-49",
-          "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-49 is described here...",
-          "key": "DEMO-55",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4",
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-54"
-          ]
-      },
-      "DEMO-62": {
-          "name": "Mitigation-1 for Risk-1 on TechSpec DEMO-60",
-          "description": "Mitigation-1 for Risk-1 on TechSpec DEMO-60 is described here...",
-          "key": "DEMO-62",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4",
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-61"
-          ]
-      },
-      "DEMO-66": {
-          "name": "Mitigation-1 for Risk-2 on TechSpec DEMO-60",
-          "description": "Mitigation-1 for Risk-2 on TechSpec DEMO-60 is described here...",
-          "key": "DEMO-66",
-          "version": "1.0",
-          "status": "TO DO",
-          "components": [
-              "DEMO-4",
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-65"
-          ]
-      }
-  },
-  "techSpecs": {
-      "DEMO-15": {
-          "name": "TechSpec-1",
-          "description": "TechSpec-1 is described here...",
-          "key": "DEMO-15",
-          "version": "1.0",
-          "status": "IN DESIGN",
-		  "systemDesignSpec" : "SystemDesignSpec for DEMO-15",
-      	  "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-15",
-          "components": [
-              "DEMO-4",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-16",
-              "DEMO-20"
-          ],
-          "tests": [
-              "PLTFMDEV-1045"
-          ]
-      },
-      "DEMO-26": {
-          "name": "TechSpec-2",
-          "description": "TechSpec-2 is described here...",
-          "key": "DEMO-26",
-          "softwareDesignSpec": "true",
-          "version": "1.0",
-          "status": "IN DESIGN",
-		  "systemDesignSpec" : "SystemDesignSpec for DEMO-26",
-          "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-26",
-          "components": [
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-6"
-          ],
-          "risks": [
-              "DEMO-27",
-              "DEMO-31"
-          ],
-          "tests": [ ]
-      },
-      "DEMO-49": {
-          "name": "TechSpec-1",
-          "description": "TechSpec-1 is described here...",
-          "key": "DEMO-49",
-          "version": "1.0",
-          "status": "IN DESIGN",
-		  "systemDesignSpec" : "SystemDesignSpec for DEMO-49",
- 	      "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-49",
-          "components": [
-              "DEMO-2",
-              "DEMO-3"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-50",
-              "DEMO-54"
-          ],
-          "tests": [ ]
-      },
-      "DEMO-60": {
-          "name": "TechSpec-2",
-          "description": "TechSpec-2 is described here...",
-          "key": "DEMO-60",
-          "version": "1.0",
-          "status": "IN DESIGN",
-          "systemDesignSpec" : "SystemDesignSpec for DEMO-60",
-          "softwareDesignSpec" : "SoftwareDesignSpec for DEMO-60",
-          "components": [
-              "DEMO-4",
-              "DEMO-2"
-          ],
-          "requirements": [
-              "DEMO-40"
-          ],
-          "risks": [
-              "DEMO-61",
-              "DEMO-65"
-          ],
-          "tests": [ ]
-      }
-  },
-  "bugs": {
-      "PLTFMDEV-658": {
-          "key": "PLTFMDEV-658",
-          "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
-          "assignee": "Unassigned",
-          "dueDate": "",
-          "status": "TO DO",
-          "tests": ["PLTFMDEV-551"]
-      },
-      "PLTFMDEV-674": {
-          "key": "PLTFMDEV-674",
-          "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
-          "assignee": "Unassigned",
-          "dueDate": "",
-          "status": "TO DO",
-          "tests": ["PLTFMDEV-551"]
-      },
-      "PLTFMDEV-690": {
-          "key": "PLTFMDEV-690",
-          "name": "org.spockframework.runtime. ConditionFailedWithExceptionError",
-          "assignee": "Unassigned",
-          "dueDate": "",
-          "status": "TO DO",
-          "tests": ["PLTFMDEV-551"]
-      },
-      "PLTFMDEV-10658": {
-          "key": "PLTFMDEV-10658",
-          "name": "One org.spockframework.runtime. ConditionFailedWithExceptionError",
-          "assignee": "Unassigned",
-          "dueDate": "",
-          "status": "TO DO",
-          "tests": ["PLTFMDEV-554"]
-      },
-      "PLTFMDEV-10674": {
-          "key": "PLTFMDEV-10674",
-          "name": "Two org.spockframework.runtime. ConditionFailedWithExceptionError",
-          "assignee": "Unassigned",
-          "dueDate": "",
-          "status": "TO DO",
-          "tests": ["PLTFMDEV-554"]
-      },
-      "PLTFMDEV-10690": {
-          "key": "PLTFMDEV-10690",
-          "name": "Three org.spockframework.runtime. ConditionFailedWithExceptionError",
-          "assignee": "Unassigned",
-          "dueDate": "",
-          "status": "TO DO",
-          "tests": ["PLTFMDEV-554"]
-      }
-
-  }
-}"""
+}
+"""
 
     protected IPipelineSteps steps
     protected GitUtil git
@@ -1107,8 +1288,10 @@ class Project {
     }
 
     Project load() {
-        this.data.build = [:]
-        this.data.build.hasFailingTests = false
+        this.data.build = [
+            hasFailingTests: false,
+            hasUnexecutedJiraTests: false
+        ]
 
         this.data.buildParams = loadBuildParams(steps)
         this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
@@ -1326,6 +1509,10 @@ class Project {
         return this.data.build.hasFailingTests
     }
 
+    boolean hasUnexecutedJiraTests() {
+        return this.data.build.hasUnexecutedJiraTests
+    }
+
     static Map loadBuildParams(IPipelineSteps steps) {
         def version = steps.env.version?.trim() ?: "WIP"
         def targetEnvironment = steps.env.environment?.trim() ?: "dev"
@@ -1456,6 +1643,10 @@ class Project {
 
     void setHasFailingTests(boolean status) {
         this.data.build.hasFailingTests = status
+    }
+
+    void setHasUnexecutedJiraTests(boolean status) {
+        this.data.build.hasUnexecutedJiraTests = status
     }
 
     String toString() {
