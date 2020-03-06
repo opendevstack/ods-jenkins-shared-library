@@ -29,6 +29,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         DIL,
         DTP,
         DTR,
+        RA,
         CFTP,
         CFTR,
         IVP,
@@ -47,6 +48,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             (DocumentType.DIL as String)         : "Discrepancy Log",
             (DocumentType.DTP as String)         : "Software Development Testing Plan",
             (DocumentType.DTR as String)         : "Software Development Testing Report",
+            (DocumentType.RA as String)          : "Risk Assessment",
             (DocumentType.CFTP as String)        : "Combined Functional and Requirements Testing Plan",
             (DocumentType.CFTR as String)        : "Combined Functional and Requirements Testing Report",
             (DocumentType.IVP as String)         : "Configuration and Installation Testing Plan",
@@ -427,6 +429,69 @@ class LeVADocumentUseCase extends DocGenUseCase {
                             ]
                         }
                 ]
+        ]
+
+        def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
+        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        return uri
+    }
+
+    String createRA(Map repo = null, Map data = null) {
+        def documentType = DocumentType.RA as String
+
+        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        def obtainEnumShort = { category, value -> this.project.getEnumDictionary(category)[value as String]."short"}
+        def obtainEnumValue = { category, value -> this.project.getEnumDictionary(category)[value as String].value}
+
+        def risks = this.project.getRisks().collect { r -> 
+            def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
+            def testsText = r.tests ? r.tests.join(", ") : "None"
+            r.proposedMeasures = "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}" 
+
+            def requirements = r.getResolvedSystemRequirements()
+            r.requirements = requirements.collect { it.name }.join("<br/>")
+            r.requirementsKey = requirements.collect { it.key }.join("<br/>")    
+
+            r.gxpRelevance = (obtainEnumShort("gxprelevance", r.gxpRelevance).contains("N")) ? "No" : "Yes"
+            r.probabilityOfOccurrence = obtainEnumShort("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
+            r.severityOfImpact = obtainEnumValue( "SeverityOfImpact", r.severityOfImpact)
+            r.probabilityOfDetection = obtainEnumShort("ProbabilityOfDetection", r.probabilityOfDetection)
+            r.riskPriority = obtainEnumValue("RiskPriority", r.riskPriority)
+
+            return r
+        }
+
+        def proposedMeasuresDesription = this.project.getRisks().collect { r ->
+            (r.getResolvedTests().collect{
+                if (!it) throw new IllegalArgumentException("Error: test for requirement ${r.key} could not be obtained. Check if all of ${r.tests.join(", ")} exist in JIRA")
+                [key: it.key, name: it.name, type: "test", referencesRisk: r.key]} +
+             r.getResolvedMitigations().collect{ [key: it?.key, name: it?.name, type: "mitigation", referencesRisk: r.key ]})
+        }.flatten()
+
+        if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
+
+        if (this.project.getProjectProperties()."PROJECT.USES_POO" == "true") {
+            sections."sec4s2s2" = [
+                usesPoo: "true",
+                lowDescription: this.project.getProjectProperties()."PROJECT.POO_CAT.LOW",
+                mediumDescription: this.project.getProjectProperties()."PROJECT.POO_CAT.MEDIUM",
+                highDescription: this.project.getProjectProperties()."PROJECT.POO_CAT.HIGH"
+            ]
+        }
+
+        if (!sections."sec5") sections."sec5" = [:]
+        sections."sec5".risks = SortUtil.sortIssuesByProperties(risks, ["key"])
+        sections."sec5".proposedMeasures = SortUtil.sortIssuesByProperties(proposedMeasuresDesription, ["key"])
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            data    : [
+                sections: sections
+            ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))

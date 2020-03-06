@@ -530,6 +530,36 @@ def "create CFTR"() {
 
     }
 
+    def "create RA"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+
+        // Argument Constraints
+        def documentType = LeVADocumentUseCase.DocumentType.RA as String
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+
+        // Stubbed Method Responses
+        def chapterData = ["sec1": "myContent"]
+        def uri = "http://nexus"
+        def documentIssue = createJiraDocumentIssues().first()
+
+        when:
+        usecase.createRA()
+
+        then:
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
+        0 * levaFiles.getDocumentChapterData(documentType)
+
+        then:
+		2 * project.getRisks() 
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
+        1 * usecase.getWatermarkText(documentType)
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+		1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
+    }
+
     def "create TIP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
@@ -722,7 +752,7 @@ def "create CFTR"() {
         def result = usecase.getSupportedDocuments()
 
         then:
-        result.size() == 15
+        result.size() == 16
 
         then:
         result.contains("CSD")
@@ -734,6 +764,7 @@ def "create CFTR"() {
         result.contains("IVP")
         result.contains("IVR")
         result.contains("SSDS")
+        result.contains("RA")
         result.contains("TIP")
         result.contains("TIR")
         result.contains("OVERALL_DTR")
@@ -846,7 +877,13 @@ def "create CFTR"() {
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SSDS as String)
 
         then:
-        result == "Developer Preview"
+        result == null
+
+        when:
+        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.RA as String)
+
+        then:
+        result == null
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TIP as String)

@@ -12,6 +12,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         "1": [
             LeVADocumentUseCase.DocumentType.SSDS as String,
             LeVADocumentUseCase.DocumentType.CSD as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
             LeVADocumentUseCase.DocumentType.CFTP as String,
             LeVADocumentUseCase.DocumentType.CFTR as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
@@ -22,6 +23,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ],
         "3": [
             LeVADocumentUseCase.DocumentType.SSDS as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
             LeVADocumentUseCase.DocumentType.IVR as String,
             LeVADocumentUseCase.DocumentType.CSD as String,
@@ -32,6 +34,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         "4": [
             LeVADocumentUseCase.DocumentType.SSDS as String,
             LeVADocumentUseCase.DocumentType.CSD as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
             LeVADocumentUseCase.DocumentType.CFTP as String,
             LeVADocumentUseCase.DocumentType.CFTR as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
@@ -44,6 +47,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.DIL as String,
             LeVADocumentUseCase.DocumentType.DTP as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
             LeVADocumentUseCase.DocumentType.DTR as String,
             LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
             LeVADocumentUseCase.DocumentType.CFTP as String,
@@ -75,6 +79,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ],
         (MROPipelineUtil.PipelinePhases.TEST): [
             (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.RA as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.IVR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.CFTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
@@ -97,9 +102,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [
-            :
-        ]
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:]
     ]
 
     // Document types at the project level which require repositories
@@ -115,6 +118,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
         "D": [
             (LeVADocumentUseCase.DocumentType.DTP as String): "${LeVADocumentUseCase.DocumentType.DTP}",
             (LeVADocumentUseCase.DocumentType.CFTP as String): "${LeVADocumentUseCase.DocumentType.CFTP}",
+            (LeVADocumentUseCase.DocumentType.RA as String): "${LeVADocumentUseCase.DocumentType.RA}",
+            (LeVADocumentUseCase.DocumentType.SSDS as String): "${LeVADocumentUseCase.DocumentType.SSDS}",
             (LeVADocumentUseCase.DocumentType.DIL as String): "${LeVADocumentUseCase.DocumentType.DIL}_Q",
             (LeVADocumentUseCase.DocumentType.IVP as String): "${LeVADocumentUseCase.DocumentType.IVP}_Q",
             (LeVADocumentUseCase.DocumentType.TIP as String): "${LeVADocumentUseCase.DocumentType.TIP}_Q"
