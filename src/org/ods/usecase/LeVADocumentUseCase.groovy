@@ -315,7 +315,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 repositories: this.project.repositories.collect { repo_ ->
                     [
@@ -382,27 +382,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
-                repo         : repo,
-                sections     : sections,
-                tests        : testIssues.collectEntries { testIssue ->
+                sections    : sections,
+                tests       : this.project.getAutomatedTestsTypeUnit().collectEntries { testIssue ->
+                    def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec }.collect { it.key }
+
                     [
                         testIssue.key,
                         [
                             key               : testIssue.key,
                             description       : testIssue.description ?: "",
-                            // TODO: change template from isRelatedTo to systemRequirement
-                            systemRequirement : testIssue.requirements.join(", "),
+                            systemRequirement : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                            softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A",
                             success           : testIssue.isSuccess ? "Y" : "N",
                             remarks           : testIssue.isMissing ? "not executed" : "",
-                            softwareDesignSpec: testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec } ?
-                                testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec }.collect { it.key }.join(", ") : "N/A"
                         ]
                     ]
                 },
-                testfiles    : data.testReportFiles.collect { file ->
-                    [name: file.getName(), path: file.getPath()]
-                },
-                testsuites   : data.testResults,
                 discrepancies: discrepancies.discrepancies,
                 conclusion   : [
                     summary  : discrepancies.conclusion.summary,

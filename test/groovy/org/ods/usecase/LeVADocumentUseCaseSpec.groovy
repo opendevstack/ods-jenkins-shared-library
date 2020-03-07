@@ -175,6 +175,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
+        // Test Parameters
+        def repo = project.repositories.first()
+
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
         def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
@@ -185,7 +188,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createDTP()
+        usecase.createDTP(repo)
 
         then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
@@ -194,7 +197,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * project.getAutomatedTestsTypeUnit()
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
@@ -207,6 +210,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, null))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
+        // Test Parameters
+        def repo = project.repositories.first()
+
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
         def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}"]
@@ -217,7 +223,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def documentIssue = createJiraDocumentIssues().first()
 
         when:
-        usecase.createDTP()
+        usecase.createDTP(repo)
 
         then:
         1 * jiraUseCase.getDocumentChapterData(documentType)
@@ -226,7 +232,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * project.getAutomatedTestsTypeUnit()
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
     }
