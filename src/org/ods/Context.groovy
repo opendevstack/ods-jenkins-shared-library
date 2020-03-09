@@ -30,16 +30,24 @@ interface Context {
     // Set to a stable label if you want to reuse pods across builds.
     String getPodLabel()
 
-    // Custom pod containers to use. By default, only one container is used, and it is
-    // configure automatically. If you need to run multiple containers (e.g. app and
-    // database), then you can configure the containers via this property.
+    // Custom pod containers to use if the default, automatically configured
+    // container is not suitable for your use case (e.g. if you need multiple
+    // containers such as app and database). Please see
+    // https://github.com/jenkinsci/kubernetes-plugin#pod-and-container-template-configuration for more information.
     Object getPodContainers()
 
     // Volumes to make available to the pod.
     Object getPodVolumes()
 
     // Determine whether to always pull the container image before each build run.
-    boolean getPodAlwaysPullImage()
+    boolean getAlwaysPullImage()
+
+    // Container resource constraints.
+    // Theses value are not used when "podContainers" is set.
+    String getResourceRequestMemory()
+    String getResourceLimitMemory()
+    String getResourceRequestCpu()
+    String getResourceLimitCpu()
 
     // Serviceaccount to use when running the pod.
     String getPodServiceAccount()
@@ -79,6 +87,12 @@ interface Context {
 
     // Set the environment to clone
     void setCloneSourceEnv( String cloneSourceEnv)
+
+    // The branch in which the clone-project.sh script is used
+    String getCloneProjectScriptBranch()
+
+    Map<String, String> getCloneProjectScriptUrls()
+
 
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
@@ -134,7 +148,10 @@ interface Context {
     // ODS Jenkins shared library version, taken from reference in Jenkinsfile.
     String getOdsSharedLibVersion()
 
-    // BitBucket host - value taken from BITBUCKET_HOST.
+    // BitBucket URL - value taken from BITBUCKET_URL.
+    String getBitbucketUrl()
+
+    // BitBucket host - value derived from getBitbucketUrl.
     String getBitbucketHost()
 
     // Timeout for the OpenShift build of the container image in minutes.
@@ -169,6 +186,9 @@ interface Context {
 
     // Enable/disable display name update
     void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
+
+    // The docker directory to use when building the image in openshift
+    String getDockerDir()
 
     // get any build artifact URIs there were created
     public Map<String, String> getBuildArtifactURIs()

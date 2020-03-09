@@ -44,7 +44,15 @@ class OdsContext implements Context {
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
     config.openshiftHost = script.env.OPENSHIFT_API_URL
-    config.bitbucketHost = script.env.BITBUCKET_HOST
+
+    if (script.env.BITBUCKET_URL) {
+      config.bitbucketUrl = script.env.BITBUCKET_URL
+      config.bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
+    } else if (script.env.BITBUCKET_HOST) {
+      config.bitbucketHost = script.env.BITBUCKET_HOST
+      config.bitbucketUrl = "https://${config.bitbucketHost}"
+    }
+
     config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label : 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
@@ -66,8 +74,8 @@ class OdsContext implements Context {
     if (!config.openshiftHost) {
       logger.error 'OPENSHIFT_API_URL is required, but not set'
     }
-    if (!config.bitbucketHost) {
-      logger.error 'BITBUCKET_HOST is required, but not set'
+    if (!config.bitbucketUrl) {
+      logger.error 'BITBUCKET_URL is required, but not set'
     }
     if (!config.buildUrl) {
       logger.info 'BUILD_URL is required to set a proper build status in ' +
@@ -82,6 +90,9 @@ class OdsContext implements Context {
     logger.debug "Setting defaults ..."
     if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
       config.autoCloneEnvironmentsFromSourceMapping = [:]
+    }
+    if (!config.containsKey('cloneProjectScriptBranch')) {
+      config.cloneProjectScriptBranch = 'production'
     }
     if (!config.containsKey('sonarQubeBranch')) {
       config.sonarQubeBranch = 'master'
@@ -110,11 +121,30 @@ class OdsContext implements Context {
     if (!config.podVolumes) {
       config.podVolumes = []
     }
-    if (!config.containsKey('podAlwaysPullImage')) {
-      config.podAlwaysPullImage = true
-    }
     if (!config.containsKey('podServiceAccount')) {
       config.podServiceAccount = 'jenkins'
+    }
+    if (!config.containsKey('alwaysPullImage')) {
+      config.alwaysPullImage = true
+    }
+    if (!config.containsKey('resourceRequestMemory')) {
+      config.resourceRequestMemory = '1Gi'
+    }
+    if (!config.containsKey('resourceLimitMemory')) {
+      // 2Gi is required for e.g. jenkins-slave-maven, which selects the Java
+      // version based on available memory.
+      // Also, e.g. Angular is known to use a lot of memory during production
+      // builds.
+      // Quickstarters should set a lower value if possible.
+      config.resourceLimitMemory = '2Gi'
+    }
+    if (!config.containsKey('resourceRequestCpu')) {
+      config.resourceRequestCpu = '100m'
+    }
+    if (!config.containsKey('resourceLimitCpu')) {
+      // 1 core is a lot but this directly influences build time.
+      // Quickstarters should set a lower value if possible.
+      config.resourceLimitCpu = '1'
     }
     if (!config.containsKey('podContainers')) {
       config.podContainers = [
@@ -122,9 +152,11 @@ class OdsContext implements Context {
           name: 'jnlp',
           image: config.image,
           workingDir: '/tmp',
-          resourceRequestMemory: '1Gi',
-          resourceLimitMemory: '2Gi',
-          alwaysPullImage: config.podAlwaysPullImage,
+          resourceRequestMemory: config.resourceRequestMemory,
+          resourceLimitMemory: config.resourceLimitMemory,
+          resourceRequestCpu: config.resourceRequestCpu,
+          resourceLimitCpu: config.resourceLimitCpu,
+          alwaysPullImage: config.alwaysPullImage,
           args: '${computer.jnlpmac} ${computer.name}'
         )
       ]
@@ -155,6 +187,10 @@ class OdsContext implements Context {
 
     if (!config.containsKey('ciSkipEnabled')) {
       config.ciSkipEnabled = true
+    }
+
+    if (!config.containsKey('dockerDir')) {
+      config.dockerDir = 'docker'
     }
 
     logger.debug "Setting environment ..."
@@ -212,8 +248,24 @@ class OdsContext implements Context {
     config.podVolumes
   }
 
-  boolean getPodAlwaysPullImage() {
-    config.podAlwaysPullImage
+  boolean getAlwaysPullImage() {
+    config.alwaysPullImage
+  }
+
+  String getResourceRequestMemory() {
+    config.resourceRequestMemory
+  }
+
+  String getResourceLimitMemory() {
+    config.resourceRequestMemory
+  }
+
+  String getResourceRequestCpu() {
+    config.resourceRequestCpu
+  }
+
+  String getResourceLimitCpu() {
+    config.resourceLimitCpu
   }
 
   String getPodServiceAccount() {
@@ -266,6 +318,10 @@ class OdsContext implements Context {
 
   void setCloneSourceEnv(String cloneSourceEnv) {
     config.cloneSourceEnv = cloneSourceEnv
+  }
+
+  String getCloneProjectScriptBranch() {
+    config.cloneProjectScriptBranch
   }
 
   String getEnvironment() {
@@ -332,6 +388,10 @@ class OdsContext implements Context {
     config.odsSharedLibVersion
   }
 
+  String getBitbucketUrl() {
+    config.bitbucketUrl
+  }
+
   String getBitbucketHost() {
     config.bitbucketHost
   }
@@ -378,6 +438,10 @@ class OdsContext implements Context {
 
   void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
     config.displayNameUpdateEnabled = displayNameUpdateEnabled
+  }
+
+  String getDockerDir() {
+    return config.dockerDir
   }
 
   private String retrieveGitUrl() {
@@ -490,7 +554,9 @@ class OdsContext implements Context {
     def env = config.branchToEnvironmentMapping[config.gitBranch]
     if (env) {
       config.environment = env
-      config.cloneSourceEnv = null
+      config.cloneSourceEnv = environmentExists(env)
+              ? false
+              : config.autoCloneEnvironmentsFromSourceMapping[env]
       return
     }
 
@@ -556,6 +622,17 @@ class OdsContext implements Context {
       return ""
     }
     return tokens[1]
+  }
+
+  Map<String, String> getCloneProjectScriptUrls() {
+    def scripts = ['clone-project.sh', 'import-project.sh',  'export-project.sh']
+    def m = [:]
+    def branch = getCloneProjectScriptBranch().replace('/','%2F')
+    for (script in scripts) {
+      def url = "${config.bitbucketUrl}/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts/${script}?at=refs%2Fheads%2F${branch}"
+      m.put(script, url)
+    }
+    return m
   }
 
   public Map<String, String> getBuildArtifactURIs() {

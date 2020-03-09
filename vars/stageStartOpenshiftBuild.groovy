@@ -10,7 +10,7 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
     timeout(context.openshiftBuildTimeout) {
       patchBuildConfig(context, buildArgs, imageLabels)
       startBuildInfo = sh (
-        script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir docker --follow",
+        script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir ${context.dockerDir} --follow",
         label: "Start OpenShift build",
         returnStdout: true
       ).trim()
@@ -28,13 +28,8 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
       error "Got '${startBuildInfo}' as build start result, which cannot be parsed to get the build ID ..."
     }
 
-    def buildStatus = sh(
-      returnStdout: true,
-      script:"oc -n ${context.targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
-      label: "find last build"
-    ).trim()
-
-    if (buildStatus.toLowerCase() != "complete") {
+    def buildStatus = checkForBuildStatus(context.targetProject, buildId)
+    if (buildStatus != "complete") {
       error "OCP Build ${buildId} was not successful - status ${buildStatus}"
     }
 
@@ -47,6 +42,29 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
     context.addArtifactURI("OCP Build Id", buildId)
     context.addArtifactURI("OCP Docker image", currentImage)
   }
+}
+
+private String checkForBuildStatus(String targetProject, String buildId) {
+  def buildStatus = 'unknown'
+  def retries = 3
+  for(def i = 0; i < retries; i++) {
+    buildStatus = getBuildStatus(targetProject, buildId)
+    if (buildStatus == "complete") {
+      return buildStatus
+    }
+    // Wait 5 seconds before asking again. Sometimes the build finishes but the
+    // status is not set to "complete" immediately ...
+    sleep 5
+  }
+  return buildStatus
+}
+
+private String getBuildStatus(String targetProject, String buildId) {
+  return sh(
+    returnStdout: true,
+    script:"oc -n ${targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
+    label: "find last build"
+  ).trim().toLowerCase()
 }
 
 private void patchBuildConfig(def context, def buildArgs, def imageLabels) {
