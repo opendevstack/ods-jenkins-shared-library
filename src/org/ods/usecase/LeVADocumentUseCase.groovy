@@ -1124,15 +1124,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return metadata
     }
 
-    private String getJiraTrackingIssueLabelForDocumentType(String documentType) {
+    private List<String> getJiraTrackingIssueLabelsForDocumentType(String documentType) {
         def environment = this.project.buildParams.targetEnvironmentToken
+        def labels = []
 
-        def label = LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].get(documentType)
-        if (!label && environment.equals('D')) {
-            label = documentType
+        LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].get(documentType).each { label ->
+            labels.add("LeVA_Doc:${label}")
         }
 
-        return "LeVA_Doc:${label}"
+        if (labels.isEmpty() && environment.equals('D')) {
+            labels.add("LeVA_Doc:${documentType}")
+        }
+
+        return labels
     }
 
     List<String> getSupportedDocuments() {
@@ -1154,18 +1158,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
 
-        def jiraDocumentLabel = this.getJiraTrackingIssueLabelForDocumentType(documentType)
+        def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
 
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels = ${jiraDocumentLabel}"]
+        def jqlQuery = [jql: "project = ${project.key} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels IN (${jiraDocumentLabels.join(',')})"]
 
         // Search for the Jira issue associated with the document
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
-        if (jiraIssues.size() != 1) {
+        if (jiraIssues.size() == 0) {
             throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jqlQuery}'.")
         }
 
         // Add a comment to the Jira issue with a link to the report
-        this.jiraUseCase.jira.appendCommentToIssue(jiraIssues.first().key, message)
+        jiraIssues.each { jiraIssue ->
+            this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
+        }
     }
 
     protected Integer getNumberOfTest(Map testResults) {
