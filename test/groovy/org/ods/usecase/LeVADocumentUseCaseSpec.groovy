@@ -134,6 +134,35 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
+    def "create TRC"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+
+        // Argument Constraints
+        def documentType = LeVADocumentUseCase.DocumentType.TRC as String
+        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels = LeVA_Doc:${documentType}" ]
+
+        // Stubbed Method Responses
+        def chapterData = ["sec1": "myContent"]
+        def uri = "http://nexus"
+        def documentIssue = createJiraDocumentIssues().first()
+
+        when:
+        usecase.createTRC()
+
+        then:
+        1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
+        0 * levaFiles.getDocumentChapterData(documentType)
+
+        then:
+        1 * project.getSystemRequirements()
+        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
+        1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
+        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
+    }
+
     def "create DIL"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
@@ -840,7 +869,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def result = usecase.getSupportedDocuments()
 
         then:
-        result.size() == 17
+        result.size() == 18
 
         then:
         result.contains("CSD")
@@ -857,6 +886,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result.contains("RA")
         result.contains("TIP")
         result.contains("TIR")
+        result.contains("TRC")
         result.contains("OVERALL_DTR")
         result.contains("OVERALL_IVR")
         result.contains("OVERALL_TIR")
@@ -931,6 +961,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         result == null
+
+        when:
+        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TRC as String)
+
+        then:
+        result == "Developer Preview"
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTR as String)
