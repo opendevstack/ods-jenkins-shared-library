@@ -494,7 +494,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             r.gxpRelevance = (obtainEnumShort("gxprelevance", r.gxpRelevance).contains("N")) ? "No" : "Yes"
             r.probabilityOfOccurrence = obtainEnumShort("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
-            r.severityOfImpact = obtainEnumValue("SeverityOfImpact", r.severityOfImpact)
+            r.severityOfImpact = obtainEnumShort("SeverityOfImpact", r.severityOfImpact)
             r.probabilityOfDetection = obtainEnumShort("ProbabilityOfDetection", r.probabilityOfDetection)
             r.riskPriority = obtainEnumValue("RiskPriority", r.riskPriority)
 
