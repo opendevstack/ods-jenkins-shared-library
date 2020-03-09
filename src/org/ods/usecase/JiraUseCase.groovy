@@ -65,7 +65,7 @@ class JiraUseCase {
                     }
                 }
 
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect{ it.toString() })
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect { it.toString() })
                 this.jira.addLabelsToIssue(testIssue.key, issueLabels)
             }
         }
@@ -73,7 +73,7 @@ class JiraUseCase {
         // Handle Jira test issues for which no corresponding test exists in testResults
         def unmatchedHandler = { result ->
             result.each { testIssue ->
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect{ it.toString() })
+                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect { it.toString() })
                 this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
             }
         }
@@ -120,7 +120,7 @@ class JiraUseCase {
         def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
 
         def jqlQuery = [
-            jql: "project = ${this.project.key} AND issuetype = '${IssueTypes.DOCUMENT_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
+            jql   : "project = ${this.project.key} AND issuetype = '${IssueTypes.DOCUMENT_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
             expand: ["names", "renderedFields"]
         ]
 
@@ -140,7 +140,7 @@ class JiraUseCase {
             return [
                 "sec${number.replaceAll(/\./, "s")}".toString(),
                 [
-                    number: number,
+                    number : number,
                     heading: issue.fields.summary,
                     content: content?.replaceAll("\u00a0", " ") ?: ""
                 ]
@@ -154,7 +154,7 @@ class JiraUseCase {
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
         def result = [
-            matched: [:],
+            matched  : [:],
             unmatched: []
         ]
 

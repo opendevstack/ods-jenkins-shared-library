@@ -249,7 +249,9 @@ class Project {
                 "PLTFMDEV-552",
                 "PLTFMDEV-553",
                 "PLTFMDEV-554",
-                "PLTFMDEV-1046"
+                "PLTFMDEV-1046",
+                "PLTFMDEV-1074",
+                "PLTFMDEV-1075"
             ],
             "mitigations": [
                 "DEMO-8",
@@ -280,7 +282,10 @@ class Project {
                 "PLTFMDEV-401",
                 "PLTFMDEV-1060",
                 "PLTFMDEV-1061",
-                "PLTFMDEV-1062"
+                "PLTFMDEV-1062",
+                "PLTFMDEV-1073",
+                "PLTFMDEV-1074",
+                "PLTFMDEV-1075"
             ],
             "mitigations": [
                 "DEMO-8",
@@ -657,6 +662,45 @@ class Project {
         }
     },
     "tests": {
+        "PLTFMDEV-401": {
+            "name": "verify database is correctly installed",
+            "description": "verify database is correctly setup. Outcome: Succeeded",
+            "key": "PLTFMDEV-401",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to database",
+                    "data": "database credentials",
+                    "expectedResult": "Connection to database is available and user is authenticated"
+                },
+                {
+                    "index": 1,
+                    "step": "List and verify databases",
+                    "data": "database credentials; Sock Shop DB",
+                    "expectedResult": "authenticated user sees all required databases"
+                },
+                {
+                    "index": 2,
+                    "step": "Use Sock Shop database",
+                    "data": "SockShopDB",
+                    "expectedResult": "Authenticated user can switch to Sock Shop DB and see tables"
+                }
+            ],
+            "components": [
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ]
+        },
         "PLTFMDEV-549": {
             "name": "User interacts with the cart",
             "description": "User interacts with the cart",
@@ -665,6 +709,26 @@ class Project {
             "status": "READY TO TEST",
             "testType": "Acceptance",
             "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "User logs into web shop",
+                    "data": "N/A",
+                    "expectedResult": "Webshop Landing Page gets displayed"
+                },
+                {
+                    "index": 1,
+                    "step": "User adds item to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "One item added to shopping cart"
+                },
+                {
+                    "index": 2,
+                    "step": "User follows link to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "Shopping cart is displayed, containing one item."
+                }
+            ],
             "components": [
                 "DEMO-2"
             ],
@@ -680,6 +744,20 @@ class Project {
             "status": "READY TO TEST",
             "testType": "Acceptance",
             "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "User logs into web shop",
+                    "data": "N/A",
+                    "expectedResult": "Webshop Landing Page gets displayed"
+                },
+                {
+                    "index": 1,
+                    "step": "User follows link to catalogue",
+                    "data": "N/A",
+                    "expectedResult": "Catalogue is displayed in web page."
+                }
+            ],
             "components": [
                 "DEMO-2"
             ],
@@ -695,6 +773,32 @@ class Project {
             "status": "READY TO TEST",
             "testType": "Acceptance",
             "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "User logs into web shop",
+                    "data": "N/A",
+                    "expectedResult": "Webshop Landing Page gets displayed"
+                },
+                {
+                    "index": 1,
+                    "step": "User adds item to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "One item added to shopping cart"
+                },
+                {
+                    "index": 2,
+                    "step": "User follows link to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "Shopping cart is displayed, containing one item."
+                },
+                {
+                    "index": 3,
+                    "step": "User clicks 'buy now' button",
+                    "data": "N/A",
+                    "expectedResult": "Shipping details are displayed."
+                }
+            ],
             "components": [
                 "DEMO-2"
             ],
@@ -735,6 +839,30 @@ class Project {
                 "DEMO-6"
             ]
         },
+        "PLTFMDEV-554": {
+            "name": "User exists in system",
+            "description": "User exists in system",
+            "key": "PLTFMDEV-554",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Integration",
+            "executionType": "Automated",
+            "components": [
+                "DEMO-2"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
+            ],
+            "bugs": [
+                "PLTFMDEV-10658",
+                "PLTFMDEV-10674",
+                "PLTFMDEV-10690"
+            ]
+        },
         "PLTFMDEV-1045": {
             "name": "FirstResultOrDefault returns the default for an empty list",
             "description": "FirstResultOrDefault returns the default for an empty list",
@@ -752,10 +880,10 @@ class Project {
                 "DEMO-15"
             ]
         },
-        "PLTFMDEV-401": {
-            "name": "verify database is correctly installed",
-            "description": "verify database is correctly setup. Outcome: Succeeded",
-            "key": "PLTFMDEV-401",
+        "PLTFMDEV-1046": {
+            "name": "verify frontend is correctly installed",
+            "description": "verify frontend is correctly installed. Outcome: Succeeded",
+            "key": "PLTFMDEV-1046",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Installation",
@@ -763,25 +891,13 @@ class Project {
             "steps": [
                 {
                     "index": 0,
-                    "step": "Connect to database",
-                    "data": "database credentials",
-                    "expectedResult": "Connection to database is available and user is authenticated"
-                },
-                {
-                    "index": 1,
-                    "step": "List and verify databases",
-                    "data": "database credentials; Sock Shop DB",
-                    "expectedResult": "authenticated user sees all required databases"
-                },
-                {
-                    "index": 2,
-                    "step": "Use Sock Shop database",
-                    "data": "SockShopDB",
-                    "expectedResult": "Authenticated user can switch to Sock Shop DB and see tables"
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
                 }
             ],
             "components": [
-                "DEMO-3"
+                "DEMO-2"
             ],
             "requirements": [
                 "DEMO-6"
@@ -872,24 +988,24 @@ class Project {
                 "DEMO-26"
             ]
         },
-        "PLTFMDEV-1046": {
-            "name": "verify frontend is correctly installed",
-            "description": "verify frontend is correctly installed. Outcome: Succeeded",
-            "key": "PLTFMDEV-1046",
+        "PLTFMDEV-1073": {
+            "name": "Cart gets processed correctly",
+            "description": "Cart gets processed correctly. Outcome: Succeeded",
+            "key": "PLTFMDEV-1073",
             "version": "1.0",
             "status": "READY TO TEST",
-            "testType": "Installation",
+            "testType": "Integration",
             "executionType": "Automated",
             "steps": [
                 {
                     "index": 0,
-                    "step": "Connect to the service on :80/health via HTTP",
+                    "step": "Connect to the service on :80/carts via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                    "expectedResult": "Connection to the service is established and the service returns correct cart data"
                 }
             ],
             "components": [
-                "DEMO-2"
+                "DEMO-3"
             ],
             "requirements": [
                 "DEMO-6"
@@ -899,16 +1015,24 @@ class Project {
                 "DEMO-26"
             ]
         },
-        "PLTFMDEV-554": {
-            "name": "User exists in system",
-            "description": "User exists in system",
-            "key": "PLTFMDEV-554",
+        "PLTFMDEV-1074": {
+            "name": "Frontend retrieves cart data correctly",
+            "description": "Frontend retrieves cart data correctly. Outcome: Succeeded",
+            "key": "PLTFMDEV-1074",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Integration",
             "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/carts via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns correct cart data"
+                }
+            ],
             "components": [
-                "DEMO-2"
+                "DEMO-3"
             ],
             "requirements": [
                 "DEMO-6"
@@ -916,11 +1040,33 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
+            ]
+        },
+        "PLTFMDEV-1075": {
+            "name": "Frontend retrieves payment data correctly",
+            "description": "Frontend retrieves payment data correctly. Outcome: Succeeded",
+            "key": "PLTFMDEV-1075",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Integration",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/payment via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns correct payment data"
+                }
             ],
-            "bugs": [
-                "PLTFMDEV-10658",
-                "PLTFMDEV-10674",
-                "PLTFMDEV-10690"
+            "components": [
+                "DEMO-3"
+            ],
+            "requirements": [
+                "DEMO-6"
+            ],
+            "techSpecs": [
+                "DEMO-15",
+                "DEMO-26"
             ]
         }
     },
@@ -1318,7 +1464,7 @@ class Project {
 
     List<Map> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { key, testIssue ->
-            def result = testIssue.status.toLowerCase() == "ready to test"
+            def result = testIssue.status.toLowerCase() == "ready to test" && testIssue.executionType?.toLowerCase() == "automated"
 
             if (result && componentName) {
                 result = testIssue.getResolvedComponents().collect{ it.name.toLowerCase() }.contains(componentName.toLowerCase())

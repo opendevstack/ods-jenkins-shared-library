@@ -24,6 +24,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         IVP,
         IVR,
         SSDS,
+        TCP,
+        TCR,
         TIP,
         TIR,
         OVERALL_DTR,
@@ -42,6 +44,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.IVR as String)        : "Configuration and Installation Testing Report",
         (DocumentType.RA as String)         : "Risk Assessment",
         (DocumentType.SSDS as String)       : "Software Design Specification",
+        (DocumentType.TCP as String)        : "Test Case Plan",
+        (DocumentType.TCR as String)        : "Test Case Report",
         (DocumentType.TIP as String)        : "Technical Installation Plan",
         (DocumentType.TIR as String)        : "Technical Installation Report",
         (DocumentType.OVERALL_DTR as String): "Overall Software Development Testing Report",
@@ -78,6 +82,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (!repo_) {
                 throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'.")
             }
+
             def metadata = repo_.metadata
 
             return [
@@ -677,6 +682,118 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    String createTCR(Map repo = null, Map data = null) {
+        String documentType = DocumentType.TCR as String
+
+        def watermarkText
+        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        } else {
+            watermarkText = this.getWatermarkText(documentType)
+        }
+
+        def integrationTestData = data.tests.integration
+        def acceptanceTestData = data.tests.acceptance
+        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
+        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
+
+        def matchedHandler = { result ->
+            result.each { testIssue, testCase ->
+                testIssue.isSucess = !(testCase.error || testCase.failure || testCase.skipped)
+                testIssue.isMissing = false
+                testIssue.timestamp = testCase.timestamp
+            }
+        }
+
+        def unmatchedHandler = { result ->
+            result.each { testIssue ->
+                testIssue.isSuccess = false
+                testIssue.isMissing = true
+            }
+        }
+
+        this.jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, integrationTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
+        this.jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, acceptanceTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
+            data    : [
+                sections           : sections,
+                integrationTests   : SortUtil.sortIssuesByProperties(integrationTestIssues.collect { testIssue ->
+                    [
+                        key         : testIssue.key,
+                        description : testIssue.description,
+                        requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                        isSuccess   : testIssue.isSuccess,
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
+                        steps       : testIssue.steps,
+                        timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A"
+                    ]
+                }, ["key"]),
+                acceptanceTests    : SortUtil.sortIssuesByProperties(acceptanceTestIssues.collect { testIssue ->
+                    [
+                        key         : testIssue.key,
+                        description : testIssue.description,
+                        requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                        isSuccess   : testIssue.isSuccess,
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
+                        steps       : testIssue.steps,
+                        timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A"
+                    ]
+                }, ["key"])
+            ]
+        ]
+
+        def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
+        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        return uri
+    }
+
+    String createTCP(Map repo = null, Map data = null) {
+        String documentType = DocumentType.TCP as String
+
+        def watermarkText
+        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        } else {
+            watermarkText = this.getWatermarkText(documentType)
+        }
+
+        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
+        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
+            data    : [
+                sections        : sections,
+                integrationTests: SortUtil.sortIssuesByProperties(integrationTestIssues.collect { testIssue ->
+                    [
+                        key         : testIssue.key,
+                        description : testIssue.description,
+                        requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
+                        steps       : testIssue.steps
+                    ]
+                }, ["key"]),
+                acceptanceTests : SortUtil.sortIssuesByProperties(acceptanceTestIssues.collect { testIssue ->
+                    [
+                        key         : testIssue.key,
+                        description : testIssue.description,
+                        requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
+                        steps       : testIssue.steps
+                    ]
+                }, ["key"])
+            ]
+        ]
+
+        def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
+        this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        return uri
+    }
+
     String createIVR(Map repo, Map data) {
         def documentType = DocumentType.IVR as String
 
@@ -754,7 +871,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
             ["raw/${file.getName()}", file.getBytes()]
         }
-        this.steps.echo("nifl::createIVR() data_.data.tests is ${data_.data.tests}")
+
         def uri = this.createDocument(documentType, null, data_, files, null, null, watermarkText)
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri

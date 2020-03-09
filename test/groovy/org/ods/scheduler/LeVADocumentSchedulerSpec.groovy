@@ -5418,6 +5418,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createCFTP", [null, null] as Object[])
         1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
+        1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -5428,6 +5429,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createRA", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -5559,6 +5561,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createCFTP", [null, null] as Object[])
         1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
+        1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -5569,6 +5572,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createRA", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -5678,28 +5682,31 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createCFTP", [null, null] as Object[])
         1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
+        1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createRA", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createRA", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -5783,6 +5790,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -5885,13 +5893,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
- 
+
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -5969,6 +5978,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6212,7 +6222,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 return usecaseObj.getSupportedDocuments()
             }
         }
-       
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
 
         def result = []
@@ -6254,11 +6264,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 return usecaseObj.getSupportedDocuments()
             }
         }
-       
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
 
         // Test Parameters
-        def qTypes = [ 
+        def qTypes = [
             LeVADocumentUseCase.DocumentType.DTR as String,
             LeVADocumentUseCase.DocumentType.CFTR as String,
             LeVADocumentUseCase.DocumentType.IVP as String,
@@ -6306,11 +6316,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 return usecaseObj.getSupportedDocuments()
             }
         }
-       
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
 
         // Test Parameters
-        def pTypes = [ 
+        def pTypes = [
             LeVADocumentUseCase.DocumentType.IVR as String,
             LeVADocumentUseCase.DocumentType.TIR as String
         ]
