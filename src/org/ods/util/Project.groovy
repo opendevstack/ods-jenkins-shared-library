@@ -819,6 +819,7 @@ class Project {
             "status": "READY TO TEST",
             "testType": "Acceptance",
             "executionType": "Automated",
+            "steps": [],
             "components": [
                 "DEMO-2"
             ],
@@ -834,6 +835,7 @@ class Project {
             "status": "READY TO TEST",
             "testType": "Acceptance",
             "executionType": "Automated",
+            "steps": [],
             "components": [
                 "DEMO-2"
             ],
@@ -849,6 +851,7 @@ class Project {
             "status": "READY TO TEST",
             "testType": "Integration",
             "executionType": "Automated",
+            "steps": [],
             "components": [
                 "DEMO-2"
             ],
@@ -873,6 +876,7 @@ class Project {
             "status": "READY TO TEST",
             "testType": "Unit",
             "executionType": "Automated",
+            "steps": [],
             "components": [
                 "DEMO-3"
             ],
@@ -1445,10 +1449,21 @@ class Project {
         this.data.buildParams = loadBuildParams(steps)
         this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
-        this.data.jira = this.convertJiraDataToJiraDataItems(this.loadJiraData(this.data.metadata.id))
+        this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.loadJiraData(this.data.metadata.id)))
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
         return this
+    }
+
+    protected Map cleanJiraDataItems(Map data) {
+        // Bump test steps indizes from 0-based to 1-based counting
+        data.tests.each { test ->
+            test.getValue().steps.each { step ->
+                step.index++
+            }
+        }
+
+        return data
     }
 
     protected Map convertJiraDataToJiraDataItems(Map data) {
