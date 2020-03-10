@@ -127,12 +127,24 @@ class JiraUseCase {
         def result = this.jira.searchByJQLQuery(jqlQuery)
         // We should fail the document if no matching documentation issues are found
         if (!result || result.total == 0) throw new IllegalStateException("No documents found in JIRA for jqlQuery ${jqlQuery}")
-        def numberKey = result.names.find { it.value == CustomIssueFields.HEADING_NUMBER }.key
-        def contentFieldKey = result.names.find { it.value == CustomIssueFields.CONTENT }.key
+        def numberKeys = result.names.findAll { it.value == CustomIssueFields.HEADING_NUMBER }.collect { it.key }
+        def contentFieldKeys = result.names.findAll { it.value == CustomIssueFields.CONTENT }.collect { it.key }
 
         return result.issues.collectEntries { issue ->
-            def number = issue.fields[numberKey]?.trim()
-            def content = issue.renderedFields[contentFieldKey]
+
+            def number = issue.fields.find { field ->
+                numberKeys.contains(field.key) && field.value
+            }
+            if (!number) {
+                throw new IllegalArgumentException("Error: Could not find heading number for document ${documentType} and issue ${issue.key}.")
+            }
+            number = number.getValue().trim()
+
+            def content = issue.renderedFields.find { field ->
+                contentFieldKeys.contains(field.key) && field.value
+            }
+            content = content ? content.getValue() : ""
+
             if (content.contains("<img")) {
                 content = this.convertHTMLImageSrcIntoBase64Data(content)
             }
