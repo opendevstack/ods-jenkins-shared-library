@@ -2,11 +2,13 @@ package org.ods
 
 class OdsContext implements Context {
 
-  def script
-  Logger logger
-  Map config
+  // script is the context of the Jenkinsfile. That means that things like "sh" need to be called on script.
+  private def script
+  // config is a map of config properties to customise the behaviour.
+  private Map config
+  private Logger logger
 
-  def artifactUriStore = [ : ]
+  private def artifactUriStore = [:]
 
   OdsContext(script, config, logger) {
     this.script = script
@@ -71,8 +73,8 @@ class OdsContext implements Context {
     }
     if (!config.buildUrl) {
       logger.info 'BUILD_URL is required to set a proper build status in ' +
-                  'BitBucket, but it is not present. Normally, it is provided ' +
-                  'by Jenkins - please check your JenkinsUrl configuration.'
+          'BitBucket, but it is not present. Normally, it is provided ' +
+          'by Jenkins - please check your JenkinsUrl configuration.'
     }
 
     logger.debug "Deriving configuration from input ..."
@@ -169,7 +171,7 @@ class OdsContext implements Context {
   }
 
   boolean getDebug() {
-      config.debug
+    config.debug
   }
 
   String getJobName() {
@@ -189,11 +191,11 @@ class OdsContext implements Context {
   }
 
   String getGitBranch() {
-      config.gitBranch
+    config.gitBranch
   }
 
   String getCredentialsId() {
-      config.credentialsId
+    config.credentialsId
   }
 
   String getImage() {
@@ -237,15 +239,15 @@ class OdsContext implements Context {
   }
 
   String getNexusHost() {
-      config.nexusHost
+    config.nexusHost
   }
 
   String getNexusUsername() {
-      config.nexusUsername
+    config.nexusUsername
   }
 
   String getNexusPassword() {
-      config.nexusPassword
+    config.nexusPassword
   }
 
   String getNexusHostWithBasicAuth() {
@@ -253,15 +255,15 @@ class OdsContext implements Context {
   }
 
   String getBranchToEnvironmentMapping() {
-      config.branchToEnvironmentMapping
+    config.branchToEnvironmentMapping
   }
 
   String getAutoCloneEnvironmentsFromSourceMapping() {
-      config.autoCloneEnvironmentsFromSourceMapping
+    config.autoCloneEnvironmentsFromSourceMapping
   }
 
   String getCloneSourceEnv() {
-      config.cloneSourceEnv
+    config.cloneSourceEnv
   }
 
   void setCloneSourceEnv(String cloneSourceEnv) {
@@ -269,7 +271,7 @@ class OdsContext implements Context {
   }
 
   String getEnvironment() {
-      config.environment
+    config.environment
   }
 
   void setEnvironment(String environment) {
@@ -277,15 +279,15 @@ class OdsContext implements Context {
   }
 
   String getGroupId() {
-      config.groupId
+    config.groupId
   }
 
   String getProjectId() {
-      config.projectId
+    config.projectId
   }
 
   String getComponentId() {
-      config.componentId
+    config.componentId
   }
 
   String getGitCommit() {
@@ -305,27 +307,27 @@ class OdsContext implements Context {
   }
 
   String getTargetProject() {
-      config.targetProject
+    config.targetProject
   }
 
   String getSonarQubeBranch() {
-      config.sonarQubeBranch
+    config.sonarQubeBranch
   }
 
   String getFailOnSnykScanVulnerabilities() {
-      config.failOnSnykScanVulnerabilities
+    config.failOnSnykScanVulnerabilities
   }
 
   String getDependencyCheckBranch() {
-      config.dependencyCheckBranch
+    config.dependencyCheckBranch
   }
 
   int getEnvironmentLimit() {
-      config.environmentLimit
+    config.environmentLimit
   }
 
   String getOpenshiftHost() {
-      config.openshiftHost
+    config.openshiftHost
   }
 
   String getOdsSharedLibVersion() {
@@ -333,15 +335,15 @@ class OdsContext implements Context {
   }
 
   String getBitbucketHost() {
-      config.bitbucketHost
+    config.bitbucketHost
   }
 
   int getOpenshiftBuildTimeout() {
-      config.openshiftBuildTimeout
+    config.openshiftBuildTimeout
   }
 
   int getOpenshiftRolloutTimeout() {
-      config.openshiftRolloutTimeout
+    config.openshiftRolloutTimeout
   }
 
   boolean getCiSkipEnabled() {
@@ -364,7 +366,7 @@ class OdsContext implements Context {
     return config.localCheckoutEnabled
   }
 
-  boolean getTestResults () {
+  boolean getTestResults() {
     return config.testResults
   }
 
@@ -382,37 +384,37 @@ class OdsContext implements Context {
 
   private String retrieveGitUrl() {
     def gitUrl = script.sh(
-      returnStdout: true, script: 'git config --get remote.origin.url',
-      label : 'getting GIT url'
+        returnStdout: true, script: 'git config --get remote.origin.url',
+        label: 'getting GIT url'
     ).trim()
     return gitUrl
   }
 
   private String retrieveGitCommit() {
     script.sh(
-      returnStdout: true, script: 'git rev-parse HEAD',
-      label : 'getting GIT commit'
+        returnStdout: true, script: 'git rev-parse HEAD',
+        label: 'getting GIT commit'
     ).trim()
   }
 
   private String retrieveGitCommitAuthor() {
     script.sh(
-      returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD",
-      label : 'getting GIT commit author'
+        returnStdout: true, script: "git --no-pager show -s --format='%an (%ae)' HEAD",
+        label: 'getting GIT commit author'
     ).trim()
   }
 
   private String retrieveGitCommitMessage() {
     script.sh(
-      returnStdout: true, script: "git log -1 --pretty=%B HEAD",
-      label : 'getting GIT commit message'
+        returnStdout: true, script: "git log -1 --pretty=%B HEAD",
+        label: 'getting GIT commit message'
     ).trim()
   }
 
   private String retrieveGitCommitTime() {
     script.sh(
-      returnStdout: true, script: "git show -s --format=%ci HEAD",
-      label : 'getting GIT commit date/time'
+        returnStdout: true, script: "git show -s --format=%ci HEAD",
+        label: 'getting GIT commit date/time'
     ).trim()
   }
 
@@ -423,37 +425,30 @@ class OdsContext implements Context {
       def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
       branch = script.sh(
-              returnStdout: true,
-              label : 'getting GIT branch to build',
-              script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
+          returnStdout: true,
+          label: 'getting GIT branch to build',
+          script: "oc get bc/${buildConfigName} -n ${config.openshiftProjectId} -o jsonpath='{.spec.source.git.ref}'"
       ).trim()
     } else {
       // in case code is already checked out, OpenShift build config can not be used for retrieving branch
       branch = script.sh(
-                returnStdout: true,
-                script: "git rev-parse --abbrev-ref HEAD",
-                label : 'getting GIT branch to build').trim()
-	  branch = script.sh(
-  				returnStdout: true,
-        		script: "git name-rev ${branch} | cut -d ' ' -f2  | sed -e 's|remotes/origin/||g'",
-                label : 'resolving to real GIT branch to build').trim()
+          returnStdout: true,
+          script: "git rev-parse --abbrev-ref HEAD",
+          label: 'getting GIT branch to build').trim()
+      branch = script.sh(
+          returnStdout: true,
+          script: "git name-rev ${branch} | cut -d ' ' -f2  | sed -e 's|remotes/origin/||g'",
+          label: 'resolving to real GIT branch to build').trim()
     }
     logger.debug "resolved branch ${branch}"
     return branch
   }
-  // looks for string [ci skip] in commit message
-  boolean getCiSkip() {
-    script.sh(
-      returnStdout: true, script: 'git show --pretty=%s%b -s',
-      label : 'check skip CI?'
-    ).toLowerCase().contains('[ci skip]')
-  }
 
   boolean environmentExists(String name) {
     def statusCode = script.sh(
-      script:"oc project ${name} &> /dev/null",
-      label: "check if OCP environment ${name} exists",
-      returnStatus: true
+        script: "oc project ${name} &> /dev/null",
+        label: "check if OCP environment ${name} exists",
+        returnStatus: true
     )
     return statusCode == 0
   }
@@ -461,21 +456,21 @@ class OdsContext implements Context {
   // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
   // "HUGO-4" from it.
   private String extractBranchCode(String branch) {
-      if (branch.startsWith("feature/")) {
-          def list = branch.drop("feature/".length()).tokenize("-")
-          "${list[0]}-${list[1]}"
-      } else if (branch.startsWith("bugfix/")) {
-          def list = branch.drop("bugfix/".length()).tokenize("-")
-          "${list[0]}-${list[1]}"
-      } else if (branch.startsWith("hotfix/")) {
-          def list = branch.drop("hotfix/".length()).tokenize("-")
-          "${list[0]}-${list[1]}"
-      } else if (branch.startsWith("release/")) {
-          def list = branch.drop("release/".length()).tokenize("-")
-          "${list[0]}-${list[1]}"
-      } else {
-          branch
-      }
+    if (branch.startsWith("feature/")) {
+      def list = branch.drop("feature/".length()).tokenize("-")
+      "${list[0]}-${list[1]}"
+    } else if (branch.startsWith("bugfix/")) {
+      def list = branch.drop("bugfix/".length()).tokenize("-")
+      "${list[0]}-${list[1]}"
+    } else if (branch.startsWith("hotfix/")) {
+      def list = branch.drop("hotfix/".length()).tokenize("-")
+      "${list[0]}-${list[1]}"
+    } else if (branch.startsWith("release/")) {
+      def list = branch.drop("release/".length()).tokenize("-")
+      "${list[0]}-${list[1]}"
+    } else {
+      branch
+    }
   }
 
   // This logic must be consistent with what is described in README.md.
@@ -501,8 +496,8 @@ class OdsContext implements Context {
     for (def key : config.branchToEnvironmentMapping.keySet()) {
       if (config.gitBranch.startsWith(key)) {
         setMostSpecificEnvironment(
-          config.branchToEnvironmentMapping[key],
-          config.gitBranch.replace(key, "")
+            config.branchToEnvironmentMapping[key],
+            config.gitBranch.replace(key, "")
         )
         return
       }
@@ -512,14 +507,14 @@ class OdsContext implements Context {
     def genericEnv = config.branchToEnvironmentMapping["*"]
     if (genericEnv) {
       setMostSpecificEnvironment(
-        genericEnv,
-        config.gitBranch.replace("/", "")
+          genericEnv,
+          config.gitBranch.replace("/", "")
       )
       return
     }
 
     logger.info "No environment to deploy to was determined " +
-      "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
+        "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
     config.environment = ""
     config.cloneSourceEnv = ""
   }
@@ -562,7 +557,7 @@ class OdsContext implements Context {
     return this.artifactUriStore
   }
 
-  public void addArtifactURI (String key, value) {
+  public void addArtifactURI(String key, value) {
     this.artifactUriStore.put(key, value)
   }
 

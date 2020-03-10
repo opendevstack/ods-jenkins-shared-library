@@ -1,4 +1,4 @@
-package org.ods
+package org.ods.model
 
 class OpenshiftDeployment {
 
