@@ -1050,4 +1050,58 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         result == "Developer Preview"
     }
+
+    def "count the number of test in xml info"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+
+        // Test Parameters
+        def xmlFile = Files.createTempFile("junit", ".xml").toFile()
+        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
+
+        def testReportFiles = [xmlFile]
+        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+
+        when:
+        def result = usecase.getNumberOfTest(testResults)
+
+        then:
+        result == 5
+
+        cleanup:
+        xmlFile.delete()
+    }
+
+    def "get xUnit test result in raw"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+
+        // Test Parameters
+        def xmlFile = Files.createTempFile("junit", ".xml").toFile()
+        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
+
+        def testReportFiles = [xmlFile]
+        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def data = [
+            tests: [
+                unit: [
+                    testReportFiles: testReportFiles,
+                    testResults: testResults
+                ]
+            ]
+        ]
+
+        when:
+        def result = usecase.getxUnitTestInfo(data.tests.unit)
+
+        then:
+        result.size == 1
+        result[0].testReportFileName == xmlFile.name
+        result[0].testReportFileRaw == xmlFile.text
+
+        cleanup:
+        xmlFile.delete()
+    }
 }
