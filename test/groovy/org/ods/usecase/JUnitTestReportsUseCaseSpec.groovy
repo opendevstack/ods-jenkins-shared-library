@@ -2,10 +2,8 @@ package org.ods.usecase
 
 import java.nio.file.Files
 
-import org.ods.parser.JUnitParser
-import org.ods.util.IPipelineSteps
-import org.ods.util.MROPipelineUtil
-import org.ods.util.Project
+import org.ods.parser.*
+import org.ods.util.*
 
 import spock.lang.*
 
@@ -21,8 +19,84 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
     def setup() {
         project = createProject()
-        steps = Spy(PipelineSteps)
+        steps = Spy(util.PipelineSteps)
         usecase = new JUnitTestReportsUseCase(project, steps)
+    }
+
+    def "combine test results"() {
+        given:
+        def testResult1 = [
+            testsuites: [
+                [
+                    testcases: [
+                        [ a: 1 ]
+                    ]
+                ]
+            ]
+        ]
+
+        def testResult2 = [
+            testsuites: [
+                [
+                    testcases: [
+                        [ b: 2 ]
+                    ]
+                ]
+            ]
+        ]
+
+        def testResult3 = [
+            testsuites: [
+                [
+                    testcases: [
+                        [ c: 3 ]
+                    ]
+                ]
+            ]
+        ]
+
+        when:
+        def result = usecase.combineTestResults([ testResult1, testResult2, testResult3 ])
+
+        then:
+        result == [
+            testsuites: [
+                [ 
+                    testcases: [
+                        [ a: 1 ]
+                    ]
+                ],
+                [
+                    testcases: [
+                        [ b: 2 ]
+                    ]
+                ],
+                [
+                    testcases: [
+                        [ c: 3 ]
+                    ]
+                ]
+            ]
+        ]
+    }
+
+    def "get number of test cases"() {
+        given:
+        def testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [ a: 1 ], [ b: 2 ], [ c: 3 ]
+                    ]
+                ]
+            ]
+        ]
+
+        when:
+        def result = usecase.getNumberOfTestCases(testResults)
+
+        then:
+        result == 3
     }
 
     def "load test reports from path"() {

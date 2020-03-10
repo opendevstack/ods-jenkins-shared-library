@@ -4,12 +4,8 @@ import groovy.json.JsonOutput
 
 import java.nio.file.Files
 
-import org.ods.service.DocGenService
-import org.ods.service.NexusService
-import org.ods.util.IPipelineSteps
-import org.ods.util.MROPipelineUtil
-import org.ods.util.PDFUtil
-import org.ods.util.Project
+import org.ods.service.*
+import org.ods.util.*
 
 import spock.lang.*
 
@@ -20,7 +16,7 @@ import util.*
 class DocGenUseCaseSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends DocGenUseCase {
-        DocGenUseCaseImpl(Project project, PipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
+        DocGenUseCaseImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
             super(project, steps, util, docGen, nexus, pdf)
         }
 
@@ -36,7 +32,7 @@ class DocGenUseCaseSpec extends SpecHelper {
     MROPipelineUtil util
 
     def setup() {
-        steps = Spy(PipelineSteps)
+        steps = Spy(util.PipelineSteps)
         steps.env.BUILD_ID = "0815"
 
         project = createProject()

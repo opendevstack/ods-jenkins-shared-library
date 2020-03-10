@@ -1,26 +1,27 @@
 package org.ods.usecase
 
-import org.ods.service.*
-import org.ods.usecase.JiraUseCase
-import org.ods.usecase.SonarQubeUseCase
-import org.ods.util.MROPipelineUtil
-import org.ods.util.PDFUtil
-import org.ods.util.Project
-import util.PipelineSteps
-import util.SpecHelper
+import groovy.json.JsonOutput
 
 import java.nio.file.Files
 
+import org.ods.service.*
+import org.ods.util.*
+
+import spock.lang.*
+
 import static util.FixtureHelper.*
+
+import util.*
 
 class LeVADocumentUseCaseSpec extends SpecHelper {
 
     Project project
-    PipelineSteps steps
+    IPipelineSteps steps
     MROPipelineUtil util
     DocGenService docGen
     JenkinsService jenkins
     JiraUseCase jiraUseCase
+    JUnitTestReportsUseCase junit
     LeVADocumentChaptersFileService levaFiles
     NexusService nexus
     OpenShiftService os
@@ -30,30 +31,130 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def setup() {
         project = Spy(createProject())
-        steps = Spy(PipelineSteps)
+        steps = Spy(util.PipelineSteps)
         util = Mock(MROPipelineUtil)
         docGen = Mock(DocGenService)
         jenkins = Mock(JenkinsService)
         jiraUseCase = Mock(JiraUseCase)
+        junit = Spy(new JUnitTestReportsUseCase(project, steps))
         levaFiles = Mock(LeVADocumentChaptersFileService)
         nexus = Mock(NexusService)
         os = Mock(OpenShiftService)
         pdf = Mock(PDFUtil)
         sq = Mock(SonarQubeUseCase)
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
     }
 
     def "compute test discrepancies"() {
         given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+
         def name = "myTests"
 
         when:
-        def testIssues = createJiraTestIssues().each {
-            it.isMissing = false
-            it.isSuccess = true
-        }
+        def testIssues = []
+        def testResults = [
+            testsuites: [
+                [
+                    testcases: []
+                ]
+            ]
+        ]
 
-        def result = usecase.computeTestDiscrepancies(name, testIssues)
+        def result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+
+        then:
+        result.discrepancies == "No discrepancies found."
+        result.conclusion.summary == "Complete success, no discrepancies"
+        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+
+        // a single, successful testcase
+        when:
+        testIssues = []
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+
+        then:
+        result.discrepancies == "No discrepancies found."
+        result.conclusion.summary == "Complete success, no discrepancies"
+        result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+
+        // a single testcase with an error
+        when:
+        testIssues = []
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                            error: [ text: "This is an error." ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+
+        then:
+        result.discrepancies == "The following major discrepancies were found during testing. Other failed tests: 1."
+        result.conclusion.summary == "No success - major discrepancies found"
+        result.conclusion.statement == "Some discrepancies found as tests did fail."
+
+        // a single testcase with a failure
+        when:
+        testIssues = []
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                            failure: [ text: "This is a failure." ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+
+        then:
+        result.discrepancies == "The following major discrepancies were found during testing. Other failed tests: 1."
+        result.conclusion.summary == "No success - major discrepancies found"
+        result.conclusion.statement == "Some discrepancies found as tests did fail."
+
+        when:
+        // only successful testIssues
+        testIssues = [
+            [ key: "JIRA-1" ]
+        ]
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1"
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
 
         then:
         result.discrepancies == "No discrepancies found."
@@ -61,54 +162,167 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result.conclusion.statement == "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
 
         when:
-        testIssues = createJiraTestIssues().each {
-            it.isMissing = true
-            it.isSuccess = false
-        }
+        // a single testIssue with an error
+        testIssues = [
+            [ key: "JIRA-1" ]
+        ]
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                            error: [ text: "This is an error." ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues)
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following minor discrepancies were found during testing: ${testIssues.collect { it.key }.join(", ")}."
-        result.conclusion.summary == "Success - minor discrepancies found"
-        result.conclusion.statement == "Some discrepancies were found as tests were not executed, this may be per design."
+        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1."
+        result.conclusion.summary == "No success - major discrepancies found"
+        result.conclusion.statement == "Some discrepancies found as tests did fail."
 
         when:
-        testIssues = createJiraTestIssues().each {
-            it.isMissing = false
-            it.isSuccess = false
-        }
+        // a single testIssue with a failure
+        testIssues = [
+            [ key: "JIRA-1" ]
+        ]
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                            failure: [ text: "This is a failure." ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues)
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing: ${testIssues.collect { it.key }.join(", ")}."
+        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1."
         result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies occured as tests did fail. It is not recommended to continue!"
+        result.conclusion.statement == "Some discrepancies found as tests did fail."
 
         when:
-        testIssues = createJiraTestIssues()
-        testIssues[0..1].each {
-            it.isMissing = true
-            it.isSuccess = false
-        }
-        testIssues[2..4].each {
-            it.isMissing = false
-            it.isSuccess = false
-        }
+        // two testIssues with an error and a failure
+        testIssues = [
+            [ key: "JIRA-1" ], [ key: "JIRA-2" ]
+        ]
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                            error: [ text: "This is an error." ]
+                        ]
+                    ]
+                ],
+                [
+                    testcases: [
+                        [
+                            name: "JIRA2_my-testcase-2",
+                            failure: [ text: "This is a failure." ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
-        result = usecase.computeTestDiscrepancies(name, testIssues)
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
 
         then:
-        result.discrepancies == "The following major discrepancies were found during testing: ${testIssues.collect { it.key }.join(", ")}."
+        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1, JIRA-2."
         result.conclusion.summary == "No success - major discrepancies found"
-        result.conclusion.statement == "Some discrepancies occured as tests did fail. It is not recommended to continue!"
+        result.conclusion.statement == "Some discrepancies found as tests did fail."
+
+        when:
+        // an unexecuted testIssue
+        testIssues = [
+            [ key: "JIRA-1" ]
+        ]
+        testResults = [
+            testsuites: []
+        ]
+
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+
+        then:
+        result.discrepancies == "The following major discrepancies were found during testing. Unexecuted tests: JIRA-1."
+        result.conclusion.summary == "No success - major discrepancies found"
+        result.conclusion.statement == "Some discrepancies found as tests were not executed."
+
+        when:
+        // two testIssues with an error, and an unexecuted
+        testIssues = [
+            [ key: "JIRA-1" ], [ key: "JIRA-2" ]
+        ]
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                            error: [ text: "This is an error." ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+
+        then:
+        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1. Unexecuted tests: JIRA-2."
+        result.conclusion.summary == "No success - major discrepancies found"
+        result.conclusion.statement == "Some discrepancies found as tests did fail and others were not executed."
+    
+        when:
+        // an erroneous testIssue and a failing extraneous testcase
+        testIssues = [
+            [ key: "JIRA-1" ]
+        ]
+        testResults = [
+            testsuites: [
+                [
+                    testcases: [
+                        [
+                            name: "JIRA1_my-testcase-1",
+                            error: [ text: "This is an error." ]
+                        ]
+                    ]
+                ],
+                [
+                    testcases: [
+                        [
+                            name: "my-testcase-2",
+                            failure: [ text: "This is an error." ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        result = usecase.computeTestDiscrepancies(name, testIssues, testResults)
+
+        then:
+        result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1. Other failed tests: 1."
+        result.conclusion.summary == "No success - major discrepancies found"
+        result.conclusion.statement == "Some discrepancies found as tests did fail."
     }
 
     def "create CSD"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CSD as String
@@ -137,7 +351,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create TRC"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TRC as String
@@ -166,7 +380,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create DIL"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DIL as String
@@ -192,7 +406,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create DTP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def repo = project.repositories.first()
@@ -225,9 +439,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create DTP without Jira"() {
         given:
         project.services.jira = null
-
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, null))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def repo = project.repositories.first()
@@ -294,8 +505,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
-        1 * jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults, _, _)
-        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
+        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
 
@@ -344,8 +554,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
-        1 * jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults, _, _)
-        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues)
+        1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, repo, _, files, _, null, _)
     }
@@ -353,7 +562,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create CFTP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CFTP as String
@@ -377,14 +586,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
-        1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        1 * usecase.notifyJiraTrackingIssue(*_)
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
-    def "create FTR"() {
+    def "create CFTR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
@@ -427,8 +636,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * project.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
         1 * project.getAutomatedTestsTypeIntegration() >> integrationTestIssues
-        1 * jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, testResults, _, _)
-        1 * jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, testResults, _, _)
+        1 * usecase.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([data.tests.acceptance.testResults, data.tests.integration.testResults]))
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, files, null, null, _) >> uri
@@ -442,7 +650,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create TCP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TCP as String
@@ -474,7 +682,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create TCR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
@@ -532,7 +740,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create IVP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVP as String
@@ -562,7 +770,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create IVR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
@@ -601,7 +809,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * project.getAutomatedTestsTypeInstallation() >> testIssues
-        1 * jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults, _, _)
+        1 * usecase.computeTestDiscrepancies("Installation Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, files, null, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
@@ -614,7 +822,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create SSDS"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+
         steps.env.BUILD_ID = "0815"
 
         // Test Parameters
@@ -669,13 +878,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.createDocument(documentType, null, _, _, _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-
     }
 
     def "create RA"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.RA as String
@@ -705,7 +913,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create TIP"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
@@ -734,9 +942,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create TIP without Jira"() {
         given:
         project.services.jira = null
-
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, null))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
@@ -776,14 +981,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createTIR(repo)
 
         then:
-        1 * os.getPodDataForComponent(repo.id) >> createOpenShiftPodDataForComponent()
-
-        then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getWatermarkText(documentType)
 
         then:
+        1 * os.getPodDataForComponent(repo.id) >> createOpenShiftPodDataForComponent()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, repo, _, [:], _, null, _)
     }
@@ -805,14 +1008,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createTIR(repo)
 
         then:
-        1 * os.getPodDataForComponent(repo.id) >> createOpenShiftPodDataForComponent()
-
-        then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getWatermarkText(documentType)
 
         then:
+        1 * os.getPodDataForComponent(repo.id) >> createOpenShiftPodDataForComponent()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, repo, _, [:], _, null, _)
     }
@@ -820,7 +1021,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create overall DTR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTR as String
@@ -844,7 +1045,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create overall TIR"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIR as String
@@ -896,7 +1097,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "notify LeVA document issue in DEV"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myType"
         def message = "myMessage"
@@ -915,7 +1116,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "notify LeVA document issue with query returning 0 issues"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myType"
         def message = "myMessage"
@@ -937,7 +1138,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "notify LeVA document issue with query returning 3 issues"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myType"
         def message = "myMessage"
@@ -956,9 +1157,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "docs with watermark text in DEV"() {
         given:
         project.buildParams.targetEnvironment = "dev"
-
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
 
         when:
         def result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CSD as String)
@@ -1049,59 +1247,5 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         result == "Developer Preview"
-    }
-
-    def "count the number of test in xml info"() {
-        given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def xmlFile = Files.createTempFile("junit", ".xml").toFile()
-        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
-
-        def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
-
-        when:
-        def result = usecase.getNumberOfTest(testResults)
-
-        then:
-        result == 5
-
-        cleanup:
-        xmlFile.delete()
-    }
-
-    def "get xUnit test result in raw"() {
-        given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, levaFiles, nexus, os, pdf, sq))
-
-        // Test Parameters
-        def xmlFile = Files.createTempFile("junit", ".xml").toFile()
-        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
-
-        def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
-        def data = [
-            tests: [
-                unit: [
-                    testReportFiles: testReportFiles,
-                    testResults: testResults
-                ]
-            ]
-        ]
-
-        when:
-        def result = usecase.getxUnitTestInfo(data.tests.unit)
-
-        then:
-        result.size == 1
-        result[0].testReportFileName == xmlFile.name
-        result[0].testReportFileRaw == xmlFile.text
-
-        cleanup:
-        xmlFile.delete()
     }
 }

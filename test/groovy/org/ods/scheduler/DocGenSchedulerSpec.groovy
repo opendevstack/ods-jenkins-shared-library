@@ -1,11 +1,8 @@
 package org.ods.scheduler
 
-import org.ods.service.DocGenService
-import org.ods.service.NexusService
-import org.ods.usecase.DocGenUseCase
-import org.ods.util.MROPipelineUtil
-import org.ods.util.PDFUtil
-import org.ods.util.Project
+import org.ods.service.*
+import org.ods.usecase.*
+import org.ods.util.*
 
 import spock.lang.*
 
@@ -16,7 +13,7 @@ import util.*
 class DocGenSchedulerSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends DocGenUseCase {
-        DocGenUseCaseImpl(Project project, PipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
+        DocGenUseCaseImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
             super(project, steps, util, docGen, nexus, pdf)
         }
 
@@ -30,7 +27,7 @@ class DocGenSchedulerSpec extends SpecHelper {
     }
 
     class DocGenSchedulerImpl extends DocGenScheduler {
-        DocGenSchedulerImpl(Project project, PipelineSteps steps, MROPipelineUtil util, DocGenUseCase docGen) {
+        DocGenSchedulerImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenUseCase docGen) {
             super(project, steps, util, docGen)
         }
 
@@ -43,7 +40,7 @@ class DocGenSchedulerSpec extends SpecHelper {
         given:
         def project = createProject()
 
-        def steps = Spy(PipelineSteps)
+        def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Spy(new DocGenUseCaseImpl(project, steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil)))
         def scheduler = Spy(new DocGenSchedulerImpl(project, steps, util, usecase))

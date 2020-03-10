@@ -2,10 +2,9 @@ package org.ods.usecase
 
 import java.nio.file.Files
 
-import org.ods.parser.JUnitParser
-import org.ods.service.NexusService
-import org.ods.util.IPipelineSteps
-import org.ods.util.Project
+import org.ods.parser.*
+import org.ods.service.*
+import org.ods.util.*
 
 import spock.lang.*
 
@@ -22,7 +21,7 @@ class SonarQubeUseCaseSpec extends SpecHelper {
 
     def setup() {
         project = createProject()
-        steps = Spy(PipelineSteps)
+        steps = Spy(util.PipelineSteps)
         nexus = Mock(NexusService)
         usecase = new SonarQubeUseCase(project, steps, nexus)
     }

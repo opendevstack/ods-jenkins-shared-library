@@ -16,6 +16,26 @@ class JUnitTestReportsUseCase {
         this.steps = steps
     }
 
+    Map combineTestResults(List<Map> testResults) {
+        def result = [ testsuites: [] ]
+
+        testResults.each { testResult ->
+            result.testsuites.addAll(testResult.testsuites)
+        }
+
+        return result
+    }
+
+    int getNumberOfTestCases(Map testResults) {
+        def result = 0
+
+        testResults.testsuites.each { testsuite ->
+            result += testsuite.testcases.size()
+        }
+
+        return result
+    }
+
     @NonCPS
     List<File> loadTestReportsFromPath(String path) {
         def result = []
@@ -30,14 +50,11 @@ class JUnitTestReportsUseCase {
     }
 
     Map parseTestReportFiles(List<File> files) {
-        def result = [ testsuites: [] ]
-
-        files.each { file ->
-            def testResult = JUnitParser.parseJUnitXML(file.text)
-            result.testsuites.addAll(testResult.testsuites)
+        def testResults = files.collect { file ->
+            JUnitParser.parseJUnitXML(file.text)
         }
 
-        return result
+        return this.combineTestResults(testResults)
     }
 
     void reportTestReportsFromPathToJenkins(String path) {

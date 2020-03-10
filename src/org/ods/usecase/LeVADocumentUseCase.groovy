@@ -59,14 +59,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private JenkinsService jenkins
     private JiraUseCase jiraUseCase
+    private JUnitTestReportsUseCase junit
     private LeVADocumentChaptersFileService levaFiles
     private OpenShiftService os
     private SonarQubeUseCase sq
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
+    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
         super(project, steps, util, docGen, nexus, pdf)
         this.jenkins = jenkins
         this.jiraUseCase = jiraUseCase
+        this.junit = junit
         this.levaFiles = levaFiles
         this.os = os
         this.sq = sq
@@ -80,6 +82,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected Map computeComponentMetadata(String documentType) {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll("Technology-", "")
+
             def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
                 throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'.")
@@ -141,9 +144,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    // FIXME: re-implement to depend on testResults, not on testIssues
-    // since we want to report all executed tests (and draw conclusions from them)
-    protected Map computeTestDiscrepancies(String name, List jiraTestIssues) {
+    protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
         def result = [
             discrepancies: "No discrepancies found.",
             conclusion   : [
@@ -152,38 +153,71 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def failed = []
-        def missing = []
-
-        jiraTestIssues.each { issue ->
-            if (!issue.isSuccess && !issue.isMissing) {
-                failed << issue.key
-            }
-
-            if (!issue.isSuccess && issue.isMissing) {
-                missing << issue.key
+        // Match Jira test issues with test results
+        def matchedHandler = { matched ->
+            matched.each { testIssue, testCase ->
+                testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped)
+                testIssue.isUnexecuted = !!testCase.skipped
+                testIssue.timestamp = testCase.timestamp
             }
         }
 
-        if (failed.isEmpty() && !missing.isEmpty()) {
-            result.discrepancies = "The following minor discrepancies were found during testing: ${missing.join(", ")}."
+        def unmatchedHandler = { unmatched ->
+            unmatched.each { testIssue ->
+                testIssue.isSuccess = false
+                testIssue.isUnexecuted = true
+            }
+        }
 
-            result.conclusion = [
-                summary  : "Success - minor discrepancies found",
-                statement: "Some discrepancies were found as tests were not executed, this may be per design."
-            ]
-        } else if (!failed.isEmpty()) {
-            if (!missing.isEmpty()) {
-                failed.addAll(missing)
-                failed.sort()
+        this.jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults ?: [:], matchedHandler, unmatchedHandler)
+
+        // Compute failed and missing Jira test issues
+        def failedTestIssues = testIssues.findAll { testIssue ->
+            return !testIssue.isSuccess && !testIssue.isUnexecuted
+        }
+
+        def unexecutedTestIssues = testIssues.findAll { testIssue ->
+            return !testIssue.isSuccess && testIssue.isUnexecuted
+        }
+
+        // Compute extraneous failed test cases
+        def extraneousFailedTestCases = []
+        testResults.testsuites.each { testSuite ->
+            extraneousFailedTestCases.addAll(testSuite.testcases.findAll { testCase ->
+                return (testCase.error || testCase.failure) && !failedTestIssues.any { this.jiraUseCase.checkTestsIssueMatchesTestCase(it, testCase) }
+            })
+        }
+
+        // Compute test discrepancies
+        def isMajorDiscrepancy = failedTestIssues || unexecutedTestIssues || extraneousFailedTestCases
+        if (isMajorDiscrepancy) {
+            result.discrepancies = "The following major discrepancies were found during testing."
+            result.conclusion.summary = "No success - major discrepancies found"
+            result.conclusion.statement = "Some discrepancies found as"
+
+            if (failedTestIssues || extraneousFailedTestCases) {
+                result.conclusion.statement += " tests did fail"
             }
 
-            result.discrepancies = "The following major discrepancies were found during testing: ${(failed).join(", ")}."
+            if (failedTestIssues) {
+                result.discrepancies += " Failed tests: ${failedTestIssues.collect { it.key }.join(', ')}."
+            }
 
-            result.conclusion = [
-                summary  : "No success - major discrepancies found",
-                statement: "Some discrepancies occured as tests did fail. It is not recommended to continue!"
-            ]
+            if (extraneousFailedTestCases) {
+                result.discrepancies += " Other failed tests: ${extraneousFailedTestCases.size()}."
+            }
+
+            if (unexecutedTestIssues) {
+                result.discrepancies += " Unexecuted tests: ${unexecutedTestIssues.collect { it.key }.join(', ')}."
+
+                if (failedTestIssues || extraneousFailedTestCases) {
+                    result.conclusion.statement += " and others were not executed"
+                } else {
+                    result.conclusion.statement += " tests were not executed"
+                }
+            }
+
+            result.conclusion.statement += "."
         }
 
         return result
@@ -197,11 +231,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
         }
 
-        def requirements = this.project.getSystemRequirements()
-            .groupBy { it.gampTopic.toLowerCase() }.collectEntries { k, v ->
+        def requirements = this.project.getSystemRequirements().groupBy { it.gampTopic.toLowerCase() }.collectEntries { gampTopic, reqs ->
             [
-                k.replaceAll(" ", "").toLowerCase(),
-                SortUtil.sortIssuesByProperties(v.collect { req ->
+                gampTopic.replaceAll(" ", "").toLowerCase(), // TODO: why is trimming necessary?
+                SortUtil.sortIssuesByProperties(reqs.collect { req ->
                     [
                         key          : req.key,
                         applicability: "Mandatory",
@@ -212,6 +245,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 }, ["key"])
             ]
         }
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
@@ -234,18 +268,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
             bug.tests = bug.getResolvedTests()
         }
 
-        def acceptanceTestBugs = bugs.findAll {
-            bug ->
-                bug.tests.findAll {
-                    test -> test.testType == Project.TestType.ACCEPTANCE
-                }
+        def acceptanceTestBugs = bugs.findAll { bug ->
+            bug.tests.findAll { test ->
+                test.testType == Project.TestType.ACCEPTANCE
+            }
         }
 
-        def integrationTestBugs = bugs.findAll {
-            bug ->
-                bug.tests.findAll {
-                    test -> test.testType == Project.TestType.INTEGRATION
-                }
+        def integrationTestBugs = bugs.findAll { bug ->
+            bug.tests.findAll { test ->
+                test.testType == Project.TestType.INTEGRATION
+            }
         }
 
         def data_ = [
@@ -254,53 +286,47 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         if (!integrationTestBugs.isEmpty()) {
-            data_.data.integrationTests = integrationTestBugs.collectEntries { bug ->
+            data_.data.integrationTests = integrationTestBugs.collect { bug ->
                 [
-                    bug.key,
-                    [
-                        //Discrepancy ID -> BUG Issue ID
-                        discrepancyID        : bug.key,
-                        //Test Case No. -> JIRA (Test Case Key)
-                        testcaseID           : bug.tests.first().key,
-                        //-	Level of Test Case = Unit / Integration / Acceptance / Installation
-                        level                : "Integration",
-                        //Description of Failure or Discrepancy -> Bug Issue Summary
-                        description          : bug.name,
-                        //Remediation Action -> "To be fixed"
-                        remediation          : "To be fixed",
-                        //Responsible / Due Date -> JIRA (assignee, Due date)
-                        responsibleAndDueDate: "${bug.assignee ? bug.assignee : 'N/A'} / ${bug.dueDate ? bug.dueDate : 'N/A'}",
-                        //Outcome of the Resolution -> Bug Status
-                        outcomeResolution    : bug.status,
-                        //Resolved Y/N -> JIRA Status -> Done = Yes
-                        resolved             : bug.status == "Done" ? "Yes" : "No"
-                    ]
+                    //Discrepancy ID -> BUG Issue ID
+                    discrepancyID: bug.key,
+                    //Test Case No. -> JIRA (Test Case Key)
+                    testcaseID: bug.tests.first().key,
+                    //-	Level of Test Case = Unit / Integration / Acceptance / Installation
+                    level: "Integration",
+                    //Description of Failure or Discrepancy -> Bug Issue Summary
+                    description: bug.name,
+                    //Remediation Action -> "To be fixed"
+                    remediation: "To be fixed",
+                    //Responsible / Due Date -> JIRA (assignee, Due date)
+                    responsibleAndDueDate: "${bug.assignee ? bug.assignee : 'N/A'} / ${bug.dueDate ? bug.dueDate : 'N/A'}",
+                    //Outcome of the Resolution -> Bug Status
+                    outcomeResolution: bug.status,
+                    //Resolved Y/N -> JIRA Status -> Done = Yes
+                    resolved: bug.status == "Done" ? "Yes" : "No"
                 ]
             }
         }
 
         if (!acceptanceTestBugs.isEmpty()) {
-            data_.data.acceptanceTests = acceptanceTestBugs.collectEntries { bug ->
+            data_.data.acceptanceTests = acceptanceTestBugs.collect { bug ->
                 [
-                    bug.key,
-                    [
-                        //Discrepancy ID -> BUG Issue ID
-                        discrepancyID        : bug.key,
-                        //Test Case No. -> JIRA (Test Case Key)
-                        testcaseID           : bug.tests.first().key,
-                        //-	Level of Test Case = Unit / Integration / Acceptance / Installation
-                        level                : "Acceptance",
-                        //Description of Failure or Discrepancy -> Bug Issue Summary
-                        description          : bug.name,
-                        //Remediation Action -> "To be fixed"
-                        remediation          : "To be fixed",
-                        //Responsible / Due Date -> JIRA (assignee, Due date)
-                        responsibleAndDueDate: "${bug.assignee ? bug.assignee : 'N/A'} / ${bug.dueDate ? bug.dueDate : 'N/A'}",
-                        //Outcome of the Resolution -> Bug Status
-                        outcomeResolution    : bug.status,
-                        //Resolved Y/N -> JIRA Status -> Done = Yes
-                        resolved             : bug.status == "Done" ? "Yes" : "No"
-                    ]
+                    //Discrepancy ID -> BUG Issue ID
+                    discrepancyID: bug.key,
+                    //Test Case No. -> JIRA (Test Case Key)
+                    testcaseID: bug.tests.first().key,
+                    //-	Level of Test Case = Unit / Integration / Acceptance / Installation
+                    level: "Acceptance",
+                    //Description of Failure or Discrepancy -> Bug Issue Summary
+                    description: bug.name,
+                    //Remediation Action -> "To be fixed"
+                    remediation: "To be fixed",
+                    //Responsible / Due Date -> JIRA (assignee, Due date)
+                    responsibleAndDueDate: "${bug.assignee ? bug.assignee : 'N/A'} / ${bug.dueDate ? bug.dueDate : 'N/A'}",
+                    //Outcome of the Resolution -> Bug Status
+                    outcomeResolution: bug.status,
+                    //Resolved Y/N -> JIRA Status -> Done = Yes
+                    resolved: bug.status == "Done" ? "Yes" : "No"
                 ]
             }
         }
@@ -331,18 +357,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         url        : repo_.url
                     ]
                 },
-                sections    : sections,
-                tests       : this.project.getAutomatedTestsTypeUnit().collectEntries { testIssue ->
-                    def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec }.collect { it.key }
+                sections: sections,
+                tests: this.project.getAutomatedTestsTypeUnit().collect { testIssue ->
+                    def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
 
                     [
-                        testIssue.key,
-                        [
-                            key               : testIssue.key,
-                            description       : testIssue.description ?: "",
-                            systemRequirement : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A"
-                        ]
+                        key: testIssue.key,
+                        description: testIssue.description ?: "",
+                        systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                        softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A"
                     ]
                 }
             ]
@@ -356,7 +379,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDTR(Map repo, Map data) {
         def documentType = DocumentType.DTR as String
 
-        data = data.tests.unit
+        def unitTestData = data.tests.unit
 
         def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
@@ -367,54 +390,37 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
-
-        def matchedHandler = { result ->
-            result.each { testIssue, testCase ->
-                testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped)
-                testIssue.isMissing = false
-            }
-        }
-
-        def unmatchedHandler = { result ->
-            result.each { testIssue ->
-                testIssue.isSuccess = false
-                testIssue.isMissing = true
-            }
-        }
-
-        this.jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, data?.testResults ?: [:], matchedHandler, unmatchedHandler)
-
-        def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues)
+        def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
-                sections    : sections,
-                tests       : this.project.getAutomatedTestsTypeUnit().collectEntries { testIssue ->
-                    def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec }.collect { it.key }
-
+                repo           : repo,
+                sections       : sections,
+                tests          : testIssues.collect { testIssue ->
                     [
-                        testIssue.key,
-                        [
-                            key               : testIssue.key,
-                            description       : testIssue.description ?: "",
-                            systemRequirement : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A",
-                            success           : testIssue.isSuccess ? "Y" : "N",
-                            remarks           : testIssue.isMissing ? "not executed" : "",
-                        ]
+                        key               : testIssue.key,
+                        description       : testIssue.description ?: "",
+                        systemRequirement : testIssue.requirements.join(", "),
+                        success           : testIssue.isSuccess ? "Y" : "N",
+                        remarks           : testIssue.isMissing ? "not executed" : "",
+                        softwareDesignSpec: testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec } ?
+                                            testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }.join(", ") : "N/A"
                     ]
                 },
-                testxUnits   : this.getxUnitTestInfo(data),
-                discrepancies: discrepancies.discrepancies,
-                conclusion   : [
+                numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isMissing },
+                testFiles      : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
+                    [name: file.name, path: file.path, text: file.text]
+                } ?: [], ["name"]),
+                discrepancies  : discrepancies.discrepancies,
+                conclusion     : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
                 ]
             ]
         ]
 
-        def files = data.testReportFiles.collectEntries { file ->
+        def files = unitTestData.testReportFiles.collectEntries { file ->
             ["raw/${file.getName()}", file.getBytes()]
         }
 
@@ -443,26 +449,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                acceptanceTests : acceptanceTestIssues.collectEntries { testIssue ->
+                acceptanceTests : acceptanceTestIssues.collect { testIssue ->
                     [
-                        testIssue.key,
-                        [
-                            key        : testIssue.key,
-                            description: testIssue.description ?: "",
-                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
-                        ]
+                        key        : testIssue.key,
+                        description: testIssue.description ?: "",
+                        ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                        risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
                     ]
                 },
-                integrationTests: integrationTestIssues.collectEntries { testIssue ->
+                integrationTests: integrationTestIssues.collect { testIssue ->
                     [
-                        testIssue.key,
-                        [
-                            key        : testIssue.key,
-                            description: testIssue.description ?: "",
-                            ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                            risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
-                        ]
+                        key        : testIssue.key,
+                        description: testIssue.description ?: "",
+                        ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                        risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
                     ]
                 }
             ]
@@ -543,50 +543,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestData = data.tests.acceptance
         def integrationTestData = data.tests.integration
 
-        // Obtain the total number of test in report
-        def numberAcceptanceTest = getNumberOfTest(acceptanceTestData.testResults)
-        def numberIntegrationTest = getNumberOfTest(integrationTestData.testResults)
-
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
         }
 
-        def matchedHandler = { result ->
-            result.each { testIssue, testCase ->
-                testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped)
-                testIssue.isMissing = false
-                testIssue.timestamp = testCase.timestamp
-            }
-        }
-
-        def unmatchedHandler = { result ->
-            result.each { testIssue ->
-                testIssue.isSuccess = false
-                testIssue.isMissing = true
-            }
-        }
-
-        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
-        this.jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, acceptanceTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
-        acceptanceTestIssues = SortUtil.sortIssuesByProperties(acceptanceTestIssues ?: [], ["key"])
-
-        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
-        this.jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, integrationTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
-        integrationTestIssues = SortUtil.sortIssuesByProperties(integrationTestIssues ?: [], ["key"])
-
-        def discrepancies = this.computeTestDiscrepancies("Functional and Requirements Tests", (acceptanceTestIssues + integrationTestIssues))
+        def acceptanceTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeAcceptance(), ["key"])
+        def integrationTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeIntegration(), ["key"])
+        def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data    : [
-                sections                  : sections,
-                additionalAcceptanceTests : numberAcceptanceTest - acceptanceTestIssues.count { !it.isMissing },
-                additionalIntegrationTests: numberIntegrationTest - integrationTestIssues.count { !it.isMissing },
-                testfiles                 : (acceptanceTestData + integrationTestData).testReportFiles.collect { file ->
-                    [name: file.getName(), path: file.getPath()]
-                },
-                conclusion                : [
+            data : [
+                sections                     : sections,
+                numAdditionalAcceptanceTests : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isMissing },
+                numAdditionalIntegrationTests: junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isMissing },
+                conclusion : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
                 ]
@@ -594,27 +566,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         if (!acceptanceTestIssues.isEmpty()) {
-            data_.data.acceptanceTests = acceptanceTestIssues.collectEntries { testIssue ->
+            data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
                 [
-                    testIssue.key,
-                    [
-                        key        : testIssue.key,
-                        datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                        description: testIssue.description ?: "",
-                        remarks    : testIssue.isMissing ? "not executed" : "",
-                        risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
-                        success    : testIssue.isSuccess ? "Y" : "N",
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
-                    ]
+                    key        : testIssue.key,
+                    datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
+                    description: testIssue.description ?: "",
+                    remarks    : testIssue.isMissing ? "not executed" : "",
+                    risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                    success    : testIssue.isSuccess ? "Y" : "N",
+                    ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
                 ]
             }
         }
 
         if (!integrationTestIssues.isEmpty()) {
-            data_.data.integrationTests = integrationTestIssues.collectEntries { testIssue ->
+            data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
                 [
-                    testIssue.key,
-                    [
                         key        : testIssue.key,
                         datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
                         description: testIssue.description ?: "",
@@ -622,12 +589,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                         success    : testIssue.isSuccess ? "Y" : "N",
                         ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
-                    ]
                 ]
             }
         }
 
-        def files = (acceptanceTestData + integrationTestData).testReportFiles.collectEntries { file ->
+        def files = (acceptanceTestData.testReportFiles + integrationTestData.testReportFiles).collectEntries { file ->
             ["raw/${file.getName()}", file.getBytes()]
         }
 
@@ -697,8 +663,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def integrationTestData = data.tests.integration
-        def acceptanceTestData = data.tests.acceptance
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
+
+        def acceptanceTestData = data.tests.acceptance
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
         def matchedHandler = { result ->
@@ -745,8 +712,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A"
                     ]
                 }, ["key"]),
-                testIntegrationxUnits   : this.getxUnitTestInfo(integrationTestData),
-                testAcceptancexUnits    : this.getxUnitTestInfo(acceptanceTestData)
+                integrationTestFiles: SortUtil.sortIssuesByProperties(integrationTestData.testReportFiles.collect { file ->
+                    [name: file.name, path: file.path, text: file.text]
+                } ?: [], ["name"]),
+                acceptanceTestFiles: SortUtil.sortIssuesByProperties(acceptanceTestData.testReportFiles.collect { file ->
+                    [name: file.name, path: file.path, text: file.text]
+                } ?: [], ["name"]),
             ]
         ]
 
@@ -802,6 +773,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createIVR(Map repo, Map data) {
         def documentType = DocumentType.IVR as String
 
+        def installationTestData = data.tests.installation
+
         def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -810,30 +783,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             watermarkText = this.getWatermarkText(documentType)
         }
 
-        def installationTestData = data.tests.installation
         def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
-        def numberOfInstallationTests = getNumberOfTest(installationTestData.testResults)
-
-        def matchedHandler = { result ->
-            result.each { testIssue, testCase ->
-                testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped)
-                testIssue.isMissing = false
-            }
-        }
-
-        def unmatchedHandler = { result ->
-            result.each { testIssue ->
-                testIssue.isSuccess = false
-                testIssue.isMissing = true
-            }
-        }
-
-        this.jiraUseCase.matchTestIssuesAgainstTestResults(installationTestIssues, installationTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
-        def discrepancies = this.computeTestDiscrepancies("Automated Installation Tests", installationTestIssues)
-        def testsGroupedByRepoType = groupTestsByRepoType(installationTestIssues)
+        def discrepancies = this.computeTestDiscrepancies("Installation Tests", installationTestIssues, installationTestData.testResults)
 
         def testsOfRepoTypeOdsCode = []
         def testsOfRepoTypeOdsService = []
+        def testsGroupedByRepoType = groupTestsByRepoType(installationTestIssues)
         testsGroupedByRepoType.each { repoTypes, tests ->
             if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE)) {
                 testsOfRepoTypeOdsCode.addAll(tests)
@@ -849,7 +804,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 repositories               : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections                   : sections,
-                additionalInstallationTests: numberOfInstallationTests - installationTestIssues.count { !it.isMissing },
                 tests                      : SortUtil.sortIssuesByProperties(installationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
@@ -860,10 +814,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         techSpec   : testIssue.techSpecs.join(", ")
                     ]
                 }, ["key"]),
-                testxUnits   : this.getxUnitTestInfo(installationTestData),
-                testfiles                  : installationTestData.testReportFiles.collect { file ->
-                    [name: file.getName(), path: file.getPath()]
-                },
+                numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isMissing },
+                testFiles                 : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
+                    [name: file.name, path: file.path, text: file.text]
+                } ?: [], ["name"]),
                 discrepancies              : discrepancies.discrepancies,
                 conclusion                 : [
                     summary  : discrepancies.conclusion.summary,
@@ -882,7 +836,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
-
 
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
@@ -908,9 +861,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec5s1") sections."sec5s1" = [:]
         sections."sec5s1".components = componentsMetadata.collect { c ->
-            [key        : c.key, nameOfSoftware: c.nameOfSoftware, componentType: c.componentType,
-             componentId: c.componentId, description: c.description, supplier: c.supplier,
-             version    : c.version, references: c.references]
+            [
+                key           : c.key,
+                nameOfSoftware: c.nameOfSoftware,
+                componentType : c.componentType,
+                componentId   : c.componentId,
+                description   : c.description,
+                supplier      : c.supplier,
+                version       : c.version,
+                references    : c.references
+            ]
         }
 
         // Get the components that we consider modules in SSDS (the ones you have to code)
@@ -919,17 +879,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
             component.requirements = component.requirements.collect { r ->
                 [key: r.key, name: r.name, gampTopic: r.gampTopic]
             }.groupBy { it.gampTopic.toLowerCase() }.collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
-            component
+
+            return component
         }
+
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
 
         // Code review part
         // TODO append PDF files when issues with docx to PDF conversion is solved
         // since we can't convert the reports to PDF yet, plan B is to add them to the zip as docx
-        def repos_ = (!repo) ? this.project.repositories : [repo]
-        def files = obtainCodeReviewReport(repos_)
+        def files = obtainCodeReviewReport(this.project.repositories)
         def fileNames = files.collect { file -> [name: file.key] }
+
         if (!sections."sec14") sections."sec14" = [:]
         sections."sec14".referencedocs = fileNames
 
@@ -959,9 +921,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                // TODO: change this.project.id to project_key in template
                 project_key : this.project.key,
-                // TODO: change data.project.repositories and data.repos to data.repositories in template
                 repositories: this.project.repositories,
                 sections    : sections
             ]
@@ -975,8 +935,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTIR(Map repo, Map data = null) {
         def documentType = DocumentType.TIR as String
 
-        def pods = this.os.getPodDataForComponent(repo.id)
-
         def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -984,6 +942,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         } else {
             watermarkText = this.getWatermarkText(documentType)
         }
+
+        def pods = this.os.getPodDataForComponent(repo.id)
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1044,7 +1004,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, null, this.getWatermarkText(documentType))
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
-
     }
 
     String createOverallDTR(Map repo = null, Map data = null) {
@@ -1158,12 +1117,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return null
     }
 
-    void notifyJiraTrackingIssue(String documentType, String message) {
+    protected void notifyJiraTrackingIssue(String documentType, String message) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
 
         def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
-
         def jqlQuery = [jql: "project = ${project.key} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels IN (${jiraDocumentLabels.join(',')})"]
 
         // Search for the Jira issue associated with the document
@@ -1176,27 +1134,5 @@ class LeVADocumentUseCase extends DocGenUseCase {
         jiraIssues.each { jiraIssue ->
             this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
         }
-    }
-
-    protected Integer getNumberOfTest(Map testResults) {
-        def count = 0
-        testResults.testsuites.each { testSuite ->
-            count += testSuite.testcases.size()
-        }
-
-        return count
-    }
-
-    protected List getxUnitTestInfo(Map tests) {
-        def data = tests.testReportFiles.collect { testReportFile ->
-            [
-                testReportFileName : testReportFile.name,
-                testReportFileRaw  : testReportFile.text
-            ]
-        }
-
-        data = SortUtil.sortIssuesByProperties(data ?: [], ["testReportFileName"])
-
-        return data
     }
 }

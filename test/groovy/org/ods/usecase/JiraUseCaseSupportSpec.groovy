@@ -1,9 +1,7 @@
 package org.ods.usecase
 
 import org.ods.service.*
-import org.ods.util.IPipelineSteps
-import org.ods.util.MROPipelineUtil
-import org.ods.util.Project
+import org.ods.util.*
 
 import spock.lang.*
 
@@ -28,7 +26,7 @@ class JiraUseCaseSupportSpec extends SpecHelper {
 
     def setup() {
         project = createProject()
-        steps = Spy(PipelineSteps)
+        steps = Spy(util.PipelineSteps)
         usecase = Mock(JiraUseCase)
 
         support = new JiraUseCaseSupport(project, steps, usecase)

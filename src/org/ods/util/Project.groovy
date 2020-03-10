@@ -818,6 +818,7 @@ class Project {
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Acceptance",
+            "executionType": "Automated",
             "components": [
                 "DEMO-2"
             ],
@@ -832,6 +833,7 @@ class Project {
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Acceptance",
+            "executionType": "Automated",
             "components": [
                 "DEMO-2"
             ],
@@ -870,6 +872,7 @@ class Project {
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Unit",
+            "executionType": "Automated",
             "components": [
                 "DEMO-3"
             ],

@@ -142,6 +142,7 @@ def call() {
             registry.get(DocGenService),
             registry.get(JenkinsService),
             registry.get(JiraUseCase),
+            registry.get(JUnitTestReportsUseCase),
             registry.get(LeVADocumentChaptersFileService),
             registry.get(NexusService),
             registry.get(OpenShiftService),
