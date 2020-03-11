@@ -55,7 +55,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.OVERALL_TIR as String): "Overall Technical Installation Report"
     ]
 
-    private static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
+    private static String DEVELOPER_PREVIEW_WATERMARK       = "Developer Preview"
+    private static String WORK_IN_PROGRESS_WATERMARK        = "Work in Progress"
+    private static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = "Attention: this document is work in progress!"
 
     private JenkinsService jenkins
     private JiraUseCase jiraUseCase
@@ -1114,6 +1116,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.DEVELOPER_PREVIEW_WATERMARK
         }
 
+        def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
+
+        // The watermark applies when a tracking issue for the current document is not in status DONE
+        def notDoneIssues = this.project.getDocumentTrackingIssuesNotDone(jiraDocumentLabels)
+        if (!notDoneIssues.isEmpty()) {
+            return this.WORK_IN_PROGRESS_WATERMARK
+        }
+
         return null
     }
 
@@ -1122,12 +1132,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return
 
         def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = '${IssueTypes.LEVA_DOCUMENTATION}' AND labels IN (${jiraDocumentLabels.join(',')})"]
 
-        // Search for the Jira issue associated with the document
-        def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
+        def jiraIssues = this.project.getDocumentTrackingIssues(jiraDocumentLabels)
         if (jiraIssues.size() == 0) {
-            throw new RuntimeException("Error: Jira query returned ${jiraIssues.size()} issues: '${jqlQuery}'.")
+            throw new RuntimeException("Error: No Jira issues associated with document type '${documentType}'.")
+        }
+
+        // Append a warning message for documents which are considered work in progress
+        def notDoneIssues = this.project.getDocumentTrackingIssuesNotDone(jiraDocumentLabels)
+        if (!notDoneIssues.isEmpty()) {
+            message += " ${this.WORK_IN_PROGRESS_DOCUMENT_MESSAGE} See issues: ${notDoneIssues.collect{ it.key }.join(',')}"
         }
 
         // Add a comment to the Jira issue with a link to the report

@@ -7,6 +7,10 @@ import groovy.json.JsonSlurperClassic
 import java.nio.file.Paths
 
 import org.apache.http.client.utils.URIBuilder
+
+import org.ods.service.JiraService
+import org.ods.usecase.LeVADocumentUseCase
+
 import org.yaml.snakeyaml.Yaml
 
 class Project {
@@ -20,6 +24,7 @@ class Project {
         static final String TYPE_RISKS = "risks"
         static final String TYPE_TECHSPECS = "techSpecs"
         static final String TYPE_TESTS = "tests"
+        static final String TYPE_DOCS = "docs"
 
         static final List TYPES = [
             TYPE_BUGS,
@@ -1438,26 +1443,33 @@ class Project {
 
     protected IPipelineSteps steps
     protected GitUtil git
+    protected JiraService jira
 
     protected Map data = [:]
 
-    Project(IPipelineSteps steps, GitUtil git) {
+    Project(IPipelineSteps steps) {
         this.steps = steps
-        this.git = git
-    }
 
-    Project load() {
         this.data.build = [
             hasFailingTests: false,
             hasUnexecutedJiraTests: false
         ]
+    }
 
-        this.data.buildParams = loadBuildParams(steps)
-        this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
+    Project init() {
+        this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
+        return this
+    }
+
+    Project load(GitUtil git, JiraService jira) {
+        this.git = git
+        this.jira = jira
+
+        this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
         this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.loadJiraData(this.data.metadata.id)))
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
-
+        this.data.jira.docs = this.loadJiraDataDocs()
         return this
     }
 
@@ -1563,6 +1575,28 @@ class Project {
 
     String getDescription() {
         return this.data.metadata.description
+    }
+
+    List<Map> getDocumentTrackingIssues() {
+        return this.data.jira.docs.values() as List
+    }
+
+    List<Map> getDocumentTrackingIssues(List<String> labels) {
+        def result = []
+
+        labels.each { label ->
+            this.getDocumentTrackingIssues().each { issue ->
+                if (issue.labels.collect{ it.toLowerCase() }.contains(label.toLowerCase())) {
+                    result << [key: issue.key, status: issue.status]
+                }
+            }
+        }
+
+        return result.unique()
+    }
+
+    List<Map> getDocumentTrackingIssuesNotDone(List<String> labels) {
+        return this.getDocumentTrackingIssues(labels).findAll { !it.status.equalsIgnoreCase("done") }
     }
 
     Map getGitData() {
@@ -1675,6 +1709,14 @@ class Project {
         return this.data.jira.tests.values() as List
     }
 
+    boolean hasCapability(String name) {
+        def collector = {
+            return (it instanceof Map) ? it.keySet().first().toLowerCase() : it.toLowerCase()
+        }
+
+        return this.capabilities.collect(collector).contains(name.toLowerCase())
+    }
+
     boolean hasFailingTests() {
         return this.data.build.hasFailingTests
     }
@@ -1708,6 +1750,30 @@ class Project {
 
     protected Map loadJiraData(String projectKey) {
         return new JsonSlurperClassic().parseText(TEMP_FAKE_JIRA_DATA)
+    }
+
+    protected Map loadJiraDataDocs() {
+        if (!this.jira) return
+
+        def jqlQuery = [jql: "project = ${this.data.jira.project.key} AND issuetype = '${LeVADocumentUseCase.IssueTypes.LEVA_DOCUMENTATION}'"]
+
+        def jiraIssues = this.jira.getIssuesForJQLQuery(jqlQuery)
+        if (jiraIssues.isEmpty()) {
+            throw new IllegalArgumentException("Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCS}'.")
+        }
+
+        return jiraIssues.collectEntries { jiraIssue ->
+            [
+                jiraIssue.key,
+                [
+                    key         : jiraIssue.key,
+                    name        : jiraIssue.fields.summary,
+                    description : jiraIssue.fields.description,
+                    status      : jiraIssue.fields.status.name,
+                    labels      : jiraIssue.fields.labels
+                ]
+            ]
+        }
     }
 
     protected Map loadMetadata(String filename = METADATA_FILE_NAME) {

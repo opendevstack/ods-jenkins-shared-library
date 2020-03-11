@@ -284,7 +284,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result.discrepancies == "The following major discrepancies were found during testing. Failed tests: JIRA-1. Unexecuted tests: JIRA-2."
         result.conclusion.summary == "No success - major discrepancies found"
         result.conclusion.statement == "Some discrepancies found as tests did fail and others were not executed."
-    
+
         when:
         // an erroneous testIssue and a failing extraneous testcase
         testIssues = [
@@ -326,12 +326,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CSD as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createCSD()
@@ -345,7 +343,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create TRC"() {
@@ -355,12 +352,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TRC as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})" ]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createTRC()
@@ -374,7 +369,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create DIL"() {
@@ -384,9 +378,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DIL as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType}_Q)" ]
-
-        def documentIssue = createJiraDocumentIssues().first()
         def uri = "http://nexus"
 
         when:
@@ -400,7 +391,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create DTP"() {
@@ -413,12 +403,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createDTP(repo)
@@ -433,7 +421,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create DTP without Jira"() {
@@ -445,12 +432,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createDTP(repo)
@@ -566,12 +551,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CFTP as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})" ]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createCFTP()
@@ -587,7 +570,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(*_)
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create CFTR"() {
@@ -619,12 +601,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CFTR as String
         def files = [ "raw/${xmlFile.name}": xmlFile.bytes ]
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})" ]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createCFTR(null, data)
@@ -641,7 +621,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, files, null, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
 
         cleanup:
         xmlFile.delete()
@@ -654,13 +633,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TCP as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
-
 
         when:
         usecase.createTCP()
@@ -676,7 +652,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create TCR"() {
@@ -708,12 +683,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TCR as String
         def files = ["raw/${xmlFile.name}": xmlFile.bytes]
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createTCR(null, data)
@@ -729,7 +702,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getWatermarkText(documentType)
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
         1 * jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, testResults, _, _)
         1 * jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, testResults, _, _)
 
@@ -744,12 +716,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVP as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType}_Q)"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createIVP()
@@ -764,7 +734,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create IVR"() {
@@ -792,12 +761,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVR as String
         def files = ["raw/${xmlFile.name}": xmlFile.bytes]
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createIVR(null, data)
@@ -813,7 +780,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, files, null, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
 
         cleanup:
         xmlFile.delete()
@@ -831,8 +797,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})" ]
-
         def sqReportsPath = "sonarqube/${repo.id}"
         def sqReportsStashName = "scrr-report-${repo.id}-${steps.env.BUILD_ID}"
 
@@ -877,7 +841,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, _, _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create RA"() {
@@ -887,12 +850,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.RA as String
-        def jqlQuery = [ jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})" ]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createRA()
@@ -907,7 +868,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType)
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create TIP"() {
@@ -917,12 +877,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType}_Q)"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createTIP()
@@ -936,7 +894,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create TIP without Jira"() {
@@ -945,12 +902,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType}_Q)"]
 
         // Stubbed Method Responses
         def chapterData = ["sec1": "myContent"]
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createTIP()
@@ -1026,11 +981,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTR as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_DTR as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createOverallDTR()
@@ -1039,7 +992,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-Cover", documentType, _, null, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "create overall TIR"() {
@@ -1050,11 +1002,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIR as String
         def documentTypeName = LeVADocumentUseCase.DocumentType.OVERALL_TIR as String
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
 
         // Stubbed Method Responses
         def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
 
         when:
         usecase.createOverallTIR()
@@ -1063,7 +1013,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
         1 * usecase.notifyJiraTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
     }
 
     def "get supported documents"() {
@@ -1102,56 +1051,42 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def documentType = "myType"
         def message = "myMessage"
 
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
-        def documentIssue = createJiraDocumentIssues().first()
-
         when:
         usecase.notifyJiraTrackingIssue(documentType, message)
 
         then:
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [documentIssue]
-        1 * jiraUseCase.jira.appendCommentToIssue(documentIssue.key, message)
+        1 * jiraUseCase.jira.appendCommentToIssue("DEMO-71", message)
     }
 
-    def "notify LeVA document issue with query returning 0 issues"() {
+    def "notify LeVA document issue when no issues found in project.data.docs"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
-        def documentType = "myType"
+        def documentType = "myTypeNotfound"
         def message = "myMessage"
-
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
-        def documentIssues = createJiraDocumentIssues()
 
         when:
         usecase.notifyJiraTrackingIssue(documentType, message)
-
-        then:
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: Jira query returned 0 issues: '${jqlQuery}'."
+        e.message == "Error: No Jira issues associated with document type '${documentType}'."
     }
 
-    def "notify LeVA document issue with query returning 3 issues"() {
+    def "notify LeVA document with 2 issues not DONE yet"() {
         given:
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
-        def documentType = "myType"
+        def documentType = "myTypeNotDone"
         def message = "myMessage"
-
-        def jqlQuery = [jql: "project = ${project.key} AND issuetype = 'LeVA Documentation' AND labels IN (LeVA_Doc:${documentType})"]
-        def documentIssues = createJiraDocumentIssues()
 
         when:
         usecase.notifyJiraTrackingIssue(documentType, message)
 
         then:
-        1 * jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) >> documentIssues
-        3 * jiraUseCase.jira.appendCommentToIssue(_, message)
+        2 * jiraUseCase.jira.appendCommentToIssue(_, message.concat(" Attention: this document is work in progress! See issues: DEMO-69,DEMO-70"))
     }
 
     def "docs with watermark text in DEV"() {

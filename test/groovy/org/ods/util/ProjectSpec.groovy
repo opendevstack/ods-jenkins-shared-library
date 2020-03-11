@@ -3,6 +3,7 @@ package org.ods.util
 import java.nio.file.Paths
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.service.*
 
 import spock.lang.*
 
@@ -11,6 +12,7 @@ import util.*
 class ProjectSpec extends SpecHelper {
 
     GitUtil git
+    JiraService jira
     File metadataFile
     Project project
     IPipelineSteps steps
@@ -19,7 +21,7 @@ class ProjectSpec extends SpecHelper {
         steps = Spy(util.PipelineSteps)
         git = Mock(GitUtil)
         metadataFile = createProjectMetadataFile(this.steps.env.WORKSPACE, steps)
-        project = Spy(new Project(this.steps, this.git)).load()
+        project = Spy(new Project(this.steps)).init().load(git, null)
     }
 
     def cleanup() {
@@ -357,7 +359,6 @@ class ProjectSpec extends SpecHelper {
         metadataFile.delete()
     }
 
-
     def "load"() {
         given:
         def component1 = [ key: "CMP-1", name: "Component 1" ]
@@ -368,6 +369,7 @@ class ProjectSpec extends SpecHelper {
         def techSpec1 = [ key: "TS-1", name: "Technical Specification 1" ]
         def test1 = [ key: "TST-1", name: "Test 1" ]
         def test2 = [ key: "TST-2", name: "Test 2" ]
+        def doc1 = [ key: "DOC-1", name: "Doc 1", status: "OPEN" ]
 
         // Define key-based references
         component1.epics = [epic1.key]
@@ -405,7 +407,7 @@ class ProjectSpec extends SpecHelper {
         test2.risks = [risk1.key]
 
         when:
-        project.load()
+        project.load(this.git, this.jira)
 
         then:
         1 * project.loadJiraData(_) >> [
@@ -417,8 +419,12 @@ class ProjectSpec extends SpecHelper {
             requirements: [(requirement1.key): requirement1],
             risks: [(risk1.key): risk1],
             tests: [(test1.key): test1, (test2.key): test2],
-            techSpecs: [(techSpec1.key): techSpec1]
+            techSpecs: [(techSpec1.key): techSpec1],
+            docs: [(doc1.key): doc1]
         ]
+
+        1 * project.resolveJiraDataItemReferences(_)
+        1 * project.loadJiraDataDocs()
 
         then:
         def components = project.components
@@ -732,7 +738,7 @@ class ProjectSpec extends SpecHelper {
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project meta data. Required attribute 'name' is undefined."
     }
-    
+
     def "load project metadata with invalid description"() {
         when:
         metadataFile.text = """
@@ -747,7 +753,7 @@ class ProjectSpec extends SpecHelper {
         then:
         result.description == ""
     }
-    
+
     def "load project metadata with undefined repositories"() {
         when:
         metadataFile.text = """
