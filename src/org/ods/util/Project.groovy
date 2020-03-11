@@ -371,7 +371,11 @@ class Project {
                 "DEMO-7",
                 "DEMO-11"
             ],
-            "tests": [],
+            "tests": [
+                "PLTFMDEV-401",
+                "PLTFMDEV-550",
+                "PLTFMDEV-549"
+            ],
             "mitigations": [
                 "DEMO-8",
                 "DEMO-12"
@@ -498,7 +502,9 @@ class Project {
             "requirements": [
                 "DEMO-6"
             ],
-            "tests": []
+            "tests": [
+                "PLTFMDEV-550"
+            ]
         },
         "DEMO-27": {
             "name": "Risk-1 on TechSpec DEMO-26",
