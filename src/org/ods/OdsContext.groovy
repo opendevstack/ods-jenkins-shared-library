@@ -172,8 +172,6 @@ class OdsContext implements Context {
     config.gitCommitAuthor = retrieveGitCommitAuthor()
     config.gitCommitMessage = retrieveGitCommitMessage()
     config.gitCommitTime = retrieveGitCommitTime()
-    config.lastSuccessfulCommit = retrieveLastSuccessfulCommit()
-    config.committedFiles = retrieveGitCommitFiles(config.lastSuccessfulCommit)
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
     if (!config.containsKey('bitbucketNotificationEnabled')) {
@@ -283,11 +281,12 @@ class OdsContext implements Context {
   }
 
   String getLastSuccessfulCommit() {
-    config.lastSuccessfulCommit
+    retrieveLastSuccessfulCommit()
   }
 
   String[] getCommittedFiles() {
-    config.committedFiles
+    def lastSuccessfulCommit = getLastSuccessfulCommit()
+    retrieveGitCommitFiles(lastSuccessfulCommit)
   }
 
   boolean getNotifyNotGreen() {
@@ -515,7 +514,7 @@ class OdsContext implements Context {
       .sh(
         returnStdout: true,
         script: "git diff-tree --no-commit-id --name-only -r ${config.gitCommit}"
-      ).toString().split()
+      ).trim().split()
   }
 
   private String retrieveGitBranch() {
