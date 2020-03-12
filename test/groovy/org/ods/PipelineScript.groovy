@@ -5,7 +5,9 @@ class PipelineScript {
 
     def env = [
             'BUILD_ID'   : 15,
-            'BRANCH_NAME': 'PR-10'
+            'BRANCH_NAME': 'PR-10',
+            'JOB_NAME': 'foo-cd/foo-cd-JOB-10',
+            'BITBUCKET_HOST': 'bitbucket.example.com',
     ]
 
     def scm

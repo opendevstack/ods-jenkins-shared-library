@@ -16,12 +16,18 @@ def call(def context, def buildArgs = [:], def imageLabels = [:], def tailorSele
     def startBuildInfo = ''
     timeout(context.openshiftBuildTimeout) {
       startBuildInfo = sh (
-        script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir docker --follow",
+        script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir ${context.dockerDir} --follow",
         label: "Start OpenShift build",
         returnStdout: true
       ).trim()
       echo startBuildInfo
-      buildId = startBuildInfo.split(' ').first().split('/').last()
+      def startBuildInfoHeader = startBuildInfo.split('\n').first()
+      def match = (startBuildInfoHeader =~ /${context.componentId}-[0-9]+/)
+      if (match.find()) {
+        buildId = match[0]
+      } else {
+        error "Did not find build ID in build start result '${startBuildInfoHeader}'"
+      }    
     }
 
     if (buildId == null) {
@@ -52,7 +58,8 @@ private String checkForBuildStatus(String targetProject, String buildId) {
     if (buildStatus == "complete") {
       return buildStatus
     }
-    // Wait 5 seconds before asking again.
+    // Wait 5 seconds before asking again. Sometimes the build finishes but the
+    // status is not set to "complete" immediately ...
     sleep 5
   }
   return buildStatus
@@ -64,7 +71,7 @@ private String getBuildStatus(String targetProject, String buildId) {
     script:"oc -n ${targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
     label: "find last build"
   ).trim()
-
+  
   return buildStatus.toLowerCase()
 }
 

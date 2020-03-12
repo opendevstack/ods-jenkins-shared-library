@@ -94,17 +94,39 @@ OpenshiftDeployment watchRollout(Context context, String targetProject, String c
         label: "Watch rollout of latest deployment of dc/${componentId}",
         returnStdout: true
       ).trim()
+      debug(context, rolloutResult)
     }
+
+    /*
+    Considering that the output looks like
+
+    -----------
+    Deployment config "docker-plain-test" waiting on image update
+    Waiting for latest deployment config spec to be observed by the controller loop...
+    Waiting for rollout to finish: 0 out of 1 new replicas have been updated...
+    Waiting for rollout to finish: 0 out of 1 new replicas have been updated...
+    Waiting for rollout to finish: 0 out of 1 new replicas have been updated...
+    Waiting for rollout to finish: 0 of 1 updated replicas are available...
+    Waiting for latest deployment config spec to be observed by the controller loop...
+    replication controller "docker-plain-test-1" successfully rolled out
+    -----------
+
+    and the part that needs extraction is docker-plain-test-1
+     */
+
     // rolloutResult is e.g.: replication controller "foo-123" successfully rolled out
     // Unfortunately there does not seem a more structured way to retrieve this information.
-    def rolloutInfo = rolloutResult.split('"')
-    if (rolloutInfo.size() < 2) {
-      error "Got '${rolloutInfo}' as rollout status, which cannot be parsed properly ..."
+    // It is not posssible to work with Regex because all regex supporting classes are not
+    // serializable
+    def prefix = "replication controller \""
+    def index = rolloutResult.indexOf(prefix)
+    def line = rolloutResult[index + prefix.size()..-1]
+    index = line.indexOf("\" successfully rolled out")
+    def rolloutId = line[0..index - 1]
+    if (!rolloutId.startsWith("${componentId}-") || rolloutId.contains("\"")) {
+      error "Got '${rolloutResult}' as rollout status, which cannot be parsed properly ..."
     }
-    def rolloutId = rolloutInfo[1] // part within the quotes
-    if (!rolloutId.startsWith(componentId)) {
-      error "Got '${rolloutInfo}' as rollout status, which cannot be parsed properly ..."
-    }
+
     def rolloutStatus = sh(
       script: "oc -n ${targetProject} get rc/${rolloutId} -o jsonpath='{.metadata.annotations.openshift\\.io/deployment\\.phase}'",
       label: "Get status of latest rollout of dc/${componentId}",
@@ -112,7 +134,7 @@ OpenshiftDeployment watchRollout(Context context, String targetProject, String c
     ).trim()
     return new OpenshiftDeployment(rolloutId, rolloutStatus)
   } catch (ex) {
-    debug(context, "Rollout exceeded ${rolloutTimeout}, cancelling ...")
+    debug(context, "Rollout exceeded ${rolloutTimeout} minutes, cancelling ...")
     cancelRollout(context, targetProject, componentId)
     throw ex
   }

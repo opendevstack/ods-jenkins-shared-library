@@ -24,7 +24,7 @@ library identifier: 'ods-library@production', retriever: modernSCM(
    credentialsId: credentialsId])
 
 odsPipeline(
-  image: "${dockerRegistry}/cd/jenkins-slave-maven",
+  image: "${dockerRegistry}/cd/jenkins-slave-maven:latest",
   projectId: projectId,
   componentId: componentId,
   branchToEnvironmentMapping: [
@@ -154,7 +154,7 @@ When you write stages, you have access to both global variables (defined without
 | Value of JOB_NAME. It is the name of the project of the build.
 
 | buildNumber
-| Value of BUILD_NUMBER. The current build number, such as "153".
+| Value of BUILD_NUMBER. The current build number, such as `153`.
 
 | buildUrl
 | Value of BUILD_URL. The URL where the results of the build can be found (e.g. http://buildserver/jenkins/job/MyJobName/123/)
@@ -163,19 +163,31 @@ When you write stages, you have access to both global variables (defined without
 | Time of the build, collected when the odsPipeline starts.
 
 | image
-| Container image to use for the Jenkins agent container. This value is not used when "podContainers" is set.
+| Container image to use for the Jenkins agent container. This value is not used when `podContainers` is set.
+
+| alwaysPullImage
+| Determine whether to always pull the container image before each build run. Defaults to `true`. This value is not used when `podContainers` is set.
+
+| resourceRequestMemory
+| How much memory the container requests - defaults to 1Gi. This value is not used when `podContainers` is set.
+
+| resourceLimitMemory
+| Maximum memory the container can use - defaults to 2Gi. This value is not used when `podContainers` is set.
+
+| resourceRequestCpu
+| How much CPU the container requests - defaults to 10mi. This value is not used when `podContainers` is set.
+
+| resourceLimitCpu
+| Maximum CPU the container can use - defaults to 300mi. This value is not used when `podContainers` is set.
 
 | podLabel
 | Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds.
 
 | podContainers
-| Custom pod containers to use. By default, only one container is used, and it is configure automatically. If you need to run multiple containers (e.g. app and database), then you can configure the containers via this property.
+| Custom pod containers to use if the default, automatically configured container is not suitable for your use case (e.g. if you need multiple containers such as app and database). Please see https://github.com/jenkinsci/kubernetes-plugin#pod-and-container-template-configuration for more information.
 
 | podVolumes
 | Volumes to make available to the pod.
-
-| podAlwaysPullImage
-| Determine whether to always pull the container image before each build run.
 
 | podServiceAccount
 | Serviceaccount to use when running the pod.
@@ -211,19 +223,22 @@ When you write stages, you have access to both global variables (defined without
 | The environment which was chosen as the clone source.
 
 | environment
-| The environment which was chosen as the deployment target, e.g. "dev".
+| The environment which was chosen as the deployment target, e.g. `dev`.
 
 | targetProject
-| Target project, based on the environment. E.g. "foo-dev".
+| Target project, based on the environment. E.g. `foo-dev`.
+
+| cloneProjectScriptBranch
+| Branch on `ods-core` used for the `clone-project.sh` and dependent scripts. Default is `production`.
 
 | groupId
 | Group ID, defaults to: org.opendevstack.+++<projectID>+++.+++</projectID>+++
 
 | projectId
-| Project ID, e.g. "foo".
+| Project ID, e.g. `foo`.
 
 | componentId
-| Component ID, e.g. "be-auth-service".
+| Component ID, e.g. `be-auth-service`.
 
 | gitUrl
 | Git URL of repository
@@ -261,8 +276,11 @@ When you write stages, you have access to both global variables (defined without
 | odsSharedLibVersion
 | ODS Jenkins shared library version, taken from reference in Jenkinsfile.
 
+| bitbucketUrl
+| BitBucket URL - value taken from BITBUCKET_URL. If BITBUCKET_URL is not present, it will default to https://<BITBUCKET_HOST>.
+
 | bitbucketHost
-| BitBucket host - value taken from BITBUCKET_HOST.
+| BitBucket host - value derived from bitbucketUrl.
 
 | environmentCreated
 | Whether an environment has been created during the build.
@@ -272,18 +290,50 @@ When you write stages, you have access to both global variables (defined without
 
 | ciSkip
 | Whether the build should be skipped, based on the Git commit message.
+
+| dockerDir
+| The docker directory to use when building the image in openshift. Defaults to `docker`.
 |===
 
 == Slave customization
 
-The slave used to build your code can be customized by specifying the image to
-use. Further, `podAlwaysPullImage` (defaulting to `true`) can be used to
-determine whether this image should be refreshed on each build. The setting
-`podVolumes` allows to mount persistent volume claims to the pod (the value is
-passed to the `podTemplate` call as `volumes`). To control the container pods
-completely, set `podContainers` (which is passed to the `podTemplate` call
-as `containers`). See the
-https://github.com/jenkinsci/kubernetes-plugin[kubernetes-plugin]
+The slave used in the pipeline can be customized by adjusting the `image` to
+use. Further, `alwaysPullImage` (defaulting to `true`) can be used to
+determine whether this image should be refreshed on each build.
+
+Resource constraints of the container can be changed via `resourceRequestCpu`,
+`resourceLimitCpu`, `resourceRequestMemory` and `resourceLimitMemory`.
+
+The setting `podVolumes` allows to mount persistent volume claims to the pod
+(the value is passed to the `podTemplate` call as `volumes`).
+
+To completely control the container(s) within the pod, set `podContainers`
+(which is passed to the `podTemplate` call as `containers`).
+
+Configuring of a customized slave container in a `Jenkinsfile`:
+----
+odsPipeline(
+  projectId: projectId,
+  podContainers: [
+    containerTemplate(
+      name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
+      image: "${dockerRegistry}/foo-cd/jenkins-slave-custom",
+      workingDir: '/tmp',
+      resourceRequestCpu: '100m',
+      resourceLimitCpu: '500m',
+      resourceRequestMemory: '2Gi',
+      resourceLimitMemory: '4Gi',
+      alwaysPullImage: true,
+      args: '${computer.jnlpmac} ${computer.name}'
+    )
+  ],
+  ...
+  ) { context ->
+  stageBuild(context)
+  ...
+}
+----
+See the https://github.com/jenkinsci/kubernetes-plugin[kubernetes-plugin]
 documentation for possible configuration.
 
 == Versioning
@@ -291,11 +341,6 @@ documentation for possible configuration.
 Each `Jenkinsfile` references a Git revsison of this library, e.g.
 `library identifier: 'ods-library@production'`. The Git revsison can be a
 branch (e.g. `production` or `0.1.x`), a tag (e.g.`0.1.1`) or a specific commit.
-
-By default, each `Jenkinsfile` in `ods-project-quickstarters` on the `master`
-branch references the `production` branch of this library. Quickstarters on a
-branch point to the corresponding branch of the shared library - for example
-a `Jenkinsfile` on branch `0.1.x` points to `0.1.x` of the shared library.
 
 == Git LFS (Git Large File Storage extension)
 

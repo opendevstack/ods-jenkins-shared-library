@@ -39,7 +39,9 @@ class OdsPipeline implements Serializable {
       } catch (err) {
         updateBuildStatus('FAILURE')
         setBitbucketBuildStatus('FAILED')
-        notifyNotGreen()
+        if (context.notifyNotGreen) {
+          notifyNotGreen()
+        }
         throw err
       }
     }
@@ -186,7 +188,7 @@ class OdsPipeline implements Serializable {
     if (!context.getBitbucketNotificationEnabled()) {
       return
     }
-    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
+    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketUrl || !context.gitCommit) {
       logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
       return
     }
@@ -205,7 +207,7 @@ class OdsPipeline implements Serializable {
             --request POST \\
             --header \"Content-Type: application/json\" \\
             --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
-            https://${context.bitbucketHost}/rest/build-status/1.0/commits/${context.gitCommit}
+            ${context.bitbucketUrl}/rest/build-status/1.0/commits/${context.gitCommit}
           """
         }
         return
@@ -216,18 +218,19 @@ class OdsPipeline implements Serializable {
   }
 
   private void notifyNotGreen() {
-    if (context.notifyNotGreen) {
-      script.emailext(
-        body: '${script.DEFAULT_CONTENT}', mimeType: 'text/html',
-        replyTo: '$script.DEFAULT_REPLYTO', subject: '${script.DEFAULT_SUBJECT}',
-        to: script.emailextrecipients([
-          [$class: 'CulpritsRecipientProvider'],
-          [$class: 'DevelopersRecipientProvider'],
-          [$class: 'RequesterRecipientProvider'],
-          [$class: 'UpstreamComitterRecipientProvider']
-         ])
-      )
-    }
+    String subject =  "Build $context.componentId on project $context.projectId  failed!"
+    String body = "<p>$subject</p> <p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> "
+
+    script.emailext(
+            body: body, mimeType: 'text/html',
+            replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
+            to: script.emailextrecipients([
+                    [$class: 'CulpritsRecipientProvider'],
+                    [$class: 'DevelopersRecipientProvider'],
+                    [$class: 'RequesterRecipientProvider'],
+                    [$class: 'UpstreamComitterRecipientProvider']
+            ])
+    )
   }
 
   def createOpenShiftEnvironment(def context) {
@@ -242,14 +245,16 @@ class OdsPipeline implements Serializable {
           logger.info "MRO Build - skipping env mapping"
       } else {
         def assumedEnvironments = context.branchToEnvironmentMapping.values()
-        if (assumedEnvironments.contains(context.environment)) {
+        def envExists = context.environmentExists(context.targetProject)
+        logger.debug "context.environment: $context.environment, context.cloneSourceEnv: $context.cloneSourceEnv, context.targetProject: $context.targetProject, envExists: $envExists "
+        if (assumedEnvironments.contains(context.environment) && (envExists)) {
           logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
           return
         }
       }
 
       if (context.environmentExists(context.targetProject)) {
-        logger.info "Target Environment ${context.targetProject} exists already ..."
+        logger.info "Target environment $context.targetProject exists already ..."
         return
       }
 
@@ -267,10 +272,13 @@ class OdsPipeline implements Serializable {
       logger.info 'Environment does not exist yet. Creating now ...'
       script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
         def userPass = script.USERPASS.replace('$', '\'$\'')
-        def cloneProjectScriptUrl = "https://${context.bitbucketHost}/projects/opendevstack/repos/ods-project-quickstarters/raw/ocp-templates/scripts/clone-project.sh?at=refs%2Fheads%2Fproduction"
         def branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
-        logger.info 'Calculated branch name: ${branchName}'
-        script.sh(script: "curl --fail -s --user ${userPass} -G '${cloneProjectScriptUrl}' -d raw -o clone-project.sh")
+        logger.info "Calculated branch name: ${branchName}"
+        def scriptToUrls = context.getCloneProjectScriptUrls()
+        // NOTE: a for loop did not work here due to https://issues.jenkins-ci.org/browse/JENKINS-49732
+        scriptToUrls.each { scriptName, url ->
+          script.sh(script: "curl --fail -s --user ${userPass} -G '${url}' -d raw -o '${scriptName}'")
+        }
         def debugMode = ""
         if (context.getDebug()) {
           debugMode = "--debug"
