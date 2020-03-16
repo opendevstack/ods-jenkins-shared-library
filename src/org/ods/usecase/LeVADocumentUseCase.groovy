@@ -293,7 +293,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     //Discrepancy ID -> BUG Issue ID
                     discrepancyID        : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
-                    testcaseID           : bug.tests.first().key,
+                    testcaseID           : bug.tests.collect{ it.key }.join(", "),
                     //-	Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Integration",
                     //Description of Failure or Discrepancy -> Bug Issue Summary
@@ -316,7 +316,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     //Discrepancy ID -> BUG Issue ID
                     discrepancyID        : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
-                    testcaseID           : bug.tests.first().key,
+                    testcaseID           : bug.tests.collect{ it.key }.join(", "),
                     //-	Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Acceptance",
                     //Description of Failure or Discrepancy -> Bug Issue Summary
@@ -698,7 +698,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
-                        bugs        : (testIssue.bugs + testIssue.newBugs) ? (testIssue.bugs + testIssue.newBugs).join(", ") : "N/A",
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : testIssue.steps,
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A"
                     ]
@@ -709,7 +709,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
-                        bugs        : (testIssue.bugs + testIssue.newBugs) ? (testIssue.bugs + testIssue.newBugs).join(", ") : "N/A",
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : testIssue.steps,
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A"
                     ]

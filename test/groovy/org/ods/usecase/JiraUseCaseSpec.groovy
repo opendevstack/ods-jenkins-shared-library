@@ -360,8 +360,7 @@ class JiraUseCaseSpec extends SpecHelper {
         then:
         1 * jira.createIssueLinkTypeBlocks(errorBug, {
             // the Jira issue that shall be linked to the error bug
-            it.key == "PLTFMDEV-1060" &&
-                it.newBugs == ["JIRA-BUG-1"]
+            it.key == "PLTFMDEV-1060" && it.bugs.contains("JIRA-BUG-1")
         })
 
         then:
@@ -374,8 +373,7 @@ class JiraUseCaseSpec extends SpecHelper {
         then:
         1 * jira.createIssueLinkTypeBlocks(failureBug, {
             // the Jira issue that shall be linked to the failure bug
-            it.key == "PLTFMDEV-1061" &&
-                it.newBugs == ["JIRA-BUG-2"]
+            it.key == "PLTFMDEV-1061" && it.bugs.contains("JIRA-BUG-2")
         })
 
         then:
