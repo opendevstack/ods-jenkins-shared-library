@@ -456,7 +456,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         given:
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
-        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
+        xmlFile << "<?xml version='1.0' ?>\n" + createSockShopJUnitXmlTestResults()
 
         def repo = project.repositories.first()
         repo.id = "demo-app-carts"

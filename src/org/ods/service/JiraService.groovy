@@ -62,7 +62,7 @@ class JiraService {
                 [
                     update: [
                         labels: names.collect { name ->
-                            [ add: name ]
+                            [add: name]
                         }
                     ]
                 ]
@@ -96,7 +96,7 @@ class JiraService {
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson(
-                [ body: comment ]
+                [body: comment]
             ))
             .asString()
 
@@ -131,10 +131,10 @@ class JiraService {
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson(
                 [
-                    type: [
+                    type        : [
                         name: linkType
                     ],
-                    inwardIssue: [
+                    inwardIssue : [
                         key: inwardIssue.key
                     ],
                     outwardIssue: [
@@ -191,12 +191,12 @@ class JiraService {
             .body(JsonOutput.toJson(
                 [
                     fields: [
-                        project: [
+                        project    : [
                             key: projectKey.toUpperCase()
                         ],
-                        summary: summary,
+                        summary    : summary,
                         description: description,
-                        issuetype: [
+                        issuetype  : [
                             name: type
                         ]
                     ]
@@ -245,13 +245,42 @@ class JiraService {
 
         return [
             contentType: response.getHeaders()["Content-Type"][0],
-            data: response.getBody()
+            data       : response.getBody()
         ]
     }
 
     @NonCPS
     List getIssuesForJQLQuery(Map query) {
         return searchByJQLQuery(query).issues
+    }
+
+    @NonCPS
+    Map getVersionForProject(String projectKey) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException("Error: unable to load project version from Jira. 'projectKey' is undefined.")
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}/versions")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get project version for projectKey ${projectKey}. Jira responded with code: '${response.getStatus()}' and message '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get project version. Jira could not resolve the URL '${this.baseURL}/rest/api/2/project/${projectKey}/versions'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        Map jiraVersion = new JsonSlurperClassic().parseText(response.getBody()).last()
+        return [
+            id  : jiraVersion.id,
+            name: jiraVersion.name
+        ]
     }
 
     @NonCPS
@@ -323,7 +352,7 @@ class JiraService {
                 [
                     update: [
                         labels: names.collect { name ->
-                            [ remove: name ]
+                            [remove: name]
                         }
                     ]
                 ]

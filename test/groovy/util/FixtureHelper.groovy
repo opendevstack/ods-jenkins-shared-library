@@ -1,13 +1,15 @@
 package util
 
 import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 import groovy.transform.InheritConstructors
-
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
-import org.ods.parser.*
-import org.ods.service.*
-import org.ods.util.*
+import org.ods.parser.JUnitParser
+import org.ods.service.JiraService
+import org.ods.util.GitUtil
+import org.ods.util.IPipelineSteps
+import org.ods.util.Project
 
 @InheritConstructors
 class FakeGitUtil extends GitUtil {
@@ -32,8 +34,9 @@ class FakeProject extends Project {
 
     @Override
     Project load(GitUtil git, JiraService jira) {
-        this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
+        this.data.git = [commit: git.getCommit(), url: git.getURL()]
         this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.loadJiraData(this.data.metadata.id)))
+        this.data.jira.project.version = loadJiraDataProjectVersion()
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
         this.data.jira.docs = this.loadJiraDataDocs()
         return this
@@ -61,6 +64,13 @@ class FakeProject extends Project {
     protected Map loadJiraData(String projectKey) {
         def file = this.getResource("project-jira-data.json")
         return new JsonSlurper().parse(file)
+    }
+
+    protected Map loadJiraDataProjectVersion() {
+        return [
+            "id"  : "11100",
+            "name": "0.3"
+        ]
     }
 
     protected Map loadJiraDataDocs() {
@@ -108,301 +118,301 @@ class FixtureHelper {
     static Map createProjectJiraDataDocs() {
         return [
             "PLTFMDEV-1072": [
-                "key": "PLTFMDEV-1072",
-                "name": "Test Case Report",
+                "key"        : "PLTFMDEV-1072",
+                "name"       : "Test Case Report",
                 "description": "TCR",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TCR"
                 ]
             ],
             "PLTFMDEV-1071": [
-                "key": "PLTFMDEV-1071",
-                "name": "Test Case Plan",
+                "key"        : "PLTFMDEV-1071",
+                "name"       : "Test Case Plan",
                 "description": "TCP",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TCP"
                 ]
             ],
             "PLTFMDEV-1066": [
-                "key": "PLTFMDEV-1066",
-                "name": "Discrepancy Log for P",
+                "key"        : "PLTFMDEV-1066",
+                "name"       : "Discrepancy Log for P",
                 "description": "C-DIL for P",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:DIL_P"
                 ]
             ],
             "PLTFMDEV-1064": [
-                "key": "PLTFMDEV-1064",
-                "name": "Discrepancy Log for Q",
+                "key"        : "PLTFMDEV-1064",
+                "name"       : "Discrepancy Log for Q",
                 "description": "C-DIL for Q",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:DIL_Q"
                 ]
             ],
             "PLTFMDEV-1013": [
-                "key": "PLTFMDEV-1013",
-                "name": "Combined Specification Document URS FS CS",
+                "key"        : "PLTFMDEV-1013",
+                "name"       : "Combined Specification Document URS FS CS",
                 "description": "C-CSD",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:CSD"
                 ]
             ],
-            "PLTFMDEV-938": [
-                "key": "PLTFMDEV-938",
-                "name": "Traceability Matrix",
+            "PLTFMDEV-938" : [
+                "key"        : "PLTFMDEV-938",
+                "name"       : "Traceability Matrix",
                 "description": "TC-CTR",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TRC"
                 ]
             ],
-            "PLTFMDEV-937": [
-                "key": "PLTFMDEV-937",
-                "name": "System and Software Design Specification including Source Code Review Report",
+            "PLTFMDEV-937" : [
+                "key"        : "PLTFMDEV-937",
+                "name"       : "System and Software Design Specification including Source Code Review Report",
                 "description": "C-SSDS",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:SSDS"
                 ]
             ],
-            "PLTFMDEV-494": [
-                "key": "PLTFMDEV-494",
-                "name": "Configuration and Installation Testing Report for Dev",
+            "PLTFMDEV-494" : [
+                "key"        : "PLTFMDEV-494",
+                "name"       : "Configuration and Installation Testing Report for Dev",
                 "description": "C-IVR for DEV",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:IVR"
                 ]
             ],
-            "PLTFMDEV-433": [
-                "key": "PLTFMDEV-433",
-                "name": "Test Case Report_Manual",
+            "PLTFMDEV-433" : [
+                "key"        : "PLTFMDEV-433",
+                "name"       : "Test Case Report_Manual",
                 "description": "TC-CTR_M",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TC_CTR_M"
                 ]
             ],
-            "PLTFMDEV-428": [
-                "key": "PLTFMDEV-428",
-                "name": "Functional / Requirements Testing Report_Manual",
+            "PLTFMDEV-428" : [
+                "key"        : "PLTFMDEV-428",
+                "name"       : "Functional / Requirements Testing Report_Manual",
                 "description": "C-FTR_M",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:FTR_M"
                 ]
             ],
-            "PLTFMDEV-427": [
-                "key": "PLTFMDEV-427",
-                "name": "Test Case Report",
+            "PLTFMDEV-427" : [
+                "key"        : "PLTFMDEV-427",
+                "name"       : "Test Case Report",
                 "description": "TC-CTR",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TC_CTR"
                 ]
             ],
-            "PLTFMDEV-426": [
-                "key": "PLTFMDEV-426",
-                "name": "Test Case Plan",
+            "PLTFMDEV-426" : [
+                "key"        : "PLTFMDEV-426",
+                "name"       : "Test Case Plan",
                 "description": "TC-CTP",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TC_CTP"
                 ]
             ],
-            "PLTFMDEV-416": [
-                "key": "PLTFMDEV-416",
-                "name": "Configuration and Installation Testing Plan for DEV",
+            "PLTFMDEV-416" : [
+                "key"        : "PLTFMDEV-416",
+                "name"       : "Configuration and Installation Testing Plan for DEV",
                 "description": "C-IVP for Dev",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:IVP"
                 ]
             ],
-            "PLTFMDEV-318": [
-                "key": "PLTFMDEV-318",
-                "name": "Technical Installation Plan",
+            "PLTFMDEV-318" : [
+                "key"        : "PLTFMDEV-318",
+                "name"       : "Technical Installation Plan",
                 "description": "C-TIP",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TIP"
                 ]
             ],
-            "PLTFMDEV-317": [
-                "key": "PLTFMDEV-317",
-                "name": "Technical Installation Report",
+            "PLTFMDEV-317" : [
+                "key"        : "PLTFMDEV-317",
+                "name"       : "Technical Installation Report",
                 "description": "C-TIR",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TIR"
                 ]
             ],
-            "PLTFMDEV-24": [
-                "key": "PLTFMDEV-24",
-                "name": "Validation Summary Report",
+            "PLTFMDEV-24"  : [
+                "key"        : "PLTFMDEV-24",
+                "name"       : "Validation Summary Report",
                 "description": "C-VSR",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:VSR"
                 ]
             ],
-            "PLTFMDEV-23": [
-                "key": "PLTFMDEV-23",
-                "name": "Configuration and Installation Testing Report for P",
+            "PLTFMDEV-23"  : [
+                "key"        : "PLTFMDEV-23",
+                "name"       : "Configuration and Installation Testing Report for P",
                 "description": "C-IVR for P",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:IVR_P"
                 ]
             ],
-            "PLTFMDEV-22": [
-                "key": "PLTFMDEV-22",
-                "name": "Technical Installation Report for P",
+            "PLTFMDEV-22"  : [
+                "key"        : "PLTFMDEV-22",
+                "name"       : "Technical Installation Report for P",
                 "description": "C-TIR for P",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TIR_P"
                 ]
             ],
-            "PLTFMDEV-21": [
-                "key": "PLTFMDEV-21",
-                "name": "Configuration and Installation Testing Plan for P",
+            "PLTFMDEV-21"  : [
+                "key"        : "PLTFMDEV-21",
+                "name"       : "Configuration and Installation Testing Plan for P",
                 "description": "C-IVP for P",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:IVP_P"
                 ]
             ],
-            "PLTFMDEV-20": [
-                "key": "PLTFMDEV-20",
-                "name": "Technical Installation Plan for P",
+            "PLTFMDEV-20"  : [
+                "key"        : "PLTFMDEV-20",
+                "name"       : "Technical Installation Plan for P",
                 "description": "C-TIP for P",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TIP_P"
                 ]
             ],
-            "PLTFMDEV-19": [
-                "key": "PLTFMDEV-19",
-                "name": "Combined Integration / Acceptance Testing Report",
+            "PLTFMDEV-19"  : [
+                "key"        : "PLTFMDEV-19",
+                "name"       : "Combined Integration / Acceptance Testing Report",
                 "description": "C-CFTR",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:CFTR",
                     "LeVA_Doc:FTR"
                 ]
             ],
-            "PLTFMDEV-18": [
-                "key": "PLTFMDEV-18",
-                "name": "Test Cases",
+            "PLTFMDEV-18"  : [
+                "key"        : "PLTFMDEV-18",
+                "name"       : "Test Cases",
                 "description": "C-TC",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TC"
                 ]
             ],
-            "PLTFMDEV-17": [
-                "key": "PLTFMDEV-17",
-                "name": "Combined Integration / Acceptance Testing Plan",
+            "PLTFMDEV-17"  : [
+                "key"        : "PLTFMDEV-17",
+                "name"       : "Combined Integration / Acceptance Testing Plan",
                 "description": "C-CFTP",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:CFTP",
                     "LeVA_Doc:FTP"
                 ]
             ],
-            "PLTFMDEV-15": [
-                "key": "PLTFMDEV-15",
-                "name": "Development Test Report",
+            "PLTFMDEV-15"  : [
+                "key"        : "PLTFMDEV-15",
+                "name"       : "Development Test Report",
                 "description": "C-DTR",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:DTR"
                 ]
             ],
-            "PLTFMDEV-14": [
-                "key": "PLTFMDEV-14",
-                "name": "Configuration and Installation Testing Report for Q",
+            "PLTFMDEV-14"  : [
+                "key"        : "PLTFMDEV-14",
+                "name"       : "Configuration and Installation Testing Report for Q",
                 "description": "C-IVR for Q",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:IVR_Q"
                 ]
             ],
-            "PLTFMDEV-13": [
-                "key": "PLTFMDEV-13",
-                "name": "Technical Installation Report for Q",
+            "PLTFMDEV-13"  : [
+                "key"        : "PLTFMDEV-13",
+                "name"       : "Technical Installation Report for Q",
                 "description": "C-TIR for Q",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TIR_Q"
                 ]
             ],
-            "PLTFMDEV-12": [
-                "key": "PLTFMDEV-12",
-                "name": "Development Test Plan",
+            "PLTFMDEV-12"  : [
+                "key"        : "PLTFMDEV-12",
+                "name"       : "Development Test Plan",
                 "description": "C-DTP",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:DTP"
                 ]
             ],
-            "PLTFMDEV-8": [
-                "key": "PLTFMDEV-8",
-                "name": "Configuration and Installation Testing Plan for Q",
+            "PLTFMDEV-8"   : [
+                "key"        : "PLTFMDEV-8",
+                "name"       : "Configuration and Installation Testing Plan for Q",
                 "description": "C-IVP for Q",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:IVP_Q"
                 ]
             ],
-            "PLTFMDEV-7": [
-                "key": "PLTFMDEV-7",
-                "name": "Technical Installation Plan for Q",
+            "PLTFMDEV-7"   : [
+                "key"        : "PLTFMDEV-7",
+                "name"       : "Technical Installation Plan for Q",
                 "description": "C-TIP for Q",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:TIP_Q"
                 ]
             ],
-            "PLTFMDEV-6": [
-                "key": "PLTFMDEV-6",
-                "name": "Risk Assessment",
+            "PLTFMDEV-6"   : [
+                "key"        : "PLTFMDEV-6",
+                "name"       : "Risk Assessment",
                 "description": "C-RA",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:RA"
                 ]
             ],
-            "DEMO-69": [
-                "key": "DEMO-69",
-                "name": "Document Demo",
+            "DEMO-69"      : [
+                "key"        : "DEMO-69",
+                "name"       : "Document Demo",
                 "description": "Demo",
-                "status": "PENDING",
-                "labels": [
+                "status"     : "PENDING",
+                "labels"     : [
                     "LeVA_Doc:myTypeNotDone"
                 ]
             ],
-            "DEMO-70": [
-                "key": "DEMO-70",
-                "name": "Document Demo",
+            "DEMO-70"      : [
+                "key"        : "DEMO-70",
+                "name"       : "Document Demo",
                 "description": "Demo",
-                "status": "PENDING",
-                "labels": [
+                "status"     : "PENDING",
+                "labels"     : [
                     "LeVA_Doc:myTypeNotDone"
                 ]
             ],
-            "DEMO-71": [
-                "key": "DEMO-71",
-                "name": "Document Demo",
+            "DEMO-71"      : [
+                "key"        : "DEMO-71",
+                "name"       : "Document Demo",
                 "description": "Demo",
-                "status": "DONE",
-                "labels": [
+                "status"     : "DONE",
+                "labels"     : [
                     "LeVA_Doc:myType"
                 ]
             ]
@@ -467,14 +477,14 @@ class FixtureHelper {
         result.repositories.each { repo ->
             repo.data?.git = [
                 branch                 : "origin/master",
-                commit                 : UUID.randomUUID().toString().replaceAll("-", ""),
-                previousCommit         : UUID.randomUUID().toString().replaceAll("-", ""),
-                previousSucessfulCommit: UUID.randomUUID().toString().replaceAll("-", ""),
-                url                    : "https://cd_user@somescm.com/scm/someproject/${repo.id}.git"
+                commit                 : "3a2ea1a79a134ebcb871fa8b8d6d91cf",
+                previousCommit         : "2ffb2df6aeb349ba81f5597bc0d3a087",
+                previousSucessfulCommit: "a7ff3fdbd79f456d985ff0c0fa9f4754",
+                url                    : "https://cd_user@somescm.com/scm/someproject/${repo.id}.git".toString()
             ]
             repo.metadata = [
-                name       : "Sock Shop: ${repo.id}",
-                description: "Some description for ${repo.id}",
+                name       : "Sock Shop: ${repo.id}".toString(),
+                description: "Some description for ${repo.id}".toString(),
                 supplier   : "https://github.com/microservices-demo/",
                 version    : "1.0"
             ]
@@ -715,11 +725,32 @@ class FixtureHelper {
         )
     }
 
+    static Map createSockShopTestResults() {
+        return JUnitParser.parseJUnitXML(
+            createSockShopJUnitXmlTestResults()
+        )
+    }
+
     static Set createTestResultErrors() {
         return JUnitParser.Helper.getErrors(createTestResults())
     }
 
+    static Set createSockShopTestResultErrors() {
+        return JUnitParser.Helper.getErrors(createSockShopTestResults())
+    }
+
     static Set createTestResultFailures() {
         return JUnitParser.Helper.getFailures(createTestResults())
+    }
+
+    static Set createSockShopTestResultFailures() {
+        return JUnitParser.Helper.getFailures(createSockShopTestResults())
+    }
+
+    static List createSockShopJiraTestIssues() {
+        def file = FixtureHelper.class.getResource("/project-jira-data.json")
+        return new JsonSlurperClassic().parse(file).tests.collect { mapEntry ->
+            mapEntry.value
+        }
     }
 }

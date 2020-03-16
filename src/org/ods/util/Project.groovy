@@ -1,17 +1,13 @@
 package org.ods.util
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import groovy.json.JsonSlurperClassic
-
-import java.nio.file.Paths
-
 import org.apache.http.client.utils.URIBuilder
-
 import org.ods.service.JiraService
 import org.ods.usecase.LeVADocumentUseCase
-
 import org.yaml.snakeyaml.Yaml
+
+import java.nio.file.Paths
 
 class Project {
 
@@ -106,7 +102,7 @@ class Project {
         "name": "PLTFMDEV",
         "description": "Sample Project with 68 fictional Issues",
         "key": "PLTFMDEV",
-        "id": 4711,
+        "id": "12005",
         "jiraBaseUrl": "http://localhost:2990/jira/DEMO",
         "gampTopics": [
             "operational requirements",
@@ -239,8 +235,8 @@ class Project {
                 "DEMO-39"
             ],
             "requirements": [
-                "DEMO-40",
-                "DEMO-6"
+                "DEMO-6",
+                "DEMO-40"
             ],
             "techSpecs": [
                 "DEMO-60",
@@ -254,15 +250,19 @@ class Project {
                 "PLTFMDEV-552",
                 "PLTFMDEV-553",
                 "PLTFMDEV-554",
-                "PLTFMDEV-1046",
-                "PLTFMDEV-1074",
-                "PLTFMDEV-1075"
+                "PLTFMDEV-1046"
             ],
             "mitigations": [
                 "DEMO-8",
-                "DEMO-46",
                 "DEMO-12",
-                "DEMO-42"
+                "DEMO-17",
+                "DEMO-21",
+                "DEMO-28",
+                "DEMO-32",
+                "DEMO-51",
+                "DEMO-55",
+                "DEMO-62",
+                "DEMO-66"
             ]
         },
         "DEMO-3": {
@@ -376,11 +376,7 @@ class Project {
                 "DEMO-7",
                 "DEMO-11"
             ],
-            "tests": [
-                "PLTFMDEV-401",
-                "PLTFMDEV-550",
-                "PLTFMDEV-549"
-            ],
+            "tests": [],
             "mitigations": [
                 "DEMO-8",
                 "DEMO-12"
@@ -507,9 +503,7 @@ class Project {
             "requirements": [
                 "DEMO-6"
             ],
-            "tests": [
-                "PLTFMDEV-550"
-            ]
+            "tests": []
         },
         "DEMO-27": {
             "name": "Risk-1 on TechSpec DEMO-26",
@@ -677,6 +671,7 @@ class Project {
             "name": "verify database is correctly installed",
             "description": "verify database is correctly setup. Outcome: Succeeded",
             "key": "PLTFMDEV-401",
+            "id": "24888",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Installation",
@@ -710,12 +705,14 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-549": {
             "name": "User interacts with the cart",
             "description": "User interacts with the cart",
             "key": "PLTFMDEV-549",
+            "id": "26201",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Acceptance",
@@ -745,12 +742,14 @@ class Project {
             ],
             "requirements": [
                 "DEMO-6"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-550": {
             "name": "User shows catalogue",
             "description": "User shows catalogue",
             "key": "PLTFMDEV-550",
+            "id": "26202",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Acceptance",
@@ -774,12 +773,14 @@ class Project {
             ],
             "requirements": [
                 "DEMO-6"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-551": {
             "name": "User buys some socks",
             "description": "User buys some socks",
             "key": "PLTFMDEV-551",
+            "id": "26203",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Acceptance",
@@ -816,16 +817,13 @@ class Project {
             "requirements": [
                 "DEMO-6"
             ],
-            "bugs": [
-                "PLTFMDEV-658",
-                "PLTFMDEV-674",
-                "PLTFMDEV-690"
-            ]
+            "bugs": []
         },
         "PLTFMDEV-552": {
             "name": "Home page looks sexy",
             "description": "Home page looks sexy",
             "key": "PLTFMDEV-552",
+            "id": "26204",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Acceptance",
@@ -836,12 +834,14 @@ class Project {
             ],
             "requirements": [
                 "DEMO-6"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-553": {
             "name": "User logs in",
             "description": "User logs in",
             "key": "PLTFMDEV-553",
+            "id": "26205",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Acceptance",
@@ -852,12 +852,14 @@ class Project {
             ],
             "requirements": [
                 "DEMO-6"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-554": {
             "name": "User exists in system",
             "description": "User exists in system",
             "key": "PLTFMDEV-554",
+            "id": "26206",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Integration",
@@ -873,16 +875,13 @@ class Project {
                 "DEMO-15",
                 "DEMO-26"
             ],
-            "bugs": [
-                "PLTFMDEV-10658",
-                "PLTFMDEV-10674",
-                "PLTFMDEV-10690"
-            ]
+            "bugs": []
         },
         "PLTFMDEV-1045": {
             "name": "FirstResultOrDefault returns the default for an empty list",
             "description": "FirstResultOrDefault returns the default for an empty list",
             "key": "PLTFMDEV-1045",
+            "id": "26800",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Unit",
@@ -896,12 +895,14 @@ class Project {
             ],
             "techSpecs": [
                 "DEMO-15"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-1046": {
             "name": "verify frontend is correctly installed",
             "description": "verify frontend is correctly installed. Outcome: Succeeded",
             "key": "PLTFMDEV-1046",
+            "id": "26999",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Installation",
@@ -923,12 +924,14 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-1060": {
             "name": "verify payment service is correctly installed",
             "description": "verify payment service is correctly setup. Outcome: Error",
             "key": "PLTFMDEV-1060",
+            "id": "27041",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Installation",
@@ -950,12 +953,14 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-1061": {
             "name": "verify order service is correctly installed",
             "description": "verify order service is correctly installed. Outcome: Failed",
             "key": "PLTFMDEV-1061",
+            "id": "27042",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Installation",
@@ -977,12 +982,14 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-1062": {
             "name": "verify shipping service is correctly installed",
             "description": "verify shipping service is correctly installed. Outcome: Missing",
             "key": "PLTFMDEV-1062",
+            "id": "27043",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Installation",
@@ -1004,12 +1011,14 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-1073": {
             "name": "Cart gets processed correctly",
             "description": "Cart gets processed correctly. Outcome: Succeeded",
             "key": "PLTFMDEV-1073",
+            "id": "27105",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Integration",
@@ -1031,12 +1040,14 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-1074": {
             "name": "Frontend retrieves cart data correctly",
             "description": "Frontend retrieves cart data correctly. Outcome: Succeeded",
             "key": "PLTFMDEV-1074",
+            "id": "27106",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Integration",
@@ -1058,12 +1069,14 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         },
         "PLTFMDEV-1075": {
             "name": "Frontend retrieves payment data correctly",
             "description": "Frontend retrieves payment data correctly. Outcome: Succeeded",
             "key": "PLTFMDEV-1075",
+            "id": "27107",
             "version": "1.0",
             "status": "READY TO TEST",
             "testType": "Integration",
@@ -1085,7 +1098,8 @@ class Project {
             "techSpecs": [
                 "DEMO-15",
                 "DEMO-26"
-            ]
+            ],
+            "bugs": []
         }
     },
     "mitigations": {
@@ -1451,7 +1465,7 @@ class Project {
         this.steps = steps
 
         this.data.build = [
-            hasFailingTests: false,
+            hasFailingTests       : false,
             hasUnexecutedJiraTests: false
         ]
     }
@@ -1466,8 +1480,9 @@ class Project {
         this.git = git
         this.jira = jira
 
-        this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
+        this.data.git = [commit: git.getCommit(), url: git.getURL()]
         this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.loadJiraData(this.data.metadata.id)))
+        this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
         this.data.jira.docs = this.loadJiraDataDocs()
         return this
@@ -1503,11 +1518,13 @@ class Project {
             def result = testIssue.status.toLowerCase() == "ready to test" && testIssue.executionType?.toLowerCase() == "automated"
 
             if (result && componentName) {
-                result = testIssue.getResolvedComponents().collect{ it.name.toLowerCase() }.contains(componentName.toLowerCase())
+                result = testIssue.getResolvedComponents()
+                    .collect { it.name.toLowerCase() }
+                    .contains(componentName.toLowerCase())
             }
 
             if (result && testTypes) {
-                result = testTypes.collect{ it.toLowerCase() }.contains(testIssue.testType.toLowerCase())
+                result = testTypes.collect { it.toLowerCase() }.contains(testIssue.testType.toLowerCase())
             }
 
             return result
@@ -1586,7 +1603,7 @@ class Project {
 
         labels.each { label ->
             this.getDocumentTrackingIssues().each { issue ->
-                if (issue.labels.collect{ it.toLowerCase() }.contains(label.toLowerCase())) {
+                if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
                     result << [key: issue.key, status: issue.status]
                 }
             }
@@ -1620,7 +1637,7 @@ class Project {
 
         this.steps.dir(path) {
             result = this.steps.sh(
-                label : "Get Git URL for repository at path '${path}' and origin '${remote}'",
+                label: "Get Git URL for repository at path '${path}' and origin '${remote}'",
                 script: "git config --get remote.${remote}.url",
                 returnStdout: true
             ).trim()
@@ -1634,7 +1651,7 @@ class Project {
     }
 
     String getId() {
-        return this.data.jira.id
+        return this.data.jira.project.id
     }
 
     String getKey() {
@@ -1666,11 +1683,11 @@ class Project {
             def result = true
 
             if (result && componentName) {
-                result = req.getResolvedComponents().collect{ it.name.toLowerCase() }.contains(componentName.toLowerCase())
+                result = req.getResolvedComponents().collect { it.name.toLowerCase() }.contains(componentName.toLowerCase())
             }
 
             if (result && gampTopics) {
-                result = gampTopics.collect{ it.toLowerCase() }.contains(req.gampTopic.toLowerCase())
+                result = gampTopics.collect { it.toLowerCase() }.contains(req.gampTopic.toLowerCase())
             }
 
             return result
@@ -1698,7 +1715,7 @@ class Project {
             def result = true
 
             if (result && componentName) {
-                result = techSpec.getResolvedComponents().collect{ it.name.toLowerCase() }.contains(componentName.toLowerCase())
+                result = techSpec.getResolvedComponents().collect { it.name.toLowerCase() }.contains(componentName.toLowerCase())
             }
 
             return result
@@ -1737,19 +1754,27 @@ class Project {
         def changeDescription = steps.env.changeDescription?.trim() ?: "UNDEFINED"
 
         return [
-            changeDescription: changeDescription,
-            changeId: changeId,
-            configItem: configItem,
-            sourceEnvironmentToClone: sourceEnvironmentToClone,
+            changeDescription            : changeDescription,
+            changeId                     : changeId,
+            configItem                   : configItem,
+            sourceEnvironmentToClone     : sourceEnvironmentToClone,
             sourceEnvironmentToCloneToken: sourceEnvironmentToCloneToken,
-            targetEnvironment: targetEnvironment,
-            targetEnvironmentToken: targetEnvironmentToken,
-            version: version
+            targetEnvironment            : targetEnvironment,
+            targetEnvironmentToken       : targetEnvironmentToken,
+            version                      : version
         ]
     }
 
     protected Map loadJiraData(String projectKey) {
         return new JsonSlurperClassic().parseText(TEMP_FAKE_JIRA_DATA)
+    }
+
+    protected Map loadJiraDataProjectVersion() {
+        List versions = this.jira.getVersionForProject(this.data.jira.project.key)
+
+        return versions.find { version ->
+            this.buildParams.version == version.name
+        }
     }
 
     protected Map loadJiraDataDocs() {
@@ -1766,11 +1791,11 @@ class Project {
             [
                 jiraIssue.key,
                 [
-                    key         : jiraIssue.key,
-                    name        : jiraIssue.fields.summary,
-                    description : jiraIssue.fields.description,
-                    status      : jiraIssue.fields.status.name,
-                    labels      : jiraIssue.fields.labels
+                    key        : jiraIssue.key,
+                    name       : jiraIssue.fields.summary,
+                    description: jiraIssue.fields.description,
+                    status     : jiraIssue.fields.status.name,
+                    labels     : jiraIssue.fields.labels
                 ]
             ]
         }
@@ -1845,7 +1870,6 @@ class Project {
         if (result.capabilities == null) {
             result.capabilities = []
         }
-
         return result
     }
 

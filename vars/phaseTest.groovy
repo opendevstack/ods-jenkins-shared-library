@@ -49,13 +49,13 @@ def call(Project project, List<Set<Map>> repos) {
             project.repositories.each { repo_ ->
                 if (repo_.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                     echo "Reporting installation test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent("Technology-${repo_.id}", ["InstallationTest"], data.tests.installation.testResults)
+                    jira.reportTestResultsForComponent("Technology-${repo_.id}", [Project.TestType.INSTALLATION], data.tests.installation.testResults)
 
                     echo "Reporting integration test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent("Technology-${repo_.id}", ["IntegrationTest"], data.tests.integration.testResults)
+                    jira.reportTestResultsForComponent("Technology-${repo_.id}", [Project.TestType.INTEGRATION], data.tests.integration.testResults)
 
                     echo "Reporting acceptance test results to corresponding test cases in Jira for ${repo_.id}"
-                    jira.reportTestResultsForComponent("Technology-${repo_.id}", ["AcceptanceTest"], data.tests.acceptance.testResults)
+                    jira.reportTestResultsForComponent("Technology-${repo_.id}", [Project.TestType.ACCEPTANCE], data.tests.acceptance.testResults)
                 }
             }
 

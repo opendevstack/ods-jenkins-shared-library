@@ -1,6 +1,5 @@
 package org.ods.usecase
 
-import groovy.json.JsonOutput
 
 import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
@@ -105,9 +104,25 @@ class JiraUseCase {
 
         testFailures.each { failure ->
             def bug = this.jira.createIssueTypeBug(this.project.key, failure.type, failure.text)
-
+            // TODO how to map bugs and failures to test issues
             this.walkTestIssuesAndTestResults(testIssues, failure) { testIssue, testCase, isMatch ->
-                if (isMatch) this.jira.createIssueLinkTypeBlocks(bug, testIssue)
+                if (isMatch) {
+                    if (!testIssue.newBugs) {
+                        testIssue.newBugs = []
+                    }
+                    testIssue.newBugs << bug.key
+
+                    // add newly created bug into the Jira data structure on the current project for referential integrity
+                    this.project.data.jira.bugs[bug.key] = [
+                        key     : bug.key,
+                        name    : bug.fields.summary,
+                        assignee: "Unassigned",
+                        dueDate : "",
+                        status  : "TO DO",
+                        tests   : [testIssue.key]
+                    ]
+                    this.jira.createIssueLinkTypeBlocks(bug, testIssue)
+                }
             }
 
             this.jira.appendCommentToIssue(bug.key, comment)
@@ -206,7 +221,6 @@ class JiraUseCase {
         }
 
         this.support.applyXunitTestResults(testIssues, testResults)
-
         if (["Q", "P"].contains(this.project.buildParams.targetEnvironmentToken)) {
             // Create bugs for erroneous test issues
             def errors = JUnitParser.Helper.getErrors(testResults)

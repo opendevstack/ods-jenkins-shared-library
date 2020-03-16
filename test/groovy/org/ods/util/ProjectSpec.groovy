@@ -1,13 +1,12 @@
 package org.ods.util
 
+import org.ods.service.JiraService
+import org.yaml.snakeyaml.Yaml
+import util.SpecHelper
+
 import java.nio.file.Paths
 
-import org.apache.http.client.utils.URIBuilder
-import org.ods.service.*
-
-import spock.lang.*
-
-import util.*
+import static util.FixtureHelper.*
 
 class ProjectSpec extends SpecHelper {
 
@@ -21,7 +20,14 @@ class ProjectSpec extends SpecHelper {
         steps = Spy(util.PipelineSteps)
         git = Mock(GitUtil)
         metadataFile = createProjectMetadataFile(this.steps.env.WORKSPACE, steps)
-        project = Spy(new Project(this.steps)).init().load(git, null)
+        jira = Mock(JiraService)
+
+        project = Spy(constructorArgs: [steps], {
+            loadJiraDataDocs() >> {
+                return createProjectJiraDataDocs()
+            }
+        })
+        project.init().load(git, jira)
     }
 
     def cleanup() {
@@ -31,19 +37,7 @@ class ProjectSpec extends SpecHelper {
     File createProjectMetadataFile(String path, IPipelineSteps steps) {
         def file = Paths.get(path, "metadata.yml").toFile()
 
-        file << """
-            id: myId
-            name: myName
-            description: myDescription
-            repositories:
-              - id: A
-                url: https://github.com/my-org/my-repo-A.git
-                branch: master
-              - id: B
-                name: my-repo-B
-                branch: master
-              - id: C
-        """
+        file << new Yaml().dump(createProjectMetadata())
 
         return file
     }
@@ -127,7 +121,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = null
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        def result = Project.getBuildEnvironment(steps, )
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=0.1-myEnv" }
@@ -136,7 +130,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = ""
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=0.1-myEnv" }
@@ -145,7 +139,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = "myId"
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=myId" }
@@ -154,21 +148,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CHANGE_DESC"() {
         when:
         steps.env.changeDescription = null
-        def result = Project.getBuildEnvironment(steps, )
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=UNDEFINED" }
 
         when:
         steps.env.changeDescription = ""
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=UNDEFINED" }
 
         when:
         steps.env.changeDescription = "myDescription"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=myDescription" }
@@ -177,21 +171,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CONFIG_ITEM"() {
         when:
         steps.env.configItem = null
-        def result = Project.getBuildEnvironment(steps, )
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=UNDEFINED" }
 
         when:
         steps.env.configItem = ""
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=UNDEFINED" }
 
         when:
         steps.env.configItem = "myItem"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=myItem" }
@@ -200,21 +194,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_VERSION"() {
         when:
         steps.env.version = null
-        def result = Project.getBuildEnvironment(steps, )
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=WIP" }
 
         when:
         steps.env.version = ""
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=WIP" }
 
         when:
         steps.env.version = "0.1"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=0.1" }
@@ -224,7 +218,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "myEnv"
         steps.env.sourceEnvironmentToClone = null
-        def result = Project.getBuildEnvironment(steps, )
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "SOURCE_CLONE_ENV=myEnv" }
@@ -232,7 +226,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "myEnv"
         steps.env.sourceEnvironmentToClone = ""
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "SOURCE_CLONE_ENV=myEnv" }
@@ -240,7 +234,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "mvEnv"
         steps.env.sourceEnvironmentToClone = "mySourceEnv"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "SOURCE_CLONE_ENV=mySourceEnv" }
@@ -249,21 +243,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for SOURCE_CLONE_ENV_TOKEN"() {
         when:
         steps.env.sourceEnvironmentToClone = "dev"
-        def result = Project.getBuildEnvironment(steps, )
+        def result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "SOURCE_CLONE_ENV_TOKEN=D" }
 
         when:
         steps.env.sourceEnvironmentToClone = "qa"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "SOURCE_CLONE_ENV_TOKEN=Q" }
 
         when:
         steps.env.sourceEnvironmentToClone = "prod"
-        result = Project.getBuildEnvironment(steps, )
+        result = Project.getBuildEnvironment(steps)
 
         then:
         result.find { it == "SOURCE_CLONE_ENV_TOKEN=P" }
@@ -361,15 +355,15 @@ class ProjectSpec extends SpecHelper {
 
     def "load"() {
         given:
-        def component1 = [ key: "CMP-1", name: "Component 1" ]
-        def epic1 = [ key: "EPC-1", name: "Epic 1" ]
-        def mitigation1 = [ key: "MTG-1", name: "Mitigation 1" ]
-        def requirement1 = [ key: "REQ-1", name: "Requirement 1" ]
-        def risk1 = [ key: "RSK-1", name: "Risk 1" ]
-        def techSpec1 = [ key: "TS-1", name: "Technical Specification 1" ]
-        def test1 = [ key: "TST-1", name: "Test 1" ]
-        def test2 = [ key: "TST-2", name: "Test 2" ]
-        def doc1 = [ key: "DOC-1", name: "Doc 1", status: "OPEN" ]
+        def component1 = [key: "CMP-1", name: "Component 1"]
+        def epic1 = [key: "EPC-1", name: "Epic 1"]
+        def mitigation1 = [key: "MTG-1", name: "Mitigation 1"]
+        def requirement1 = [key: "REQ-1", name: "Requirement 1"]
+        def risk1 = [key: "RSK-1", name: "Risk 1"]
+        def techSpec1 = [key: "TS-1", name: "Technical Specification 1"]
+        def test1 = [key: "TST-1", name: "Test 1"]
+        def test2 = [key: "TST-2", name: "Test 2"]
+        def doc1 = [key: "DOC-1", name: "Doc 1", status: "OPEN"]
 
         // Define key-based references
         component1.epics = [epic1.key]
@@ -406,25 +400,27 @@ class ProjectSpec extends SpecHelper {
         test2.requirements = [requirement1.key]
         test2.risks = [risk1.key]
 
+
+
         when:
         project.load(this.git, this.jira)
 
         then:
         1 * project.loadJiraData(_) >> [
-            project: [ name: "my-project" ],
-            bugs: [],
-            components: [(component1.key): component1],
-            epics: [(epic1.key): epic1],
-            mitigations: [(mitigation1.key): mitigation1],
+            project     : [name: "my-project"],
+            bugs        : [],
+            components  : [(component1.key): component1],
+            epics       : [(epic1.key): epic1],
+            mitigations : [(mitigation1.key): mitigation1],
             requirements: [(requirement1.key): requirement1],
-            risks: [(risk1.key): risk1],
-            tests: [(test1.key): test1, (test2.key): test2],
-            techSpecs: [(techSpec1.key): techSpec1],
-            docs: [(doc1.key): doc1]
+            risks       : [(risk1.key): risk1],
+            tests       : [(test1.key): test1, (test2.key): test2],
+            techSpecs   : [(techSpec1.key): techSpec1],
+            docs        : [(doc1.key): doc1]
         ]
 
         1 * project.resolveJiraDataItemReferences(_)
-        1 * project.loadJiraDataDocs()
+        1 * project.loadJiraDataDocs() >> createProjectJiraDataDocs()
 
         then:
         def components = project.components
@@ -656,36 +652,86 @@ class ProjectSpec extends SpecHelper {
 
         then:
         def expected = [
-            id: "myId",
-            name: "myName",
-            description: "myDescription",
+            id          : "pltfmdev",
+            name        : "Sock Shop",
+            description : "A socks-selling e-commerce demo application.",
+            services    : [
+                bitbucket: [
+                    credentials: [
+                        id: "pltfmdev-cd-cd-user-with-password"
+                    ]
+                ],
+                jira     : [
+                    credentials: [
+                        id: "pltfmdev-cd-cd-user-with-password"
+                    ]
+                ],
+                nexus    : [
+                    repository: [
+                        name: "leva-documentation"
+                    ]
+                ]
+            ],
             repositories: [
                 [
-                    id: "A",
-                    url: "https://github.com/my-org/my-repo-A.git",
-                    branch: "master",
-                    type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
-                    data: [
-                        documents: [:]
-                    ]
+                    id      : "demo-app-carts",
+                    type    : "ods-service",
+                    data    : [
+                        "documents": [:]
+                    ],
+                    metadata: [
+                        name       : "Sock Shop: demo-app-carts",
+                        description: "Some description for demo-app-carts",
+                        supplier   : "https://github.com/microservices-demo/",
+                        version    : "1.0"
+                    ],
+                    url     : "https://github.com/my-org/pltfmdev-demo-app-carts.git",
+                    branch  : "master"
                 ],
                 [
-                    id: "B",
-                    url: "https://github.com/my-org/my-repo-B.git",
-                    branch: "master",
-                    type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
-                    data: [
-                        documents: [:]
-                    ]
+                    id      : "demo-app-catalogue",
+                    type    : "ods",
+                    data    : [
+                        "documents": [:]
+                    ],
+                    metadata: [
+                        supplier   : "https://github.com/microservices-demo/",
+                        name       : "Sock Shop: demo-app-catalogue",
+                        description: "Some description for demo-app-catalogue",
+                        version    : "1.0"
+                    ],
+                    branch  : "master",
+                    url     : "https://github.com/my-org/pltfmdev-demo-app-catalogue.git"
                 ],
                 [
-                    id: "C",
-                    url: "https://github.com/my-org/myid-C.git",
-                    branch: "master",
-                    type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE,
-                    data: [
+                    "metadata": [
+                        supplier   : "https://github.com/microservices-demo/",
+                        name       : "Sock Shop: demo-app-front-end",
+                        description: "Some description for demo-app-front-end",
+                        version    : "1.0"
+                    ],
+                    data      : [
+                        "documents": [:]
+                    ],
+                    id        : "demo-app-front-end",
+                    type      : "ods",
+                    branch    : "master",
+                    url       : "https://github.com/my-org/pltfmdev-demo-app-front-end.git"
+                ],
+                [
+                    metadata: [
+                        supplier   : "https://github.com/microservices-demo/",
+                        name       : "Sock Shop: demo-app-test",
+                        description: "Some description for demo-app-test",
+                        version    : "1.0"
+                    ],
+                    data    : [
                         documents: [:]
-                    ]
+                    ],
+                    id      : "demo-app-test",
+                    type    : "ods-test",
+                    branch  : "master",
+                    url     : "https://github.com/my-org/pltfmdev-demo-app-test.git"
                 ]
             ],
             capabilities: []
