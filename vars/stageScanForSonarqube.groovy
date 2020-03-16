@@ -32,7 +32,7 @@ def call(def context, def requireQualityGatePass = false) {
         // We need to get the SQ project name as it might have been modified.
         def sqProps = readProperties file: 'sonar-project.properties'
         def sonarProjectKey = sqProps['sonar.projectKey']
-        def targetSQreport = "SCRR-" + sonarProjectKey + ".docx"
+        def targetSQreport = "SCRR-" + sonarProjectKey + ".md"
         withEnv (["SQ_PROJECT=${sonarProjectKey}", "TARGET_SQ_REPORT=${targetSQreport}"]) {
           sh(
             label : "Generate CNES Report",
@@ -44,11 +44,11 @@ def call(def context, def requireQualityGatePass = false) {
           )
           sh(
             label : "Move report to artifacts dir",
-            script: "mv *-analysis-report.docx* artifacts/"
+            script: "mv *-analysis-report.md* artifacts/"
           )
           sh(
             label : "Rename report to SCRR",
-            script: "mv artifacts/*-analysis-report.docx* artifacts/$TARGET_SQ_REPORT"
+            script: "mv artifacts/*-analysis-report.md* artifacts/$TARGET_SQ_REPORT"
           )
           archiveArtifacts "artifacts/SCRR*"
           stash(
