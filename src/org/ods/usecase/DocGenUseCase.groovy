@@ -74,11 +74,11 @@ abstract class DocGenUseCase {
             def document = repo.data.documents[documentType]
             if (document) {
                 documents << document
-            }
 
-            sections << [
-                heading: repo.id
-            ]
+                sections << [
+                    heading: repo.id
+                ]
+            }
         }
 
         def data = [

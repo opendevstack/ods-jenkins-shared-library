@@ -460,8 +460,8 @@ class Project {
             "mitigations": [
                 "DEMO-62"
             ],
-            "requirements": [
-                "DEMO-40"
+            "techSpecs": [
+                "DEMO-60"
             ],
             "tests": []
         },
@@ -480,8 +480,8 @@ class Project {
             "mitigations": [
                 "DEMO-51"
             ],
-            "requirements": [
-                "DEMO-40"
+            "techSpecs": [
+                "DEMO-49"
             ],
             "tests": []
         },
@@ -520,8 +520,8 @@ class Project {
             "mitigations": [
                 "DEMO-28"
             ],
-            "requirements": [
-                "DEMO-6"
+            "techSpecs": [
+                "DEMO-26"
             ],
             "tests": []
         },
@@ -540,8 +540,8 @@ class Project {
             "mitigations": [
                 "DEMO-17"
             ],
-            "requirements": [
-                "DEMO-6"
+            "techSpecs": [
+                "DEMO-15"
             ],
             "tests": []
         },
@@ -600,8 +600,8 @@ class Project {
             "mitigations": [
                 "DEMO-66"
             ],
-            "requirements": [
-                "DEMO-40"
+            "techSpecs": [
+                "DEMO-60"
             ],
             "tests": []
         },
@@ -620,8 +620,8 @@ class Project {
             "mitigations": [
                 "DEMO-55"
             ],
-            "requirements": [
-                "DEMO-40"
+            "techSpecs": [
+                "DEMO-49"
             ],
             "tests": []
         },
@@ -640,8 +640,8 @@ class Project {
             "mitigations": [
                 "DEMO-32"
             ],
-            "requirements": [
-                "DEMO-6"
+            "techSpecs": [
+                "DEMO-26"
             ],
             "tests": []
         },
@@ -660,8 +660,8 @@ class Project {
             "mitigations": [
                 "DEMO-21"
             ],
-            "requirements": [
-                "DEMO-6"
+            "techSpecs": [
+                "DEMO-15"
             ],
             "tests": []
         }
@@ -669,7 +669,7 @@ class Project {
     "tests": {
         "PLTFMDEV-401": {
             "name": "verify database is correctly installed",
-            "description": "verify database is correctly setup. Outcome: Succeeded",
+            "description": "verify database is correctly setup.",
             "key": "PLTFMDEV-401",
             "id": "24888",
             "version": "1.0",
@@ -900,7 +900,7 @@ class Project {
         },
         "PLTFMDEV-1046": {
             "name": "verify frontend is correctly installed",
-            "description": "verify frontend is correctly installed. Outcome: Succeeded",
+            "description": "verify frontend is correctly installed.",
             "key": "PLTFMDEV-1046",
             "id": "26999",
             "version": "1.0",
@@ -1016,7 +1016,7 @@ class Project {
         },
         "PLTFMDEV-1073": {
             "name": "Cart gets processed correctly",
-            "description": "Cart gets processed correctly. Outcome: Succeeded",
+            "description": "Cart gets processed correctly.",
             "key": "PLTFMDEV-1073",
             "id": "27105",
             "version": "1.0",
@@ -1045,7 +1045,7 @@ class Project {
         },
         "PLTFMDEV-1074": {
             "name": "Frontend retrieves cart data correctly",
-            "description": "Frontend retrieves cart data correctly. Outcome: Succeeded",
+            "description": "Frontend retrieves cart data correctly.",
             "key": "PLTFMDEV-1074",
             "id": "27106",
             "version": "1.0",
@@ -1074,7 +1074,7 @@ class Project {
         },
         "PLTFMDEV-1075": {
             "name": "Frontend retrieves payment data correctly",
-            "description": "Frontend retrieves payment data correctly. Outcome: Succeeded",
+            "description": "Frontend retrieves payment data correctly.",
             "key": "PLTFMDEV-1075",
             "id": "27107",
             "version": "1.0",

@@ -104,7 +104,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     nameOfSoftware    : metadata.name,
                     references        : metadata.references ?: "N/A",
                     supplier          : metadata.supplier,
-                    version           : metadata.version,
+                    version           : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ?
+                                        this.project.buildParams.version :
+                                        metadata.version,
                     requirements      : component.getResolvedSystemRequirements(),
                     softwareDesignSpec: component.getResolvedTechnicalSpecifications().findAll {
                         it.softwareDesignSpec
@@ -266,6 +268,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def watermarkText = this.getWatermarkText(documentType)
 
+
         def bugs = this.project.getBugs().each { bug ->
             bug.tests = bug.getResolvedTests()
         }
@@ -281,6 +284,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 test.testType == Project.TestType.INTEGRATION
             }
         }
+
+        SortUtil.sortIssuesByProperties(acceptanceTestBugs, ["key"])
+        SortUtil.sortIssuesByProperties(integrationTestBugs, ["key"])
+
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
@@ -348,34 +355,54 @@ class LeVADocumentUseCase extends DocGenUseCase {
         } else {
             watermarkText = this.getWatermarkText(documentType)
         }
+        def unitTests = this.project.getAutomatedTestsTypeUnit()
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
-                repositories: this.project.repositories.collect { repo_ ->
-                    [
-                        id         : repo_.id,
-                        description: repo_.metadata.description,
-                        url        : repo_.url
-                    ]
-                },
-                sections    : sections,
-                tests       : this.project.getAutomatedTestsTypeUnit().collect { testIssue ->
-                    def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec }.collect { it.key }
-
-                    [
-                        key               : testIssue.key,
-                        description       : testIssue.description ?: "",
-                        systemRequirement : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                        softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A"
-                    ]
-                }
+                sections: sections,
+                tests: this.computeTestsWithRequirementsAndSpecs(unitTests),
+                modules: this.getReposWithUnitTestsInfo(unitTests)
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, null, watermarkText)
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
+    }
+
+    protected List<Map> computeTestsWithRequirementsAndSpecs(List<Map> tests) {
+        tests.collect { testIssue ->
+            def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
+
+            [
+                moduleName: testIssue.components.join(", "),
+                testKey: testIssue.key,
+                description: testIssue.description ?: "N/A",
+                systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A"
+            ]
+        }
+    }
+
+    protected List<Map> getReposWithUnitTestsInfo(List<Map> unitTests) {
+        def componentTestMapping = computeComponentsUnitTests(unitTests)
+        this.project.repositories.collect{
+            [
+                id: it.id,
+                description: it.metadata.description,
+                tests: componentTestMapping[it.id]? componentTestMapping[it.id].join(", "): "None defined"
+            ]
+        }
+    }
+
+    protected Map computeComponentsUnitTests(List<Map> tests) {
+        def issueComponentMapping = tests.collect { test ->
+            test.getResolvedComponents().collect {[test: test.key, component: it.name] }
+        }.flatten()
+        issueComponentMapping.groupBy{ it.component }.collectEntries { c, v ->
+             [(c.replaceAll("Technology-", "")): v.collect{it.test}]
+        }
     }
 
     String createDTR(Map repo, Map data) {
@@ -402,12 +429,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 tests             : testIssues.collect { testIssue ->
                     [
                         key               : testIssue.key,
-                        description       : testIssue.description ?: "",
+                        description       : testIssue.description ?: "N/A",
                         systemRequirement : testIssue.requirements.join(", "),
                         success           : testIssue.isSuccess ? "Y" : "N",
-                        remarks           : testIssue.isMissing ? "not executed" : "",
-                        softwareDesignSpec: testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec } ?
-                            testIssue.getTechnicalSpecifications().findAll { it.softwareDesignSpec }.collect { it.key }.join(", ") : "N/A"
+                        remarks           : testIssue.isMissing ? "Not executed" : "N/A",
+                        softwareDesignSpec: testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec } ?
+                                            testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }.join(", ") : "N/A"
                     ]
                 },
                 numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isMissing },
@@ -491,11 +518,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def testsText = r.tests ? r.tests.join(", ") : "None"
             r.proposedMeasures = "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}"
 
-            def requirements = r.getResolvedSystemRequirements()
+            def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
             r.requirements = requirements.collect { it.name }.join("<br/>")
             r.requirementsKey = requirements.collect { it.key }.join("<br/>")
 
-            r.gxpRelevance = (obtainEnumShort("gxprelevance", r.gxpRelevance).contains("N")) ? "No" : "Yes"
+            r.gxpRelevance = obtainEnumShort("gxprelevance", r.gxpRelevance)
             r.probabilityOfOccurrence = obtainEnumShort("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
             r.severityOfImpact = obtainEnumShort("SeverityOfImpact", r.severityOfImpact)
             r.probabilityOfDetection = obtainEnumShort("ProbabilityOfDetection", r.probabilityOfDetection)
@@ -508,8 +535,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             (r.getResolvedTests().collect {
                 if (!it) throw new IllegalArgumentException("Error: test for requirement ${r.key} could not be obtained. Check if all of ${r.tests.join(", ")} exist in JIRA")
                 [key: it.key, name: it.name, type: "test", referencesRisk: r.key]
-            } +
-                r.getResolvedMitigations().collect { [key: it?.key, name: it?.name, type: "mitigation", referencesRisk: r.key] })
+            } + r.getResolvedMitigations().collect { [key: it?.key, name: it?.name, type: "mitigation", referencesRisk: r.key] })
         }.flatten()
 
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
@@ -527,8 +553,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         sections."sec5".risks = SortUtil.sortIssuesByProperties(risks, ["key"])
         sections."sec5".proposedMeasures = SortUtil.sortIssuesByProperties(proposedMeasuresDesription, ["key"])
 
+        def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
+        metadata.orientation = "Landscape"
+
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            metadata: metadata,
             data    : [
                 sections: sections
             ]
@@ -672,9 +701,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def matchedHandler = { result ->
             result.each { testIssue, testCase ->
-                testIssue.isSucess = !(testCase.error || testCase.failure || testCase.skipped)
+                testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped
+                    || !testIssue.getResolvedBugs().findAll{ bug -> bug.status?.toLowerCase() != "done"}.isEmpty()
+                    || testIssue.isUnexecuted)
+                testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
+                testIssue.timestamp = testIssue.isUnexecuted ? "N/A" : testCase.timestamp
                 testIssue.isMissing = false
-                testIssue.timestamp = testCase.timestamp
             }
         }
 
@@ -682,6 +714,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             result.each { testIssue ->
                 testIssue.isSuccess = false
                 testIssue.isMissing = true
+                testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
             }
         }
 
@@ -698,9 +731,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
-                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
                         steps       : testIssue.steps,
-                        timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A"
+                        timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
+                        comment     : testIssue.comment
                     ]
                 }, ["key"]),
                 acceptanceTests     : SortUtil.sortIssuesByProperties(acceptanceTestIssues.collect { testIssue ->
@@ -709,9 +743,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
-                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
+                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
                         steps       : testIssue.steps,
-                        timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A"
+                        timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
+                        comment     : testIssue.comment
                     ]
                 }, ["key"]),
                 integrationTestFiles: SortUtil.sortIssuesByProperties(integrationTestData.testReportFiles.collect { file ->
@@ -1026,10 +1061,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def documentType = DocumentType.TIR as String
 
         def visitor = { data_ ->
-            // Append another section for the Jenkins build log
-            data_.sections << [
+            // Prepend a section for the Jenkins build log
+            data_.sections.add(0, [
                 heading: "Jenkins Build Log"
-            ]
+            ])
 
             // Add Jenkins build log data
             data_.jenkinsData = [
