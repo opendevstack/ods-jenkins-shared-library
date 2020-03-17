@@ -10,7 +10,7 @@ class OdsContext implements Context {
 
   private def artifactUriStore = [:]
 
-  OdsContext(script, config, logger) {
+  OdsContext(def script, Map config, Logger logger) {
     this.script = script
     this.config = config
     this.logger = logger
@@ -259,7 +259,7 @@ class OdsContext implements Context {
   }
 
   String getResourceLimitMemory() {
-    config.resourceRequestMemory
+    config.resourceLimitMemory
   }
 
   String getResourceRequestCpu() {
