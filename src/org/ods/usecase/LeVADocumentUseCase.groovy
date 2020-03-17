@@ -268,7 +268,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def watermarkText = this.getWatermarkText(documentType)
 
-
         def bugs = this.project.getBugs().each { bug ->
             bug.tests = bug.getResolvedTests()
         }

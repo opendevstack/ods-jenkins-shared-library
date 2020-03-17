@@ -6,6 +6,7 @@ import org.ods.service.JiraService
 import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
 import org.ods.util.Project
+import org.ods.util.Project.JiraDataItem
 
 class JiraUseCase {
 
@@ -104,20 +105,25 @@ class JiraUseCase {
 
         testFailures.each { failure ->
             def bug = this.jira.createIssueTypeBug(this.project.key, failure.type, failure.text)
-            // TODO how to map bugs and failures to test issues
+
             this.walkTestIssuesAndTestResults(testIssues, failure) { testIssue, testCase, isMatch ->
                 if (isMatch) {
                     testIssue.bugs << bug.key
 
-                    // add newly created bug into the Jira data structure on the current project for referential integrity
-                    this.project.data.jira.bugs[bug.key] = [
+                    // add newly created bug into the Jira data structure
+                    this.project.data.jira.bugs[bug.key] = new JiraDataItem(project, [
                         key     : bug.key,
-                        name    : bug.fields.summary,
+                        name    : failure.type,
                         assignee: "Unassigned",
                         dueDate : "",
                         status  : "TO DO",
-                        tests   : [testIssue.key]
-                    ]
+                        tests   : [testIssue.key] // FIXME: a bug may represent multiple test cases
+                    ], Project.JiraDataItem.TYPE_BUGS)
+
+                    // add newly created bug into the Jira data structure of resolved items
+                    this.project.data.jiraResolved.bugs[bug.key] = this.project.data.jira.bugs[bug.key]
+                    this.project.data.jiraResolved.bugs[bug.key].tests[0] = this.project.data.jira.tests[testIssue.key]
+
                     this.jira.createIssueLinkTypeBlocks(bug, testIssue)
                 }
             }
