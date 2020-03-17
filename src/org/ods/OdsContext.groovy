@@ -257,7 +257,7 @@ class OdsContext implements Context {
   }
 
   String getResourceLimitMemory() {
-    config.resourceRequestMemory
+    config.resourceLimitMemory
   }
 
   String getResourceRequestCpu() {
