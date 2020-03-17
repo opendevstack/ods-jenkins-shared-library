@@ -483,7 +483,10 @@ class Project {
             "techSpecs": [
                 "DEMO-49"
             ],
-            "tests": []
+            "tests": [
+                "PLTFMDEV-401",
+                "PLTFMDEV-1046"
+            ]
         },
         "DEMO-7": {
             "name": "Risk-1 on Req DEMO-6",
@@ -706,6 +709,9 @@ class Project {
                 "DEMO-15",
                 "DEMO-26"
             ],
+            "risks": [
+                "DEMO-50"
+            ],
             "bugs": []
         },
         "PLTFMDEV-549": {
@@ -925,11 +931,14 @@ class Project {
                 "DEMO-15",
                 "DEMO-26"
             ],
+            "risks": [
+                "DEMO-50"
+            ],
             "bugs": []
         },
         "PLTFMDEV-1060": {
             "name": "verify payment service is correctly installed",
-            "description": "verify payment service is correctly setup. Outcome: Error",
+            "description": "verify payment service is correctly setup.",
             "key": "PLTFMDEV-1060",
             "id": "27041",
             "version": "1.0",
@@ -958,7 +967,7 @@ class Project {
         },
         "PLTFMDEV-1061": {
             "name": "verify order service is correctly installed",
-            "description": "verify order service is correctly installed. Outcome: Failed",
+            "description": "verify order service is correctly installed.",
             "key": "PLTFMDEV-1061",
             "id": "27042",
             "version": "1.0",
@@ -987,7 +996,7 @@ class Project {
         },
         "PLTFMDEV-1062": {
             "name": "verify shipping service is correctly installed",
-            "description": "verify shipping service is correctly installed. Outcome: Missing",
+            "description": "verify shipping service is correctly installed.",
             "key": "PLTFMDEV-1062",
             "id": "27043",
             "version": "1.0",
