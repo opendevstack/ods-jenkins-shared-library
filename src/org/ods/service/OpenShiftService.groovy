@@ -13,12 +13,12 @@ class OpenShiftService {
     this.context = context
   }
 
-  String buildImage(def buildArgs, def imageLabels) {
+  String buildImage(Map buildArgs, Map imageLabels) {
     def startBuildInfo = ''
     script.timeout(context.openshiftBuildTimeout) {
       patchBuildConfig(buildArgs, imageLabels)
       startBuildInfo = script.sh(
-          script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir ${context.dockerDir} --follow",
+          script: "oc -n ${context.targetProject} start-build ${context.componentId} --from-dir docker --follow",
           label: "Start OpenShift build",
           returnStdout: true
       ).trim()
@@ -75,7 +75,7 @@ class OpenShiftService {
     ).trim().toLowerCase()
   }
 
-  void patchBuildConfig(def buildArgs, def imageLabels) {
+  void patchBuildConfig(Map buildArgs, Map imageLabels) {
     // sanitize commit message
     def sanitizedGitCommitMessage = context.gitCommitMessage.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
     //remove apostrophe in committer name
@@ -302,6 +302,12 @@ class OpenShiftService {
     if (context.debug) {
       script.echo msg
     }
+  }
+
+  boolean tooManyEnvironments(String projectId, Integer limit) {
+    script.sh(
+        returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l", label: "check ocp environment maximum"
+    ).trim().toInteger() >= limit
   }
 
 }

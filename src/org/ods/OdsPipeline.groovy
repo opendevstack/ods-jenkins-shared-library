@@ -1,24 +1,27 @@
 package org.ods
 
 import org.ods.service.GitService
+import org.ods.service.OpenShiftService
+import org.ods.service.ServiceRegistry
+
 
 class OdsPipeline implements Serializable {
 
   private GitService gitService
+  private OpenShiftService openShiftService
 
   private def script
   private Context context
   private Logger logger
 
-  OdsPipeline(script, Context context, Logger logger, GitService gitService) {
-    this.gitService = gitService
+  OdsPipeline(def script, Logger logger) {
     this.script = script
-    this.context = context
     this.logger = logger
   }
 
   // Main entry point.
-  def execute(Closure stages) {
+  def execute(Map config, Closure stages) {
+    context = new OdsContext(this, config, logger)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild()
@@ -31,8 +34,14 @@ class OdsPipeline implements Serializable {
           if (context.getLocalCheckoutEnabled()) {
             script.checkout script.scm
           }
-          script.withStage('Prepare', context) {
+          script.stage('Prepare ods context') {
             context.assemble()
+            // register services after context was assembled
+            def registry = ServiceRegistry.instance
+            registry.add(GitService, new GitService(this, context))
+            gitService = registry.get(GitService)
+            registry.add(OpenShiftService, new OpenShiftService(this, context))
+            openShiftService = registry.get(OpenShiftService)
           }
 
           def autoCloneEnabled = !!context.cloneSourceEnv
@@ -79,37 +88,40 @@ class OdsPipeline implements Serializable {
           try {
             setBitbucketBuildStatus('INPROGRESS')
             script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-              checkoutWithGit(isSlaveNodeGitLFSenabled())
+              gitService.checkoutWithGit(context.gitCommit, context.credentialsId, context.gitUrl)
               if (context.getDisplayNameUpdateEnabled()) {
                 script.currentBuild.displayName = "#${context.tagversion}"
               }
 
               stages(context)
             }
-
-            stashTestResults()
-            updateBuildStatus('SUCCESS')
-            setBitbucketBuildStatus('SUCCESSFUL')
-            logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
+            script.stage('odsPipeline finished') {
+              stashTestResults()
+              updateBuildStatus('SUCCESS')
+              setBitbucketBuildStatus('SUCCESSFUL')
+              logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
+            }
             return this
           } catch (err) {
-            logger.info "***** Finished ODS Pipeline for ${context.componentId} (with error) *****"
-            updateBuildStatus('FAILURE')
-            setBitbucketBuildStatus('FAILED')
-            if (context.notifyNotGreen) {
-              notifyNotGreen()
-            }
-            if (!!script.env.MULTI_REPO_BUILD) {
-              // this is the case on a parallel node to be interupted
-              if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
-                throw err
-              } else {
-                context.addArtifactURI('failedStage', script.env.STAGE_NAME)
-                stashTestResults(true)
-                return this
+            script.stage('odsPipeline error') {
+              logger.info "***** Finished ODS Pipeline for ${context.componentId} (with error) *****"
+              updateBuildStatus('FAILURE')
+              setBitbucketBuildStatus('FAILED')
+              if (context.notifyNotGreen) {
+                notifyNotGreen()
               }
-            } else {
-              throw err
+              if (!!script.env.MULTI_REPO_BUILD) {
+                // this is the case on a parallel node to be interrupted
+                if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
+                  throw err
+                } else {
+                  context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+                  stashTestResults(true)
+                  return this
+                }
+              } else {
+                throw err
+              }
             }
           }
         }
@@ -148,7 +160,7 @@ class OdsPipeline implements Serializable {
     }
   }
 
-  private void stashTestResults(def hasFailed = false) {
+  private void stashTestResults(boolean hasFailed = false) {
     def testLocation = "build/test-results/test"
 
     logger.debug "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
@@ -256,7 +268,7 @@ class OdsPipeline implements Serializable {
         return
       }
 
-      if (tooManyEnvironments(context.projectId, context.environmentLimit)) {
+      if (openShiftService.tooManyEnvironments(context.projectId, context.environmentLimit)) {
         logger.error "Cannot create OC project " +
             "as there are already ${context.environmentLimit} OC projects! " +
             "Please clean up and run the pipeline again."
@@ -280,43 +292,10 @@ class OdsPipeline implements Serializable {
     }
   }
 
-  private boolean tooManyEnvironments(String projectId, Integer limit) {
-    script.sh(
-        returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l", label: "check ocp environment maximum"
-    ).trim().toInteger() >= limit
-  }
-
   def updateBuildStatus(String status) {
     if (context.displayNameUpdateEnabled) {
       script.currentBuild.result = status
     }
-  }
-
-  private void checkoutWithGit(boolean lfsEnabled) {
-    def gitParams = [$class                           : 'GitSCM',
-                     branches                         : [[name: context.gitCommit]],
-                     doGenerateSubmoduleConfigurations: false,
-                     submoduleCfg                     : [],
-                     userRemoteConfigs                : [
-                         [credentialsId: context.credentialsId,
-                          url          : context.gitUrl]
-                     ]
-    ]
-    if (lfsEnabled) {
-      gitParams.extensions = [
-          [$class: 'GitLFSPull']
-      ]
-    }
-    script.checkout(gitParams)
-  }
-
-  private boolean isSlaveNodeGitLFSenabled() {
-    def statusCode = script.sh(
-        script: "git lfs &> /dev/null",
-        label: "check if slave is GIT lfs enabled",
-        returnStatus: true
-    )
-    return statusCode == 0
   }
 
   public Map<String, String> getBuildArtifactURIs() {
