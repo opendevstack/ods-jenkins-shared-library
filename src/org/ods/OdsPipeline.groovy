@@ -2,6 +2,7 @@ package org.ods
 
 import org.ods.build_service.GitService
 import org.ods.build_service.OpenShiftService
+import org.ods.build_service.ServiceRegistry
 
 class OdsPipeline implements Serializable {
 
