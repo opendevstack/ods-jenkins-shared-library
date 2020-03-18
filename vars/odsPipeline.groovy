@@ -15,7 +15,7 @@ def call(Map config, Closure body) {
     pipeline = new OdsPipeline(this, logger)
   }
 
-  return pipeline.execute(config, body)
+  pipeline.execute(config, body)
 }
 
 return this
