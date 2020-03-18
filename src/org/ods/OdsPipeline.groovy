@@ -34,7 +34,7 @@ class OdsPipeline implements Serializable {
           if (context.getLocalCheckoutEnabled()) {
             script.checkout script.scm
           }
-          script.stage('Prepare ods context') {
+          script.stage('odsPipeline start') {
             context.assemble()
             // register services after context was assembled
             def registry = ServiceRegistry.instance
