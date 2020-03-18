@@ -506,7 +506,9 @@ class Project {
             "requirements": [
                 "DEMO-6"
             ],
-            "tests": []
+            "tests": [
+                "PLTFMDEV-1045"
+            ]
         },
         "DEMO-27": {
             "name": "Risk-1 on TechSpec DEMO-26",
@@ -901,6 +903,9 @@ class Project {
             ],
             "techSpecs": [
                 "DEMO-15"
+            ],
+            "risks": [
+                "DEMO-7"
             ],
             "bugs": []
         },
