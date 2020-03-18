@@ -181,7 +181,9 @@ class JiraUseCase {
                 [
                     number : number,
                     heading: issue.fields.summary,
-                    content: content?.replaceAll("\u00a0", " ") ?: ""
+                    content: content?.replaceAll("\u00a0", " ") ?: "",
+                    status: issue.fields.status.name,
+                    key: issue.key
                 ]
             ]
         }

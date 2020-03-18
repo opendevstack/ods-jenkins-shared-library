@@ -154,19 +154,19 @@ class JiraUseCaseSpec extends SpecHelper {
         ]
 
         // Stubbed Method Responses
-        def jiraIssue1 = createJiraIssue("1")
+        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
         jiraIssue1.fields["0"] = "1.0"
         jiraIssue1.renderedFields = [:]
         jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
         jiraIssue1.renderedFields.description = "<html>1-description</html>"
 
-        def jiraIssue2 = createJiraIssue("2")
+        def jiraIssue2 = createJiraIssue("2", null, null, null, "DONE")
         jiraIssue2.fields["0"] = "2.0"
         jiraIssue2.renderedFields = [:]
         jiraIssue2.renderedFields["1"] = "<html>myContent2</html>"
         jiraIssue2.renderedFields.description = "<html>2-description</html>"
 
-        def jiraIssue3 = createJiraIssue("3")
+        def jiraIssue3 = createJiraIssue("3", null, null, null, "DONE")
         jiraIssue3.fields["0"] = "3.0"
         jiraIssue3.renderedFields = [:]
         jiraIssue3.renderedFields["1"] = "<html>myContent3</html>"
@@ -191,17 +191,23 @@ class JiraUseCaseSpec extends SpecHelper {
             "sec1s0": [
                 number : "1.0",
                 heading: "1-summary",
-                content: "<html>myContent1</html>"
+                content: "<html>myContent1</html>",
+                status: "DONE",
+                key: "JIRA-1"
             ],
             "sec2s0": [
                 number : "2.0",
                 heading: "2-summary",
-                content: "<html>myContent2</html>"
+                content: "<html>myContent2</html>",
+                status: "DONE",
+                key: "JIRA-2"
             ],
             "sec3s0": [
                 number : "3.0",
                 heading: "3-summary",
-                content: "<html>myContent3</html>"
+                content: "<html>myContent3</html>",
+                status: "DONE",
+                key: "JIRA-3"
             ]
         ]
 
