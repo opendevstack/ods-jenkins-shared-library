@@ -3,6 +3,8 @@ import org.ods.OdsPipeline
 
 def call(Map config, Closure body) {
 
+  OdsPipeline pipeline
+
   stage('odsPipeline start') {
     def debug = env.DEBUG
     if (debug != null && config.debug == null) {
@@ -10,8 +12,9 @@ def call(Map config, Closure body) {
     }
 
     def logger = new OdsLogger(this, debug)
-    def pipeline = new OdsPipeline(this, logger)
+    pipeline = new OdsPipeline(this, logger)
   }
+
   return pipeline.execute(config, body)
 }
 
