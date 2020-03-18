@@ -21,7 +21,7 @@ class OdsPipeline implements Serializable {
 
   // Main entry point.
   def execute(Map config, Closure stages) {
-    context = new OdsContext(this, config, logger)
+    context = new OdsContext(script, config, logger)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild()
