@@ -713,6 +713,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
                 testIssue.timestamp = testIssue.isUnexecuted ? "N/A" : testCase.timestamp
                 testIssue.isMissing = false
+                testIssue.actualResult = testIssue.isSuccess ? "expected result verified by automated test" :
+                                         !testIssue.isUnexecuted ? "test failed. Correction will be tracked by Jira issue task \"bug\" listed below (\"" + this.project.key.toUpperCase() +"\")." : "not executed"
             }
         }
 
@@ -721,6 +723,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testIssue.isSuccess = false
                 testIssue.isMissing = true
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
+                testIssue.actualResult = !testIssue.isUnexecuted ? "test failed. Correction will be tracked by Jira issue task \"bug\" listed below (\"" + this.project.key.toUpperCase() +"\")." : "not executed"
             }
         }
 
@@ -740,7 +743,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
                         steps       : testIssue.steps,
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
-                        comment     : testIssue.comment
+                        comment     : testIssue.comment,
+                        actualResult: testIssue.actualResult
                     ]
                 }, ["key"]),
                 acceptanceTests     : SortUtil.sortIssuesByProperties(acceptanceTestIssues.collect { testIssue ->
@@ -752,7 +756,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
                         steps       : testIssue.steps,
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
-                        comment     : testIssue.comment
+                        comment     : testIssue.comment,
+                        actualResult: testIssue.actualResult
                     ]
                 }, ["key"]),
                 integrationTestFiles: SortUtil.sortIssuesByProperties(integrationTestData.testReportFiles.collect { file ->
