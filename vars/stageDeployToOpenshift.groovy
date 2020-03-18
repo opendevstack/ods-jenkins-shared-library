@@ -1,5 +1,5 @@
-import org.ods.service.OpenShiftService
-import org.ods.service.ServiceRegistry
+import org.ods.build_service.OpenShiftService
+import org.ods.build_service.ServiceRegistry
 
 def call(def context) {
 

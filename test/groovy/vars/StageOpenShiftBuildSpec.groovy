@@ -1,10 +1,9 @@
 package vars
 
-import org.ods.Context
 import org.ods.Logger
 import org.ods.OdsContext
-import org.ods.service.OpenShiftService
-import org.ods.service.ServiceRegistry
+import org.ods.build_service.OpenShiftService
+import org.ods.build_service.ServiceRegistry
 import vars.test_helper.PipelineSpockTestBase
 
 class StageOpenShiftBuildSpec extends PipelineSpockTestBase {
