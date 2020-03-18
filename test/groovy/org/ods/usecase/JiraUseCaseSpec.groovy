@@ -135,6 +135,11 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         1 * jira.appendCommentToIssue(bug.key, comment)
+
+        then:
+        // verify that bug gets created and registered on the correct test issue
+        project.data.get("jira").get("bugs").containsKey("BUG-29651")
+        testIssues[3].get("bugs") == ["BUG-29651"]
     }
 
     def "get document chapter data"() {

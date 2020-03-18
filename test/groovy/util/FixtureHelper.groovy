@@ -63,7 +63,7 @@ class FakeProject extends Project {
 
     protected Map loadJiraData(String projectKey) {
         def file = this.getResource("project-jira-data.json")
-        return new JsonSlurper().parse(file)
+        return new JsonSlurperClassic().parse(file)
     }
 
     protected Map loadJiraDataProjectVersion() {
