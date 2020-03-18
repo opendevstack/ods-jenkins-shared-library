@@ -1779,13 +1779,15 @@ class Project {
     }
 
     protected Map loadJiraDataProjectVersion() {
+        if (!this.jira) return [:]
+
         return this.jira.getVersionsForProject(this.data.jira.project.key).find { version ->
             this.buildParams.version == version.value
         }
     }
 
     protected Map loadJiraDataDocs() {
-        if (!this.jira) return
+        if (!this.jira) return [:]
 
         def jqlQuery = [jql: "project = ${this.data.jira.project.key} AND issuetype = '${LeVADocumentUseCase.IssueTypes.LEVA_DOCUMENTATION}'"]
 
