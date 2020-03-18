@@ -38,7 +38,7 @@ class OdsPipeline implements Serializable {
             context.assemble()
             // register services after context was assembled
             def registry = ServiceRegistry.instance
-            registry.add(GitService, new GitService(this, context))
+            registry.add(GitService, new GitService(this))
             gitService = registry.get(GitService)
             registry.add(OpenShiftService, new OpenShiftService(this, context))
             openShiftService = registry.get(OpenShiftService)
