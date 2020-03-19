@@ -1,6 +1,8 @@
 language: java
 install: true
 
+env:
+  - NO_NEXUS=true
 
 jdk:
   - openjdk8
