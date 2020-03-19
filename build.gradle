@@ -79,6 +79,7 @@ dependencies {
     implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-cps', version: '2.41', ext: 'jar'
     implementation 'org.slf4j:jcl-over-slf4j:1.7.30'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'com.vladsch.flexmark:flexmark-all:0.60.2' // for markdown to pdf conversion (sonarqube reports)
 
     testImplementation "cglib:cglib-nodep:3.3.0"                      // for mocking classes
     testImplementation "com.github.stefanbirkner:system-rules:1.19.0" // for managing environment variables

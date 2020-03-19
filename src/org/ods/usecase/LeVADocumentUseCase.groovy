@@ -45,7 +45,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         (DocumentType.IVR as String)        : "Configuration and Installation Testing Report",
         (DocumentType.RA as String)         : "Risk Assessment",
         (DocumentType.TRC as String)        : "Traceability Matrix",
-        (DocumentType.SSDS as String)       : "Software Design Specification",
+        (DocumentType.SSDS as String)       : "System and Software Design Specification",
         (DocumentType.TCP as String)        : "Test Case Plan",
         (DocumentType.TCR as String)        : "Test Case Report",
         (DocumentType.TIP as String)        : "Technical Installation Plan",
@@ -119,7 +119,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private Map obtainCodeReviewReport(List<Map> repos) {
-        return repos.collectEntries { r ->
+        def reports =  repos.collect { r ->
             def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
             def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
 
@@ -138,14 +138,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def name = this.getDocumentBasename("SCRR", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
             def sqReportFile = sqReportFiles.first()
 
-            // TODO transform sq reports to PDF
-            // This is not possible right now due to what it seems to be an issue with the documents themselves,
-            // where the tables are malformed (it says that we have 1 column but more are in the rows)
-            // See the PDFUtils method for more details
-            //def sonarQubePDFDoc = this.pdf.convertFromWordDoc(sqReportFile)
-            // Plan B is to add the docX files to the SSDS' zip file
-            return ["${name}.${FilenameUtils.getExtension(sqReportFile.getName())}", sqReportFile.getBytes()]
+            return this.pdf.convertFromMarkdown(sqReportFile, true)
         }
+
+        return this.pdf.merge(reports)
     }
 
     protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
@@ -948,14 +944,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
 
-        // Code review part
-        // TODO append PDF files when issues with docx to PDF conversion is solved
-        // since we can't convert the reports to PDF yet, plan B is to add them to the zip as docx
-        def files = obtainCodeReviewReport(this.project.repositories)
-        def fileNames = files.collect { file -> [name: file.key] }
+        // Code review report
+        def codeRepos = this.project.repositories.findAll{ it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+        def codeReviewReport = obtainCodeReviewReport(codeRepos)
 
-        if (!sections."sec14") sections."sec14" = [:]
-        sections."sec14".referencedocs = fileNames
+        def modifier = { document ->
+            // Merge the current document with the code review report
+            return this.pdf.merge([ document, codeReviewReport])
+        }
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -964,7 +960,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, null, data_, files, null, null, this.getWatermarkText(documentType, sectionsNotDone))
+        def uri = this.createDocument(documentType, null, data_, [:], modifier, null, this.getWatermarkText(documentType, sectionsNotDone))
         this.notifyJiraTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }

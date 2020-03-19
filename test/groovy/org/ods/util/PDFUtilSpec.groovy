@@ -30,6 +30,31 @@ class PDFUtilSpec extends SpecHelper {
         doc.close()
     }
 
+    def "convert from mardkdown document"() {
+        given:
+        def util = new PDFUtil()
+
+        def docFile = getResource("Test.md")
+        def result
+
+        when:
+        result = util.convertFromMarkdown(docFile, false)
+
+        then:
+        def doc = PDDocument.load(result)
+        doc.getNumberOfPages() == 2
+        doc.close()
+
+        when:
+        result = util.convertFromMarkdown(docFile, true)
+
+        then:
+        def docLandscape = PDDocument.load(result)
+        docLandscape.getNumberOfPages() == 4
+        docLandscape.close()
+
+    }
+
     def "convert from Microsoft Word document"() {
         given:
         def util = new PDFUtil()

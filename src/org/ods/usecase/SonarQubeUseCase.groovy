@@ -20,7 +20,7 @@ class SonarQubeUseCase {
         def result = []
 
         try {
-            new File(path).traverse(nameFilter: ~/.*\.docx$/, type: groovy.io.FileType.FILES) { file ->
+            new File(path).traverse(nameFilter: ~/.*\.md$/, type: groovy.io.FileType.FILES) { file ->
                 result << file
             }
         } catch (FileNotFoundException e) {}
@@ -32,9 +32,9 @@ class SonarQubeUseCase {
         return this.nexus.storeArtifactFromFile(
             this.project.services.nexus.repository.name,
             "${this.project.key.toLowerCase()}-${version}",
-            "${type}-${repo.id}-${version}.docx",
+            "${type}-${repo.id}-${version}.md",
             artifact,
-            "application/docx"
+            "application/text"
         )
-    }  
+    }
 }

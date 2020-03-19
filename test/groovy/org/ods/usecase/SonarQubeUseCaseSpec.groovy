@@ -29,8 +29,8 @@ class SonarQubeUseCaseSpec extends SpecHelper {
     def "load reports from path"() {
         given:
         def sqFiles = Files.createTempDirectory("sq-reports-")
-        def sqFile1 = Files.createTempFile(sqFiles, "sq", ".docx") << "SQ Report 1"
-        def sqFile2 = Files.createTempFile(sqFiles, "sq", ".docx") << "SQ Report 2"
+        def sqFile1 = Files.createTempFile(sqFiles, "sq", ".md") << "SQ Report 1"
+        def sqFile2 = Files.createTempFile(sqFiles, "sq", ".md") << "SQ Report 2"
 
         when:
         def result = usecase.loadReportsFromPath(sqFiles.toString())
@@ -62,7 +62,7 @@ class SonarQubeUseCaseSpec extends SpecHelper {
         def version = "0.1"
         def repo = project.repositories.first()
         def type = "myType"
-        def artifact = Files.createTempFile("sq", ".docx").toFile()
+        def artifact = Files.createTempFile("sq", ".md").toFile()
 
         when:
         def result = usecase.uploadReportToNexus(version, repo, type, artifact)
@@ -71,9 +71,9 @@ class SonarQubeUseCaseSpec extends SpecHelper {
         1 * nexus.storeArtifactFromFile(
             project.services.nexus.repository.name,
             { "${project.key.toLowerCase()}-${version}" },
-            { "${type}-${repo.id}-${version}.docx" },
+            { "${type}-${repo.id}-${version}.md" },
             artifact,
-            "application/docx"
+            "application/text"
         )
 
         cleanup:
