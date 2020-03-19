@@ -33,80 +33,93 @@ class Project {
             TYPE_TESTS
         ]
 
+        private final String type
         private HashMap delegate
 
-        private final String type
-
         JiraDataItem(Map map, String type) {
-            delegate = new HashMap(map)
+            this.delegate = new HashMap(map)
             this.type = type
         }
 
+        @NonCPS
         @Override
         int size() {
             return delegate.size()
         }
 
+        @NonCPS
         @Override
         boolean isEmpty() {
             return delegate.isEmpty()
         }
 
+        @NonCPS
         @Override
         boolean containsKey(Object key) {
             return delegate.containsKey(key)
         }
 
+        @NonCPS
         @Override
         boolean containsValue(Object value) {
             return delegate.containsValue(value)
         }
 
+        @NonCPS
         @Override
         Object get(Object key) {
             return delegate.get(key)
         }
 
+        @NonCPS
         @Override
         Object put(Object key, Object value) {
             return delegate.put(key, value)
         }
 
+        @NonCPS
         @Override
         Object remove(Object key) {
             return delegate.remove(key)
         }
 
+        @NonCPS
         @Override
         void putAll(Map m) {
             delegate.putAll(m)
         }
 
+        @NonCPS
         @Override
         void clear() {
             delegate.clear()
         }
 
+        @NonCPS
         @Override
         Set keySet() {
             return delegate.keySet()
         }
 
+        @NonCPS
         @Override
         Collection values() {
             return delegate.values()
         }
 
+        @NonCPS
         @Override
         Set<Entry> entrySet() {
             return delegate.entrySet()
         }
 
-        public String getType() {
+        @NonCPS
+        String getType() {
             return type
         }
 
-        public Map getDelegate() {
+        @NonCPS
+        Map getDelegate() {
             return delegate
         }
 
@@ -125,7 +138,8 @@ class Project {
         @NonCPS
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
         private List<JiraDataItem> getResolvedReferences(String type) {
-            def item = Project.this.data.jiraResolved[this.type][this.getAt("key")]
+            // Reference this within jiraResolved (contains readily resolved references to other entities)
+            def item = Project.this.data.jiraResolved[this.type][this.key]
             return item[type] ?: []
         }
 
@@ -1973,6 +1987,7 @@ class Project {
         return result
     }
 
+    @NonCPS
     protected Map resolveJiraDataItemReferences(Map data) {
         def result = [:]
 

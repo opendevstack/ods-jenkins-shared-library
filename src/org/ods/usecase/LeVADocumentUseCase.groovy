@@ -373,11 +373,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected List<Map> computeTestsWithRequirementsAndSpecs(List<Map> tests) {
-        def obtainEnumText = { category, value -> this.project.getEnumDictionary(category)[value as String].text }
+        def obtainEnumText = { category, value ->
+            this.project.getEnumDictionary(category)[value as String].text
+        }
 
         tests.collect { testIssue ->
             def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
 			def risks = testIssue.getResolvedRisks().collect{ obtainEnumText("SeverityOfImpact", it.severityOfImpact)}
+
             [
                 moduleName: testIssue.components.join(", "),
                 testKey: testIssue.key,
