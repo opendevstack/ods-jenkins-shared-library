@@ -135,7 +135,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 throw new RuntimeException("Error: unable to load SonarQube reports for repo '${r.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
             }
 
-            def name = this.getDocumentBasename("SCRR", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
+            def name = this.getDocumentBasename("SCRR-MD", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
             def sqReportFile = sqReportFiles.first()
 
             return this.pdf.convertFromMarkdown(sqReportFile, true)
