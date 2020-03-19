@@ -1137,6 +1137,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             date_created  : LocalDateTime.now().toString(),
             buildParameter: this.project.buildParams,
             git           : repo ? repo.data.git : this.project.gitData,
+            openShift     : [apiUrl: this.project.getOpenShiftApiUrl()],
             jenkins       : [
                 buildNumber: this.steps.env.BUILD_NUMBER,
                 buildUrl   : this.steps.env.BUILD_URL,

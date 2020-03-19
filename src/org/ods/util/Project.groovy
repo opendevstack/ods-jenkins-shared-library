@@ -1822,6 +1822,10 @@ class Project {
         return this.data.jira.tests.values() as List
     }
 
+    String getOpenShiftApiUrl() {
+        return "N/A"
+    }
+
     boolean hasCapability(String name) {
         def collector = {
             return (it instanceof Map) ? it.keySet().first().toLowerCase() : it.toLowerCase()
