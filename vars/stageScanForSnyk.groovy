@@ -1,19 +1,22 @@
 def call(def context, def snykAuthenticationCode, def buildFile, def organisation) {
-  if (!snykAuthenticationCode) {
-    error "missing snyk authentication code (parameter snykAuthenticationCode is null or false)"
-  }
-  if (!organisation) {
-    error "missing organisation (parameter organisation is null or false)"
-  }
 
-  String message = "Snyk scan mode: build will " + (context.failOnSnykScanVulnerabilities ? "" : "not ") +
-  "fail if vulnerabilities are found (failOnSnykScanVulnerabilities=${context.failOnSnykScanVulnerabilities})!"
-  println(message)
+  withStage('Snyk Security Scan', context) {
+
+    if (!snykAuthenticationCode) {
+      error "missing snyk authentication code (parameter snykAuthenticationCode is null or false)"
+    }
+    if (!organisation) {
+      error "missing organisation (parameter organisation is null or false)"
+    }
+
+    String message = "Snyk scan mode: build will " + (context.failOnSnykScanVulnerabilities ? "" : "not ") +
+        "fail if vulnerabilities are found (failOnSnykScanVulnerabilities=${context.failOnSnykScanVulnerabilities})!"
+    println(message)
 
   if (!buildFile) {
     error "build file definition for snyk security scan is null!"
   } else {
-    stage('Snyk Security Scan') {
+
       withEnv(["SNYK_AUTHENTICATION_CODE=${snykAuthenticationCode}", "PROJECT_NAME=${context.targetProject}",
                "COMPONENT_NAME=${context.componentId}", "BUILD_FILE=${buildFile}", "ORGANISATION=${organisation}",
                "NEXUS_HOST=${context.nexusHost}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}"]) {

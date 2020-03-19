@@ -1,39 +1,58 @@
 package org.ods
 
+import org.ods.build_service.GitService
+import org.ods.build_service.OpenShiftService
+import org.ods.build_service.ServiceRegistry
+
 class OdsPipeline implements Serializable {
 
-  def script
-  Context context
-  Logger logger
+  private GitService gitService
+  private OpenShiftService openShiftService
 
-  // script is the context of the Jenkinsfile. That means that things like "sh"
-  // need to be called on script.
-  // config is a map of config properties to customise the behaviour.
-  def OdsPipeline(script, config, Logger logger) {
+  private def script
+  private Context context
+  private Logger logger
+
+  OdsPipeline(def script, Logger logger) {
     this.script = script
-    this.context = new OdsContext(script, config, logger)
     this.logger = logger
   }
 
   // Main entry point.
-  def execute(Closure stages) {
+  def execute(Map config, Closure stages) {
+    context = new OdsContext(script, config, logger)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild()
     }
 
+    boolean skipCi = false
     def cl = {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
           if (context.getLocalCheckoutEnabled()) {
             script.checkout script.scm
           }
-          script.stage('Prepare') {
+          script.stage('odsPipeline start') {
             context.assemble()
+            // register services after context was assembled
+            def registry = ServiceRegistry.instance
+            registry.add(GitService, new GitService(script))
+            gitService = registry.get(GitService)
+            registry.add(OpenShiftService, new OpenShiftService(script, context))
+            openShiftService = registry.get(OpenShiftService)
           }
+
           def autoCloneEnabled = !!context.cloneSourceEnv
           if (autoCloneEnabled) {
             createOpenShiftEnvironment(context)
+          }
+
+          skipCi = isCiSkip()
+          if (skipCi) {
+            logger.info 'Skipping build due to [ci skip] in the commit message ...'
+            updateBuildStatus('NOT_BUILT')
+            setBitbucketBuildStatus('SUCCESSFUL')
           }
         }
       } catch (err) {
@@ -50,63 +69,59 @@ class OdsPipeline implements Serializable {
       cl()
     }
 
-    def nodeStartTime = System.currentTimeMillis();
-    def msgBasedOn = ''
-    if (context.image) {
-      msgBasedOn = " based on image '${context.image}'"
-    }
-    logger.info "***** Continuing on node '${context.podLabel}'${msgBasedOn} *****"
-    script.podTemplate(
-      label: context.podLabel,
-      cloud: 'openshift',
-      containers: context.podContainers,
-      volumes: context.podVolumes,
-      serviceAccount: context.podServiceAccount
-    ) {
-      script.node(context.podLabel) {
-        try {
-          setBitbucketBuildStatus('INPROGRESS')
-          script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            checkoutWithGit(isSlaveNodeGitLFSenabled())
-            if (context.getDisplayNameUpdateEnabled()) {
-              script.currentBuild.displayName = "#${context.tagversion}"
-            }
+    if (!skipCi) {
+      def nodeStartTime = System.currentTimeMillis();
+      def msgBasedOn = ''
+      if (context.image) {
+        msgBasedOn = " based on image '${context.image}'"
+      }
+      logger.info "***** Continuing on node '${context.podLabel}'${msgBasedOn} *****"
+      script.podTemplate(
+          label: context.podLabel,
+          cloud: 'openshift',
+          containers: context.podContainers,
+          volumes: context.podVolumes,
+          serviceAccount: context.podServiceAccount
+      ) {
+        script.node(context.podLabel) {
+          try {
+            setBitbucketBuildStatus('INPROGRESS')
+            script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+              gitService.checkoutWithGit(context.gitCommit, context.credentialsId, context.gitUrl)
+              if (context.getDisplayNameUpdateEnabled()) {
+                script.currentBuild.displayName = "#${context.tagversion}"
+              }
 
-            if (context.getCiSkipEnabled() && context.ciSkip){
-              logger.info 'Skipping build due to [ci skip] in the commit message ...'
-              updateBuildStatus('NOT_BUILT')
+              stages(context)
+            }
+            script.stage('odsPipeline finished') {
+              stashTestResults()
+              updateBuildStatus('SUCCESS')
               setBitbucketBuildStatus('SUCCESSFUL')
-              return
+              logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
             }
-
-            stages(context)
-          }
-
-          stashTestResults()
-          updateBuildStatus('SUCCESS')
-          setBitbucketBuildStatus('SUCCESSFUL')
-          logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
-          return this
-        } catch (err) {
-          logger.info "***** Finished ODS Pipeline for  ${context.componentId} (with error) *****"
-          updateBuildStatus('FAILURE')
-          setBitbucketBuildStatus('FAILED')
-          if (context.notifyNotGreen) {
-            notifyNotGreen()
-          }
-          if (!!script.env.MULTI_REPO_BUILD) {
-            // this is the case on a parallel node to be interupted
-            if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException)
-            {
-              throw err
-            } else
-            {
-              context.addArtifactURI('failedStage', script.env.STAGE_NAME)
-              stashTestResults(true)
-              return this
+            return this
+          } catch (err) {
+            script.stage('odsPipeline error') {
+              logger.info "***** Finished ODS Pipeline for ${context.componentId} (with error) *****"
+              updateBuildStatus('FAILURE')
+              setBitbucketBuildStatus('FAILED')
+              if (context.notifyNotGreen) {
+                notifyNotGreen()
+              }
+              if (!!script.env.MULTI_REPO_BUILD) {
+                // this is the case on a parallel node to be interrupted
+                if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
+                  throw err
+                } else {
+                  context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+                  stashTestResults(true)
+                  return this
+                }
+              } else {
+                throw err
+              }
             }
-          } else {
-            throw err
           }
         }
       }
@@ -133,10 +148,9 @@ class OdsPipeline implements Serializable {
         context.cloneSourceEnv = null
       }
       def debug = script.env.DEBUG
-      if (debug != null && context.debug == null)
-      {
-          logger.debug("Setting ${debug} on ${context.projectId}")
-          context.debug = debug
+      if (debug != null && context.debug == null) {
+        logger.debug("Setting ${debug} on ${context.projectId}")
+        context.debug = debug
       }
     } else {
       logger.error("Variable MULTI_REPO_ENV must not be null!")
@@ -145,41 +159,37 @@ class OdsPipeline implements Serializable {
     }
   }
 
-  private void stashTestResults (def hasFailed = false) {
+  private void stashTestResults(boolean hasFailed = false) {
     def testLocation = "build/test-results/test"
 
     logger.debug "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
 
-    if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation))
-    {
+    if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation)) {
       // verify the beast exists
-      def verifyDir = script.sh (script : "ls ${context.getTestResults()}", returnStatus:true, label : "verifying existance of ${testLocation}")
-      script.sh(script: "mkdir -p ${testLocation}", label : "create test result folder: ${testLocation}")
-      if (verifyDir == 2)
-      {
+      def verifyDir = script.sh(script: "ls ${context.getTestResults()}", returnStatus: true, label: "verifying existance of ${testLocation}")
+      script.sh(script: "mkdir -p ${testLocation}", label: "create test result folder: ${testLocation}")
+      if (verifyDir == 2) {
         script.currentBuild = 'FAILURE'
         throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
-      } else
-      {
+      } else {
         // copy files to default location
-        script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}", label : "Moving test results to expected location")
+        script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}", label: "Moving test results to expected location")
       }
     }
 
-    script.sh (script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
-    def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout : true, label: "Find test results").trim()
+    script.sh(script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
+    def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout: true, label: "Find test results").trim()
     logger.debug "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
 
     context.addArtifactURI("testResults", foundTests)
 
-    if (hasFailed && foundTests.toInteger() == 0)
-    {
+    if (hasFailed && foundTests.toInteger() == 0) {
       logger.debug "ODS Build did fail, and no test results,.. returning"
       return
     }
 
     // stash them in the mro pattern
-    script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty : true)
+    script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty: true)
   }
 
   private void setBitbucketBuildStatus(String state) {
@@ -195,7 +205,7 @@ class OdsPipeline implements Serializable {
     def buildName = "${context.jobName}-${context.tagversion}"
     def maxAttempts = 3
     def retries = 0
-    while(retries++ < maxAttempts) {
+    while (retries++ < maxAttempts) {
       try {
         script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
           script.sh """curl \\
@@ -209,7 +219,7 @@ class OdsPipeline implements Serializable {
           """
         }
         return
-      } catch(err) {
+      } catch (err) {
         logger.info "Could not set BitBucket build status to ${state} due to ${err}"
       }
     }
@@ -237,9 +247,8 @@ class OdsPipeline implements Serializable {
         return
       }
 
-      if (!!script.env.MULTI_REPO_BUILD)
-      {
-          logger.info "MRO Build - skipping env mapping"
+      if (!!script.env.MULTI_REPO_BUILD) {
+        logger.info "MRO Build - skipping env mapping"
       } else {
         def assumedEnvironments = context.branchToEnvironmentMapping.values()
         if (assumedEnvironments.contains(context.environment)) {
@@ -258,10 +267,10 @@ class OdsPipeline implements Serializable {
         return
       }
 
-      if (tooManyEnvironments(context.projectId, context.environmentLimit)) {
+      if (openShiftService.tooManyEnvironments(context.projectId, context.environmentLimit)) {
         logger.error "Cannot create OC project " +
-          "as there are already ${context.environmentLimit} OC projects! " +
-          "Please clean up and run the pipeline again."
+            "as there are already ${context.environmentLimit} OC projects! " +
+            "Please clean up and run the pipeline again."
       }
 
       logger.info 'Environment does not exist yet. Creating now ...'
@@ -282,46 +291,18 @@ class OdsPipeline implements Serializable {
     }
   }
 
-  private boolean tooManyEnvironments(String projectId, Integer limit) {
-    script.sh(
-      returnStdout: true, script: "oc projects | grep '^\\s*${projectId}-' | wc -l", label : "check ocp environment maximum"
-    ).trim().toInteger() >= limit
-  }
-
   def updateBuildStatus(String status) {
     if (context.displayNameUpdateEnabled) {
       script.currentBuild.result = status
     }
   }
 
-  private void checkoutWithGit(boolean lfsEnabled){
-    def gitParams = [$class                           : 'GitSCM',
-                     branches                         : [[name: context.gitCommit]],
-                     doGenerateSubmoduleConfigurations: false,
-                     submoduleCfg                     : [],
-                     userRemoteConfigs                : [
-                             [credentialsId: context.credentialsId,
-                              url          : context.gitUrl]
-                     ]
-    ]
-    if (lfsEnabled) {
-      gitParams.extensions = [
-              [$class: 'GitLFSPull']
-      ]
-    }
-    script.checkout(gitParams)
-  }
-
-  private boolean isSlaveNodeGitLFSenabled(){
-    def statusCode = script.sh(
-      script:"git lfs &> /dev/null",
-      label : "check if slave is GIT lfs enabled",
-      returnStatus: true
-    )
-    return statusCode == 0
-  }
-
-  public Map<String, String> getBuildArtifactURIs () {
+  public Map<String, String> getBuildArtifactURIs() {
     return context.getBuildArtifactURIs()
+  }
+
+  // Whether the build should be skipped, based on the Git commit message.
+  private boolean isCiSkip() {
+    return context.ciSkipEnabled && gitService.ciSkipInCommitMessage
   }
 }
