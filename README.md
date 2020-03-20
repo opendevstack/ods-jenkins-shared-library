@@ -1,6 +1,6 @@
 # Jenkins Shared Library
 
-![](https://github.com/opendevstack/ods-jenkins-shared-library/workflows/ODS%20Library%20Build/badge.svg?branch=master)
+[![Build Status](https://api.travis-ci.com/opendevstack/ods-jenkins-shared-library.svg?branch=master)](https://travis-ci.com/opendevstack/ods-jenkins-shared-library)
 
 ## Introduction
 

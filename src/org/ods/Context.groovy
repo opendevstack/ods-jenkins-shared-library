@@ -143,6 +143,9 @@ interface Context {
     // Timeout for the OpenShift rollout of the pod in minutes.
     int getOpenshiftRolloutTimeout()
 
+    // Whether the build should be skipped, based on the Git commit message.
+    boolean getCiSkip()
+
     // Whether CI skip is enabled
     boolean getCiSkipEnabled()
 
