@@ -1,11 +1,6 @@
 def call(def context, def requireQualityGatePass = false) {
-
-  withStage('SonarQube Analysis', context) {
-
-    if (context.sonarQubeBranch != '*' && context.sonarQubeBranch != context.gitBranch) {
-      echo "Stage is skipped since this build is for a branch that was not specified in the sonarQubeBranch property."
-    } else {
-
+  if (context.sonarQubeBranch == '*' || context.sonarQubeBranch == context.gitBranch) {
+    stage('SonarQube Analysis') {
       withSonarQubeEnv('SonarServerConfig') {
 
         // Debug mode
@@ -23,14 +18,14 @@ def call(def context, def requireQualityGatePass = false) {
 
         // Scan
         def scannerBinary = "sonar-scanner"
-        def status = sh(returnStatus: true, script: "which ${scannerBinary}", label: "finding scanner binary")
+        def status = sh(returnStatus: true, script: "which ${scannerBinary}", label : "finding scanner binary")
         if (status != 0) {
           def scannerHome = tool 'SonarScanner'
           scannerBinary = "${scannerHome}/bin/sonar-scanner"
         }
-        sh(
-            label: "SQ scanning",
-            script: "${scannerBinary} ${debugMode} ${projectVersionParam}"
+        sh (
+          label : "SQ scanning",
+          script: "${scannerBinary} ${debugMode} ${projectVersionParam}"
         )
 
         // Generate and archive cnes report.
@@ -41,12 +36,12 @@ def call(def context, def requireQualityGatePass = false) {
         def targetSQreportMd = "SCRR-" + sonarProjectKey + ".md"
         withEnv (["SQ_PROJECT=${sonarProjectKey}", "TARGET_SQ_REPORT=${targetSQreport}", "TARGET_SQ_REPORT_MD=${targetSQreportMd}"]) {
           sh(
-              label: "Generate CNES Report",
-              script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT"
+            label : "Generate CNES Report",
+            script: "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT"
           )
           sh(
-              label: "Create artifacts dir",
-              script: "mkdir -p artifacts"
+            label : "Create artifacts dir",
+            script: "mkdir -p artifacts"
           )
           sh(
             label : "Move report to artifacts dir",
@@ -58,9 +53,9 @@ def call(def context, def requireQualityGatePass = false) {
           )
           archiveArtifacts "artifacts/SCRR*"
           stash(
-              name: "scrr-report-${context.componentId}-${context.buildNumber}",
-              includes: 'artifacts/SCRR*',
-              allowEmpty: true
+            name: "scrr-report-${context.componentId}-${context.buildNumber}",
+            includes: 'artifacts/SCRR*',
+            allowEmpty : true
           )
           context.addArtifactURI("SCRR", targetSQreport)
           context.addArtifactURI("SCRR-MD", targetSQreportMd)
@@ -69,9 +64,9 @@ def call(def context, def requireQualityGatePass = false) {
         // Check quality gate status
         if (requireQualityGatePass) {
           def qualityGateJson = sh(
-              label: "Get status of quality gate",
-              script: "curl -s -u $SONAR_AUTH_TOKEN: $SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$sonarProjectKey",
-              returnStdout: true
+            label: "Get status of quality gate",
+            script: "curl -s -u $SONAR_AUTH_TOKEN: $SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$sonarProjectKey",
+            returnStdout: true
           )
           try {
             def qualityGateResult = readJSON text: qualityGateJson
