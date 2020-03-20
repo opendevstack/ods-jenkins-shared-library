@@ -1,5 +1,7 @@
 def call(def context, def buildArgs = [:], def imageLabels = [:]) {
-  stage('Build Openshift Image') {
+
+  withStage('Build Openshift Image', context) {
+
     if (!context.environment) {
       echo "Skipping for empty environment ..."
       return
