@@ -1,5 +1,7 @@
 def call(def context) {
-  stage('Deploy to Openshift') {
+
+  withStage('Deploy to Openshift', context) {
+
     if (!context.environment) {
       echo "Skipping for empty environment ..."
       return

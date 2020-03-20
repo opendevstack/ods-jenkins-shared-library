@@ -441,12 +441,13 @@ class OdsContext implements Context {
     logger.debug "resolved branch ${branch}"
     return branch
   }
-  // looks for string [ci skip] in commit message
+
+  /** Looks in commit message for string '[ci skip]', '[ciskip]', '[ci-skip]' and '[ci_skip]'. */
   boolean getCiSkip() {
     script.sh(
       returnStdout: true, script: 'git show --pretty=%s%b -s',
       label : 'check skip CI?'
-    ).toLowerCase().contains('[ci skip]')
+    ).toLowerCase().replaceAll("[\\s\\-\\_]", "").contains('[ciskip]')
   }
 
   boolean environmentExists(String name) {
