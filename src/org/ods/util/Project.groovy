@@ -1984,6 +1984,20 @@ class Project {
         if (result.capabilities == null) {
             result.capabilities = []
         }
+
+        result.capabilities.each { capability ->
+            if (capability instanceof Map && capability.containsKey("LeVADocs")) {
+                // Check for existence of required attribute 'GAMPCategory' when templatesVersion is setted
+                if (capability.LeVADocs.templatesVersion && !capability.LeVADocs.GAMPCategory) {
+                    throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'GAMPCategory' is mandatory using 'templatesVersion'.")
+                }
+
+                if (!capability.LeVADocs.templatesVersion && capability.LeVADocs.GAMPCategory) {
+                    capability.LeVADocs.templatesVersion = "1.0"
+                }
+            }
+        }
+
         return result
     }
 

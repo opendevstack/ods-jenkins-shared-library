@@ -29,7 +29,7 @@ abstract class DocGenUseCase {
 
     String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String documentTypeEmbedded = null, String watermarkText = null) {
         // Create a PDF document via the DocGen service
-        def document = this.docGen.createDocument(documentType, '0.1', data)
+        def document = this.docGen.createDocument(documentType, this.getDocumentTemplatesVersion(), data)
 
         // Apply PDF document modifications, if provided
         if (modifier) {
@@ -117,6 +117,8 @@ abstract class DocGenUseCase {
 
         return "${documentType}-${result}-${version}-${build}".toString()
     }
+
+    abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
 }

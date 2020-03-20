@@ -874,4 +874,66 @@ class ProjectSpec extends SpecHelper {
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project meta data. Required attribute 'repositories[1].id' is undefined."
     }
+
+    def "load project metadata with LeVADocs templatesVersion but null GAMPCategory"() {
+        when:
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+            capabilities:
+            - Cap1
+            - LeVADocs:
+                templatesVersion: "1.0"
+        """
+
+        def result = project.loadMetadata()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to parse project meta data. Required attribute 'GAMPCategory' is mandatory using 'templatesVersion'."
+    }
+
+    def "load project metadata with LeVADocs and GAMPCategory, default templatesVersion: '1.0'"() {
+        when:
+        metadataFile.text = """
+            id: myId
+            description: myDescription
+            name: myName
+            repositories:
+              - id: A
+            capabilities:
+            - Cap1
+            - LeVADocs:
+                GAMPCategory: 5
+        """
+
+        def result = project.loadMetadata()
+
+        then:
+        result.capabilities[1].LeVADocs.GAMPCategory == 5
+        result.capabilities[1].LeVADocs.templatesVersion == "1.0"
+    }
+
+    def "load project metadata with LeVADocs, GAMPCategory and templatesVersion"() {
+        when:
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+            capabilities:
+            - Cap1
+            - LeVADocs:
+                GAMPCategory: 5
+                templatesVersion: "2.0"
+        """
+
+        def result = project.loadMetadata()
+
+        then:
+        result.capabilities[1].LeVADocs.GAMPCategory == 5
+        result.capabilities[1].LeVADocs.templatesVersion == "2.0"
+    }
 }

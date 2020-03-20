@@ -24,6 +24,10 @@ class DocGenSchedulerSpec extends SpecHelper {
         List<String> getSupportedDocuments() {
             return ["A", "B", "C"]
         }
+
+        String getDocumentTemplatesVersion() {
+            return "0.1"
+        }
     }
 
     class DocGenSchedulerImpl extends DocGenScheduler {

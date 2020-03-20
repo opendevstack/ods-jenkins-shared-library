@@ -1195,4 +1195,20 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         result == "Developer Preview"
     }
+
+    def "get documents version from LeVADocs metadata"() {
+        given:
+        project.capabilities << [
+            LeVADocs: [
+                GAMPCategory: 5,
+                templatesVersion: "3.0"
+            ]
+        ] as List
+
+        when:
+        def result = usecase.getDocumentTemplatesVersion()
+
+        then:
+        result == "3.0"
+    }
 }
