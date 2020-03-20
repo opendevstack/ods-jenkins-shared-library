@@ -1,6 +1,7 @@
 plugins {
     id 'jacoco'
     id 'groovy'
+    id 'com.adarshr.test-logger' version "2.0.0"
 }
 
 group "org.ods"
@@ -111,8 +112,6 @@ compileGroovy {
     groovyOptions.configurationScript = file("gradle/config.groovy")
 }
 
-test {
-    testLogging {
-        showStandardStreams = true
-    }
+testlogger {
+    showStandardStreams true
 }
