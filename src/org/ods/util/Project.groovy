@@ -190,7 +190,7 @@ class Project {
         static final String INTERFACE_REQUIREMENT = "Interface Requirement"
     }
 
-    protected static final String METADATA_FILE_NAME = "metadata.yml"
+    protected static String METADATA_FILE_NAME = "metadata.yml"
 
     private static final TEMP_FAKE_JIRA_DATA = """
 {
@@ -1692,6 +1692,15 @@ class Project {
         return this.data.metadata.capabilities
     }
 
+    Object getCapability(String name) {
+        def entry = this.getCapabilities().find { it instanceof Map ? it.find { it.key == name } : it == name }
+        if (entry) {
+            return entry instanceof Map ? entry[name] : true
+        }
+
+        return null
+    }
+
     List<JiraDataItem> getBugs() {
         return this.data.jira.bugs.values() as List
     }
@@ -1985,16 +1994,23 @@ class Project {
             result.capabilities = []
         }
 
-        result.capabilities.each { capability ->
-            if (capability instanceof Map && capability.containsKey("LeVADocs")) {
-                // Check for existence of required attribute 'GAMPCategory' when templatesVersion is setted
-                if (capability.LeVADocs.templatesVersion && !capability.LeVADocs.GAMPCategory) {
-                    throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'GAMPCategory' is mandatory using 'templatesVersion'.")
-                }
+        // TODO move me to the LeVA documents plugin
+        def levaDocsCapabilities = result.capabilities.findAll { it instanceof Map && it.containsKey("LeVADocs") }
+        if (levaDocsCapabilities) {
+            if (levaDocsCapabilities.size() > 1) {
+                throw new IllegalArgumentException("Error: unable to parse project metadata. More than one LeVADoc capability has been defined.")
+            }
 
-                if (!capability.LeVADocs.templatesVersion && capability.LeVADocs.GAMPCategory) {
-                    capability.LeVADocs.templatesVersion = "1.0"
-                }
+            def levaDocsCapability = levaDocsCapabilities.first()
+
+            def gampCategory = levaDocsCapability.LeVADocs?.GAMPCategory
+            if (!gampCategory) {
+                throw new IllegalArgumentException("Error: LeVADocs capability has been defined but contains no GAMPCategory.")
+            }
+
+            def templatesVersion = levaDocsCapability.LeVADocs?.templatesVersion
+            if (!templatesVersion) {
+                levaDocsCapability.LeVADocs.templatesVersion = "1.0"
             }
         }
 

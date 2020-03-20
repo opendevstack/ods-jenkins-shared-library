@@ -1,12 +1,14 @@
 package org.ods.util
 
-import org.ods.service.JiraService
-import org.yaml.snakeyaml.Yaml
-import util.SpecHelper
-
 import java.nio.file.Paths
 
+import org.apache.http.client.utils.URIBuilder
+import org.ods.service.JiraService
+import org.yaml.snakeyaml.Yaml
+
 import static util.FixtureHelper.*
+
+import util.SpecHelper
 
 class ProjectSpec extends SpecHelper {
 
@@ -18,15 +20,24 @@ class ProjectSpec extends SpecHelper {
 
     def setup() {
         steps = Spy(util.PipelineSteps)
+        steps.env.WORKSPACE = ""
+
         git = Mock(GitUtil)
-        metadataFile = createProjectMetadataFile(this.steps.env.WORKSPACE, steps)
         jira = Mock(JiraService)
 
+        metadataFile = createProjectMetadataFile(this.steps.env.WORKSPACE, steps)
+        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+
         project = Spy(constructorArgs: [steps], {
+            getGitURLFromPath(*_) >> {
+                return new URIBuilder("https://github.com/my-org/my-pipeline-repo.git").build()
+            }
+
             loadJiraDataDocs() >> {
                 return createProjectJiraDataDocs()
             }
         })
+
         project.init().load(git, jira)
     }
 
@@ -263,8 +274,102 @@ class ProjectSpec extends SpecHelper {
         result.find { it == "SOURCE_CLONE_ENV_TOKEN=P" }
     }
 
+    def "get capabilities"() {
+        given:
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+                name: A
+                url: http://git.com
+            capabilities:
+              - Zephyr
+              - LeVADocs:
+                  GAMPCategory: 5
+        """
+
+        when:
+        project.init()
+
+        then:
+        project.getCapabilities() == [
+            "Zephyr",
+            [
+                "LeVADocs": [
+                    GAMPCategory: 5,
+                    templatesVersion: "1.0"
+                ]
+            ]
+        ]
+    }
+
+    def "get capability"() {
+        given:
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+                name: A
+                url: http://git.com
+            capabilities:
+              - Zephyr
+              - LeVADocs:
+                  GAMPCategory: 5
+        """
+
+        when:
+        project.init()
+
+        then:
+        project.getCapability("Zephyr")
+
+        then:
+        project.getCapability("LeVADocs") == [
+            GAMPCategory: 5,
+            templatesVersion: "1.0"
+        ]
+
+        when:
+        project.getCapability("LeVADocs").GAMPCategory = 3
+
+        then:
+        project.getCapability("LeVADocs").GAMPCategory == 3
+    }
+
+    def "has capability"() {
+        given:
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+                name: A
+                url: http://git.com
+            capabilities:
+              - Zephyr
+              - LeVADocs:
+                  GAMPCategory: 5
+        """
+
+        when:
+        project.init()
+
+        then:
+        project.hasCapability("Zephyr")
+
+        then:
+        project.hasCapability("LeVADocs")
+
+        then:
+        !project.hasCapability("other")
+    }
+
     def "get Git URL from path"() {
         given:
+        def project = new Project(steps)
+
         def path = "${steps.env.WORKSPACE}/a/b/c"
         def origin = "upstream"
 
@@ -286,6 +391,8 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path without origin"() {
         given:
+        def project = new Project(steps)
+
         def path = "${steps.env.WORKSPACE}/a/b/c"
 
         when:
@@ -305,6 +412,9 @@ class ProjectSpec extends SpecHelper {
     }
 
     def "get Git URL from path with invalid path"() {
+        given:
+        def project = new Project(steps)
+
         when:
         project.getGitURLFromPath(null)
 
@@ -320,6 +430,7 @@ class ProjectSpec extends SpecHelper {
         e.message == "Error: unable to get Git URL. 'path' is undefined."
 
         when:
+        steps.env.WORKSPACE = "myWorkspace"
         def path = "myPath"
         project.getGitURLFromPath(path)
 
@@ -333,6 +444,8 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path with invalid remote"() {
         given:
+        def project = new Project(steps)
+
         def path = "${steps.env.WORKSPACE}/a/b/c"
 
         when:
@@ -644,99 +757,22 @@ class ProjectSpec extends SpecHelper {
     }
 
     def "load metadata"() {
-        given:
-        steps.sh(_) >> "https://github.com/my-org/my-pipeline-repo.git"
-
         when:
         def result = project.loadMetadata()
 
-        then:
-        def expected = [
-            id          : "pltfmdev",
-            name        : "Sock Shop",
-            description : "A socks-selling e-commerce demo application.",
-            services    : [
-                bitbucket: [
-                    credentials: [
-                        id: "pltfmdev-cd-cd-user-with-password"
-                    ]
-                ],
-                jira     : [
-                    credentials: [
-                        id: "pltfmdev-cd-cd-user-with-password"
-                    ]
-                ],
-                nexus    : [
-                    repository: [
-                        name: "leva-documentation"
-                    ]
-                ]
-            ],
-            repositories: [
-                [
-                    id      : "demo-app-carts",
-                    type    : "ods-service",
-                    data    : [
-                        "documents": [:]
-                    ],
-                    metadata: [
-                        name       : "Sock Shop: demo-app-carts",
-                        description: "Some description for demo-app-carts",
-                        supplier   : "https://github.com/microservices-demo/",
-                        version    : "1.0"
-                    ],
-                    url     : "https://github.com/my-org/pltfmdev-demo-app-carts.git",
-                    branch  : "master"
-                ],
-                [
-                    id      : "demo-app-catalogue",
-                    type    : "ods",
-                    data    : [
-                        "documents": [:]
-                    ],
-                    metadata: [
-                        supplier   : "https://github.com/microservices-demo/",
-                        name       : "Sock Shop: demo-app-catalogue",
-                        description: "Some description for demo-app-catalogue",
-                        version    : "1.0"
-                    ],
-                    branch  : "master",
-                    url     : "https://github.com/my-org/pltfmdev-demo-app-catalogue.git"
-                ],
-                [
-                    "metadata": [
-                        supplier   : "https://github.com/microservices-demo/",
-                        name       : "Sock Shop: demo-app-front-end",
-                        description: "Some description for demo-app-front-end",
-                        version    : "1.0"
-                    ],
-                    data      : [
-                        "documents": [:]
-                    ],
-                    id        : "demo-app-front-end",
-                    type      : "ods",
-                    branch    : "master",
-                    url       : "https://github.com/my-org/pltfmdev-demo-app-front-end.git"
-                ],
-                [
-                    metadata: [
-                        supplier   : "https://github.com/microservices-demo/",
-                        name       : "Sock Shop: demo-app-test",
-                        description: "Some description for demo-app-test",
-                        version    : "1.0"
-                    ],
-                    data    : [
-                        documents: [:]
-                    ],
-                    id      : "demo-app-test",
-                    type    : "ods-test",
-                    branch  : "master",
-                    url     : "https://github.com/my-org/pltfmdev-demo-app-test.git"
-                ]
-            ],
-            capabilities: []
+        // Verify annotations to the metadata.yml file are made
+        def expected = new Yaml().load(new File(Project.METADATA_FILE_NAME).text)
+        expected.repositories.each { repo ->
+            repo.branch = "master"
+            repo.data = [ documents: [:] ]
+            repo.url = "https://github.com/my-org/pltfmdev-${repo.id}.git"
+        }
+
+        expected.capabilities = [
+            [LeVADocs: [GAMPCategory: "5", templatesVersion: "1.0" ]]
         ]
 
+        then:
         result == expected
     }
 
@@ -875,65 +911,92 @@ class ProjectSpec extends SpecHelper {
         e.message == "Error: unable to parse project meta data. Required attribute 'repositories[1].id' is undefined."
     }
 
-    def "load project metadata with LeVADocs templatesVersion but null GAMPCategory"() {
-        when:
+    def "load project metadata with LeVADocs"() {
+        given:
         metadataFile.text = """
             id: myId
             name: myName
             repositories:
               - id: A
+                name: A
+                url: http://git.com
             capabilities:
-            - Cap1
-            - LeVADocs:
-                templatesVersion: "1.0"
+              - LeVADocs:
+                  GAMPCategory: 5
+                  templatesVersion: "2.0"
         """
 
+        when:
         def result = project.loadMetadata()
+
+        then:
+        result.capabilities.first().LeVADocs.GAMPCategory == 5
+        result.capabilities.first().LeVADocs.templatesVersion == "2.0"
+    }
+
+    def "load project metadata with LeVADocs capabilities but without templatesVersion"() {
+        given:
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+                name: A
+                url: http://git.com
+            capabilities:
+              - LeVADocs:
+                  GAMPCategory: 5
+        """
+
+        when:
+        def result = project.loadMetadata()
+
+        then:
+        result.capabilities.first().LeVADocs.templatesVersion == "1.0"
+    }
+
+    def "load project metadata with multiple LeVADocs capabilities"() {
+        given:
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+                name: A
+                url: http://git.com
+            capabilities:
+              - LeVADocs:
+                  GAMPCategory: 1
+              - LeVADocs:
+                  GAMPCategory: 3
+        """
+
+        when:
+        project.loadMetadata()
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to parse project meta data. Required attribute 'GAMPCategory' is mandatory using 'templatesVersion'."
+        e.message == "Error: unable to parse project metadata. More than one LeVADoc capability has been defined."
     }
 
-    def "load project metadata with LeVADocs and GAMPCategory, default templatesVersion: '1.0'"() {
-        when:
-        metadataFile.text = """
-            id: myId
-            description: myDescription
-            name: myName
-            repositories:
-              - id: A
-            capabilities:
-            - Cap1
-            - LeVADocs:
-                GAMPCategory: 5
-        """
-
-        def result = project.loadMetadata()
-
-        then:
-        result.capabilities[1].LeVADocs.GAMPCategory == 5
-        result.capabilities[1].LeVADocs.templatesVersion == "1.0"
-    }
-
-    def "load project metadata with LeVADocs, GAMPCategory and templatesVersion"() {
-        when:
+    def "load project metadata with LeVADocs capabilities but without GAMPCategory"() {
+        given:
         metadataFile.text = """
             id: myId
             name: myName
             repositories:
               - id: A
+                name: A
+                url: http://git.com
             capabilities:
-            - Cap1
-            - LeVADocs:
-                GAMPCategory: 5
-                templatesVersion: "2.0"
+              - LeVADocs:
         """
 
-        def result = project.loadMetadata()
+        when:
+        project.loadMetadata()
 
         then:
-        result.capabilities[1].LeVADocs.GAMPCategory == 5
-        result.capabilities[1].LeVADocs.templatesVersion == "2.0"
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: LeVADocs capability has been defined but contains no GAMPCategory."
     }
 }

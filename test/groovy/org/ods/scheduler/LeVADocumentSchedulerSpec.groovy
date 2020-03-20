@@ -36,23 +36,23 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         REPO_ODS_TEST.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
 
         PROJECT_GAMP_1 = createProject()
-        PROJECT_GAMP_1.capabilities << [ LeVADocs: [ GAMPCategory: "1" ] ]
+        PROJECT_GAMP_1.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "1"]]]
 
         PROJECT_GAMP_3 = createProject()
-        PROJECT_GAMP_3.capabilities << [ LeVADocs: [ GAMPCategory: "3" ] ]
+        PROJECT_GAMP_3.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "3"]]]
 
         PROJECT_GAMP_4 = createProject()
-        PROJECT_GAMP_4.capabilities << [ LeVADocs: [ GAMPCategory: "4" ] ]
+        PROJECT_GAMP_4.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "4"]]]
 
         PROJECT_GAMP_5 = createProject()
-        PROJECT_GAMP_5.capabilities << [ LeVADocs: [ GAMPCategory: "5" ] ]
+        PROJECT_GAMP_5.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
 
         PROJECT_GAMP_5_WITHOUT_JIRA = createProject()
-        PROJECT_GAMP_5_WITHOUT_JIRA.capabilities << [ LeVADocs: [ GAMPCategory: "5" ] ]
+        PROJECT_GAMP_5_WITHOUT_JIRA.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
         PROJECT_GAMP_5_WITHOUT_JIRA.services.jira = null
 
         PROJECT_GAMP_5_WITHOUT_REPOS = createProject()
-        PROJECT_GAMP_5_WITHOUT_REPOS.capabilities << [ LeVADocs: [ GAMPCategory: "5" ] ]
+        PROJECT_GAMP_5_WITHOUT_REPOS.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
         PROJECT_GAMP_5_WITHOUT_REPOS.repositories = []
     }
 
@@ -480,7 +480,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -1783,7 +1783,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.CFTP | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -1984,7 +1984,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
         LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.CFTR | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -5667,7 +5667,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     def "is document applicable with invalid GAMP category"() {
         given:
         def project = createProject()
-        project.capabilities << [ LeVADocs: [ GAMPCategory: "0" ] ]
+        project.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "0" ]]]
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
@@ -5804,7 +5804,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
         1 * usecase.invokeMethod("createCFTP", [null, null] as Object[])
         1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
         1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
@@ -5816,9 +5815,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createRA", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -5881,7 +5881,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
+        1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
         1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
+        1 * usecase.invokeMethod("createCFTP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -5890,6 +5892,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createRA", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
@@ -5964,6 +5969,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createRA", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
@@ -6156,7 +6162,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createTIP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6177,8 +6182,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
-        1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6187,6 +6190,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
@@ -6236,7 +6240,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
-        1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6244,6 +6247,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6292,7 +6298,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
-        1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6300,6 +6305,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
@@ -6349,7 +6355,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createTIP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6371,7 +6376,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
-        1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6444,6 +6448,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6539,6 +6544,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6601,6 +6607,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6679,11 +6686,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         // Test Parameters
         def qTypes = [
             LeVADocumentUseCase.DocumentType.DTR as String,
-            LeVADocumentUseCase.DocumentType.CFTR as String,
-            LeVADocumentUseCase.DocumentType.IVP as String,
-            LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
             LeVADocumentUseCase.DocumentType.TIR as String,
+            LeVADocumentUseCase.DocumentType.IVR as String,
+            LeVADocumentUseCase.DocumentType.CFTR as String,
+            LeVADocumentUseCase.DocumentType.TCR as String,
+            LeVADocumentUseCase.DocumentType.TRC as String,
+            LeVADocumentUseCase.DocumentType.DIL as String,
         ]
 
         def result = []

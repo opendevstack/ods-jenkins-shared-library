@@ -153,6 +153,15 @@ class FixtureHelper {
                     "LeVA_Doc:DIL_Q"
                 ]
             ],
+            "PLTFMDEV-1142": [
+                "key": "PLTFMDEV-1142",
+                "name": "Discrepancy Log for D",
+                "description": "C-DIL for D",
+                "status": "DONE",
+                "labels": [
+                    "LeVA_Doc:DIL"
+                ]
+            ],
             "PLTFMDEV-1013": [
                 "key"        : "PLTFMDEV-1013",
                 "name"       : "Combined Specification Document URS FS CS",
@@ -216,13 +225,22 @@ class FixtureHelper {
                     "LeVA_Doc:TC_CTR"
                 ]
             ],
-            "PLTFMDEV-426" : [
-                "key"        : "PLTFMDEV-426",
-                "name"       : "Test Case Plan",
-                "description": "TC-CTP",
-                "status"     : "DONE",
-                "labels"     : [
-                    "LeVA_Doc:TC_CTP"
+            "PLTFMDEV-1133": [
+                "key": "PLTFMDEV-1133",
+                "name": "Test Case Plan for P",
+                "description": "TCP_P",
+                "status": "DONE",
+                "labels": [
+                    "LeVA_Doc:TCP_P"
+                ]
+            ],
+            "PLTFMDEV-1132": [
+                "key": "PLTFMDEV-1132",
+                "name": "Test Case Plan for Q",
+                "description": "TCP_Q",
+                "status": "DONE",
+                "labels": [
+                    "LeVA_Doc:TCP_Q"
                 ]
             ],
             "PLTFMDEV-416" : [
@@ -324,6 +342,24 @@ class FixtureHelper {
                 "labels"     : [
                     "LeVA_Doc:CFTP",
                     "LeVA_Doc:FTP"
+                ]
+            ],
+            "PLTFMDEV-1129": [
+                "key": "PLTFMDEV-1129",
+                "name": "Combined Integration / Acceptance Testing Plan for P",
+                "description": "C-CFTP_P",
+                "status": "DONE",
+                "labels": [
+                    "LeVA_Doc:CFTP_P"
+                ]
+            ],
+            "PLTFMDEV-1128": [
+                "key": "PLTFMDEV-1128",
+                "name": "Combined Integration / Acceptance Testing Plan for Q",
+                "description": "C-CFTP_Q",
+                "status": "DONE",
+                "labels": [
+                    "LeVA_Doc:CFTP_Q"
                 ]
             ],
             "PLTFMDEV-15"  : [
@@ -471,7 +507,14 @@ class FixtureHelper {
                     ]
                 ]
             ],
-            capabilities: []
+            capabilities: [
+                [
+                    LeVADocs: [
+                        GAMPCategory: "5",
+                        templatesVersion: "1.0"
+                    ]
+                ]
+            ]
         ]
 
         result.repositories.each { repo ->
