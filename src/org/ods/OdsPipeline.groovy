@@ -173,6 +173,8 @@ class OdsPipeline implements Serializable {
 
     context.addArtifactURI("testResults", foundTests)
 
+    script.junit (testResults: 'build/test-results/test/*.xml', allowEmptyResults : true)
+    
     if (hasFailed && foundTests.toInteger() == 0) {
       logger.debug "ODS Build did fail, and no test results,.. returning"
       return
