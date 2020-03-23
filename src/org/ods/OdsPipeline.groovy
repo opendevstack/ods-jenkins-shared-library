@@ -152,9 +152,9 @@ class OdsPipeline implements Serializable {
   private void stashTestResults(def hasFailed = false) {
     def testLocation = "build/test-results/test"
 
-    logger.debug "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
+    logger.info "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
 
-    if (context.getTestResults().toString().trim().length() > 0 && !(context.getTestResults() == testLocation)) {
+    if (context.getTestResults().trim().length() > 0 && !(context.getTestResults() == testLocation)) {
       // verify the beast exists
       def verifyDir = script.sh(script: "ls ${context.getTestResults()}", returnStatus: true, label: "verifying existance of ${testLocation}")
       script.sh(script: "mkdir -p ${testLocation}", label: "create test result folder: ${testLocation}")
@@ -169,9 +169,11 @@ class OdsPipeline implements Serializable {
 
     script.sh(script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
     def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout: true, label: "Find test results").trim()
-    logger.debug "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
+    logger.info "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
 
     context.addArtifactURI("testResults", foundTests)
+
+    script.junit (testResults: "${testLocation}/**/*.xml", allowEmptyResults : true)
 
     if (hasFailed && foundTests.toInteger() == 0) {
       logger.debug "ODS Build did fail, and no test results,.. returning"

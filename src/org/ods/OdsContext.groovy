@@ -364,7 +364,7 @@ class OdsContext implements Context {
     return config.localCheckoutEnabled
   }
 
-  boolean getTestResults () {
+  String getTestResults () {
     return config.testResults
   }
 
