@@ -291,8 +291,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         SortUtil.sortIssuesByProperties(acceptanceTestBugs, ["key"])
         SortUtil.sortIssuesByProperties(integrationTestBugs, ["key"])
 
+        def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
+        metadata.orientation = "Landscape"
+
         def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            metadata: metadata,
             data    : [:]
         ]
 
