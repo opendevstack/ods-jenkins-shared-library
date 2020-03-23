@@ -4,8 +4,8 @@ import org.ods.util.IPipelineSteps
 
 class PipelineSteps implements IPipelineSteps {
 
-    private Map currentBuild = [:].withDefault { "default" }
-    private Map env = [:].withDefault { "default" }
+    private Map currentBuild = [:]
+    private Map env = [:]
 
     PipelineSteps() {
         env.WORKSPACE = System.getProperty("java.io.tmpdir")
@@ -52,5 +52,50 @@ class PipelineSteps implements IPipelineSteps {
     }
 
     void unstash(String name) {
+    }
+
+    @Override
+    def fileExists(String file) {
+        return null
+    }
+
+    @Override
+    def readFile(String file, String encoding) {
+        return null
+    }
+
+    @Override
+    def readFile(Map args) {
+        return null
+    }
+
+    @Override
+    def writeFile(String file, String text, String encoding) {
+        return null
+    }
+
+    @Override
+    def writeFile(Map args) {
+        return null
+    }
+
+    @Override
+    def readJSON(Map args) {
+        return null
+    }
+
+    @Override
+    def writeJSON(Map args) {
+        return null
+    }
+
+    @Override
+    def timeout(Map args, Closure block) {
+        return null
+    }
+
+    @Override
+    def deleteDir() {
+        return null
     }
 }

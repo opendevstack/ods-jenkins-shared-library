@@ -1,5 +1,7 @@
 package org.ods.usecase
 
+import groovy.json.JsonOutput
+
 import org.ods.parser.JUnitParser
 import org.ods.service.JiraService
 import org.ods.util.IPipelineSteps
@@ -10,7 +12,9 @@ import org.ods.util.Project.JiraDataItem
 class JiraUseCase {
 
     class IssueTypes {
-        static final String DOCUMENT_CHAPTER = "Documentation Chapter"
+        static final String DOCUMENTATION_TRACKING = "Documentation"
+        static final String DOCUMENTATION_CHAPTER = "Documentation Chapter"
+        static final String RELEASE_STATUS = "Release Status"
     }
 
     class CustomIssueFields {
@@ -81,9 +85,8 @@ class JiraUseCase {
     }
 
     boolean checkTestsIssueMatchesTestCase(Map testIssue, Map testCase) {
-        // FIXME: the contents of this method have been duplicated below to allow the execution of tests
-        def testIssueKeyClean = testIssue.key.replaceAll("-", "")
-        return testCase.name.startsWith("${testIssueKeyClean} ") || testCase.name.startsWith("${testIssueKeyClean}-") || testCase.name.startsWith("${testIssueKeyClean}_")
+        def testIssueKeyNumber = testIssue.key.substring(testIssue.key.indexOf("-") + 1)
+        return testCase.name.startsWith("${testIssueKeyNumber} ") || testCase.name.startsWith("${testIssueKeyNumber}-") || testCase.name.startsWith("${testIssueKeyNumber}_")
     }
 
     private String convertHTMLImageSrcIntoBase64Data(String html) {
@@ -147,23 +150,25 @@ class JiraUseCase {
         def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
 
         def jqlQuery = [
-            jql   : "project = ${this.project.key} AND issuetype = '${IssueTypes.DOCUMENT_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
+            jql   : "project = ${this.project.key} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
             expand: ["names", "renderedFields"]
         ]
 
         def result = this.jira.searchByJQLQuery(jqlQuery)
-        // We should fail the document if no matching documentation issues are found
-        if (!result || result.total == 0) throw new IllegalStateException("No documents found in JIRA for jqlQuery ${jqlQuery}")
+        if (!result || result.total == 0) {
+            throw new IllegalStateException("Error: could not find document chapter data for document '${documentType}' using JQL query: '${jqlQuery}'.")
+        }
+
+        // TODO: rewrite using Project.getJiraFieldsForIssueType(issueTypeName)
         def numberKeys = result.names.findAll { it.value == CustomIssueFields.HEADING_NUMBER }.collect { it.key }
         def contentFieldKeys = result.names.findAll { it.value == CustomIssueFields.CONTENT }.collect { it.key }
 
         return result.issues.collectEntries { issue ->
-
             def number = issue.fields.find { field ->
                 numberKeys.contains(field.key) && field.value
             }
             if (!number) {
-                throw new IllegalArgumentException("Error: Could not find heading number for document ${documentType} and issue ${issue.key}.")
+                throw new IllegalArgumentException("Error: could not find heading number for document '${documentType}' and issue '${issue.key}'.")
             }
             number = number.getValue().trim()
 
@@ -190,7 +195,7 @@ class JiraUseCase {
     }
 
     private String getDocumentChapterIssueLabelForDocumentType(String documentType) {
-        return "LeVA_Doc:${documentType}"
+        return "Doc:${documentType}"
     }
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
@@ -246,14 +251,32 @@ class JiraUseCase {
         }
     }
 
+    void updateJiraReleaseStatusIssue(Throwable error) {
+        if (!this.jira) return
+
+        def status = error ? "Failed" : "Successful"
+
+        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
+        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
+
+        def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields["Release Manager Status"]
+        def releaseStatusIssueBuildNumberField = releaseStatusIssueFields["Release Build"]
+
+        this.jira.updateFieldsOnIssue(releaseStatusIssueKey, [
+            (releaseStatusIssueBuildNumberField.id): "${this.project.buildParams.version}-${this.project.buildParams.jenkins.buildNumber}", // not yet implemented
+            (releaseStatusIssueReleaseManagerStatusField.id): status
+        ])
+
+        if (error) {
+            this.jira.appendCommentToIssue(releaseStatusIssueKey, error.message)
+        }
+    }
+
     private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
         testResults.testsuites.each { testSuite ->
             testSuite.testcases.each { testCase ->
                 def testIssue = testIssues.find { testIssue ->
-                    // FIXME: invoking checkTestsIssueMatchesTestCase results in failing tests (presumably be a bug in a test dependency)
-                    // this.checkTestsIssueMatchesTestCase(testIssue, testCase)
-                    def testIssueKeyClean = testIssue.key.replaceAll("-", "")
-                    return testCase.name.startsWith("${testIssueKeyClean} ") || testCase.name.startsWith("${testIssueKeyClean}-") || testCase.name.startsWith("${testIssueKeyClean}_")
+                    this.checkTestsIssueMatchesTestCase(testIssue, testCase)
                 }
 
                 def isMatch = testIssue != null

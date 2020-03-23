@@ -1,31 +1,31 @@
 package org.ods.util
 
-import java.nio.file.Paths
+import java.nio.file.Files
 
 import org.apache.http.client.utils.URIBuilder
-import org.ods.service.JiraService
+import org.ods.service.*
+import org.ods.usecase.*
 import org.yaml.snakeyaml.Yaml
 
 import static util.FixtureHelper.*
 
-import util.SpecHelper
+import util.*
 
 class ProjectSpec extends SpecHelper {
 
     GitUtil git
-    JiraService jira
-    File metadataFile
-    Project project
     IPipelineSteps steps
+    JiraUseCase jiraUseCase
+    Project project
+    File metadataFile
 
     def setup() {
+        git = Mock(GitUtil)
+        jiraUseCase = Mock(JiraUseCase)
         steps = Spy(util.PipelineSteps)
         steps.env.WORKSPACE = ""
 
-        git = Mock(GitUtil)
-        jira = Mock(JiraService)
-
-        metadataFile = createProjectMetadataFile(this.steps.env.WORKSPACE, steps)
+        metadataFile = new FixtureHelper().getResource("/project-metadata.yml")
         Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         project = Spy(constructorArgs: [steps], {
@@ -33,24 +33,24 @@ class ProjectSpec extends SpecHelper {
                 return new URIBuilder("https://github.com/my-org/my-pipeline-repo.git").build()
             }
 
+            loadJiraData(_) >> {
+                return createProjectJiraData()
+            }
+
+            loadJiraDataBugs(_) >> {
+                return createProjectJiraDataBugs()
+            }
+
             loadJiraDataDocs() >> {
                 return createProjectJiraDataDocs()
             }
+
+            loadJiraDataIssueTypes() >> {
+                return createProjectJiraDataIssueTypes()
+            }
         })
 
-        project.init().load(git, jira)
-    }
-
-    def cleanup() {
-        metadataFile.delete()
-    }
-
-    File createProjectMetadataFile(String path, IPipelineSteps steps) {
-        def file = Paths.get(path, "metadata.yml").toFile()
-
-        file << new Yaml().dump(createProjectMetadata())
-
-        return file
+        project.init().load(git, jiraUseCase)
     }
 
     def "get build environment for DEBUG"() {
@@ -97,11 +97,11 @@ class ProjectSpec extends SpecHelper {
         result.find { it == "MULTI_REPO_ENV=dev" }
 
         when:
-        steps.env.environment = "myEnv"
+        steps.env.environment = "qa"
         result = Project.getBuildEnvironment(steps)
 
         then:
-        result.find { it == "MULTI_REPO_ENV=myEnv" }
+        result.find { it == "MULTI_REPO_ENV=test" }
     }
 
     def "get build environment for MULTI_REPO_ENV_TOKEN"() {
@@ -129,13 +129,12 @@ class ProjectSpec extends SpecHelper {
 
     def "get build environment for RELEASE_PARAM_CHANGE_ID"() {
         when:
-        steps.env.changeId = null
         steps.env.environment = "myEnv"
         steps.env.version = "0.1"
         def result = Project.getBuildEnvironment(steps)
 
         then:
-        result.find { it == "RELEASE_PARAM_CHANGE_ID=0.1-myEnv" }
+        result.find { it == "RELEASE_PARAM_CHANGE_ID=UNDEFINED" }
 
         when:
         steps.env.changeId = ""
@@ -144,7 +143,7 @@ class ProjectSpec extends SpecHelper {
         result = Project.getBuildEnvironment(steps)
 
         then:
-        result.find { it == "RELEASE_PARAM_CHANGE_ID=0.1-myEnv" }
+        result.find { it == "RELEASE_PARAM_CHANGE_ID=UNDEFINED" }
 
         when:
         steps.env.changeId = "myId"
@@ -225,57 +224,11 @@ class ProjectSpec extends SpecHelper {
         result.find { it == "RELEASE_PARAM_VERSION=0.1" }
     }
 
-    def "get build environment for SOURCE_CLONE_ENV"() {
-        when:
-        steps.env.environment = "myEnv"
-        steps.env.sourceEnvironmentToClone = null
-        def result = Project.getBuildEnvironment(steps)
-
-        then:
-        result.find { it == "SOURCE_CLONE_ENV=myEnv" }
-
-        when:
-        steps.env.environment = "myEnv"
-        steps.env.sourceEnvironmentToClone = ""
-        result = Project.getBuildEnvironment(steps)
-
-        then:
-        result.find { it == "SOURCE_CLONE_ENV=myEnv" }
-
-        when:
-        steps.env.environment = "mvEnv"
-        steps.env.sourceEnvironmentToClone = "mySourceEnv"
-        result = Project.getBuildEnvironment(steps)
-
-        then:
-        result.find { it == "SOURCE_CLONE_ENV=mySourceEnv" }
-    }
-
-    def "get build environment for SOURCE_CLONE_ENV_TOKEN"() {
-        when:
-        steps.env.sourceEnvironmentToClone = "dev"
-        def result = Project.getBuildEnvironment(steps)
-
-        then:
-        result.find { it == "SOURCE_CLONE_ENV_TOKEN=D" }
-
-        when:
-        steps.env.sourceEnvironmentToClone = "qa"
-        result = Project.getBuildEnvironment(steps)
-
-        then:
-        result.find { it == "SOURCE_CLONE_ENV_TOKEN=Q" }
-
-        when:
-        steps.env.sourceEnvironmentToClone = "prod"
-        result = Project.getBuildEnvironment(steps)
-
-        then:
-        result.find { it == "SOURCE_CLONE_ENV_TOKEN=P" }
-    }
-
     def "get capabilities"() {
         given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+
         metadataFile.text = """
             id: myId
             name: myName
@@ -302,10 +255,16 @@ class ProjectSpec extends SpecHelper {
                 ]
             ]
         ]
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "get capability"() {
         given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+
         metadataFile.text = """
             id: myId
             name: myName
@@ -336,10 +295,16 @@ class ProjectSpec extends SpecHelper {
 
         then:
         project.getCapability("LeVADocs").GAMPCategory == 3
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "has capability"() {
         given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+
         metadataFile.text = """
             id: myId
             name: myName
@@ -364,6 +329,9 @@ class ProjectSpec extends SpecHelper {
 
         then:
         !project.hasCapability("other")
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "get Git URL from path"() {
@@ -384,9 +352,6 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == new URI("https://github.com/my-org/my-repo.git")
-
-        cleanup:
-        metadataFile.delete()
     }
 
     def "get Git URL from path without origin"() {
@@ -406,9 +371,6 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == new URI("https://github.com/my-org/my-repo.git")
-
-        cleanup:
-        metadataFile.delete()
     }
 
     def "get Git URL from path with invalid path"() {
@@ -437,9 +399,6 @@ class ProjectSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to get Git URL. 'path' must be inside the Jenkins workspace: ${path}"
-
-        cleanup:
-        metadataFile.delete()
     }
 
     def "get Git URL from path with invalid remote"() {
@@ -461,9 +420,40 @@ class ProjectSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to get Git URL. 'remote' is undefined."
+    }
 
-        cleanup:
-        metadataFile.delete()
+    def "is triggered by change management process"() {
+        when:
+        steps.env.changeId = "0815"
+        steps.env.configItem = "myItem"
+        def result = Project.isTriggeredByChangeManagementProcess(steps)
+
+        then:
+        result
+
+        when:
+        steps.env.changeId = "0815"
+        steps.env.configItem = null
+        result = Project.isTriggeredByChangeManagementProcess(steps)
+
+        then:
+        !result
+
+        when:
+        steps.env.changeId = null
+        steps.env.configItem = "myItem"
+        result = Project.isTriggeredByChangeManagementProcess(steps)
+
+        then:
+        !result
+
+        when:
+        steps.env.changeId = null
+        steps.env.configItem = null
+        result = Project.isTriggeredByChangeManagementProcess(steps)
+
+        then:
+        !result
     }
 
     def "load"() {
@@ -513,10 +503,8 @@ class ProjectSpec extends SpecHelper {
         test2.requirements = [requirement1.key]
         test2.risks = [risk1.key]
 
-
-
         when:
-        project.load(this.git, this.jira)
+        project.load(this.git, this.jiraUseCase)
 
         then:
         1 * project.loadJiraData(_) >> [
@@ -532,8 +520,12 @@ class ProjectSpec extends SpecHelper {
             docs        : [(doc1.key): doc1]
         ]
 
+        1 * project.convertJiraDataToJiraDataItems(_)
+        1 * project.cleanJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
+        1 * project.loadJiraDataBugs(_) >> createProjectJiraDataBugs()
         1 * project.loadJiraDataDocs() >> createProjectJiraDataDocs()
+        1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
 
         then:
         def components = project.components
@@ -594,7 +586,7 @@ class ProjectSpec extends SpecHelper {
         def result = Project.loadBuildParams(steps)
 
         then:
-        result.changeId == "0.1-myEnv"
+        result.changeId == "UNDEFINED"
 
         when:
         steps.env.changeId = ""
@@ -603,7 +595,7 @@ class ProjectSpec extends SpecHelper {
         result = Project.loadBuildParams(steps)
 
         then:
-        result.changeId == "0.1-myEnv"
+        result.changeId == "UNDEFINED"
 
         when:
         steps.env.changeId = "myId"
@@ -638,53 +630,39 @@ class ProjectSpec extends SpecHelper {
         result.configItem == "myItem"
     }
 
-    def "load build param sourceEnvironmentToClone"() {
+    def "load build param releaseStatusJiraIssueKey"() {
         when:
-        steps.env.environment = "myEnv"
-        steps.env.sourceEnvironmentToClone = null
+        steps.env.releaseStatusJiraIssueKey = "JIRA-1"
         def result = Project.loadBuildParams(steps)
 
         then:
-        result.sourceEnvironmentToClone == "myEnv"
+        result.releaseStatusJiraIssueKey == "JIRA-1"
 
         when:
-        steps.env.environment = "myEnv"
-        steps.env.sourceEnvironmentToClone = ""
+        steps.env.releaseStatusJiraIssueKey = " JIRA-1 "
         result = Project.loadBuildParams(steps)
 
         then:
-        result.sourceEnvironmentToClone == "myEnv"
+        result.releaseStatusJiraIssueKey == "JIRA-1"
 
         when:
-        steps.env.environment = "mvEnv"
-        steps.env.sourceEnvironmentToClone = "mySourceEnv"
+        steps.env.changeId = "1"
+        steps.env.configItem = "my-config-item"
+        steps.env.releaseStatusJiraIssueKey = null
         result = Project.loadBuildParams(steps)
 
         then:
-        result.sourceEnvironmentToClone == "mySourceEnv"
-    }
-
-    def "load build param sourceEnvironmentToCloneToken"() {
-        when:
-        steps.env.sourceEnvironmentToClone = "dev"
-        def result = Project.loadBuildParams(steps)
-
-        then:
-        result.sourceEnvironmentToCloneToken == "D"
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined"
 
         when:
-        steps.env.sourceEnvironmentToClone = "qa"
+        steps.env.changeId = null
+        steps.env.configItem = null
+        steps.env.releaseStatusJiraIssueKey = null
         result = Project.loadBuildParams(steps)
 
         then:
-        result.sourceEnvironmentToCloneToken == "Q"
-
-        when:
-        steps.env.sourceEnvironmentToClone = "prod"
-        result = Project.loadBuildParams(steps)
-
-        then:
-        result.sourceEnvironmentToCloneToken == "P"
+        result.releaseStatusJiraIssueKey == null
     }
 
     def "load build param targetEnvironment"() {
@@ -703,11 +681,11 @@ class ProjectSpec extends SpecHelper {
         result.targetEnvironment == "dev"
 
         when:
-        steps.env.environment = "myEnv"
+        steps.env.environment = "qa"
         result = Project.loadBuildParams(steps)
 
         then:
-        result.targetEnvironment == "myEnv"
+        result.targetEnvironment == "qa"
     }
 
     def "load build param targetEnvironmentToken"() {
@@ -765,7 +743,7 @@ class ProjectSpec extends SpecHelper {
         expected.repositories.each { repo ->
             repo.branch = "master"
             repo.data = [ documents: [:] ]
-            repo.url = "https://github.com/my-org/pltfmdev-${repo.id}.git"
+            repo.url = "https://github.com/my-org/net-${repo.id}.git"
         }
 
         expected.capabilities = [
@@ -796,32 +774,47 @@ class ProjectSpec extends SpecHelper {
     }
 
     def "load project metadata with invalid id"() {
+        given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+
         when:
         metadataFile.text = """
             name: myName
         """
 
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project meta data. Required attribute 'id' is undefined."
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with invalid name"() {
+        given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+
         when:
         metadataFile.text = """
             id: myId
         """
 
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project meta data. Required attribute 'name' is undefined."
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with invalid description"() {
+        given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+
         when:
         metadataFile.text = """
             id: myId
@@ -830,26 +823,38 @@ class ProjectSpec extends SpecHelper {
               - id: A
         """
 
-        def result = project.loadMetadata()
+        def result = project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         result.description == ""
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with undefined repositories"() {
+        given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+
         when:
         metadataFile.text = """
             id: myId
             name: myName
         """
 
-        def result = project.loadMetadata()
+        def result = project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         result.repositories == []
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with invalid repository id"() {
+        given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+
         when:
         metadataFile.text = """
             id: myId
@@ -858,7 +863,7 @@ class ProjectSpec extends SpecHelper {
               - name: A
         """
 
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -873,14 +878,20 @@ class ProjectSpec extends SpecHelper {
               - name: B
         """
 
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project meta data. Required attribute 'repositories[1].id' is undefined."
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with invalid repository url"() {
+        given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+
         when:
         metadataFile.text = """
             id: myId
@@ -889,7 +900,7 @@ class ProjectSpec extends SpecHelper {
               - name: A
         """
 
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -904,15 +915,21 @@ class ProjectSpec extends SpecHelper {
               - name: B
         """
 
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project meta data. Required attribute 'repositories[1].id' is undefined."
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with LeVADocs"() {
         given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+
         metadataFile.text = """
             id: myId
             name: myName
@@ -927,15 +944,21 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        def result = project.loadMetadata()
+        def result = project.init()
 
         then:
-        result.capabilities.first().LeVADocs.GAMPCategory == 5
-        result.capabilities.first().LeVADocs.templatesVersion == "2.0"
+        result.getCapability("LeVADocs").GAMPCategory == 5
+        result.getCapability("LeVADocs").templatesVersion == "2.0"
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with LeVADocs capabilities but without templatesVersion"() {
         given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+
         metadataFile.text = """
             id: myId
             name: myName
@@ -949,14 +972,18 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        def result = project.loadMetadata()
+        def result = project.init()
 
         then:
-        result.capabilities.first().LeVADocs.templatesVersion == "1.0"
+        result.getCapability("LeVADocs").templatesVersion == "1.0"
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with multiple LeVADocs capabilities"() {
         given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
         metadataFile.text = """
             id: myId
             name: myName
@@ -972,15 +999,19 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to parse project metadata. More than one LeVADoc capability has been defined."
+
+        cleanup:
+        metadataFile.delete()
     }
 
     def "load project metadata with LeVADocs capabilities but without GAMPCategory"() {
         given:
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
         metadataFile.text = """
             id: myId
             name: myName
@@ -993,10 +1024,13 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.loadMetadata()
+        project.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: LeVADocs capability has been defined but contains no GAMPCategory."
+
+        cleanup:
+        metadataFile.delete()
     }
 }

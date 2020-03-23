@@ -20,10 +20,12 @@ class PipelineUtil {
 
     protected Project project
     protected IPipelineSteps steps
+    protected GitUtil git
 
-    PipelineUtil(Project project, IPipelineSteps steps) {
+    PipelineUtil(Project project, IPipelineSteps steps, GitUtil git) {
         this.project = project
         this.steps = steps
+        this.git = git
     }
 
     void archiveArtifact(String path, byte[] data) {

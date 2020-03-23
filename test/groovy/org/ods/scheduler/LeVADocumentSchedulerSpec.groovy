@@ -5748,8 +5748,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5845,8 +5846,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5915,8 +5917,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5991,8 +5994,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6134,8 +6138,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6211,8 +6216,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6269,8 +6275,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6327,8 +6334,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6405,8 +6413,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6468,8 +6477,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6515,8 +6525,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6564,8 +6575,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6773,8 +6785,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def git = Mock(GitUtil)
 
-        def utilObj = new MROPipelineUtil(project, steps)
+        def utilObj = new MROPipelineUtil(project, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)

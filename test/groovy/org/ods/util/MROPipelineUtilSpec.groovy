@@ -22,7 +22,8 @@ class MROPipelineUtilSpec extends SpecHelper {
     def setup() {
         project = createProject()
         steps = Spy(util.PipelineSteps)
-        util = new MROPipelineUtil(project, steps)
+        def git = Mock(GitUtil)
+        util = new MROPipelineUtil(project, steps, git)
     }
 
     def "load a repo's pipeline config"() {
@@ -271,7 +272,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         phases:
           build:
             type: Makefile
-            target: 
+            target:
         """
 
         util.loadPipelineConfig(repoPath, repos[0])
@@ -329,7 +330,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         phases:
           build:
             type: ShellScript
-            script: 
+            script:
         """
 
         util.loadPipelineConfig(repoPath, repos[0])
@@ -387,7 +388,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         pipelineConfigFileMap[repos[0].id] << """
         dependencies:
           - A
-        
+
         phases:
           build:
             type: Makefile
@@ -406,7 +407,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         pipelineConfigFileMap[repos[2].id] << """
         dependencies:
           - B
-        
+
         phases:
           test:
             type: ShellScript

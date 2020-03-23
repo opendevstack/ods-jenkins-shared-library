@@ -22,7 +22,8 @@ class PipelineUtilSpec extends SpecHelper {
     def setup() {
         project = createProject()
         steps = Spy(util.PipelineSteps)
-        util = Spy(new PipelineUtil(project, steps))
+        def git = Mock(GitUtil)
+        util = Spy(new PipelineUtil(project, steps, git))
     }
 
     def "archive artifact"() {

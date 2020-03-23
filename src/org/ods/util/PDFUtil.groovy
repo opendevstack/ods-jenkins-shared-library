@@ -46,7 +46,7 @@ class PDFUtil {
         } catch (e) {
             throw new RuntimeException("Error: unable to add watermark to PDF document: ${e.message}").initCause(e)
         } finally {
-            doc.close()
+            if (doc) doc.close()
         }
 
         return result
@@ -109,9 +109,10 @@ class PDFUtil {
     byte[] convertFromWordDoc(File wordDoc) {
         def result
 
+        XWPFDocument doc
         try {
             def is = new FileInputStream(wordDoc)
-            def doc = new XWPFDocument(is)
+            doc = new XWPFDocument(is)
 
             def options = PdfOptions.create()
             def os = new ByteArrayOutputStream()
@@ -120,6 +121,8 @@ class PDFUtil {
             result = os.toByteArray()
         } catch (e) {
             throw new RuntimeException("Error: unable to convert Word document to PDF: ${e.message}").initCause(e)
+        } finally {
+            if (doc) doc.close()
         }
 
         return result

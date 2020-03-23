@@ -440,7 +440,7 @@ class JUnitParserSpec extends SpecHelper {
                         name: "my-suite-1",
                         testcases: [
                             [
-                                name: "JIRA2_my-testcase-2"
+                                name: "2_my-testcase-2"
                             ]
                         ]
                     ]
@@ -468,7 +468,7 @@ class JUnitParserSpec extends SpecHelper {
                     [
                         name: "my-suite-2",
                         testcases: [
-                            [ name: "JIRA3_my-testcase-3" ] 
+                            [ name: "3_my-testcase-3" ]
                         ]
                     ]
                 ]

@@ -197,7 +197,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         def basename = "${documentType}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
-        def document = getResource("Test-1.pdf").bytes
+        def document = new FixtureHelper().getResource("Test-1.pdf").bytes
         def nexusUri = new URI("http://nexus")
         def documentWithWatermark = pdf.addWatermarkText(document, watermarkText)
 

@@ -67,20 +67,26 @@ def call(Project project, List<Set<Map>> repos) {
         }
     }
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+    try {
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
-    // Execute phase for each repository
-    util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-        .each { group ->
-            parallel(group)
-        }
+        // Execute phase for each repository
+        util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
+            .each { group ->
+                parallel(group)
+            }
 
-    // Parse all test report files into a single data structure
-    globalData.tests.acceptance.testResults = junit.parseTestReportFiles(globalData.tests.acceptance.testReportFiles)
-    globalData.tests.installation.testResults = junit.parseTestReportFiles(globalData.tests.installation.testReportFiles)
-    globalData.tests.integration.testResults = junit.parseTestReportFiles(globalData.tests.integration.testReportFiles)
+        // Parse all test report files into a single data structure
+        globalData.tests.acceptance.testResults = junit.parseTestReportFiles(globalData.tests.acceptance.testReportFiles)
+        globalData.tests.installation.testResults = junit.parseTestReportFiles(globalData.tests.installation.testReportFiles)
+        globalData.tests.integration.testResults = junit.parseTestReportFiles(globalData.tests.integration.testReportFiles)
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
+    } catch (e) {
+        this.steps.echo(e.message)
+        project.reportPipelineStatus(e)
+        throw e
+    }
 }
 
 private List getAcceptanceTestResults(def steps, Map repo) {
