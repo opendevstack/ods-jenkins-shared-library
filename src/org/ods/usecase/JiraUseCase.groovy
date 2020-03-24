@@ -106,7 +106,7 @@ class JiraUseCase {
         if (!this.jira) return
 
         testFailures.each { failure ->
-            def bug = this.jira.createIssueTypeBug(this.project.key, failure.type, failure.text)
+            def bug = this.jira.createIssueTypeBug(this.project.jiraProjectKey, failure.type, failure.text)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -150,7 +150,7 @@ class JiraUseCase {
         def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
 
         def jqlQuery = [
-            jql   : "project = ${this.project.key} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
+            jql   : "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
             expand: ["names", "renderedFields"]
         ]
 

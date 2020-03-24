@@ -173,18 +173,14 @@ class OpenShiftService {
 
     void importImageFromProject(String name, String sourceProject, String imageSha, String targetProject, String imageTag) {
       steps.sh(
-        script: """
-          oc -n ${targetProject} tag ${sourceProject}/${name}@${imageSha} ${name}:${imageTag}
-        """,
+        script: """oc -n ${targetProject} tag ${sourceProject}/${name}@${imageSha} ${name}:${imageTag}""",
         label: "tag image ${name} into ${targetProject}"
       )
     }
 
     void tagImageWithLatest(String name, String project, String imageTag) {
       steps.sh(
-        script: """
-          oc -n ${project} tag ${name}:${imageTag} ${name}:latest
-        """,
+        script: """oc -n ${project} tag ${name}:${imageTag} ${name}:latest""",
         label: "tag image ${name}:${imageTag} with latest"
       )
     }
@@ -193,8 +189,8 @@ class OpenShiftService {
       def environment = name
       steps.echo "searching for ${environment}"
       def statusCode = steps.sh(
-        script:"oc project ${environment} &> /dev/null",
-        label :"check if OCP environment exists",
+        script: "oc project ${environment} &> /dev/null",
+        label: "check if OCP environment exists",
         returnStatus: true
       )
       steps.echo "searching for ${environment} - result ${statusCode}"

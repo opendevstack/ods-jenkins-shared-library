@@ -50,7 +50,7 @@ class FakeProject extends Project {
         this.jiraUseCase = jiraUseCase
 
         this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
-        this.data.jira = this.loadJiraData(this.data.metadata.id)
+        this.data.jira = this.loadJiraData(this.jiraProjectKey)
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.data.jira))

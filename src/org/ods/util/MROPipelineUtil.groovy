@@ -187,7 +187,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
 
             def definedImageSha = steps.readFile("${openshiftDir}/${imageShaFile}")
-            def sourceProject = "${this.project.key}-${Project.getConcreteEnvironment(this.project.sourceEnv, this.project.buildParams.version)}"
+            def sourceProject = "${this.project.key}-${this.project.concreteEnvironment}"
             if (this.project.targetClusterIsExternal) {
                 os.importImageFromSourceRegistry(
                     repo.id,

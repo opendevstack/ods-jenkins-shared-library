@@ -132,7 +132,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.createBugsForFailedTestIssues(testIssues, failures, comment)
 
         then:
-        1 * jira.createIssueTypeBug(project.key, failures.first().type, failures.first().text) >> bug
+        1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text) >> bug
 
         then:
         1 * jira.createIssueLinkTypeBlocks(bug, {
@@ -157,7 +157,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def jqlQuery = [
-            jql   : "project = ${project.key} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = Doc:${documentType}",
+            jql   : "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = Doc:${documentType}",
             expand: ["names", "renderedFields"]
         ]
 
