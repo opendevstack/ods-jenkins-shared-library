@@ -552,10 +552,11 @@ class Project {
     }
 
     String getJiraProjectKey() {
-        def services = getServices()
+        def services = this.getServices()
         if (services?.jira?.project) {
-            services.jira.project
+            return services.jira.project
         }
+
         return getKey()
     }
 
