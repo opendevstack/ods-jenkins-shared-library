@@ -380,7 +380,7 @@ class JiraUseCaseSpec extends SpecHelper {
         given:
         project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
         project.buildParams.version = "1.0"
-        project.buildParams.jenkins = [buildNumber: "0815"]
+        steps.env.BUILD_NUMBER = "0815"
 
         def error = new RuntimeException("Oh no!")
 
@@ -411,7 +411,7 @@ class JiraUseCaseSpec extends SpecHelper {
         given:
         project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
         project.buildParams.version = "1.0"
-        project.buildParams.jenkins = [buildNumber: "0815"]
+        steps.env.BUILD_NUMBER = "0815"
 
         def error = null
 
