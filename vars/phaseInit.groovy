@@ -90,8 +90,9 @@ def call() {
         registry.add(MROPipelineUtil, util)
         registry.add(Project, project)
 
+        def docGenUrl = env.DOCGEN_URL ?: "http://docgen.${project.key}-cd.svc:8080"
         registry.add(DocGenService,
-            new DocGenService(env.DOCGEN_URL)
+            new DocGenService(docGenUrl)
         )
 
         registry.add(LeVADocumentChaptersFileService,
