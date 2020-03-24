@@ -1219,7 +1219,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields["Document Version"]
 
         jiraIssues.each { jiraIssue ->
-            this.jiraUseCase.jira.updateFieldsOnIssue(jiraIssue.key, [(documentationTrackingIssueDocumentVersionField.id): "${metadata.version}-${metadata.jenkins.buildNumber}"])
+            this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssue.key, [(documentationTrackingIssueDocumentVersionField.id): "${metadata.version}-${metadata.jenkins.buildNumber}"])
             this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
         }
     }

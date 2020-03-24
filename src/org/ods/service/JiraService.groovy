@@ -488,13 +488,13 @@ class JiraService {
     }
 
     @NonCPS
-    void updateFieldsOnIssue(String issueIdOrKey, Map fields) {
+    void updateSelectListFieldsOnIssue(String issueIdOrKey, Map fields) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to update fields on Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException("Error: unable to update select list fields on Jira issue. 'issueIdOrKey' is undefined.")
         }
 
         if (!fields) {
-            throw new IllegalArgumentException("Error: unable to update fields on Jira issue. 'fields' is undefined.")
+            throw new IllegalArgumentException("Error: unable to update select list fields on Jira issue. 'fields' is undefined.")
         }
 
         def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
@@ -504,13 +504,13 @@ class JiraService {
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson(
                 [
-                    update: fields.collectEntries { id, value ->
+                    update: fields.collectEntries { id, value_ ->
                         [
                             id,
                             [
                                 [
                                     set: [
-                                        value: value
+                                        value: value_ as String
                                     ]
                                 ]
                             ]
@@ -522,15 +522,63 @@ class JiraService {
 
         response.ifSuccess {
             if (response.getStatus() != 204) {
-                throw new RuntimeException("Error: unable to update fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+                throw new RuntimeException("Error: unable to update select list fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
             }
         }
 
         response.ifFailure {
-            def message = "Error: unable to update fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+            def message = "Error: unable to update select list fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to update fields on Jira issue. Jira could not be found at: '${this.baseURL}'."
+                message = "Error: unable to update select list fields on Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+    }
+
+    @NonCPS
+    void updateTextFieldsOnIssue(String issueIdOrKey, Map fields) {
+        if (!issueIdOrKey?.trim()) {
+            throw new IllegalArgumentException("Error: unable to update text fields on Jira issue. 'issueIdOrKey' is undefined.")
+        }
+
+        if (!fields) {
+            throw new IllegalArgumentException("Error: unable to update text fields on Jira issue. 'fields' is undefined.")
+        }
+
+        def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
+            .routeParam("issueIdOrKey", issueIdOrKey)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(JsonOutput.toJson(
+                [
+                    update: fields.collectEntries { id, value_ ->
+                        [
+                            id,
+                            [
+                                [
+                                    set: value_ as String
+                                ]
+                            ]
+                        ]
+                    }
+                ]
+            ))
+            .asString()
+
+        response.ifSuccess {
+            if (response.getStatus() != 204) {
+                throw new RuntimeException("Error: unable to update text fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            }
+        }
+
+        response.ifFailure {
+            def message = "Error: unable to update text fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to update text fields on Jira issue. Jira could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)
