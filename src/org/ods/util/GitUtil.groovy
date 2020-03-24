@@ -10,16 +10,20 @@ class GitUtil {
         this.steps = steps
     }
 
-    private String execute(String cmd) {
-        return this.steps.sh(returnStdout: true, script: cmd).trim()
-    }
-
     String getCommit() {
-        return this.execute("git rev-parse HEAD")
+        return this.steps.sh(
+            script: "git rev-parse HEAD",
+            returnStdout: true,
+            label: "get Git commit"
+        ).trim()
     }
 
     String getURL() {
-        return this.execute("git config --get remote.origin.url")
+        return this.steps.sh(
+            script: "git config --get remote.origin.url",
+            returnStdout: true,
+            label: "get Git remote URL"
+        ).trim()
     }
 
     def configureUser() {

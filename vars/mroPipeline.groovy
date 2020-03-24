@@ -1,3 +1,4 @@
+import org.ods.util.PipelineSteps
 import org.ods.util.Project
 
 def call(Map config) {
@@ -6,7 +7,11 @@ def call(Map config) {
     def repos = []
 
     def debug = config.get('debug', false)
-    def odsImageTag = config.get('odsImageTag', 'latest')
+    def odsImageTag = config.odsImageTag
+    if (!odsImageTag) {
+        error "You must set 'odsImageTag' in the config map"
+    }
+    def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
 
     node {
 
@@ -19,7 +24,8 @@ def call(Map config) {
             userRemoteConfigs: scm.userRemoteConfigs
         ])
 
-        def envs = mroEnvironment(debug)
+        def steps = new PipelineSteps(this)
+        def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
 
         withPodTemplate(odsImageTag) {
 

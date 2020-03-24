@@ -193,18 +193,20 @@ class Project {
         static final String INTERFACE_REQUIREMENT = "Interface Requirement"
     }
 
-    static final String BUILD_PARAM_VERSION_DEFAULT = "WIP"
+    protected static final String BUILD_PARAM_VERSION_DEFAULT = "WIP"
 
     protected static String METADATA_FILE_NAME = "metadata.yml"
 
     protected IPipelineSteps steps
     protected GitUtil git
     protected JiraUseCase jiraUseCase
+    protected Map config
 
     protected Map data = [:]
 
-    Project(IPipelineSteps steps) {
+    Project(IPipelineSteps steps, Map config = [:]) {
         this.steps = steps
+        this.config = config
 
         this.data.build = [
             hasFailingTests       : false,
@@ -254,7 +256,9 @@ class Project {
             baseTag: baseTag.toString(),
             targetTag: targetTag.toString()
         ]
-        this.data.jira = this.loadJiraData(this.data.metadata.id)
+
+        this.data.jira = [:]
+        this.data.jira = this.loadJiraData(this.jiraProjectKey)
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.data.jira))
@@ -422,11 +426,12 @@ class Project {
     }
 
     String getConcreteEnvironment() {
-        getConcreteEnvironment(buildParams.targetEnvironment, buildParams.version)
+        def versionedDevEnvs = this.config.get('versionedDevEnvs', false)
+        getConcreteEnvironment(buildParams.targetEnvironment, buildParams.version, versionedDevEnvs)
     }
 
-    static String getConcreteEnvironment(String environment, String version) {
-        if (environment == 'dev' && version != BUILD_PARAM_VERSION_DEFAULT) {
+    static String getConcreteEnvironment(String environment, String version, boolean versionedDevEnvsEnabled) {
+        if (versionedDevEnvsEnabled && environment == 'dev' && version != BUILD_PARAM_VERSION_DEFAULT) {
             def cleanedVersion = version.replaceAll('[^A-Za-z0-9-]', '-')
             environment = "${environment}-${cleanedVersion}"
         } else if (environment == 'qa') {
@@ -435,10 +440,10 @@ class Project {
         environment
     }
 
-    static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug = false) {
+    static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug = false, boolean versionedDevEnvsEnabled = false) {
         def params = loadBuildParams(steps)
 
-        def concreteEnv = getConcreteEnvironment(params.targetEnvironment, params.version)
+        def concreteEnv = getConcreteEnvironment(params.targetEnvironment, params.version, versionedDevEnvsEnabled)
 
         return [
             "DEBUG=${debug}",
@@ -544,6 +549,14 @@ class Project {
 
     String getKey() {
         return this.data.metadata.id
+    }
+
+    String getJiraProjectKey() {
+        def services = getServices()
+        if (services?.jira?.project) {
+            services.jira.project
+        }
+        return getKey()
     }
 
     List<JiraDataItem> getMitigations() {
@@ -688,8 +701,19 @@ class Project {
     }
 
     protected Map loadJiraData(String projectKey) {
-        if (!this.jiraUseCase) return [:]
-        if (!this.jiraUseCase.jira) return [:]
+        def result = [
+            components: [:],
+            epics: [:],
+            mitigations: [:],
+            project: [:],
+            requirements: [:],
+            risks: [:],
+            techSpecs: [:],
+            tests: [:]
+        ]
+
+        if (!this.jiraUseCase) return result
+        if (!this.jiraUseCase.jira) return result
         return this.jiraUseCase.jira.getDocGenData(projectKey)
     }
 
@@ -698,7 +722,7 @@ class Project {
         if (!this.jiraUseCase.jira) return [:]
 
         def jqlQuery = [
-            jql: "project = ${this.data.jira.project.key} AND issuetype = Bug AND status != Done",
+            jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
             expand: [],
             fields: ["assignee", "duedate", "issuelinks", "status", "summary"]
         ]
@@ -738,7 +762,7 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        return this.jiraUseCase.jira.getVersionsForProject(this.data.jira.project.key).find { version ->
+        return this.jiraUseCase.jira.getVersionsForProject(this.jiraProjectKey).find { version ->
             this.buildParams.version == version.value
         }
     }
@@ -747,7 +771,7 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def jqlQuery = [jql: "project = ${this.data.jira.project.key} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"]
+        def jqlQuery = [jql: "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
@@ -772,14 +796,14 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def jiraIssueTypes = this.jiraUseCase.jira.getIssueTypes(this.data.jira.project.key)
+        def jiraIssueTypes = this.jiraUseCase.jira.getIssueTypes(this.jiraProjectKey)
         return jiraIssueTypes.values.collectEntries { jiraIssueType ->
             [
                 jiraIssueType.name,
                 [
                     id     : jiraIssueType.id,
                     name   : jiraIssueType.name,
-                    fields : this.jiraUseCase.jira.getIssueTypeMetadata(this.data.jira.project.key, jiraIssueType.id).values.collectEntries { value ->
+                    fields : this.jiraUseCase.jira.getIssueTypeMetadata(this.jiraProjectKey, jiraIssueType.id).values.collectEntries { value ->
                         [
                             value.name,
                             [
