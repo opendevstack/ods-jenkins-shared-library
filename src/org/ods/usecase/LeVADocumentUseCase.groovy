@@ -235,7 +235,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
 
-        def requirements = this.project.getSystemRequirements().groupBy { it.gampTopic.toLowerCase() }.collectEntries { gampTopic, reqs ->
+        def requirements = this.project.getSystemRequirements()
+        def reqsWithNoGampTopic = requirements.findAll{ it.gampTopic == null }
+        def reqsGroupedByGampTopic = requirements.findAll{ it.gampTopic != null }.groupBy { it.gampTopic.toLowerCase() }
+        reqsGroupedByGampTopic << ["uncategorized": reqsWithNoGampTopic ]
+        def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             [
                 gampTopic.replaceAll(" ", "").toLowerCase(),
                 SortUtil.sortIssuesByProperties(reqs.collect { req ->
@@ -254,7 +258,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections    : sections,
-                requirements: requirements
+                requirements: requirementsForDocument
             ]
         ]
 
@@ -940,7 +944,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modules = componentsMetadata.findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }.collect { component ->
             // We will set-up a double loop in the template. For moustache limitations we need to have lists
             component.requirements = component.requirements.collect { r ->
-                [key: r.key, name: r.name, gampTopic: r.gampTopic]
+                [key: r.key, name: r.name, gampTopic: r.gampTopic?:"undefined"]
             }.groupBy { it.gampTopic.toLowerCase() }.collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
             return component
