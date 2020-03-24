@@ -259,13 +259,11 @@ class JiraUseCase {
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
-        def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields["Release Manager Status"]
         def releaseStatusIssueBuildNumberField = releaseStatusIssueFields["Release Build"]
+        this.jira.updateTextFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueBuildNumberField.id): "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"])
 
-        this.jira.updateFieldsOnIssue(releaseStatusIssueKey, [
-            (releaseStatusIssueBuildNumberField.id): "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}",
-            (releaseStatusIssueReleaseManagerStatusField.id): status
-        ])
+        def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields["Release Manager Status"]
+        this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])
 
         if (error) {
             this.jira.appendCommentToIssue(releaseStatusIssueKey, error.message)

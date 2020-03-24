@@ -398,9 +398,12 @@ class JiraUseCaseSpec extends SpecHelper {
         ]
 
         then:
-        1 * jira.updateFieldsOnIssue("JIRA-4711", [
-            "customfield_2": "1.0-0815",
+        1 * jira.updateSelectListFieldsOnIssue("JIRA-4711", [
             "customfield_1": "Failed"
+        ])
+
+        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
+            "customfield_2": "1.0-0815"
         ])
 
         then:
@@ -431,9 +434,12 @@ class JiraUseCaseSpec extends SpecHelper {
         }
 
         then:
-        1 * jira.updateFieldsOnIssue("JIRA-4711", [
-            "customfield_2": "1.0-0815",
+        1 * jira.updateSelectListFieldsOnIssue("JIRA-4711", [
             "customfield_1": "Successful"
+        ])
+
+        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
+            "customfield_2": "1.0-0815"
         ])
     }
 

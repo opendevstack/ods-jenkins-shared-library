@@ -350,6 +350,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def chapterData = ["sec1": [content: "myContent", status: "DONE", key:"DEMO-1"]]
         def uri = "http://nexus"
         def documentTemplate = "template"
+        def requirements = [
+            [key:"1", name:"1",configSpec:[name:"cs1"],funcSpec:[name:"fs1"]],
+            [key:"2", name:"2",gampTopic:"gamP topic", configSpec:[name:"cs2"],funcSpec:[name:"fs2"]],
+            [key:"3", name:"3",gampTopic:"GAMP TOPIC", configSpec:[name:"cs3"],funcSpec:[name:"fs3"]],
+        ]
 
         when:
         usecase.createCSD()
@@ -360,7 +365,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getSystemRequirements()
+        1 * project.getSystemRequirements() >> requirements
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
@@ -1207,11 +1212,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
 
         then:
-        1 * jiraUseCase.jira.updateFieldsOnIssue("TRK-1", _)
+        1 * jiraUseCase.jira.updateTextFieldsOnIssue("TRK-1", _)
         1 * jiraUseCase.jira.appendCommentToIssue("TRK-1", "myMessage Attention: this document is work in progress! See issues: DOC-1, DOC-3")
 
         then:
-        1 * jiraUseCase.jira.updateFieldsOnIssue("TRK-2", _)
+        1 * jiraUseCase.jira.updateTextFieldsOnIssue("TRK-2", _)
         1 * jiraUseCase.jira.appendCommentToIssue("TRK-2", "myMessage Attention: this document is work in progress! See issues: DOC-1, DOC-3")
     }
 
