@@ -543,6 +543,10 @@ class Project {
         return this.data.jira.project.id
     }
 
+    Map getVersion() {
+        return this.data.jira.project.version
+    }
+
     Map getJiraFieldsForIssueType(String issueTypeName) {
         return this.data.jira.issueTypes[issueTypeName]?.fields ?: [:]
     }

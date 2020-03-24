@@ -27,8 +27,7 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         if (!testIssues?.isEmpty()) {
             def buildParams = this.project.buildParams
 
-            def versionId = this.getProjectVersion(this.project.jiraProjectKey)?.id ?: "-1"
-            def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
+            def testCycles = this.zephyr.getTestCycles(this.project.id, this.project.version.id)
 
             // Zephyr test cycle properties
             def name = buildParams.targetEnvironmentToken + ": Build " + this.steps.env.BUILD_ID
@@ -37,7 +36,7 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
 
             testCycleId = testCycles.find { it.value instanceof Map && it.value.name == name && it.value.build == build && it.value.environment == environment }?.key
             if (!testCycleId) {
-                testCycleId = this.zephyr.createTestCycle(this.project.id, versionId, name, build, environment).id
+                testCycleId = this.zephyr.createTestCycle(this.project.id, this.project.version.id, name, build, environment).id
             }
         }
 
@@ -68,13 +67,5 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
     void applyXunitTestResults(List testIssues, Map testResults) {
         this.usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
         this.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
-    }
-
-    private Map getProjectVersion(String projectKey) {
-        List versions = this.zephyr.getProjectVersions(projectKey)
-
-        return versions.find { version ->
-            this.project.buildParams?.version == version.name
-        }
     }
 }
