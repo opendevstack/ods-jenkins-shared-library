@@ -187,7 +187,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
 
             def definedImageSha = steps.readFile("${openshiftDir}/${imageShaFile}")
-            def sourceProject = "${this.project.key}-${this.project.concreteEnvironment}"
+            def sourceProject = "${this.project.key}-${Project.getConcreteEnvironment(this.project.sourceEnv, this.project.buildParams.version, this.project.versionedDevEnvsEnabled)}"
             if (this.project.targetClusterIsExternal) {
                 os.importImageFromSourceRegistry(
                     repo.id,
@@ -222,14 +222,12 @@ class MROPipelineUtil extends PipelineUtil {
             }
 
             // collect data required for documents
-            def pods = os.getPodDataForComponent(repo.id)
-            repo.data['openshift'] = [
-                'pods': pods,
-                'odsBuildArtifacts': [
-                    "OCP Build Id": "N/A",
-                    "OCP Docker image": runningImageSha.split(':').last(),
-                    "OCP Deployment Id": latestVersion,
-                ]
+            def pod = os.getPodDataForDeployment(repo.id, latestVersion)
+            repo.data.pod = pod
+            repo.data.odsBuildArtifacts = [
+                "OCP Build Id": "N/A",
+                "OCP Docker image": runningImageSha.split(':').last(),
+                "OCP Deployment Id": latestVersion,
             ]
 
             if (git.remoteTagExists(this.project.targetTag)) {
