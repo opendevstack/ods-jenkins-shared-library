@@ -334,6 +334,26 @@ class ProjectSpec extends SpecHelper {
         metadataFile.delete()
     }
 
+    def "get document tracking issue"() {
+        when:
+        def result = project.getDocumentTrackingIssues(["Doc:TIP"])
+
+        then:
+        result == [
+            [key: "NET-318", status: "DONE"]
+        ]
+
+        when:
+        result = project.getDocumentTrackingIssues(["Doc:TIP", "Doc:TIP_Q", "Doc:TIP_P"])
+
+        then:
+        result == [
+            [key: "NET-318", status: "DONE"],
+            [key: "NET-7", status: "DONE"],
+            [key: "NET-20", status: "DONE"]
+        ]
+    }
+
     def "get Git URL from path"() {
         given:
         def project = new Project(steps)
