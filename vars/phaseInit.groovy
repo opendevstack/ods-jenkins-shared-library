@@ -265,7 +265,7 @@ def call() {
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
         if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists(project.targetProject)) {
 
-            runOnAgentPod(true) {
+            runOnAgentPod(project, true) {
 
                 def sourceEnv = project.buildParams.targetEnvironment
                 os.createVersionedDevelopmentEnvironment(project.key, sourceEnv, project.concreteEnvironment)

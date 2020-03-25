@@ -33,7 +33,8 @@ def call(Project project, List<Set<Map>> repos) {
             }
         }
 
-        runOnAgentPod(project.isAssembleMode && repos.size() > 0) {
+        def agentCondition = project.isAssembleMode && repos.size() > 0
+        runOnAgentPod(project, agentCondition) {
             // Execute phase for each repository
             util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
                 .each { group ->
