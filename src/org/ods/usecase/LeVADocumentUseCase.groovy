@@ -247,8 +247,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         key          : req.key,
                         applicability: "Mandatory",
                         ursName      : req.name,
-                        csName       : req.configSpec.name,
-                        fsName       : req.funcSpec.name
+                        csName       : req.configSpec.name?: "N/A",
+                        fsName       : req.funcSpec.name?: "N/A"
                     ]
                 }, ["key"])
             ]
@@ -944,7 +944,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modules = componentsMetadata.findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }.collect { component ->
             // We will set-up a double loop in the template. For moustache limitations we need to have lists
             component.requirements = component.requirements.collect { r ->
-                [key: r.key, name: r.name, gampTopic: r.gampTopic?:"undefined"]
+                [key: r.key, name: r.name, gampTopic: r.gampTopic?:"uncategorized"]
             }.groupBy { it.gampTopic.toLowerCase() }.collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
             return component
