@@ -721,7 +721,16 @@ class Project {
 
         if (!this.jiraUseCase) return result
         if (!this.jiraUseCase.jira) return result
-        return this.jiraUseCase.jira.getDocGenData(projectKey)
+
+        result = this.jiraUseCase.jira.getDocGenData(projectKey)
+        if (result?.project?.id == null) {
+            throw new IllegalArgumentException("Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
+        }
+
+        // FIXME: fix data types that should be sent correctly by the REST endpoint
+        result.project.id = result.project.id as String
+
+        return result
     }
 
     protected Map loadJiraDataBugs(Map tests) {
