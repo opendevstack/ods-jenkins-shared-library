@@ -1244,7 +1244,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTR as String)
 
         then:
-        result == "Developer Preview"
+        result == null
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CFTP as String)
