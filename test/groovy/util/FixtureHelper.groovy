@@ -713,16 +713,16 @@ class FixtureHelper {
                 <properties>
                     <property name="my-property-a" value="my-property-a-value"/>
                 </properties>
-                <testcase name="1_my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
-                <testcase name="2_my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
+                <testcase name="JIRA1_my-testcase-1" classname="app.MyTestCase1" status="Succeeded" time="1"/>
+                <testcase name="JIRA2_my-testcase-2" classname="app.MyTestCase2" status="Error" time="2">
                     <error type="my-error-type" message="my-error-message">This is an error.</error>
                 </testcase>
             </testsuite>
             <testsuite name="my-suite-2" tests="2" failures="1" errors="0" skipped="1" timestamp="2020-03-08T20:50:53Z">
-                <testcase name="3_my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
+                <testcase name="JIRA3_my-testcase-3" classname="app.MyTestCase3" status="Failed" time="3">
                     <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
                 </testcase>
-                <testcase name="4_my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
+                <testcase name="JIRA4_my-testcase-4" classname="app.MyTestCase4" status="Missing" time="4">
                     <skipped/>
                 </testcase>
             </testsuite>
@@ -740,27 +740,27 @@ class FixtureHelper {
                 <properties>
                     <property name="my-property-a" value="my-property-a-value"/>
                 </properties>
-                <testcase name="130_verify-database-setup" classname="org.sockshop.DatabaseSetupTest" status="Succeeded" time="1"/>
-                <testcase name="139_verify-payment-service-installation" classname="org.sockshop.PaymentServiceInstallationTest" status="Error" time="2">
+                <testcase name="NET130_verify-database-setup" classname="org.sockshop.DatabaseSetupTest" status="Succeeded" time="1"/>
+                <testcase name="NET139_verify-payment-service-installation" classname="org.sockshop.PaymentServiceInstallationTest" status="Error" time="2">
                     <error type="my-error-type" message="my-error-message">This is an error.</error>
                 </testcase>
             </testsuite>
             <testsuite name="sockshop-suite-2" tests="2" failures="1" errors="0" skipped="1" timestamp="2020-03-08T20:46:54Z">
-                <testcase name="140_verify-order-service-installation" classname="org.sockshop.OrderServiceInstallationTest" status="Failed" time="3">
+                <testcase name="NET140_verify-order-service-installation" classname="org.sockshop.OrderServiceInstallationTest" status="Failed" time="3">
                     <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
                 </testcase>
-                <testcase name="141_verify-databse-authentication" classname="org.sockshop.ShippingServiceInstallationTest" status="Missing" time="4">
+                <testcase name="NET141_verify-databse-authentication" classname="org.sockshop.ShippingServiceInstallationTest" status="Missing" time="4">
                     <skipped/>
                 </testcase>
             </testsuite>
             <testsuite name="sockshop-suite-3" tests="1" failures="0" errors="0" skipped="0" timestamp="2020-03-08T20:46:55Z">
-                <testcase name="138_verify-frontend-is-setup-correctly" classname="org.sockshop.FrontendSetupTest" status="Succeeded" time="5"/>
+                <testcase name="NET138_verify-frontend-is-setup-correctly" classname="org.sockshop.FrontendSetupTest" status="Succeeded" time="5"/>
             </testsuite>
             <testsuite name="sockshop-suite-4" tests="4" failures="0" errors="0" skipped="1" timestamp="2020-03-08T20:46:56Z">
-                <testcase name="136_user-exists-in-system" classname="org.sockshop.integration.UserTest" status="Succeeded" time="3" />
-                <testcase name="142_carts-gets-processed-correctly" classname="org.sockshop.integration.CartTest" status="Succeeded" time="3" />
-                <testcase name="143_frontend-retrieves-cart-correctly" classname="org.sockshop.integration.FrontendTest" status="Succeeded" time="3" />
-                <testcase name="144_frontend-retrieves-payment-data-correctly" classname="org.sockshop.integration.PaymentTest" status="Succeeded" time="3" />
+                <testcase name="NET136_user-exists-in-system" classname="org.sockshop.integration.UserTest" status="Succeeded" time="3" />
+                <testcase name="NET142_carts-gets-processed-correctly" classname="org.sockshop.integration.CartTest" status="Succeeded" time="3" />
+                <testcase name="NET143_frontend-retrieves-cart-correctly" classname="org.sockshop.integration.FrontendTest" status="Succeeded" time="3" />
+                <testcase name="NET144_frontend-retrieves-payment-data-correctly" classname="org.sockshop.integration.PaymentTest" status="Succeeded" time="3" />
             </testsuite>
         </testsuites>
         """

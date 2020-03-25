@@ -72,28 +72,28 @@ class JiraUseCaseSpec extends SpecHelper {
     def "check Jira issue matches test case"() {
         when:
         def issue = [key: "JIRA-123"]
-        def testcase = [name: "123 test"]
+        def testcase = [name: "JIRA123 test"]
 
         then:
         usecase.checkTestsIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
-        testcase.name = "123-test"
+        testcase.name = "JIRA123-test"
 
         then:
         usecase.checkTestsIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
-        testcase.name = "123_test"
+        testcase.name = "JIRA123_test"
 
         then:
         usecase.checkTestsIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
-        testcase.name = "123test"
+        testcase.name = "JIRA123test"
 
         then:
         !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
@@ -107,7 +107,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         when:
         issue = [key: "JIRA-123"]
-        testcase.name = "JIRA123_test"
+        testcase.name = "123_test"
 
         then:
         !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
@@ -244,10 +244,10 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         def expectedMatched = [
-            "JIRA-1": "1_my-testcase-1",
-            "JIRA-2": "2_my-testcase-2",
-            "JIRA-3": "3_my-testcase-3",
-            "JIRA-4": "4_my-testcase-4"
+            "JIRA-1": "JIRA1_my-testcase-1",
+            "JIRA-2": "JIRA2_my-testcase-2",
+            "JIRA-3": "JIRA3_my-testcase-3",
+            "JIRA-4": "JIRA4_my-testcase-4"
         ]
 
         def expectedMismatched = [
@@ -458,10 +458,10 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         def expected = [
-            "JIRA-1": "1_my-testcase-1",
-            "JIRA-2": "2_my-testcase-2",
-            "JIRA-3": "3_my-testcase-3",
-            "JIRA-4": "4_my-testcase-4"
+            "JIRA-1": "JIRA1_my-testcase-1",
+            "JIRA-2": "JIRA2_my-testcase-2",
+            "JIRA-3": "JIRA3_my-testcase-3",
+            "JIRA-4": "JIRA4_my-testcase-4"
         ]
 
         result == expected

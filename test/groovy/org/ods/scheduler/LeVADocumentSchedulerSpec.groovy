@@ -6697,7 +6697,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         // Test Parameters
         def qTypes = [
-            LeVADocumentUseCase.DocumentType.DTR as String,
             LeVADocumentUseCase.DocumentType.TIR as String,
             LeVADocumentUseCase.DocumentType.IVR as String,
             LeVADocumentUseCase.DocumentType.CFTR as String,
