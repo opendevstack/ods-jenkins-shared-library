@@ -244,11 +244,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 gampTopic.replaceAll(" ", "").toLowerCase(),
                 SortUtil.sortIssuesByProperties(reqs.collect { req ->
                     [
-                        key          : req.key,
-                        applicability: "Mandatory",
-                        ursName      : req.name,
-                        csName       : req.configSpec.name?: "N/A",
-                        fsName       : req.funcSpec.name?: "N/A"
+                        key           : req.key,
+                        applicability : "Mandatory",
+                        ursName       : req.name,
+                        ursDescription: req.description?: "",
+                        csName        : req.configSpec.name?: "N/A",
+                        csDescription : req.configSpec.description?: "",
+                        fsName        : req.funcSpec.name?: "N/A",
+                        fsDescription : req.funcSpec.description?: "",
                     ]
                 }, ["key"])
             ]
@@ -1178,7 +1181,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             labels.add("Doc:${label}")
         }
 
-        if (labels.isEmpty() && environment.equals('D')) {
+        if (environment.equals('D')) {
+            // Assumes that every document we generate along the pipeline has a tracking issue in Jira
             labels.add("Doc:${documentType}")
         }
 

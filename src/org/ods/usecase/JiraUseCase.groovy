@@ -85,8 +85,8 @@ class JiraUseCase {
     }
 
     boolean checkTestsIssueMatchesTestCase(Map testIssue, Map testCase) {
-        def testIssueKeyNumber = testIssue.key.substring(testIssue.key.indexOf("-") + 1)
-        return testCase.name.startsWith("${testIssueKeyNumber} ") || testCase.name.startsWith("${testIssueKeyNumber}-") || testCase.name.startsWith("${testIssueKeyNumber}_")
+        def issueKeyClean = testIssue.key.replaceAll("-", "")
+        return testCase.name.startsWith("${issueKeyClean} ") || testCase.name.startsWith("${issueKeyClean}-") || testCase.name.startsWith("${issueKeyClean}_")
     }
 
     private String convertHTMLImageSrcIntoBase64Data(String html) {

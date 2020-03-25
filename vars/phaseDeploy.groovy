@@ -24,7 +24,7 @@ def call(Project project, List<Set<Map>> repos) {
     try {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
-        runOnAgentPod(project.isPromotionMode) {
+        runOnAgentPod(project, project.isPromotionMode) {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject

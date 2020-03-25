@@ -491,11 +491,13 @@ class Project {
         return this.data.jira.docs.values() as List
     }
 
+    @NonCPS
     List<Map> getDocumentTrackingIssues(List<String> labels) {
         def result = []
 
+        def issues = this.getDocumentTrackingIssues()
         labels.each { label ->
-            this.getDocumentTrackingIssues().each { issue ->
+            issues.each { issue ->
                 if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
                     result << [key: issue.key, status: issue.status]
                 }
@@ -723,7 +725,16 @@ class Project {
 
         if (!this.jiraUseCase) return result
         if (!this.jiraUseCase.jira) return result
-        return this.jiraUseCase.jira.getDocGenData(projectKey)
+
+        result = this.jiraUseCase.jira.getDocGenData(projectKey)
+        if (result?.project?.id == null) {
+            throw new IllegalArgumentException("Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
+        }
+
+        // FIXME: fix data types that should be sent correctly by the REST endpoint
+        result.project.id = result.project.id as String
+
+        return result
     }
 
     protected Map loadJiraDataBugs(Map tests) {
