@@ -80,7 +80,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                         ]
                     ]
                 ]
@@ -102,7 +102,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                             error: [ text: "This is an error." ]
                         ]
                     ]
@@ -125,7 +125,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                             failure: [ text: "This is a failure." ]
                         ]
                     ]
@@ -150,7 +150,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1"
+                            name: "JIRA1_my-testcase-1"
                         ]
                     ]
                 ]
@@ -174,7 +174,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                             error: [ text: "This is an error." ]
                         ]
                     ]
@@ -199,7 +199,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                             failure: [ text: "This is a failure." ]
                         ]
                     ]
@@ -224,7 +224,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                             error: [ text: "This is an error." ]
                         ]
                     ]
@@ -232,7 +232,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "2_my-testcase-2",
+                            name: "JIRA2_my-testcase-2",
                             failure: [ text: "This is a failure." ]
                         ]
                     ]
@@ -273,7 +273,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                             error: [ text: "This is an error." ]
                         ]
                     ]
@@ -298,7 +298,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 [
                     testcases: [
                         [
-                            name: "1_my-testcase-1",
+                            name: "JIRA1_my-testcase-1",
                             error: [ text: "This is an error." ]
                         ]
                     ]
