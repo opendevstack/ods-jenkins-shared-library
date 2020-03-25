@@ -1024,7 +1024,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
 
-        def pods = this.os.getPodDataForComponent(repo.id)
+        if (!data.pod) {
+            this.steps.echo "Repo data 'pod' not populated, retrieving latest pod of component ${repo.id}..."
+            data.pod = os.getPodDataForComponent(this.project.key, repo.id)
+        }
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1032,13 +1035,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ocpBuildId          : data.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
                 ocpDockerImage      : data.odsBuildArtifacts?."OCP Docker image" ?: "N/A",
                 ocpDeploymentId     : data.odsBuildArtifacts?."OCP Deployment Id" ?: "N/A",
-                podName             : data.pods.items[0].metadata?.name ?: "N/A",
-                podNamespace        : data.pods.items[0].metadata?.namespace ?: "N/A",
-                podCreationTimestamp: data.pods.items[0].metadata?.creationTimestamp ?: "N/A",
-                podEnvironment      : data.pods.items[0].metadata?.labels?.env ?: "N/A",
-                podNode             : data.pods.items[0].spec?.nodeName ?: "N/A",
-                podIp               : data.pods.items[0].status?.podIP ?: "N/A",
-                podStatus           : data.pods.items[0].status?.phase ?: "N/A"
+                podName             : data.pod?.metadata?.name ?: "N/A",
+                podNamespace        : data.pod?.metadata?.namespace ?: "N/A",
+                podCreationTimestamp: data.pod?.metadata?.creationTimestamp ?: "N/A",
+                podEnvironment      : data.pod?.metadata?.labels?.env ?: "N/A",
+                podNode             : data.pod?.spec?.nodeName ?: "N/A",
+                podIp               : data.pod?.status?.podIP ?: "N/A",
+                podStatus           : data.pod?.status?.phase ?: "N/A"
             ],
             data         : [
                 repo    : repo,

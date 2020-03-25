@@ -425,8 +425,12 @@ class Project {
         this.data.git.targetTag
     }
 
+    boolean getVersionedDevEnvsEnabled() {
+        this.config.get('versionedDevEnvs', false)
+    }
+
     String getConcreteEnvironment() {
-        def versionedDevEnvs = this.config.get('versionedDevEnvs', false)
+        def versionedDevEnvs = getVersionedDevEnvsEnabled()
         getConcreteEnvironment(buildParams.targetEnvironment, buildParams.version, versionedDevEnvs)
     }
 
