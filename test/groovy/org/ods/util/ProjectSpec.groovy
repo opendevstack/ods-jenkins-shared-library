@@ -19,6 +19,42 @@ class ProjectSpec extends SpecHelper {
     Project project
     File metadataFile
 
+    def createProject(Map<String, Closure> mixins = [:]) {
+        Project project = Spy(constructorArgs: [steps])
+
+        if (mixins.containsKey("getGitURLFromPath")) {
+            project.getGitURLFromPath(*_) >> { mixins["getGitURLFromPath"]() }
+        } else {
+            project.getGitURLFromPath(*_) >> { return new URIBuilder("https://github.com/my-org/my-pipeline-repo.git").build() }
+        }
+
+        if (mixins.containsKey("loadJiraData")) {
+            project.loadJiraData(*_) >> { mixins["loadJiraData"]() }
+        } else {
+            project.loadJiraData(*_) >> { return createProjectJiraData() }
+        }
+
+        if (mixins.containsKey("loadJiraDataBugs")) {
+            project.loadJiraDataBugs(*_) >> { mixins["loadJiraDataBugs"]() }
+        } else {
+            project.loadJiraDataBugs(*_) >> { return createProjectJiraDataBugs() }
+        }
+
+        if (mixins.containsKey("loadJiraDataDocs")) {
+            project.loadJiraDataDocs(*_) >> { mixins["loadJiraDataDocs"]() }
+        } else {
+            project.loadJiraDataDocs(*_) >> { return createProjectJiraDataDocs() }
+        }
+
+        if (mixins.containsKey("loadJiraDataIssueTypes")) {
+            project.loadJiraDataIssueTypes(*_) >> { mixins["loadJiraDataIssueTypes"]() }
+        } else {
+            project.loadJiraDataIssueTypes(*_) >> { return createProjectJiraDataIssueTypes() }
+        }
+
+        return project
+    }
+
     def setup() {
         git = Mock(GitUtil)
         jiraUseCase = Mock(JiraUseCase)
@@ -28,29 +64,7 @@ class ProjectSpec extends SpecHelper {
         metadataFile = new FixtureHelper().getResource("/project-metadata.yml")
         Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
-        project = Spy(constructorArgs: [steps], {
-            getGitURLFromPath(*_) >> {
-                return new URIBuilder("https://github.com/my-org/my-pipeline-repo.git").build()
-            }
-
-            loadJiraData(_) >> {
-                return createProjectJiraData()
-            }
-
-            loadJiraDataBugs(_) >> {
-                return createProjectJiraDataBugs()
-            }
-
-            loadJiraDataDocs() >> {
-                return createProjectJiraDataDocs()
-            }
-
-            loadJiraDataIssueTypes() >> {
-                return createProjectJiraDataIssueTypes()
-            }
-        })
-
-        project.init().load(git, jiraUseCase)
+        project = createProject().init().load(git, jiraUseCase)
     }
 
     def "get build environment for DEBUG"() {
@@ -752,6 +766,76 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result.version == "0.1"
+    }
+
+    def "load Jira data"() {
+        setup:
+        def docGenData
+
+        def jira = Mock(JiraService) {
+            getDocGenData(_) >> {
+                println "D: " + docGenData
+                return docGenData
+            }
+        }
+
+        def projectObj = new Project(steps)
+        projectObj.git = git
+        projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira)
+
+        def projectKey = "DEMO"
+
+        project = createProject([
+            "loadJiraData": {
+                return projectObj.loadJiraData(projectKey)
+            }
+        ])
+
+        when:
+        docGenData = null
+        project.loadJiraData(projectKey)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
+
+        when:
+        docGenData = [:]
+        project.loadJiraData(projectKey)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
+
+        when:
+        docGenData = [project: [:]]
+        project.loadJiraData(projectKey)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
+
+        when:
+        docGenData = [project: [id: null]]
+        project.loadJiraData(projectKey)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
+
+        when:
+        docGenData = [project: [id: "4711"]]
+        def result = project.loadJiraData(projectKey)
+
+        then:
+        result.project.id == "4711"
+
+        when:
+        docGenData = [project: [id: 4711]]
+        result = project.loadJiraData(projectKey)
+
+        then:
+        result.project.id == "4711"
     }
 
     def "load metadata"() {
