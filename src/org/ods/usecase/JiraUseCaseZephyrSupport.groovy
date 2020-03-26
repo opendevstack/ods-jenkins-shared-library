@@ -27,7 +27,8 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         if (!testIssues?.isEmpty()) {
             def buildParams = this.project.buildParams
 
-            def testCycles = this.zephyr.getTestCycles(this.project.id, this.project.version?.id ?: "-1")
+            def versionId = this.project.version?.id ?: "-1"
+            def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
 
             // Zephyr test cycle properties
             def name = buildParams.targetEnvironmentToken + ": Build " + this.steps.env.BUILD_ID
@@ -36,7 +37,7 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
 
             testCycleId = testCycles.find { it.value instanceof Map && it.value.name == name && it.value.build == build && it.value.environment == environment }?.key
             if (!testCycleId) {
-                testCycleId = this.zephyr.createTestCycle(this.project.id, this.project.version.id, name, build, environment).id
+                testCycleId = this.zephyr.createTestCycle(this.project.id, versionId, name, build, environment).id
             }
         }
 
