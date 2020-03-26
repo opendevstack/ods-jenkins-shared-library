@@ -921,7 +921,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { techSpec ->
                 [
                     key        : techSpec.key,
-                    req_key    : techSpec.requirements.join(", "),
+                    req_key    : techSpec.requirements.join(", ")?:"None",
                     description: techSpec.systemDesignSpec
                 ]
             }
