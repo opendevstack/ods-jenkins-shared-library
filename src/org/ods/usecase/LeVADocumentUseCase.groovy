@@ -387,7 +387,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         tests.collect { testIssue ->
 
-
+            def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
 			def riskLevels = testIssue.getResolvedRisks().collect{
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
@@ -398,7 +398,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testKey: testIssue.key,
                 description: testIssue.description ?: "N/A",
                 systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                softwareDesignSpec: (testIssue.techSpecs.join(", "))?: "N/A",
+                softwareDesignSpec: (softwareDesignSpecs.join(", "))?: "N/A",
                 riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
             ]
         }
@@ -454,13 +454,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         return value ? value.text : "None"
                     }
 
+                    def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
                     [
                         key               : testIssue.key,
                         description       : testIssue.description ?: "N/A",
                         systemRequirement : testIssue.requirements.join(", "),
                         success           : testIssue.isSuccess ? "Y" : "N",
                         remarks           : testIssue.isMissing ? "Not executed" : "N/A",
-                        softwareDesignSpec: (testIssue.techSpecs.join(", "))?: "N/A",
+                        softwareDesignSpec: (softwareDesignSpecs.join(", "))?: "N/A",
                         riskLevel         : riskLevels ? riskLevels.join(", ") : "N/A"
                     ]
                 },
