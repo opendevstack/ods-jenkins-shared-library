@@ -491,7 +491,6 @@ class Project {
         return this.data.jira.docs.values() as List
     }
 
-    @NonCPS
     List<Map> getDocumentTrackingIssues(List<String> labels) {
         def result = []
 
@@ -547,6 +546,10 @@ class Project {
 
     String getId() {
         return this.data.jira.project.id
+    }
+
+    Map getVersion() {
+        return this.data.jira.project.version
     }
 
     Map getJiraFieldsForIssueType(String issueTypeName) {

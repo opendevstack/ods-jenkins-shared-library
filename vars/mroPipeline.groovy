@@ -15,10 +15,16 @@ def call(Map config) {
 
     node {
 
+        def scmBranches = scm.branches
+        def branch = scmBranches[0]?.getName()
+        if (branch && !branch.startsWith("*/")) {
+            scmBranches = [[name: "*/${branch}"]]
+        }
+
         // checkout local branch
         checkout([
             $class: 'GitSCM',
-            branches: scm.branches,
+            branches: scmBranches,
             doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
             extensions: [[$class: 'LocalBranch', localBranch: "**"]],
             userRemoteConfigs: scm.userRemoteConfigs
