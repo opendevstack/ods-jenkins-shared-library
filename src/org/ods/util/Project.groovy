@@ -550,7 +550,6 @@ class Project {
     }
 
     Map getVersion() {
-        this.steps.echo("nifl::project getVersion() data.jira -> ${this.data.jira}")
         return this.data.jira.project.version
     }
 
