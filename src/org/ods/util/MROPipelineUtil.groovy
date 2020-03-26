@@ -142,6 +142,7 @@ class MROPipelineUtil extends PipelineUtil {
                         label: "commit and push new state"
                     )
                 } else {
+                    os.tagImageSha(repo.id, targetProject, imageSha, this.project.targetTag)
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}

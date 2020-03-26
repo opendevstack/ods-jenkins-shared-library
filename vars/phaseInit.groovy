@@ -41,9 +41,11 @@ def call() {
 
         // load build params
         def buildParams = Project.loadBuildParams(steps)
-        def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)
+        steps.echo "Build Parameters: ${buildParams}"
+
 
         // git checkout
+        def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)
         if (!Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
