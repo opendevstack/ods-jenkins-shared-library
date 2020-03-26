@@ -90,7 +90,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
-                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'.")
+                def repoNamesAndIds = this.project.repositories.each{ [id: it.id, name: it.name] }
+                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'. Please check the metatada file. In the metadata there are the following repositories configured: ${repoNamesAndIds}")
             }
 
             def metadata = repo_.metadata
@@ -1219,14 +1220,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String getWatermarkText(String documentType, List<Map> sectionsNotDone = []) {
         def environment = this.project.buildParams.targetEnvironmentToken
 
-        // The watermark only applies in DEV environment (for documents not to be delivered from that environment)
-        if (environment.equals('D') && !LeVADocumentScheduler.ENVIRONMENT_TYPE['D'].containsKey(documentType)) {
-            return this.DEVELOPER_PREVIEW_WATERMARK
-        }
-
         // The watermark applies when any tracking issue for the sections of document is not in status DONE
         if (!sectionsNotDone.isEmpty()) {
             return this.WORK_IN_PROGRESS_WATERMARK
+        }
+
+        // The watermark only applies in DEV environment (for documents not to be delivered from that environment)
+        if (environment.equals('D') && !LeVADocumentScheduler.ENVIRONMENT_TYPE['D'].containsKey(documentType)) {
+            return this.DEVELOPER_PREVIEW_WATERMARK
         }
 
         return null
