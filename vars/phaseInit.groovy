@@ -41,9 +41,11 @@ def call() {
 
         // load build params
         def buildParams = Project.loadBuildParams(steps)
-        def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)
+        steps.echo "Build Parameters: ${buildParams}"
+
 
         // git checkout
+        def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)
         if (!Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
@@ -340,7 +342,7 @@ private boolean privateKeyExists(def privateKeyCredentialsId) {
 private checkoutGitRef(String gitRef, def extensions) {
     checkout([
         $class: 'GitSCM',
-        branches: [[name: gitRef]],
+        branches: [[name: "*/${gitRef}"]],
         doGenerateSubmoduleConfigurations: false,
         extensions: extensions,
         userRemoteConfigs: scm.userRemoteConfigs

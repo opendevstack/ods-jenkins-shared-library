@@ -178,10 +178,21 @@ class OpenShiftService {
       )
     }
 
-    void tagImageWithLatest(String name, String project, String imageTag) {
+    void tagImageWithLatest(String name, String project, String sourceTag) {
       steps.sh(
-        script: """oc -n ${project} tag ${name}:${imageTag} ${name}:latest""",
-        label: "tag image ${name}:${imageTag} with latest"
+        script: """oc -n ${project} tag ${name}:${sourceTag} ${name}:latest""",
+        label: "tag image ${name}:${sourceTag} with latest"
+      )
+    }
+
+    void tagImageSha(String name, String project, String sourceSha, String targetTag) {
+      def shaPrefix = 'sha256:'
+      if (!sourceSha.startsWith(shaPrefix)) {
+        sourceSha = "${shaPrefix}${sourceSha}"
+      }
+      steps.sh(
+        script: """oc -n ${project} tag ${name}@${sourceSha} ${name}:${targetTag}""",
+        label: "tag image ${name}@${sourceSha} with ${targetTag}"
       )
     }
 
