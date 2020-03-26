@@ -357,14 +357,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.DTP as String
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         def unitTests = this.project.getAutomatedTestsTypeUnit()
 
@@ -431,14 +429,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def unitTestData = data.tests.unit
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
@@ -1013,13 +1009,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTIP(Map repo = null, Map data = null) {
         def documentType = DocumentType.TIP as String
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         def sectionsNotDone = this.getSectionsNotDone(sections)
 
         def data_ = [
@@ -1039,13 +1033,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         def sectionsNotDone = this.getSectionsNotDone(sections)
 
         if (!data.pod) {
