@@ -50,6 +50,10 @@ def call(Project project, List<Set<Map>> repos) {
         // Dump a representation of the project
         echo "Project ${project.toString()}"
 
+        if (project.isAssembleMode && !project.isWorkInProgress) {
+            echo "CAUTION: Any future changes that should affect version '${project.buildParams.version}' need to be committed into branch '${project.gitReleaseBranch}'."
+        }
+
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         // Fail the build in case of failing tests.

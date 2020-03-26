@@ -730,6 +730,9 @@ class Project {
 
         // FIXME: fix data types that should be sent correctly by the REST endpoint
         result.project.id = result.project.id as String
+        result.tests.each { key, test ->
+            test.id = test.id as String
+        }
 
         return result
     }

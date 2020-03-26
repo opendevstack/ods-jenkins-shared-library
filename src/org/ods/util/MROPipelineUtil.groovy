@@ -139,17 +139,16 @@ class MROPipelineUtil extends PipelineUtil {
                         git commit -m "${commitMessage} [ci skip]"
                         git push origin ${repo.branch}
                         """,
-                        label: "commit new state"
+                        label: "commit and push new state"
                     )
-                } else if (git.remoteTagExists(this.project.targetTag)) {
-                    steps.echo "Skipping commit/tag because it already exists."
                 } else {
+                    os.tagImageSha(repo.id, targetProject, imageSha, this.project.targetTag)
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}
                         git commit -m "${commitMessage} [ci skip]"
                         """,
-                        label: "commit and tag new state with ${this.project.targetTag}"
+                        label: "commit new state"
                     )
                     tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                 }
@@ -340,8 +339,12 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def tagAndPushBranch(String branch, String tag) {
-        git.createTag(tag)
-        git.pushBranchWithTags(branch)
+        if (this.git.remoteTagExists(tag)) {
+            this.steps.echo "Skipping tag because it already exists."
+        } else {
+            this.git.createTag(tag)
+            this.git.pushBranchWithTags(branch)
+        }
     }
 
     def tagAndPush(String tag) {
@@ -463,6 +466,10 @@ class MROPipelineUtil extends PipelineUtil {
                         this.steps.stage('ODS Test Component') {
                             if (name == PipelinePhases.TEST) {
                                 executeODSComponent(repo, baseDir)
+                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                             } else {
                                 this.steps.echo("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                             }
