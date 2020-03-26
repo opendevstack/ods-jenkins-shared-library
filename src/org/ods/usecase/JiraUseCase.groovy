@@ -266,6 +266,7 @@ class JiraUseCase {
         this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])
 
         if (error) {
+            this.steps.echo("nifl::updateJiraReleaseStatusIssue() error: ${error}, error.class ${error.getClass()}, error.cause ${error.getCause()}, error.message ${error.getMessage()}")
             this.jira.appendCommentToIssue(releaseStatusIssueKey, error.message)
         }
     }
