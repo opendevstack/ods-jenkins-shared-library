@@ -91,7 +91,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
                 def repoNamesAndIds = this.project.repositories.collect{ [id: it.id, name: it.name] }
-                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'. Please check the metatada file. In the metadata there are the following repositories configured: ${repoNamesAndIds}")
+                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'. Please check the metatada.yml file. In this file there are the following repositories configured: ${repoNamesAndIds}")
             }
 
             def metadata = repo_.metadata
@@ -1208,7 +1208,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.DEVELOPER_PREVIEW_WATERMARK
         }
 
-        // The watermark applies when any tracking issue for the sections of document is not in status DONE and is to be generated in the environment
+        // The watermark applies when any of the document chapter of the document is not in status DONE and is to be generated for the environment
         if (!sectionsNotDone.isEmpty()) {
             return this.WORK_IN_PROGRESS_WATERMARK
         }
