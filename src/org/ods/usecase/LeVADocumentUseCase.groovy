@@ -382,13 +382,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected List<Map> computeTestsWithRequirementsAndSpecs(List<Map> tests) {
-        def obtainEnumText = { category, value ->
-            this.project.getEnumDictionary(category)[value as String].text
+        def obtainEnum = { category, value ->
+            return this.project.getEnumDictionary(category)[value as String]
         }
 
         tests.collect { testIssue ->
             def techSpecsWithSoftwareDesignSpec = testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
-			def risks = testIssue.getResolvedRisks().collect{ obtainEnumText("SeverityOfImpact", it.severityOfImpact)}
+
+			def riskLevels = testIssue.getResolvedRisks().collect{
+                def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
+                return value ? value.text : "None"
+            }
 
             [
                 moduleName: testIssue.components.join(", "),
@@ -396,7 +400,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 description: testIssue.description ?: "N/A",
                 systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                 softwareDesignSpec: techSpecsWithSoftwareDesignSpec ? techSpecsWithSoftwareDesignSpec.join(", ") : "N/A",
-                riskLevel: risks ? risks.join(", ") : "N/A"
+                riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
             ]
         }
     }
@@ -438,7 +442,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
 
-        def obtainEnumText = { category, value -> this.project.getEnumDictionary(category)[value as String].text }
+        def obtainEnum = { category, value ->
+            return this.project.getEnumDictionary(category)[value as String]
+        }
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -446,7 +452,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 repo              : repo,
                 sections          : sections,
                 tests             : testIssues.collect { testIssue ->
-                    def risks = testIssue.getResolvedRisks().collect{ obtainEnumText("SeverityOfImpact", it.severityOfImpact)}
+                    def riskLevels = testIssue.getResolvedRisks().collect{
+                        def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
+                        return value ? value.text : "None"
+                    }
+
                     [
                         key               : testIssue.key,
                         description       : testIssue.description ?: "N/A",
@@ -455,7 +465,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         remarks           : testIssue.isMissing ? "Not executed" : "N/A",
                         softwareDesignSpec: testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec } ?
                                             testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }.join(", ") : "N/A",
-                        riskLevel         : risks ? risks.join(", ") : "N/A"
+                        riskLevel         : riskLevels ? riskLevels.join(", ") : "N/A"
                     ]
                 },
                 numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isMissing },
@@ -533,8 +543,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
 
-        def obtainEnumShort = { category, value -> this.project.getEnumDictionary(category)[value as String]."short" }
-        def obtainEnumValue = { category, value -> this.project.getEnumDictionary(category)[value as String].value }
+        def obtainEnum = { category, value ->
+            return this.project.getEnumDictionary(category)[value as String]
+        }
 
         def risks = this.project.getRisks().collect { r ->
             def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
@@ -545,11 +556,21 @@ class LeVADocumentUseCase extends DocGenUseCase {
             r.requirements = requirements.collect { it.name }.join("<br/>")
             r.requirementsKey = requirements.collect { it.key }.join("<br/>")
 
-            r.gxpRelevance = obtainEnumShort("GxPRelevance", r.gxpRelevance)
-            r.probabilityOfOccurrence = obtainEnumShort("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
-            r.severityOfImpact = obtainEnumShort("SeverityOfImpact", r.severityOfImpact)
-            r.probabilityOfDetection = obtainEnumShort("ProbabilityOfDetection", r.probabilityOfDetection)
-            r.riskPriority = obtainEnumValue("RiskPriority", r.riskPriority)
+            def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
+            r.gxpRelevance = gxpRelevance ? gxpRelevance."short" : "None"
+
+            def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
+            r.probabilityOfOccurrence = probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None"
+
+            def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
+            r.severityOfImpact = severityOfImpact ? severityOfImpact."short" : "None"
+
+            def probabilityOfDetection = obtainEnum("ProbabilityOfDetection", r.probabilityOfDetection)
+            r.probabilityOfDetection = probabilityOfDetection ? probabilityOfDetection."short" : "None"
+
+            def riskPriority = obtainEnum("RiskPriority", r.riskPriority)
+            r.riskPriority = riskPriority ? riskPriority.value : "N/A"
+
             return r
         }
 

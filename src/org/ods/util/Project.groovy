@@ -491,7 +491,6 @@ class Project {
         return this.data.jira.docs.values() as List
     }
 
-    @NonCPS
     List<Map> getDocumentTrackingIssues(List<String> labels) {
         def result = []
 
@@ -733,6 +732,9 @@ class Project {
 
         // FIXME: fix data types that should be sent correctly by the REST endpoint
         result.project.id = result.project.id as String
+        result.tests.each { key, test ->
+            test.id = test.id as String
+        }
 
         return result
     }
