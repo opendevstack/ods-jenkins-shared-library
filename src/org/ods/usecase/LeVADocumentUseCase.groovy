@@ -460,8 +460,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         systemRequirement : testIssue.requirements.join(", "),
                         success           : testIssue.isSuccess ? "Y" : "N",
                         remarks           : testIssue.isMissing ? "Not executed" : "N/A",
-                        softwareDesignSpec: testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec } ?
-                                            testIssue.getTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }.join(", ") : "N/A",
+                        softwareDesignSpec: (testIssue.techSpecs.join(", "))?: "N/A",
                         riskLevel         : riskLevels ? riskLevels.join(", ") : "N/A"
                     ]
                 },
