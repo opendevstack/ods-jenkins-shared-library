@@ -491,7 +491,6 @@ class Project {
         return this.data.jira.docs.values() as List
     }
 
-    @NonCPS
     List<Map> getDocumentTrackingIssues(List<String> labels) {
         def result = []
 
