@@ -533,8 +533,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
 
-        def obtainEnumShort = { category, value -> this.project.getEnumDictionary(category)[value as String]."short" }
-        def obtainEnumValue = { category, value -> this.project.getEnumDictionary(category)[value as String].value }
+        def obtainEnumShort = { category, value -> (!value)? this.project.getEnumDictionary(category)[value as String]."short" : "ERROR" }
+        def obtainEnumValue = { category, value -> (!value)? this.project.getEnumDictionary(category)[value as String].value : "ERROR" }
 
         def risks = this.project.getRisks().collect { r ->
             def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
