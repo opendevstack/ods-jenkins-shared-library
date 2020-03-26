@@ -41,9 +41,8 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
         support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
 
         then:
-        1 * zephyr.getProjectVersions(project.jiraProjectKey) >> []
-        1 * zephyr.getTestCycles(project.id, "-1")
-        1 * zephyr.createTestCycle(project.id, "-1", project.buildParams.targetEnvironmentToken + ": Build " + steps.env.BUILD_ID, steps.env.BUILD_URL, project.buildParams.targetEnvironment) >> [id: "111"]
+        1 * zephyr.getTestCycles(project.id, "11100")
+        1 * zephyr.createTestCycle(project.id, "11100", project.buildParams.targetEnvironmentToken + ": Build " + steps.env.BUILD_ID, steps.env.BUILD_URL, project.buildParams.targetEnvironment) >> [id: "111"]
 
         then:
         1 * zephyr.createTestExecutionForIssue("1", project.id, "111") >> ["11": []]
@@ -80,7 +79,6 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
         support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
 
         then:
-        0 * zephyr.getProjectVersions(project.jiraProjectKey)
         0 * zephyr.createTestCycle(project.id, "-1", null, steps.env.BUILD_URL, project.buildParams.targetEnvironment)
     }
 
@@ -97,17 +95,5 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
         _ * zephyr.createTestCycle(*_) >> [id: "1"]
         _ * zephyr.createTestExecutionForIssue(*_) >> ["1": []]
         1 * support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
-    }
-
-    def "get project version"() {
-        given:
-        project.buildParams.version = "0.1"
-
-        when:
-        def result = support.getProjectVersion(project.jiraProjectKey)
-
-        then:
-        1 * zephyr.getProjectVersions(project.jiraProjectKey) >> [ [id: "1234", name: "0.1"] ]
-        result == [id: "1234", name: "0.1"]
     }
 }
