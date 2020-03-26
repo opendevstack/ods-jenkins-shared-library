@@ -723,6 +723,7 @@ class Project {
         if (!this.jiraUseCase.jira) return result
 
         result = this.jiraUseCase.jira.getDocGenData(projectKey)
+        this.steps.echo("DEBUUUGGG jira data " + result) //TODO deleteme
         if (result?.project?.id == null) {
             throw new IllegalArgumentException("Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
