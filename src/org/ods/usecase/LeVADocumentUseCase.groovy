@@ -571,6 +571,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def riskPriority = obtainEnum("RiskPriority", r.riskPriority)
             r.riskPriority = riskPriority ? riskPriority.value : "N/A"
 
+            r.riskPriorityNumber = r.riskPriorityNumber ?: "N/A"
+
             return r
         }
 
