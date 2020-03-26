@@ -454,9 +454,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
 
         then:
+        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
@@ -487,9 +487,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
@@ -534,9 +534,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
@@ -587,9 +587,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
@@ -1257,7 +1257,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.jira.appendCommentToIssue("TRK-2", "myMessage Attention: this document is work in progress! See issues: DOC-1, DOC-3")
     }
 
-    def "watermark whould be applied if any issue is not in DONE"() {
+    def "watermark should be applied if any issue is not in DONE"() {
         given:
         project.buildParams.targetEnvironment = "dev"
         project.buildParams.targetEnvironmentToken = "D"
@@ -1272,8 +1272,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result = usecase.getWatermarkText("DocumentKey", [[key:"TO DO"],[key:"IN progress"]])
 
         then:
-        result == usecase.WORK_IN_PROGRESS_WATERMARK
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
+        when:
+        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CSD as String, [[key:"TO DO"],[key:"IN progress"]])
+
+        then:
+        result == usecase.WORK_IN_PROGRESS_WATERMARK
 
     }
 

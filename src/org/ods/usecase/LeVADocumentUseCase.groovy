@@ -678,14 +678,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createIVP(Map repo = null, Map data = null) {
         def documentType = DocumentType.IVP as String
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
 
@@ -728,14 +726,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTCR(Map repo = null, Map data = null) {
         String documentType = DocumentType.TCR as String
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         def integrationTestData = data.tests.integration
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
@@ -815,14 +811,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTCP(Map repo = null, Map data = null) {
         String documentType = DocumentType.TCP as String
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
@@ -862,14 +856,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def installationTestData = data.tests.installation
 
-        def watermarkText
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        } else {
-            watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
         def discrepancies = this.computeTestDiscrepancies("Installation Tests", installationTestIssues, installationTestData.testResults)
@@ -1012,8 +1004,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
-        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
@@ -1036,8 +1028,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
         }
-        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
         def sectionsNotDone = this.getSectionsNotDone(sections)
+        def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
 
         if (!data.pod) {
             this.steps.echo "Repo data 'pod' not populated, retrieving latest pod of component ${repo.id}..."
@@ -1211,14 +1203,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String getWatermarkText(String documentType, List<Map> sectionsNotDone = []) {
         def environment = this.project.buildParams.targetEnvironmentToken
 
-        // The watermark applies when any tracking issue for the sections of document is not in status DONE
-        if (!sectionsNotDone.isEmpty()) {
-            return this.WORK_IN_PROGRESS_WATERMARK
-        }
-
         // The watermark only applies in DEV environment (for documents not to be delivered from that environment)
         if (environment.equals('D') && !LeVADocumentScheduler.ENVIRONMENT_TYPE['D'].containsKey(documentType)) {
             return this.DEVELOPER_PREVIEW_WATERMARK
+        }
+
+        // The watermark applies when any tracking issue for the sections of document is not in status DONE and is to be generated in the environment
+        if (!sectionsNotDone.isEmpty()) {
+            return this.WORK_IN_PROGRESS_WATERMARK
         }
 
         return null
