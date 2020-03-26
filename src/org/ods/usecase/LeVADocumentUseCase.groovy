@@ -556,8 +556,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def proposedMeasuresDesription = this.project.getRisks().collect { r ->
             (r.getResolvedTests().collect {
                 if (!it) throw new IllegalArgumentException("Error: test for requirement ${r.key} could not be obtained. Check if all of ${r.tests.join(", ")} exist in JIRA")
-                [key: it.key, name: it.name, type: "test", referencesRisk: r.key]
-            } + r.getResolvedMitigations().collect { [key: it?.key, name: it?.name, type: "mitigation", referencesRisk: r.key] })
+                [key: it.key, name: it.name, description: it.description, type: "test", referencesRisk: r.key]
+            } + r.getResolvedMitigations().collect { [key: it?.key, name: it?.name, description: it?.description, type: "mitigation", referencesRisk: r.key] })
         }.flatten()
 
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
@@ -947,7 +947,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modules = componentsMetadata.findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }.collect { component ->
             // We will set-up a double loop in the template. For moustache limitations we need to have lists
             component.requirements = component.requirements.collect { r ->
-                [key: r.key, name: r.name, gampTopic: r.gampTopic?:"uncategorized"]
+                [key: r.key, name: r.name, reqDescription: r.description, gampTopic: r.gampTopic?:"uncategorized"]
             }.groupBy { it.gampTopic.toLowerCase() }.collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
             return component
