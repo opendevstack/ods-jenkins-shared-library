@@ -340,7 +340,7 @@ private boolean privateKeyExists(def privateKeyCredentialsId) {
 private checkoutGitRef(String gitRef, def extensions) {
     checkout([
         $class: 'GitSCM',
-        branches: [[name: gitRef]],
+        branches: [[name: "*/${gitRef}"]],
         doGenerateSubmoduleConfigurations: false,
         extensions: extensions,
         userRemoteConfigs: scm.userRemoteConfigs
