@@ -148,21 +148,21 @@ class JiraUseCase {
         if (!this.jira) return [:]
 
         def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
-
+        this.steps.echo("nifl::getDocumentChapterData() projectKey = ${this.project.jiraProjectKey}; issueType = ${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}; labels = ${jiraDocumentChapterLabel}")
         def jqlQuery = [
             jql   : "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
             expand: ["names", "renderedFields"]
         ]
-
+        this.steps.echo("nifl::getDocumentChapterData() jql -> ${jqlQuery}")
         def result = this.jira.searchByJQLQuery(jqlQuery)
         if (!result || result.total == 0) {
             throw new IllegalStateException("Error: could not find document chapter data for document '${documentType}' using JQL query: '${jqlQuery}'.")
         }
-
+        this.steps.echo("nifl::getDocumentChapterData() result -> ${result}")
         // TODO: rewrite using Project.getJiraFieldsForIssueType(issueTypeName)
         def numberKeys = result.names.findAll { it.value == CustomIssueFields.HEADING_NUMBER }.collect { it.key }
         def contentFieldKeys = result.names.findAll { it.value == CustomIssueFields.CONTENT }.collect { it.key }
-
+        this.steps.echo("nifl::getDocumentChapterData() numberKeys -> ${numberKeys}; contentFieldKeys -> ${contentFieldKeys}")
         return result.issues.collectEntries { issue ->
             def number = issue.fields.find { field ->
                 numberKeys.contains(field.key) && field.value
