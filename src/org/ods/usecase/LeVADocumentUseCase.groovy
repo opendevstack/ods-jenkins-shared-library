@@ -90,7 +90,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
-                def repoNamesAndIds = this.project.repositories.each{ [id: it.id, name: it.name] }
+                def repoNamesAndIds = this.project.repositories.collect{ [id: it.id, name: it.name] }
                 throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'. Please check the metatada file. In the metadata there are the following repositories configured: ${repoNamesAndIds}")
             }
 
