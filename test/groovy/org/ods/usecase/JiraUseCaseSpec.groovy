@@ -407,7 +407,7 @@ class JiraUseCaseSpec extends SpecHelper {
         ])
 
         then:
-        1 * jira.appendCommentToIssue("JIRA-4711", error.message)
+        1 * jira.appendCommentToIssue("JIRA-4711", "${error.message}\n\nSee: ${null}")
     }
 
     def "update Jira release status issue without error"() {
