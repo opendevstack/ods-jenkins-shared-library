@@ -131,7 +131,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to create test execution for Jira issue. 'cycleId' is undefined."
+        e.message == "Error: unable to create test execution for Jira issue. 'testCycleId' is undefined."
 
         cleanup:
         stopServer(server)
@@ -200,259 +200,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    Map getProjectRequestData(Map mixins = [:]) {
-        def result = [
-            data: [
-                projectKey: "DEMO"
-            ],
-            headers: [
-                "Accept": "application/json"
-            ],
-            password: "password",
-            username: "username"
-        ]
-
-        result.path = "/rest/api/2/project/${result.data.projectKey}"
-
-        return result << mixins
-    }
-
-    Map getProjectResponseData(Map mixins = [:]) {
-        def result = [
-            body: JsonOutput.toJson([
-                id: '12005',
-                key: 'DEMO'
-            ])
-        ]
-
-        return result << mixins
-    }
-
-    def "get project with invalid project key"() {
-        given:
-        def request = getProjectRequestData()
-        def response = getProjectResponseData()
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProject()
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get project from Jira. 'projectKey' is undefined."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get project"() {
-        given:
-        def request = getProjectRequestData()
-        def response = getProjectResponseData()
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProject("DEMO")
-
-        then:
-        def expect = getProjectResponseData()
-
-        noExceptionThrown()
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get project with HTTP 404 failure"() {
-        given:
-        def request = getProjectRequestData()
-        def response = getProjectResponseData([
-            status: 404
-        ])
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProject("DEMO")
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: unable to get project. Jira could not be found at: 'http://localhost:${server.port()}'."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get project with HTTP 500 failure"() {
-        given:
-        def request = getProjectRequestData()
-        def response = getProjectResponseData([
-            status: 500,
-            body: "Sorry, doesn't work!"
-        ])
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProject("DEMO")
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: unable to get project. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    Map getTestDetailsForIssueRequestData(Map mixins = [:]) {
-        def result = [
-            data: [
-                issueId: "25140"
-            ],
-            headers: [
-                "Accept": "application/json"
-            ],
-            password: "password",
-            username: "username"
-        ]
-
-        result.path = "/rest/zapi/latest/teststep/${result.data.issueId}"
-
-        return result << mixins
-    }
-
-    Map getTestDetailsForIssueResponseData(Map mixins = [:]) {
-        def result = [
-            body: JsonOutput.toJson([
-                stepBeanCollection: [
-                    [
-                        data: 'Data1',
-                        htmlResult: '<p>Result1</p>',
-                        orderId:1,
-                        customFields:[:],
-                        attachmentsMap:[],
-                        htmlData: '<p>Data1</p>',
-                        result : 'Result1',
-                        customFieldValuesMap:[:],
-                        htmlStep: '<p>Step1</p>',
-                        createdBy: 'user1@mail.com',
-                        step: 'Step1',
-                        modifiedBy: 'user1@mail.com',
-                        id: 201,
-                        totalStepCount:2
-                    ],
-                    [
-                        data: 'Data2',
-                        htmlResult: '<p>Result2</p>',
-                        orderId:2,
-                        customFields:[:],
-                        attachmentsMap:[],
-                        htmlData: '<p>Data2</p>',
-                        result : 'Result2',
-                        customFieldValuesMap:[:],
-                        htmlStep: '<p>Step2</p>',
-                        createdBy: 'user2@mail.com',
-                        step: 'Step2',
-                        modifiedBy: 'user2@mail.com',
-                        id: 202,
-                        totalStepCount:2
-                    ]
-                ]
-            ])
-        ]
-
-        return result << mixins
-    }
-
-    def "get test details for issue with invalid issue id"() {
-        given:
-        def request = getTestDetailsForIssueRequestData()
-        def response = getTestDetailsForIssueResponseData()
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getTestDetailsForIssue(null)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get test details for Jira issue. 'issueId' is undefined."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get test details for issue"() {
-        given:
-        def request = getTestDetailsForIssueRequestData()
-        def response = getTestDetailsForIssueResponseData()
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getTestDetailsForIssue("25140")
-
-        then:
-        def expect = getTestDetailsForIssueResponseData()
-
-        noExceptionThrown()
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get test details for issue with HTTP 404 failure"() {
-        given:
-        def request = getTestDetailsForIssueRequestData()
-        def response = getTestDetailsForIssueResponseData([
-            status: 404
-        ])
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getTestDetailsForIssue("25140")
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: unable to get test details for Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get test details for issue with HTTP 500 failure"() {
-        given:
-        def request = getTestDetailsForIssueRequestData()
-        def response = getTestDetailsForIssueResponseData([
-            status: 500,
-            body: "Sorry, doesn't work!"
-        ])
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getTestDetailsForIssue("25140")
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: unable to get test details for Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    Map updateExecutionForIssueRequestData(String status, Map mixins = [:]) {
+    Map updateTestExecutionForIssueRequestData(String status, Map mixins = [:]) {
         def result = [
             data: [
                 executionId: "123456",
@@ -475,7 +223,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         return result << mixins
     }
 
-    Map updateExecutionForIssueResponseData(String status, Map mixins = [:]) {
+    Map updateTestExecutionForIssueResponseData(String status, Map mixins = [:]) {
         def result = [
             status: 200,
             body: JsonOutput.toJson([
@@ -511,18 +259,18 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - generic - with invalid execution id"() {
         given:
-        def request = updateExecutionForIssueRequestData("-1")
-        def response = updateExecutionForIssueResponseData("-1")
+        def request = updateTestExecutionForIssueRequestData("-1")
+        def response = updateTestExecutionForIssueResponseData("-1")
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssue(null, "-1")
+        def result = service.updateTestExecutionForIssue(null, "-1")
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to update test execution for Jira issue. 'executionId' is undefined."
+        e.message == "Error: unable to update test execution for Jira issue. 'testExecutionId' is undefined."
 
         cleanup:
         stopServer(server)
@@ -530,14 +278,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - generic - with invalid status"() {
         given:
-        def request = updateExecutionForIssueRequestData("-1")
-        def response = updateExecutionForIssueResponseData("-1")
+        def request = updateTestExecutionForIssueRequestData("-1")
+        def response = updateTestExecutionForIssueResponseData("-1")
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssue("123456", null)
+        def result = service.updateTestExecutionForIssue("123456", null)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -549,14 +297,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - generic"() {
         given:
-        def request = updateExecutionForIssueRequestData("-1")
-        def response = updateExecutionForIssueResponseData("-1")
+        def request = updateTestExecutionForIssueRequestData("-1")
+        def response = updateTestExecutionForIssueResponseData("-1")
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssue("123456", "-1")
+        def result = service.updateTestExecutionForIssue("123456", "-1")
 
         then:
         noExceptionThrown()
@@ -567,8 +315,8 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - generic - with HTTP 404 failure"() {
         given:
-        def request = updateExecutionForIssueRequestData("-1")
-        def response = updateExecutionForIssueResponseData("-1", [
+        def request = updateTestExecutionForIssueRequestData("-1")
+        def response = updateTestExecutionForIssueResponseData("-1", [
             status: 404
         ])
 
@@ -576,7 +324,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssue("123456", "-1")
+        def result = service.updateTestExecutionForIssue("123456", "-1")
 
         then:
         def e = thrown(RuntimeException)
@@ -588,8 +336,8 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - generic - with HTTP 500 failure"() {
         given:
-        def request = updateExecutionForIssueRequestData("-1")
-        def response = updateExecutionForIssueResponseData("-1", [
+        def request = updateTestExecutionForIssueRequestData("-1")
+        def response = updateTestExecutionForIssueResponseData("-1", [
             status: 500,
             body: "Sorry, doesn't work!"
         ])
@@ -598,7 +346,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssue("123456", "-1")
+        def result = service.updateTestExecutionForIssue("123456", "-1")
 
         then:
         def e = thrown(RuntimeException)
@@ -611,14 +359,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - Blocked"() {
         given:
-        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.BLOCKED)
-        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.BLOCKED)
+        def request = updateTestExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.BLOCKED)
+        def response = updateTestExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.BLOCKED)
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssueBlocked("123456")
+        def result = service.updateTestExecutionForIssueBlocked("123456")
 
         then:
         noExceptionThrown()
@@ -629,14 +377,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - Fail"() {
         given:
-        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.FAIL)
-        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.FAIL)
+        def request = updateTestExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.FAIL)
+        def response = updateTestExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.FAIL)
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssueFail("123456")
+        def result = service.updateTestExecutionForIssueFail("123456")
 
         then:
         noExceptionThrown()
@@ -647,14 +395,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - Pass"() {
         given:
-        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.PASS)
-        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.PASS)
+        def request = updateTestExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.PASS)
+        def response = updateTestExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.PASS)
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssuePass("123456")
+        def result = service.updateTestExecutionForIssuePass("123456")
 
         then:
         noExceptionThrown()
@@ -665,14 +413,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "update execution for issue - WIP"() {
         given:
-        def request = updateExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.WIP)
-        def response = updateExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.WIP)
+        def request = updateTestExecutionForIssueRequestData(JiraZephyrService.ExecutionStatus.WIP)
+        def response = updateTestExecutionForIssueResponseData(JiraZephyrService.ExecutionStatus.WIP)
 
         def server = createServer(WireMock.&put, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.updateExecutionForIssueWip("123456")
+        def result = service.updateTestExecutionForIssueWip("123456")
 
         then:
         noExceptionThrown()
@@ -879,132 +627,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
-    Map getProjectVersionsRequestData(Map mixins = [:]) {
-        def result = [
-            data: [
-                projectKey: "DEMO"
-            ],
-            headers: [
-                "Accept": "application/json"
-            ],
-            password: "password",
-            username: "username"
-        ]
-
-        result.path = "/rest/api/2/project/${result.data.projectKey}/versions"
-
-        return result << mixins
-    }
-
-    Map getProjectVersionsResponseData(Map mixins = [:]) {
-        def result = [
-            body: JsonOutput.toJson([
-                [
-                    archived: "false", 
-                    name: "0.1", 
-                    self: "https://localhost/rest/api/2/version/10937", 
-                    description: "Initial", 
-                    id: "10937", 
-                    projectId: "12005", 
-                    released: "false"
-                ], 
-                [
-                    archived: "false", 
-                    name: "1.0", 
-                    self: "https://localhost/rest/api/2/version/10938", 
-                    id: "10938", 
-                    projectId: "12005", 
-                    released: "false"
-                ]
-            ])
-        ]
-
-        return result << mixins
-    }
-
-    def "get project versions with invalid project key"() {
-        given:
-        def request = getProjectVersionsRequestData()
-        def response = getProjectVersionsResponseData()
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProjectVersions(null)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to get project versions from Jira. 'projectKey' is undefined."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get project versions"() {
-        given:
-        def request = getProjectVersionsRequestData()
-        def response = getProjectVersionsResponseData()
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProjectVersions("DEMO")
-
-        then:
-        def expect = getProjectVersionsResponseData()
-
-        noExceptionThrown()
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get project versions with HTTP 404 failure"() {
-        given:
-        def request = getProjectVersionsRequestData()
-        def response = getProjectVersionsResponseData([
-            status: 404
-        ])
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProjectVersions("DEMO")
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: unable to get project versions. Jira could not be found at: 'http://localhost:${server.port()}'."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    def "get project versions with HTTP 500 failure"() {
-        given:
-        def request = getProjectVersionsRequestData()
-        def response = getProjectVersionsResponseData([
-            status: 500,
-            body: "Sorry, doesn't work!"
-        ])
-
-        def server = createServer(WireMock.&get, request, response)
-        def service = createService(server.port(), request.username, request.password)
-
-        when:
-        def result = service.getProjectVersions("DEMO")
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: unable to get project versions. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
-
-        cleanup:
-        stopServer(server)
-    }
-
-    Map getProjectCyclesRequestData(Map mixins = [:]) {
+    Map getTestCyclesRequestData(Map mixins = [:]) {
         def result = [
             headers: [
                 "Accept": "application/json"
@@ -1022,7 +645,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         return result << mixins
     }
 
-    Map getProjectCyclesResponseData(Map mixins = [:]) {
+    Map getTestCyclesResponseData(Map mixins = [:]) {
         def result = [
            body: JsonOutput.toJson([
                 recordsCount: "2",
@@ -1046,14 +669,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "get project cycles with invalid project id"() {
         given:
-        def request = getProjectCyclesRequestData()
-        def response = getProjectCyclesResponseData()
+        def request = getTestCyclesRequestData()
+        def response = getTestCyclesResponseData()
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getProjectCycles(null, "456")
+        def result = service.getTestCycles(null, "456")
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1065,14 +688,14 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "get project cycles with invalid version id"() {
         given:
-        def request = getProjectCyclesRequestData()
-        def response = getProjectCyclesResponseData()
+        def request = getTestCyclesRequestData()
+        def response = getTestCyclesResponseData()
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getProjectCycles("123", null)
+        def result = service.getTestCycles("123", null)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1084,17 +707,17 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "get project cycles"() {
         given:
-        def request = getProjectCyclesRequestData()
-        def response = getProjectCyclesResponseData()
+        def request = getTestCyclesRequestData()
+        def response = getTestCyclesResponseData()
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getProjectCycles("123", "456")
+        def result = service.getTestCycles("123", "456")
 
         then:
-        def expect = getProjectVersionsResponseData()
+        def expect = getTestCyclesResponseData()
 
         noExceptionThrown()
 
@@ -1104,8 +727,8 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "get project cycles with HTTP 404 failure"() {
         given:
-        def request = getProjectCyclesRequestData()
-        def response = getProjectCyclesResponseData([
+        def request = getTestCyclesRequestData()
+        def response = getTestCyclesResponseData([
             status: 404
         ])
 
@@ -1113,7 +736,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getProjectCycles("123", "456")
+        def result = service.getTestCycles("123", "456")
 
         then:
         def e = thrown(RuntimeException)
@@ -1125,8 +748,8 @@ class JiraZephyrServiceSpec extends SpecHelper {
 
     def "get project cycles with HTTP 500 failure"() {
         given:
-        def request = getProjectCyclesRequestData()
-        def response = getProjectCyclesResponseData([
+        def request = getTestCyclesRequestData()
+        def response = getTestCyclesResponseData([
             status: 500,
             body: "Sorry, doesn't work!"
         ])
@@ -1135,7 +758,7 @@ class JiraZephyrServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getProjectCycles("123", "456")
+        def result = service.getTestCycles("123", "456")
 
         then:
         def e = thrown(RuntimeException)

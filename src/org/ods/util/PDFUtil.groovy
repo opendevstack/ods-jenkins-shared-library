@@ -5,6 +5,8 @@ package org.ods.util
 @Grab('org.apache.pdfbox:pdfbox:2.0.17')
 @Grab('org.apache.poi:poi:4.0.1')
 
+import org.ods.util.MarkdownUtil
+
 import com.cloudbees.groovy.cps.NonCPS
 
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
@@ -12,6 +14,7 @@ import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
 
 import java.nio.file.Files
 
+import org.apache.commons.io.IOUtils
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -43,7 +46,7 @@ class PDFUtil {
         } catch (e) {
             throw new RuntimeException("Error: unable to add watermark to PDF document: ${e.message}").initCause(e)
         } finally {
-            doc.close()
+            if (doc) doc.close()
         }
 
         return result
@@ -89,12 +92,27 @@ class PDFUtil {
     }
 
     @NonCPS
-    byte[] convertFromWordDoc(File wordDoc) {
+    byte[] convertFromMarkdown(File wordDoc, Boolean landscape = false) {
         def result
 
         try {
+            def markdownContent = IOUtils.toString(new FileInputStream(wordDoc), "UTF-8")
+            result = new MarkdownUtil().toPDF(markdownContent, landscape)
+        } catch (e) {
+            throw new RuntimeException("Error: unable to convert Markdown document to PDF: ${e.message}").initCause(e)
+        }
+
+        return result
+    }
+
+    @NonCPS
+    byte[] convertFromWordDoc(File wordDoc) {
+        def result
+
+        XWPFDocument doc
+        try {
             def is = new FileInputStream(wordDoc)
-            def doc = new XWPFDocument(is)
+            doc = new XWPFDocument(is)
 
             def options = PdfOptions.create()
             def os = new ByteArrayOutputStream()
@@ -103,6 +121,8 @@ class PDFUtil {
             result = os.toByteArray()
         } catch (e) {
             throw new RuntimeException("Error: unable to convert Word document to PDF: ${e.message}").initCause(e)
+        } finally {
+            if (doc) doc.close()
         }
 
         return result

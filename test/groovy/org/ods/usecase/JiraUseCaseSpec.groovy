@@ -1,305 +1,195 @@
 package org.ods.usecase
 
-import org.ods.service.JiraService
-import org.ods.util.MROPipelineUtil
 
-import spock.lang.*
+import org.ods.service.JiraService
+import org.ods.util.IPipelineSteps
+import org.ods.util.MROPipelineUtil
+import org.ods.util.Project
+import spock.lang.Ignore
+import util.SpecHelper
 
 import static util.FixtureHelper.*
 
-import util.*
-
 class JiraUseCaseSpec extends SpecHelper {
+
+    JiraService jira
+    Project project
+    IPipelineSteps steps
+    JiraUseCase usecase
+    MROPipelineUtil util
+
+    def setup() {
+        project = Spy(createProject())
+        steps = Spy(util.PipelineSteps)
+        util = Mock(MROPipelineUtil)
+        jira = Mock(JiraService) {
+            createIssueTypeBug(_, _, _) >> {
+                [
+                    key   : "BUG-3",
+                    fields: [
+                        summary: "bug summary / name"
+                    ]
+                ]
+            }
+        }
+        usecase = Spy(new JiraUseCase(project, steps, util, jira))
+    }
 
     def "apply test results as test issue labels"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
         def testIssues = createJiraTestIssues()
         def testResults = createTestResults()
 
         when:
-        usecase.applyTestResultsAsTestIssueLabels(testIssues, testResults)
+        usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
 
         then:
-        1 * jira.removeLabelsFromIssue("1", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("1", ["Succeeded"])
-        0 * jira.addLabelsToIssue("1", _)
+        1 * jira.removeLabelsFromIssue("JIRA-1", { return it == JiraUseCase.TestIssueLabels.values()*.toString() })
+        1 * jira.addLabelsToIssue("JIRA-1", ["Succeeded"])
+        0 * jira.addLabelsToIssue("JIRA-1", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("2", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("2", ["Error"])
-        0 * jira.addLabelsToIssue("2", _)
+        1 * jira.removeLabelsFromIssue("JIRA-2", { it == JiraUseCase.TestIssueLabels.values()*.toString() })
+        1 * jira.addLabelsToIssue("JIRA-2", ["Error"])
+        0 * jira.addLabelsToIssue("JIRA-2", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("3", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("3", ["Failed"])
-        0 * jira.addLabelsToIssue("3", _)
+        1 * jira.removeLabelsFromIssue("JIRA-3", { it == JiraUseCase.TestIssueLabels.values()*.toString() })
+        1 * jira.addLabelsToIssue("JIRA-3", ["Failed"])
+        0 * jira.addLabelsToIssue("JIRA-3", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("4", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("4", ["Skipped"])
-        0 * jira.addLabelsToIssue("4", _)
+        1 * jira.removeLabelsFromIssue("JIRA-4", { it == JiraUseCase.TestIssueLabels.values()*.toString() })
+        1 * jira.addLabelsToIssue("JIRA-4", ["Skipped"])
+        0 * jira.addLabelsToIssue("JIRA-4", _)
 
         then:
-        1 * jira.removeLabelsFromIssue("5", { it == JiraUseCase.JIRA_TEST_CASE_LABELS })
-        1 * jira.addLabelsToIssue("5", ["Missing"])
-        0 * jira.addLabelsToIssue("5", _)
+        1 * jira.removeLabelsFromIssue("JIRA-5", { it == JiraUseCase.TestIssueLabels.values()*.toString() })
+        1 * jira.addLabelsToIssue("JIRA-5", ["Missing"])
+        0 * jira.addLabelsToIssue("JIRA-5", _)
     }
 
     def "check Jira issue matches test case"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
         when:
         def issue = [key: "JIRA-123"]
-        def testcaseName = "JIRA123 test"
+        def testcase = [name: "JIRA123 test"]
 
         then:
-        usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+        usecase.checkTestsIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
-        testcaseName = "JIRA123-test"
+        testcase.name = "JIRA123-test"
 
         then:
-        usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+        usecase.checkTestsIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
-        testcaseName = "JIRA123_test"
+        testcase.name = "JIRA123_test"
 
         then:
-        usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+        usecase.checkTestsIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
-        testcaseName = "JIRA123test"
+        testcase.name = "JIRA123test"
 
         then:
-        !usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+        !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
 
         when:
         issue = [key: "JIRA-123"]
-        testcaseName = "JIRA-123_test"
+        testcase.name = "JIRA-123_test"
 
         then:
-        !usecase.checkJiraIssueMatchesTestCase(issue, testcaseName)
+        !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
+
+        when:
+        issue = [key: "JIRA-123"]
+        testcase.name = "123_test"
+
+        then:
+        !usecase.checkTestsIssueMatchesTestCase(issue, testcase)
     }
 
     def "create bugs and block impacted test cases"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def testIssues = createJiraTestIssues()
-        def failures = createTestResultFailures()
+        // Test Parameters
+        def testIssues = createSockShopJiraTestIssues()
+        def failures = createSockShopTestResultFailures()
         def comment = "myComment"
 
-        def bug = [ key: "JIRA-BUG" ]
+        // Stubbed Method Responses
+        def bug = [
+            key   : "BUG-1",
+            fields: [
+                summary: "my-bug"
+            ]
+        ]
 
         when:
-        usecase.createBugsAndBlockImpactedTestCases(project.id, testIssues, failures, comment)
+        usecase.createBugsForFailedTestIssues(testIssues, failures, comment)
 
         then:
-        1 * jira.createIssueTypeBug(project.id, failures.first().type, failures.first().text) >> bug
+        1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text) >> bug
 
         then:
         1 * jira.createIssueLinkTypeBlocks(bug, {
             // the Jira issue that shall be linked to the bug
-            it.key == "JIRA-3"
+            it.key == "NET-140"
         })
 
         then:
         1 * jira.appendCommentToIssue(bug.key, comment)
-    }
-
-    def "get automated test issues"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def issues = createJiraIssues()
-
-        when:
-        usecase.getAutomatedTestIssues(project.id)
 
         then:
-        1 * support.getAutomatedTestIssues(project.id, null, []) >> []
-    }
-
-    def "get automated test issues with componentName"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def componentName = "myComponent"
-
-        when:
-        usecase.getAutomatedTestIssues(project.id, componentName)
-
-        then:
-        1 * support.getAutomatedTestIssues(project.id, componentName, []) >> []
-    }
-
-    def "get automated test issues with labelsSelector"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def componentName = "myComponent"
-        def labelsSelector = ["UnitTest"]
-
-        when:
-        usecase.getAutomatedTestIssues(project.id, componentName, labelsSelector)
-
-        then:
-        1 * support.getAutomatedTestIssues(project.id, componentName, labelsSelector) >> []
-    }
-
-    def "get automated acceptance test issues"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def issues = createJiraIssues()
-
-        when:
-        usecase.getAutomatedAcceptanceTestIssues(project.id)
-
-        then:
-        1 * support.getAutomatedAcceptanceTestIssues(project.id, null) >> []
-    }
-
-    def "get automated installation test issues"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def issues = createJiraIssues()
-
-        when:
-        usecase.getAutomatedInstallationTestIssues(project.id)
-
-        then:
-        1 * support.getAutomatedInstallationTestIssues(project.id, null) >> []
-    }
-
-    def "get automated integration test issues"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def issues = createJiraIssues()
-
-        when:
-        usecase.getAutomatedIntegrationTestIssues(project.id)
-
-        then:
-        1 * support.getAutomatedIntegrationTestIssues(project.id, null) >> []
-    }
-
-    def "get automated unit test issues"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
-        usecase.setSupport(support)
-
-        def project = createProject()
-        def issues = createJiraIssues()
-
-        when:
-        usecase.getAutomatedUnitTestIssues(project.id)
-
-        then:
-        1 * support.getAutomatedUnitTestIssues(project.id, null) >> []
+        // verify that bug gets created and registered on the correct test issue
+        project.data.jira.bugs.containsKey("BUG-1")
+        project.data.jiraResolved.bugs.containsKey("BUG-1")
+        testIssues.find { it.key == "NET-140" }.bugs.contains("BUG-1")
     }
 
     def "get document chapter data"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
+        // Test Parameters
         def documentType = "myDocumentType"
 
+        // Argument Constraints
         def jqlQuery = [
-            jql: "project = ${project.id} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENT_CHAPTER}' AND labels = LeVA_Doc:${documentType}",
-            expand: [ "names", "renderedFields" ]
+            jql   : "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = Doc:${documentType}",
+            expand: ["names", "renderedFields"]
         ]
 
-        def jiraIssue1 = createJiraIssue("1")
+        // Stubbed Method Responses
+        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
         jiraIssue1.fields["0"] = "1.0"
         jiraIssue1.renderedFields = [:]
         jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
         jiraIssue1.renderedFields.description = "<html>1-description</html>"
 
-        def jiraIssue2 = createJiraIssue("2")
+        def jiraIssue2 = createJiraIssue("2", null, null, null, "DONE")
         jiraIssue2.fields["0"] = "2.0"
         jiraIssue2.renderedFields = [:]
         jiraIssue2.renderedFields["1"] = "<html>myContent2</html>"
         jiraIssue2.renderedFields.description = "<html>2-description</html>"
 
-        def jiraIssue3 = createJiraIssue("3")
+        def jiraIssue3 = createJiraIssue("3", null, null, null, "DONE")
         jiraIssue3.fields["0"] = "3.0"
         jiraIssue3.renderedFields = [:]
         jiraIssue3.renderedFields["1"] = "<html>myContent3</html>"
         jiraIssue3.renderedFields.description = "<html>3-description</html>"
 
         def jiraResult = [
-            issues: [ jiraIssue1, jiraIssue2, jiraIssue3 ],
-            names: [
+            issues: [jiraIssue1, jiraIssue2, jiraIssue3],
+            names : [
                 "0": JiraUseCase.CustomIssueFields.HEADING_NUMBER,
                 "1": JiraUseCase.CustomIssueFields.CONTENT
             ]
         ]
 
         when:
-        def result = usecase.getDocumentChapterData(project.id, documentType)
+        def result = usecase.getDocumentChapterData(documentType)
 
         then:
         1 * jira.searchByJQLQuery(jqlQuery) >> jiraResult
@@ -307,495 +197,40 @@ class JiraUseCaseSpec extends SpecHelper {
         then:
         def expected = [
             "sec1s0": [
-                number: "1.0",
+                number : "1.0",
                 heading: "1-summary",
-                content: "<html>myContent1</html>"
+                content: "<html>myContent1</html>",
+                status: "DONE",
+                key: "JIRA-1"
             ],
             "sec2s0": [
-                number: "2.0",
+                number : "2.0",
                 heading: "2-summary",
-                content: "<html>myContent2</html>"
+                content: "<html>myContent2</html>",
+                status: "DONE",
+                key: "JIRA-2"
             ],
             "sec3s0": [
-                number: "3.0",
+                number : "3.0",
                 heading: "3-summary",
-                content: "<html>myContent3</html>"
+                content: "<html>myContent3</html>",
+                status: "DONE",
+                key: "JIRA-3"
             ]
         ]
 
         result == expected
-    }
-
-    def "get issues for epics"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def epicKeys = ["myEpic-1", "myEpic-2"]
-
-        def epicLinkField = createJiraField("customfield_1", "Epic Link")
-
-        def jqlQuery = [
-            jql: "'Epic Link' in (${epicKeys[0]}, ${epicKeys[1]})",
-            expand: ["renderedFields"],
-            fields: [epicLinkField.id, "description", "summary"]
-        ]
-
-        def issue1 = createJiraIssue("1")
-        issue1.fields[epicLinkField.id] = epicKeys[0]
-
-        def issue2 = createJiraIssue("2")
-        issue2.fields[epicLinkField.id] = epicKeys[0]
-
-        def issue3 = createJiraIssue("3")
-        issue3.fields[epicLinkField.id] = epicKeys[1]
-
-        when:
-        def result = usecase.getIssuesForEpics(epicKeys)
-
-        then:
-        1 * jira.getFields() >> [epicLinkField]
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [issue1, issue2, issue3]
-
-        then:
-        def expected = [
-            (epicKeys[0]): [issue1, issue2].collect { usecase.toSimpleIssue(it) },
-            (epicKeys[1]): [issue3].collect { usecase.toSimpleIssue(it) }
-        ]
-
-        result == expected
-    }
-
-    def "get issues for epics with issueTypes"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def epicKeys = ["myEpic-1", "myEpic-2"]
-        def issueTypes = ["Story"]
-
-        def epicLinkField = createJiraField("customfield_1", "Epic Link")
-
-        def jqlQuery = [
-            jql: "'Epic Link' in (${epicKeys[0]}, ${epicKeys[1]}) AND issuetype in ('${issueTypes[0]}')",
-            expand: ["renderedFields"],
-            fields: [epicLinkField.id, "description", "summary"]
-        ]
-
-        when:
-        usecase.getIssuesForEpics(epicKeys, issueTypes)
-
-        then:
-        1 * jira.getFields() >> [epicLinkField]
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
-    }
-
-    def "get issues for project"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-
-        def jqlQuery1 = [
-            jql: "project = ${project.id}",
-            expand: ["renderedFields"],
-            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
-        ]
-
-        def issues1 = createJiraIssues()
-        issues1[0].fields.issuetype = [
-            name: "Epic"
-        ]
-
-        def jqlQuery2 = [
-            jql: "key in (JIRA-100, JIRA-101, JIRA-200)",
-            expand: ["renderedFields"],
-            fields: ["description"]
-        ]
-
-        def issues2 = [
-            createJiraIssue("100"),
-            createJiraIssue("101"),
-            createJiraIssue("200")
-        ]
-
-        when:
-        def components = usecase.getIssuesForProject(project.id)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery1) >> issues1
-        1 * jira.getFields() >> [createJiraField("customfield_001", "Epic Link")]
-        1 * jira.getIssuesForJQLQuery(jqlQuery2) >> issues2
-
-        then:
-        components.size() == 4
-
-        then:
-        def issue1 = usecase.toSimpleIssue(createJiraIssue("1"), [
-            components: [
-                "myComponentA",
-                "myComponentB",
-                "myComponentC"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("100"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", createJiraIssue("101")))
-            ],
-            issues: [],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        def issue2 = usecase.toSimpleIssue(createJiraIssue("2"), [
-            components: [
-                "myComponentA",
-                "myComponentB"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200")))
-            ],
-            issuetype: [
-                name: "Story"
-            ]
-        ])
-
-        def issue3 = usecase.toSimpleIssue(createJiraIssue("3"), [
-            components: [
-                "myComponentA"
-            ],
-            issuelinks: [],
-            issuetype: [
-                name: "Story"
-            ]
-        ])
-
-        def issue4 = usecase.toSimpleIssue(createJiraIssue("4"), [
-            issuelinks: [],
-            issuetype: [
-                name: "Story"
-            ]
-        ])
-
-        components["myComponentA"].size == 3
-        components["myComponentA"] == [ issue1, issue2, issue3 ]
-
-        components["myComponentB"].size == 2
-        components["myComponentB"] == [ issue1, issue2 ]
-
-        components["myComponentC"].size == 1
-        components["myComponentC"] == [ issue1 ]
-
-        components["undefined"].size == 1
-        components["undefined"] == [ issue4 ]
-    }
-
-    def "get issues for project with componentName"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def componentName = "myComponent"
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentName}'",
-            expand: ["renderedFields"],
-            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
-        ]
-
-        when:
-        usecase.getIssuesForProject(project.id, componentName)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
-    }
-
-    def "get issues for project with issueTypesSelector"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def componentName = "myComponent"
-        def issueTypesSelector = ["myIssueType-1", "myIssueType-2"]
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}', '${issueTypesSelector[1]}')",
-            expand: ["renderedFields"],
-            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
-        ]
-
-        when:
-        usecase.getIssuesForProject(project.id, componentName, issueTypesSelector)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
-    }
-
-    def "get issues for project with issueTypesSelector including Epic"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def componentName = "myComponent"
-        def issueTypesSelector = ["Epic"]
-
-        def jqlQuery1 = [
-            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}')",
-            expand: ["renderedFields"],
-            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
-        ]
-
-        def issues1 = createJiraIssues()
-        issues1.find{ it.key == "JIRA-1" }.fields.issuetype = [
-            name: "Epic"
-        ]
-        issues1.find{ it.key == "JIRA-2" }.fields.issuetype = [
-            name: "Epic"
-        ]
-        issues1.find{ it.key == "JIRA-3" }.fields.issuetype = [
-            name: "Epic"
-        ]
-
-        def epicLinkField = createJiraField("customfield_001", "Epic Link")
-
-        def jqlQuery2 = [
-            jql: "'Epic Link' in (JIRA-1, JIRA-2, JIRA-3) AND issuetype in ('Story')",
-            expand: ["renderedFields"],
-            fields: [epicLinkField.id, "description", "summary"]
-        ]
-
-        def issues2 = [ createJiraIssue("10"), createJiraIssue("20") ]
-        issues2[0].fields[epicLinkField.id] = "JIRA-1"
-        issues2[0].fields.issuetype = [ name: "Story" ]
-        issues2[1].fields[epicLinkField.id] = "JIRA-2"
-        issues2[1].fields.issuetype = [ name: "Story" ]
-
-        def jqlQuery3 = [
-            jql: "key in (JIRA-100, JIRA-101, JIRA-200)",
-            expand: ["renderedFields"],
-            fields: ["description"]
-        ]
-
-        def issues3 = [
-            createJiraIssue("100"),
-            createJiraIssue("101"),
-            createJiraIssue("200")
-        ]
-
-        when:
-        def components = usecase.getIssuesForProject(project.id, componentName, issueTypesSelector)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery1) >> issues1
-        1 * jira.getFields() >> [epicLinkField]
-        1 * jira.getIssuesForJQLQuery(jqlQuery2) >> issues2
-        1 * jira.getIssuesForJQLQuery(jqlQuery3) >> issues3
-
-        then:
-        def issue1 = usecase.toSimpleIssue(createJiraIssue("1"), [
-            components: [
-                "myComponentA",
-                "myComponentB",
-                "myComponentC"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("100"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", createJiraIssue("101")))
-            ],
-            issues: [usecase.toSimpleIssue(issues2[0])],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        def issue2 = usecase.toSimpleIssue(createJiraIssue("2"), [
-            components: [
-                "myComponentA",
-                "myComponentB"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200")))
-            ],
-            issues: [usecase.toSimpleIssue(issues2[1])],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        def issue3 = usecase.toSimpleIssue(createJiraIssue("3"), [
-            components: [
-                "myComponentA"
-            ],
-            issuelinks: [],
-            issues: [],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        components["myComponentA"].size == 3
-        components["myComponentA"] == [ issue1, issue2, issue3 ]
-
-        components["myComponentB"].size == 2
-        components["myComponentB"] == [ issue1, issue2 ]
-
-        components["myComponentC"].size == 1
-        components["myComponentC"] == [ issue1 ]
-    }
-
-    def "get issues for project with labelsSelector"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def componentName = "myComponent"
-        def issueTypesSelector = ["Story"]
-        def labelsSelector = ["myLabel1", "myLabel2"]
-
-        def jqlQuery = [
-            jql: "project = ${project.id} AND component = '${componentName}' AND issuetype in ('${issueTypesSelector[0]}') AND labels = '${labelsSelector[0]}' AND labels = '${labelsSelector[1]}'",
-            expand: ["renderedFields"],
-            fields: ["components", "description", "issuelinks", "issuetype", "summary"]
-        ]
-
-        when:
-        def components = usecase.getIssuesForProject(project.id, componentName, issueTypesSelector, labelsSelector)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(jqlQuery) >> [] // don't care
-    }
-
-    def "get issues for project with issueLinkFilter"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def componentName = "myComponent"
-        def issueLinkFilter = { issuelink ->
-            return issuelink.type.relation == "relates to"
-        }
-
-        def issues1 = createJiraIssues()
-        issues1[0].fields.issuetype = [
-            name: "Epic"
-        ]
-
-        def epicLinkField = createJiraField("customfield_001", "Epic Link")
-
-        def issues2 = [
-            createJiraIssue("100"),
-            createJiraIssue("101"),
-            createJiraIssue("200")
-        ]
-
-        when:
-        def components = usecase.getIssuesForProject(project.id, componentName, [], [], false, issueLinkFilter)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(_) >> issues1
-        1 * jira.getFields() >> [epicLinkField]
-        1 * jira.getIssuesForJQLQuery(_) >> [] // don't care
-        1 * jira.getIssuesForJQLQuery(_) >> issues2
-
-        then:
-        def issue1 = usecase.toSimpleIssue(createJiraIssue("1"), [
-            components: [
-                "myComponentA",
-                "myComponentB",
-                "myComponentC"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("100"))),
-                usecase.toSimpleIssueLink(createJiraIssueLink("2", createJiraIssue("101")))
-            ],
-            issues: [],
-            issuetype: [
-                name: "Epic"
-            ]
-        ])
-
-        def issue2 = usecase.toSimpleIssue(createJiraIssue("2"), [
-            components: [
-                "myComponentA",
-                "myComponentB"
-            ],
-            issuelinks: [
-                usecase.toSimpleIssueLink(createJiraIssueLink("1", createJiraIssue("200")))
-            ],
-            issuetype: [
-                name: "Story"
-            ]
-        ])
-
-        components["myComponentA"].size == 2
-        components["myComponentA"] == [ issue1, issue2 ]
-
-        components["myComponentB"].size == 2
-        components["myComponentB"] == [ issue1, issue2 ]
-
-        components["myComponentC"].size == 1
-        components["myComponentC"] == [ issue1 ]
-    }
-
-    def "get issues for project with throwOnMissingLinks"() {
-        given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
-        def project = createProject()
-        def componentName = "myComponent"
-
-        def issues = createJiraIssues()
-
-        when:
-        usecase.getIssuesForProject(project.id, componentName, [], [], true)
-
-        then:
-        1 * jira.getIssuesForJQLQuery(_) >> issues
-
-        then:
-        def e = thrown(RuntimeException)
-        e.message == "Error: links are missing for issues: JIRA-3, JIRA-4."
     }
 
     def "match Jira test issues against test results"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
-
         def testIssues = createJiraTestIssues()
         def testResults = createTestResults()
 
         def matched = [:]
         def matchedHandler = { result ->
             matched = result.collectEntries { jiraTestIssue, testcase ->
-                [ (jiraTestIssue.key.toString()), testcase.name ]
+                [(jiraTestIssue.key.toString()), testcase.name]
             }
         }
 
@@ -805,7 +240,7 @@ class JiraUseCaseSpec extends SpecHelper {
         }
 
         when:
-        usecase.matchJiraTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
 
         then:
         def expectedMatched = [
@@ -825,169 +260,191 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "report test results for component in DEV"() {
         given:
-        def steps = Spy(PipelineSteps)
+        project.buildParams.targetEnvironmentToken = "D"
 
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
         def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
         usecase.setSupport(support)
 
-        def project = createProject()
+        // Test Parameters
         def componentName = "myComponent"
         def testTypes = ["myTestType"]
-        def testResults = createTestResults()
+        def testResults = createSockShopTestResults()
 
-        def testIssues = createJiraTestIssues()
-        def buildParams = createBuildParams()
-        buildParams.targetEnvironmentToken = "D"
+        // Stubbed Method Responses
+        def testIssues = createSockShopJiraTestIssues()
 
         when:
-        usecase.reportTestResultsForComponent(project.id, componentName, testTypes, testResults)
+        usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        1 * support.getAutomatedTestIssues(project.id, componentName, testTypes) >> testIssues
+        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
-        1 * support.applyTestResultsToTestIssues(testIssues, testResults)
+        1 * support.applyXunitTestResults(testIssues, testResults)
+        1 * util.warnBuildIfTestResultsContainFailure(testResults)
+        1 * util.warnBuildAboutUnexecutedJiraTests(_)
+    }
+
+    def "report test results for component with unexecuted Jira tests"() {
+        given:
+        def support = Mock(JiraUseCaseSupport)
+        usecase.setSupport(support)
+
+        // Test Parameters
+        def componentName = "myComponent"
+        def testTypes = ["myTestType"]
+        def testResults = [:] // unexecuted tests
+
+        // Stubbed Method Responses
+        def testIssues = createJiraTestIssues()
+
+        when:
+        usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        _ * util.getBuildParams() >> buildParams
+        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
+
+        then:
+        1 * util.warnBuildAboutUnexecutedJiraTests(testIssues)
     }
 
     def "report test results for component in QA"() {
         given:
-        def steps = Spy(PipelineSteps)
+        project.buildParams.targetEnvironmentToken = "Q"
 
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
         def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
         usecase.setSupport(support)
 
-        def project = createProject()
+        // Test Parameters
         def componentName = "myComponent"
         def testTypes = ["myTestType"]
-        def testResults = createTestResults()
+        def testResults = createSockShopTestResults()
 
-        def testIssues = createJiraTestIssues()
-        def buildParams = createBuildParams()
-        buildParams.targetEnvironmentToken = "Q"
-        def testIssuesLinkedIssueKeys = testIssues.collect{ it.fields.issuelinks[0].outwardIssue.key }
-        def error = createTestResultErrors().first()
-        def errorBug = [ key: "JIRA-BUG-1" ]
-        def failure = createTestResultFailures().first()
-        def failureBug = [ key: "JIRA-BUG-2" ]
+        // Argument Constraints
+        def errors = createSockShopTestResultErrors()
+        def failures = createSockShopTestResultFailures()
+
+        // Stubbed Method Responses
+        def testIssues = createSockShopJiraTestIssues()
 
         when:
-        usecase.reportTestResultsForComponent(project.id, componentName, testTypes, testResults)
+        usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        1 * support.getAutomatedTestIssues(project.id, componentName, testTypes) >> testIssues
+        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
-        1 * support.applyTestResultsToTestIssues(testIssues, testResults)
+        1 * support.applyXunitTestResults(testIssues, testResults)
+        1 * util.warnBuildIfTestResultsContainFailure(testResults)
 
         then:
-        _ * util.getBuildParams() >> buildParams
-
-        // create bug and block impacted test cases for error
-        then:
-        1 * jira.createIssueTypeBug(project.id, error.type, error.text) >> errorBug
-
-        then:
-        1 * jira.createIssueLinkTypeBlocks(errorBug, {
-            // the Jira issue that shall be linked to the bug
-            it.key == "JIRA-2"
-        })
-
-        then:
-        1 * jira.appendCommentToIssue(errorBug.key, _)
-
-        // create bug and block impacted test cases for failure
-        then:
-        1 * jira.createIssueTypeBug(project.id, failure.type, failure.text) >> failureBug
-
-        then:
-        1 * jira.createIssueLinkTypeBlocks(failureBug, {
-            // the Jira issue that shall be linked to the bug
-            it.key == "JIRA-3"
-        })
-
-        then:
-        1 * jira.appendCommentToIssue(failureBug.key, _)
+        1 * usecase.createBugsForFailedTestIssues(testIssues, errors, steps.env.RUN_DISPLAY_URL)
+        1 * usecase.createBugsForFailedTestIssues(testIssues, failures, steps.env.RUN_DISPLAY_URL)
     }
 
     def "report test results for component in PROD"() {
         given:
-        def steps = Spy(PipelineSteps)
+        project.buildParams.targetEnvironmentToken = "Q"
 
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
         def support = Mock(JiraUseCaseSupport)
-        def usecase = new JiraUseCase(steps, util, jira)
         usecase.setSupport(support)
 
-        def project = createProject()
+        // Test Parameters
         def componentName = "myComponent"
         def testTypes = ["myTestType"]
-        def testResults = createTestResults()
+        def testResults = createSockShopTestResults()
 
-        def testIssues = createJiraTestIssues()
-        def buildParams = createBuildParams()
-        buildParams.targetEnvironmentToken = "P"
-        def testIssuesLinkedIssueKeys = testIssues.collect{ it.fields.issuelinks[0].outwardIssue.key }
-        def error = createTestResultErrors().first()
-        def errorBug = [ key: "JIRA-BUG-1" ]
-        def failure = createTestResultFailures().first()
-        def failureBug = [ key: "JIRA-BUG-2" ]
+        // Argument Constraints
+        def errors = createSockShopTestResultErrors()
+        def failures = createSockShopTestResultFailures()
+
+        // Stubbed Method Responses
+        def testIssues = createSockShopJiraTestIssues()
 
         when:
-        usecase.reportTestResultsForComponent(project.id, componentName, testTypes, testResults)
+        usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        1 * support.getAutomatedTestIssues(project.id, componentName, testTypes) >> testIssues
+        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
-        1 * support.applyTestResultsToTestIssues(testIssues, testResults)
+        1 * support.applyXunitTestResults(testIssues, testResults)
+        1 * util.warnBuildIfTestResultsContainFailure(testResults)
 
         then:
-        _ * util.getBuildParams() >> buildParams
-
-        // create bug and block impacted test cases for error
-        then:
-        1 * jira.createIssueTypeBug(project.id, error.type, error.text) >> errorBug
-
-        then:
-        1 * jira.createIssueLinkTypeBlocks(errorBug, {
-            // the Jira issue that shall be linked to the bug
-            it.key == "JIRA-2"
-        })
-
-        then:
-        1 * jira.appendCommentToIssue(errorBug.key, _)
-
-        // create bug and block impacted test cases for failure
-        then:
-        1 * jira.createIssueTypeBug(project.id, failure.type, failure.text) >> failureBug
-
-        then:
-        1 * jira.createIssueLinkTypeBlocks(failureBug, {
-            // the Jira issue that shall be linked to the bug
-            it.key == "JIRA-3"
-        })
-
-        then:
-        1 * jira.appendCommentToIssue(failureBug.key, _)
+        1 * usecase.createBugsForFailedTestIssues(testIssues, errors, steps.env.RUN_DISPLAY_URL)
+        1 * usecase.createBugsForFailedTestIssues(testIssues, failures, steps.env.RUN_DISPLAY_URL)
     }
 
-    def "walk Jira test issues and test results"() {
+    def "update Jira release status issue"() {
         given:
-        def steps = Spy(PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def jira = Mock(JiraService)
-        def usecase = new JiraUseCase(steps, util, jira)
+        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        project.buildParams.version = "1.0"
+        steps.env.BUILD_NUMBER = "0815"
 
+        def error = new RuntimeException("Oh no!")
+
+        when:
+        usecase.updateJiraReleaseStatusIssue(error)
+
+        then:
+        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
+            "Release Manager Status": [
+                id: "customfield_1"
+            ],
+            "Release Build": [
+                id: "customfield_2"
+            ]
+        ]
+
+        then:
+        1 * jira.updateSelectListFieldsOnIssue("JIRA-4711", [
+            "customfield_1": "Failed"
+        ])
+
+        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
+            "customfield_2": "1.0-0815"
+        ])
+
+        then:
+        1 * jira.appendCommentToIssue("JIRA-4711", error.message)
+    }
+
+    def "update Jira release status issue without error"() {
+        given:
+        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        project.buildParams.version = "1.0"
+        steps.env.BUILD_NUMBER = "0815"
+
+        def error = null
+
+        when:
+        usecase.updateJiraReleaseStatusIssue(error)
+
+        then:
+        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> {
+            return [
+                "Release Manager Status": [
+                    id: "customfield_1"
+                ],
+                "Release Build": [
+                    id: "customfield_2"
+                ]
+            ]
+        }
+
+        then:
+        1 * jira.updateSelectListFieldsOnIssue("JIRA-4711", [
+            "customfield_1": "Successful"
+        ])
+
+        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
+            "customfield_2": "1.0-0815"
+        ])
+    }
+
+    def "walk test issues and test results"() {
+        given:
         def testIssues = createJiraTestIssues()
         def testResults = createTestResults()
 
@@ -997,7 +454,7 @@ class JiraUseCaseSpec extends SpecHelper {
         }
 
         when:
-        usecase.walkJiraTestIssuesAndTestResults(testIssues, testResults, visitor)
+        usecase.walkTestIssuesAndTestResults(testIssues, testResults, visitor)
 
         then:
         def expected = [

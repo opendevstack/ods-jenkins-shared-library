@@ -1,0 +1,774 @@
+{
+    "project": {
+        "name": "Sock Shop",
+        "description": "Sock Shop: A Microservice Demo Application",
+        "key": "SOCKSHOP",
+        "id": "1",
+        "jiraBaseUrl": "https://jira.example.com:2990/jira/SOCKSHOP",
+        "gampTopics": [
+            "operational requirements",
+            "functional requirements",
+            "data requirements",
+            "technical requirements",
+            "interface requirements",
+            "environment requirements",
+            "performance requirements",
+            "availability requirements",
+            "security requirements",
+            "maintenance requirements",
+            "regulatory requirements",
+            "roles",
+            "compatibility",
+            "procedural constraints",
+            "overarching requirements"
+        ],
+        "projectProperties": {
+            "PROJECT.POO_CAT.HIGH": "Frequency of the usage of the related function is >10 times per week.",
+            "PROJECT.POO_CAT.LOW": "Frequency of the usage of the related function is <10 times per year.",
+            "PROJECT.POO_CAT.MEDIUM": "Frequency of the usage of the related function is <10 times per week.",
+            "PROJECT.USES_POO": "true"
+        },
+        "enumDictionary": {
+            "ProbabilityOfDetection": {
+                "1": {
+                    "value": 1,
+                    "text": "Immediate",
+                    "short": "I"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "Before Impact",
+                    "short": "B"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "After Impact",
+                    "short": "A"
+                }
+            },
+            "SeverityOfImpact": {
+                "1": {
+                    "value": 1,
+                    "text": "Low",
+                    "short": "L"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "Medium",
+                    "short": "M"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "High",
+                    "short": "H"
+                }
+            },
+            "ProbabilityOfOccurrence": {
+                "1": {
+                    "value": 1,
+                    "text": "LOW",
+                    "short": "L"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "MEDIUM",
+                    "short": "M"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "HIGH",
+                    "short": "H"
+                }
+            },
+            "RiskPriority": {
+                "0": {
+                    "value": 0,
+                    "text": "N/A",
+                    "short": "N"
+                },
+                "1": {
+                    "value": 1,
+                    "text": "HIGH",
+                    "short": "H"
+                },
+                "2": {
+                    "value": 2,
+                    "text": "MEDIUM",
+                    "short": "M"
+                },
+                "3": {
+                    "value": 3,
+                    "text": "LOW",
+                    "short": "L"
+                }
+            },
+            "GxPRelevance": {
+                "R2": {
+                    "value": 2,
+                    "text": "Relevant",
+                    "short": "R2"
+                },
+                "N0": {
+                    "value": 0,
+                    "text": "Not relevant/ZERO",
+                    "short": "N0"
+                },
+                "N1": {
+                    "value": 1,
+                    "text": "Not relevant/LESS",
+                    "short": "N1"
+                },
+                "N2": {
+                    "value": 2,
+                    "text": "Not relevant/EQUAL",
+                    "short": "N2"
+                }
+            }
+        }
+    },
+    "components": {
+        "Technology-demo-app-payment": {
+            "key": "Technology-demo-app-payment",
+            "id": "2",
+            "version": "1.0",
+            "name": "Technology-demo-app-payment",
+            "description": "Technology component demo-app-paymnent stored at https://bitbucket-dev.biscrum.com/projects/NET/repos/net-demo-app-payment/browse",
+            "epics": [
+                "NET-124"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "tests": [
+                "NET-127"
+            ],
+            "risks": [
+                "NET-126"
+            ],
+            "mitigations": [
+                "NET-123"
+            ]
+        }
+    },
+    "epics": {
+        "NET-124": {
+            "key": "NET-124",
+            "id": "124",
+            "version": "1.0",
+            "name": "As a user I want to be able to do payments",
+            "description": "Implement a payment service that integrates with Payment Service Providers and allows a secure and reliable payment for merchandise offered in the Sock Shop.",
+            "status": "Open",
+            "epicName": "Payments",
+            "requirements": [
+                "NET-125"
+            ]
+        }
+    },
+    "mitigations": {
+        "NET-123": {
+            "key": "NET-123",
+            "id": "123",
+            "version": "1.0",
+            "name": "Provide discount for the next purchase",
+            "description": "If a payment cannot be processed within the required time provide a discount for the next purchase for the same customer to make them come back.",
+            "status": "TO DO",
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "risks": [
+                "NET-126"
+            ]
+        }
+    },
+    "requirements": {
+        "NET-125": {
+            "key": "NET-125",
+            "id": "125",
+            "version": "1.0",
+            "name": "As a user I want my payments to be processed quickly",
+            "description": "Payments have to be conducted quickly to keep up with the elevated expectations of customers",
+            "status": "IN DESIGN",
+            "gampTopic": "performance requirements",
+            "acceptanceCriteria": "acceptance of Req-1 only if ...",
+            "configSpec": {
+                "name": "Payment Service must be configured to communicate with payment service providers",
+                "description": "Configuration for secure and reliable payments."
+            },
+            "funcSpec": {
+                "name": "The payment must be confirmed in less than a set interval",
+                "description": "A payment must be completed with the Payment Service Provider within the given time interval",
+                "acceptanceCriteria": "The desired payment interval can be configured on system level."
+            },
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "epics": [
+                "NET-124"
+            ],
+            "risks": [
+                "NET-126"
+            ],
+            "tests": [
+                "NET-127"
+            ],
+            "mitigations": [
+                "NET-123"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ]
+        }
+    },
+    "risks": {
+        "NET-126": {
+            "key": "NET-126",
+            "id": "126",
+            "version": "1.0",
+            "name": "If payments take too long we can loose business and customers",
+            "description": "Adverse Event: Payments take too long. Impact: User will take their business elsewhere.",
+            "status": "TO DO",
+            "gxpRelevance": "N0",
+            "probabilityOfOccurrence": 1,
+            "severityOfImpact": 3,
+            "probabilityOfDetection": 2,
+            "riskPriorityNumber": 0,
+            "riskPriority": 0,
+            "mitigations": [
+                "NET-123"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "tests": [
+                "NET-127"
+            ]
+        }
+    },
+    "techSpecs": {
+        "NET-128": {
+            "key": "NET-128",
+            "id": "128",
+            "version": "1.0",
+            "name": "Containerized Infrastructure",
+            "description": "The system should be set up as containerized infrastructure in the openshift cluster.",
+            "status": "IN DESIGN",
+            "systemDesignSpec": "Use containerized infrastructure to support quick and easy provisioning of a multitude of micro services that do one thing only and one thing right and fast.",
+            "softwareDesignSpec": "Implement the system using a loosely coupled micro services architecture for improved extensibility and maintainability.",
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "risks": [
+                "NET-126"
+            ],
+            "tests": [
+                "NET-127",
+                "NET-130",
+                "NET-131",
+                "NET-132",
+                "NET-133",
+                "NET-134",
+                "NET-135",
+                "NET-136",
+                "NET-137",
+                "NET-138",
+                "NET-139",
+                "NET-140",
+                "NET-141",
+                "NET-142",
+                "NET-143",
+                "NET-144"
+            ]
+        }
+    },
+    "tests": {
+        "NET-127": {
+            "key": "NET-127",
+            "id": "127",
+            "version": "1.0",
+            "name": "Stress test for the payment duration SLAs",
+            "description": "verify payments are executed within the payment SLAs",
+            "status": "DONE",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                },
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-130": {
+            "name": "Verify database is correctly installed",
+            "description": "Verify database is correctly setup.",
+            "key": "NET-130",
+            "id": "130",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to database",
+                    "data": "database credentials",
+                    "expectedResult": "Connection to database is available and user is authenticated"
+                },
+                {
+                    "index": 1,
+                    "step": "List and verify databases",
+                    "data": "database credentials; Sock Shop DB",
+                    "expectedResult": "authenticated user sees all required databases"
+                },
+                {
+                    "index": 2,
+                    "step": "Use Sock Shop database",
+                    "data": "SockShopDB",
+                    "expectedResult": "Authenticated user can switch to Sock Shop DB and see tables"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "risks": [
+                "DEMO-50"
+            ],
+            "bugs": []
+        },
+        "NET-131": {
+            "name": "User interacts with the cart",
+            "description": "User interacts with the cart",
+            "key": "NET-131",
+            "id": "131",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "User logs into web shop",
+                    "data": "N/A",
+                    "expectedResult": "Webshop Landing Page gets displayed"
+                },
+                {
+                    "index": 1,
+                    "step": "User adds item to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "One item added to shopping cart"
+                },
+                {
+                    "index": 2,
+                    "step": "User follows link to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "Shopping cart is displayed, containing one item."
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-132": {
+            "name": "User shows catalogue",
+            "description": "User shows catalogue",
+            "key": "NET-132",
+            "id": "132",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "User logs into web shop",
+                    "data": "N/A",
+                    "expectedResult": "Webshop Landing Page gets displayed"
+                },
+                {
+                    "index": 1,
+                    "step": "User follows link to catalogue",
+                    "data": "N/A",
+                    "expectedResult": "Catalogue is displayed in web page."
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-133": {
+            "name": "User buys some socks",
+            "description": "User buys some socks",
+            "key": "NET-133",
+            "id": "133",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "User logs into web shop",
+                    "data": "N/A",
+                    "expectedResult": "Webshop Landing Page gets displayed"
+                },
+                {
+                    "index": 1,
+                    "step": "User adds item to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "One item added to shopping cart"
+                },
+                {
+                    "index": 2,
+                    "step": "User follows link to shopping cart",
+                    "data": "N/A",
+                    "expectedResult": "Shopping cart is displayed, containing one item."
+                },
+                {
+                    "index": 3,
+                    "step": "User clicks 'buy now' button",
+                    "data": "N/A",
+                    "expectedResult": "Shipping details are displayed."
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-134": {
+            "name": "Home page looks sexy",
+            "description": "Home page looks sexy",
+            "key": "NET-134",
+            "id": "134",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "steps": [],
+            "components": [
+                "Technology-demo-app-frontend"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-135": {
+            "name": "User logs in",
+            "description": "User logs in",
+            "key": "NET-135",
+            "id": "135",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Acceptance",
+            "executionType": "Automated",
+            "steps": [],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-136": {
+            "name": "User exists in system",
+            "description": "User exists in system",
+            "key": "NET-136",
+            "id": "136",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Integration",
+            "executionType": "Automated",
+            "steps": [],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-137": {
+            "name": "FirstResultOrDefault returns the default for an empty list",
+            "description": "FirstResultOrDefault returns the default for an empty list",
+            "key": "NET-137",
+            "id": "137",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Unit",
+            "executionType": "Automated",
+            "steps": [],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "DEMO-15"
+            ],
+            "bugs": []
+        },
+        "NET-138": {
+            "name": "Verify frontend is correctly installed",
+            "description": "Verify frontend is correctly installed.",
+            "key": "NET-138",
+            "id": "138",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "risks": [
+                "DEMO-50"
+            ],
+            "bugs": []
+        },
+        "NET-139": {
+            "name": "Verify payment service is correctly installed",
+            "description": "Verify payment service is correctly setup.",
+            "key": "NET-139",
+            "id": "139",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-140": {
+            "name": "Verify order service is correctly installed",
+            "description": "Verify order service is correctly installed.",
+            "key": "NET-140",
+            "id": "140",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-141": {
+            "name": "Verify shipping service is correctly installed",
+            "description": "Verify shipping service is correctly installed.",
+            "key": "NET-141",
+            "id": "141",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Installation",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/health via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-142": {
+            "name": "Cart gets processed correctly",
+            "description": "Cart gets processed correctly.",
+            "key": "NET-142",
+            "id": "142",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Integration",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/carts via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns correct cart data"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-143": {
+            "name": "Frontend retrieves cart data correctly",
+            "description": "Frontend retrieves cart data correctly.",
+            "key": "NET-143",
+            "id": "143",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Integration",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/carts via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns correct cart data"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        },
+        "NET-144": {
+            "name": "Frontend retrieves payment data correctly",
+            "description": "Frontend retrieves payment data correctly.",
+            "key": "NET-144",
+            "id": "144",
+            "version": "1.0",
+            "status": "READY TO TEST",
+            "testType": "Integration",
+            "executionType": "Automated",
+            "steps": [
+                {
+                    "index": 0,
+                    "step": "Connect to the service on :80/payment via HTTP",
+                    "data": "N/A",
+                    "expectedResult": "Connection to the service is established and the service returns correct payment data"
+                }
+            ],
+            "components": [
+                "Technology-demo-app-payment"
+            ],
+            "requirements": [
+                "NET-125"
+            ],
+            "techSpecs": [
+                "NET-128"
+            ],
+            "bugs": []
+        }
+    }
+}

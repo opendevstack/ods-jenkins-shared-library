@@ -2,13 +2,16 @@ package org.ods.usecase
 
 import org.ods.service.NexusService
 import org.ods.util.IPipelineSteps
+import org.ods.util.Project
 
 class SonarQubeUseCase {
 
+    private Project project
     private NexusService nexus
     private IPipelineSteps steps
 
-    SonarQubeUseCase(IPipelineSteps steps, nexus) {
+    SonarQubeUseCase(Project project, IPipelineSteps steps, nexus) {
+        this.project = project
         this.steps = steps
         this.nexus = nexus
     }
@@ -17,7 +20,7 @@ class SonarQubeUseCase {
         def result = []
 
         try {
-            new File(path).traverse(nameFilter: ~/.*\.docx$/, type: groovy.io.FileType.FILES) { file ->
+            new File(path).traverse(nameFilter: ~/.*\.md$/, type: groovy.io.FileType.FILES) { file ->
                 result << file
             }
         } catch (FileNotFoundException e) {}
@@ -25,13 +28,13 @@ class SonarQubeUseCase {
         return result
     }
 
-    String uploadReportToNexus(String version, Map project, Map repo, String type, File artifact) {
+    String uploadReportToNexus(String version, Map repo, String type, File artifact) {
         return this.nexus.storeArtifactFromFile(
-            project.services.nexus.repository.name,
-            "${project.id.toLowerCase()}-${version}",
-            "${type}-${repo.id}-${version}.docx",
+            this.project.services.nexus.repository.name,
+            "${this.project.key.toLowerCase()}-${version}",
+            "${type}-${repo.id}-${version}.md",
             artifact,
-            "application/docx"
+            "application/text"
         )
-    }  
+    }
 }

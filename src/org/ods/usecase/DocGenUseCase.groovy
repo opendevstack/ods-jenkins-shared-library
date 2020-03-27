@@ -7,16 +7,19 @@ import org.ods.service.NexusService
 import org.ods.util.IPipelineSteps
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PDFUtil
+import org.ods.util.Project
 
 abstract class DocGenUseCase {
 
+    protected Project project
     protected IPipelineSteps steps
     protected MROPipelineUtil util
     protected DocGenService docGen
     protected NexusService nexus
     protected PDFUtil pdf
 
-    DocGenUseCase(IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
+    DocGenUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
+        this.project = project
         this.steps = steps
         this.util = util
         this.docGen = docGen
@@ -24,11 +27,9 @@ abstract class DocGenUseCase {
         this.pdf = pdf
     }
 
-    String createDocument(String documentType, Map project, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String documentTypeEmbedded = null, String watermarkText = null) {
-        def buildParams = this.util.getBuildParams()
-
+    String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String documentTypeEmbedded = null, String watermarkText = null) {
         // Create a PDF document via the DocGen service
-        def document = this.docGen.createDocument(documentType, '0.1', data)
+        def document = this.docGen.createDocument(documentType, this.getDocumentTemplatesVersion(), data)
 
         // Apply PDF document modifications, if provided
         if (modifier) {
@@ -40,7 +41,7 @@ abstract class DocGenUseCase {
             document = this.pdf.addWatermarkText(document, watermarkText)
         }
 
-        def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, buildParams.version, this.steps.env.BUILD_ID, project, repo)
+        def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
 
         // Create an archive with the document and raw data
         def archive = this.util.createZipArtifact(
@@ -55,8 +56,8 @@ abstract class DocGenUseCase {
 
         // Store the archive as an artifact in Nexus
         def uri = this.nexus.storeArtifact(
-            project.services.nexus.repository.name,
-            "${project.id.toLowerCase()}-${buildParams.version}",
+            this.project.services.nexus.repository.name,
+            "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
             "${basename}.zip",
             archive,
             "application/zip"
@@ -65,19 +66,19 @@ abstract class DocGenUseCase {
         return uri.toString()
     }
 
-    String createOverallDocument(String coverType, String documentType, Map metadata, Map project, Closure visitor = null, String watermarkText = null) {
+    String createOverallDocument(String coverType, String documentType, Map metadata,Closure visitor = null, String watermarkText = null) {
         def documents = []
         def sections = []
 
-        project.repositories.each { repo ->
+        this.project.repositories.each { repo ->
             def document = repo.data.documents[documentType]
             if (document) {
                 documents << document
-            }
 
-            sections << [
-                heading: repo.id
-            ]
+                sections << [
+                    heading: repo.id
+                ]
+            }
         }
 
         def data = [
@@ -98,24 +99,26 @@ abstract class DocGenUseCase {
             return this.pdf.merge(documents)
         }
 
-        def result = this.createDocument(coverType, project, null, data, [:], modifier, documentType, watermarkText)
+        def result = this.createDocument(coverType, null, data, [:], modifier, documentType, watermarkText)
 
         // Clean up previously stored documents
-        project.repositories.each { repo ->
+        this.project.repositories.each { repo ->
             repo.data.documents.remove(documentType)
         }
 
         return result
     }
 
-    String getDocumentBasename(String documentType, String version, String build, Map project, Map repo = null) {
-        def result = project.id
+    String getDocumentBasename(String documentType, String version, String build, Map repo = null) {
+        def result = this.project.key
         if (repo) {
             result += "-${repo.id}"
         }
 
         return "${documentType}-${result}-${version}-${build}".toString()
     }
+
+    abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
 }

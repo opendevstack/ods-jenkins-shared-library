@@ -5,8 +5,9 @@ import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
 import org.ods.util.MROPipelineUtil
 import org.ods.util.PipelineUtil
+import org.ods.util.Project
 
-def call(Map project, List<Set<Map>> repos) {
+def call(Project project, List<Set<Map>> repos) {
     def jira             = ServiceRegistry.instance.get(JiraUseCase)
     def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
     def util             = ServiceRegistry.instance.get(MROPipelineUtil)
@@ -24,43 +25,46 @@ def call(Map project, List<Set<Map>> repos) {
     ]
 
     def preExecuteRepo = { steps, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, project, repo)
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
     }
 
     def postExecuteRepo = { steps, repo ->
         // FIXME: we are mixing a generic scheduler capability with a data dependency and an explicit repository constraint.
         // We should turn the last argument 'data' of the scheduler into a closure that return data.
-        if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
+        if (project.isAssembleMode && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
             def data = [
                 tests: [
                     unit: getUnitTestResults(steps, repo)
                 ]
             ]
 
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, project, repo, data)
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, data)
 
             echo "Reporting unit test results to corresponding test cases in Jira for ${repo.id}"
-            jira.reportTestResultsForComponent(project.id, "Technology-${repo.id}", ["UnitTest"], data.tests.unit.testResults)
+            jira.reportTestResultsForComponent("Technology-${repo.id}", [Project.TestType.UNIT], data.tests.unit.testResults)
 
             globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)
         }
     }
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START, project)
+    try {
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
-    // Execute phase for each repository
-    util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-        .each { group ->
-            parallel(group)
-        }
+        // Execute phase for each repository
+        util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
+            .each { group ->
+                parallel(group)
+            }
 
-    // Parse all test report files into a single data structure
-    globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
+        // Parse all test report files into a single data structure
+        globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
 
-    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, project)
-
-    // Warn the build in case of failing tests
-    junit.warnBuildIfTestResultsContainFailure(project, globalData.tests.unit.testResults)
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+    } catch (e) {
+        this.steps.echo(e.message)
+        project.reportPipelineStatus(e)
+        throw e
+    }
 }
 
 private List getUnitTestResults(def steps, Map repo) {

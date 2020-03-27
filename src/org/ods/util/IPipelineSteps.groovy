@@ -25,4 +25,22 @@ interface IPipelineSteps {
     void stash(String name)
 
     void unstash(String name)
+
+    def fileExists(String file)
+
+    def readFile(String file, String encoding)
+
+    def readFile(Map args)
+
+    def writeFile(String file, String text, String encoding)
+
+    def writeFile(Map args)
+
+    def readJSON(Map args)
+
+    def writeJSON(Map args)
+
+    def timeout(Map args, Closure block)
+
+    def deleteDir()
 }

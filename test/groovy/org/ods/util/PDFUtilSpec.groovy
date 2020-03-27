@@ -17,7 +17,7 @@ class PDFUtilSpec extends SpecHelper {
         given:
         def util = new PDFUtil()
 
-        def pdfFile = getResource("Test-1.pdf")
+        def pdfFile = new FixtureHelper().getResource("Test-1.pdf")
         def text = "myWatermark"
 
         when:
@@ -30,11 +30,36 @@ class PDFUtilSpec extends SpecHelper {
         doc.close()
     }
 
+    def "convert from mardkdown document"() {
+        given:
+        def util = new PDFUtil()
+
+        def docFile = new FixtureHelper().getResource("Test.md")
+        def result
+
+        when:
+        result = util.convertFromMarkdown(docFile, false)
+
+        then:
+        def doc = PDDocument.load(result)
+        doc.getNumberOfPages() == 2
+        doc.close()
+
+        when:
+        result = util.convertFromMarkdown(docFile, true)
+
+        then:
+        def docLandscape = PDDocument.load(result)
+        docLandscape.getNumberOfPages() == 4
+        docLandscape.close()
+
+    }
+
     def "convert from Microsoft Word document"() {
         given:
         def util = new PDFUtil()
 
-        def docFile = getResource("Test.docx")
+        def docFile = new FixtureHelper().getResource("Test.docx")
 
         when:
         def result = util.convertFromWordDoc(docFile)
@@ -49,8 +74,8 @@ class PDFUtilSpec extends SpecHelper {
         given:
         def util = new PDFUtil()
 
-        def docFile1 = getResource("Test-1.pdf")
-        def docFile2 = getResource("Test-2.pdf")
+        def docFile1 = new FixtureHelper().getResource("Test-1.pdf")
+        def docFile2 = new FixtureHelper().getResource("Test-2.pdf")
 
         when:
         def result = util.merge([docFile1.bytes, docFile2.bytes])

@@ -10,6 +10,9 @@ import java.nio.file.Paths
 
 import org.ods.dependency.DependencyGraph
 import org.ods.dependency.Node
+import org.ods.service.OpenShiftService
+import org.ods.service.ServiceRegistry
+import org.ods.util.Project
 import org.yaml.snakeyaml.Yaml
 
 @InheritConstructors
@@ -57,15 +60,7 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     static final String COMPONENT_METADATA_FILE_NAME = "metadata.yml"
-    static final String PROJECT_METADATA_FILE_NAME = "metadata.yml"
     static final String REPOS_BASE_DIR = "repositories"
-
-    private GitUtil git
-
-    MROPipelineUtil(IPipelineSteps steps, GitUtil git) {
-        super(steps)
-        this.git = git
-    }
 
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
@@ -87,6 +82,161 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
+    private void finalizeODSComponent(Map repo, String baseDir) {
+        def os = ServiceRegistry.instance.get(OpenShiftService)
+
+        def targetEnvironment = this.project.buildParams.targetEnvironment
+        def imageShaFile = 'image-sha'
+        def targetProject = this.project.targetProject
+        def envParamsFile = this.project.environmentParamsFile
+        def envParams = this.project.getEnvironmentParams(envParamsFile)
+        def componentSelector = "app=${this.project.key}-${repo.id}"
+
+        steps.dir(baseDir) {
+            def openshiftDir = 'openshift-exported'
+            def exportRequired = true
+            if (steps.fileExists('openshift')) {
+                steps.echo "Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'."
+                openshiftDir = 'openshift'
+                exportRequired = false
+            } else {
+                steps.sh(
+                    script: "mkdir -p ${openshiftDir}",
+                    label: "Ensure ${openshiftDir} exists"
+                )
+            }
+            steps.dir(openshiftDir) {
+                def filesToStage = []
+                def commitMessage = ''
+                if (exportRequired) {
+                    commitMessage = 'Export configuration'
+                    steps.echo "Exporting current OpenShift state to folder '${openshiftDir}'."
+                    def targetFile = 'template.yml'
+                    os.tailorExport(
+                        targetProject,
+                        componentSelector,
+                        envParams,
+                        targetFile
+                    )
+                    filesToStage << targetFile
+                } else {
+                    commitMessage = 'Export image sha'
+                    // TODO: Display drift?
+                    // if (os.tailorHasDrift(targetProject, componentSelector, envParamsFile)) {
+                    //     throw new RuntimeException("Error: environment '${targetProject}' is not in sync with definition in 'openshift' folder.")
+                    // }
+                }
+
+                def collectedImage = repo?.data.odsBuildArtifacts?."OCP Docker image"
+                def imageSha = collectedImage.substring(collectedImage.lastIndexOf("@sha256:") + 1)
+                steps.writeFile(file: imageShaFile, text: imageSha)
+                filesToStage << imageShaFile
+
+                if (this.project.isWorkInProgress) {
+                    steps.sh(
+                        script: """
+                        git add ${filesToStage.join(' ')}
+                        git commit -m "${commitMessage} [ci skip]"
+                        git push origin ${repo.branch}
+                        """,
+                        label: "commit and push new state"
+                    )
+                } else {
+                    os.tagImageSha(repo.id, targetProject, imageSha, this.project.targetTag)
+                    steps.sh(
+                        script: """
+                        git add ${filesToStage.join(' ')}
+                        git commit -m "${commitMessage} [ci skip]"
+                        """,
+                        label: "commit new state"
+                    )
+                    tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                }
+            }
+        }
+    }
+
+    private void deployODSComponent(Map repo, String baseDir) {
+        def os = ServiceRegistry.instance.get(OpenShiftService)
+
+        def targetEnvironment = this.project.buildParams.targetEnvironment
+        def imageShaFile = 'image-sha'
+        def targetProject = this.project.targetProject
+        def envParamsFile = this.project.environmentParamsFile
+        def envParams = this.project.getEnvironmentParams(envParamsFile)
+        def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 5
+
+        def componentSelector = "app=${this.project.key}-${repo.id}"
+
+        steps.dir(baseDir) {
+            def openshiftDir = 'openshift-exported'
+            if (steps.fileExists('openshift')) {
+                openshiftDir = 'openshift'
+            }
+
+            steps.dir(openshiftDir) {
+                steps.echo "Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}."
+                os.tailorApply(
+                    targetProject,
+                    componentSelector,
+                    'bc', // exclude build configs
+                    envParamsFile,
+                    true
+                )
+            }
+
+            def definedImageSha = steps.readFile("${openshiftDir}/${imageShaFile}")
+            def sourceProject = "${this.project.key}-${Project.getConcreteEnvironment(this.project.sourceEnv, this.project.buildParams.version, this.project.versionedDevEnvsEnabled)}"
+            if (this.project.targetClusterIsExternal) {
+                os.importImageFromSourceRegistry(
+                    repo.id,
+                    sourceProject,
+                    definedImageSha,
+                    targetProject,
+                    this.project.targetTag
+                )
+            } else {
+                os.importImageFromProject(
+                    repo.id,
+                    sourceProject,
+                    definedImageSha,
+                    targetProject,
+                    this.project.targetTag
+                )
+            }
+
+            // tag with latest, which triggers rollout
+            os.tagImageWithLatest(repo.id, targetProject, this.project.targetTag)
+
+            // verify that image sha is running
+            // caution: relies on an image trigger being present ...
+            os.watchRollout(targetProject, repo.id, openshiftRolloutTimeoutMinutes)
+            def latestVersion = os.getLatestVersion(targetProject, repo.id)
+            def runningImageSha = os.getRunningImageSha(targetProject, repo.id, latestVersion)
+
+            if (definedImageSha != runningImageSha) {
+                throw new RuntimeException("Error: running image '${runningImageSha}' is not the same as the defined image '${definedImageSha}'.")
+            } else {
+                steps.echo "Running container is using defined image ${definedImageSha}."
+            }
+
+            // collect data required for documents
+            def pod = os.getPodDataForDeployment(repo.id, latestVersion)
+            repo.data.pod = pod
+            repo.data.odsBuildArtifacts = [
+                "OCP Build Id": "N/A",
+                "OCP Docker image": runningImageSha.split(':').last(),
+                "OCP Deployment Id": latestVersion,
+            ]
+
+            if (git.remoteTagExists(this.project.targetTag)) {
+                steps.echo "Skipping tag because it already exists."
+            } else {
+                tagAndPush(this.project.targetTag)
+            }
+        }
+    }
+
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
             def job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
@@ -99,52 +249,6 @@ class MROPipelineUtil extends PipelineUtil {
                 throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
             }
         }
-    }
-
-    List getBuildEnvironment(boolean debug = false) {
-        def params = this.getBuildParams()
-
-        return [
-            "DEBUG=${debug}",
-            "MULTI_REPO_BUILD=true",
-            "MULTI_REPO_ENV=${params.targetEnvironment}",
-            "MULTI_REPO_ENV_TOKEN=${params.targetEnvironmentToken}",
-            "RELEASE_PARAM_CHANGE_ID=${params.changeId}",
-            "RELEASE_PARAM_CHANGE_DESC=${params.changeDescription}",
-            "RELEASE_PARAM_CONFIG_ITEM=${params.configItem}",
-            "RELEASE_PARAM_VERSION=${params.version}",
-            "SOURCE_CLONE_ENV=${params.sourceEnvironmentToClone}",
-            "SOURCE_CLONE_ENV_TOKEN=${params.sourceEnvironmentToCloneToken}"
-        ]
-    }
-
-    Map getBuildParams() {
-        def version = this.steps.env.version?.trim() ?: "WIP"
-        def targetEnvironment = this.steps.env.environment?.trim() ?: "dev"
-        def targetEnvironmentToken = targetEnvironment[0].toUpperCase()
-        def sourceEnvironmentToClone = this.steps.env.sourceEnvironmentToClone?.trim() ?: targetEnvironment
-        def sourceEnvironmentToCloneToken = sourceEnvironmentToClone[0].toUpperCase()
-
-        def changeId = this.steps.env.changeId?.trim() ?: "${version}-${targetEnvironment}"
-        def configItem = this.steps.env.configItem?.trim() ?: "UNDEFINED"
-        def changeDescription = this.steps.env.changeDescription?.trim() ?: "UNDEFINED"
-
-        return [
-            changeDescription: changeDescription,
-            changeId: changeId,
-            configItem: configItem,
-            sourceEnvironmentToClone: sourceEnvironmentToClone,
-            sourceEnvironmentToCloneToken: sourceEnvironmentToCloneToken,
-            targetEnvironment: targetEnvironment,
-            targetEnvironmentToken: targetEnvironmentToken,
-            version: version
-        ]
-    }
-
-    boolean isTriggeredByChangeManagementProcess() {
-        def changeId = this.steps.env.changeId?.trim()
-        def configItem = this.steps.env.configItem?.trim()
-        return changeId && configItem
     }
 
     Map loadPipelineConfig(String path, Map repo) {
@@ -234,89 +338,21 @@ class MROPipelineUtil extends PipelineUtil {
         return repos
     }
 
-    Map loadProjectMetadata(String filename = PROJECT_METADATA_FILE_NAME) {
-        if (filename == null) {
-            throw new IllegalArgumentException("Error: unable to parse project meta data. 'filename' is undefined.")
+    def tagAndPushBranch(String branch, String tag) {
+        if (this.git.remoteTagExists(tag)) {
+            this.steps.echo "Skipping tag because it already exists."
+        } else {
+            this.git.createTag(tag)
+            this.git.pushBranchWithTags(branch)
         }
-
-        def file = Paths.get(this.steps.env.WORKSPACE, filename).toFile()
-        if (!file.exists()) {
-            throw new RuntimeException("Error: unable to load project meta data. File '${this.steps.env.WORKSPACE}/${filename}' does not exist.")
-        }
-
-        def result = new Yaml().load(file.text)
-
-        // Check for existence of required attribute 'id'
-        if (!result?.id?.trim()) {
-            throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'id' is undefined.")
-        }
-
-        // Check for existence of required attribute 'name'
-        if (!result?.name?.trim()) {
-            throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'name' is undefined.")
-        }
-
-        if (result.description == null) {
-            result.description = ""
-        }
-
-        if (result.repositories == null) {
-            result.repositories = []
-        }
-
-        result.data = [:]
-        result.data.build = [:]
-        result.data.documents = [:]
-
-        result.data.git = [
-            commit: this.git.getCommit(),
-            url: this.git.getURL()
-        ]
-
-        result.repositories.eachWithIndex { repo, index ->
-            // Check for existence of required attribute 'repositories[i].id'
-            if (!repo.id?.trim()) {
-                throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
-            }
-
-            repo.data = [:]
-            repo.data.documents = [:]
-
-            // Set repo type, if not provided
-            if (!repo.type?.trim()) {
-                repo.type = PipelineConfig.REPO_TYPE_ODS_CODE
-            }
-
-            // Resolve repo URL, if not provided
-            if (!repo.url?.trim()) {
-                this.steps.echo("Could not determine Git URL for repo '${repo.id}' from project meta data. Attempting to resolve automatically...")
-
-                def gitURL = this.getGitURL(this.steps.env.WORKSPACE, "origin")
-                if (repo.name?.trim()) {
-                    repo.url = gitURL.resolve("${repo.name}.git").toString()
-                    repo.remove("name")
-                } else {
-                    repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
-                }
-
-                this.steps.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
-            }
-
-            // Resolve repo branch, if not provided
-            if (!repo.branch?.trim()) {
-                this.steps.echo("Could not determine Git branch for repo '${repo.id}' from project meta data. Assuming 'master'.")
-                repo.branch = "master"
-            }
-        }
-
-        if (result.capabilities == null) {
-            result.capabilities = []
-        }
-
-        return result
     }
 
-    Closure prepareCheckoutRepoNamedJob(Map project, Map repo, Closure preExecute = null, Closure postExecute = null) {
+    def tagAndPush(String tag) {
+        git.createTag(tag)
+        git.pushTag(tag)
+    }
+
+    Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
         return [
             repo.id,
             {
@@ -324,23 +360,30 @@ class MROPipelineUtil extends PipelineUtil {
                     preExecute(this.steps, repo)
                 }
 
-                def scm = this.steps.checkout([
-                    $class: 'GitSCM',
-                    branches: [
-                        [ name: repo.branch ]
-                    ],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [
-                        [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ]
-                    ],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [
-                        [ credentialsId: project.services.bitbucket.credentials.id, url: repo.url ]
-                    ]
-                ])
+                def scm = null
+                def scmBranch = repo.branch
+                if (this.project.isPromotionMode) {
+                    scm = checkoutTagInRepoDir(repo, this.project.baseTag)
+                    scmBranch = this.project.gitReleaseBranch
+                } else {
+                    if (this.project.isWorkInProgress) {
+                        scm = checkoutBranchInRepoDir(repo, repo.branch)
+                    } else {
+                        // check if release manager repo already has a release branch
+                        if (git.remoteBranchExists(this.project.gitReleaseBranch)) {
+                            scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
+                        } else {
+                            scm = checkoutBranchInRepoDir(repo, repo.branch)
+                            steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                                git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
+                            }
+                        }
+                        scmBranch = this.project.gitReleaseBranch
+                    }
+                }
 
                 repo.data.git = [
-                    branch: scm.GIT_BRANCH,
+                    branch: scmBranch,
                     commit: scm.GIT_COMMIT,
                     previousCommit: scm.GIT_PREVIOUS_COMMIT,
                     previousSucessfulCommit: scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT,
@@ -354,9 +397,32 @@ class MROPipelineUtil extends PipelineUtil {
         ]
     }
 
-    void prepareCheckoutReposNamedJob(Map project, List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
+    def checkoutTagInRepoDir(Map repo, String tag) {
+        steps.echo "Checkout ${repo.id}@${tag}"
+        def credentialsId = this.project.services.bitbucket.credentials.id
+        git.checkout(
+            tag,
+            [[ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ]],
+            [[ credentialsId: credentialsId, url: repo.url ]]
+        )
+    }
+
+    def checkoutBranchInRepoDir(Map repo, String branch) {
+        steps.echo "Checkout ${repo.id}@${branch}"
+        def credentialsId = this.project.services.bitbucket.credentials.id
+        git.checkout(
+            branch,
+            [
+                [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ],
+                [ $class: 'LocalBranch', localBranch: "**" ]
+            ],
+            [[ credentialsId: credentialsId, url: repo.url ]]
+        )
+    }
+
+    void prepareCheckoutReposNamedJob(List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
         repos.collectEntries { repo ->
-            this.prepareCheckoutRepoNamedJob(project, repo, preExecute, postExecute)
+            this.prepareCheckoutRepoNamedJob(repo, preExecute, postExecute)
         }
     }
 
@@ -366,6 +432,7 @@ class MROPipelineUtil extends PipelineUtil {
             {
                 this.executeBlockAndFailBuild {
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+                    def targetEnvToken = this.project.buildParams.targetEnvironmentToken
 
                     if (preExecute) {
                         preExecute(this.steps, repo)
@@ -373,26 +440,38 @@ class MROPipelineUtil extends PipelineUtil {
 
                     if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
                         this.steps.stage('ODS Code Component') {
-                            if (name == PipelinePhases.BUILD) {
+                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                                 executeODSComponent(repo, baseDir)
+                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                                deployODSComponent(repo, baseDir)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                finalizeODSComponent(repo, baseDir)
                             } else {
-                                this.steps.echo("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}'")
+                                this.steps.echo("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                             }
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
                         this.steps.stage('ODS Service Component') {
-                            if (name == PipelinePhases.BUILD) {
+                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                                 executeODSComponent(repo, baseDir)
+                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                                deployODSComponent(repo, baseDir)
+                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                                finalizeODSComponent(repo, baseDir)
                             } else {
-                                this.steps.echo("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}'")
+                                this.steps.echo("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                             }
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
                         this.steps.stage('ODS Test Component') {
                             if (name == PipelinePhases.TEST) {
                                 executeODSComponent(repo, baseDir)
+                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                            } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
+                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                             } else {
-                                this.steps.echo("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}'")
+                                this.steps.echo("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                             }
                         }
                     } else {
@@ -441,6 +520,19 @@ class MROPipelineUtil extends PipelineUtil {
         repos.each { repo ->
             // Apply the visitor to the repo at the repo's base dir
             visitor("${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
+        }
+    }
+
+    void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {
+        this.project.setHasUnexecutedJiraTests(true)
+        def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
+        this.warnBuild("Warning: found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
+    }
+
+    void warnBuildIfTestResultsContainFailure(Map testResults) {
+        if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
+            this.project.setHasFailingTests(true)
+            this.warnBuild("Warning: found failing tests in test reports.")
         }
     }
 }

@@ -8,8 +8,8 @@ import com.cloudbees.groovy.cps.NonCPS
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
-import org.apache.http.client.utils.URIBuilder
 import org.ods.util.IPipelineSteps
+import org.ods.util.Project
 import org.yaml.snakeyaml.Yaml
 
 class PipelineUtil {
@@ -18,10 +18,14 @@ class PipelineUtil {
     static final String SONARQUBE_BASE_DIR = "sonarqube"
     static final String XUNIT_DOCUMENTS_BASE_DIR = "xunit"
 
+    protected Project project
     protected IPipelineSteps steps
+    protected GitUtil git
 
-    PipelineUtil(IPipelineSteps steps) {
+    PipelineUtil(Project project, IPipelineSteps steps, GitUtil git) {
+        this.project = project
         this.steps = steps
+        this.git = git
     }
 
     void archiveArtifact(String path, byte[] data) {
@@ -119,32 +123,6 @@ class PipelineUtil {
     void warnBuild(String message) {
         this.steps.currentBuild.result = "UNSTABLE"
         this.steps.echo(message)
-    }
-
-    URI getGitURL(String path = this.steps.env.WORKSPACE, String remote = "origin") {
-        if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Git URL. 'path' is undefined.")
-        }
-
-        if (!path.startsWith(this.steps.env.WORKSPACE)) {
-            throw new IllegalArgumentException("Error: unable to get Git URL. 'path' must be inside the Jenkins workspace: ${path}")
-        }
-
-        if (!remote?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Git URL. 'remote' is undefined.")
-        }
-
-        def result = null
-
-        this.steps.dir(path) {
-            result = this.steps.sh(
-                label : "Get Git URL for repository at path '${path}' and origin '${remote}'",
-                script: "git config --get remote.${remote}.url",
-                returnStdout: true
-            ).trim()
-        }
-
-        return new URIBuilder(result).build()
     }
 
     def loadGroovySourceFile(String path) {

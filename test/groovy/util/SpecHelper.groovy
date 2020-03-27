@@ -79,11 +79,6 @@ class SpecHelper extends Specification {
         return bytes.encodeBase64().toString()
     }
 
-    File getResource(String path) {
-        path = path.startsWith('/') ? path : '/' + path
-        new File(getClass().getResource(path).toURI())
-    }
-
     WireMockServer startWireMockServer() {
         def server = new WireMockServer(
             WireMockConfiguration.options().dynamicPort()
