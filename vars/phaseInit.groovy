@@ -64,14 +64,14 @@ def call() {
                 }
                 echo "Checkout release manager repository @ ${baseTag}"
                 checkoutGitRef(
-                    baseTag,
+                    "refs/tags/${baseTag}",
                     []
                 )
             } else {
                 if (git.remoteBranchExists(gitReleaseBranch)) {
                     echo "Checkout release manager repository @ ${gitReleaseBranch}"
                     checkoutGitRef(
-                        gitReleaseBranch,
+                        "*/${gitReleaseBranch}",
                         [[$class: 'LocalBranch', localBranch: "**"]]
                     )
                 } else {
@@ -342,7 +342,7 @@ private boolean privateKeyExists(def privateKeyCredentialsId) {
 private checkoutGitRef(String gitRef, def extensions) {
     checkout([
         $class: 'GitSCM',
-        branches: [[name: "*/${gitRef}"]],
+        branches: [[name: gitRef]],
         doGenerateSubmoduleConfigurations: false,
         extensions: extensions,
         userRemoteConfigs: scm.userRemoteConfigs

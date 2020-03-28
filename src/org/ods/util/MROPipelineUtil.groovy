@@ -398,20 +398,20 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def checkoutTagInRepoDir(Map repo, String tag) {
-        steps.echo "Checkout ${repo.id}@${tag}"
+        steps.echo "Checkout tag ${repo.id}@${tag}"
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
-            tag,
+            "refs/tags/${tag}",
             [[ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ]],
             [[ credentialsId: credentialsId, url: repo.url ]]
         )
     }
 
     def checkoutBranchInRepoDir(Map repo, String branch) {
-        steps.echo "Checkout ${repo.id}@${branch}"
+        steps.echo "Checkout branch ${repo.id}@${branch}"
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
-            branch,
+            "*/${branch}",
             [
                 [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ],
                 [ $class: 'LocalBranch', localBranch: "**" ]

@@ -60,7 +60,7 @@ class GitUtil {
     def checkout(String gitRef, def extensions, def userRemoteConfigs, boolean doGenerateSubmoduleConfigurations = false) {
         steps.checkout([
             $class: 'GitSCM',
-            branches: [[name: "*/${gitRef}"]],
+            branches: [[name: gitRef]],
             doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
             extensions: extensions,
             userRemoteConfigs: userRemoteConfigs
