@@ -43,7 +43,7 @@ Keep in mind that when you create a new project with OpenDevStack, you get three
 - `foo-test` (your QA environment - unforunately not named `-qa` for historical reasons)
 - `foo-cd` (where Jenkins runs and the pipelines such as the MRO pipeline are executed)
 
-So while there is a corresponding namespace for DEV and QA, there is no namespace corresponding to the PROD environment out-of-the-box. This is because it is assumed that your PROD environment is likely on another cluster altogether. However, you may also choose to create a `foo-prod` namespace on the same cluster (next to `foo-dev` and `foo-test`). In that case, you do not need to configure anything in `metadata.yml`. If you create `foo-prod` on another cluster, then you need to tell MRO two things: where the API of the external cluster is, and the credentials with which to access it. A typical configuration is:
+So while there is a corresponding namespace for DEV and QA, there is no namespace corresponding to the PROD environment out-of-the-box. This is because it is assumed that your PROD environment is likely on another cluster altogether. To create `foo-prod` on another cluster, you (or someone with appropriate rights) can run the script located at https://github.com/opendevstack/ods-core/blob/master/ocp-scripts/create-target-project.sh. Then you need to tell MRO two things: where the API of the external cluster is, and the credentials with which to access it. A typical configuration is:
 
 ```
 project: foo
@@ -55,9 +55,9 @@ environments:
     credentialsId: foo-cd-foo-prod
 ```
 
-This assumes you have the API token credentials stored in a secret of type `kubernetes.io/basic-auth` named `foo-prod` in the `foo-cd` namespace. This secret needs to be synced with Jenkins (which is achieved by labeling it with `credential.sync.jenkins.openshift.io=true`). The stored credentials need to belong to a serviceaccount with rights to admin the `foo-prod` namespace.
+This assumes you have the API token credentials stored in a secret of type `kubernetes.io/basic-auth` named `foo-prod` in the `foo-cd` namespace. This secret needs to be synced with Jenkins (which is achieved by labeling it with `credential.sync.jenkins.openshift.io=true`). The stored credentials need to belong to a serviceaccount with rights to admin the `foo-prod` namespace. The easiest way to setup all of this is by running the script located at https://github.com/opendevstack/ods-core/blob/master/ocp-scripts/create-target-sa-secret.sh, which makes use of the output of the `create-target-project.sh` ran earlier.
 
-TIP: Following the example of the PROD environment, you may also configure the QA environment to be on a different cluster if you want to.
+TIP: It is also possible to have the PROD environment on the same cluster, then you simply create a `foo-prod` namespace next to `foo-dev` and `foo-test`, and allow the `foo-cd:jenkins` account to admin that project. In that case, you do not need to configure anything in `metadata.yml`. The opposite is also possible: you can configure the QA environment to be on a different cluster than the DEV environment - simply follow the instructions above to create a `foo-test` namespace.
 
 As mentioned in the "Source Code Organisation" section, the MRO pipeline allows to enable separate development environments to isolate different version. When this mode is enabled, pipeline runs with `version=WIP` will deploy into the `$PROJECT-dev` as usual, but pipeline runs with `version=X` will deploy into `$PROJECT-dev-X`. If `$PROJECT-dev-X` does not exist yet, it will be created on the fly (by cloning `$PROJECT-dev` with its serviceaccounts and rolebindings). For the creation to work, the `jenkins` serviceaccount running the pipeline needs to have `self-provisioner` permissions (which need to be granted by a cluster admin). To enable (up to three) separate development environments, you can set `versionedDevEnvs` to `true` in the config map of your `Jenkinsfile`, like this:
 
