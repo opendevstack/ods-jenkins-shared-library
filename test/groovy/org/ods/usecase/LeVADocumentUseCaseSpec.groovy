@@ -1020,13 +1020,15 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Test Parameters
         def repo = project.repositories.first()
         def data = [
-            pods: [
-                items: [
-                    [
-                        metadata: [:],
-                        spec: [:],
-                        status: [:]
-                    ]
+            openshift: [
+                pod: [
+                    podName: 'N/A',
+                    podNamespace: 'N/A',
+                    podCreationTimestamp: 'N/A',
+                    podEnvironment: 'N/A',
+                    podNode: 'N/A',
+                    podIp: 'N/A',
+                    podStatus: 'N/A'
                 ]
             ]
         ]
@@ -1058,13 +1060,15 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         given:
         project.services.jira = null
         def data = [
-            pods: [
-                items: [
-                    [
-                        metadata: [:],
-                        spec: [:],
-                        status: [:]
-                    ]
+            openshift: [
+                pod: [
+                    podName: 'N/A',
+                    podNamespace: 'N/A',
+                    podCreationTimestamp: 'N/A',
+                    podEnvironment: 'N/A',
+                    podNode: 'N/A',
+                    podIp: 'N/A',
+                    podStatus: 'N/A'
                 ]
             ]
         ]
