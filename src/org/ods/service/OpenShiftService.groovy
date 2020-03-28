@@ -294,7 +294,19 @@ class OpenShiftService {
         throw new RuntimeException("Error: no pod for ${description} running / found.")
       }
 
-      return j.items[0]
+      def podOCData = j.items[0]
+
+      // strip all data not needed out
+      def pod = [ : ]
+        pod.podName = podOCData?.metadata?.name?: "N/A"
+        pod.podNamespace = podOCData?.metadata?.namespace?: "N/A"
+        pod.podCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
+        pod.podEnvironment = podOCData?.metadata?.labels?.env?: "N/A"
+        pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
+        pod.podIp = podOCData?.status?.podIP ?: "N/A"
+        pod.podStatus = podOCData?.status?.phase ?: "N/A"
+
+      return pod
     }
 
 }
