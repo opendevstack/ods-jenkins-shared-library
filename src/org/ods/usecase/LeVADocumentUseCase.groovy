@@ -1253,7 +1253,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected List<Map> getSectionsNotDone (Map issues = [:]) {
         if (!issues) return []
-        return issues.values().findAll { !it.status.equalsIgnoreCase("done") }
+        return issues.values().findAll { !it.status?.equalsIgnoreCase("done") }
     }
 
     String getDocumentTemplatesVersion() {

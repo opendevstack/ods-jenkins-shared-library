@@ -22,12 +22,15 @@ class LeVADocumentChaptersFileService {
             throw new IllegalArgumentException("Error: unable to load document chapters. 'documentType' is undefined.")
         }
 
+        def String yamlText
         def file = Paths.get(this.steps.env.WORKSPACE, DOCUMENT_CHAPTERS_BASE_DIR, "${documentType}.yaml").toFile()
         if (!file.exists()) {
-            throw new RuntimeException("Error: unable to load document chapters. File '${file.toString()}' does not exist.")
+            yamlText = this.steps.readFile("docs/${documentType}.yaml")
+        } else {
+            yamlText = file.text
         }
 
-        def data = new Yaml().load(file.text) ?: [:]
+        def data = new Yaml().load(yamlText) ?: [:]
         return data.collectEntries { chapter ->
             def number = chapter.number.toString()
             chapter.number = number

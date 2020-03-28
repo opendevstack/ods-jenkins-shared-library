@@ -63,6 +63,10 @@ abstract class DocGenUseCase {
             "application/zip"
         )
 
+        def message = "Document ${documentType}"
+        if (repo) message += " for ${repo.id}"
+        message += " uploaded @ ${uri.toString()}"
+        this.steps.echo message
         return uri.toString()
     }
 
