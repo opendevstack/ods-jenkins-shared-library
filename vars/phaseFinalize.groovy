@@ -40,11 +40,11 @@ def call(Project project, List<Set<Map>> repos) {
                 .each { group ->
                     parallel(group)
                 }
-        }
 
-        // record release manager repo state
-        if (project.isAssembleMode && !project.isWorkInProgress) {
-            util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
+            // record release manager repo state
+            if (project.isAssembleMode && !project.isWorkInProgress) {
+                util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
+            }
         }
 
         // Dump a representation of the project
