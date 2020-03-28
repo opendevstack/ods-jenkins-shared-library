@@ -13,12 +13,20 @@ def call(Project project, List<Set<Map>> repos) {
 
     def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 
+    def standardWorkspace = env.WORKSPACE
+
     def preExecuteRepo = { steps, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+        node {
+            sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+        }
     }
 
     def postExecuteRepo = { steps, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+        node {
+            sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+        }
     }
 
     try {
