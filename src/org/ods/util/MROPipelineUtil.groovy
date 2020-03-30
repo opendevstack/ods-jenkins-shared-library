@@ -387,7 +387,9 @@ class MROPipelineUtil extends PipelineUtil {
                     commit: scm.GIT_COMMIT,
                     previousCommit: scm.GIT_PREVIOUS_COMMIT,
                     previousSucessfulCommit: scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT,
-                    url: scm.GIT_URL
+                    url: scm.GIT_URL,
+                    baseTag: this.project.baseTag.toString(),
+                    targetTag: this.project.targetTag.toString()
                 ]
 
                 if (postExecute) {
