@@ -261,7 +261,7 @@ class Project {
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
-        this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.data.jira))
+        this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
         this.data.jira.docs = this.loadJiraDataDocs()
@@ -273,17 +273,6 @@ class Project {
         this.data.documents.sectionsNotDone = [:]
 
         return this
-    }
-
-    protected Map cleanJiraDataItems(Map data) {
-        // Bump test steps indizes from 0-based to 1-based counting
-        data.tests.each { test ->
-            test.getValue().steps.each { step ->
-                step.index++
-            }
-        }
-
-        return data
     }
 
     protected Map convertJiraDataToJiraDataItems(Map data) {

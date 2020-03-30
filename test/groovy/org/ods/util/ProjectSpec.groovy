@@ -555,7 +555,6 @@ class ProjectSpec extends SpecHelper {
         ]
 
         1 * project.convertJiraDataToJiraDataItems(_)
-        1 * project.cleanJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
         1 * project.loadJiraDataBugs(_) >> createProjectJiraDataBugs()
         1 * project.loadJiraDataDocs() >> createProjectJiraDataDocs()

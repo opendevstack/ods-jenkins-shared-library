@@ -301,16 +301,16 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/health via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                    "result": "Connection to the service is established and the service returns 'OK'"
                 },
                 {
-                    "index": 0,
+                    "orderId": 2,
                     "step": "Connect to the service on :80/health via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                    "result": "Connection to the service is established and the service returns 'OK'"
                 }
             ],
             "components": [
@@ -335,22 +335,22 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to database",
                     "data": "database credentials",
-                    "expectedResult": "Connection to database is available and user is authenticated"
+                    "result": "Connection to database is available and user is authenticated"
                 },
                 {
-                    "index": 1,
+                    "orderId": 2,
                     "step": "List and verify databases",
                     "data": "database credentials; Sock Shop DB",
-                    "expectedResult": "authenticated user sees all required databases"
+                    "result": "authenticated user sees all required databases"
                 },
                 {
-                    "index": 2,
+                    "orderId": 3,
                     "step": "Use Sock Shop database",
                     "data": "SockShopDB",
-                    "expectedResult": "Authenticated user can switch to Sock Shop DB and see tables"
+                    "result": "Authenticated user can switch to Sock Shop DB and see tables"
                 }
             ],
             "components": [
@@ -378,22 +378,22 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "User logs into web shop",
                     "data": "N/A",
-                    "expectedResult": "Webshop Landing Page gets displayed"
+                    "result": "Webshop Landing Page gets displayed"
                 },
                 {
-                    "index": 1,
+                    "orderId": 2,
                     "step": "User adds item to shopping cart",
                     "data": "N/A",
-                    "expectedResult": "One item added to shopping cart"
+                    "result": "One item added to shopping cart"
                 },
                 {
-                    "index": 2,
+                    "orderId": 3,
                     "step": "User follows link to shopping cart",
                     "data": "N/A",
-                    "expectedResult": "Shopping cart is displayed, containing one item."
+                    "result": "Shopping cart is displayed, containing one item."
                 }
             ],
             "components": [
@@ -418,16 +418,16 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "User logs into web shop",
                     "data": "N/A",
-                    "expectedResult": "Webshop Landing Page gets displayed"
+                    "result": "Webshop Landing Page gets displayed"
                 },
                 {
-                    "index": 1,
+                    "orderId": 2,
                     "step": "User follows link to catalogue",
                     "data": "N/A",
-                    "expectedResult": "Catalogue is displayed in web page."
+                    "result": "Catalogue is displayed in web page."
                 }
             ],
             "components": [
@@ -452,28 +452,28 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "User logs into web shop",
                     "data": "N/A",
-                    "expectedResult": "Webshop Landing Page gets displayed"
+                    "result": "Webshop Landing Page gets displayed"
                 },
                 {
-                    "index": 1,
+                    "orderId": 2,
                     "step": "User adds item to shopping cart",
                     "data": "N/A",
-                    "expectedResult": "One item added to shopping cart"
+                    "result": "One item added to shopping cart"
                 },
                 {
-                    "index": 2,
+                    "orderId": 3,
                     "step": "User follows link to shopping cart",
                     "data": "N/A",
-                    "expectedResult": "Shopping cart is displayed, containing one item."
+                    "result": "Shopping cart is displayed, containing one item."
                 },
                 {
-                    "index": 3,
+                    "orderId": 4,
                     "step": "User clicks 'buy now' button",
                     "data": "N/A",
-                    "expectedResult": "Shipping details are displayed."
+                    "result": "Shipping details are displayed."
                 }
             ],
             "components": [
@@ -582,10 +582,10 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/health via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                    "result": "Connection to the service is established and the service returns 'OK'"
                 }
             ],
             "components": [
@@ -613,10 +613,10 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/health via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                    "result": "Connection to the service is established and the service returns 'OK'"
                 }
             ],
             "components": [
@@ -641,10 +641,10 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/health via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                    "result": "Connection to the service is established and the service returns 'OK'"
                 }
             ],
             "components": [
@@ -669,10 +669,10 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/health via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns 'OK'"
+                    "result": "Connection to the service is established and the service returns 'OK'"
                 }
             ],
             "components": [
@@ -697,10 +697,10 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/carts via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns correct cart data"
+                    "result": "Connection to the service is established and the service returns correct cart data"
                 }
             ],
             "components": [
@@ -725,10 +725,10 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/carts via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns correct cart data"
+                    "result": "Connection to the service is established and the service returns correct cart data"
                 }
             ],
             "components": [
@@ -753,10 +753,10 @@
             "executionType": "Automated",
             "steps": [
                 {
-                    "index": 0,
+                    "orderId": 1,
                     "step": "Connect to the service on :80/payment via HTTP",
                     "data": "N/A",
-                    "expectedResult": "Connection to the service is established and the service returns correct payment data"
+                    "result": "Connection to the service is established and the service returns correct payment data"
                 }
             ],
             "components": [
