@@ -253,8 +253,8 @@ class Project {
         this.data.git = [
             commit: git.getCommit(),
             url: git.getURL(),
-            baseTag: baseTag.toString(),
-            targetTag: targetTag.toString()
+            baseTag: baseTag ? baseTag.toString() : '',
+            targetTag: targetTag ? targetTag.toString() : ''
         ]
 
         this.data.jira = [:]
