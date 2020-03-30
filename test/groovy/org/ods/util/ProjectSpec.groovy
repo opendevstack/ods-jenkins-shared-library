@@ -238,6 +238,112 @@ class ProjectSpec extends SpecHelper {
         result.find { it == "RELEASE_PARAM_VERSION=0.1" }
     }
 
+    def "get versioned dev ens"() {
+        when:
+        def result = new Project(steps).getVersionedDevEnvsEnabled()
+
+        then:
+        result == false
+
+        when:
+        result = new Project(steps, [versionedDevEnvs: false]).getVersionedDevEnvsEnabled()
+
+        then:
+        result == false
+
+        when:
+        result = new Project(steps, [versionedDevEnvs: true]).getVersionedDevEnvsEnabled()
+
+        then:
+        result == true
+    }
+
+    def "get concrete environments"() {
+        expect:
+        Project.getConcreteEnvironment(environment, version, versionedDevEnvsEnabled) == result
+
+        where:
+        environment | version | versionedDevEnvsEnabled || result
+        "dev"       | "WIP"   | true                    || "dev"
+        "dev"       | "tiger" | false                   || "dev"
+        "dev"       | "tiger" | true                    || "dev-tiger"
+        "dev"       | "Tiger" | true                    || "dev-tiger"
+        "dev"       | "1.0"   | true                    || "dev-1-0"
+        "dev"       | "1/0"   | true                    || "dev-1-0"
+        "dev"       | "ähm"   | true                    || "dev--hm"
+        "qa"        | "lion"  | true                    || "test"
+        "qa"        | "lion"  | false                   || "test"
+        "prod"      | "lion"  | true                    || "prod"
+        "prod"      | "lion"  | false                   || "prod"
+    }
+
+    def "get environment params"() {
+        steps.readFile(file: '/path/to/dev.env') >> content
+
+        expect:
+        project.getEnvironmentParams('/path/to/dev.env') == result
+
+        where:
+        content                               || result
+        "FOO=bar"                             || ['FOO': 'bar']
+        "FOO=bar\nBAZ=qux"                    || ['FOO': 'bar', 'BAZ': 'qux']
+        "FOO=bar\n# BAZ=qux\nABC=def"         || ['FOO': 'bar', 'ABC': 'def']
+        "FOO= bar \n # BAZ=qux\n\n\n ABC=def" || ['FOO': 'bar', 'ABC': 'def']
+    }
+
+    def "get environment params file"() {
+        steps.env.environment = 'dev'
+        steps.env.WORKSPACE = '/path/to/workspace'
+        steps.fileExists('/path/to/workspace/dev.env') >> exists
+
+        expect:
+        project.getEnvironmentParamsFile() == result
+
+        where:
+        exists  || result
+        true    || '/path/to/workspace/dev.env'
+        false   || ''
+    }
+
+    def "target cluster is not external when no API URL is configured"() {
+        project.setOpenShiftData('https://api.example.openshift.com:443')
+
+        expect:
+        project.getTargetClusterIsExternal() == false
+    }
+
+    def "target cluster can be external when an API URL is configured"() {
+        given:
+        steps.env.environment = environment
+        def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
+        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+
+        metadataFile.text = """
+            id: myId
+            name: myName
+            repositories:
+              - id: A
+                name: A
+                url: http://git.com
+            environments:
+              prod:
+                apiUrl: ${configuredProdApiUrl}
+        """
+
+        when:
+        project.init()
+        project.setOpenShiftData('https://api.example.openshift.com:443')
+
+        then:
+        project.getTargetClusterIsExternal() == result
+
+        where:
+        environment | configuredProdApiUrl || result
+        'dev'       | 'https://api.other.openshift.com'   || false
+        'prod'      | 'https://api.other.openshift.com'   || true
+        'prod'      | 'https://api.example.openshift.com' || false
+    }
+
     def "get capabilities"() {
         given:
         def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
