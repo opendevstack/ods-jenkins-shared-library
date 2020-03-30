@@ -5,11 +5,11 @@ It is assumed you are familiar with OpenDevStack as a whole, understand the gene
 
 ## What is the "environment promotion" feature?
 
-Typically, software is runing in different environments, such as one environment for development (DEV), one for quality assurance (QA), and one for production (PROD - this is what actual users of the software consume). Developers woron on the software in the development environment, and once they finish one version (a state) of the software, they bring that version to the QA environment, and once this version is deemed production-ready it is brought to the production environment so that users can consume the new version.
+Typically, software is running in different environments, such as one environment for development (DEV), one for quality assurance (QA), and one for production (PROD - this is what actual users of the software consume). Developers work on on the software in the development environment, and once they finish one version (a state) of the software, they bring that version to the QA environment, and once this version is deemed production-ready it is brought to the production environment so that users can consume the new version.
 
 The environment promotion feature of the MRO automates moving a certain version of the software from one environment to the next. Developers only have to tell the MRO if a new version should be built (in DEV) and packaged as an installable "release bundle", or if an existing "release bundle" should be promoted to either the QA or the production environment.
 
-The environment promotion feature is part of the regular MRO pipeline. Therefore, the promotion is executed from various Jenkins stages. It is not possible to change the process itself, but you can customize how the prmotion happens exactly for each of your software components.
+The environment promotion feature is part of the regular MRO pipeline. Therefore, the promotion is executed from various Jenkins stages. It is not possible to change the process itself, but you can customize how the promotion happens exactly for each of your software components.
 
 ## Source Code Organisation
 
@@ -40,7 +40,7 @@ Each "conceptual" environment is mapped to an OpenShift namespace:
 Keep in mind that when you create a new project with OpenDevStack, you get three OpenShift namespaces:
 
 - `foo-dev` (your DEV environment)
-- `foo-test` (your QA environment - unforunately not named `-qa` for historical reasons)
+- `foo-test` (your QA environment - unfortunately not named `-qa` for historical reasons)
 - `foo-cd` (where Jenkins runs and the pipelines such as the MRO pipeline are executed)
 
 So while there is a corresponding namespace for DEV and QA, there is no namespace corresponding to the PROD environment out-of-the-box. This is because it is assumed that your PROD environment is likely on another cluster altogether. To create `foo-prod` on another cluster, you (or someone with appropriate rights) can run the script located at https://github.com/opendevstack/ods-core/blob/master/ocp-scripts/create-target-project.sh. Then you need to tell MRO two things: where the API of the external cluster is, and the credentials with which to access it. A typical configuration is:
@@ -82,7 +82,7 @@ As outlined above, a release bundle is essentially a state of all involved Git r
 - a container image SHA
 - OpenShift resource configuration (expressed in an OpenShift template)
 
-You cannot modify the image SHA (it is the result of what the component pipeline builds), but you can influence the OpenShift template. One reason to do so is that e.g. routes or `ConfigMap` values will need to differ between environments, and you need to tell the MRO to paremterize the templates, and to supply the right values when the templates are applied in the target environment.
+You cannot modify the image SHA (it is the result of what the component pipeline builds), but you can influence the OpenShift template. One reason to do so is that e.g. routes or `ConfigMap` values will need to differ between environments, and you need to tell the MRO to parametrize the templates, and to supply the right values when the templates are applied in the target environment.
 
 When the MRO exports configuration, it has no way to tell which values should actually be parameters. For example, you might have a route `x.foo-dev.dev-cluster.com` in DEV, and want this to be `x.foo-test.dev-cluster.com` in QA and `x.foo-prod.prod-cluster.com` in PROD. In the exported template, the value `x.foo-dev.dev-cluster.com` will be hardcoded. To fix this, you can create three files in the release manager repository, `dev.env`, `qa.env` and `prod.env`. These files may contain `PARAM=value` lines, like this:
 
@@ -105,7 +105,7 @@ All three files need to list the exact same parameters - otherwise applying the 
 
 IMPORTANT: It is necessary to have all the param files completed before you create a release bundle - if you want to change e.g. the value of a parameter in the `prod.env` file afterwards, you will need to create a new release bundle (as they are identified by Git tags, which do not move when you make new commits on the release branch).
 
-Next to paramterizing templates, you can also adjust how the export is done. As the export is using https://github.com/opendevstack/tailor[Tailor], the best way to customize is to supply a `Tailorfile` in the `openshift-exported` folder, in which you can define the options you want to set, such as excluding certain labels or resource types, or preserving specific fields in the live configuration. Please see Tailor's documentation for more information. It is also possible to have different configuration files per environment if you suffix with the `$PROJECT`, e.g. `Tailorfile.foo-dev`.
+Next to parametrizing templates, you can also adjust how the export is done. As the export is using https://github.com/opendevstack/tailor[Tailor], the best way to customize is to supply a `Tailorfile` in the `openshift-exported` folder, in which you can define the options you want to set, such as excluding certain labels or resource types, or preserving specific fields in the live configuration. Please see Tailor's documentation for more information. It is also possible to have different configuration files per environment if you suffix with the `$PROJECT`, e.g. `Tailorfile.foo-dev`.
 
 TIP: If you have component-specific parameters that differ between environments, a lightweight way to add these is via parameter files located in the `openshift-exported` folder matching the target project such as `foo-dev.env`, `foo-test.env` and `foo-prod.env`. These files are picked up automatically without special setup in a `Tailorfile`.
 
@@ -115,7 +115,7 @@ In the process described above, the OpenShift configuration is exported and stor
 
 - There is no defined state: whatever gets exported is what will be promoted, even if a certain configuration was meant to be only temporary or is specific to e.g. only the DEV environment.
 - There is little traceability: as configuration is done through the OpenShift web interface, it is not known who did the change and when, and no chance for other team members to review that change.
-- The paramterization of the exported template might produce incorrect results as it is just a string search-and-replace operation without further knowledge of the meaning of your configuration values.
+- The parametrization of the exported template might produce incorrect results as it is just a string search-and-replace operation without further knowledge of the meaning of your configuration values.
 
 To overcome these issues, it is possible to author the OpenShift templates yourself instead of exporting them. The fastest way to start with this is by renaming the folder `openshift-exported` (containing the exported template) to `openshift.` From this point on, the MRO pipeline will skip the export, and apply whatever is defined in the `openshift` folder.
 
@@ -132,6 +132,6 @@ When you author templates, you can also store the secrets in the param files GPG
 - There is only one QA namespace, preventing to test multiple releases at the same time.
 - The secret of the serviceaccount in the target cluster is known to the MRO (as a Jenkins credential synced from OpenShift), therefore developers with edit/admin rights in the CD namespace have access to that secret
 - Tags could manually be set / moved (this can be prevented in Bitbucket by administrators)
-- Passwords etc. in the OpenShift configuration are stored in cleartext in the export (this can be prevented by authoring templates and using a private key for encryption of param files)
+- Passwords etc. in the OpenShift configuration are stored in clear text in the export (this can be prevented by authoring templates and using a private key for encryption of param files)
 - During export, the templates are parameterized automatically, but this is done using string search-and-replace and unwanted replacements might occur (this can be prevented by authoring the templates manually).
 - An existing QA-tag cannot be deployed again in PROD. This has been intentionally designed that way as any change to PROD needs its unique change ID, which results in a new tag.
