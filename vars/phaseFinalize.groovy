@@ -1,26 +1,25 @@
-import groovy.json.JsonOutput
-
 import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.OpenShiftService
 import org.ods.service.ServiceRegistry
-import org.ods.util.MROPipelineUtil
-import org.ods.util.PipelineUtil
 import org.ods.util.GitUtil
+import org.ods.util.MROPipelineUtil
+import org.ods.util.PipelineSteps
 import org.ods.util.Project
 
 def call(Project project, List<Set<Map>> repos) {
+    def steps = ServiceRegistry.instance.get(PipelineSteps)
     def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-    def os               = ServiceRegistry.instance.get(OpenShiftService)
-    def util             = ServiceRegistry.instance.get(MROPipelineUtil)
-    def git              = ServiceRegistry.instance.get(GitUtil)
+    def os = ServiceRegistry.instance.get(OpenShiftService)
+    def util = ServiceRegistry.instance.get(MROPipelineUtil)
+    def git = ServiceRegistry.instance.get(GitUtil)
 
     def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
-    def preExecuteRepo = { steps, repo ->
+    def preExecuteRepo = { steps_, repo ->
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
     }
 
-    def postExecuteRepo = { steps, repo ->
+    def postExecuteRepo = { steps_, repo ->
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
     }
 
@@ -48,10 +47,10 @@ def call(Project project, List<Set<Map>> repos) {
         }
 
         // Dump a representation of the project
-        echo "Project ${project.toString()}"
+        steps.echo("Project ${project.toString()}")
 
         if (project.isAssembleMode && !project.isWorkInProgress) {
-            echo "CAUTION: Any future changes that should affect version '${project.buildParams.version}' need to be committed into branch '${project.gitReleaseBranch}'."
+            steps.echo("CAUTION: Any future changes that should affect version '${project.buildParams.version}' need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
@@ -79,8 +78,12 @@ def call(Project project, List<Set<Map>> repos) {
             project.reportPipelineStatus()
         }
     } catch (e) {
-        this.steps.echo(e.message)
-        project.reportPipelineStatus(e)
+        steps.echo(e.message)
+        try {
+            project.reportPipelineStatus(e)
+        } catch (reportError) {
+            this.steps.echo("Error: Found a second error while trying to report the pipeline status with ${reportError.message}")
+        }
         throw e
     }
 }

@@ -3,13 +3,15 @@ import org.ods.service.OpenShiftService
 import org.ods.service.ServiceRegistry
 import org.ods.util.GitUtil
 import org.ods.util.MROPipelineUtil
+import org.ods.util.PipelineSteps
 import org.ods.util.Project
 
 def call(Project project, List<Set<Map>> repos) {
+    def steps = ServiceRegistry.instance.get(PipelineSteps)
     def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-    def os               = ServiceRegistry.instance.get(OpenShiftService)
-    def util             = ServiceRegistry.instance.get(MROPipelineUtil)
-    def git              = ServiceRegistry.instance.get(GitUtil)
+    def os = ServiceRegistry.instance.get(OpenShiftService)
+    def util = ServiceRegistry.instance.get(MROPipelineUtil)
+    def git = ServiceRegistry.instance.get(GitUtil)
 
     def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 
@@ -51,7 +53,7 @@ def call(Project project, List<Set<Map>> repos) {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject
-                steps.echo "Deploying project '${project.key}' into environment '${targetEnvironment}'"
+                steps.echo("Deploying project '${project.key}' into environment '${targetEnvironment}'")
 
                 if (project.targetClusterIsExternal) {
                     withCredentials([
@@ -80,7 +82,7 @@ def call(Project project, List<Set<Map>> repos) {
             // record release manager repo state
             if (project.isPromotionMode) {
                 if (git.remoteTagExists(project.targetTag)) {
-                    steps.echo "Skipping tag because it already exists."
+                    steps.echo("Skipping tag because it already exists.")
                 } else {
                     util.tagAndPush(project.targetTag)
                 }
@@ -89,8 +91,12 @@ def call(Project project, List<Set<Map>> repos) {
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     } catch (e) {
-        this.steps.echo(e.message)
-        project.reportPipelineStatus(e)
+        steps.echo(e.message)
+        try {
+            project.reportPipelineStatus(e)
+        } catch (reportError) {
+            this.steps.echo("Error: Found a second error while trying to report the pipeline status with ${reportError.message}")
+        }
         throw e
     }
 }

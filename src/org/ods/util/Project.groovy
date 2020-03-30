@@ -261,7 +261,7 @@ class Project {
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
-        this.data.jira = this.cleanJiraDataItems(this.convertJiraDataToJiraDataItems(this.data.jira))
+        this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
         this.data.jira.docs = this.loadJiraDataDocs()
@@ -273,17 +273,6 @@ class Project {
         this.data.documents.sectionsNotDone = [:]
 
         return this
-    }
-
-    protected Map cleanJiraDataItems(Map data) {
-        // Bump test steps indizes from 0-based to 1-based counting
-        data.tests.each { test ->
-            test.getValue().steps.each { step ->
-                step.index++
-            }
-        }
-
-        return data
     }
 
     protected Map convertJiraDataToJiraDataItems(Map data) {
@@ -377,12 +366,12 @@ class Project {
     Map getEnvironmentParams(String envParamsFile) {
         def envParams = [:]
         if (envParamsFile) {
-            def paramsFileContent = steps.readFile(envParamsFile)
+            def paramsFileContent = steps.readFile(file: envParamsFile)
             def params = paramsFileContent.split("\n")
             envParams = params.collectEntries {
                 if (it.trim().size() > 0 && !it.trim().startsWith('#')) {
                     def vals = it.split('=')
-                    [vals.first(), vals[1..vals.size()-1].join('=')]
+                    [vals.first().trim(), vals[1..vals.size()-1].join('=').trim()]
                 } else {
                     [:]
                 }
@@ -412,7 +401,7 @@ class Project {
         def sessionApiUrlWithoutPort = sessionApiUrl.split(':').dropRight(1).join(':')
         isExternal = sessionApiUrlWithoutPort != targetApiUrl
       }
-      steps.echo "Cluster ${targetApiUrl} is external=${isExternal}"
+      this.steps.echo("Cluster ${targetApiUrl} is external=${isExternal}")
       isExternal
     }
 
@@ -439,7 +428,7 @@ class Project {
 
     static String getConcreteEnvironment(String environment, String version, boolean versionedDevEnvsEnabled) {
         if (versionedDevEnvsEnabled && environment == 'dev' && version != BUILD_PARAM_VERSION_DEFAULT) {
-            def cleanedVersion = version.replaceAll('[^A-Za-z0-9-]', '-')
+            def cleanedVersion = version.replaceAll('[^A-Za-z0-9-]', '-').toLowerCase()
             environment = "${environment}-${cleanedVersion}"
         } else if (environment == 'qa') {
             environment = 'test'

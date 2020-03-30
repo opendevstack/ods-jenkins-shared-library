@@ -1,5 +1,9 @@
 package org.ods.util
 
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
 class PipelineSteps implements IPipelineSteps, Serializable {
 
     private def context
@@ -21,7 +25,8 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     }
 
     void echo(String message) {
-        this.context.echo(message)
+        def dateTimeString = OffsetDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss'Z'"))
+        this.context.echo("${dateTimeString} ${message}")
     }
 
     def getCurrentBuild() {

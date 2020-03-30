@@ -13,7 +13,7 @@ class OpenShiftService {
     def String bitbucketUser
     def String bitbucketPassword
     def String tailorPrivateKeyFile
-    
+
     OpenShiftService(
       IPipelineSteps steps,
       String openshiftApiUrl,
@@ -198,14 +198,14 @@ class OpenShiftService {
 
     boolean envExists(String name) {
       def environment = name
-      steps.echo "searching for ${environment}"
+      steps.echo("searching for ${environment}")
       def statusCode = steps.sh(
         script: "oc project ${environment} &> /dev/null",
         label: "check if OCP environment exists",
         returnStatus: true
       )
-      steps.echo "searching for ${environment} - result ${statusCode}"
-      return (statusCode == 0) 
+      steps.echo("searching for ${environment} - result ${statusCode}")
+      return (statusCode == 0)
     }
 
     boolean tooManyEnvironments(String projectPrefix, Integer limit) {
