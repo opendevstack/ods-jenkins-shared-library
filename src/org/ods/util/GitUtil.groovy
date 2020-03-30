@@ -30,7 +30,7 @@ class GitUtil {
         steps.sh(
             script: """
             git config --global user.email "undefined"
-            git config --global user.name "System User"
+            git config --global user.name "MRO System User"
             """,
             label: "configure git system user"
         )
