@@ -495,6 +495,12 @@ class MROPipelineUtil extends PipelineUtil {
                         } else {
                             // Ignore undefined phases
                         }
+
+                        if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                            tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                        } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
+                            tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                        }
                     }
 
                     if (postExecute) {
