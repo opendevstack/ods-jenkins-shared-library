@@ -269,6 +269,9 @@ class Project {
 
         this.data.openshift = [:]
 
+        this.data.documents = [:]
+        this.data.documents.sectionsNotDone = [:]
+
         return this
     }
 

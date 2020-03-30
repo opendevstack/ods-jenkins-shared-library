@@ -435,6 +435,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
         def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
+        // Save info for OVERALL
+        this.project.data.documents.sectionsNotDone[documentType] = sectionsNotDone
 
         def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
@@ -1031,6 +1033,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         def sectionsNotDone = this.getSectionsNotDone(sections)
         def watermarkText = this.getWatermarkText(documentType, sectionsNotDone)
+        // Save info for OVERALL
+        this.project.data.documents.sectionsNotDone[documentType] = sectionsNotDone
 
         if (!data.pod) {
             this.steps.echo "Repo data 'pod' not populated, retrieving latest pod of component ${repo.id}..."
@@ -1105,8 +1109,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def documentType = DocumentType.DTR as String
 
-        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, this.getWatermarkText(documentType))
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
+        def sectionsNotDone = this.project.data.documents.sectionsNotDone[documentType] ?: []
+
+        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, this.getWatermarkText(documentType, sectionsNotDone))
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
 
@@ -1115,6 +1121,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(documentTypeName)
 
         def documentType = DocumentType.TIR as String
+
+        def sectionsNotDone = this.project.data.documents.sectionsNotDone[documentType] ?: []
 
         def visitor = { data_ ->
             // Prepend a section for the Jenkins build log
@@ -1128,8 +1136,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
-        def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, visitor, this.getWatermarkText(documentType))
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.")
+        def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, visitor, this.getWatermarkText(documentType, sectionsNotDone))
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
 

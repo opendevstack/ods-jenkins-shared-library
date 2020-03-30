@@ -1110,7 +1110,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-Cover", documentType, _, _, _) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.", [])
     }
 
     def "create overall TIR"() {
@@ -1128,7 +1128,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.")
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName]} has been generated and is available at: ${uri}.", [])
     }
 
     def "get supported documents"() {
