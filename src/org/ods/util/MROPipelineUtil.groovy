@@ -164,7 +164,7 @@ class MROPipelineUtil extends PipelineUtil {
         def targetProject = this.project.targetProject
         def envParamsFile = this.project.environmentParamsFile
         def envParams = this.project.getEnvironmentParams(envParamsFile)
-        def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 5
+        def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
 
         def componentSelector = "app=${this.project.key}-${repo.id}"
 
