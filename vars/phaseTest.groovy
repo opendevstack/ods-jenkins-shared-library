@@ -4,57 +4,59 @@ import org.ods.service.ServiceRegistry
 import org.ods.usecase.JUnitTestReportsUseCase
 import org.ods.usecase.JiraUseCase
 import org.ods.util.MROPipelineUtil
+import org.ods.util.PipelineSteps
 import org.ods.util.PipelineUtil
 import org.ods.util.Project
 
 def call(Project project, List<Set<Map>> repos) {
-    def jira             = ServiceRegistry.instance.get(JiraUseCase)
-    def junit            = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
+    def steps = ServiceRegistry.instance.get(PipelineSteps)
+    def jira = ServiceRegistry.instance.get(JiraUseCase)
+    def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
     def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-    def util             = ServiceRegistry.instance.get(MROPipelineUtil)
+    def util = ServiceRegistry.instance.get(MROPipelineUtil)
 
     def phase = MROPipelineUtil.PipelinePhases.TEST
 
     def globalData = [
         tests: [
-            acceptance: [
+            acceptance  : [
                 testReportFiles: [],
-                testResults: [:]
+                testResults    : [:]
             ],
             installation: [
                 testReportFiles: [],
-                testResults: [:]
+                testResults    : [:]
             ],
-            integration: [
+            integration : [
                 testReportFiles: [],
-                testResults: [:]
+                testResults    : [:]
             ]
         ]
     ]
 
-    def preExecuteRepo = { steps, repo ->
+    def preExecuteRepo = { steps_, repo ->
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
     }
 
-    def postExecuteRepo = { steps, repo ->
+    def postExecuteRepo = { steps_, repo ->
         if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
             def data = [
                 tests: [
-                    acceptance: getAcceptanceTestResults(steps, repo),
+                    acceptance  : getAcceptanceTestResults(steps, repo),
                     installation: getInstallationTestResults(steps, repo),
-                    integration: getIntegrationTestResults(steps, repo)
+                    integration : getIntegrationTestResults(steps, repo)
                 ]
             ]
 
             project.repositories.each { repo_ ->
                 if (repo_.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                    echo "Reporting installation test results to corresponding test cases in Jira for ${repo_.id}"
+                    steps.echo("Reporting installation test results to corresponding test cases in Jira for ${repo_.id}")
                     jira.reportTestResultsForComponent("Technology-${repo_.id}", [Project.TestType.INSTALLATION], data.tests.installation.testResults)
 
-                    echo "Reporting integration test results to corresponding test cases in Jira for ${repo_.id}"
+                    steps.echo("Reporting integration test results to corresponding test cases in Jira for ${repo_.id}")
                     jira.reportTestResultsForComponent("Technology-${repo_.id}", [Project.TestType.INTEGRATION], data.tests.integration.testResults)
 
-                    echo "Reporting acceptance test results to corresponding test cases in Jira for ${repo_.id}"
+                    steps.echo("Reporting acceptance test results to corresponding test cases in Jira for ${repo_.id}")
                     jira.reportTestResultsForComponent("Technology-${repo_.id}", [Project.TestType.ACCEPTANCE], data.tests.acceptance.testResults)
                 }
             }
@@ -83,7 +85,7 @@ def call(Project project, List<Set<Map>> repos) {
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     } catch (e) {
-        this.steps.echo(e.message)
+        steps.echo(e.message)
         try {
             project.reportPipelineStatus(e)
         } catch (reportError) {
@@ -107,11 +109,11 @@ private List getIntegrationTestResults(def steps, Map repo) {
 
 private List getTestResults(def steps, Map repo, String type) {
     def jenkins = ServiceRegistry.instance.get(JenkinsService)
-    def junit   = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
+    def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
 
     def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
-    echo "Collecting JUnit XML Reports for ${repo.id}"
+    steps.echo("Collecting JUnit XML Reports for ${repo.id}")
     def testReportsStashName = "${type}-test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
     def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
     def hasStashedTestReports = jenkins.unstashFilesIntoPath(testReportsStashName, testReportsUnstashPath, "JUnit XML Report")
@@ -125,7 +127,7 @@ private List getTestResults(def steps, Map repo, String type) {
         // Load JUnit test report files from path
         testReportFiles: testReportFiles,
         // Parse JUnit test report files into a report
-        testResults: junit.parseTestReportFiles(testReportFiles)
+        testResults    : junit.parseTestReportFiles(testReportFiles)
     ]
 }
 

@@ -39,7 +39,7 @@ class JenkinsService {
             try {
                 this.steps.unstash(name)
             } catch (e) {
-                this.steps.echo "Could not find any files of type '${type}' to unstash for name '${name}'"
+                this.steps.echo("Could not find any files of type '${type}' to unstash for name '${name}'")
                 result = false
             }
         }

@@ -1,31 +1,12 @@
-@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
+import kong.unirest.Unirest
+import org.ods.scheduler.LeVADocumentScheduler
+import org.ods.service.*
+import org.ods.usecase.*
+import org.ods.util.*
+
+@Grab(group = "com.konghq", module = "unirest-java", version = "2.4.03", classifier = "standalone")
 
 import java.nio.file.Paths
-
-import kong.unirest.Unirest
-
-import org.ods.scheduler.LeVADocumentScheduler
-import org.ods.service.DocGenService
-import org.ods.service.JenkinsService
-import org.ods.service.JiraService
-import org.ods.service.JiraZephyrService
-import org.ods.service.LeVADocumentChaptersFileService
-import org.ods.service.NexusService
-import org.ods.service.OpenShiftService
-import org.ods.service.ServiceRegistry
-import org.ods.usecase.JUnitTestReportsUseCase
-import org.ods.usecase.JiraUseCase
-import org.ods.usecase.JiraUseCaseSupport
-import org.ods.usecase.JiraUseCaseZephyrSupport
-import org.ods.usecase.LeVADocumentUseCase
-import org.ods.usecase.SonarQubeUseCase
-import org.ods.util.GitUtil
-import org.ods.util.GitTag
-import org.ods.util.MROPipelineUtil
-import org.ods.util.PDFUtil
-import org.ods.util.PipelineSteps
-import org.ods.util.PipelineUtil
-import org.ods.util.Project
 
 def call() {
     def steps = new PipelineSteps(this)
@@ -41,7 +22,7 @@ def call() {
 
         // load build params
         def buildParams = Project.loadBuildParams(steps)
-        steps.echo "Build Parameters: ${buildParams}"
+        steps.echo("Build Parameters: ${buildParams}")
 
 
         // git checkout
@@ -62,14 +43,14 @@ def call() {
                 if (!baseTag) {
                     throw new RuntimeException("Error: unable to find latest tag for version ${buildParams.version}/${buildParams.changeId}.")
                 }
-                echo "Checkout release manager repository @ ${baseTag}"
+                steps.echo("Checkout release manager repository @ ${baseTag}")
                 checkoutGitRef(
                     baseTag,
                     []
                 )
             } else {
                 if (git.remoteBranchExists(gitReleaseBranch)) {
-                    echo "Checkout release manager repository @ ${gitReleaseBranch}"
+                    steps.echo("Checkout release manager repository @ ${gitReleaseBranch}")
                     checkoutGitRef(
                         gitReleaseBranch,
                         [[$class: 'LocalBranch', localBranch: "**"]]
@@ -118,7 +99,7 @@ def call() {
         )
 
         if (project.services?.jira) {
-            withCredentials([ usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD") ]) {
+            withCredentials([usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD")]) {
                 registry.add(JiraService,
                     new JiraService(
                         env.JIRA_URL,
@@ -160,7 +141,7 @@ def call() {
             }
         }
 
-        withCredentials([ usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: "BITBUCKET_USER", passwordVariable: "BITBUCKET_PW") ]) {
+        withCredentials([usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: "BITBUCKET_USER", passwordVariable: "BITBUCKET_PW")]) {
             registry.add(OpenShiftService,
                 new OpenShiftService(
                     registry.get(PipelineSteps),
@@ -236,7 +217,7 @@ def call() {
 
         if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
             if (project.buildParams.targetEnvironmentToken == 'Q') {
-                echo "WARNING: Deploying tag ${project.targetTag} again!"
+                steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
             } else {
                 throw new RuntimeException("Error: tag ${project.targetTag} already exists - it cannot be deployed again to P.")
             }
@@ -247,14 +228,14 @@ def call() {
 
         // Clean workspace from previous runs
         [PipelineUtil.ARTIFACTS_BASE_DIR, PipelineUtil.SONARQUBE_BASE_DIR, PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR, MROPipelineUtil.REPOS_BASE_DIR].each { name ->
-            echo "Cleaning workspace directory '${name}' from previous runs"
+            steps.echo("Cleaning workspace directory '${name}' from previous runs")
             Paths.get(env.WORKSPACE, name).toFile().deleteDir()
         }
 
         // Checkout repositories into the workspace
         parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
-            echo "Repository: ${repo}"
-            echo "Environment configuration: ${env.getEnvironment()}"
+            steps.echo("Repository: ${repo}")
+            steps.echo("Environment configuration: ${env.getEnvironment()}")
         })
 
         // Load configs from each repo's release-manager.yml
@@ -280,7 +261,7 @@ def call() {
                         def openshiftDir = 'openshift-exported'
                         def exportRequired = true
                         if (fileExists('openshift')) {
-                            steps.echo "Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'."
+                            steps.echo("Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'.")
                             openshiftDir = 'openshift'
                             exportRequired = false
                         } else {
@@ -292,7 +273,7 @@ def call() {
                         def componentSelector = "app=${project.key}-${repo.id}"
                         steps.dir(openshiftDir) {
                             if (exportRequired) {
-                                steps.echo "Exporting current OpenShift state to folder '${openshiftDir}'."
+                                steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
                                 os.tailorExport(
                                     "${project.key}-${sourceEnv}",
@@ -302,7 +283,7 @@ def call() {
                                 )
                             }
 
-                            steps.echo "Applying desired OpenShift state defined in ${openshiftDir} to ${project.targetProject}."
+                            steps.echo("Applying desired OpenShift state defined in ${openshiftDir} to ${project.targetProject}.")
                             os.tailorApply(
                                 project.targetProject,
                                 componentSelector,
@@ -321,9 +302,9 @@ def call() {
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
-        return [ project: project, repos: repos ]
+        return [project: project, repos: repos]
     } catch (e) {
-        this.steps.echo(e.message)
+        steps.echo(e.message)
         try {
             project.reportPipelineStatus(e)
         } catch (reportError) {
@@ -345,11 +326,11 @@ private boolean privateKeyExists(def privateKeyCredentialsId) {
 
 private checkoutGitRef(String gitRef, def extensions) {
     checkout([
-        $class: 'GitSCM',
-        branches: [[name: "*/${gitRef}"]],
+        $class                           : 'GitSCM',
+        branches                         : [[name: "*/${gitRef}"]],
         doGenerateSubmoduleConfigurations: false,
-        extensions: extensions,
-        userRemoteConfigs: scm.userRemoteConfigs
+        extensions                       : extensions,
+        userRemoteConfigs                : scm.userRemoteConfigs
     ])
 }
 

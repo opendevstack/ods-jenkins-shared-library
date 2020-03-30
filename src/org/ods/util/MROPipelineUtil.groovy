@@ -96,7 +96,7 @@ class MROPipelineUtil extends PipelineUtil {
             def openshiftDir = 'openshift-exported'
             def exportRequired = true
             if (steps.fileExists('openshift')) {
-                steps.echo "Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'."
+                steps.echo("Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'.")
                 openshiftDir = 'openshift'
                 exportRequired = false
             } else {
@@ -110,7 +110,7 @@ class MROPipelineUtil extends PipelineUtil {
                 def commitMessage = ''
                 if (exportRequired) {
                     commitMessage = 'Export configuration'
-                    steps.echo "Exporting current OpenShift state to folder '${openshiftDir}'."
+                    steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                     def targetFile = 'template.yml'
                     os.tailorExport(
                         targetProject,
@@ -175,7 +175,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
 
             steps.dir(openshiftDir) {
-                steps.echo "Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}."
+                steps.echo("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
                 os.tailorApply(
                     targetProject,
                     componentSelector,
@@ -217,7 +217,7 @@ class MROPipelineUtil extends PipelineUtil {
             if (definedImageSha != runningImageSha) {
                 throw new RuntimeException("Error: running image '${runningImageSha}' is not the same as the defined image '${definedImageSha}'.")
             } else {
-                steps.echo "Running container is using defined image ${definedImageSha}."
+                steps.echo("Running container is using defined image ${definedImageSha}.")
             }
 
             // collect data required for documents
@@ -230,7 +230,7 @@ class MROPipelineUtil extends PipelineUtil {
             ]
 
             if (git.remoteTagExists(this.project.targetTag)) {
-                steps.echo "Skipping tag because it already exists."
+                steps.echo("Skipping tag because it already exists.")
             } else {
                 tagAndPush(this.project.targetTag)
             }
@@ -340,7 +340,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     def tagAndPushBranch(String branch, String tag) {
         if (this.git.remoteTagExists(tag)) {
-            this.steps.echo "Skipping tag because it already exists."
+            this.steps.echo("Skipping tag because it already exists.")
         } else {
             this.git.createTag(tag)
             this.git.pushBranchWithTags(branch)
@@ -398,7 +398,7 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def checkoutTagInRepoDir(Map repo, String tag) {
-        steps.echo "Checkout ${repo.id}@${tag}"
+        steps.echo("Checkout ${repo.id}@${tag}")
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
             tag,
@@ -408,7 +408,7 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def checkoutBranchInRepoDir(Map repo, String branch) {
-        steps.echo "Checkout ${repo.id}@${branch}"
+        steps.echo("Checkout ${repo.id}@${branch}")
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
             branch,

@@ -401,7 +401,7 @@ class Project {
         def sessionApiUrlWithoutPort = sessionApiUrl.split(':').dropRight(1).join(':')
         isExternal = sessionApiUrlWithoutPort != targetApiUrl
       }
-      steps.echo "Cluster ${targetApiUrl} is external=${isExternal}"
+      this.steps.echo("Cluster ${targetApiUrl} is external=${isExternal}")
       isExternal
     }
 
