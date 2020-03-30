@@ -18,7 +18,7 @@ def call(Project project, List<Set<Map>> repos) {
     def standardWorkspace = env.WORKSPACE
     def agentPodCondition = project.isPromotionMode
 
-    def preExecuteRepo = { steps, repo ->
+    def preExecuteRepo = { steps_, repo ->
         // In case we run the phase on an agent node, we need to make sure that
         // the levaDocScheduler.run is executed on the master node, as it does
         // not work on agent nodes yet.
@@ -32,7 +32,7 @@ def call(Project project, List<Set<Map>> repos) {
         }
     }
 
-    def postExecuteRepo = { steps, repo ->
+    def postExecuteRepo = { steps_, repo ->
         // In case we run the phase on an agent node, we need to make sure that
         // the levaDocScheduler.run is executed on the master node, as it does
         // not work on agent nodes yet.
