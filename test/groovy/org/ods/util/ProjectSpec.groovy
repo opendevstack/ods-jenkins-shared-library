@@ -143,7 +143,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get build environment for RELEASE_PARAM_CHANGE_ID"() {
         when:
-        steps.env.environment = "myEnv"
+        steps.env.environment = "dev"
         steps.env.version = "0.1"
         def result = Project.getBuildEnvironment(steps)
 
@@ -152,7 +152,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         steps.env.changeId = ""
-        steps.env.environment = "myEnv"
+        steps.env.environment = "dev"
         steps.env.version = "0.1"
         result = Project.getBuildEnvironment(steps)
 
@@ -161,7 +161,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         steps.env.changeId = "myId"
-        steps.env.environment = "myEnv"
+        steps.env.environment = "dev"
         steps.env.version = "0.1"
         result = Project.getBuildEnvironment(steps)
 
@@ -615,7 +615,7 @@ class ProjectSpec extends SpecHelper {
     def "load build param changeId"() {
         when:
         steps.env.changeId = null
-        steps.env.environment = "myEnv"
+        steps.env.environment = "dev"
         steps.env.version = "0.1"
         def result = Project.loadBuildParams(steps)
 
@@ -624,7 +624,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         steps.env.changeId = ""
-        steps.env.environment = "myEnv"
+        steps.env.environment = "dev"
         steps.env.version = "0.1"
         result = Project.loadBuildParams(steps)
 
@@ -633,7 +633,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         steps.env.changeId = "myId"
-        steps.env.environment = "myEnv"
+        steps.env.environment = "dev"
         steps.env.version = "0.1"
         result = Project.loadBuildParams(steps)
 
