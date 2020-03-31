@@ -76,6 +76,7 @@ abstract class DocGenUseCase {
 
         this.steps.echo ("Creating overall ${documentType} .. ")
         this.project.repositories.each { repo ->
+            this.steps.echo ("repo: ${repo}")
             def document = repo.data.documents[documentType]
             if (document) {
                 documents << document
@@ -83,7 +84,6 @@ abstract class DocGenUseCase {
                 sections << [
                     heading: repo.id
                 ]
-                this.steps.echo ("Added ${documentType} for ${repo.id} into ${coverType}")
             }
         }
 
