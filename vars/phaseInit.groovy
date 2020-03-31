@@ -215,7 +215,12 @@ def call() {
         project.load(registry.get(GitUtil), registry.get(JiraUseCase))
         def repos = project.repositories
 
-        if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
+         // Validate that for Q and P we have a valid version
+        if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken) && buildParams.version == "WIP") {
+            throw new RuntimeException("Error: trying to deploy to Q or P without having defined a correct version. ${buildParams.version} version value is not allowed for those environments. If you are using Jira, please check that all values are set in the release manager issue")
+        }
+
+       if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
             if (project.buildParams.targetEnvironmentToken == 'Q') {
                 steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
             } else {
