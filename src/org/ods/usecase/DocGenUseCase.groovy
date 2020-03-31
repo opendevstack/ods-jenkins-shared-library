@@ -81,7 +81,7 @@ abstract class DocGenUseCase {
                 documents << document
 
                 sections << [
-                    heading: "${documentType} for ${repo.id} (merged)"
+                    heading: "${documentType} for component: ${repo.id} (merged)"
                 ]
             }
         }
