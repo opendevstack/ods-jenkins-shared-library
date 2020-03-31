@@ -1064,7 +1064,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def modifier = { document ->
-            repo.data.documents[documentType] = document
+            //repo.data.documents[documentType] = document
+            this.project.repositories[repo.id].data.documents[documentType] = document
             return document
         }
 

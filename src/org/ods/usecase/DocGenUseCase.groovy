@@ -83,7 +83,7 @@ abstract class DocGenUseCase {
                 sections << [
                     heading: repo.id
                 ]
-                this.steps.echo ("Added ${documentType} for ${repo.id}")
+                this.steps.echo ("Added ${documentType} for ${repo.id} into ${coverType}")
             }
         }
 
