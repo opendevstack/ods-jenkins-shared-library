@@ -253,8 +253,8 @@ class Project {
         this.data.git = [
             commit: git.getCommit(),
             url: git.getURL(),
-            baseTag: baseTag.toString(),
-            targetTag: targetTag.toString()
+            baseTag: baseTag ? baseTag.toString() : '',
+            targetTag: targetTag ? targetTag.toString() : ''
         ]
 
         this.data.jira = [:]
@@ -685,6 +685,9 @@ class Project {
 
         def version = steps.env.version?.trim() ?: BUILD_PARAM_VERSION_DEFAULT
         def targetEnvironment = (steps.env.environment?.trim() ?: "dev").toLowerCase()
+        if (!['dev', 'qa', 'prod'].contains(targetEnvironment)) {
+            throw new IllegalArgumentException("Error: 'environment' build param must be one of 'DEV', 'QA' or 'PROD'.")
+        }
         def targetEnvironmentToken = targetEnvironment[0].toUpperCase()
 
         def changeId = steps.env.changeId?.trim() ?: "UNDEFINED"

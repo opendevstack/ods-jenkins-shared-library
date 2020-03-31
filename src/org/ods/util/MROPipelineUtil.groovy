@@ -109,7 +109,7 @@ class MROPipelineUtil extends PipelineUtil {
                 def filesToStage = []
                 def commitMessage = ''
                 if (exportRequired) {
-                    commitMessage = 'Export configuration'
+                    commitMessage = 'ODS: Export OpenShift configuration'
                     steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                     def targetFile = 'template.yml'
                     os.tailorExport(
@@ -120,7 +120,7 @@ class MROPipelineUtil extends PipelineUtil {
                     )
                     filesToStage << targetFile
                 } else {
-                    commitMessage = 'Export image sha'
+                    commitMessage = 'ODS: Export OpenShift image SHA'
                     // TODO: Display drift?
                     // if (os.tailorHasDrift(targetProject, componentSelector, envParamsFile)) {
                     //     throw new RuntimeException("Error: environment '${targetProject}' is not in sync with definition in 'openshift' folder.")
@@ -164,7 +164,7 @@ class MROPipelineUtil extends PipelineUtil {
         def targetProject = this.project.targetProject
         def envParamsFile = this.project.environmentParamsFile
         def envParams = this.project.getEnvironmentParams(envParamsFile)
-        def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 5
+        def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
 
         def componentSelector = "app=${this.project.key}-${repo.id}"
 
@@ -222,18 +222,14 @@ class MROPipelineUtil extends PipelineUtil {
 
             // collect data required for documents
             def pod = os.getPodDataForDeployment(repo.id, latestVersion)
-            repo.data.pod = pod
+            repo.data.openshift = ['pod' : pod]
             repo.data.odsBuildArtifacts = [
                 "OCP Build Id": "N/A",
                 "OCP Docker image": runningImageSha.split(':').last(),
                 "OCP Deployment Id": latestVersion,
             ]
 
-            if (git.remoteTagExists(this.project.targetTag)) {
-                steps.echo("Skipping tag because it already exists.")
-            } else {
-                tagAndPush(this.project.targetTag)
-            }
+            tagAndPush(this.project.targetTag)
         }
     }
 
@@ -348,8 +344,12 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def tagAndPush(String tag) {
-        git.createTag(tag)
-        git.pushTag(tag)
+        if (this.git.remoteTagExists(tag)) {
+            this.steps.echo("Skipping tag because it already exists.")
+        } else {
+            this.git.createTag(tag)
+            this.git.pushTag(tag)
+        }
     }
 
     Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
@@ -387,7 +387,9 @@ class MROPipelineUtil extends PipelineUtil {
                     commit: scm.GIT_COMMIT,
                     previousCommit: scm.GIT_PREVIOUS_COMMIT,
                     previousSucessfulCommit: scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT,
-                    url: scm.GIT_URL
+                    url: scm.GIT_URL,
+                    baseTag: this.project.baseTag,
+                    targetTag: this.project.targetTag
                 ]
 
                 if (postExecute) {
@@ -398,20 +400,20 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def checkoutTagInRepoDir(Map repo, String tag) {
-        steps.echo("Checkout ${repo.id}@${tag}")
+        steps.echo("Checkout tag ${repo.id}@${tag}")
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
-            tag,
+            "refs/tags/${tag}",
             [[ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ]],
             [[ credentialsId: credentialsId, url: repo.url ]]
         )
     }
 
     def checkoutBranchInRepoDir(Map repo, String branch) {
-        steps.echo("Checkout ${repo.id}@${branch}")
+        steps.echo("Checkout branch ${repo.id}@${branch}")
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
-            branch,
+            "*/${branch}",
             [
                 [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ],
                 [ $class: 'LocalBranch', localBranch: "**" ]
@@ -467,9 +469,13 @@ class MROPipelineUtil extends PipelineUtil {
                             if (name == PipelinePhases.TEST) {
                                 executeODSComponent(repo, baseDir)
                             } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
-                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                this.steps.dir(baseDir) {
+                                    tagAndPush(this.project.targetTag)
+                                }
                             } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
-                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                this.steps.dir(baseDir) {
+                                    tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                }
                             } else {
                                 this.steps.echo("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                             }
@@ -492,6 +498,16 @@ class MROPipelineUtil extends PipelineUtil {
                             }
                         } else {
                             // Ignore undefined phases
+                        }
+
+                        if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                            this.steps.dir(baseDir) {
+                                tagAndPush(this.project.targetTag)
+                            }
+                        } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
+                            this.steps.dir(baseDir) {
+                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                            }
                         }
                     }
 

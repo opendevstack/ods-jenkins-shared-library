@@ -199,7 +199,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         }
 
         // Applicable for certain document types only if the Jira service is configured in the release manager configuration
-        if ([LeVADocumentUseCase.DocumentType.CSD, LeVADocumentUseCase.DocumentType.SSDS].contains(documentType as LeVADocumentUseCase.DocumentType)) {
+        if ([LeVADocumentUseCase.DocumentType.CSD, LeVADocumentUseCase.DocumentType.SSDS, LeVADocumentUseCase.DocumentType.CFTP, LeVADocumentUseCase.DocumentType.CFTR,LeVADocumentUseCase.DocumentType.IVP,LeVADocumentUseCase.DocumentType.IVR,LeVADocumentUseCase.DocumentType.DIL, LeVADocumentUseCase.DocumentType.TCP, LeVADocumentUseCase.DocumentType.TCR, LeVADocumentUseCase.DocumentType.RA, LeVADocumentUseCase.DocumentType.TRC].contains(documentType as LeVADocumentUseCase.DocumentType)) {
             result = result && this.project.services?.jira != null
         }
 
@@ -264,7 +264,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         return this.ENVIRONMENT_TYPE[environment].containsKey(documentType)
     }
 
-    void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage,Map repo = null, Map data = null) {
+    void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
         def documents = this.usecase.getSupportedDocuments()
         def environment = this.project.buildParams.targetEnvironmentToken
 

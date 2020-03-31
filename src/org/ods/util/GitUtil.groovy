@@ -30,7 +30,7 @@ class GitUtil {
         steps.sh(
             script: """
             git config --global user.email "undefined"
-            git config --global user.name "System User"
+            git config --global user.name "MRO System User"
             """,
             label: "configure git system user"
         )
@@ -60,7 +60,7 @@ class GitUtil {
     def checkout(String gitRef, def extensions, def userRemoteConfigs, boolean doGenerateSubmoduleConfigurations = false) {
         steps.checkout([
             $class: 'GitSCM',
-            branches: [[name: "*/${gitRef}"]],
+            branches: [[name: gitRef]],
             doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
             extensions: extensions,
             userRemoteConfigs: userRemoteConfigs

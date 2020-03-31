@@ -111,7 +111,7 @@ class DocGenServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create document. DocGen could not be found at: 'http://localhost:${server.port()}'."
+        e.message == "Error: unable to create document 'myType (v0.1)'. DocGen could not be found at: 'http://localhost:${server.port()}'."
 
         cleanup:
         stopServer(server)
@@ -133,7 +133,7 @@ class DocGenServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create document. DocGen responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to create document 'myType (v0.1)'. DocGen responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)

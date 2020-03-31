@@ -15,18 +15,41 @@ def call(Project project, List<Set<Map>> repos) {
 
     def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 
+    def standardWorkspace = env.WORKSPACE
+    def agentPodCondition = project.isPromotionMode
+
     def preExecuteRepo = { steps_, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+        // In case we run the phase on an agent node, we need to make sure that
+        // the levaDocScheduler.run is executed on the master node, as it does
+        // not work on agent nodes yet.
+        if (agentPodCondition) {
+            node {
+                sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+                levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+            }
+        } else {
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+        }
     }
 
     def postExecuteRepo = { steps_, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+        // In case we run the phase on an agent node, we need to make sure that
+        // the levaDocScheduler.run is executed on the master node, as it does
+        // not work on agent nodes yet.
+        if (agentPodCondition) {
+            node {
+                sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+                levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+            }
+        } else {
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+        }
     }
 
     try {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
-        runOnAgentPod(project, project.isPromotionMode) {
+        runOnAgentPod(project, agentPodCondition) {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject

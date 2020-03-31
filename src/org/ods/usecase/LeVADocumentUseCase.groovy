@@ -1036,10 +1036,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Save info for OVERALL
         this.project.data.documents.sectionsNotDone[documentType] = sectionsNotDone
 
-        if (!data.pod) {
+        if (!data.openshift?.pod) {
             this.steps.echo("Repo data 'pod' not populated, retrieving latest pod of component ${repo.id}...")
-            data.pod = os.getPodDataForComponent(this.project.key, repo.id)
+            data.openshift = ['pod': os.getPodDataForComponent(this.project.key, repo.id)]
         }
+
+        this.steps.echo("Got pod data: ${repo.id} ${data.openshift.pod}")
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1047,13 +1049,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ocpBuildId          : data.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
                 ocpDockerImage      : data.odsBuildArtifacts?."OCP Docker image" ?: "N/A",
                 ocpDeploymentId     : data.odsBuildArtifacts?."OCP Deployment Id" ?: "N/A",
-                podName             : data.pod?.metadata?.name ?: "N/A",
-                podNamespace        : data.pod?.metadata?.namespace ?: "N/A",
-                podCreationTimestamp: data.pod?.metadata?.creationTimestamp ?: "N/A",
-                podEnvironment      : data.pod?.metadata?.labels?.env ?: "N/A",
-                podNode             : data.pod?.spec?.nodeName ?: "N/A",
-                podIp               : data.pod?.status?.podIP ?: "N/A",
-                podStatus           : data.pod?.status?.phase ?: "N/A"
+                podName             : data.openshift.pod.podName,
+                podNamespace        : data.openshift.pod.podNamespace,
+                podCreationTimestamp: data.openshift.pod.podCreationTimestamp,
+                podEnvironment      : data.openshift.pod.podEnvironment,
+                podNode             : data.openshift.pod.podNode,
+                podIp               : data.openshift.pod.podIp,
+                podStatus           : data.openshift.pod.podStatus
             ],
             data         : [
                 repo    : repo,
@@ -1253,7 +1255,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected List<Map> getSectionsNotDone (Map issues = [:]) {
         if (!issues) return []
-        return issues.values().findAll { !it.status.equalsIgnoreCase("done") }
+        return issues.values().findAll { !it.status?.equalsIgnoreCase("done") }
     }
 
     String getDocumentTemplatesVersion() {

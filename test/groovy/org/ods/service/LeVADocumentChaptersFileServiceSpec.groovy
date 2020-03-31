@@ -76,6 +76,6 @@ class LeVADocumentChaptersFileServiceSpec extends SpecHelper {
 
         then:
         e = thrown(RuntimeException)
-        e.message == "Error: unable to load document chapters. File '${Paths.get(steps.env.WORKSPACE, LeVADocumentChaptersFileService.DOCUMENT_CHAPTERS_BASE_DIR, type)}.yaml' does not exist."        
+        e.message == "Error: unable to load document chapters. File 'docs/${type}.yaml' could not be read."
     }
 }
