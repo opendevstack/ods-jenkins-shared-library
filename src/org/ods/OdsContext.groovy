@@ -203,7 +203,7 @@ class OdsContext implements Context {
 
     config.podLabel = "pod-${UUID.randomUUID().toString()}"
 
-    logger.info "Assembled configuration: ${config}"
+    logger.debug "Assembled configuration: ${config}"
   }
 
   boolean getDebug() {
