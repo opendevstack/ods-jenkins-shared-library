@@ -81,7 +81,7 @@ abstract class DocGenUseCase {
                 documents << document
 
                 sections << [
-                    heading: repo.id
+                    heading: "${documentType} for ${repo.id} (merged)"
                 ]
             }
         }
