@@ -150,15 +150,19 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ],
         "Q": [
             (LeVADocumentUseCase.DocumentType.TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_Q"],
+            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_Q"],
             (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_Q"],
+            (LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_Q"],
             (LeVADocumentUseCase.DocumentType.CFTR as String)   : ["${LeVADocumentUseCase.DocumentType.CFTR}"],
             (LeVADocumentUseCase.DocumentType.TCR as String)    : ["${LeVADocumentUseCase.DocumentType.TCR}"],
             (LeVADocumentUseCase.DocumentType.TRC as String)    : ["${LeVADocumentUseCase.DocumentType.TRC}"],
-            (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_Q"],
+            (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_Q"]
         ],
         "P": [
-            (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_P]"],
+            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_P"],
+            (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
+            (LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_P"]
         ]
     ]
@@ -256,8 +260,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
     }
 
     protected boolean isDocumentApplicableForEnvironment(String documentType, String environment) {
-        // In D always created
-        if ("D".equalsIgnoreCase(environment)) {
+        // In D always created, as long as its not assemble mode! 
+        if ("D".equalsIgnoreCase(environment) && !(this.project.isAssembleMode)) {
             return true
         }
 
