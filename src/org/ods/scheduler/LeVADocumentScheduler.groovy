@@ -260,8 +260,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
     }
 
     protected boolean isDocumentApplicableForEnvironment(String documentType, String environment) {
-        // In D always created
-        if ("D".equalsIgnoreCase(environment)) {
+        // in developer preview mode always create
+        if (project.isDeveloperPreviewMode()) {
             return true
         }
 

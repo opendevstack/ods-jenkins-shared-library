@@ -347,6 +347,11 @@ class Project {
         isWorkInProgress(buildParams.version)
     }
 
+    boolean isDeveloperPreviewMode() {
+        return "wip".equalsIgnoreCase(this.data.buildParams.version) &&
+            this.data.buildParams.targetEnvironmentToken == "D"
+    }
+
     static boolean isWorkInProgress(String version) {
         version == BUILD_PARAM_VERSION_DEFAULT
     }

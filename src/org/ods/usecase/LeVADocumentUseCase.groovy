@@ -1212,6 +1212,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected String getWatermarkText(String documentType, List<Map> sectionsNotDone = []) {
+        if (this.project.isDeveloperPreviewMode()){
+            return this.DEVELOPER_PREVIEW_WATERMARK
+        }
+
         def environment = this.project.buildParams.targetEnvironmentToken
 
         // The watermark only applies in DEV environment (for documents not to be delivered from that environment)
