@@ -223,8 +223,10 @@ def call() {
             }
         }
 
+        def jobMode = project.isPromotionMode ? "(promote)" : "(assemble)"
+        
         // Configure current build
-        currentBuild.description = "Build #${BUILD_NUMBER} - Change: ${env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.key}, Target Environment: ${project.key}-${env.MULTI_REPO_ENV}, Version: ${env.VERSION}"
+        currentBuild.description = "Build #${BUILD_NUMBER} - ${jobMode} - Change: ${env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.key}, Target Environment: ${project.key}-${env.MULTI_REPO_ENV}, Version: ${env.VERSION}"
 
         // Clean workspace from previous runs
         [PipelineUtil.ARTIFACTS_BASE_DIR, PipelineUtil.SONARQUBE_BASE_DIR, PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR, MROPipelineUtil.REPOS_BASE_DIR].each { name ->
