@@ -395,6 +395,7 @@ class Project {
         this.data.openshift['targetApiUrl'] = targetApiUrl
     }
 
+    @NonCPS
     boolean getTargetClusterIsExternal() {
       def isExternal = false
       def sessionApiUrl = this.data.openshift.sessionApiUrl
