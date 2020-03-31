@@ -1,5 +1,7 @@
 package org.ods
 
+import hudson.Functions
+
 class OdsPipeline implements Serializable {
 
   def script
@@ -94,6 +96,9 @@ class OdsPipeline implements Serializable {
           } catch (err) {
             script.stage('odsPipeline error') {
               logger.info "***** Finished ODS Pipeline for  ${context.componentId} (with error) *****"
+              try {
+                hudson.Functions.printThrowable(err)
+              } catch (e) {}
               updateBuildStatus('FAILURE')
               setBitbucketBuildStatus('FAILED')
               if (context.notifyNotGreen) {
