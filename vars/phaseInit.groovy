@@ -217,7 +217,7 @@ def call() {
 
          // Validate that for Q and P we have a valid version
         if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken) && buildParams.version == "WIP") {
-            throw new RuntimeException("Error: trying to deploy to Q or P without having defined a correct version. ${buildParams.version} version value is not allowed for those environments. If you are using Jira, please check that all values are set in the release manager issue")
+            throw new RuntimeException("Error: trying to deploy to Q or P without having defined a correct version. ${buildParams.version} version value is not allowed for those environments. If you are using Jira, please check that all values are set in the release manager issue. Build parameters obtained: ${buildParams}")
         }
 
        if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
