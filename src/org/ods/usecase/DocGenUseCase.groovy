@@ -34,6 +34,7 @@ abstract class DocGenUseCase {
         // Apply PDF document modifications, if provided
         if (modifier) {
             document = modifier(document)
+            this.steps.echo("modifier ran for doc type ${documentType}")
         }
 
         // Apply PDF document watermark, if provided
@@ -80,7 +81,7 @@ abstract class DocGenUseCase {
                 documents << document
 
                 sections << [
-                    heading: repo.id
+                    heading: "${documentType} for component: ${repo.id} (merged)"
                 ]
             }
         }
