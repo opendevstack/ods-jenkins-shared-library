@@ -229,11 +229,7 @@ class MROPipelineUtil extends PipelineUtil {
                 "OCP Deployment Id": latestVersion,
             ]
 
-            if (git.remoteTagExists(this.project.targetTag)) {
-                steps.echo("Skipping tag because it already exists.")
-            } else {
-                tagAndPush(this.project.targetTag)
-            }
+            tagAndPush(this.project.targetTag)
         }
     }
 
@@ -348,8 +344,12 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def tagAndPush(String tag) {
-        git.createTag(tag)
-        git.pushTag(tag)
+        if (this.git.remoteTagExists(tag)) {
+            this.steps.echo("Skipping tag because it already exists.")
+        } else {
+            this.git.createTag(tag)
+            this.git.pushTag(tag)
+        }
     }
 
     Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
@@ -470,7 +470,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 executeODSComponent(repo, baseDir)
                             } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
                                 this.steps.dir(baseDir) {
-                                    tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                    tagAndPush(this.project.targetTag)
                                 }
                             } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
                                 this.steps.dir(baseDir) {
@@ -502,7 +502,7 @@ class MROPipelineUtil extends PipelineUtil {
 
                         if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
                             this.steps.dir(baseDir) {
-                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                tagAndPush(this.project.targetTag)
                             }
                         } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
                             this.steps.dir(baseDir) {
