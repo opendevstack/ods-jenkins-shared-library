@@ -735,6 +735,7 @@ class Project {
         result.project.id = result.project.id as String
         result.tests.each { key, test ->
             test.id = test.id as String
+            test.bugs = test.bugs ?: []
         }
 
         return result
