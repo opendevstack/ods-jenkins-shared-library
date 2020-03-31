@@ -260,8 +260,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
     }
 
     protected boolean isDocumentApplicableForEnvironment(String documentType, String environment) {
-        // In D always created, as long as its not assemble mode! 
-        if ("D".equalsIgnoreCase(environment) && !(this.project.isAssembleMode)) {
+        // In D always created
+        if ("D".equalsIgnoreCase(environment)) {
             return true
         }
 
