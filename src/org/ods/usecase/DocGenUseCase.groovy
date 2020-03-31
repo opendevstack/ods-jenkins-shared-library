@@ -75,9 +75,7 @@ abstract class DocGenUseCase {
         def documents = []
         def sections = []
 
-        this.steps.echo ("Creating overall ${documentType} .. ")
         this.project.repositories.each { repo ->
-            this.steps.echo ("repo: ${repo}")
             def document = repo.data.documents[documentType]
             if (document) {
                 documents << document
