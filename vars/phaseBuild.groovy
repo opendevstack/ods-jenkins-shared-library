@@ -52,6 +52,7 @@ def call(Project project, List<Set<Map>> repos) {
         // Execute phase for each repository
         util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
             .each { group ->
+                group.failFast = true
                 parallel(group)
             }
 

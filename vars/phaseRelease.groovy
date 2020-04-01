@@ -24,6 +24,7 @@ def call(Project project, List<Set<Map>> repos) {
 
         util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
             .each { group ->
+                group.failFast = true
                 parallel(group)
             }
 
