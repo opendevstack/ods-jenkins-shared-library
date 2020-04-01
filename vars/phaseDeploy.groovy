@@ -1,52 +1,50 @@
-import org.ods.scheduler.LeVADocumentScheduler
-import org.ods.service.OpenShiftService
-import org.ods.service.ServiceRegistry
-import org.ods.util.GitUtil
-import org.ods.util.MROPipelineUtil
-import org.ods.util.PipelineSteps
-import org.ods.util.Project
+import hudson.Functions
+
+import org.ods.scheduler.*
+import org.ods.service.*
+import org.ods.util.*
 
 def call(Project project, List<Set<Map>> repos) {
-    def steps = ServiceRegistry.instance.get(PipelineSteps)
-    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-    def os = ServiceRegistry.instance.get(OpenShiftService)
-    def util = ServiceRegistry.instance.get(MROPipelineUtil)
-    def git = ServiceRegistry.instance.get(GitUtil)
+    try {
+        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+        def os = ServiceRegistry.instance.get(OpenShiftService)
+        def util = ServiceRegistry.instance.get(MROPipelineUtil)
+        def git = ServiceRegistry.instance.get(GitUtil)
 
-    def phase = MROPipelineUtil.PipelinePhases.DEPLOY
+        def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 
-    def standardWorkspace = env.WORKSPACE
-    def agentPodCondition = project.isPromotionMode
+        def standardWorkspace = env.WORKSPACE
+        def agentPodCondition = project.isPromotionMode
 
-    def preExecuteRepo = { steps_, repo ->
-        // In case we run the phase on an agent node, we need to make sure that
-        // the levaDocScheduler.run is executed on the master node, as it does
-        // not work on agent nodes yet.
-        if (agentPodCondition) {
-            node {
-                sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+        def preExecuteRepo = { steps_, repo ->
+            // In case we run the phase on an agent node, we need to make sure that
+            // the levaDocScheduler.run is executed on the master node, as it does
+            // not work on agent nodes yet.
+            if (agentPodCondition) {
+                node {
+                    sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+                    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+                }
+            } else {
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
             }
-        } else {
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
-    }
 
-    def postExecuteRepo = { steps_, repo ->
-        // In case we run the phase on an agent node, we need to make sure that
-        // the levaDocScheduler.run is executed on the master node, as it does
-        // not work on agent nodes yet.
-        if (agentPodCondition) {
-            node {
-                sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+        def postExecuteRepo = { steps_, repo ->
+            // In case we run the phase on an agent node, we need to make sure that
+            // the levaDocScheduler.run is executed on the master node, as it does
+            // not work on agent nodes yet.
+            if (agentPodCondition) {
+                node {
+                    sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+                    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+                }
+            } else {
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
             }
-        } else {
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
         }
-    }
 
-    try {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         runOnAgentPod(project, agentPodCondition) {
@@ -91,12 +89,21 @@ def call(Project project, List<Set<Map>> repos) {
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     } catch (e) {
-        steps.echo(e.message)
+        // Check for random null references which occur after a Jenkins restart
+        if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
+            e = new IllegalStateException("Error: invalid references have been detected for critical pipeline services. Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!").initCause(e)
+        }
+
+        echo(e.message)
+
         try {
             project.reportPipelineStatus(e)
         } catch (reportError) {
-            this.steps.echo("Error: Found a second error while trying to report the pipeline status with ${reportError.message}")
+            echo("Error: unable to report pipeline status because of: ${reportError.message}.")
+            reportError.initCause(e)
+            throw reportError
         }
+
         throw e
     }
 }

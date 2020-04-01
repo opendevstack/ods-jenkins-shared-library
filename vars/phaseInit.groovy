@@ -1,12 +1,13 @@
+import hudson.Functions
+
+import java.nio.file.Paths
+
 import kong.unirest.Unirest
-import org.ods.scheduler.LeVADocumentScheduler
+
+import org.ods.scheduler.*
 import org.ods.service.*
 import org.ods.usecase.*
 import org.ods.util.*
-
-@Grab(group = "com.konghq", module = "unirest-java", version = "2.4.03", classifier = "standalone")
-
-import java.nio.file.Paths
 
 def call() {
     def steps = new PipelineSteps(this)
@@ -229,7 +230,7 @@ def call() {
         }
 
         def jobMode = project.isPromotionMode ? "(promote)" : "(assemble)"
-        
+
         // Configure current build
         currentBuild.description = "Build ${jobMode} #${BUILD_NUMBER} - Change: ${env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.key}, Target Environment: ${project.key}-${env.MULTI_REPO_ENV}, Version: ${env.VERSION}"
 
@@ -311,12 +312,21 @@ def call() {
 
         return [project: project, repos: repos]
     } catch (e) {
-        steps.echo(e.message)
+        // Check for random null references which occur after a Jenkins restart
+        if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
+            e = new IllegalStateException("Error: invalid references have been detected for critical pipeline services. Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!").initCause(e)
+        }
+
+        echo(e.message)
+
         try {
             project.reportPipelineStatus(e)
         } catch (reportError) {
-            this.steps.echo("Error: Found a second error while trying to report the pipeline status with ${reportError.message}")
+            echo("Error: unable to report pipeline status because of: ${reportError.message}.")
+            reportError.initCause(e)
+            throw reportError
         }
+
         throw e
     }
 }

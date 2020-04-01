@@ -1,25 +1,25 @@
-import org.ods.scheduler.LeVADocumentScheduler
-import org.ods.service.ServiceRegistry
-import org.ods.util.MROPipelineUtil
-import org.ods.util.PipelineSteps
-import org.ods.util.Project
+import hudson.Functions
+
+import org.ods.scheduler.*
+import org.ods.service.*
+import org.ods.util.*
 
 def call(Project project, List<Set<Map>> repos) {
-    def steps = ServiceRegistry.instance.get(PipelineSteps)
-    def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-    def util = ServiceRegistry.instance.get(MROPipelineUtil)
-
-    def phase = MROPipelineUtil.PipelinePhases.RELEASE
-
-    def preExecuteRepo = { steps_, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
-    }
-
-    def postExecuteRepo = { steps_, repo ->
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
-    }
-
     try {
+        def steps = ServiceRegistry.instance.get(PipelineSteps)
+        def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+        def util = ServiceRegistry.instance.get(MROPipelineUtil)
+
+        def phase = MROPipelineUtil.PipelinePhases.RELEASE
+
+        def preExecuteRepo = { steps_, repo ->
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+        }
+
+        def postExecuteRepo = { steps_, repo ->
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
+        }
+
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
@@ -29,12 +29,21 @@ def call(Project project, List<Set<Map>> repos) {
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     } catch (e) {
-        steps.echo(e.message)
+        // Check for random null references which occur after a Jenkins restart
+        if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
+            e = new IllegalStateException("Error: invalid references have been detected for critical pipeline services. Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!").initCause(e)
+        }
+
+        echo(e.message)
+
         try {
             project.reportPipelineStatus(e)
         } catch (reportError) {
-            this.steps.echo("Error: Found a second error while trying to report the pipeline status with ${reportError.message}")
+            echo("Error: unable to report pipeline status because of: ${reportError.message}.")
+            reportError.initCause(e)
+            throw reportError
         }
+
         throw e
     }
 }
