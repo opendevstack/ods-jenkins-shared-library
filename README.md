@@ -107,6 +107,10 @@ If no `branch` parameter is provided for a repository, `master` will be assumed.
 
 Instead of merely resolving repositories into a strictly sequential execution model, our library automatically understands which repositories form independent groups and can run in parallel for best time-to-feedback and time-to-delivery.
 
+### Environment Promotion
+
+The MRO can move all specified components from one environment to another to easily bring an application from DEV to QA to PROD. For more information about this feature, please read https://github.com/opendevstack/ods-mro-jenkins-shared-library/blob/master/promotion-guide.adoc.
+
 ### Automated Generation of Compliance Documents
 
 The library automatically generates Lean Validation (LeVA) compliance reports based on data in your Jira project, as well as data generated along the automated build, deploy, test, and release process by the release manager component.
