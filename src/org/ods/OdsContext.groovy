@@ -370,6 +370,10 @@ class OdsContext implements Context {
     config.sonarQubeBranch
   }
 
+  void setSonarQubeBranch(String sonarQubeBranch) {
+    config.sonarQubeBranch = sonarQubeBranch
+  }
+
   String getFailOnSnykScanVulnerabilities() {
     config.failOnSnykScanVulnerabilities
   }
