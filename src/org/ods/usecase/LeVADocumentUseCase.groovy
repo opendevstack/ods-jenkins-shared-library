@@ -1192,14 +1192,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private List<String> getJiraTrackingIssueLabelsForDocumentType(String documentType) {
-        def environment = this.project.buildParams.targetEnvironmentToken
         def labels = []
 
+        def environment = this.project.buildParams.targetEnvironmentToken
         LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].get(documentType).each { label ->
             labels.add("Doc:${label}")
         }
 
-        if (environment.equals('D')) {
+        if (this.project.isDeveloperPreviewMode()) {
             // Assumes that every document we generate along the pipeline has a tracking issue in Jira
             labels.add("Doc:${documentType}")
         }
@@ -1218,11 +1218,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = this.project.buildParams.targetEnvironmentToken
 
-        // The watermark only applies in DEV environment (for documents not to be delivered from that environment)
-        if (environment.equals('D') && !LeVADocumentScheduler.ENVIRONMENT_TYPE['D'].containsKey(documentType)) {
-            return this.DEVELOPER_PREVIEW_WATERMARK
-        }
-
         // The watermark applies when any of the document chapter of the document is not in status DONE and is to be generated for the environment
         if (!sectionsNotDone.isEmpty()) {
             return this.WORK_IN_PROGRESS_WATERMARK
@@ -1236,8 +1231,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return
 
         def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
-
         def jiraIssues = this.project.getDocumentTrackingIssues(jiraDocumentLabels)
+
         if (jiraIssues.isEmpty()) {
             throw new RuntimeException("Error: no Jira tracking issue associated with document type '${documentType}'.")
         }

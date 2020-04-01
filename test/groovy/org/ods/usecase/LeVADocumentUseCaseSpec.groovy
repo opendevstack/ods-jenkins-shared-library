@@ -33,6 +33,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def setup() {
         project = Spy(createProject())
+        project.buildParams.targetEnvironment = "dev"
+        project.buildParams.targetEnvironmentToken = "D"
+        project.buildParams.version = "WIP"
+
         steps = Spy(util.PipelineSteps)
         util = Mock(MROPipelineUtil)
         docGen = Mock(DocGenService)
@@ -1263,20 +1267,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "watermark should be applied if any issue is not in DONE"() {
         given:
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = "D"
+        project.buildParams.version = "1.0"
 
         when:
         def result = usecase.getWatermarkText("DOCUMENTKEY", [])
 
         then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText("DocumentKey", [[key:"TO DO"],[key:"IN progress"]])
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
+        result == null
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CSD as String, [[key:"TO DO"],[key:"IN progress"]])
@@ -1286,99 +1283,100 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     }
 
-    def "docs with watermark text in DEV"() {
+    def "watermark 'developer preview' should be applied to all documents in developer preview mode"() {
         given:
+        project.buildParams.version = "WIP"
         project.buildParams.targetEnvironment = "dev"
 
         when:
         def result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CSD as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTP as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TRC as String)
 
         then:
-        result == "Developer Preview"
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTR as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CFTP as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CFTR as String)
 
         then:
-        result == "Developer Preview"
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.IVP as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.IVR as String)
 
         then:
-        result == "Developer Preview"
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SSDS as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.RA as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TIP as String)
 
         then:
-        result == null
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TIR as String)
 
         then:
-        result == "Developer Preview"
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_DTR as String)
 
         then:
-        result == "Developer Preview"
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)
 
         then:
-        result == "Developer Preview"
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
 
         when:
         result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)
 
         then:
-        result == "Developer Preview"
+        result == usecase.DEVELOPER_PREVIEW_WATERMARK
     }
 
     def "get document templates version"() {
