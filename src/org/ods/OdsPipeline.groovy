@@ -1,7 +1,5 @@
 package org.ods
 
-import hudson.Functions
-
 class OdsPipeline implements Serializable {
 
   def script
