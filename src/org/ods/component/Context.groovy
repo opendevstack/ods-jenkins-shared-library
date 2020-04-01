@@ -1,6 +1,8 @@
-package org.ods
+package org.ods.component
 
-class OdsContext implements Context {
+import com.cloudbees.groovy.cps.NonCPS
+
+class Context implements IContext {
 
   // script is the context of the Jenkinsfile. That means that things like "sh" need to be called on script.
   private def script
@@ -10,7 +12,7 @@ class OdsContext implements Context {
 
   private def artifactUriStore = [:]
 
-  OdsContext(def script, Map config, Logger logger) {
+  Context(def script, Map config, Logger logger) {
     this.script = script
     this.config = config
     this.logger = logger
@@ -55,7 +57,7 @@ class OdsContext implements Context {
       config.bitbucketUrl = "https://${config.bitbucketHost}"
     }
 
-    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
+    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-jenkins-shared-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
     if (!config.jobName) {
@@ -402,11 +404,13 @@ class OdsContext implements Context {
     config.bitbucketHost
   }
 
-  int getOpenshiftBuildTimeout() {
+  @NonCPS
+  Integer getOpenshiftBuildTimeout() {
     config.openshiftBuildTimeout
   }
 
-  int getOpenshiftRolloutTimeout() {
+  @NonCPS
+  Integer getOpenshiftRolloutTimeout() {
     config.openshiftRolloutTimeout
   }
 

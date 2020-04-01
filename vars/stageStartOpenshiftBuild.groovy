@@ -1,23 +1,11 @@
-import org.ods.build_service.OpenShiftService
-import org.ods.build_service.ServiceRegistry
+import org.ods.component.IContext
 
-def call(def context, Map buildArgs = [:], Map imageLabels = [:]) {
-
-  withStage('Build Openshift Image', context) {
-
-    if (!context.environment) {
-      echo "Skipping for empty environment ..."
-      return
-    }
-
-    def openShift = ServiceRegistry.instance.get(OpenShiftService)
-
-    def buildId = openShift.buildImage(buildArgs, imageLabels)
-    context.addArtifactURI("OCP Build Id", buildId)
-
-    def newImageSha = openShift.getCurrentImageSha()
-    context.addArtifactURI("OCP Docker image", newImageSha)
-  }
+def call(IContext context, Map buildArgs = [:], Map imageLabels = [:]) {
+  echo "'stageStartOpenShiftbuild' has been replaced with 'odsComponentStageBuildOpenShiftImage', please use that instead."
+  odsComponentStageBuildOpenShiftImage(
+    context,
+    [buildArgs: buildArgs, imageLabels: imageLabels]
+  )
 }
 
 return this

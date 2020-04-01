@@ -1,7 +1,7 @@
 package vars.test_helper
 
 import com.lesfurets.jenkins.unit.BasePipelineTest
-import org.ods.Context
+import org.ods.component.IContext
 import spock.lang.Specification
 
 /**
@@ -20,7 +20,7 @@ class PipelineSpockTestBase extends Specification {
         super.registerAllowedMethods()
         // we register our custom groovy method withStage so that is is available
         // in every script executed by the Jenkins Pipeline Unit testing framework
-        helper.registerAllowedMethod("withStage", [String, Context, Closure], { String stageLabel, Context context, Closure closure ->
+        helper.registerAllowedMethod("withStage", [String, IContext, Closure], { String stageLabel, IContext context, Closure closure ->
           return loadScript('vars/withStage.groovy').call(stageLabel, context, closure)
         })
       }

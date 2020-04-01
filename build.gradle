@@ -53,6 +53,7 @@ repositories {
 }
 
 dependencies {
+    implementation "com.cloudbees:groovy-cps:1.29"
     implementation "org.codehaus.groovy:groovy-all:2.4.12"
     implementation "org.jenkins-ci.main:jenkins-core:2.46.3"
     implementation group: 'org.jenkins-ci.plugins.workflow', name: 'workflow-api', version: '2.36', ext: 'jar'

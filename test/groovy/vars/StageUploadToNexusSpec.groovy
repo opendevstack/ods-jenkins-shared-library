@@ -1,7 +1,7 @@
 package vars
 
-import org.ods.Logger
-import org.ods.OdsContext
+import org.ods.component.Logger
+import org.ods.component.Context
 import vars.test_helper.PipelineSpockTestBase
 
 class StageUploadToNexusSpec extends PipelineSpockTestBase {
@@ -18,7 +18,7 @@ class StageUploadToNexusSpec extends PipelineSpockTestBase {
         nexusHost    : 'host',
         groupId      : 'groupId'
     ]
-    def context = new OdsContext(null, config, logger)
+    def context = new Context(null, config, logger)
 
     when:
     def script = loadScript('vars/stageUploadToNexus.groovy')
