@@ -105,7 +105,11 @@ class OdsPipeline implements Serializable {
             return this
           } catch (err) {
             script.stage('odsPipeline error') {
-              logger.info "***** Finished ODS Pipeline for ${context.componentId} (with error) *****"
+              logger.info "***** Finished ODS Pipeline for  ${context.componentId} (with error) *****"
+              try {
+                script.echo("Error: ${err}");
+                stashTestResults(true)
+              } catch (e) {}
               updateBuildStatus('FAILURE')
               setBitbucketBuildStatus('FAILED')
               if (context.notifyNotGreen) {
@@ -117,7 +121,6 @@ class OdsPipeline implements Serializable {
                   throw err
                 } else {
                   context.addArtifactURI('failedStage', script.env.STAGE_NAME)
-                  stashTestResults(true)
                   return this
                 }
               } else {
@@ -137,6 +140,7 @@ class OdsPipeline implements Serializable {
     context.displayNameUpdateEnabled = false
     context.ciSkipEnabled = false
     context.notifyNotGreen = false
+    context.sonarQubeBranch = '*'
     def buildEnv = script.env.MULTI_REPO_ENV
     if (buildEnv) {
       context.environment = buildEnv
