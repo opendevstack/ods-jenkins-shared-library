@@ -750,8 +750,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
                 testIssue.timestamp = testIssue.isUnexecuted ? "N/A" : testCase.timestamp
                 testIssue.isMissing = false
-                testIssue.actualResult = testIssue.isSuccess ? "expected result verified by automated test" :
-                                         !testIssue.isUnexecuted ? "test failed. Correction will be tracked by Jira issue task \"bug\" listed below (\"" + this.project.key.toUpperCase() +"\")." : "not executed"
+                testIssue.actualResult = testIssue.isSuccess ? "Expected result verified by automated test" :
+                                         !testIssue.isUnexecuted ? "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below." : "Not executed"
             }
         }
 
@@ -760,7 +760,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testIssue.isSuccess = false
                 testIssue.isMissing = true
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
-                testIssue.actualResult = !testIssue.isUnexecuted ? "test failed. Correction will be tracked by Jira issue task \"bug\" listed below (\"" + this.project.key.toUpperCase() +"\")." : "not executed"
+                testIssue.actualResult = !testIssue.isUnexecuted ? "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below." : "Not executed"
             }
         }
 
