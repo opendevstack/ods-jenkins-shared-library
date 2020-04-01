@@ -713,7 +713,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     [
                         key     : testIssue.key,
                         summary : testIssue.name,
-                        techSpec: testIssue.techSpecs.join(", ")
+                        techSpec: testIssue.techSpecs.join(", ")?: "N/A"
                     ]
                 }, ["key"]),
                 testsOdsService: testsOfRepoTypeOdsService,
@@ -894,7 +894,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         remarks    : testIssue.isMissing ? "not executed" : "",
                         success    : testIssue.isSuccess ? "Y" : "N",
                         summary    : testIssue.name,
-                        techSpec   : testIssue.techSpecs.join(", ")
+                        techSpec   : testIssue.techSpecs.join(", ")?: "N/A"
                     ]
                 }, ["key"]),
                 numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isMissing },
