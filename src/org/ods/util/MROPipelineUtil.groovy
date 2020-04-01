@@ -371,7 +371,22 @@ class MROPipelineUtil extends PipelineUtil {
                     } else {
                         // check if release manager repo already has a release branch
                         if (git.remoteBranchExists(this.project.gitReleaseBranch)) {
-                            scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
+                            try {
+                                scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
+                            } catch (ex) {
+                                steps.echo """
+                                WARNING! Checkout of '${this.project.gitReleaseBranch}' for repo '${repo.id}' failed.
+                                Attempting to checkout '${repo.branch}' and create the release branch from it.
+                                """
+                                // Possible reasons why this might happen:
+                                // * Release branch manually created in RM repo
+                                // * Repo is added to metadata.yml file on a release branch
+                                // * Release branch has been deleted in repo
+                                scm = checkoutBranchInRepoDir(repo, repo.branch)
+                                steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                                    git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
+                                }
+                            }
                         } else {
                             scm = checkoutBranchInRepoDir(repo, repo.branch)
                             steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
