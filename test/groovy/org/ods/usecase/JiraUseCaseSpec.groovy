@@ -376,7 +376,29 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * usecase.createBugsForFailedTestIssues(testIssues, failures, steps.env.RUN_DISPLAY_URL)
     }
 
-    def "update Jira release status issue"() {
+    def "update Jira release status build number"() {
+        given:
+        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        project.buildParams.version = "1.0"
+        steps.env.BUILD_NUMBER = "0815"
+
+        when:
+        usecase.updateJiraReleaseStatusBuildNumber()
+
+        then:
+        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
+            "Release Build": [
+                id: "customfield_2"
+            ]
+        ]
+
+        then:
+        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
+            "customfield_2": "1.0-0815"
+        ])
+    }
+
+    def "update Jira release status result"() {
         given:
         project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
         project.buildParams.version = "1.0"
@@ -385,15 +407,12 @@ class JiraUseCaseSpec extends SpecHelper {
         def error = new RuntimeException("Oh no!")
 
         when:
-        usecase.updateJiraReleaseStatusIssue(error)
+        usecase.updateJiraReleaseStatusResult(error)
 
         then:
         1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
             "Release Manager Status": [
                 id: "customfield_1"
-            ],
-            "Release Build": [
-                id: "customfield_2"
             ]
         ]
 
@@ -402,15 +421,11 @@ class JiraUseCaseSpec extends SpecHelper {
             "customfield_1": "Failed"
         ])
 
-        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
-            "customfield_2": "1.0-0815"
-        ])
-
         then:
         1 * jira.appendCommentToIssue("JIRA-4711", "${error.message}\n\nSee: ${null}")
     }
 
-    def "update Jira release status issue without error"() {
+    def "update Jira release status result without error"() {
         given:
         project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
         project.buildParams.version = "1.0"
@@ -419,16 +434,13 @@ class JiraUseCaseSpec extends SpecHelper {
         def error = null
 
         when:
-        usecase.updateJiraReleaseStatusIssue(error)
+        usecase.updateJiraReleaseStatusResult(error)
 
         then:
         1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> {
             return [
                 "Release Manager Status": [
                     id: "customfield_1"
-                ],
-                "Release Build": [
-                    id: "customfield_2"
                 ]
             ]
         }
@@ -436,10 +448,6 @@ class JiraUseCaseSpec extends SpecHelper {
         then:
         1 * jira.updateSelectListFieldsOnIssue("JIRA-4711", [
             "customfield_1": "Successful"
-        ])
-
-        1 * jira.updateTextFieldsOnIssue("JIRA-4711", [
-            "customfield_2": "1.0-0815"
         ])
     }
 

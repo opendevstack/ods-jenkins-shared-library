@@ -665,6 +665,7 @@ class ProjectSpec extends SpecHelper {
         1 * project.loadJiraDataBugs(_) >> createProjectJiraDataBugs()
         1 * project.loadJiraDataDocs() >> createProjectJiraDataDocs()
         1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
+        1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
         then:
         def components = project.components

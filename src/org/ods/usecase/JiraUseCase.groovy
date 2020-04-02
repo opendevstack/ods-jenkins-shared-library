@@ -251,16 +251,23 @@ class JiraUseCase {
         }
     }
 
-    void updateJiraReleaseStatusIssue(Throwable error) {
+    void updateJiraReleaseStatusBuildNumber() {
         if (!this.jira) return
-
-        def status = error ? "Failed" : "Successful"
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
         def releaseStatusIssueBuildNumberField = releaseStatusIssueFields["Release Build"]
         this.jira.updateTextFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueBuildNumberField.id): "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"])
+    }
+
+    void updateJiraReleaseStatusResult(Throwable error) {
+        if (!this.jira) return
+
+        def status = error ? "Failed" : "Successful"
+
+        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
+        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
         def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields["Release Manager Status"]
         this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])

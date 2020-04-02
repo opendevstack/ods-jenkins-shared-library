@@ -272,6 +272,8 @@ class Project {
         this.data.documents = [:]
         this.data.documents.sectionsNotDone = [:]
 
+        this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
+
         return this
     }
 
@@ -940,7 +942,7 @@ class Project {
 
     public void reportPipelineStatus(Throwable error) {
         if (!this.jiraUseCase) return
-        this.jiraUseCase.updateJiraReleaseStatusIssue(error)
+        this.jiraUseCase.updateJiraReleaseStatusResult(error)
     }
 
     @NonCPS
