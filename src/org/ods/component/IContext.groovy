@@ -1,6 +1,6 @@
-package org.ods
+package org.ods.component
 
-interface Context {
+interface IContext {
 
     def assemble()
 
@@ -157,10 +157,10 @@ interface Context {
     String getBitbucketHost()
 
     // Timeout for the OpenShift build of the container image in minutes.
-    int getOpenshiftBuildTimeout()
+    Integer getOpenshiftBuildTimeout()
 
     // Timeout for the OpenShift rollout of the pod in minutes.
-    int getOpenshiftRolloutTimeout()
+    Integer getOpenshiftRolloutTimeout()
 
     // Whether CI skip is enabled
     boolean getCiSkipEnabled()

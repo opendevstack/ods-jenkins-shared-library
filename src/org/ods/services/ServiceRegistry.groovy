@@ -1,4 +1,4 @@
-package org.ods.build_service
+package org.ods.services
 
 @Singleton
 class ServiceRegistry {

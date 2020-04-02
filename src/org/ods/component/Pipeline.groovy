@@ -1,26 +1,26 @@
-package org.ods
+package org.ods.component
 
-import org.ods.build_service.GitService
-import org.ods.build_service.OpenShiftService
-import org.ods.build_service.ServiceRegistry
+import org.ods.services.GitService
+import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
 
-class OdsPipeline implements Serializable {
+class Pipeline implements Serializable {
 
   private GitService gitService
   private OpenShiftService openShiftService
 
   private def script
-  private Context context
-  private Logger logger
+  private IContext context
+  private ILogger logger
 
-  OdsPipeline(def script, Logger logger) {
+  Pipeline(def script, ILogger logger) {
     this.script = script
     this.logger = logger
   }
 
   // Main entry point.
   def execute(Map config, Closure stages) {
-    context = new OdsContext(script, config, logger)
+    context = new Context(script, config, logger)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild()
@@ -39,7 +39,7 @@ class OdsPipeline implements Serializable {
             def registry = ServiceRegistry.instance
             registry.add(GitService, new GitService(script))
             gitService = registry.get(GitService)
-            registry.add(OpenShiftService, new OpenShiftService(script, context))
+            registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
             openShiftService = registry.get(OpenShiftService)
           }
 
@@ -89,7 +89,7 @@ class OdsPipeline implements Serializable {
           try {
             setBitbucketBuildStatus('INPROGRESS')
             script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-              gitService.checkoutWithGit(context.gitCommit, context.credentialsId, context.gitUrl)
+              gitService.checkout(context.gitCommit, script.scm.userRemoteConfigs)
               if (context.getDisplayNameUpdateEnabled()) {
                 script.currentBuild.displayName = "#${context.tagversion}"
               }
