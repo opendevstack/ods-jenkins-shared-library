@@ -572,6 +572,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             r.riskPriorityNumber = r.riskPriorityNumber ?: "N/A"
 
+            r.riskComment = r.riskComment ? r.riskComment : "N/A"
+
             return r
         }
 
