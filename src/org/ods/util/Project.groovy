@@ -36,6 +36,16 @@ class Project {
             TYPE_TESTS
         ]
 
+        static final List TYPES_WITH_STATUS = [
+            TYPE_BUGS,
+            TYPE_EPICS,
+            TYPE_MITIGATIONS,
+            TYPE_REQUIREMENTS,
+            TYPE_RISKS,
+            TYPE_TECHSPECS,
+            TYPE_TESTS
+        ]
+
         private final String type
         private HashMap delegate
 
@@ -267,14 +277,54 @@ class Project {
         this.data.jira.docs = this.loadJiraDataDocs()
         this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
 
-        this.data.openshift = [:]
+        this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
+        this.data.jira.undone.docChapters = [:]
+
+        if (this.hasWipJiraIssues()) {
+            def message = "The following issues were detected to be work in progress:"
+            this.getWipJiraIssues().each { type, keys ->
+                def values = keys instanceof Map ? keys.values().flatten() : keys
+                if (!values.isEmpty()) {
+                    message += "\n\n" + type.capitalize() + ": " + values.join(", ")
+                }
+            }
+
+            this.reportPipelineStatus(message, false)
+        }
 
         this.data.documents = [:]
-        this.data.documents.sectionsNotDone = [:]
+        this.data.openshift = [:]
 
         this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
         return this
+    }
+
+    Map<String, List> getWipJiraIssues() {
+        return this.data.jira.undone
+    }
+
+    boolean hasWipJiraIssues() {
+        def values = this.getWipJiraIssues().values()
+        values = values.collect { it instanceof Map ? it.values() : it }.flatten()
+        return !values.isEmpty()
+    }
+
+    protected Map<String, List> computeWipJiraIssues(Map data) {
+        def result = [:]
+
+        JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            if (data.containsKey(type)) {
+                result[type] = data[type].findAll { key, issue ->
+                    issue.status != null && issue.status.toLowerCase() != "done" && issue.status.toLowerCase() != "cancelled"
+                }
+                .collect { key, issue ->
+                    return key
+                }
+            }
+        }
+
+        return result
     }
 
     protected Map convertJiraDataToJiraDataItems(Map data) {
@@ -940,9 +990,9 @@ class Project {
         return result
     }
 
-    public void reportPipelineStatus(Throwable error) {
+    public void reportPipelineStatus(String message = "", boolean isError = false) {
         if (!this.jiraUseCase) return
-        this.jiraUseCase.updateJiraReleaseStatusResult(error)
+        this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
     @NonCPS

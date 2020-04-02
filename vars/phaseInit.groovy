@@ -320,7 +320,7 @@ def call() {
         echo(e.message)
 
         try {
-            project.reportPipelineStatus(e)
+            project.reportPipelineStatus(e.message, true)
         } catch (reportError) {
             echo("Error: unable to report pipeline status because of: ${reportError.message}.")
             reportError.initCause(e)

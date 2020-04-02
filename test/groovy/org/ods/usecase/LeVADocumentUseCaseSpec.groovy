@@ -368,12 +368,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getSystemRequirements() >> requirements
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
     }
@@ -399,11 +399,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getSystemRequirements()
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
@@ -458,9 +458,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
@@ -491,9 +491,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
@@ -538,9 +538,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
@@ -591,9 +591,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
@@ -622,13 +622,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getAutomatedTestsTypeAcceptance()
         1 * project.getAutomatedTestsTypeIntegration()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
@@ -676,6 +676,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * project.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
@@ -683,7 +684,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.computeTestDiscrepancies("Integration and Acceptance Tests", SortUtil.sortIssuesByProperties(acceptanceTestIssues + integrationTestIssues, ["key"]), junit.combineTestResults([data.tests.acceptance.testResults, data.tests.integration.testResults]))
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
         1 * usecase.createDocument(documentTemplate, null, _, files, null, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
 
@@ -712,7 +712,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * project.getAutomatedTestsTypeAcceptance()
@@ -766,7 +766,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * project.getAutomatedTestsTypeIntegration() >> integrationTestIssues
@@ -803,7 +803,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * project.getAutomatedTestsTypeInstallation()
@@ -852,7 +852,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * project.getAutomatedTestsTypeInstallation() >> testIssues
@@ -914,6 +914,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.computeComponentMetadata(documentType) >> compMetadata
@@ -925,7 +926,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.createDocument(documentTemplate, null, _, _, _, documentType, watermarkText) >> uri
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
     }
 
@@ -950,12 +950,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         2 * project.getRisks()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
     }
@@ -981,7 +981,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
@@ -1010,7 +1010,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType)
         1 * levaFiles.getDocumentChapterData(documentType) >> chapterData
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
@@ -1052,7 +1052,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
@@ -1095,7 +1095,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, []) >> watermarkText
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
@@ -1265,115 +1265,25 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * jiraUseCase.jira.appendCommentToIssue("TRK-2", "myMessage Attention: this document is work in progress! See issues: DOC-1, DOC-3")
     }
 
-    def "watermark should be applied if any issue is not in DONE"() {
+    def "watermark 'work in progress' should be applied to some document type when there are 'work in progress' issues"() {
         given:
         project.buildParams.version = "1.0"
+        project.buildParams.targetEnvironment = "dev"
 
         when:
-        def result = usecase.getWatermarkText("DOCUMENTKEY", [])
-
-        then:
-        result == null
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CSD as String, [[key:"TO DO"],[key:"IN progress"]])
+        def result = usecase.getWatermarkText("myDocumentType", true)
 
         then:
         result == usecase.WORK_IN_PROGRESS_WATERMARK
-
     }
 
-    def "watermark 'developer preview' should be applied to all documents in developer preview mode"() {
+    def "watermark 'developer preview' should be applied to some document type when in developer preview mode"() {
         given:
         project.buildParams.version = "WIP"
         project.buildParams.targetEnvironment = "dev"
 
         when:
-        def result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CSD as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTP as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TRC as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.DTR as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CFTP as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.CFTR as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.IVP as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.IVR as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.SSDS as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.RA as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TIP as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.TIR as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_DTR as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)
-
-        then:
-        result == usecase.DEVELOPER_PREVIEW_WATERMARK
-
-        when:
-        result = usecase.getWatermarkText(LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)
+        def result = usecase.getWatermarkText("myDocumentType", false)
 
         then:
         result == usecase.DEVELOPER_PREVIEW_WATERMARK

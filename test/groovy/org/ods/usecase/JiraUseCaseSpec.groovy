@@ -403,11 +403,12 @@ class JiraUseCaseSpec extends SpecHelper {
         project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
+        steps.env.RUN_DISPLAY_URL = "http://jenkins"
 
         def error = new RuntimeException("Oh no!")
 
         when:
-        usecase.updateJiraReleaseStatusResult(error)
+        usecase.updateJiraReleaseStatusResult(error.message, true)
 
         then:
         1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
@@ -422,7 +423,7 @@ class JiraUseCaseSpec extends SpecHelper {
         ])
 
         then:
-        1 * jira.appendCommentToIssue("JIRA-4711", "${error.message}\n\nSee: ${null}")
+        1 * jira.appendCommentToIssue("JIRA-4711", "${error.message}\n\nSee: ${steps.env.RUN_DISPLAY_URL}")
     }
 
     def "update Jira release status result without error"() {
@@ -431,10 +432,8 @@ class JiraUseCaseSpec extends SpecHelper {
         project.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
 
-        def error = null
-
         when:
-        usecase.updateJiraReleaseStatusResult(error)
+        usecase.updateJiraReleaseStatusResult("", false)
 
         then:
         1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> {

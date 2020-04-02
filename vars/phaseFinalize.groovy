@@ -85,7 +85,7 @@ def call(Project project, List<Set<Map>> repos) {
         echo(e.message)
 
         try {
-            project.reportPipelineStatus(e)
+            project.reportPipelineStatus(e.message, true)
         } catch (reportError) {
             echo("Error: unable to report pipeline status because of: ${reportError.message}.")
             reportError.initCause(e)
