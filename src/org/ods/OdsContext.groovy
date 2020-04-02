@@ -55,7 +55,7 @@ class OdsContext implements Context {
       config.bitbucketUrl = "https://${config.bitbucketHost}"
     }
 
-    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
+    config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-jenkins-shared-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
     if (!config.jobName) {
