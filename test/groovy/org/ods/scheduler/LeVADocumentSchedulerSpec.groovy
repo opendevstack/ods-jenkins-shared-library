@@ -6275,6 +6275,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
+        1 * usecase.invokeMethod('createOverallDTR', [null, null])
         0 * usecase.invokeMethod(*_)
 
         when:

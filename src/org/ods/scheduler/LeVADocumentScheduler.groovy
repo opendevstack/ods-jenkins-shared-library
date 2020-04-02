@@ -147,6 +147,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.TCP as String)    : ["${LeVADocumentUseCase.DocumentType.TCP}"],
             (LeVADocumentUseCase.DocumentType.DTP as String)    : ["${LeVADocumentUseCase.DocumentType.DTP}"],
             (LeVADocumentUseCase.DocumentType.DTR as String)    : ["${LeVADocumentUseCase.DocumentType.DTR}"],
+            (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String)    : ["${LeVADocumentUseCase.DocumentType.DTR}"],
         ],
         "Q": [
             (LeVADocumentUseCase.DocumentType.TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_Q"],
