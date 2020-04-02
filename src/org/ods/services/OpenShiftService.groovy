@@ -146,7 +146,10 @@ class OpenShiftService {
       patches << buildArgsPatch
     }
 
-    script.sh """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(",")}]'"""
+    script.sh(
+      script: """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(",")}]'""",
+      label: "Patch BuildConfig ${name}"
+    )
   }
 
   String getImageReference(String name, String tag) {
