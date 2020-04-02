@@ -30,11 +30,18 @@ def call(def context, def buildArgs = [:], def imageLabels = [:]) {
       error "Got '${startBuildInfo}' as build start result, which cannot be parsed to get the build ID ..."
     }
 
-    def buildStatus = sh(
-      returnStdout: true,
-      script:"oc -n ${context.targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
-      label: "find last build"
-    ).trim()
+    def buildStatus = ""
+    def int retries = 10
+    while (buildStatus.toLowerCase() != "complete" && retries > 0)
+    {
+      sleep 5
+      buildStatus = sh(
+        returnStdout: true,
+        script:"oc -n ${context.targetProject} get build ${buildId} -o jsonpath='{.status.phase}'",
+        label: "find last build"
+      ).trim()
+      retries--
+    }
 
     if (buildStatus.toLowerCase() != "complete") {
       error "OCP Build ${buildId} was not successful - status ${buildStatus}"
