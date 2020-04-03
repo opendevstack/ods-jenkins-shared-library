@@ -1034,13 +1034,17 @@ class Project {
 
     String toString() {
         // Don't serialize resolved Jira data items
-        def result = this.data.subMap(["build", "buildParams", "git", "jira", "metadata"])
+        def result = this.data.subMap(["build", "buildParams", "metadata", "git", "jira"])
 
+        if (!services?.jira && capabilities?.empty) {
+          result.remove("jira")
+        }
+        
         // Don't serialize temporarily stored document artefacts
         result.metadata.repositories.each { repo ->
-            repo.data.documents = [:]
+            repo.data.remove["documents"]
         }
 
-        return JsonOutput.toJson(result)
+        return JsonOutput.prettyPrint(JsonOutput.toJson(result))
     }
 }
