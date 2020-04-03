@@ -25,7 +25,7 @@ class ScanWithSonarStage extends Stage {
 
     sonarQube.scan(sonarProperties, context.gitCommit, context.debug)
 
-    generateAndArchiveReports(sonarProjectKey)
+    generateAndArchiveReports(sonarProjectKey, context.buildTag)
 
     if (config.requireQualityGatePass) {
       def qualityGateResult = getQualityGateResult(sonarProjectKey)

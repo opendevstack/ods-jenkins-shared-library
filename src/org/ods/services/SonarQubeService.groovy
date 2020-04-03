@@ -33,11 +33,11 @@ class SonarQubeService {
     }
   }
 
-  def generateCNESReport(String projectKey) {
+  def generateCNESReport(String projectKey, String author) {
     withSonarServerConfig { hostUrl, authToken ->
       script.sh(
         label: "Generate CNES Report",
-        script: "java -jar /usr/local/cnes/cnesreport.jar -s ${hostUrl} -t ${authToken} -p ${projectKey}"
+        script: "java -jar /usr/local/cnes/cnesreport.jar -s ${hostUrl} -t ${authToken} -p ${projectKey} -a ${author}"
       )
     }
   }
