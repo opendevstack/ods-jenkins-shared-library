@@ -316,7 +316,7 @@ class Project {
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
                 result[type] = data[type].findAll { key, issue ->
-                    issue.status != null && issue.status.toLowerCase() != "done" && issue.status.toLowerCase() != "cancelled"
+                    issue.status != null && !issue.status.equalsIgnoreCase("done") && !issue.status.equalsIgnoreCase("cancelled")
                 }
                 .collect { key, issue ->
                     return key
@@ -785,6 +785,7 @@ class Project {
 
         // FIXME: fix data types that should be sent correctly by the REST endpoint
         result.project.id = result.project.id as String
+
         result.tests.each { key, test ->
             test.id = test.id as String
             test.bugs = test.bugs ?: []

@@ -1,11 +1,13 @@
 package org.ods.usecase
 
+import groovy.json.JsonOutput
+
+import java.time.LocalDateTime
+
 import org.apache.commons.io.FilenameUtils
 import org.ods.scheduler.LeVADocumentScheduler
 import org.ods.service.*
 import org.ods.util.*
-
-import java.time.LocalDateTime
 
 class LeVADocumentUseCase extends DocGenUseCase {
 
@@ -1138,8 +1140,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.createDocument(getDocumentTemplateName(documentType), repo, data_, [:], modifier, documentType, watermarkText)
     }
 
-    String createTRC(Map repo = null, Map data = null) {
+    String createTRC(Map repo, Map data) {
         def documentType = DocumentType.TRC as String
+
+        def acceptanceTestData = data.tests.acceptance
+        def installationTestData = data.tests.installation
+        def integrationTestData = data.tests.integration
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -1151,9 +1157,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sectionsNotDone = this.getSectionsNotDone(sections)
         this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def systemRequirements = this.project.getSystemRequirements()
 
-        def systemRequirements = this.project.getSystemRequirements().collect { r ->
+        // Compute the test issues we do not consider done (not successful)
+        def testIssues = systemRequirements.collect { it.getResolvedTests() }.flatten().unique().findAll {
+            [Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION].contains(it.testType)
+        }
+
+        this.computeTestDiscrepancies(null, testIssues, junit.combineTestResults([acceptanceTestData.testResults, installationTestData.testResults, integrationTestData.testResults]))
+
+        def testIssuesWip = testIssues.findAll { !it.status.equalsIgnoreCase("cancelled") && (!it.isSuccess || it.isUnexecuted) }
+
+        def hasFailingTestIssues = !testIssuesWip.isEmpty()
+
+        def watermarkText = this.getWatermarkText(documentType, hasFailingTestIssues || this.project.hasWipJiraIssues())
+
+        systemRequirements = systemRequirements.collect { r ->
             [
                 key        : r.key,
                 name       : r.name,
@@ -1174,7 +1193,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone + testIssuesWip)
         return uri
     }
 

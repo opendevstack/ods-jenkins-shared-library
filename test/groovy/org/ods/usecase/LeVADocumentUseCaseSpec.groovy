@@ -383,6 +383,29 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
+        // Test Parameters
+        def xmlFile = Files.createTempFile("junit", ".xml").toFile()
+        xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
+
+        def testReportFiles = [xmlFile]
+        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def data = [
+            tests: [
+                acceptance : [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ],
+                installation: [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ],
+                integration: [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ]
+            ]
+        ]
+
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TRC as String
 
@@ -393,20 +416,20 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def watermarkText = "WATERMARK"
 
         when:
-        usecase.createTRC()
+        usecase.createTRC(null, data)
 
         then:
         1 * jiraUseCase.getDocumentChapterData(documentType) >> chapterData
         0 * levaFiles.getDocumentChapterData(documentType)
         1 * usecase.getSectionsNotDone(chapterData)
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * project.getSystemRequirements()
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", _)
     }
 
     def "create DIL"() {
