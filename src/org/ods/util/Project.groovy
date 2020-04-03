@@ -289,7 +289,7 @@ class Project {
                 }
             }
 
-            this.reportPipelineStatus(message, false)
+            this.addCommentInReleaseStatus(message)
         }
 
         this.data.documents = [:]
@@ -993,6 +993,11 @@ class Project {
     public void reportPipelineStatus(String message = "", boolean isError = false) {
         if (!this.jiraUseCase) return
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
+    }
+
+    public void addCommentInReleaseStatus(String message) {
+        if (!this.jiraUseCase) return
+        this.jiraUseCase.addCommentInReleaseStatus(message)
     }
 
     @NonCPS

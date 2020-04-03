@@ -481,7 +481,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         riskLevel         : riskLevels ? riskLevels.join(", ") : "N/A"
                     ]
                 },
-                numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isMissing },
+                numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isUnexecuted },
                 testFiles         : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
@@ -665,8 +665,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections                     : sections,
-                numAdditionalAcceptanceTests : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isMissing },
-                numAdditionalIntegrationTests: junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isMissing },
+                numAdditionalAcceptanceTests : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isUnexecuted },
+                numAdditionalIntegrationTests: junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isUnexecuted },
                 conclusion                   : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
@@ -680,7 +680,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
                     description: testIssue.description ?: "",
-                    remarks    : testIssue.isMissing ? "not executed" : "",
+                    remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
                     ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
@@ -694,7 +694,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
                     description: testIssue.description ?: "",
-                    remarks    : testIssue.isMissing ? "not executed" : "",
+                    remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
                     ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
@@ -792,7 +792,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     || testIssue.isUnexecuted)
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
                 testIssue.timestamp = testIssue.isUnexecuted ? "N/A" : testCase.timestamp
-                testIssue.isMissing = false
+                testIssue.isUnexecuted = false
                 testIssue.actualResult = testIssue.isSuccess ? "Expected result verified by automated test" :
                                          !testIssue.isUnexecuted ? "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below." : "Not executed"
             }
@@ -801,7 +801,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def unmatchedHandler = { result ->
             result.each { testIssue ->
                 testIssue.isSuccess = false
-                testIssue.isMissing = true
+                testIssue.isUnexecuted = true
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
                 testIssue.actualResult = !testIssue.isUnexecuted ? "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below." : "Not executed"
             }
@@ -944,13 +944,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     [
                         key        : testIssue.key,
                         description: testIssue.description ?: "",
-                        remarks    : testIssue.isMissing ? "not executed" : "",
+                        remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                         success    : testIssue.isSuccess ? "Y" : "N",
                         summary    : testIssue.name,
                         techSpec   : testIssue.techSpecs.join(", ")?: "N/A"
                     ]
                 }, ["key"]),
-                numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isMissing },
+                numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isUnexecuted },
                 testFiles         : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),

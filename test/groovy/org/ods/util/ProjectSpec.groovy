@@ -760,7 +760,7 @@ class ProjectSpec extends SpecHelper {
 
         then:
         project.hasWipJiraIssues()
-        1 * project.reportPipelineStatus(expectedMessage, false)
+        1 * project.addCommentInReleaseStatus(expectedMessage)
 
         then:
         project.getWipJiraIssues() == expected
