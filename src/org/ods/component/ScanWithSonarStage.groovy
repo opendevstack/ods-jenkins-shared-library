@@ -39,10 +39,10 @@ class ScanWithSonarStage extends Stage {
     }
   }
 
-  private generateAndArchiveReports(String projectKey) {
+  private generateAndArchiveReports(String projectKey, String buildTag) {
     def targetReport = "SCRR-${projectKey}.docx"
     def targetReportMd = "SCRR-${projectKey}.md"
-    sonarQube.generateCNESReport(projectKey)
+    sonarQube.generateCNESReport(projectKey, buildTag)
     script.sh(
       label: 'Create artifacts dir',
       script: 'mkdir -p artifacts'
