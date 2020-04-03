@@ -281,7 +281,7 @@ class Project {
         this.data.jira.undone.docChapters = [:]
 
         if (this.hasWipJiraIssues()) {
-            def message = "The following issues were detected to be work in progress:"
+            def message = "Pipeline-generated documents are watermarked '${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' since the following issues are work in progress:"
             this.getWipJiraIssues().each { type, keys ->
                 def values = keys instanceof Map ? keys.values().flatten() : keys
                 if (!values.isEmpty()) {
@@ -1045,7 +1045,7 @@ class Project {
         if (!services?.jira && capabilities?.empty) {
           result.remove("jira")
         }
-        
+
         // Don't serialize temporarily stored document artefacts
         result.metadata.repositories.each { repo ->
             repo.data?.remove("documents")

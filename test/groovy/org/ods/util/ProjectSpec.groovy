@@ -731,7 +731,7 @@ class ProjectSpec extends SpecHelper {
             expected[type] = [ "${type}-1", "${type}-2" ]
         }
 
-        def expectedMessage = "The following issues were detected to be work in progress:"
+        def expectedMessage = "Pipeline-generated documents are watermarked '${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' since the following issues are work in progress:"
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
         }

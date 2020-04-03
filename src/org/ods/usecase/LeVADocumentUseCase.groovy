@@ -60,9 +60,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         DocumentType.CFTR as String
     ]
 
-    private static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
-    private static String WORK_IN_PROGRESS_WATERMARK = "Work in Progress"
-    private static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = "Attention: this document is work in progress!"
+    public static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
+    public static String WORK_IN_PROGRESS_WATERMARK = "Work in Progress"
+    public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = "Attention: this document is work in progress!"
 
     private JenkinsService jenkins
     private JiraUseCase jiraUseCase
