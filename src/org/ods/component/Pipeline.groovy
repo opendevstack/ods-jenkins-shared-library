@@ -2,6 +2,7 @@ package org.ods.component
 
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
+import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
 
 class Pipeline implements Serializable {
@@ -37,10 +38,14 @@ class Pipeline implements Serializable {
             context.assemble()
             // register services after context was assembled
             def registry = ServiceRegistry.instance
+
             registry.add(GitService, new GitService(script))
             gitService = registry.get(GitService)
+
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
             openShiftService = registry.get(OpenShiftService)
+
+            registry.add(SonarQubeService, new SonarQubeService(script, 'SonarServerConfig'))
           }
 
           def autoCloneEnabled = !!context.cloneSourceEnv
