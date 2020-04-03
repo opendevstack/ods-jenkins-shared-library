@@ -1042,7 +1042,7 @@ class Project {
         
         // Don't serialize temporarily stored document artefacts
         result.metadata.repositories.each { repo ->
-            repo.data.remove["documents"]
+            repo.data?.remove("documents")
         }
 
         return JsonOutput.prettyPrint(JsonOutput.toJson(result))
