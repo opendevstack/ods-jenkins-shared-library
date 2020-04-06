@@ -58,10 +58,10 @@ class Context implements IContext {
       config.bitbucketUrl = "https://${config.bitbucketHost}"
     }
 
-    config.extensionImageLabels = script.env.getEnvironment().findAll { it ->
+    config.globalExtensionImageLabels = script.env.getEnvironment().findAll { it ->
       it.key.toString().startsWith("ods.build.") }
     
-    logger.debug("Got external build labels: ${config.imageExtensionLabels}")
+    logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
     
     config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-jenkins-shared-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
 
@@ -662,14 +662,14 @@ class Context implements IContext {
   // get extension image labels
   @NonCPS
   public Map<String, String> getExtensionImageLabels () {
-    return config.extensionImageLabels
+    return config.globalExtensionImageLabels
   }
   
   // set and add image labels
   @NonCPS
   void setExtensionImageLabels (Map <String, String> extensionLabels) {
     if (extensionLabels) {
-      config.extensionImageLabels.putAll(extensionLabels)
+      config.globalExtensionImageLabels.putAll(extensionLabels)
     }
   }
 }
