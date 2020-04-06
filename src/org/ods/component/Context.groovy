@@ -102,8 +102,8 @@ class Context implements IContext {
     if (!config.containsKey('cloneProjectScriptBranch')) {
       config.cloneProjectScriptBranch = 'production'
     }
-    if (!config.containsKey('sonarQubeBranch')) {
-      config.sonarQubeBranch = 'master'
+    if (config.containsKey('sonarQubeBranch')) {
+      logger.info "Configuring 'sonarQubeBranch' is deprecated, please use 'branch' option of 'odsComponentStageScanWithSonar'."
     }
     if (!config.containsKey('failOnSnykScanVulnerabilities')) {
       config.failOnSnykScanVulnerabilities = true
@@ -171,6 +171,15 @@ class Context implements IContext {
     }
     if (!config.containsKey('podLabel')) {
       config.podLabel = "pod-${UUID.randomUUID().toString()}"
+    }
+
+    logger.debug "Reading ODS configuration ..."
+    def odsConfigFile = '/etc/opendevstack/config.json'
+    config.odsConfig = [:]
+    try {
+      config.odsConfig = script.readJSON(file: odsConfigFile)
+    } catch (Exception ex) {
+      logger.info "WARN: ODS configuration at ${odsConfigFile} could not be read. Error was: ${ex}"
     }
 
     logger.debug "Retrieving Git information ..."
@@ -356,6 +365,10 @@ class Context implements IContext {
     config.componentId
   }
 
+  Map getOdsConfig() {
+    config.odsConfig
+  }
+
   String getGitCommit() {
     config.gitCommit
   }
@@ -376,6 +389,7 @@ class Context implements IContext {
     config.targetProject
   }
 
+  @NonCPS
   String getSonarQubeBranch() {
     config.sonarQubeBranch
   }

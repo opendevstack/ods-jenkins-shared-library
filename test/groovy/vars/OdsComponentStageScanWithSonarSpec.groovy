@@ -38,7 +38,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
-    script.call(context)
+    script.call(context, [branch: '*'])
 
     then:
     printCallStack()
@@ -83,12 +83,15 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
   def "skip branch should not be scanned"() {
     given:
-    def config = [sonarQubeBranch: 'master', gitBranch: 'feature/foo']
-    def context = new Context(null, config, logger)
+    def config = [gitBranch: 'feature/foo']
+    IContext context = new Context(null, config, logger)
+    SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
+    sonarQubeService.supportsMultipleBranches(*_) >> false
+    ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
-    script.call(context)
+    script.call(context, [branch: 'master'])
 
     then:
     printCallStack()

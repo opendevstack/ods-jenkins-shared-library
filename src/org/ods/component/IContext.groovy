@@ -115,6 +115,9 @@ interface IContext {
     // Component ID, e.g. "be-auth-service".
     String getComponentId()
 
+    // Get ODS configuration.
+    Map getOdsConfig()
+
     // Git URL of repository
     String getGitUrl()
 

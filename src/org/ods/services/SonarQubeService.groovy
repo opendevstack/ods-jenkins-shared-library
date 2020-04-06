@@ -14,6 +14,19 @@ class SonarQubeService {
     script.readProperties(file: filename)
   }
 
+  boolean enabledForBranch(String gitBranch, String configuredBranch, String serverVersion, String serverEdition) {
+    if (configuredBranch == '*') {
+      return true
+    }
+    if (configuredBranch == gitBranch) {
+      return true
+    }
+    if (configuredBranch.endsWith('/') && gitBranch.startsWith(configuredBranch)) {
+      return true
+    }
+    serverSupportsMultipleBranches(serverVersion, serverEdition)
+  }
+
   def scan(Map properties, String gitCommit, boolean debug = false) {
     withSonarServerConfig { hostUrl, authToken ->
       def scannerParams = [
@@ -71,5 +84,9 @@ class SonarQubeService {
     script.withSonarQubeEnv(sonarQubeEnv) {
       block(script.SONAR_HOST_URL, script.SONAR_AUTH_TOKEN)
     }
+  }
+
+  private boolean serverSupportsMultipleBranches(String serverVersion, String serverEdition) {
+    ['developer', 'enterprise', 'datacenter'].contains(serverEdition)
   }
 }

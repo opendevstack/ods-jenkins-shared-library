@@ -11,12 +11,15 @@ class ScanWithSonarStage extends Stage {
     if (!config.requireQualityGatePass) {
       config.requireQualityGatePass = false
     }
+    if (!config.branch) {
+      config.branch = context.sonarQubeBranch ?: 'master'
+    }
     this.sonarQube = sonarQube
   }
 
   def run() {
-    if (context.sonarQubeBranch != '*' && context.sonarQubeBranch != context.gitBranch) {
-      script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'sonarQubeBranch' property."
+    if (!enabledForBranch()) {
+      script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
       return
     }
 
@@ -74,5 +77,14 @@ class ScanWithSonarStage extends Stage {
     } catch (Exception ex) {
       script.error "Quality gate status could not be retrieved. Status was: '${qualityGateJSON}'. Error was: ${ex}"
     }
+  }
+
+  private boolean enabledForBranch() {
+    sonarQube.enabledForBranch(
+      context.gitBranch,
+      config.branch,
+      context.odsConfig?.sonarqubeVersion,
+      context.odsConfig?.sonarqubeEdition
+    )
   }
 }
