@@ -7,7 +7,7 @@ import org.ods.services.ServiceRegistry
 def call(IContext context, Map config = [:]) {
     def snykService = ServiceRegistry.instance.get(SnykService)
     if (!snykService) {
-        snykService = new SnykService('snyk-report.txt')
+        snykService = new SnykService(this, 'snyk-report.txt')
     }
     def stage = new ScanWithSnykStage(this, context, config, snykService)
     stage.execute()
