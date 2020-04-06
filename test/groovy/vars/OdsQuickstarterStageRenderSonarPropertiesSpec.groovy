@@ -12,8 +12,8 @@ class OdsQuickstarterStageRenderSonarPropertiesSpec extends PipelineSpockTestBas
     def config = [
         projectId: 'foo',
         componentId: 'bar',
-        quickstarterId: 'be-golang-plain',
-        outputDir: 'out',
+        sourceDir: 'be-golang-plain',
+        targetDir: 'out',
         gitUrlHttp: 'https://bitbucket.example.com/scm/foo/bar.git',
         odsImageTag: '2.x',
         odsGitRef: '2.x'

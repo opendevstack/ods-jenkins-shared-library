@@ -14,8 +14,8 @@ class RenderSonarPropertiesStage extends Stage {
   }
 
   def run() {
-    def source = "${context.quickstarterId}/${config.source}"
-    def target = "${context.outputDir}/${config.target}"
+    def source = "${context.sourceDir}/${config.source}"
+    def target = "${context.targetDir}/${config.target}"
     script.sh(
       script: """
       sed 's|@project_id@|${context.projectId}|g; s|@component_id@|${context.componentId}|g' ${source} > ${target}

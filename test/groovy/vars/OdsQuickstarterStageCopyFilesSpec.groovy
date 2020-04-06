@@ -10,8 +10,8 @@ class OdsQuickstarterStageCopyFilesSpec extends PipelineSpockTestBase {
   def "run successfully"() {
     given:
     def config = [
-        quickstarterId: 'be-golang-plain',
-        outputDir: 'out'
+        sourceDir: 'be-golang-plain',
+        targetDir: 'out'
     ]
     IContext context = new Context(config)
 

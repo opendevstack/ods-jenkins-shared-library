@@ -37,8 +37,8 @@ class Context implements IContext {
   }
 
   @NonCPS
-  String getQuickstarterId() {
-    config.quickstarterId
+  String getSourceDir() {
+    config.sourceDir
   }
 
   @NonCPS
@@ -57,8 +57,8 @@ class Context implements IContext {
   }
 
   @NonCPS
-  String getOutputDir() {
-    config.outputDir
+  String getTargetDir() {
+    config.targetDir
   }
 
   @NonCPS

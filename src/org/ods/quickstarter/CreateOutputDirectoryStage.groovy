@@ -9,8 +9,8 @@ class CreateOutputDirectoryStage extends Stage {
 
   def run() {
     script.sh(
-      script: "mkdir -p ${context.outputDir}",
-      label: "Create directory '${context.outputDir}'"
+      script: "mkdir -p ${context.targetDir}",
+      label: "Create directory '${context.targetDir}'"
     )
   }
 }

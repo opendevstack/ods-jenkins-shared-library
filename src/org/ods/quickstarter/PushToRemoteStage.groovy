@@ -15,7 +15,7 @@ class PushToRemoteStage extends Stage {
       script.writeFile file: "/home/jenkins/.netrc", text: "machine ${config.gitHost} login ${script.user} password ${script.pass}"
     }
 
-    script.dir(context.outputDir) {
+    script.dir(context.targetDir) {
       script.sh(
         script: """
         # Clone first (there is ALWAYS a remote repo!)

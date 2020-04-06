@@ -9,8 +9,8 @@ class CopyFilesStage extends Stage {
 
   def run() {
     script.sh(
-      script: "cp -rv ${context.quickstarterId}/files/. ${context.outputDir}",
-      label: "Copy files from '${context.quickstarterId}/files' to '${context.outputDir}'"
+      script: "cp -rv ${context.sourceDir}/files/. ${context.targetDir}",
+      label: "Copy files from '${context.sourceDir}/files' to '${context.targetDir}'"
     )
   }
 }

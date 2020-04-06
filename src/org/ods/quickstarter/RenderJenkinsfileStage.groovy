@@ -14,11 +14,11 @@ class RenderJenkinsfileStage extends Stage {
   }
 
   def run() {
-    def source = "${context.quickstarterId}/${config.source}"
-    def target = "${context.outputDir}/${config.target}"
+    def source = "${context.sourceDir}/${config.source}"
+    def target = "${context.targetDir}/${config.target}"
     script.sh(
       script: """
-      sed 's|@project_id@|${context.projectId}|g; s|@component_id@|${context.componentId}|g; s|@component_type@|${context.quickstarterId}|g; s|@git_url_http@|${context.gitUrlHttp}|g;  s|@ods_image_tag@|${context.odsImageTag}|g; s|@ods_git_ref@|${context.odsGitRef}|g' ${source} > ${target}
+      sed 's|@project_id@|${context.projectId}|g; s|@component_id@|${context.componentId}|g; s|@component_type@|${context.sourceDir}|g; s|@git_url_http@|${context.gitUrlHttp}|g;  s|@ods_image_tag@|${context.odsImageTag}|g; s|@ods_git_ref@|${context.odsGitRef}|g' ${source} > ${target}
       """,
       label: "Render '${config.source}' to '${config.target}'"
     )

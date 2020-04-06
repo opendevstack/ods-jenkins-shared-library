@@ -20,19 +20,27 @@ class Pipeline implements Serializable {
     config.gitUrlHttp = script.env.GIT_URL_HTTP
     config.packageName = script.env.PACKAGE_NAME
     config.group = script.env.GROUP_ID
+    config.openShiftProject = "${config.projectId}-cd"
 
     // config options
-    if (!config.quickstarterId) {
-      script.error "Config option 'quickstarterId' is required but not given!"
+    if (!config.sourceDir) {
+      // Extract folder name from e.g. "be-golang-plain/Jenkinsfile"
+      def jenkinsfilePath = script.currentBuild?.rawBuild?.parent?.definition?.scriptPath.toString()
+      def jenkinsfilePathParts = jenkinsfilePath.split('/')
+      if (jenkinsfilePathParts.size() >= 2) {
+        config.sourceDir = jenkinsfilePathParts[-2]
+      } else {
+        script.error "Config option 'sourceDir' is required but not given!"
+      }
     }
     if (!config.image && !config.imageStreamTag && !config.podContainers) {
       script.error "One of 'image', 'imageStreamTag' or 'podContainers' is required but not given!"
     }
     if (!config.cdUserCredentialsId) {
-      config.cdUserCredentialsId = "${config.projectId}-cd-cd-user-with-password"
+      config.cdUserCredentialsId = "${config.openShiftProject}-cd-user-with-password"
     }
-    if (!config.outputDir) {
-      config.outputDir = 'out'
+    if (!config.targetDir) {
+      config.targetDir = 'out'
     }
     if (!config.podVolumes) {
       config.podVolumes = []
@@ -108,7 +116,7 @@ class Pipeline implements Serializable {
       ]
     }
 
-    def podLabel = "quickstarter-${config.quickstarterId}-${config.projectId}-${config.componentId}"
+    def podLabel = "quickstarter-${config.sourceDir}-${config.projectId}-${config.componentId}"
 
     script.podTemplate(
       label: podLabel,

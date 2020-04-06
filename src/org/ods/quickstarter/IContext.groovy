@@ -20,8 +20,8 @@ interface IContext {
   // Component ID, e.g. "be-auth-service".
   String getComponentId()
 
-  // Quickstarter ID, e.g. "be-golang-plain".
-  String getQuickstarterId()
+  // Source directory, e.g. "be-golang-plain".
+  String getSourceDir()
 
   String getGitUrlHttp()
 
@@ -29,7 +29,7 @@ interface IContext {
 
   String getOdsGitRef()
 
-  String getOutputDir()
+  String getTargetDir()
 
   String getPackageName()
 
