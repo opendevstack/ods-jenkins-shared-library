@@ -58,7 +58,7 @@ class Context implements IContext {
       config.bitbucketUrl = "https://${config.bitbucketHost}"
     }
 
-    script.env.getEnvironment().each { name, value -> println "Name: $name -> Value $value" }
+    script.env.getEnvironment().each { name, value -> logger.debug("Name: $name -> Value $value") }
     
     config.imageExtensionLabels = script.env.getEnvironment().findAll { it ->
       it.key.toUpperCase().contains("ODS.BUILD.") }
