@@ -8,6 +8,7 @@ class PipelineScript {
             'BRANCH_NAME': 'PR-10',
             'JOB_NAME': 'foo-cd/foo-cd-JOB-10',
             'BITBUCKET_HOST': 'bitbucket.example.com',
+            "getEnvironment" : { [ : ] }
     ]
 
     def scm
@@ -57,12 +58,6 @@ class PipelineScript {
 
     def echo(msg) {
         println msg
-    }
-
-    def env () {
-      return getEnvironment () {
-        return []
-      }
     }
 
 }
