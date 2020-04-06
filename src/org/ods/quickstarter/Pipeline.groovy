@@ -25,8 +25,8 @@ class Pipeline implements Serializable {
     if (!config.quickstarterId) {
       script.error "Config option 'quickstarterId' is required but not given!"
     }
-    if (!config.image && !config.podContainers) {
-      script.error "Config option 'image' or 'podContainers' is required but not given!"
+    if (!config.image && !config.imageStreamTag && !config.podContainers) {
+      script.error "One of 'image', 'imageStreamTag' or 'podContainers' is required but not given!"
     }
     if (!config.cdUserCredentialsId) {
       config.cdUserCredentialsId = "${config.projectId}-cd-cd-user-with-password"
@@ -46,6 +46,7 @@ class Pipeline implements Serializable {
       config.buildNumber = script.env.BUILD_NUMBER
       config.buildUrl = script.env.BUILD_URL
       config.buildTime = new Date()
+      config.dockerRegistry = script.env.DOCKER_REGISTRY
     }
 
     onAgentNode(config) { context ->
@@ -88,6 +89,9 @@ class Pipeline implements Serializable {
       }
       if (!config.resourceLimitCpu) {
         config.resourceLimitCpu = '1'
+      }
+      if (!config.image) {
+        config.image = "${config.dockerRegistry}/${config.imageStreamTag}"
       }
       config.podContainers = [
         script.containerTemplate(
