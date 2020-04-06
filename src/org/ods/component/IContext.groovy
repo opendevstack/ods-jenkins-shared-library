@@ -19,6 +19,9 @@ interface IContext {
     // Value of BUILD_URL. The URL where the results of the build can be found (e.g. http://buildserver/jenkins/job/MyJobName/123/)
     String getBuildUrl()
 
+    // Value of BUILD_TAG. The tag of the build as a string in the format 'jenkins-${JOB_NAME}-${BUILD_NUMBER}'
+    String getBuildTag()
+
     // Time of the build, collected when the odsPipeline starts.
     String getBuildTime()
 

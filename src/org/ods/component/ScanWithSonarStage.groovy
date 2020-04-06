@@ -25,7 +25,7 @@ class ScanWithSonarStage extends Stage {
 
     sonarQube.scan(sonarProperties, context.gitCommit, context.debug)
 
-    generateAndArchiveReports(sonarProjectKey)
+    generateAndArchiveReports(sonarProjectKey, context.buildTag)
 
     if (config.requireQualityGatePass) {
       def qualityGateResult = getQualityGateResult(sonarProjectKey)
@@ -39,10 +39,10 @@ class ScanWithSonarStage extends Stage {
     }
   }
 
-  private generateAndArchiveReports(String projectKey) {
+  private generateAndArchiveReports(String projectKey, String author) {
     def targetReport = "SCRR-${projectKey}.docx"
     def targetReportMd = "SCRR-${projectKey}.md"
-    sonarQube.generateCNESReport(projectKey)
+    sonarQube.generateCNESReport(projectKey, author)
     script.sh(
       label: 'Create artifacts dir',
       script: 'mkdir -p artifacts'

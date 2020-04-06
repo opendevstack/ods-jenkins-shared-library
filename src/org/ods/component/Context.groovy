@@ -43,6 +43,7 @@ class Context implements IContext {
     config.jobName = script.env.JOB_NAME
     config.buildNumber = script.env.BUILD_NUMBER
     config.buildUrl = script.env.BUILD_URL
+    config.buildTag = script.env.BUILD_TAG
     config.buildTime = new Date()
     config.nexusHost = script.env.NEXUS_HOST
     config.nexusUsername = script.env.NEXUS_USERNAME
@@ -65,6 +66,9 @@ class Context implements IContext {
     }
     if (!config.buildNumber) {
       logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
+    }
+    if (!config.buildTag) {
+      logger.error 'BUILD_TAG is required, but not set (usually provided by Jenkins)'
     }
     if (!config.nexusHost) {
       logger.error 'NEXUS_HOST is required, but not set'
@@ -222,6 +226,10 @@ class Context implements IContext {
 
   String getBuildUrl() {
     config.buildUrl
+  }
+
+  String getBuildTag() {
+    config.buildTag
   }
 
   String getBuildTime() {
