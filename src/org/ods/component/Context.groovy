@@ -655,7 +655,7 @@ class Context implements IContext {
   }
   
   // set and add image labels
-  setExtensionImageLabels (Map <String, String> extensionLabels) {
+  void setExtensionImageLabels (Map <String, String> extensionLabels) {
     if (extensionLabels) {
       config.extensionImageLabels.putAll(extensionLabels)
     }

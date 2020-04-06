@@ -200,5 +200,5 @@ interface IContext {
     public Map<String, String> getExtensionImageLabels ()
     
     // set and add image labels
-    setExtensionImageLabels (Map <String, String> extensionLabels)
+    void setExtensionImageLabels (Map <String, String> extensionLabels)
 }
