@@ -58,7 +58,7 @@ class Context implements IContext {
       config.bitbucketUrl = "https://${config.bitbucketHost}"
     }
 
-    config.imageExtensionLabels = script.env.getEnvironment().findAll { it ->
+    config.extensionImageLabels = script.env.getEnvironment().findAll { it ->
       it.key.toString().startsWith("ods.build.") }
     
     logger.debug("Got external build labels: ${config.imageExtensionLabels}")
