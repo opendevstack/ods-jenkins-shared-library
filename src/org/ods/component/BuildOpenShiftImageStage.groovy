@@ -12,7 +12,8 @@ class BuildOpenShiftImageStage extends Stage {
       config.imageLabels = [:]
     }
     if (context.getExtensionImageLabels()?.size > 0) {
-      config.imageLabels.putAll(context.getExtensionImageLabels())
+      script.echo ("assembled labels: ${context.getExtensionImageLabels()}")
+      config.imageLabels << context.getExtensionImageLabels()
     }
     script.echo ("assembled labels: ${config.imageLabels}")
     if (!config.buildArgs) {
