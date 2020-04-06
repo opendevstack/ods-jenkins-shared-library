@@ -7,6 +7,7 @@ def call(Map config, Closure body) {
   if (debug != null && config.debug == null) {
     config.debug = debug
   }
+  config.debug = !!config.debug
 
   def logger = new Logger(this, debug)
   def pipeline = new Pipeline(this, logger)
