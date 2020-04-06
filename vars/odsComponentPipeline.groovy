@@ -9,10 +9,8 @@ def call(Map config, Closure body) {
   } 
 
   config.debug = !!config.debug
-
-  echo("debug? ${config.debug}")
   
-  def logger = new Logger(this, debug)
+  def logger = new Logger(this, config.debug)
   def pipeline = new Pipeline(this, logger)
 
   pipeline.execute(config, body)
