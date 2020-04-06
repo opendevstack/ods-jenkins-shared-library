@@ -60,7 +60,9 @@ class PipelineScript {
     }
 
     def env () {
-      return [ "environment" : [ : ]]
+      return getEnvironment () {
+        return []
+      }
     }
 
 }
