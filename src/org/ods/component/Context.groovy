@@ -658,11 +658,13 @@ class Context implements IContext {
   }
 
   // get extension image labels
+  @NonCPS
   public Map<String, String> getExtensionImageLabels () {
     return config.extensionImageLabels
   }
   
   // set and add image labels
+  @NonCPS
   void setExtensionImageLabels (Map <String, String> extensionLabels) {
     if (extensionLabels) {
       config.extensionImageLabels.putAll(extensionLabels)
