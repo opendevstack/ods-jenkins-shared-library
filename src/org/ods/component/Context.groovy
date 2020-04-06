@@ -61,6 +61,8 @@ class Context implements IContext {
     config.imageExtensionLabels = script.env.environment.findAll { it ->
       it.key.toUpperCase().contains("ODS.BUILD.") }
     
+    logger.debug("Got external build labels: ${imageExtensionLabels}")
+    
     config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-jenkins-shared-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
