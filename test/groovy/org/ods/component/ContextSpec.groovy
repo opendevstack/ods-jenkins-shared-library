@@ -185,7 +185,7 @@ class ContextSpec extends Specification {
     }
 
     Map<String, String> getCloneProjectScriptUrls(config) {
-        def IContext uut = new Context(script, config, logger)
+        def uut = new Context(script, config, logger)
         uut.assemble()
         return uut.getCloneProjectScriptUrls()
     }

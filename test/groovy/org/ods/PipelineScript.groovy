@@ -59,4 +59,8 @@ class PipelineScript {
         println msg
     }
 
+    def env () {
+      return [ "environment" : [ : ]]
+    }
+
 }
