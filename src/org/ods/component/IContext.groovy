@@ -195,4 +195,10 @@ interface IContext {
     // adds a build artifact URI to the context for later retrieval,
     // e.g. in case a stage fails - the failed stage name - with key failedStage
     public void addArtifactURI (String key, value)
+    
+    // get extension image labels
+    public Map<String, String> getExtensionImageLabels ()
+    
+    // set and add image labels
+    setExtensionImageLabels (Map <String, String> extensionLabels)
 }
