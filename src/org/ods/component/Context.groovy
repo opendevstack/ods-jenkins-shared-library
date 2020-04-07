@@ -353,10 +353,12 @@ class Context implements IContext {
     config.groupId
   }
 
+  @NonCPS
   String getProjectId() {
     config.projectId
   }
 
+  @NonCPS
   String getComponentId() {
     config.componentId
   }
@@ -389,6 +391,7 @@ class Context implements IContext {
     config.sonarQubeBranch = sonarQubeBranch
   }
 
+  @NonCPS
   String getFailOnSnykScanVulnerabilities() {
     config.failOnSnykScanVulnerabilities
   }
