@@ -681,7 +681,6 @@ class Context implements IContext {
     return rawEnv.normalize().split(System.getProperty("line.separator")).inject([ : ] ) { kvMap, line ->
         Iterator kv = line.toString().tokenize("=").iterator()
         kvMap.put(kv.next(), kv.next())
-        echo "${kvMap}"
         kvMap
       }
   }
