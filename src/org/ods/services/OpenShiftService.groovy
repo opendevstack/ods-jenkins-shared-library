@@ -133,16 +133,14 @@ class OpenShiftService {
       ]}"""
     ]
 
-    // add build args - TODO: Ensure we are not replacing all buildArgs!!
+    // Add build args
     def buildArgsItems = []
     for (def key : buildArgs.keySet()) {
       def val = buildArgs[key]
       buildArgsItems << """{"name": "${key}", "value": "${val}"}"""
     }
     if (buildArgsItems.size() > 0) {
-      def buildArgsPatch = """{"op": "replace", "path": "/spec/strategy/dockerStrategy", "value": {"buildArgs": [
-      ${buildArgsItems.join(",")}
-    ]}}"""
+      def buildArgsPatch = """{"op": "replace", "path": "/spec/strategy/dockerStrategy/buildArgs", "value": [${buildArgsItems.join(",")}]}"""
       patches << buildArgsPatch
     }
 
