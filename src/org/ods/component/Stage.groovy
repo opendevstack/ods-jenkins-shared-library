@@ -5,7 +5,7 @@ class Stage {
   protected def context
   protected Map config
 
-  protected String STAGE_NAME = 'NOT SET'
+  public final String STAGE_NAME = 'NOT SET'
 
   Stage(def script, IContext context, Map config) {
     this.script = script

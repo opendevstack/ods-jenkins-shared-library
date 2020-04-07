@@ -3,8 +3,8 @@ package org.ods.component
 import org.ods.services.OpenShiftService
 
 class RolloutOpenShiftDeploymentStage extends Stage {
-  protected String STAGE_NAME = 'Deploy to Openshift'
-  protected OpenShiftService openShift
+  public final String STAGE_NAME = 'Deploy to Openshift'
+  private OpenShiftService openShift
 
   RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift) {
     super(script, context, config)

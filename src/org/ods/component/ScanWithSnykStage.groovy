@@ -3,8 +3,8 @@ package org.ods.component
 import org.ods.services.SnykService
 
 class ScanWithSnykStage extends Stage {
-  protected String STAGE_NAME = 'Snyk Security Scan'
-  protected SnykService snyk
+  public final String STAGE_NAME = 'Snyk Security Scan'
+  private SnykService snyk
 
   ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk) {
     super(script, context, config)
