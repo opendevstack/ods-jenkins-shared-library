@@ -264,7 +264,10 @@ class Project {
             commit: git.getCommit(),
             url: git.getURL(),
             baseTag: baseTag ? baseTag.toString() : '',
-            targetTag: targetTag ? targetTag.toString() : ''
+            targetTag: targetTag ? targetTag.toString() : '',
+            author: git.getCommitAuthor(),
+            message: git.getCommitMessage(),
+            time: git.getCommitTime()
         ]
 
         this.data.jira = [:]
@@ -1052,5 +1055,20 @@ class Project {
         }
 
         return JsonOutput.prettyPrint(JsonOutput.toJson(result))
+    }
+    
+    List<String> getMainReleaseManagerEnv () {
+        def mroSharedLibVersion = 
+          this.steps.sh(script: "env | grep 'library.ods-mro-jenkins-shared-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
+        
+        return [
+          "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
+          "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
+          "ods.build.rm.${getKey()}.repo.commit.msg=${gitData.message}",
+          "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
+          "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
+          "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
+          "ods.build.mro.lib.version=${mroSharedLibVersion}"
+        ]
     }
 }

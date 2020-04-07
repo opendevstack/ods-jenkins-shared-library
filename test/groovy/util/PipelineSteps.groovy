@@ -98,4 +98,9 @@ class PipelineSteps implements IPipelineSteps {
     def deleteDir() {
         return null
     }
+    
+    @Override
+    def withEnv(java.util.List env, groovy.lang.Closure block) {
+      block()
+    }
 }
