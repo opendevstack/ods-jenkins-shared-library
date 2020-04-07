@@ -28,9 +28,11 @@ class ScanWithSnykStage extends Stage {
       script.error "Option 'snykAuthenticationCode' is not set!"
     }
 
-    def message = "Snyk scan mode: build will " + (config.failOnVulnerabilities ? "" : "not ") +
-      "fail if vulnerabilities are found (failOnVulnerabilities=${config.failOnVulnerabilities})!"
-    script.echo message
+    script.echo "Scanning for vulnerabilities with " +
+      "organisation=${config.organisation}, " +
+      "projectName=${config.projectName}, " +
+      "buildFile=${config.buildFile}, " +
+      "failOnVulnerabilities=${config.failOnVulnerabilities}."
 
     if (!snyk.version()) {
       script.error 'Snyk binary is not in $PATH'
