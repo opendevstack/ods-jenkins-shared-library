@@ -678,9 +678,13 @@ class Context implements IContext {
         label: 'getting extension environment labels'
       ).trim()
     
+    if (rawEnv.trim().size() == 0 ) {
+      return [:]
+    }
+      
     return rawEnv.normalize().split(System.getProperty("line.separator")).inject([ : ] ) { kvMap, line ->
         Iterator kv = line.toString().tokenize("=").iterator()
-        kvMap.put(kv.next(), kv.next())
+        kvMap.put(kv.next(), kv.hasNext() ? kv.next() : "")
         kvMap
       }
   }
