@@ -80,39 +80,39 @@ class BuildOpenShiftImageStage extends Stage {
       )
     }
 
-    private Map buildImageLabels() {
-      def imageLabels = [
-        'ods.build.source.repo.url': context.gitUrl,
-        'ods.build.source.repo.commit.sha': context.gitCommit,
-        'ods.build.source.repo.commit.msg': context.gitCommitMessage,
-        'ods.build.source.repo.commit.author': context.gitCommitAuthor,
-        'ods.build.source.repo.commit.timestamp': context.gitCommitTime,
-        'ods.build.source.repo.branch': context.gitBranch,
-        'ods.build.jenkins.job.url': context.buildUrl,
-        'ods.build.timestamp': context.buildTime,
-        'ods.build.lib.version': context.odsSharedLibVersion,
-      ]
-      // Add custom image labels (prefixed with ext).
-      for (def key : config.imageLabels.keySet()) {
-        imageLabels["ext.${key}"] = config.imageLabels[key]
-      }
-      // Sanitize image labels.
-      def sanitizedImageLabels = [:]
-      for (def key : imageLabels.keySet()) {
-        def val = imageLabels[key].toString()
-        def sanitizedVal = val.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
-        sanitizedImageLabels[key] = sanitizedVal
-      }
-      sanitizedImageLabels
+  private Map buildImageLabels() {
+    def imageLabels = [
+      'ods.build.source.repo.url': context.gitUrl,
+      'ods.build.source.repo.commit.sha': context.gitCommit,
+      'ods.build.source.repo.commit.msg': context.gitCommitMessage,
+      'ods.build.source.repo.commit.author': context.gitCommitAuthor,
+      'ods.build.source.repo.commit.timestamp': context.gitCommitTime,
+      'ods.build.source.repo.branch': context.gitBranch,
+      'ods.build.jenkins.job.url': context.buildUrl,
+      'ods.build.timestamp': context.buildTime,
+      'ods.build.lib.version': context.odsSharedLibVersion,
+    ]
+    // Add custom image labels (prefixed with ext).
+    for (def key : config.imageLabels.keySet()) {
+      imageLabels["ext.${key}"] = config.imageLabels[key]
+    }
+    // Sanitize image labels.
+    def sanitizedImageLabels = [:]
+    for (def key : imageLabels.keySet()) {
+      def val = imageLabels[key].toString()
+      def sanitizedVal = val.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
+      sanitizedImageLabels[key] = sanitizedVal
+    }
+    sanitizedImageLabels
   }
 
-    private writeReleaseFile(Map imageLabels) {
-      def jsonImageLabels = []
-      for (def key : imageLabels.keySet()) {
-        jsonImageLabels << """{"name": "${key}", "value": "${imageLabels[key]}"}"""
-      }
-
-      // Write docker/release.json file to be reachable from Dockerfile.
-      script.writeFile(file: 'docker/release.json', text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
+  private writeReleaseFile(Map imageLabels) {
+    def jsonImageLabels = []
+    for (def key : imageLabels.keySet()) {
+      jsonImageLabels << """{"name": "${key}", "value": "${imageLabels[key]}"}"""
     }
+
+    // Write docker/release.json file to be reachable from Dockerfile.
+    script.writeFile(file: 'docker/release.json', text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
+  }
 }
