@@ -678,9 +678,8 @@ class Context implements IContext {
         label: 'getting extension environment labels'
       ).trim()
     
-    script.echo("extensions raw env: '${rawEnv}'")
-      
-    return rawEnv.split('\r').inject([ : ] ) { kvMap, line ->
+    return rawEnv.normalize().split(System.getProperty("line.separator")).inject([ : ] ) { kvMap, line ->
+        script.echo("extension line: ${line}")
         line.split("=").with { it ->
           kvMap[it[0].trim()] = it.size() > 1 ? it[1].trim() : ''
         }
