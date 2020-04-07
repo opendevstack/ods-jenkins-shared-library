@@ -94,7 +94,10 @@ class Pipeline implements Serializable {
           try {
             setBitbucketBuildStatus('INPROGRESS')
             script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-              gitService.checkout(context.gitCommit, script.scm.userRemoteConfigs)
+              gitService.checkout(
+                context.gitCommit,
+                [[credentialsId: context.credentialsId, url: context.gitUrl]]
+              )
               if (context.getDisplayNameUpdateEnabled()) {
                 script.currentBuild.displayName = "#${context.tagversion}"
               }
