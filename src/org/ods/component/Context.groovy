@@ -30,8 +30,8 @@ class Context implements IContext {
     if (!config.componentId) {
       logger.error "Param 'componentId' is required"
     }
-    if (!config.image && !config.podContainers) {
-      logger.error "Param 'image' or 'podContainers' is required"
+    if (!config.image && !config.imageStreamTag && !config.podContainers) {
+      logger.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
     }
     // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
     // if the repository should not be deployed to OpenShift at all.
@@ -49,6 +49,7 @@ class Context implements IContext {
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
     config.openshiftHost = script.env.OPENSHIFT_API_URL
+    config.dockerRegistry = script.env.DOCKER_REGISTRY
 
     if (script.env.BITBUCKET_URL) {
       config.bitbucketUrl = script.env.BITBUCKET_URL
@@ -160,6 +161,9 @@ class Context implements IContext {
       config.resourceLimitCpu = '1'
     }
     if (!config.containsKey('podContainers')) {
+      if (!config.image) {
+        config.image = "${config.dockerRegistry}/${config.imageStreamTag}"
+      }
       config.podContainers = [
           script.containerTemplate(
               name: 'jnlp',
