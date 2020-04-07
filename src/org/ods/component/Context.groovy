@@ -679,10 +679,9 @@ class Context implements IContext {
       ).trim()
     
     return rawEnv.normalize().split(System.getProperty("line.separator")).inject([ : ] ) { kvMap, line ->
-        line.split("=").with { splitted ->
-          script.echo ("Extension: ${splitted[0].trim()} > ${splitted[1].trim()}")
-          kvMap.put(splitted[0].trim(), splitted[1].trim()) 
-        }
+        Iterator kv = line.toString().tokenize("=").iterator()
+        kvMap.put(kv.next(), kv.next())
+        echo "${kvMap}"
         kvMap
       }
   }
