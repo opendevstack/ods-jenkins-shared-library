@@ -58,8 +58,7 @@ class Context implements IContext {
       config.bitbucketUrl = "https://${config.bitbucketHost}"
     }
 
-    config.globalExtensionImageLabels = script.env.getEnvironment().findAll { it ->
-      it.key.toString().startsWith("ods.build.") }
+    config.globalExtensionImageLabels = getExtensionBuildParams()
     
     logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
     
@@ -671,5 +670,19 @@ class Context implements IContext {
     if (extensionLabels) {
       config.globalExtensionImageLabels.putAll(extensionLabels)
     }
+  }
+  
+  public Map<String,String> getExtensionBuildParams () {
+    String rawEnv = script.sh(
+        returnStdout: true, script: "env | grep ods.build.",
+        label: 'getting extension environment labels'
+      ).trim()
+    
+    return rawEnv.split('\r').inject([ : ] ) { kvMap, line ->
+        line.split("=").with { it ->
+          kvMap[it[0].trim()] = it.size() > 1 ? it[1].trim() : ''
+        }
+        kvMap
+      }
   }
 }
