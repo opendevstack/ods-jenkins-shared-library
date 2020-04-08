@@ -3,8 +3,8 @@ package org.ods.component
 import org.ods.services.OpenShiftService
 
 class BuildOpenShiftImageStage extends Stage {
-  protected String STAGE_NAME = 'Build Openshift Image'
-  protected OpenShiftService openShift
+  public final String STAGE_NAME = 'Build Openshift Image'
+  private OpenShiftService openShift
 
   BuildOpenShiftImageStage(def script, IContext context, Map config, OpenShiftService openShift) {
     super(script, context, config)

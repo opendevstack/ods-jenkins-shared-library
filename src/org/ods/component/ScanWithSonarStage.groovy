@@ -3,8 +3,8 @@ package org.ods.component
 import org.ods.services.SonarQubeService
 
 class ScanWithSonarStage extends Stage {
-  protected String STAGE_NAME = 'SonarQube Analysis'
-  protected SonarQubeService sonarQube
+  public final String STAGE_NAME = 'SonarQube Analysis'
+  private SonarQubeService sonarQube
 
   ScanWithSonarStage(def script, IContext context, Map config, SonarQubeService sonarQube) {
     super(script, context, config)
