@@ -10,18 +10,22 @@ class Context implements IContext {
     this.config = config
   }
 
+  @NonCPS
   String getJobName() {
     config.jobName
   }
 
+  @NonCPS
   String getBuildNumber() {
     config.buildNumber
   }
 
+  @NonCPS
   String getBuildUrl() {
     config.buildUrl
   }
 
+  @NonCPS
   String getBuildTime() {
     config.buildTime
   }
