@@ -45,7 +45,7 @@ class OpenShiftService {
       script: "oc -n ${project} get rc/${name} -o jsonpath='{.metadata.annotations.openshift\\.io/deployment\\.phase}'",
       label: "Get status of ReplicationController ${name}",
       returnStdout: true
-    ).trim()toLowerCase()
+    ).trim().toLowerCase()
   }
 
   void setImageTag(String name, String sourceTag, String destinationTag) {
