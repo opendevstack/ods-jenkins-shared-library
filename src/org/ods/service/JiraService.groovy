@@ -33,6 +33,10 @@ class JiraService {
             throw new IllegalArgumentException("Error: unable to connect to Jira. 'password' is undefined.")
         }
 
+        if (baseURL.endsWith('/')) {
+           baseURL = baseURL.substring(0, baseURL.size() - 1)
+        }
+
         try {
             this.baseURL = new URIBuilder(baseURL).build()
         } catch (e) {

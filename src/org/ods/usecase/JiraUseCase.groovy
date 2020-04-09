@@ -18,8 +18,8 @@ class JiraUseCase {
     }
 
     class CustomIssueFields {
-        static final String CONTENT = "Content"
-        static final String HEADING_NUMBER = "Heading Number"
+        static final String CONTENT = "EDP Content"
+        static final String HEADING_NUMBER = "EDP Heading Number"
     }
 
     enum TestIssueLabels {

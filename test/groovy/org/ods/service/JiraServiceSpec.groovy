@@ -39,6 +39,12 @@ class JiraServiceSpec extends SpecHelper {
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to connect to Jira. 'invalid URL' is not a valid URI."
+
+        when:
+        def jira = new JiraService("http://localhostwithtrailing/", "user", "password")
+
+        then:
+        jira.baseURL.toString() == "http://localhostwithtrailing"
     }
 
     def "create with invalid username"() {
