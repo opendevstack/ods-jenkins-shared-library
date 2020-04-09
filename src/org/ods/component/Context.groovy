@@ -679,13 +679,13 @@ class Context implements IContext {
     }
   }
   
-  public Map<String,String> getExtensionBuildParams () {
+  Map<String,String> getExtensionBuildParams () {
     String rawEnv = script.sh(
-        returnStdout: true, script: "env | grep ods.build.",
+        returnStdout: true, script: "env | grep ods.build. || true",
         label: 'getting extension environment labels'
       ).trim()
     
-    if (rawEnv.trim().size() == 0 ) {
+    if (rawEnv.size() == 0 ) {
       return [:]
     }
       
