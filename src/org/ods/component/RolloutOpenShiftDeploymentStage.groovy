@@ -22,12 +22,12 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     def dcExists = deploymentConfigExists()
     if (!dcExists) {
-      script.error "DeploymentConfig '${context.componentId}' does not exist."
+      script.error "DeploymentConfig '${componentId}' does not exist."
     }
 
     def isExists = imageStreamExists()
     if (!isExists) {
-      script.error "ImageStream '${context.componentId}' does not exist."
+      script.error "ImageStream '${componentId}' does not exist."
     }
 
     def imageTriggerEnabled = automaticImageChangeTriggerEnabled()
@@ -43,9 +43,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     def latestVersion = getLatestVersion()
     if (!latestVersion) {
-      script.error "Could not get latest version of DeploymentConfig '${context.componentId}'."
+      script.error "Could not get latest version of DeploymentConfig '${componentId}'."
     }
-    def replicationController = "${context.componentId}-${latestVersion}"
+    def replicationController = "${componentId}-${latestVersion}"
     def rolloutStatus = getRolloutStatus(replicationController)
     if (rolloutStatus != "complete") {
       script.error "Deployment #${latestVersion} failed with status '${rolloutStatus}', please check the error in the OpenShift web console."
@@ -53,37 +53,45 @@ class RolloutOpenShiftDeploymentStage extends Stage {
       script.echo "Deployment #${latestVersion} successfully rolled out."
       context.addArtifactURI("OCP Deployment Id", replicationController)
     }
+    def pod = getPodDataForRollout(replicationController)
+    script.echo "Pod ${pods} for #${latestVersion}"
+    
+    return ["deployment" : replicationController, "pod" : pod]
   }
 
   private boolean deploymentConfigExists() {
-    openShift.resourceExists('DeploymentConfig', context.componentId)
+    openShift.resourceExists('DeploymentConfig', componentId)
   }
 
   private boolean imageStreamExists() {
-    openShift.resourceExists('ImageStream', context.componentId)
+    openShift.resourceExists('ImageStream', componentId)
   }
 
   private boolean automaticImageChangeTriggerEnabled() {
-    openShift.automaticImageChangeTriggerEnabled(context.componentId)
+    openShift.automaticImageChangeTriggerEnabled(componentId)
   }
 
   private void setImageTagLatest() {
-    openShift.setImageTag(context.componentId, context.tagversion, 'latest')
+    openShift.setImageTag(componentId, context.tagversion, 'latest')
   }
 
   private void startRollout() {
-    openShift.startRollout(context.componentId)
+    openShift.startRollout(componentId)
   }
 
   private void watchRollout() {
-    openShift.watchRollout(context.componentId)
+    openShift.watchRollout(componentId)
   }
 
   private String getLatestVersion() {
-    openShift.getLatestVersion(context.componentId)
+    openShift.getLatestVersion(componentId)
   }
 
   private String getRolloutStatus(String replicationController) {
     openShift.getRolloutStatus(replicationController)
+  }
+  
+  private String getPodDataForRollout(String replicationController) {
+    openShift.getPodDataForDeployment(context.projectId, replicationController)
   }
 }

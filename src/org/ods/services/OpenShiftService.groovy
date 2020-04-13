@@ -1,5 +1,7 @@
 package org.ods.services
 
+import groovy.json.JsonSlurperClassic
+
 class OpenShiftService {
 
   private def script
@@ -171,4 +173,59 @@ class OpenShiftService {
       label: "Get phase of build ${buildId}"
     ).trim().toLowerCase()
   }
+  
+  public String getContainerForImage (String projectId, String rc, String image) {
+    script.sh(
+      script: """oc -n ${projectId} get rc ${rc} -o jsonpath='{.spec.template.spec.containers[?(contains .image "${image}")].name}'""",
+    )
+  }
+  
+  // Gets pod of deployment
+  Map getPodDataForDeployment(String component, String version) {
+    def deployment = "${component}-${version}"
+    def stdout = this.steps.sh(
+      script: "oc get pod -l deployment=${deployment} -o json",
+      returnStdout: true,
+      label: "Getting OpenShift pod data for deployment ${deployment}"
+    ).trim()
+
+    extractPodData(stdout, "deployment '${deployment}'")
+  }
+
+  // Gets current pod for component
+  Map getPodDataForComponent(String project, String component) {
+    def componentSelector = "app=${project}-${component}"
+    def stdout = this.steps.sh(
+      script: "oc get pod -l ${componentSelector} -o json --show-all=false",
+      returnStdout: true,
+      label: "Getting OpenShift pod data for component ${component}"
+    ).trim()
+
+    extractPodData(stdout, "component '${component}'")
+  }
+
+  private Map extractPodData(String ocOutput, String description) {
+    def j = new JsonSlurperClassic().parseText(ocOutput)
+    if (j?.items[0]?.status?.phase?.toLowerCase() != 'running') {
+      throw new RuntimeException("Error: no pod for ${description} running / found.")
+    }
+
+    def podOCData = j.items[0]
+
+    // strip all data not needed out
+    def pod = [ : ]
+      pod.podName = podOCData?.metadata?.name?: "N/A"
+      pod.podNamespace = podOCData?.metadata?.namespace?: "N/A"
+      pod.podCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
+      pod.podEnvironment = podOCData?.metadata?.labels?.env?: "N/A"
+      pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
+      pod.podIp = podOCData?.status?.podIP ?: "N/A"
+      pod.podStatus = podOCData?.status?.phase ?: "N/A"
+      
+    podOCData.containers?.each { containers ->
+      pod.containers[containers.name] = containers.image
+    }
+    return pod
+  }
+
 }
