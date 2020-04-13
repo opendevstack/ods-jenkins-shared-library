@@ -182,8 +182,24 @@ class OpenShiftService {
   
   // Gets pod of deployment
   Map getPodDataForDeployment(String rc) {
+    def index = 5
+    while (index > 0)
+    {
+      def podStatus = script.sh(
+        script: "oc -n ${project} get pod -l deployment=${rc} -o jsonpath='{.items[*].status.phase}'",
+        returnStdout: true,
+        label: "Getting OpenShift pod data for deployment ${rc}"
+      )
+      if (podStatus && podStatus == "Running") {
+        break
+      } else {
+        script.sleep(5000)
+        index--
+      }
+    }
+      
     def stdout = script.sh(
-      script: "oc get pod -l deployment=${rc} -o json",
+      script: "oc -n ${project} get pod -l deployment=${rc} -o json",
       returnStdout: true,
       label: "Getting OpenShift pod data for deployment ${rc}"
     ).trim()
@@ -192,10 +208,10 @@ class OpenShiftService {
   }
 
   // Gets current pod for component
-  Map getPodDataForComponent(String project, String component) {
+  Map getPodDataForComponent(String component) {
     def componentSelector = "app=${project}-${component}"
     def stdout = script.sh(
-      script: "oc get pod -l ${componentSelector} -o json --show-all=false",
+      script: "oc -n ${project} get pod -l ${componentSelector} -o json --show-all=false",
       returnStdout: true,
       label: "Getting OpenShift pod data for component ${component}"
     ).trim()
