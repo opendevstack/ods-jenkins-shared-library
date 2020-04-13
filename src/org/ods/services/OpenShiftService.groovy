@@ -230,7 +230,7 @@ class OpenShiftService {
       pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
       pod.podIp = podOCData?.status?.podIP ?: "N/A"
       pod.podStatus = podOCData?.status?.phase ?: "N/A"
-      pod[containers] = [ : ]
+      pod["containers"] = [ : ]
       
     podOCData?.spec?.containers?.each { container ->
       pod.containers[container.name] = container.image
