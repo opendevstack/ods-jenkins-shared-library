@@ -30,7 +30,7 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     def imageLabels = buildImageLabels()
-    writeReleaseFile(imageLabels)
+    writeReleaseFile(imageLabels, config)
     patchBuildConfig(imageLabels)
 
     // Start and follow build of container image.
