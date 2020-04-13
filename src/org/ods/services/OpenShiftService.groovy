@@ -181,7 +181,7 @@ class OpenShiftService {
   }
   
   // Gets pod of deployment
-  Map getPodDataForDeployment(String rc) {
+  Map getPodDataForDeployment(String componentId, String rc) {
     
     if (!automaticImageChangeTriggerEnabled(componentId)) {
       script.echo ("No change trigger found for ${componentId} - hence no pod created!")
