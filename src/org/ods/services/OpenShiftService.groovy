@@ -181,15 +181,14 @@ class OpenShiftService {
   }
   
   // Gets pod of deployment
-  Map getPodDataForDeployment(String component, String version) {
-    def deployment = "${component}-${version}"
+  Map getPodDataForDeployment(String rc) {
     def stdout = script.sh(
-      script: "oc get pod -l deployment=${deployment} -o json",
+      script: "oc get pod -l deployment=${rc} -o json",
       returnStdout: true,
-      label: "Getting OpenShift pod data for deployment ${deployment}"
+      label: "Getting OpenShift pod data for deployment ${rc}"
     ).trim()
 
-    extractPodData(stdout, "deployment '${deployment}'")
+    extractPodData(stdout, "deployment '${rc}'")
   }
 
   // Gets current pod for component
