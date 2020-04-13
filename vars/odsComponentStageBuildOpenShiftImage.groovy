@@ -11,6 +11,6 @@ def call(IContext context, Map config = [:]) {
         config,
         ServiceRegistry.instance.get(OpenShiftService)
     )
-    stage.execute()
+    return stage.execute()
 }
 return this
