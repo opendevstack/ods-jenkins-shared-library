@@ -182,6 +182,12 @@ class OpenShiftService {
   
   // Gets pod of deployment
   Map getPodDataForDeployment(String rc) {
+    
+    if (!automaticImageChangeTriggerEnabled(componentId)) {
+      script.echo ("No change trigger found for ${componentId} - hence no pod created!")
+      return [ : ]
+    }
+    
     def index = 5
     while (index > 0)
     {
@@ -205,18 +211,6 @@ class OpenShiftService {
     ).trim()
 
     extractPodData(stdout, "deployment '${rc}'")
-  }
-
-  // Gets current pod for component
-  Map getPodDataForComponent(String component) {
-    def componentSelector = "app=${project}-${component}"
-    def stdout = script.sh(
-      script: "oc -n ${project} get pod -l ${componentSelector} -o json --show-all=false",
-      returnStdout: true,
-      label: "Getting OpenShift pod data for component ${component}"
-    ).trim()
-
-    extractPodData(stdout, "component '${component}'")
   }
 
   private Map extractPodData(String ocOutput, String description) {
