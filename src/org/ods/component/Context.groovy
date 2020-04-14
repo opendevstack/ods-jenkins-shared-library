@@ -180,7 +180,10 @@ class Context implements IContext {
     if (!config.containsKey('podLabel')) {
       config.podLabel = "pod-${UUID.randomUUID().toString()}"
     }
-
+    
+    artifactUriStore ["builds"] = [ : ]
+    artifactUriStore ["deployments"] = [ : ]
+    
     logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
     config.gitBranch = retrieveGitBranch()
@@ -657,12 +660,20 @@ class Context implements IContext {
     return m
   }
 
-  public Map<String, String> getBuildArtifactURIs() {
-    return this.artifactUriStore
+  public Map<String, Object> getBuildArtifactURIs() {
+    return this.artifactUriStore.asImmutable()
   }
-
+  
   public void addArtifactURI(String key, value) {
     this.artifactUriStore.put(key, value)
+  }
+
+  public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
+    this.artifactUriStore.builds [buildConfigName] = buildInformation
+  }
+  
+  public void addDeploymentToArtifactURIs (String deploymentConfigName, Map<String, Map> deploymentInformation) {
+    this.artifactUriStore.deplyoments [deploymentConfigName] = deploymentInformation
   }
 
   // get extension image labels

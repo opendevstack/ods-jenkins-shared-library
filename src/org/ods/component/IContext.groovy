@@ -193,11 +193,14 @@ interface IContext {
     String getDockerDir()
 
     // get any build artifact URIs there were created
-    public Map<String, String> getBuildArtifactURIs()
+    public Map<String, Object> getBuildArtifactURIs()
 
     // adds a build artifact URI to the context for later retrieval,
     // e.g. in case a stage fails - the failed stage name - with key failedStage
     public void addArtifactURI (String key, value)
+
+    public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation)
+    public void addDeploymentToArtifactURIs (String deploymentConfigName, Map<String, Map> deploymentInformation)
     
     // get extension image labels
     public Map<String, String> getExtensionImageLabels ()

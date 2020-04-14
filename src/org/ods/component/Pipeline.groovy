@@ -135,6 +135,8 @@ class Pipeline implements Serializable {
                 throw err
               }
             }
+          } finally {
+            script.echo ("Artifacts: ${context.getBuildArtifactURIs()}")
           }
         }
       }

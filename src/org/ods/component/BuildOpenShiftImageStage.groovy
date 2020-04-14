@@ -54,6 +54,8 @@ class BuildOpenShiftImageStage extends Stage {
     script.echo "Build #${lastVersion} has produced image: ${imageReference}."
     context.addArtifactURI("OCP Docker image", imageReference)
     
+    context.addBuildToArtifactURIs (componentId, [ "buildId" : buildId, "image" : imageReference ])
+    
     return ["build" : buildId, "image" : imageReference]
   }
 
