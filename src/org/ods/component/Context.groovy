@@ -672,7 +672,7 @@ class Context implements IContext {
     this.artifactUriStore.builds [buildConfigName] = buildInformation
   }
   
-  public void addDeploymentToArtifactURIs (String deploymentConfigName, Map<String, Map> deploymentInformation) {
+  public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
     this.artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
   }
 

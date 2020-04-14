@@ -200,7 +200,7 @@ interface IContext {
     public void addArtifactURI (String key, value)
 
     public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation)
-    public void addDeploymentToArtifactURIs (String deploymentConfigName, Map<String, Map> deploymentInformation)
+    public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation)
     
     // get extension image labels
     public Map<String, String> getExtensionImageLabels ()
