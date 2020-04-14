@@ -8,6 +8,7 @@ class PipelineScript {
             'BRANCH_NAME': 'PR-10',
             'JOB_NAME': 'foo-cd/foo-cd-JOB-10',
             'BITBUCKET_HOST': 'bitbucket.example.com',
+            "getEnvironment" : { [ : ] }
     ]
 
     def scm

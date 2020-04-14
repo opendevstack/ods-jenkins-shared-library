@@ -10,4 +10,5 @@ out
 .classpath
 .factorypath
 .settings/
-build
+build/
+gradle.properties
