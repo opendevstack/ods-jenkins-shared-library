@@ -72,6 +72,55 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     buildArtifacts.builds[config.componentId].image == buildInfo.image
   }
 
+  def "run successfully with overwrite component and image labels"() {
+    given:
+    def c = config + [environment: 'dev', "globalExtensionImageLabels" : [ "globalext": "extG" ]]
+    IContext context = new Context(null, c, logger)
+    OpenShiftService openShiftService = Stub(OpenShiftService.class)
+    openShiftService.startAndFollowBuild(_, _) >> 'foo-123'
+    openShiftService.getLastBuildVersion(_) >> '123'
+    openShiftService.getBuildStatus(_) >> 'complete'
+    openShiftService.getImageReference(_, _) >> '0daecc05'
+    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+    def configOverwrite = ["componentId" : "overwrite", "imageLabels" : [ "testLabelOnBuild" : "buildLabel"]]
+    when:
+    def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
+    String fileContent
+    helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> fileContent = args.text }
+    def buildInfo = script.call(context, configOverwrite)
+
+    then:
+    printCallStack()
+    assertCallStackContains('Build #123 has produced image: 0daecc05.')
+    assertJobStatusSuccess()
+    def expectedFileContent = """[
+{"name": "ods.build.source.repo.url", "value": "https://example.com/scm/foo/bar.git"},
+{"name": "ods.build.source.repo.commit.sha", "value": "cd3e9082d7466942e1de86902bb9e663751dae8e"},
+{"name": "ods.build.source.repo.commit.msg", "value": "Foo Some explanation."},
+{"name": "ods.build.source.repo.commit.author", "value": "John OHare"},
+{"name": "ods.build.source.repo.commit.timestamp", "value": "2020-03-23 12:27:08 +0100"},
+{"name": "ods.build.source.repo.branch", "value": "master"},
+{"name": "ods.build.jenkins.job.url", "value": "https://jenkins.example.com/job/foo-cd/job/foo-cd-bar-master/11/console"},
+{"name": "ods.build.timestamp", "value": "2020-03-23 12:27:08 +0100"},
+{"name": "ods.build.lib.version", "value": "2.x"},
+{"name": "ext.testLabelOnBuild", "value": "buildLabel"},
+{"name": "ext.globalext", "value": "extG"}
+]"""
+    fileContent == expectedFileContent
+    // test immediate return
+    buildInfo.buildId == "${configOverwrite.componentId}-123"
+    buildInfo.image == "0daecc05"
+    
+    // test artifact URIS
+    def buildArtifacts = context.getBuildArtifactURIs()
+    buildArtifacts.size() > 0
+    // [builds:[test:[buildId:test-123, image:0daecc05]], deployments:[:]
+    buildArtifacts.builds.containsKey (configOverwrite.componentId)
+    buildArtifacts.builds[configOverwrite.componentId].buildId == buildInfo.buildId
+    buildArtifacts.builds[configOverwrite.componentId].image == buildInfo.image
+  }
+
   @Unroll
   def "fails when build info cannot be retrieved"() {
     given:
