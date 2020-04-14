@@ -317,7 +317,12 @@ class Pipeline implements Serializable {
 
   def updateBuildStatus(String status) {
     if (context.displayNameUpdateEnabled) {
-      script.currentBuild.result = status
+      // @ FIXME ? groovy.lang.MissingPropertyException: No such property: result for class: java.lang.String
+      if (script.currentBuild instanceof String) {
+        script.currentBuild = status
+      } else {
+        script.currentBuild.result = status
+      }
     }
   }
 
