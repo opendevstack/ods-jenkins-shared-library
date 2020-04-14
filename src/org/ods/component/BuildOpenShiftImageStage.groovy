@@ -56,7 +56,7 @@ class BuildOpenShiftImageStage extends Stage {
     
     context.addBuildToArtifactURIs (componentId, [ "buildId" : buildId, "image" : imageReference ])
     
-    return ["build" : buildId, "image" : imageReference]
+    return ["buildId" : buildId, "image" : imageReference]
   }
 
     private String getImageReference() {

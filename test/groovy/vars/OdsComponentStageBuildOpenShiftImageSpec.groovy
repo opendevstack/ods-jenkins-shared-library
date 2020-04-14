@@ -41,7 +41,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
     String fileContent
     helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> fileContent = args.text }
-    script.call(context)
+    def buildInfo = script.call(context)
 
     then:
     printCallStack()
@@ -59,6 +59,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 {"name": "ods.build.lib.version", "value": "2.x"}
 ]"""
     fileContent == expectedFileContent
+    buildInfo.buildId == "test-123"
+    buildInfo.image == "0daecc05"
   }
 
   @Unroll

@@ -41,12 +41,13 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
-    script.call(context)
+    def deploymentInfo = script.call(context)
 
     then:
     printCallStack()
     assertCallStackContains('Deployment #123 successfully rolled out.')
     assertJobStatusSuccess()
+    deploymentInfo.deploymentId == "bar-123"
   }
 
   @Unroll
