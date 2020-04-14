@@ -65,7 +65,7 @@ class BuildOpenShiftImageStage extends Stage {
 
     private String startAndFollowBuild() {
       def dockerContext = config.dockerfile ?: context.dockerDir
-      openShift.startAndFollowBuild(componentId, context.dockerDir)
+      openShift.startAndFollowBuild(componentId, dockerContext)
     }
 
     private String getLastVersion() {

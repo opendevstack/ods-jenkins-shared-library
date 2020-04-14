@@ -23,6 +23,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       buildUrl: 'https://jenkins.example.com/job/foo-cd/job/foo-cd-bar-master/11/console',
       buildTime: '2020-03-23 12:27:08 +0100',
       odsSharedLibVersion: '2.x',
+      "componentId" : 'test',
   ]
 
   def "run successfully"() {

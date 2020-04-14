@@ -10,7 +10,7 @@ class Context implements IContext {
   private Map config
   private Logger logger
 
-  private def artifactUriStore = [:]
+  private def artifactUriStore = [ "builds" : [ : ], "deployments" : [ : ]]
 
   Context(def script, Map config, Logger logger) {
     this.script = script
@@ -180,10 +180,7 @@ class Context implements IContext {
     if (!config.containsKey('podLabel')) {
       config.podLabel = "pod-${UUID.randomUUID().toString()}"
     }
-    
-    artifactUriStore ["builds"] = [ : ]
-    artifactUriStore ["deployments"] = [ : ]
-    
+
     logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
     config.gitBranch = retrieveGitBranch()
@@ -661,19 +658,19 @@ class Context implements IContext {
   }
 
   public Map<String, Object> getBuildArtifactURIs() {
-    return this.artifactUriStore.asImmutable()
+    return artifactUriStore.asImmutable()
   }
   
   public void addArtifactURI(String key, value) {
-    this.artifactUriStore.put(key, value)
+    artifactUriStore.put(key, value)
   }
 
   public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
-    this.artifactUriStore.builds [buildConfigName] = buildInformation
+    artifactUriStore.builds [buildConfigName] = buildInformation
   }
   
   public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
-    this.artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
+    artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
   }
 
   // get extension image labels

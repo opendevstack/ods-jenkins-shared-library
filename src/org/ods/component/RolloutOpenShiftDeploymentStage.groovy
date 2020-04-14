@@ -94,7 +94,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     openShift.getRolloutStatus(replicationController)
   }
   
-  private String getPodDataForRollout(String replicationController) {
+  private Map getPodDataForRollout(String replicationController) {
     openShift.getPodDataForDeployment(componentId, replicationController)
   }
 }
