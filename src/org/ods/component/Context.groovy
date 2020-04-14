@@ -673,7 +673,7 @@ class Context implements IContext {
   }
   
   public void addDeploymentToArtifactURIs (String deploymentConfigName, Map<String, Map> deploymentInformation) {
-    this.artifactUriStore.deplyoments [deploymentConfigName] = deploymentInformation
+    this.artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
   }
 
   // get extension image labels
