@@ -47,7 +47,14 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     printCallStack()
     assertCallStackContains('Deployment #123 successfully rolled out.')
     assertJobStatusSuccess()
-    deploymentInfo.deploymentId == "bar-123"
+    deploymentInfo.deploymentId == "${config.componentId}-123"
+    
+    // test artifact URIS
+    def buildArtifacts = context.getBuildArtifactURIs()
+    buildArtifacts.size() > 0
+    // 
+    buildArtifacts.deployments.containsKey (config.componentId)
+    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo.deploymentId
   }
 
   @Unroll

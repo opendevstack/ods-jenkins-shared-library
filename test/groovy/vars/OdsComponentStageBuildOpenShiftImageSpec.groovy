@@ -59,8 +59,17 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 {"name": "ods.build.lib.version", "value": "2.x"}
 ]"""
     fileContent == expectedFileContent
-    buildInfo.buildId == "test-123"
+    // test immediate return
+    buildInfo.buildId == "${config.componentId}-123"
     buildInfo.image == "0daecc05"
+    
+    // test artifact URIS
+    def buildArtifacts = context.getBuildArtifactURIs()
+    buildArtifacts.size() > 0
+    // [builds:[test:[buildId:test-123, image:0daecc05]], deployments:[:]
+    buildArtifacts.builds.containsKey (config.componentId)
+    buildArtifacts.builds[config.componentId].buildId == buildInfo.buildId
+    buildArtifacts.builds[config.componentId].image == buildInfo.image
   }
 
   @Unroll
