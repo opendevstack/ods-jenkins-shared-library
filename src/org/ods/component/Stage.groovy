@@ -17,7 +17,7 @@ class Stage {
 
   def execute() {
     // TODO: Replace withStage with simple echo calls once all stages use this class.
-    script.withStage(STAGE_NAME, context) {
+    script.withStage(STAGE_NAME + ' (' + componentId + ')', context) {
       this.run()
     }
   }
