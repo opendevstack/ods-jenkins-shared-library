@@ -56,7 +56,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     def pod = getPodDataForRollout(replicationController)
     script.echo "Pod ${pod} for #${latestVersion}"
     
-    context.addDeploymentToArtifactURIs (componentId, [ replicationController : pod ])
+    context.addDeploymentToArtifactURIs (componentId, [ "${replicationController}" : pod ])
     
     return ["deployment" : replicationController, "pod" : pod]
   }
