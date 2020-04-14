@@ -1,6 +1,6 @@
-package org.ods
+package org.ods.component
 
-interface Logger {
+interface ILogger {
 
   void info(String message)
   void debug(String message)
