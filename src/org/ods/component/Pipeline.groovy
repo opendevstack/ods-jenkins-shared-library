@@ -4,6 +4,7 @@ import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
+import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
 
@@ -136,7 +137,7 @@ class Pipeline implements Serializable {
               }
             }
           } finally {
-            script.echo ("Artifacts: ${context.getBuildArtifactURIs()}")
+            logger.debug ("ODS Build Artifacts: \r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}")
           }
         }
       }
