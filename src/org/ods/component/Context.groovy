@@ -469,6 +469,7 @@ class Context implements IContext {
     config.displayNameUpdateEnabled = displayNameUpdateEnabled
   }
 
+  @NonCPS
   String getDockerDir() {
     return config.dockerDir
   }
