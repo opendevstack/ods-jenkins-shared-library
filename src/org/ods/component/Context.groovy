@@ -324,7 +324,8 @@ class Context implements IContext {
     config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
   }
 
-  String getBranchToEnvironmentMapping() {
+  @NonCPS
+  Map getBranchToEnvironmentMapping() {
     config.branchToEnvironmentMapping
   }
 

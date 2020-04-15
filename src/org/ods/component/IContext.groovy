@@ -80,7 +80,7 @@ interface IContext {
     String getNexusHostWithBasicAuth()
 
     // Define which branches are deployed to which environments.
-    String getBranchToEnvironmentMapping()
+    Map getBranchToEnvironmentMapping()
 
     // Define which environments are cloned from which source environments.
     String getAutoCloneEnvironmentsFromSourceMapping()
