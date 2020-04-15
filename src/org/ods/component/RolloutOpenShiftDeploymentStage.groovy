@@ -51,11 +51,11 @@ class RolloutOpenShiftDeploymentStage extends Stage {
       script.error "Deployment #${latestVersion} failed with status '${rolloutStatus}', please check the error in the OpenShift web console."
     } else {
       script.echo "Deployment #${latestVersion} successfully rolled out."
-      context.addArtifactURI("OCP Deployment Id", replicationController)
     }
     def pod = getPodDataForRollout(replicationController)
     pod ["deploymentId"] = replicationController 
     script.echo "Pod ${pod} for #${latestVersion}"
+    context.addDeploymentToArtifactURIs (componentId, pod)
     
     return pod
   }
