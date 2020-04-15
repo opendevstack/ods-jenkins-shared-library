@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.services.GitService
+import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
@@ -42,10 +43,15 @@ class Pipeline implements Serializable {
             registry.add(GitService, new GitService(script))
             gitService = registry.get(GitService)
 
+            registry.add(BitbucketService, new BitbucketService(
+              script,
+              context.bitbucketUrl,
+              context.projectId,
+              context.credentialsId
+            ))
+
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
             openShiftService = registry.get(OpenShiftService)
-
-            registry.add(SonarQubeService, new SonarQubeService(script, 'SonarServerConfig'))
           }
 
           def autoCloneEnabled = !!context.cloneSourceEnv

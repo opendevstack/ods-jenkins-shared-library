@@ -107,7 +107,9 @@ class Context implements IContext {
     if (!config.containsKey('cloneProjectScriptBranch')) {
       config.cloneProjectScriptBranch = 'production'
     }
-    if (!config.containsKey('sonarQubeBranch')) {
+    if (config.containsKey('sonarQubeBranch')) {
+      script.echo "Setting option 'sonarQubeBranch' of the pipeline is deprecated, please use option 'branch' of the stage."
+    } else {
       config.sonarQubeBranch = 'master'
     }
     if (!config.containsKey('failOnSnykScanVulnerabilities')) {
@@ -248,6 +250,7 @@ class Context implements IContext {
     config.gitBranch
   }
 
+  @NonCPS
   String getCredentialsId() {
     config.credentialsId
   }
@@ -387,6 +390,7 @@ class Context implements IContext {
     config.targetProject
   }
 
+  @NonCPS
   String getSonarQubeBranch() {
     config.sonarQubeBranch
   }
