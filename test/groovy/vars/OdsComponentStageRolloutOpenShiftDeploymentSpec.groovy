@@ -36,7 +36,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.automaticImageChangeTriggerEnabled(*_) >> true
     openShiftService.getLatestVersion(*_) >> '123'
     openShiftService.getRolloutStatus(*_) >> 'complete'
-    openShiftService.getPodDataForDeployment(*_) >> [ : ]
+    openShiftService.getPodDataForDeployment(*_) >> [ "deploymentId": "${config.componentId}-123" ]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:

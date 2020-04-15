@@ -226,6 +226,7 @@ class OpenShiftService {
       pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
       pod.podIp = podOCData?.status?.podIP ?: "N/A"
       pod.podStatus = podOCData?.status?.phase ?: "N/A"
+      pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name']?: "N/A" 
       pod["containers"] = [ : ]
       
     podOCData?.spec?.containers?.each { container ->
