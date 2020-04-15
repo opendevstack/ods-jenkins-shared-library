@@ -20,6 +20,10 @@ class BuildOpenShiftImageStage extends Stage {
     if (!config.buildTimeoutMinutes) {
       config.buildTimeoutMinutes = context.openshiftBuildTimeout
     }
+    if (!config.dockerDir) {
+      config.dockerDir = context.dockerDir
+    }
+    
     this.openShift = openShift
   }
 
@@ -61,8 +65,7 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     private String startAndFollowBuild() {
-      def dockerContext = config.dockerfile ?: context.dockerDir
-      openShift.startAndFollowBuild(componentId, dockerContext)
+      openShift.startAndFollowBuild(componentId, config.dockerDir)
     }
 
     private String getLastVersion() {
@@ -115,7 +118,6 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     // Write docker/release.json file to be reachable from Dockerfile.
-    def dockerContext = config.dockerfile ?: context.dockerDir
-    script.writeFile(file: '${dockerContext}/release.json', text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
+    script.writeFile(file: '${config.dockerDir}/release.json', text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
   }
 }

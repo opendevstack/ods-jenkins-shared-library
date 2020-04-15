@@ -177,17 +177,13 @@ class OpenShiftService {
   public String getContainerForImage (String projectId, String rc, String image) {
     script.sh(
       script: """oc -n ${projectId} get rc ${rc} -o jsonpath='{.spec.template.spec.containers[?(contains .image "${image}")].name}'""",
+      returnStdout: true,
+      label: "Getting containers for ${rc} and image ${image}"
     )
   }
   
   // Gets pod of deployment
   Map getPodDataForDeployment(String componentId, String rc) {
-    
-    if (!automaticImageChangeTriggerEnabled(componentId)) {
-      script.echo ("No change trigger found for ${componentId} - hence no pod created!")
-      return [ : ]
-    }
-    
     def index = 5
     while (index > 0)
     {
