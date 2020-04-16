@@ -222,7 +222,6 @@ class OpenShiftService {
       pod.podName = podOCData?.metadata?.name?: "N/A"
       pod.podNamespace = podOCData?.metadata?.namespace?: "N/A"
       pod.podMetaDataCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
-      pod.deploymentConfigCreationEnvironment = podOCData?.metadata?.labels?.env?: "N/A"
       pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name']?: "N/A"
       pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
       pod.podIp = podOCData?.status?.podIP ?: "N/A"
