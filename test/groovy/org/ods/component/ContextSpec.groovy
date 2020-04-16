@@ -1,10 +1,9 @@
-package org.ods
+package org.ods.component
 
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
+import org.ods.PipelineScript
+import spock.lang.*
 
-class OdsContextSpec extends Specification {
+class ContextSpec extends Specification {
 
     private PipelineScript script = new PipelineScript()
     private Logger logger = Mock(Logger)
@@ -138,12 +137,12 @@ class OdsContextSpec extends Specification {
         'foo-bar'             | []          | 'preview-foo-bar' | 'dev'
     }
 
-    //resets config.environment and call determineEnvironment on newly created OdsContext object
+    //resets config.environment and call determineEnvironment on newly created Context object
     void determineEnvironment(config, existingEnvironments, String branch) {
         config.environment = null
         config.gitBranch = branch
         config.cloneSourceEnv = null
-        def uut = new OdsContext(script, config, logger) {
+        def uut = new Context(script, config, logger) {
             boolean environmentExists(String name) {
                 existingEnvironments.contains(name)
             }
@@ -186,7 +185,7 @@ class OdsContextSpec extends Specification {
     }
 
     Map<String, String> getCloneProjectScriptUrls(config) {
-        def uut = new OdsContext(script, config, logger)
+        def uut = new Context(script, config, logger)
         uut.assemble()
         return uut.getCloneProjectScriptUrls()
     }

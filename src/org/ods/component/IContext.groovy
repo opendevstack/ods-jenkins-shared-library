@@ -1,6 +1,6 @@
-package org.ods
+package org.ods.component
 
-interface Context {
+interface IContext {
 
     def assemble()
 
@@ -8,7 +8,7 @@ interface Context {
     boolean getDebug()
 
     // Get the location of the xmlunit results
-    boolean getTestResults()
+    String getTestResults()
 
     // Value of JOB_NAME. It is the name of the project of the build.
     String getJobName()
@@ -18,6 +18,9 @@ interface Context {
 
     // Value of BUILD_URL. The URL where the results of the build can be found (e.g. http://buildserver/jenkins/job/MyJobName/123/)
     String getBuildUrl()
+
+    // Value of BUILD_TAG. The tag of the build as a string in the format 'jenkins-${JOB_NAME}-${BUILD_NUMBER}'
+    String getBuildTag()
 
     // Time of the build, collected when the odsPipeline starts.
     String getBuildTime()
@@ -139,6 +142,8 @@ interface Context {
     // Branch on which to run SonarQube analysis.
     String getSonarQubeBranch()
 
+    // set branch on which to run SonarQube analysis.
+    void setSonarQubeBranch(String sonarQubeBranch)
     // snyk behaviour configuration in case it reports vulnerabilities
     String getFailOnSnykScanVulnerabilities()
 
@@ -161,13 +166,10 @@ interface Context {
     String getBitbucketHost()
 
     // Timeout for the OpenShift build of the container image in minutes.
-    int getOpenshiftBuildTimeout()
+    Integer getOpenshiftBuildTimeout()
 
     // Timeout for the OpenShift rollout of the pod in minutes.
-    int getOpenshiftRolloutTimeout()
-
-    // Whether the build should be skipped, based on the Git commit message.
-    boolean getCiSkip()
+    Integer getOpenshiftRolloutTimeout()
 
     // Whether CI skip is enabled
     boolean getCiSkipEnabled()
@@ -202,4 +204,10 @@ interface Context {
     // adds a build artifact URI to the context for later retrieval,
     // e.g. in case a stage fails - the failed stage name - with key failedStage
     public void addArtifactURI (String key, value)
+    
+    // get extension image labels
+    public Map<String, String> getExtensionImageLabels ()
+    
+    // set and add image labels
+    void setExtensionImageLabels (Map <String, String> extensionLabels)
 }

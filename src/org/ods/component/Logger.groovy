@@ -1,11 +1,11 @@
-package org.ods
+package org.ods.component
 
-class OdsLogger implements Logger {
+class Logger implements ILogger {
 
   private Object script
   private boolean debug
 
-  OdsLogger(script, debug) {
+  Logger(script, debug) {
     this.debug = debug
     this.script = script
   }
