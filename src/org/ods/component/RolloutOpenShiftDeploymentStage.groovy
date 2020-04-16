@@ -63,16 +63,20 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     openShift.resourceExists('DeploymentConfig', componentId)
   }
 
-  private boolean imageStreamExists() {
-    openShift.resourceExists('ImageStream', componentId)
+  private boolean imageStreamExists(def imageStreams = ["${componentId}"]) {
+    imageStreams.each { imageStreamName ->
+      openShift.resourceExists('ImageStream', imageStreamName)
+    }
   }
 
   private boolean automaticImageChangeTriggerEnabled() {
     openShift.automaticImageChangeTriggerEnabled(componentId)
   }
 
-  private void setImageTagLatest() {
-    openShift.setImageTag(componentId, context.tagversion, 'latest')
+  private void setImageTagLatest(def imageStreams = ["${componentId}"]) {
+    imageStreams.each { imageStreamName ->
+      openShift.setImageTag(componentId, context.tagversion, 'latest')
+    }
   }
 
   private void startRollout() {
