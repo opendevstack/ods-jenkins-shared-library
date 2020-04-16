@@ -221,17 +221,18 @@ class OpenShiftService {
     def pod = [ : ]
       pod.podName = podOCData?.metadata?.name?: "N/A"
       pod.podNamespace = podOCData?.metadata?.namespace?: "N/A"
-      pod.podCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
-      pod.podEnvironment = podOCData?.metadata?.labels?.env?: "N/A"
+      pod.podMetaDataCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
+      pod.deploymentConfigCreationEnvironment = podOCData?.metadata?.labels?.env?: "N/A"
+      pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name']?: "N/A"
       pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
       pod.podIp = podOCData?.status?.podIP ?: "N/A"
       pod.podStatus = podOCData?.status?.phase ?: "N/A"
-      pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name']?: "N/A" 
+      pod.podStartupTimeStamp = podOCData?.status?.startTime ?: "N/A"
       pod["containers"] = [ : ]
       
-    podOCData?.spec?.containers?.each { container ->
-      pod.containers[container.name] = container.image
-    }
+      podOCData?.spec?.containers?.each { container ->
+        pod.containers[container.name] = container.image
+      }
     return pod
   }
 

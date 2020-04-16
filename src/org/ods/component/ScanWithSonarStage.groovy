@@ -25,7 +25,7 @@ class ScanWithSonarStage extends Stage {
 
     sonarQube.scan(sonarProperties, context.gitCommit, context.debug)
 
-    generateAndArchiveReports(sonarProjectKey, context.buildTag)
+    generateAndArchiveReports(sonarProjectKey, context.buildTag, context.localCheckoutEnabled)
 
     if (config.requireQualityGatePass) {
       def qualityGateResult = getQualityGateResult(sonarProjectKey)
@@ -39,7 +39,7 @@ class ScanWithSonarStage extends Stage {
     }
   }
 
-  private generateAndArchiveReports(String projectKey, String author) {
+  private generateAndArchiveReports(String projectKey, String author, boolean archive) {
     def targetReport = "SCRR-${projectKey}.docx"
     def targetReportMd = "SCRR-${projectKey}.md"
     sonarQube.generateCNESReport(projectKey, author)
@@ -55,7 +55,9 @@ class ScanWithSonarStage extends Stage {
       label: 'Rename report to SCRR',
       script: "mv artifacts/*-analysis-report.docx* artifacts/${targetReport}; mv artifacts/*-analysis-report.md* artifacts/${targetReportMd}"
     )
-    script.archiveArtifacts(artifacts: 'artifacts/SCRR*')
+    if (archive) {
+      script.archiveArtifacts(artifacts: 'artifacts/SCRR*')
+    }
     script.stash(
       name: "scrr-report-${context.componentId}-${context.buildNumber}",
       includes: 'artifacts/SCRR*',

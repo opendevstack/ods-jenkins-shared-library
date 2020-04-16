@@ -62,14 +62,14 @@ class ScanWithSnykStage extends Stage {
       }
     }
 
-    generateAndArchiveReport()
+    generateAndArchiveReport(context.localCheckoutEnabled)
 
     if (!testSuccess && config.failOnVulnerabilities) {
       script.error 'Snyk scan stage failed. See snyk report for details.'
     }
   }
 
-  private generateAndArchiveReport() {
+  private generateAndArchiveReport(boolean archive) {
     def targetReport = "SCSR-${context.projectId}-${componentId}-${snyk.reportFile}"
     script.sh(
       label: 'Create artifacts dir',
@@ -79,7 +79,9 @@ class ScanWithSnykStage extends Stage {
       label: 'Rename report to SCSR',
       script: "mv ${snyk.reportFile} artifacts/${targetReport}"
     )
-    script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+    if (archive) {
+      script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+    }
     script.stash(
       name: "scrr-report-${componentId}-${context.buildNumber}",
       includes: 'artifacts/SCSR*',
