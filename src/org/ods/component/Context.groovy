@@ -542,6 +542,7 @@ class Context implements IContext {
     return script
       .sh(
         returnStdout: true,
+        label: 'getting git commit files',
         script: "git diff-tree --no-commit-id --name-only -r ${config.gitCommit}"
       ).trim().split()
   }
