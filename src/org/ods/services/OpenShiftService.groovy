@@ -64,7 +64,7 @@ class OpenShiftService {
         returnStdout: true,
         label: "Check ImageChange trigger for dc/${name}"
       ).trim()
-      automaticValue == "true"
+      automaticValue.contains("true")
     } catch (Exception ex) {
       return false
     }
