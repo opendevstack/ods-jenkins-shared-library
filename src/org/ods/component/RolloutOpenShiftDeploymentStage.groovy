@@ -11,6 +11,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     if (!config.deployTimeoutMinutes) {
       config.deployTimeoutMinutes = context.openshiftRolloutTimeout
     }
+    if (!config.imageStreams) {
+      config.imageStreams = [componentId]
+    }
     this.openShift = openShift
   }
 
@@ -25,7 +28,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
       script.error "DeploymentConfig '${componentId}' does not exist."
     }
 
-    def isExists = imageStreamExists()
+    def isExists = imageStreamExists(config.imageStreams)
     if (!isExists) {
       script.error "ImageStream '${componentId}' does not exist."
     }
@@ -63,8 +66,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     openShift.resourceExists('DeploymentConfig', componentId)
   }
 
-  private boolean imageStreamExists(def imageStreams = ["${componentId}"]) {
-    imageStreams.each { imageStreamName ->
+  private boolean imageStreamExists() {
+    config.imageStreams.each { imageStreamName ->
       openShift.resourceExists('ImageStream', imageStreamName)
     }
   }
@@ -73,8 +76,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     openShift.automaticImageChangeTriggerEnabled(componentId)
   }
 
-  private void setImageTagLatest(def imageStreams = ["${componentId}"]) {
-    imageStreams.each { imageStreamName ->
+  private void setImageTagLatest() {
+    config.imageStreams.each { imageStreamName ->
       openShift.setImageTag(componentId, context.tagversion, 'latest')
     }
   }
