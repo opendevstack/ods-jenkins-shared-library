@@ -70,10 +70,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     boolean allStreamExists = true
     config.imageStreams.each { imageStreamName ->
       if (!openShift.resourceExists('ImageStream', imageStreamName)) {
-        return false
+        allStreamExists = false
       }
     }
-    return true
+    return allStreamExists
   }
 
   private boolean automaticImageChangeTriggerEnabled() {
