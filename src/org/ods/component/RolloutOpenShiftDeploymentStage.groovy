@@ -28,7 +28,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
       script.error "DeploymentConfig '${componentId}' does not exist."
     }
 
-    def isExists = imageStreamExists(config.imageStreams)
+    def isExists = imageStreamExists()
     if (!isExists) {
       script.error "ImageStream '${componentId}' does not exist."
     }
