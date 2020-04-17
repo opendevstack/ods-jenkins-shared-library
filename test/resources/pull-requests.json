@@ -1,0 +1,151 @@
+{
+  "size": 1,
+  "limit": 25,
+  "isLastPage": true,
+  "values": [
+    {
+      "id": 1,
+      "version": 9,
+      "title": "Foo",
+      "state": "OPEN",
+      "open": true,
+      "closed": false,
+      "createdDate": 1586270387142,
+      "updatedDate": 1586953085033,
+      "fromRef": {
+        "id": "refs/heads/feature/foo",
+        "displayId": "feature/foo",
+        "latestCommit": "e05056d3e368b0a5d58ce5f04616903274d04bc9",
+        "repository": {
+          "slug": "foo-bar",
+          "id": 5763,
+          "name": "foo-bar",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "FOO",
+            "id": 4082,
+            "name": "Foo",
+            "description": "Foo",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "https://bitbucket.example.com/projects/FOO"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "https://bitbucket.example.com/scm/foo/foo-bar.git",
+                "name": "http"
+              },
+              {
+                "href": "ssh://git@bitbucket.example.com:7999/foo/foo-bar.git",
+                "name": "ssh"
+              }
+            ],
+            "self": [
+              {
+                "href": "https://bitbucket.example.com/projects/FOO/repos/foo-bar/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "90c5bce6fdab02f49fc1b9af26d2d088135aebeb",
+        "repository": {
+          "slug": "foo-bar",
+          "id": 5763,
+          "name": "foo-bar",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "FOO",
+            "id": 4082,
+            "name": "Foo",
+            "description": "Foo",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "https://bitbucket.example.com/projects/FOO"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "https://bitbucket.example.com/scm/foo/foo-bar.git",
+                "name": "http"
+              },
+              {
+                "href": "ssh://git@bitbucket.example.com:7999/foo/foo-bar.git",
+                "name": "ssh"
+              }
+            ],
+            "self": [
+              {
+                "href": "https://bitbucket.example.com/projects/FOO/repos/foo-bar/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "max.mustermann@example.com",
+          "emailAddress": "max.mustermann@example.com",
+          "id": 4653,
+          "displayName": "Mustermann,Max",
+          "active": true,
+          "slug": "max.mustermann_example.com",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "https://bitbucket.example.com/users/max.mustermann_example.com"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [],
+      "participants": [],
+      "properties": {
+        "mergeResult": {
+          "outcome": "CLEAN",
+          "current": true
+        },
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "https://bitbucket.example.com/projects/FOO/repos/foo-bar/pull-requests/1"
+          }
+        ]
+      }
+    }
+  ],
+  "start": 0
+}
