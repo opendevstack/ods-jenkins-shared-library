@@ -49,6 +49,9 @@ class Pipeline implements Serializable {
             registry.add(SonarQubeService, new SonarQubeService(script, 'SonarServerConfig'))
           }
 
+          context.setOpenshiftApplicationDomain (
+            registry.get(OpenShiftService).getOpenshiftApplicationDomain())
+
           def autoCloneEnabled = !!context.cloneSourceEnv
           if (autoCloneEnabled) {
             createOpenShiftEnvironment(context)

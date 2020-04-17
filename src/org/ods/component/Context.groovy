@@ -704,4 +704,15 @@ class Context implements IContext {
         kvMap
       }
   }
+  
+  // set the application domain
+  void setOpenshiftApplicationDomain (String domain) {
+    config.domain = domain
+  }
+
+  // get the application domain
+  String getOpenshiftApplicationDomain () {
+    return config.domain
+  }
+
 }
