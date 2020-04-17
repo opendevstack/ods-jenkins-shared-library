@@ -133,6 +133,12 @@ interface IContext {
     // Git commit time in RFC 3399.
     String getGitCommitTime()
 
+    // Gets last successful commit SHA built on Jenkins on a specific pipeline
+    String getLastSuccessfulCommit()
+
+    // Gets a string array of committed files since the last successful commit
+    String[] getCommittedFiles()
+
     // Branch on which to run SonarQube analysis.
     String getSonarQubeBranch()
 
@@ -198,10 +204,10 @@ interface IContext {
     // adds a build artifact URI to the context for later retrieval,
     // e.g. in case a stage fails - the failed stage name - with key failedStage
     public void addArtifactURI (String key, value)
-    
+
     // get extension image labels
     public Map<String, String> getExtensionImageLabels ()
-    
+
     // set and add image labels
     void setExtensionImageLabels (Map <String, String> extensionLabels)
 }
