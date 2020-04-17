@@ -328,7 +328,7 @@ class Context implements IContext {
   }
 
   @NonCPS
-  Map getBranchToEnvironmentMapping() {
+  Map<String, String> getBranchToEnvironmentMapping() {
     config.branchToEnvironmentMapping
   }
 
