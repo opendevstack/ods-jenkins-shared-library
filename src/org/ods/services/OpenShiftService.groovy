@@ -240,7 +240,7 @@ class OpenShiftService {
     script.sh (
       script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
       label : "create dummy route for extraction (${routeName})")
-    def routeUrl = script.sh (script: "oc -n ${currentProject} get route ${routeName} -o jsonpath='{.spec.host}'",
+    def routeUrl = script.sh (script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
       returnStdout : true, label : "get cluster route domain")
     def routePrefixLength = "${routeName}-${project}".length() + 1
     String openShiftPublicHost = routeUrl.substring(routePrefixLength)
