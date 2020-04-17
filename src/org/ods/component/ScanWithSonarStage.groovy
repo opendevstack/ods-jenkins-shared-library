@@ -1,29 +1,46 @@
 package org.ods.component
 
+import com.cloudbees.groovy.cps.NonCPS
+
+import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
 
 class ScanWithSonarStage extends Stage {
   public final String STAGE_NAME = 'SonarQube Analysis'
+  private BitbucketService bitbucket
   private SonarQubeService sonarQube
 
-  ScanWithSonarStage(def script, IContext context, Map config, SonarQubeService sonarQube) {
+  ScanWithSonarStage(def script, IContext context, Map config, BitbucketService bitbucket, SonarQubeService sonarQube) {
     super(script, context, config)
-    if (!config.requireQualityGatePass) {
+    if (config.branch) {
+      config.eligibleBranches = config.branch.split(',')
+    } else {
+      config.eligibleBranches = context.sonarQubeBranch.split(',')
+    }
+    if (!config.containsKey('analyzePullRequests')) {
+      config.analyzePullRequests = true
+    }
+    if (!config.containsKey('requireQualityGatePass')) {
       config.requireQualityGatePass = false
     }
+    if (!config.longLivedBranches) {
+      config.longLivedBranches = extractLongLivedBranches(context.branchToEnvironmentMapping)
+      script.echo "Long-lived branches: ${config.longLivedBranches.join(', ')}."
+    }
+    this.bitbucket = bitbucket
     this.sonarQube = sonarQube
   }
 
   def run() {
-    if (context.sonarQubeBranch != '*' && context.sonarQubeBranch != context.gitBranch) {
-      script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'sonarQubeBranch' property."
+    if (!isEligible(context.gitBranch)) {
+      script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
       return
     }
 
     def sonarProperties = sonarQube.readProperties()
     def sonarProjectKey = sonarProperties['sonar.projectKey']
 
-    sonarQube.scan(sonarProperties, context.gitCommit, context.debug)
+    scan(sonarProperties)
 
     generateAndArchiveReports(sonarProjectKey, context.buildTag, context.localCheckoutEnabled)
 
@@ -37,6 +54,104 @@ class ScanWithSonarStage extends Stage {
         script.echo "Quality gate passed."
       }
     }
+  }
+
+  @NonCPS
+  private List<String> extractLongLivedBranches(Map branchMapping) {
+    def branches = branchMapping.keySet()
+    branches.removeAll { it.toLowerCase().endsWith('/') }
+    branches.removeAll { it == '*' }
+    branches.toList()
+  }
+
+  private void scan(Map sonarProperties) {
+    def pullRequestInfo = assemblePullRequestInfo()
+    def doScan = { Map prInfo ->
+      sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.debug)
+    }
+    if (pullRequestInfo) {
+      bitbucket.withTokenCredentials { username, token ->
+        doScan(pullRequestInfo + [bitbucketToken: token])
+      }
+    } else {
+      doScan([:])
+    }
+  }
+
+  private boolean isEligible(String branch) {
+    // Check if any branch is allowed
+    if (config.eligibleBranches.contains('*')) {
+      return true
+    }
+    // Check if prefix (e.g. "release/") is allowed
+    for (def i = 0; i < config.eligibleBranches.size(); i++) {
+      def eligibleBranch = config.eligibleBranches[i]
+      if (eligibleBranch.endsWith('/') && branch.startsWith(eligibleBranch)) {
+        return true
+      }
+    }
+    // Check if specific branch is allowed
+    config.eligibleBranches.contains(branch)
+  }
+
+  private assemblePullRequestInfo() {
+    if (!config.analyzePullRequests) {
+      script.echo "PR analysis is disabled."
+      return [:]
+    }
+    if (config.longLivedBranches.contains(context.gitBranch)) {
+      script.echo "Branch '${context.gitBranch}' is considered to be long-lived. PR analysis will not be performed."
+      return [:]
+    }
+
+    def repo = "${context.projectId}-${context.componentId}"
+    def apiResponse = bitbucket.getPullRequests(repo)
+    def pullRequest = findPullRequest(apiResponse, context.gitBranch)
+
+    if (pullRequest) {
+      return [
+        bitbucketUrl: context.bitbucketUrl,
+        bitbucketProject: context.projectId,
+        bitbucketRepository: repo,
+        bitbucketPullRequestKey: pullRequest.key,
+        branch: context.gitBranch,
+        baseBranch: pullRequest.base
+      ]
+    } else {
+      def longLivedList = config.longLivedBranches.join(', ')
+      script.echo "No open PR found for ${context.gitBranch} even though it is not one of the long-lived branches (${longLivedList})."
+      return [:]
+    }
+  }
+
+  private Map findPullRequest(String apiResponse, String branch) {
+    def prCandidates = []
+    try {
+      def js = script.readJSON(text: apiResponse)
+      prCandidates = js['values']
+      if (prCandidates == null) {
+        throw new RuntimeException('Field "values" of JSON response must not be empty!')
+      }
+    } catch (Exception ex) {
+      script.echo "WARN: Could not understand API response. Error was: ${ex}"
+      return [:]
+    }
+    for (def i = 0; i < prCandidates.size(); i++) {
+      def prCandidate = prCandidates[i]
+      try {
+        def prFromBranch = prCandidate['fromRef']['displayId']
+        if (prFromBranch == branch) {
+          return [
+            key: prCandidate['id'],
+            base: prCandidate['toRef']['displayId']
+          ]
+        }
+      } catch (Exception ex) {
+        script.echo "WARN: Unexpected API response. Error was: ${ex}"
+        return [:]
+      }
+    }
+    return [:]
   }
 
   private generateAndArchiveReports(String projectKey, String author, boolean archive) {

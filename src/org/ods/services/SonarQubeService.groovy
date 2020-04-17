@@ -14,17 +14,30 @@ class SonarQubeService {
     script.readProperties(file: filename)
   }
 
-  def scan(Map properties, String gitCommit, boolean debug = false) {
+  def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], boolean debug = false) {
     withSonarServerConfig { hostUrl, authToken ->
       def scannerParams = [
         "-Dsonar.host.url=${hostUrl}",
-        "-Dsonar.auth.token=${authToken}"
+        "-Dsonar.auth.token=${authToken}",
+        "-Dsonar.scm.provider=git"
       ]
       if (!properties.containsKey('sonar.projectVersion')) {
         scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
       }
       if (debug) {
         scannerParams << '-X'
+      }
+      if (pullRequestInfo) {
+        [
+          "-Dsonar.pullrequest.provider='Bitbucket Server'",
+          "-Dsonar.pullrequest.bitbucketserver.serverUrl=${pullRequestInfo.bitbucketUrl}",
+          "-Dsonar.pullrequest.bitbucketserver.token.secured=${pullRequestInfo.bitbucketToken}",
+          "-Dsonar.pullrequest.bitbucketserver.project=${pullRequestInfo.bitbucketProject}",
+          "-Dsonar.pullrequest.bitbucketserver.repository=${pullRequestInfo.bitbucketRepository}",
+          "-Dsonar.pullrequest.key=${pullRequestInfo.bitbucketPullRequestKey}",
+          "-Dsonar.pullrequest.branch=${pullRequestInfo.branch}",
+          "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}"
+        ].each { scannerParams << it }
       }
       script.sh(
         label: "Run SonarQube scan",
