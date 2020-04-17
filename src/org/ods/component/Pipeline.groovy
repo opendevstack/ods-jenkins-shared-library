@@ -50,7 +50,7 @@ class Pipeline implements Serializable {
           }
 
           context.setOpenshiftApplicationDomain (
-            registry.get(OpenShiftService).getOpenshiftApplicationDomain())
+            ServiceRegistry.instance.get(OpenShiftService).getOpenshiftApplicationDomain())
 
           def autoCloneEnabled = !!context.cloneSourceEnv
           if (autoCloneEnabled) {
