@@ -20,6 +20,11 @@ class ScanWithSnykStage extends Stage {
     if (!config.buildFile) {
       config.buildFile = 'build.gradle'
     }
+    if (!config.severityThreshold) {
+      // low is the default, other possible values are medium and high.
+      // More info at https://support.snyk.io/hc/en-us/articles/360003851337-Set-severity-thresholds-for-CLI-tests
+      config.severityThreshold = 'low'
+    }
     this.snyk = snyk
   }
 
@@ -32,7 +37,8 @@ class ScanWithSnykStage extends Stage {
       "organisation=${config.organisation}, " +
       "projectName=${config.projectName}, " +
       "buildFile=${config.buildFile}, " +
-      "failOnVulnerabilities=${config.failOnVulnerabilities}."
+      "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
+      "severityThreshold=${config.severityThreshold}."
 
     if (!snyk.version()) {
       script.error 'Snyk binary is not in $PATH'
@@ -54,7 +60,7 @@ class ScanWithSnykStage extends Stage {
         script.error 'Snyk monitor failed'
       }
 
-      testSuccess = snyk.test(config.organisation, config.buildFile)
+      testSuccess = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
       if (testSuccess) {
         script.echo 'No vulnerabilities detected.'
       } else {
