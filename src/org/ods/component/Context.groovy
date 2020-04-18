@@ -612,9 +612,9 @@ class Context implements IContext {
       return
     }
 
-    logger.info "No environment to deploy to was determined " +
+    logger.info "No environment to deploy to was determined - setting to 'dev'" +
         "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
-    config.environment = ""
+    config.environment = "dev"
     config.cloneSourceEnv = ""
   }
 

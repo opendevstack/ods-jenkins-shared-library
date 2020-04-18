@@ -52,7 +52,6 @@ class Pipeline implements Serializable {
             ))
 
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
-            openShiftService = registry.get(OpenShiftService)
           }
 
           skipCi = isCiSkip()
@@ -60,14 +59,14 @@ class Pipeline implements Serializable {
             logger.info 'Skipping build due to [ci skip] in the commit message ...'
             updateBuildStatus('NOT_BUILT')
             setBitbucketBuildStatus('SUCCESSFUL')
-          }
-          
-          context.setOpenshiftApplicationDomain (
-            ServiceRegistry.instance.get(OpenShiftService).getOpenshiftApplicationDomain())
-
-          def autoCloneEnabled = !!context.cloneSourceEnv
-          if (autoCloneEnabled) {
-            createOpenShiftEnvironment(context)
+          } else {
+            context.setOpenshiftApplicationDomain (
+              ServiceRegistry.instance.get(OpenShiftService).getOpenshiftApplicationDomain())
+  
+            def autoCloneEnabled = !!context.cloneSourceEnv
+            if (autoCloneEnabled) {
+              createOpenShiftEnvironment(context)
+            }
           }
         }
       } catch (err) {
