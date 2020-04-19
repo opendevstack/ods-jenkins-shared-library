@@ -5,6 +5,8 @@ import org.ods.services.OpenShiftService
 class RolloutOpenShiftDeploymentStage extends Stage {
   public final String STAGE_NAME = 'Deploy to Openshift'
   private OpenShiftService openShift
+  
+  private List EXCLUDE_IMAGE_NAMESPACES = [ "openshift" ]
 
   RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift) {
     super(script, context, config)
@@ -30,7 +32,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     def isExists = imageStreamExists()
     if (!isExists) {
-      script.error "ImageStream '${componentId}' does not exist."
+      script.error "ImageStream '${config.imageStreams}' for component '${componentId}' does not exist."
     }
 
     def imageTriggerEnabled = automaticImageChangeTriggerEnabled()
@@ -69,7 +71,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
   private boolean imageStreamExists() {
     boolean allStreamExists = true
     config.imageStreams.each { imageStreamName ->
-      if (!openShift.resourceExists('ImageStream', imageStreamName)) {
+      if (!EXCLUDE_IMAGE_NAMESPACES.contains(imageStreamName) && 
+          !openShift.resourceExists('ImageStream', imageStreamName)) {
         allStreamExists = false
       }
     }
