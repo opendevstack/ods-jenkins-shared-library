@@ -85,7 +85,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
   private void setImageTagLatest() {
     config.imageStreams.each { imageStreamName ->
-      openShift.setImageTag(imageStreamName, context.tagversion, 'latest')
+      if (!EXCLUDE_IMAGE_NAMESPACES.contains(imageStreamName))
+      {
+        openShift.setImageTag(imageStreamName, context.tagversion, 'latest')
+      }  
     }
   }
 
