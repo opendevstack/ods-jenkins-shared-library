@@ -82,7 +82,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     where:
     dcExists | isExists | imageTrigger | latestVersion | rolloutStatus || errorMessage
     false    | true     | true         | '123'         | 'complete'    || "DeploymentConfig 'bar' does not exist."
-    true     | false    | true         | '123'         | 'complete'    || "ImageStream 'bar' does not exist."
+    true     | false    | true         | '123'         | 'complete'    || "ImageStream '[bar]' for component 'bar' does not exist."
     true     | true     | true         | ''            | 'complete'    || "Could not get latest version of DeploymentConfig 'bar'."
     true     | true     | true         | '123'         | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
   }
