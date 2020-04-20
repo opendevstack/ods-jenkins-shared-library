@@ -10,7 +10,7 @@ class Context implements IContext {
   private Map config
   private Logger logger
 
-  private def artifactUriStore = [:]
+  private def artifactUriStore = [ "builds" : [ : ], "deployments" : [ : ]]
 
   Context(def script, Map config, Logger logger) {
     this.script = script
@@ -483,6 +483,7 @@ class Context implements IContext {
     config.displayNameUpdateEnabled = displayNameUpdateEnabled
   }
 
+  @NonCPS
   String getDockerDir() {
     return config.dockerDir
   }
@@ -649,7 +650,7 @@ class Context implements IContext {
       return
     }
 
-    logger.info "No environment to deploy to was determined " +
+    logger.info "No environment to deploy to was determined, returning" +
         "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
     config.environment = ""
     config.cloneSourceEnv = ""
@@ -700,12 +701,20 @@ class Context implements IContext {
     return m
   }
 
-  public Map<String, String> getBuildArtifactURIs() {
-    return this.artifactUriStore
+  public Map<String, Object> getBuildArtifactURIs() {
+    return artifactUriStore.asImmutable()
+  }
+  
+  public void addArtifactURI(String key, value) {
+    artifactUriStore.put(key, value)
   }
 
-  public void addArtifactURI(String key, value) {
-    this.artifactUriStore.put(key, value)
+  public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
+    artifactUriStore.builds [buildConfigName] = buildInformation
+  }
+  
+  public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
+    artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
   }
 
   // get extension image labels
@@ -738,4 +747,15 @@ class Context implements IContext {
         kvMap
       }
   }
+  
+  // set the application domain
+  void setOpenshiftApplicationDomain (String domain) {
+    config.domain = domain
+  }
+
+  // get the application domain
+  String getOpenshiftApplicationDomain () {
+    return config.domain
+  }
+
 }

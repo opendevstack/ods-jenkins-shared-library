@@ -15,7 +15,7 @@ class ScanWithSnykStage extends Stage {
       config.organisation = context.projectId
     }
     if (!config.projectName) {
-      config.projectName = context.componentId
+      config.projectName = componentId
     }
     if (!config.buildFile) {
       config.buildFile = 'build.gradle'
@@ -73,15 +73,15 @@ class ScanWithSnykStage extends Stage {
       }
     }
 
-    generateAndArchiveReport()
+    generateAndArchiveReport(context.localCheckoutEnabled)
 
     if (!testSuccess && config.failOnVulnerabilities) {
       script.error 'Snyk scan stage failed. See snyk report for details.'
     }
   }
 
-  private generateAndArchiveReport() {
-    def targetReport = "SCSR-${context.projectId}-${context.componentId}-${snyk.reportFile}"
+  private generateAndArchiveReport(boolean archive) {
+    def targetReport = "SCSR-${context.projectId}-${componentId}-${snyk.reportFile}"
     script.sh(
       label: 'Create artifacts dir',
       script: 'mkdir -p artifacts/SCSR'
@@ -90,9 +90,11 @@ class ScanWithSnykStage extends Stage {
       label: 'Rename report to SCSR',
       script: "mv ${snyk.reportFile} artifacts/${targetReport}"
     )
-    script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+    if (archive) {
+      script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+    }
     script.stash(
-      name: "scrr-report-${context.componentId}-${context.buildNumber}",
+      name: "scrr-report-${componentId}-${context.buildNumber}",
       includes: 'artifacts/SCSR*',
       allowEmpty: true
     )

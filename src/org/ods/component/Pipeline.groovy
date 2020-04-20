@@ -5,6 +5,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
+import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
 
@@ -51,12 +52,6 @@ class Pipeline implements Serializable {
             ))
 
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
-            openShiftService = registry.get(OpenShiftService)
-          }
-
-          def autoCloneEnabled = !!context.cloneSourceEnv
-          if (autoCloneEnabled) {
-            createOpenShiftEnvironment(context)
           }
 
           skipCi = isCiSkip()
@@ -64,6 +59,14 @@ class Pipeline implements Serializable {
             logger.info 'Skipping build due to [ci skip] in the commit message ...'
             updateBuildStatus('NOT_BUILT')
             setBitbucketBuildStatus('SUCCESSFUL')
+          } else {
+            context.setOpenshiftApplicationDomain (
+              ServiceRegistry.instance.get(OpenShiftService).getOpenshiftApplicationDomain())
+  
+            def autoCloneEnabled = !!context.cloneSourceEnv
+            if (autoCloneEnabled) {
+              createOpenShiftEnvironment(context)
+            }
           }
         }
       } catch (err) {
@@ -143,6 +146,8 @@ class Pipeline implements Serializable {
                 throw err
               }
             }
+          } finally {
+            logger.debug ("ODS Build Artifacts: \r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}")
           }
         }
       }
@@ -323,7 +328,12 @@ class Pipeline implements Serializable {
 
   def updateBuildStatus(String status) {
     if (context.displayNameUpdateEnabled) {
-      script.currentBuild.result = status
+      // @ FIXME ? groovy.lang.MissingPropertyException: No such property: result for class: java.lang.String
+      if (script.currentBuild instanceof String) {
+        script.currentBuild = status
+      } else {
+        script.currentBuild.result = status
+      }
     }
   }
 

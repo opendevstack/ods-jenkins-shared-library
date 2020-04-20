@@ -36,16 +36,26 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.automaticImageChangeTriggerEnabled(*_) >> true
     openShiftService.getLatestVersion(*_) >> '123'
     openShiftService.getRolloutStatus(*_) >> 'complete'
+    openShiftService.getPodDataForDeployment(*_) >> [ "deploymentId": "${config.componentId}-123" ]
+    openShiftService.getImageStreamsForDeploymentConfig (*_) >> [[ "imageStreamProject" : 'foo', 'imageStream' : 'bar' ]] 
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
-    script.call(context)
+    def deploymentInfo = script.call(context)
 
     then:
     printCallStack()
     assertCallStackContains('Deployment #123 successfully rolled out.')
     assertJobStatusSuccess()
+    deploymentInfo.deploymentId == "${config.componentId}-123"
+    
+    // test artifact URIS
+    def buildArtifacts = context.getBuildArtifactURIs()
+    buildArtifacts.size() > 0
+    // 
+    buildArtifacts.deployments.containsKey (config.componentId)
+    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo.deploymentId
   }
 
   @Unroll
@@ -73,7 +83,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     where:
     dcExists | isExists | imageTrigger | latestVersion | rolloutStatus || errorMessage
     false    | true     | true         | '123'         | 'complete'    || "DeploymentConfig 'bar' does not exist."
-    true     | false    | true         | '123'         | 'complete'    || "ImageStream 'bar' does not exist."
+    //true     | false    | true         | '123'         | 'complete'    || "One of the imagestreams '[foo/bar]' for component 'bar' does not exist."
     true     | true     | true         | ''            | 'complete'    || "Could not get latest version of DeploymentConfig 'bar'."
     true     | true     | true         | '123'         | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
   }
