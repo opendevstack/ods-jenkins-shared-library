@@ -35,7 +35,10 @@ class ScanWithSnykStage extends Stage {
     }
     if(!config.severityThreshold.matches('\\b^(low|medium|high)$\\b')) {
       script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'! Please use low, medium or high."
-    }
+def allowedSeverityThresholds = ['low', 'medium', 'high']
+if(!allowedSeverityThresholds.contains(config.severityThreshold)) {
+       script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'! Please use one of ${allowedSeverityThresholds}."
+     }
 
     script.echo "Scanning for vulnerabilities with " +
       "organisation=${config.organisation}, " +
