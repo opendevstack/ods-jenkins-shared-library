@@ -38,9 +38,9 @@ class SnykService {
     ) == 0
   }
 
-  boolean test(String organisation, String buildFile) {
+  boolean test(String organisation, String buildFile, String severityThreshold) {
     script.sh(
-      script: "snyk test --org=${organisation} --file=${buildFile} --all-sub-projects | tee -a ${reportFile}",
+      script: "snyk test --org=${organisation} --file=${buildFile} --all-sub-projects --severity-threshold=${severityThreshold} | tee -a ${reportFile}",
       returnStatus: true,
       label: "Run Snyk test"
     ) == 0

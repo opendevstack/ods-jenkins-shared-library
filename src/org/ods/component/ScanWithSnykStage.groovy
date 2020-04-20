@@ -20,6 +20,12 @@ class ScanWithSnykStage extends Stage {
     if (!config.buildFile) {
       config.buildFile = 'build.gradle'
     }
+    if (!config.severityThreshold) {
+      // low is the default, it is equal to not providing the option to snyk
+      config.severityThreshold = 'low'
+    } else {
+      config.severityThreshold = config.severityThreshold.trim().toLowerCase()
+    }
     this.snyk = snyk
   }
 
@@ -27,12 +33,17 @@ class ScanWithSnykStage extends Stage {
     if (!config.snykAuthenticationCode) {
       script.error "Option 'snykAuthenticationCode' is not set!"
     }
+    def allowedSeverityThresholds = ['low', 'medium', 'high']
+    if(!allowedSeverityThresholds.contains(config.severityThreshold)) {
+      script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'! Please use one of ${allowedSeverityThresholds}."
+    }
 
     script.echo "Scanning for vulnerabilities with " +
       "organisation=${config.organisation}, " +
       "projectName=${config.projectName}, " +
       "buildFile=${config.buildFile}, " +
-      "failOnVulnerabilities=${config.failOnVulnerabilities}."
+      "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
+      "severityThreshold=${config.severityThreshold}."
 
     if (!snyk.version()) {
       script.error 'Snyk binary is not in $PATH'
@@ -54,7 +65,7 @@ class ScanWithSnykStage extends Stage {
         script.error 'Snyk monitor failed'
       }
 
-      testSuccess = snyk.test(config.organisation, config.buildFile)
+      testSuccess = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
       if (testSuccess) {
         script.echo 'No vulnerabilities detected.'
       } else {
