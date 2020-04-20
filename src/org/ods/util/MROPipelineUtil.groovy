@@ -15,6 +15,9 @@ import org.ods.service.ServiceRegistry
 import org.ods.util.Project
 import org.yaml.snakeyaml.Yaml
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurperClassic
+
 @InheritConstructors
 class MROPipelineUtil extends PipelineUtil {
 
@@ -62,6 +65,9 @@ class MROPipelineUtil extends PipelineUtil {
     static final String COMPONENT_METADATA_FILE_NAME = "metadata.yml"
     static final String REPOS_BASE_DIR = "repositories"
 
+    static final String ODS_DEPLOYMENTS_DESCRIPTOR = "ods-deployments.json"
+    static final List EXCLUDE_NAMESPACES_FROM_IMPORT = ["openshift"] 
+    
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
         def nodes = repos.collect { new Node(it) }
@@ -86,7 +92,6 @@ class MROPipelineUtil extends PipelineUtil {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
         def targetEnvironment = this.project.buildParams.targetEnvironment
-        def imageShaFile = 'image-sha'
         def targetProject = this.project.targetProject
         def envParamsFile = this.project.environmentParamsFile
         def envParams = this.project.getEnvironmentParams(envParamsFile)
@@ -109,7 +114,7 @@ class MROPipelineUtil extends PipelineUtil {
                 def filesToStage = []
                 def commitMessage = ''
                 if (exportRequired) {
-                    commitMessage = 'ODS: Export OpenShift configuration'
+                    commitMessage = "ODS: Export OpenShift configuration \r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
                     steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                     def targetFile = 'template.yml'
                     os.tailorExport(
@@ -120,17 +125,56 @@ class MROPipelineUtil extends PipelineUtil {
                     )
                     filesToStage << targetFile
                 } else {
-                    commitMessage = 'ODS: Export OpenShift image SHA'
+                    commitMessage = "ODS: Export Openshift deployment state \r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
                     // TODO: Display drift?
                     // if (os.tailorHasDrift(targetProject, componentSelector, envParamsFile)) {
                     //     throw new RuntimeException("Error: environment '${targetProject}' is not in sync with definition in 'openshift' folder.")
                     // }
                 }
 
-                def collectedImage = repo?.data.odsBuildArtifacts?."OCP Docker image"
-                def imageSha = collectedImage.substring(collectedImage.lastIndexOf("@sha256:") + 1)
-                steps.writeFile(file: imageShaFile, text: imageSha)
-                filesToStage << imageShaFile
+                // verify that all DCs are managed thru ods 
+                Set odsBuiltDeployments = repo?.data.odsBuildArtifacts?.deployments?.keySet() ?: []
+                List ocpBasedDeployments = os.getDeploymentConfigsForComponent (componentSelector)
+                steps.echo("ODS created deployments for ${repo.id}: ${odsBuiltDeployments}, OCP Deployments: ${ocpBasedDeployments}")
+
+                odsBuiltDeployments.each {odsBuildDeployment ->
+                  ocpBasedDeployments.remove(odsBuildDeployment)
+                }
+
+                if (ocpBasedDeployments.size() > 0 ) {
+                  def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: '${ocpBasedDeployments}'!\rPlease fix by rolling them out thru 'odsComponentStageRolloutOpenShiftDeployment(..)'!"
+                  if (this.project.isWorkInProgress)
+                  {
+                    warnBuild(message)
+                  } else {
+                    throw new RuntimeException (message)
+                  } 
+                }
+                
+                List imagesFromOtherProjectsFail = []
+                Map odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [ : ]
+                odsBuiltDeploymentInformation.each {odsBuildDeployment, odsBuildDeploymentInfo ->
+                  odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
+                    String owningProject = os.getImageInformationFromImageUrl(containerImage).imageStreamProject
+                    if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
+                      steps.echo "! Image out of scope! Deployment: ${odsBuildDeployment} / Container: ${containerName} / Owner: ${owningProject}"
+                      imagesFromOtherProjectsFail << "Deployment: ${odsBuildDeployment} / Container: ${containerName} / Owner: ${owningProject}"
+                    }
+                  }
+                }
+
+                if (imagesFromOtherProjectsFail.size() > 0 ) {
+                  def message = "Containers (component: '${repo.id}') found that will NOT be transferred to other environments - please fix!! \rOffending: ${imagesFromOtherProjectsFail}"
+                  if (this.project.isWorkInProgress)
+                  {
+                    warnBuild(message)
+                  } else {
+                    throw new RuntimeException (message)
+                  }
+                }
+
+                steps.writeFile(file: ODS_DEPLOYMENTS_DESCRIPTOR, text: JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments))
+                filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
 
                 if (this.project.isWorkInProgress) {
                     steps.sh(
@@ -142,7 +186,6 @@ class MROPipelineUtil extends PipelineUtil {
                         label: "commit and push new state"
                     )
                 } else {
-                    os.tagImageSha(repo.id, targetProject, imageSha, this.project.targetTag)
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}
@@ -160,10 +203,8 @@ class MROPipelineUtil extends PipelineUtil {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
         def targetEnvironment = this.project.buildParams.targetEnvironment
-        def imageShaFile = 'image-sha'
         def targetProject = this.project.targetProject
         def envParamsFile = this.project.environmentParamsFile
-        def envParams = this.project.getEnvironmentParams(envParamsFile)
         def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
 
         def componentSelector = "app=${this.project.key}-${repo.id}"
@@ -185,51 +226,60 @@ class MROPipelineUtil extends PipelineUtil {
                 )
             }
 
-            def definedImageSha = steps.readFile("${openshiftDir}/${imageShaFile}")
+            def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
+            def deployments = new JsonSlurperClassic().parseText(storedDeployments)
+            
             def sourceProject = "${this.project.key}-${Project.getConcreteEnvironment(this.project.sourceEnv, this.project.buildParams.version, this.project.versionedDevEnvsEnabled)}"
-            if (this.project.targetClusterIsExternal) {
-                os.importImageFromSourceRegistry(
-                    repo.id,
-                    sourceProject,
-                    definedImageSha,
-                    targetProject,
-                    this.project.targetTag
-                )
-            } else {
-                os.importImageFromProject(
-                    repo.id,
-                    sourceProject,
-                    definedImageSha,
-                    targetProject,
-                    this.project.targetTag
-                )
+            repo.data["openshift"] = [ "deployments" : [ : ]]
+            deployments.each { deploymentName, deployment -> 
+              deployment.containers?.each {containerName, imageRaw ->
+                // skip excluded images from defined image streams!
+                def imageInformation = os.getImageInformationFromImageUrl(imageRaw)
+                steps.echo ("Importing images - deployment: ${deploymentName}, container: ${containerName}, imageInformation: ${imageInformation}, source: ${sourceProject}")
+                if (EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageInformation.imageStreamProject))
+                {
+                  steps.echo("Skipping import of '${imageInformation.imageStream}', because its defined as excude: ${EXCLUDE_NAMESPACES_FROM_IMPORT}")  
+                } else {
+                  if (this.project.targetClusterIsExternal) {
+                      os.importImageFromSourceRegistry(
+                          imageInformation.imageStream,
+                          sourceProject,
+                          imageInformation.imageSha,
+                          targetProject,
+                          this.project.targetTag
+                      )
+                  } else {
+                      os.importImageFromProject(
+                          imageInformation.imageStream,
+                          sourceProject,
+                          imageInformation.imageSha,
+                          targetProject,
+                          this.project.targetTag
+                      )
+                  }
+                  // tag with latest, which triggers rollout
+                  os.tagImageWithLatest(imageInformation.imageStream, targetProject, this.project.targetTag)
+                }
+              }
+
+              // verify that image sha is running
+              // caution: relies on an image trigger being present ...
+              def latestVersion = os.getLatestVersion(targetProject, deploymentName)
+              os.watchRollout(targetProject, deploymentName, openshiftRolloutTimeoutMinutes)
+              
+              deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
+                def runningImageSha = os.getRunningImageSha(targetProject, deploymentName, latestVersion, index)
+                def imageInformation = os.getImageInformationFromImageUrl(imageRaw)
+                if (imageInformation.imageSha != runningImageSha) {
+                    throw new RuntimeException("Error: in container '${containerName}' running image '${imageInformation.imageSha}' is not the same as the defined image '${runningImageSha}'.")
+                } else {
+                    steps.echo("Running container '${containerName}' is using defined image '${imageInformation.imageSha}'.")
+                }
+              }
+              def pod = os.getPodDataForDeployment(deploymentName, latestVersion)
+              repo.data.openshift.deployments << ["${deploymentName}" : pod]
             }
-
-            // tag with latest, which triggers rollout
-            os.tagImageWithLatest(repo.id, targetProject, this.project.targetTag)
-
-            // verify that image sha is running
-            // caution: relies on an image trigger being present ...
-            os.watchRollout(targetProject, repo.id, openshiftRolloutTimeoutMinutes)
-            def latestVersion = os.getLatestVersion(targetProject, repo.id)
-            def runningImageSha = os.getRunningImageSha(targetProject, repo.id, latestVersion)
-
-            if (definedImageSha != runningImageSha) {
-                throw new RuntimeException("Error: running image '${runningImageSha}' is not the same as the defined image '${definedImageSha}'.")
-            } else {
-                steps.echo("Running container is using defined image ${definedImageSha}.")
-            }
-
-            // collect data required for documents
-            def pod = os.getPodDataForDeployment(repo.id, latestVersion)
-            repo.data.openshift = ['pod' : pod]
-            repo.data.odsBuildArtifacts = [
-                "OCP Build Id": "N/A",
-                "OCP Docker image": runningImageSha.split(':').last(),
-                "OCP Deployment Id": latestVersion,
-            ]
-
-            tagAndPush(this.project.targetTag)
+          tagAndPush(this.project.targetTag)
         }
     }
 

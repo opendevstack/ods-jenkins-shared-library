@@ -103,4 +103,8 @@ class PipelineSteps implements IPipelineSteps {
     def withEnv(java.util.List env, groovy.lang.Closure block) {
       block()
     }
+    
+    @Override
+    def unstable (String message) {
+    }
 }

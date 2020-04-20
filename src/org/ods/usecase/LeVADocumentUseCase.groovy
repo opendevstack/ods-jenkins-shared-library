@@ -1105,26 +1105,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        if (!data.openshift?.pod) {
-            this.steps.echo("Repo data 'pod' not populated, retrieving latest pod of component ${repo.id}...")
-            data.openshift = ['pod': os.getPodDataForComponent(this.project.key, repo.id)]
+        if (!repo.data.openshift && repo.data.odsBuildArtifacts) {
+            repo.data["openshift"] = [:]
+            repo.data.openshift << repo.data.odsBuildArtifacts.subMap (["builds","deployments"])
+            this.steps.echo("fetched openshift data from build for repo: ${repo.id} \r${repo.data.openshift}")
         }
-
-        this.steps.echo("Got pod data: ${repo.id} ${data.openshift.pod}")
-
+        
+        def deploynoteData = "Components were built & deployed during installation."
+        if (!repo.data.openshift?.builds || repo.data.openshift?.builds?.size() == 0) {
+           deploynoteData = "NO Components were built during installation, existing components (created in Dev) were deployed."
+        }
+        
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+            deployNote   : deploynoteData,
             openShiftData: [
-                ocpBuildId          : data.odsBuildArtifacts?."OCP Build Id" ?: "N/A",
-                ocpDockerImage      : data.odsBuildArtifacts?."OCP Docker image" ?: "N/A",
-                ocpDeploymentId     : data.odsBuildArtifacts?."OCP Deployment Id" ?: "N/A",
-                podName             : data.openshift.pod.podName,
-                podNamespace        : data.openshift.pod.podNamespace,
-                podCreationTimestamp: data.openshift.pod.podCreationTimestamp,
-                podEnvironment      : data.openshift.pod.podEnvironment,
-                podNode             : data.openshift.pod.podNode,
-                podIp               : data.openshift.pod.podIp,
-                podStatus           : data.openshift.pod.podStatus
+                builds      : repo.data.openshift?.builds ?: "",
+                deployments : repo.data.openshift?.deployments ?: ""
             ],
             data         : [
                 repo    : repo,

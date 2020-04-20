@@ -45,4 +45,6 @@ interface IPipelineSteps {
     def deleteDir()
     
     def withEnv(List<String> env, Closure block)
+    
+    def unstable (String message)
 }

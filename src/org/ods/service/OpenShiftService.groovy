@@ -51,7 +51,8 @@ class OpenShiftService {
       if (exclude) {
         excludeFlag = "--exclude ${exclude}"
       }
-      doTailorApply(project, "-l ${selector} ${excludeFlag} ${buildParamFileFlag(paramFile)} --ignore-unknown-parameters ${tailorPrivateKeyFlag()} ${verifyFlag}")
+      String openshiftAppDomain = getOpenshiftApplicationDomain(project)
+      doTailorApply(project, "-l ${selector} ${excludeFlag} ${buildParamFileFlag(paramFile)} --param=ODS_OPENSHIFT_APP_DOMAIN=${openshiftAppDomain} --ignore-unknown-parameters ${tailorPrivateKeyFlag()} ${verifyFlag}")
     }
 
     private void doTailorApply(String project, String tailorParams) {
@@ -87,6 +88,7 @@ class OpenShiftService {
 
     private void doTailorExport(String project, String tailorParams, Map<String, String> envParams, String targetFile) {
       envParams['TAILOR_NAMESPACE'] = project
+      envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getOpenshiftApplicationDomain(project)
       def templateParams = ''
       def sedReplacements = ''
       envParams.each { key, val ->
@@ -132,13 +134,13 @@ class OpenShiftService {
       ).trim()
     }
 
-    String getRunningImageSha(String project, String component, String version) {
+    String getRunningImageSha(String project, String component, String version, index = 0) {
       def runningImage = steps.sh(
-        script: "oc -n ${project} get rc/${component}-${version} -o jsonpath='{.spec.template.spec.containers[0].image}'",
-        label: "Get running image",
+        script: "oc -n ${project} get rc/${component}-${version} -o jsonpath='{.spec.template.spec.containers[${index}].image}'",
+        label: "Get running image for rc/${component}-${version} containerIndex: ${index}",
         returnStdout: true
       ).trim()
-      runningImage.substring(runningImage.lastIndexOf("@sha256:") + 1)
+      return runningImage.substring(runningImage.lastIndexOf("@sha256:") + 1)
     }
 
     void importImageFromSourceRegistry(String name, String sourceProject, String imageSha, String targetProject, String imageTag) {
@@ -300,13 +302,69 @@ class OpenShiftService {
       def pod = [ : ]
         pod.podName = podOCData?.metadata?.name?: "N/A"
         pod.podNamespace = podOCData?.metadata?.namespace?: "N/A"
-        pod.podCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
-        pod.podEnvironment = podOCData?.metadata?.labels?.env?: "N/A"
+        pod.podMetaDataCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
+        pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name']?: "N/A"
         pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
         pod.podIp = podOCData?.status?.podIP ?: "N/A"
         pod.podStatus = podOCData?.status?.phase ?: "N/A"
-
+        pod.podStartupTimeStamp = podOCData?.status?.startTime ?: "N/A"
+        pod["containers"] = [ : ]
+        
+        podOCData?.spec?.containers?.each { container ->
+          pod.containers[container.name] = container.image
+        } 
       return pod
     }
+
+    List getDeploymentConfigsForComponent(String componentSelector) {
+      def stdout = this.steps.sh(
+        script: "oc get dc -l ${componentSelector} -o jsonpath='{.items[*].metadata.name}'",
+        returnStdout: true,
+        label: "Getting all deploymentconfig names for selector '${componentSelector}'"
+      ).trim()
+
+      def deploymentNames = []
+
+      stdout.tokenize(" ").each {dc -> 
+        deploymentNames.add (dc)
+      }
+      return deploymentNames
+    }
+    
+    String getOpenshiftApplicationDomain (String project) {
+      def routeName = "test-route-" + System.currentTimeMillis()
+      this.steps.sh (
+        script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
+        label : "create dummy route for extraction (${routeName})")
+      def routeUrl = this.steps.sh (script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
+        returnStdout : true, label : "get cluster route domain")
+      def routePrefixLength = "${routeName}-${project}".length() + 1
+      String openShiftPublicHost = routeUrl.substring(routePrefixLength)
+      this.steps.sh (script: "oc -n ${project} delete route ${routeName} | true",
+        label : "delete dummy route for extraction (${routeName})")
+      
+      return openShiftPublicHost
+    }
+    
+  Map<String, String> getImageInformationFromImageUrl (String url) {
+    this.steps.echo ("Deciphering imageURL ${url} into pieces")
+    def imageInformation = [ : ]
+    List <String> imagePath
+    if (url?.contains("@")) {
+      List <String> imageStreamDefinition = (url.split ("@"))
+      imageInformation [ "imageSha" ] = imageStreamDefinition [1]
+      imageInformation [ "imageShaStripped" ] = (imageStreamDefinition [1]).replace("sha256:","")
+      imagePath = imageStreamDefinition[0].split("/")
+    } else {
+      url = url.split(":")[0]
+      imagePath = url.split("/")
+      imageInformation [ "imageSha" ] = url
+      imageInformation [ "imageShaStripped" ] = url
+    }
+    imageInformation [ "imageStreamProject" ] = imagePath[imagePath.size()-2]
+    imageInformation [ "imageStream" ] = imagePath[imagePath.size()-1]
+      
+    return imageInformation
+  }
 
 }

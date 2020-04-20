@@ -45,14 +45,14 @@ def call(Project project, List<Set<Map>> repos) {
             }
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
-
-        // Dump a representation of the project
-        steps.echo(" ---- ODS Project (${project.key}) data: \r${project.toString()}\r -----")
-
         if (project.isAssembleMode && !project.isWorkInProgress) {
             steps.echo("!!! CAUTION: Any future changes that should affect version '${project.buildParams.version}' need to be committed into branch '${project.gitReleaseBranch}'.")
         }
+
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        
+        // Dump a representation of the project
+        steps.echo(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
 
         // Fail the build in case of failing tests.
         if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {

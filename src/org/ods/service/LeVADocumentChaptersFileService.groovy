@@ -41,6 +41,7 @@ class LeVADocumentChaptersFileService {
             def number = chapter.number.toString()
             chapter.number = number
             chapter.content = chapter.content ?: ""
+            chapter["status"] = "done"
             [ "sec${number.replaceAll(/\./, "s")}".toString(), chapter ]
         }
     }

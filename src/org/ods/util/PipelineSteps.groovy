@@ -100,4 +100,8 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     def withEnv(List<String> env, Closure block) {
         this.context.withEnv (env, block)
     }
+    
+    def unstable (String message) {
+        this.context.unstable(message)
+    }
 }
