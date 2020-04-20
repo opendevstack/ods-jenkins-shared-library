@@ -21,13 +21,10 @@ class ScanWithSnykStage extends Stage {
       config.buildFile = 'build.gradle'
     }
     if (!config.severityThreshold) {
-      // low is the default, it is equal to not providing any option to snyk
+      // low is the default, it is equal to not providing the option to snyk
       config.severityThreshold = 'low'
     } else {
       config.severityThreshold = config.severityThreshold.trim().toLowerCase()
-      if(!config.severityThreshold.matches('\\b^(?i:low|medium|high)$\\b')) {
-        script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'. Please use low, medium or high!"
-      }
     }
     this.snyk = snyk
   }
@@ -35,6 +32,9 @@ class ScanWithSnykStage extends Stage {
   def run() {
     if (!config.snykAuthenticationCode) {
       script.error "Option 'snykAuthenticationCode' is not set!"
+    }
+    if(!config.severityThreshold.matches('\\b^(?i:low|medium|high)$\\b')) {
+      script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'! Please use low, medium or high."
     }
 
     script.echo "Scanning for vulnerabilities with " +
