@@ -60,9 +60,9 @@ class Context implements IContext {
     }
 
     config.globalExtensionImageLabels = getExtensionBuildParams()
-    
+
     logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
-    
+
     config.odsSharedLibVersion = script.sh(script: "env | grep 'library.ods-jenkins-shared-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
 
     logger.debug "Validating environment variables ..."
@@ -303,6 +303,15 @@ class Context implements IContext {
     config.tagversion
   }
 
+  String getLastSuccessfulCommit() {
+    retrieveLastSuccessfulCommit()
+  }
+
+  String[] getCommittedFiles() {
+    def lastSuccessfulCommit = getLastSuccessfulCommit()
+    retrieveGitCommitFiles(lastSuccessfulCommit)
+  }
+
   boolean getNotifyNotGreen() {
     config.notifyNotGreen
   }
@@ -507,6 +516,35 @@ class Context implements IContext {
     ).trim()
   }
 
+  private String retrieveLastSuccessfulCommit() {
+    def lastSuccessfulBuild = script.currentBuild.rawBuild.getPreviousSuccessfulBuild()
+    if (!lastSuccessfulBuild) {
+      logger.info("There seems to be no last successful build.")
+      return ""
+    }
+    return commitHashForBuild(lastSuccessfulBuild)
+  }
+
+  private String commitHashForBuild(build) {
+    return build
+      .getActions(hudson.plugins.git.util.BuildData.class)
+      .find { action -> action.getRemoteUrls().contains(config.gitUrl) }
+      .getLastBuiltRevision().getSha1String()
+  }
+
+  private String[] retrieveGitCommitFiles(String lastSuccessfulCommitHash) {
+    if (!lastSuccessfulCommitHash) {
+      logger.info("Didn't find the last successful commit. Can't return the committed files.")
+      return []
+    }
+    return script
+      .sh(
+        returnStdout: true,
+        label: 'getting git commit files',
+        script: "git diff-tree --no-commit-id --name-only -r ${config.gitCommit}"
+      ).trim().split()
+  }
+
   private String retrieveGitCommitTime() {
     script.sh(
         returnStdout: true, script: "git show -s --format=%ci HEAD",
@@ -675,7 +713,7 @@ class Context implements IContext {
   public Map<String, String> getExtensionImageLabels () {
     return config.globalExtensionImageLabels
   }
-  
+
   // set and add image labels
   @NonCPS
   void setExtensionImageLabels (Map <String, String> extensionLabels) {
@@ -683,17 +721,17 @@ class Context implements IContext {
       config.globalExtensionImageLabels.putAll(extensionLabels)
     }
   }
-  
+
   Map<String,String> getExtensionBuildParams () {
     String rawEnv = script.sh(
         returnStdout: true, script: "env | grep ods.build. || true",
         label: 'getting extension environment labels'
       ).trim()
-    
+
     if (rawEnv.size() == 0 ) {
       return [:]
     }
-      
+
     return rawEnv.normalize().split(System.getProperty("line.separator")).inject([ : ] ) { kvMap, line ->
         Iterator kv = line.toString().tokenize("=").iterator()
         kvMap.put(kv.next(), kv.hasNext() ? kv.next() : "")
