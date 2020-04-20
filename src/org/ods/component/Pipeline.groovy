@@ -124,9 +124,11 @@ class Pipeline implements Serializable {
             script.stage('odsPipeline error') {
               logger.info "***** Finished ODS Pipeline for  ${context.componentId} (with error) *****"
               try {
-                script.echo("Error: ${err}");
+                script.echo("Error: ${err}")
                 stashTestResults(true)
-              } catch (e) {}
+              } catch (e) {
+                script.echo("Error: Cannot stash test results: ${e}")
+              }
               updateBuildStatus('FAILURE')
               setBitbucketBuildStatus('FAILED')
               if (context.notifyNotGreen) {

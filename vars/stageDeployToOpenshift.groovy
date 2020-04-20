@@ -1,6 +1,7 @@
 def call(def context, Map config = [:]) {
-  echo "'stageDeployToOpenshift' has been replaced with 'odsComponentStageRolloutOpenShiftDeployment', please use that instead."
-  odsComponentStageRolloutOpenShiftDeployment(context, config)
+    echo "'stageDeployToOpenshift' is deprecated, please use " +
+        "'odsComponentStageRolloutOpenShiftDeployment' instead."
+    odsComponentStageRolloutOpenShiftDeployment(context, config)
 }
 
 return this

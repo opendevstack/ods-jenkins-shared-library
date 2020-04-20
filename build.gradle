@@ -1,6 +1,7 @@
 plugins {
     id 'jacoco'
     id 'groovy'
+    id 'codenarc'
 }
 
 group "org.ods"
@@ -92,4 +93,10 @@ test {
     testLogging {
         showStandardStreams = true
     }
+}
+
+codenarc {
+    configFile = file('codenarc.groovy')
+    ignoreFailures = true
+    reportFormat = 'html'
 }
