@@ -23,6 +23,15 @@ class Pipeline implements Serializable {
 
   // Main entry point.
   def execute(Map config, Closure stages) {
+    if (!config.projectId) {
+      logger.error "Param 'projectId' is required"
+    }
+    if (!config.componentId) {
+      logger.error "Param 'componentId' is required"
+    }
+
+    prepareAgentPodConfig(config)
+
     context = new Context(script, config, logger)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
@@ -37,6 +46,9 @@ class Pipeline implements Serializable {
             script.checkout script.scm
           }
           script.stage('odsPipeline start') {
+            if (!config.containsKey('podContainers') && !config.image) {
+              config.image = "${script.env.DOCKER_REGISTRY}/${config.imageStreamTag}"
+            }
             context.assemble()
             // register services after context was assembled
             def registry = ServiceRegistry.instance
@@ -87,19 +99,34 @@ class Pipeline implements Serializable {
 
     if (!skipCi) {
       def nodeStartTime = System.currentTimeMillis();
-      def msgBasedOn = ''
-      if (context.image) {
-        msgBasedOn = " based on image '${context.image}'"
+      if (!config.containsKey('podContainers')) {
+        config.podContainers = [
+            script.containerTemplate(
+                name: 'jnlp',
+                image: config.image,
+                workingDir: '/tmp',
+                resourceRequestMemory: config.resourceRequestMemory,
+                resourceLimitMemory: config.resourceLimitMemory,
+                resourceRequestCpu: config.resourceRequestCpu,
+                resourceLimitCpu: config.resourceLimitCpu,
+                alwaysPullImage: config.alwaysPullImage,
+                args: '${computer.jnlpmac} ${computer.name}'
+            )
+        ]
       }
-      logger.info "***** Continuing on node '${context.podLabel}'${msgBasedOn} *****"
+      def msgBasedOn = ''
+      if (config.image) {
+        msgBasedOn = " based on image '${config.image}'"
+      }
+      logger.info "***** Continuing on node '${config.podLabel}'${msgBasedOn} *****"
       script.podTemplate(
-          label: context.podLabel,
+          label: config.podLabel,
           cloud: 'openshift',
-          containers: context.podContainers,
-          volumes: context.podVolumes,
-          serviceAccount: context.podServiceAccount
+          containers: config.podContainers,
+          volumes: config.podVolumes,
+          serviceAccount: config.podServiceAccount
       ) {
-        script.node(context.podLabel) {
+        script.node(config.podLabel) {
           try {
             setBitbucketBuildStatus('INPROGRESS')
             script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -344,5 +371,42 @@ class Pipeline implements Serializable {
   // Whether the build should be skipped, based on the Git commit message.
   private boolean isCiSkip() {
     return context.ciSkipEnabled && gitService.ciSkipInCommitMessage
+  }
+
+  private def prepareAgentPodConfig(Map config) {
+    if (!config.image && !config.imageStreamTag && !config.podContainers) {
+      logger.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
+    }
+    if (!config.podVolumes) {
+      config.podVolumes = []
+    }
+    if (!config.containsKey('podServiceAccount')) {
+      config.podServiceAccount = 'jenkins'
+    }
+    if (!config.containsKey('alwaysPullImage')) {
+      config.alwaysPullImage = true
+    }
+    if (!config.containsKey('resourceRequestMemory')) {
+      config.resourceRequestMemory = '1Gi'
+    }
+    if (!config.containsKey('resourceLimitMemory')) {
+      // 2Gi is required for e.g. jenkins-slave-maven, which selects the Java
+      // version based on available memory.
+      // Also, e.g. Angular is known to use a lot of memory during production
+      // builds.
+      // Quickstarters should set a lower value if possible.
+      config.resourceLimitMemory = '2Gi'
+    }
+    if (!config.containsKey('resourceRequestCpu')) {
+      config.resourceRequestCpu = '100m'
+    }
+    if (!config.containsKey('resourceLimitCpu')) {
+      // 1 core is a lot but this directly influences build time.
+      // Quickstarters should set a lower value if possible.
+      config.resourceLimitCpu = '1'
+    }
+    if (!config.containsKey('podLabel')) {
+      config.podLabel = "pod-${UUID.randomUUID().toString()}"
+    }
   }
 }
