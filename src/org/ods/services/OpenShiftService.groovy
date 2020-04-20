@@ -274,7 +274,7 @@ class OpenShiftService {
     String imageString = script.sh (
       script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
       label : "Get container images for deploymentconfigs (${dc})", returnStdout : true)
-    List images
+    List images = []
     imageString.tokenize(" ").each { image ->
       images << getImageInformationFromImageUrl(image)
     }

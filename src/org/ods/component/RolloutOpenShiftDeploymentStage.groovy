@@ -29,7 +29,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     def isExists = imageStreamExists()
     if (!isExists) {
-      List imageStreamNamesNice
+      List imageStreamNamesNice = []
       config.imagestreams.each { imageStream ->
         imageStreamNamesNice << "${imageStream.imageStreamProject}/${imageStream.imageStream}"
       }
