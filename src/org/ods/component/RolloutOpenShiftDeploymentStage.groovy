@@ -74,7 +74,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     config.imagestreams.each { imageStream ->
       script.echo ("Checking imagestream ${imageStream} against ${context.targetProject}")
       if (imageStream.imageStreamProject == context.targetProject &&
-          !openShift.resourceExists('ImageStream', imageStream.imageStreamProject)) {
+          !openShift.resourceExists('ImageStream', imageStream.imageStream)) {
           allStreamExists = false
       }
     }
