@@ -6,7 +6,7 @@ class ScanWithSnykStage extends Stage {
   public final String STAGE_NAME = 'Snyk Security Scan'
   private SnykService snyk
 
-  ScanWithSnykStage(def script, IContext context, Map<String, String> config, SnykService snyk) {
+  ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk) {
     super(script, context, config)
     if (!config.containsKey('failOnVulnerabilities')) {
       config.failOnVulnerabilities = context.failOnSnykScanVulnerabilities
@@ -60,7 +60,7 @@ class ScanWithSnykStage extends Stage {
       "NEXUS_PASSWORD=${context.nexusPassword}"
     ]
     script.withEnv(envVariables) {
-      if (!snyk.monitor(config.organisation, config.buildFile, config.projectName, config.severityThreshold)) {
+      if (!snyk.monitor(config.organisation, config.buildFile, config.projectName)) {
         script.error 'Snyk monitor failed'
       }
 
