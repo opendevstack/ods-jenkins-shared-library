@@ -249,5 +249,35 @@ class OpenShiftService {
     
     return openShiftPublicHost
   }
+
+  Map<String, String> getImageInformationFromImageUrl (String url) {
+    script.echo ("Deciphering imageURL into pieces")
+    def imageInformation = [ : ]
+    List <String> imagePath
+    if (url?.contains("@")) {
+      List <String> imageStreamDefinition = (url.split ("@"))
+      imageInformation [ "imageSha" ] = imageStreamDefinition [1]
+      imageInformation [ "imageShaStripped" ] = (imageStreamDefinition [1]).replace("sha256:","")
+      imagePath = imageStreamDefinition[0].split("/")
+    } else {
+      imagePath = url.split("/")
+      imageInformation [ "imageSha" ] = url
+      imageInformation [ "imageShaStripped" ] = url
+    }
+    imageInformation [ "imageStreamProject" ] = imagePath[imagePath.size()-2]
+    imageInformation [ "imageStream" ] = imagePath[imagePath.size()-1]
+      
+    return imageInformation
+  }
   
+  List<Map<String, String>> getImageStreamsForDeploymentConfig (String dc) {
+    String imageString = script.sh (
+      script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
+      label : "Get container images for deploymentconfigs (${dc})", returnStdout : true)
+    List images
+    imageString.tokenize(" ").each { image ->
+      images << getImageInformationFromImageUrl(image)
+    }
+    return images
+  }
 }

@@ -6,15 +6,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
   public final String STAGE_NAME = 'Deploy to Openshift'
   private OpenShiftService openShift
   
-  private List EXCLUDE_IMAGE_NAMESPACES = [ "openshift" ]
-
   RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift) {
     super(script, context, config)
     if (!config.deployTimeoutMinutes) {
       config.deployTimeoutMinutes = context.openshiftRolloutTimeout
-    }
-    if (!config.imageStreams) {
-      config.imageStreams = [componentId]
     }
     this.openShift = openShift
   }
@@ -30,9 +25,15 @@ class RolloutOpenShiftDeploymentStage extends Stage {
       script.error "DeploymentConfig '${componentId}' does not exist."
     }
 
+    config.imagestreams = openShift.getImageStreamsForDeploymentConfig(componentId)
+
     def isExists = imageStreamExists()
     if (!isExists) {
-      script.error "ImageStream '${config.imageStreams}' for component '${componentId}' does not exist."
+      List imageStreamNamesNice
+      config.imagestreams.each { imageStream ->
+        imageStreamNamesNice << "${imageStream.imageStreamProject}/${imageStream.imageStream}"
+      }
+      script.error "One of the imagestreams '${imageStreamNamesNice}' for component '${componentId}' does not exist."
     }
 
     def imageTriggerEnabled = automaticImageChangeTriggerEnabled()
@@ -70,10 +71,11 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
   private boolean imageStreamExists() {
     boolean allStreamExists = true
-    config.imageStreams.each { imageStreamName ->
-      if (!EXCLUDE_IMAGE_NAMESPACES.contains(imageStreamName) && 
-          !openShift.resourceExists('ImageStream', imageStreamName)) {
-        allStreamExists = false
+    config.imagestreams.each { imageStream ->
+      script.echo ("Checking imagestream ${imageStream} against ${context.targetProject}")
+      if (imageStream.imageStreamProject == context.targetProject &&
+          !openShift.resourceExists('ImageStream', imageStream.imageStreamProject)) {
+          allStreamExists = false
       }
     }
     return allStreamExists
@@ -84,10 +86,11 @@ class RolloutOpenShiftDeploymentStage extends Stage {
   }
 
   private void setImageTagLatest() {
-    config.imageStreams.each { imageStreamName ->
-      if (!EXCLUDE_IMAGE_NAMESPACES.contains(imageStreamName))
+    config.imagestreams.each { imageStream ->
+      // only tag imagestreams that this project owns
+      if (context.targetProject == imageStream.imageStreamProject)
       {
-        openShift.setImageTag(imageStreamName, context.tagversion, 'latest')
+        openShift.setImageTag(imageStream.imageStream, context.tagversion, 'latest')
       }  
     }
   }
