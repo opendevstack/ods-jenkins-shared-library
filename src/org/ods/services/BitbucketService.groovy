@@ -45,7 +45,11 @@ class BitbucketService {
     withTokenCredentials { username, token ->
       res = script.sh(
         label: 'Get pullrequests via API',
-        script: "curl -H 'Authorization: Bearer ${token}' ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}",
+        script: """curl \\
+          --fail \\
+          --silent \\
+          --header \"Authorization: Bearer ${token}\" \\
+          ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}""",
         returnStdout: true
       ).trim()
     }
