@@ -60,7 +60,7 @@ class ScanWithSnykStage extends Stage {
       "NEXUS_PASSWORD=${context.nexusPassword}"
     ]
     script.withEnv(envVariables) {
-      if (!snyk.monitor(config.organisation, config.buildFile, config.projectName)) {
+      if (!snyk.monitor(config.organisation, config.buildFile, config.projectName, config.severityThreshold)) {
         script.error 'Snyk monitor failed'
       }
 
