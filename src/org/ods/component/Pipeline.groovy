@@ -11,6 +11,7 @@ class Pipeline implements Serializable {
 
   private GitService gitService
   private OpenShiftService openShiftService
+  private BitbucketService bitbucketService
 
   private def script
   private IContext context
@@ -88,6 +89,7 @@ class Pipeline implements Serializable {
               context.projectId,
               context.credentialsId
             ))
+            bitbucketService = registry.get(BitbucketService)
 
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
           }
@@ -278,33 +280,14 @@ class Pipeline implements Serializable {
     if (!this.bitbucketNotificationEnabled) {
       return
     }
-    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketUrl || !context.gitCommit) {
-      logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
+    if (!context.jobName || !context.tagversion || !context.buildUrl || !context.gitCommit) {
+      logger.info "Cannot set Bitbucket build status to '${state}' because required data is missing!"
       return
     }
 
-    logger.info "Setting BitBucket build status to ${state} ..."
+    logger.info "Setting Bitbucket build status to '${state}' ..."
     def buildName = "${context.jobName}-${context.tagversion}"
-    def maxAttempts = 3
-    def retries = 0
-    while (retries++ < maxAttempts) {
-      try {
-        script.withCredentials([script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]) {
-          script.sh """curl \\
-            --fail \\
-            --silent \\
-            --user ${script.USERPASS.replace('$', '\'$\'')} \\
-            --request POST \\
-            --header \"Content-Type: application/json\" \\
-            --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${context.buildUrl}\"}' \\
-            ${context.bitbucketUrl}/rest/build-status/1.0/commits/${context.gitCommit}
-          """
-        }
-        return
-      } catch (err) {
-        logger.info "Could not set BitBucket build status to ${state} due to ${err}"
-      }
-    }
+    bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
   }
 
   private void doNotifyNotGreen() {

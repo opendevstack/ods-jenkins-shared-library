@@ -56,6 +56,31 @@ class BitbucketService {
     res
   }
 
+  void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
+    withTokenCredentials { username, token ->
+      def maxAttempts = 3
+      def retries = 0
+      while (retries++ < maxAttempts) {
+        try {
+          script.sh(
+            label: 'Set build status via API',
+            script: """curl \\
+              --fail \\
+              --silent \\
+              --request POST \\
+              --header \"Authorization: Bearer ${token}\" \\
+              --header \"Content-Type: application/json\" \\
+              --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}' \\
+              ${bitbucketUrl}/rest/build-status/1.0/commits/${gitCommit}"""
+          )
+          return
+        } catch (err) {
+          script.echo "WARN: Could not set Bitbucket build status to '${state}' due to: ${err}"
+        }
+      }
+    }
+  }
+
   def withTokenCredentials(Closure block) {
     if (!tokenCredentialsId) {
       createUserTokenIfMissing()
