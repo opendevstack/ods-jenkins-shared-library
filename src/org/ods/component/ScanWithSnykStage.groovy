@@ -21,9 +21,10 @@ class ScanWithSnykStage extends Stage {
       config.buildFile = 'build.gradle'
     }
     if (!config.severityThreshold) {
-      // low is the default, other possible values are medium and high.
-      // More info at https://support.snyk.io/hc/en-us/articles/360003851337-Set-severity-thresholds-for-CLI-tests
+      // low is the default, it is equal to not providing any option to snyk
       config.severityThreshold = 'low'
+    } else if(!config.severityThreshold.matches('\\b^(?i:low|medium|high)$\\b')) {
+      script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'. Possible values are low, medium or high!"
     }
     this.snyk = snyk
   }
