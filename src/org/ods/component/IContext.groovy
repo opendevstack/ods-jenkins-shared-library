@@ -31,12 +31,6 @@ interface IContext {
     // The tagversion is made up of the build number and the first 8 chars of the commit SHA.
     String getTagversion()
 
-    // Whether to send notifications if the build is not successful.
-    boolean getNotifyNotGreen()
-
-    // Enable/disable notifications
-    void setNotifyNotGreen(boolean notifyNotGreen)
-
     // Nexus host (with scheme).
     String getNexusHost()
 
@@ -140,30 +134,6 @@ interface IContext {
 
     // Timeout for the OpenShift rollout of the pod in minutes.
     Integer getOpenshiftRolloutTimeout()
-
-    // Whether CI skip is enabled
-    boolean getCiSkipEnabled()
-
-    // Enable/disable CI skip is enabled
-    void setCiSkipEnabled(boolean ciSkipEnabled)
-
-    // Whether Bitbucket notification is enabled
-    boolean getBitbucketNotificationEnabled()
-
-    // nable/disable Bitbucket notification
-    void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled)
-
-    // Whether local checkout is enabled
-    boolean getLocalCheckoutEnabled()
-
-    // Enable/disable local checkout
-    void setLocalCheckoutEnabled(boolean localCheckoutEnabled)
-
-    // Whether display name update is enabled
-    boolean getDisplayNameUpdateEnabled()
-
-    // Enable/disable display name update
-    void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
 
     // The docker directory to use when building the image in openshift
     String getDockerDir()

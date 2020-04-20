@@ -15,10 +15,20 @@ class Pipeline implements Serializable {
   private def script
   private IContext context
   private ILogger logger
+  private boolean notifyNotGreen
+  private boolean ciSkipEnabled
+  private boolean displayNameUpdateEnabled
+  private boolean localCheckoutEnabled
+  private boolean bitbucketNotificationEnabled
 
   Pipeline(def script, ILogger logger) {
     this.script = script
     this.logger = logger
+    this.notifyNotGreen = true
+    this.ciSkipEnabled = true
+    this.displayNameUpdateEnabled= true
+    this.localCheckoutEnabled = true
+    this.bitbucketNotificationEnabled = true
   }
 
   // Main entry point.
@@ -30,9 +40,25 @@ class Pipeline implements Serializable {
       logger.error "Param 'componentId' is required"
     }
 
+    if (config.containsKey('notifyNotGreen')) {
+      this.notifyNotGreen = config.notifyNotGreen
+    }
+    if (config.containsKey('ciSkipEnabled')) {
+      this.ciSkipEnabled = config.ciSkipEnabled
+    }
+    if (config.containsKey('displayNameUpdateEnabled')) {
+      this.displayNameUpdateEnabled = config.displayNameUpdateEnabled
+    }
+    if (config.containsKey('localCheckoutEnabled')) {
+      this.localCheckoutEnabled = config.localCheckoutEnabled
+    }
+    if (config.containsKey('bitbucketNotificationEnabled')) {
+      this.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled
+    }
+
     prepareAgentPodConfig(config)
 
-    context = new Context(script, config, logger)
+    context = new Context(script, config, logger, this.localCheckoutEnabled)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild()
@@ -42,7 +68,7 @@ class Pipeline implements Serializable {
     def cl = {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-          if (context.getLocalCheckoutEnabled()) {
+          if (this.localCheckoutEnabled) {
             script.checkout script.scm
           }
           script.stage('odsPipeline start') {
@@ -84,13 +110,13 @@ class Pipeline implements Serializable {
       } catch (err) {
         updateBuildStatus('FAILURE')
         setBitbucketBuildStatus('FAILED')
-        if (context.notifyNotGreen) {
-          notifyNotGreen()
+        if (notifyNotGreen) {
+          doNotifyNotGreen()
         }
         throw err
       }
     }
-    if (context.getLocalCheckoutEnabled()) {
+    if (this.localCheckoutEnabled) {
       logger.info "***** Continuing on node 'master' *****"
       script.node('master', cl)
     } else {
@@ -134,7 +160,7 @@ class Pipeline implements Serializable {
                 context.gitCommit,
                 [[credentialsId: context.credentialsId, url: context.gitUrl]]
               )
-              if (context.getDisplayNameUpdateEnabled()) {
+              if (this.displayNameUpdateEnabled) {
                 script.currentBuild.displayName = "#${context.tagversion}"
               }
 
@@ -158,8 +184,8 @@ class Pipeline implements Serializable {
               }
               updateBuildStatus('FAILURE')
               setBitbucketBuildStatus('FAILED')
-              if (context.notifyNotGreen) {
-                notifyNotGreen()
+              if (notifyNotGreen) {
+                doNotifyNotGreen()
               }
               if (!!script.env.MULTI_REPO_BUILD) {
                 // this is the case on a parallel node to be interrupted
@@ -183,11 +209,11 @@ class Pipeline implements Serializable {
 
   def setupForMultiRepoBuild() {
     logger.info '***** Multi Repo Build detected *****'
-    context.bitbucketNotificationEnabled = false
-    context.localCheckoutEnabled = false
-    context.displayNameUpdateEnabled = false
-    context.ciSkipEnabled = false
-    context.notifyNotGreen = false
+    this.bitbucketNotificationEnabled = false
+    this.localCheckoutEnabled = false
+    this.displayNameUpdateEnabled = false
+    this.ciSkipEnabled = false
+    this.notifyNotGreen = false
     context.sonarQubeBranch = '*'
     def buildEnv = script.env.MULTI_REPO_ENV
     if (buildEnv) {
@@ -249,7 +275,7 @@ class Pipeline implements Serializable {
   }
 
   private void setBitbucketBuildStatus(String state) {
-    if (!context.getBitbucketNotificationEnabled()) {
+    if (!this.bitbucketNotificationEnabled) {
       return
     }
     if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketUrl || !context.gitCommit) {
@@ -281,7 +307,7 @@ class Pipeline implements Serializable {
     }
   }
 
-  private void notifyNotGreen() {
+  private void doNotifyNotGreen() {
     String subject = "Build $context.componentId on project $context.projectId  failed!"
     String body = "<p>$subject</p> <p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> "
 
@@ -354,7 +380,7 @@ class Pipeline implements Serializable {
   }
 
   def updateBuildStatus(String status) {
-    if (context.displayNameUpdateEnabled) {
+    if (this.displayNameUpdateEnabled) {
       // @ FIXME ? groovy.lang.MissingPropertyException: No such property: result for class: java.lang.String
       if (script.currentBuild instanceof String) {
         script.currentBuild = status
@@ -370,7 +396,7 @@ class Pipeline implements Serializable {
 
   // Whether the build should be skipped, based on the Git commit message.
   private boolean isCiSkip() {
-    return context.ciSkipEnabled && gitService.ciSkipInCommitMessage
+    return this.ciSkipEnabled && gitService.ciSkipInCommitMessage
   }
 
   private def prepareAgentPodConfig(Map config) {

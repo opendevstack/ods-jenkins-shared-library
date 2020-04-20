@@ -11,15 +11,14 @@ class Context implements IContext {
   private Logger logger
 
   private def artifactUriStore = [ "builds" : [ : ], "deployments" : [ : ]]
+  
+  private boolean localCheckoutEnabled
 
-  Context(def script, Map config, Logger logger) {
+  Context(def script, Map config, Logger logger, boolean localCheckoutEnabled = true) {
     this.script = script
     this.config = config
     this.logger = logger
-    // Must be done in constructor. Otherwise CpsCallableInvocation throws ProxyException.
-    if (!this.config.containsKey('localCheckoutEnabled')) {
-      this.config.localCheckoutEnabled = true
-    }
+    this.localCheckoutEnabled = localCheckoutEnabled
   }
 
   def assemble() {
@@ -108,9 +107,6 @@ class Context implements IContext {
     if (!config.containsKey('dependencyCheckBranch')) {
       config.dependencyCheckBranch = 'master'
     }
-    if (!config.containsKey('notifyNotGreen')) {
-      config.notifyNotGreen = true
-    }
     if (!config.containsKey('environmentLimit')) {
       config.environmentLimit = 5
     }
@@ -133,19 +129,8 @@ class Context implements IContext {
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
-    if (!config.containsKey('bitbucketNotificationEnabled')) {
-      config.bitbucketNotificationEnabled = true
-    }
-    if (!config.containsKey('displayNameUpdateEnabled')) {
-      config.displayNameUpdateEnabled = true
-    }
-
     if (!config.containsKey('testResults')) {
       config.testResults = ''
-    }
-
-    if (!config.containsKey('ciSkipEnabled')) {
-      config.ciSkipEnabled = true
     }
 
     if (!config.containsKey('dockerDir')) {
@@ -209,14 +194,6 @@ class Context implements IContext {
   String[] getCommittedFiles() {
     def lastSuccessfulCommit = getLastSuccessfulCommit()
     retrieveGitCommitFiles(lastSuccessfulCommit)
-  }
-
-  boolean getNotifyNotGreen() {
-    config.notifyNotGreen
-  }
-
-  void setNotifyNotGreen(boolean notifyNotGreen) {
-    config.notifyNotGreen = notifyNotGreen
   }
 
   String getNexusHost() {
@@ -346,40 +323,8 @@ class Context implements IContext {
     config.openshiftRolloutTimeout
   }
 
-  boolean getCiSkipEnabled() {
-    return config.ciSkipEnabled
-  }
-
-  void setCiSkipEnabled(boolean ciSkipEnabled) {
-    config.ciSkipEnabled = ciSkipEnabled
-  }
-
-  boolean getBitbucketNotificationEnabled() {
-    return config.bitbucketNotificationEnabled
-  }
-
-  void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled) {
-    config.bitbucketNotificationEnabled = bitbucketNotificationEnabled
-  }
-
-  boolean getLocalCheckoutEnabled() {
-    return config.localCheckoutEnabled
-  }
-
   String getTestResults() {
     return config.testResults
-  }
-
-  void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
-    config.localCheckoutEnabled = localCheckoutEnabled
-  }
-
-  boolean getDisplayNameUpdateEnabled() {
-    return config.displayNameUpdateEnabled
-  }
-
-  void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
-    config.displayNameUpdateEnabled = displayNameUpdateEnabled
   }
 
   @NonCPS
@@ -454,7 +399,7 @@ class Context implements IContext {
 
   private String retrieveGitBranch() {
     def branch
-    if (this.getLocalCheckoutEnabled()) {
+    if (this.localCheckoutEnabled) {
       def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
       def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
