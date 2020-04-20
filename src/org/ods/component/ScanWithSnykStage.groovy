@@ -33,7 +33,7 @@ class ScanWithSnykStage extends Stage {
     if (!config.snykAuthenticationCode) {
       script.error "Option 'snykAuthenticationCode' is not set!"
     }
-    if(!config.severityThreshold.matches('\\b^(?i:low|medium|high)$\\b')) {
+    if(!config.severityThreshold.matches('\\b^(low|medium|high)$\\b')) {
       script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'! Please use low, medium or high."
     }
 

@@ -119,7 +119,7 @@ class Pipeline implements Serializable {
             return this
           } catch (err) {
             script.stage('odsPipeline error') {
-              logger.info "***** Finished ODS Pipeline for  ${context.componentId} (with error) *****"
+              logger.info "***** Finished ODS Pipeline for ${context.componentId} (with error) *****"
               try {
                 script.echo("Error: ${err}");
                 stashTestResults(true)
