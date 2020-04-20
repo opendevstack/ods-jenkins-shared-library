@@ -6,7 +6,7 @@ class ScanWithSnykStage extends Stage {
   public final String STAGE_NAME = 'Snyk Security Scan'
   private SnykService snyk
 
-  ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk) {
+  ScanWithSnykStage(def script, IContext context, Map<String, String> config, SnykService snyk) {
     super(script, context, config)
     if (!config.containsKey('failOnVulnerabilities')) {
       config.failOnVulnerabilities = context.failOnSnykScanVulnerabilities
@@ -23,8 +23,11 @@ class ScanWithSnykStage extends Stage {
     if (!config.severityThreshold) {
       // low is the default, it is equal to not providing any option to snyk
       config.severityThreshold = 'low'
-    } else if(!config.severityThreshold.matches('\\b^(?i:low|medium|high)$\\b')) {
-      script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'. Possible values are low, medium or high!"
+    } else {
+      config.severityThreshold = config.severityThreshold.trim().toLowerCase()
+      if(!config.severityThreshold.matches('\\b^(?i:low|medium|high)$\\b')) {
+        script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'. Please use low, medium or high!"
+      }
     }
     this.snyk = snyk
   }
