@@ -40,7 +40,7 @@ class SnykService {
 
   boolean monitor(String organisation, String buildFile, String projectName) {
     script.sh(
-      script: "snyk monitor --org=${organisation} --file=${buildFile} --project-name=${projectName} --all-sub-projects | tee -a ${reportFile}",
+      script: "snyk monitor --org=${organisation} --file=${buildFile} --all-sub-projects | tee -a ${reportFile}",
       returnStatus: true,
       label: "Start monitoring ${projectName} in Snyk"
     ) == 0
