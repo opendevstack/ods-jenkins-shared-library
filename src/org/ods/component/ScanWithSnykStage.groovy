@@ -97,7 +97,7 @@ class ScanWithSnykStage extends Stage {
     context.addArtifactURI("snykScanStashPath", snykScanStashPath)
 
     script.stash(
-      name: "${snykStashPath}",
+      name: "${snykScanStashPath}",
       includes: 'artifacts/SCSR*',
       allowEmpty: true
     )

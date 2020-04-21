@@ -2,13 +2,13 @@ package org.ods.services
 
 import org.ods.component.ILogger
 
-class JUnitService {
+class JenkinsService {
 
   private def script
   private ILogger logger
   private static final String XUNIT_SYSTEM_RESULT_DIR = "build/test-results/test"
   
-  JUnitService(script, ILogger logger) {
+  JenkinsService(script, ILogger logger) {
     this.script = script
     this.logger = logger
   }

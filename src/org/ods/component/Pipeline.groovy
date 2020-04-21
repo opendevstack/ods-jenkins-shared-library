@@ -5,14 +5,14 @@ import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
-import org.ods.services.JUnitService
+import org.ods.services.JenkinsService
 import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
 
   private GitService gitService
   private OpenShiftService openShiftService
-  private JUnitService junitService
+  private JenkinsService jenkinsService
   
   private def script
   private IContext context
@@ -93,8 +93,8 @@ class Pipeline implements Serializable {
 
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
             
-            registry.add(JUnitService, new JUnitService(script, logger))
-            junitService = registry.get(JUnitService)
+            registry.add(JenkinsService, new JenkinsService(script, logger))
+            jenkinsService = registry.get(JUnitService)
           }
 
           skipCi = isCiSkip()
@@ -198,7 +198,7 @@ class Pipeline implements Serializable {
               }
             }
           } finally {
-            junitService.stashTestResults(
+            jenkinsService.stashTestResults(
               context.testResults, "${context.componentId}-${context.buildNumber}").each {resultKey, resultValue ->
                 context.addArtifactURI (resultKey, resultValue)
               }
