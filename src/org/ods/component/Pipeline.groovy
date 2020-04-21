@@ -94,7 +94,7 @@ class Pipeline implements Serializable {
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
             
             registry.add(JenkinsService, new JenkinsService(script, logger))
-            jenkinsService = registry.get(JUnitService)
+            jenkinsService = registry.get(JenkinsService)
           }
 
           skipCi = isCiSkip()
