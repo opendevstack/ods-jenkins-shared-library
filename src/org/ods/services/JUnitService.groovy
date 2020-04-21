@@ -31,12 +31,13 @@ class JUnitService {
     contextresultMap.testResultsFolder = XUNIT_SYSTEM_RESULT_DIR
     contextresultMap.testResults = foundTests
 
-    script.junit (testResults: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", allowEmptyResults : true)
-    
     if (foundTests.toInteger() > 0) {
-      // stash them in the mro pattern
-      script.stash(name: "test-reports-junit-xml-${stashNamePostFix}", 
-        includes: '${XUNIT_SYSTEM_RESULT_DIR}/*.xml', allowEmpty: true)
+      script.junit (testResults: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", 
+        allowEmptyResults : true)
+      def testStashPath = "test-reports-junit-xml-${stashNamePostFix}"
+      contextresultMap.testStashPath = testStashPath
+      script.stash(name: "${testStashPath}", 
+        includes: '${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml', allowEmpty: true)
     }
     return contextresultMap
   }
