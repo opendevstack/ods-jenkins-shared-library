@@ -5,13 +5,15 @@ import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
+import org.ods.services.JUnitService
 import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
 
   private GitService gitService
   private OpenShiftService openShiftService
-
+  private JUnitService junitService
+  
   private def script
   private IContext context
   private ILogger logger
@@ -90,6 +92,9 @@ class Pipeline implements Serializable {
             ))
 
             registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
+            
+            registry.add(JUnitService, new JUnitService(script, logger))
+            junitService = registry.get(JUnitService)
           }
 
           skipCi = isCiSkip()
@@ -167,7 +172,6 @@ class Pipeline implements Serializable {
               stages(context)
             }
             script.stage('odsPipeline finished') {
-              stashTestResults()
               updateBuildStatus('SUCCESS')
               setBitbucketBuildStatus('SUCCESSFUL')
               logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
@@ -176,31 +180,26 @@ class Pipeline implements Serializable {
           } catch (err) {
             script.stage('odsPipeline error') {
               logger.info "***** Finished ODS Pipeline for ${context.componentId} (with error) *****"
-              try {
-                script.echo("Error: ${err}")
-                stashTestResults(true)
-              } catch (e) {
-                script.echo("Error: Cannot stash test results: ${e}")
-              }
+              script.echo("Error: ${err}")
               updateBuildStatus('FAILURE')
               setBitbucketBuildStatus('FAILED')
               if (notifyNotGreen) {
                 doNotifyNotGreen()
               }
-              if (!!script.env.MULTI_REPO_BUILD) {
                 // this is the case on a parallel node to be interrupted
-                if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
-                  throw err
-                } else {
-                  context.addArtifactURI('failedStage', script.env.STAGE_NAME)
-                  return this
-                }
+              if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
+                throw err
+              }
+              if (!!script.env.MULTI_REPO_BUILD) {
+                context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+                return this
               } else {
                 throw err
               }
             }
           } finally {
-            logger.debug ("ODS Build Artifacts: \r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}")
+            junitService.stashTestResults(context.testResults, "${context.componentId}-${context.buildNumber}")
+            logger.debug ("ODS Build Artifacts '${context.componentId}': \r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}")
           }
         }
       }
@@ -219,59 +218,14 @@ class Pipeline implements Serializable {
     if (buildEnv) {
       context.environment = buildEnv
       logger.debug("Setting target env ${context.environment} on ${context.projectId}")
-      def sourceCloneEnv = script.env.SOURCE_CLONE_ENV
-      if (sourceCloneEnv != null && sourceCloneEnv.toString().trim().length() > 0) {
-        logger.info("Environment cloning enabled, source environment: ${sourceCloneEnv}")
-        context.cloneSourceEnv = sourceCloneEnv
-      } else {
-        logger.info("Environment cloning not enabled")
-        context.cloneSourceEnv = null
-      }
-      def debug = script.env.DEBUG
-      if (debug != null && context.debug == null) {
-        logger.debug("Setting ${debug} on ${context.projectId}")
-        context.debug = debug
-      }
+      def debug = !!script.env.DEBUG
+      logger.debug("Setting ${debug} on ${context.projectId}")
+      context.debug = debug
     } else {
       logger.error("Variable MULTI_REPO_ENV must not be null!")
       // Using exception because error step would skip post steps
       throw new RuntimeException("Variable MULTI_REPO_ENV must not be null!")
     }
-  }
-
-  private void stashTestResults(boolean hasFailed = false) {
-    def testLocation = "build/test-results/test"
-
-    logger.info "Stashing testResults (${context.componentId == null ? 'empty' : context.componentId}): Override config: ${context.testResults}, defaultlocation: ${testLocation}, same? ${(context.getTestResults() == testLocation)}"
-
-    if (context.getTestResults().trim().length() > 0 && !(context.getTestResults() == testLocation)) {
-      // verify the beast exists
-      def verifyDir = script.sh(script: "ls ${context.getTestResults()}", returnStatus: true, label: "verifying existance of ${testLocation}")
-      script.sh(script: "mkdir -p ${testLocation}", label: "create test result folder: ${testLocation}")
-      if (verifyDir == 2) {
-        script.currentBuild = 'FAILURE'
-        throw new RuntimeException("The test results directory ${context.getTestResults()} provided does NOT exist!")
-      } else {
-        // copy files to default location
-        script.sh(script: "cp -rf ${context.getTestResults()}/* ${testLocation}", label: "Moving test results to expected location")
-      }
-    }
-
-    script.sh(script: "mkdir -p ${testLocation}", label: "Creating final test result dir: ${testLocation}")
-    def foundTests = script.sh(script: "ls -la ${testLocation}/*.xml | wc -l", returnStdout: true, label: "Find test results").trim()
-    logger.info "Found ${foundTests} tests in ${testLocation}, failed earlier? ${hasFailed}"
-
-    context.addArtifactURI("testResults", foundTests)
-
-    script.junit (testResults: "${testLocation}/**/*.xml", allowEmptyResults : true)
-
-    if (hasFailed && foundTests.toInteger() == 0) {
-      logger.debug "ODS Build did fail, and no test results,.. returning"
-      return
-    }
-
-    // stash them in the mro pattern
-    script.stash(name: "test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/*.xml', allowEmpty: true)
   }
 
   private void setBitbucketBuildStatus(String state) {
