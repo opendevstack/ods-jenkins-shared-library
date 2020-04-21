@@ -42,7 +42,7 @@ class ScanWithSnykStage extends Stage {
         "buildFile=${config.buildFile}, " +
         "failOnVulnerabilities=${config.failOnVulnerabilities}."
 
-    boolean vulnerabilitiesFound
+    boolean noVulnerabilitiesFound
 
     def envVariables = [
       "NEXUS_HOST=${context.nexusHost}",
@@ -51,11 +51,11 @@ class ScanWithSnykStage extends Stage {
     ]
     // nexus credentials are provided here because snyk runs build.gradle who needs them
     script.withEnv(envVariables) {
-      vulnerabilitiesFound = snyk.test(config.organisation, config.buildFile)
-      if (vulnerabilitiesFound) {
-        script.echo 'Snyk test detected vulnerabilities.'
-      } else {
+      noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile)
+      if (noVulnerabilitiesFound) {
         script.echo 'No vulnerabilities detected.'
+      } else {
+        script.echo 'Snyk test detected vulnerabilities.'
       }
     }
 
@@ -65,7 +65,7 @@ class ScanWithSnykStage extends Stage {
 
     generateAndArchiveReport()
 
-    if (vulnerabilitiesFound && config.failOnVulnerabilities) {
+    if (!noVulnerabilitiesFound && config.failOnVulnerabilities) {
       script.error 'Snyk scan stage failed. See snyk report for details.'
     }
   }
