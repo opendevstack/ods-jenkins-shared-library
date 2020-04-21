@@ -14,8 +14,8 @@ class JUnitService {
   }
   
   void stashTestResults(String customXunitResultsDir, String stashNamePostFix = "stash") {
-    customXunitResultsDir = (customXunitResultsDir && customXunitResultsDir.trim().length() > 0) ?: "build/test-results/test
-    logger.info "Stashing testResults from ${customXunitResultsDir}"
+    customXunitResultsDir = (customXunitResultsDir && customXunitResultsDir.trim().length() > 0) ? customXunitResultsDir : "build/test-results/test
+    logger.info "Stashing testResults from location: '${customXunitResultsDir}'"
     script.sh(
       script: "mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${customXunitResultsDir} && cp -rf ${customXunitResultsDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true", 
       label: "Moving test results to system location: ${XUNIT_SYSTEM_RESULT_DIR}")

@@ -344,7 +344,7 @@ class Pipeline implements Serializable {
     }
   }
 
-  public Map<String, String> getBuildArtifactURIs() {
+  public Map<String, Object> getBuildArtifactURIs() {
     return context.getBuildArtifactURIs()
   }
 
