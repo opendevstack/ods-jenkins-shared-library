@@ -25,47 +25,11 @@ interface IContext {
     // Time of the build, collected when the odsPipeline starts.
     String getBuildTime()
 
-    // Container image to use for the Jenkins agent container.
-    // This value is not used when "podContainers" is set.
-    String getImage()
-
-    // Pod label, set by default to a random label to avoid caching issues.
-    // Set to a stable label if you want to reuse pods across builds.
-    String getPodLabel()
-
-    // Custom pod containers to use if the default, automatically configured
-    // container is not suitable for your use case (e.g. if you need multiple
-    // containers such as app and database). Please see
-    // https://github.com/jenkinsci/kubernetes-plugin#pod-and-container-template-configuration for more information.
-    Object getPodContainers()
-
-    // Volumes to make available to the pod.
-    Object getPodVolumes()
-
-    // Determine whether to always pull the container image before each build run.
-    boolean getAlwaysPullImage()
-
-    // Container resource constraints.
-    // Theses value are not used when "podContainers" is set.
-    String getResourceRequestMemory()
-    String getResourceLimitMemory()
-    String getResourceRequestCpu()
-    String getResourceLimitCpu()
-
-    // Serviceaccount to use when running the pod.
-    String getPodServiceAccount()
-
     // Credentials identifier (Credentials are created and named automatically by the OpenShift Jenkins plugin).
     String getCredentialsId()
 
     // The tagversion is made up of the build number and the first 8 chars of the commit SHA.
     String getTagversion()
-
-    // Whether to send notifications if the build is not successful.
-    boolean getNotifyNotGreen()
-
-    // Enable/disable notifications
-    void setNotifyNotGreen(boolean notifyNotGreen)
 
     // Nexus host (with scheme).
     String getNexusHost()
@@ -170,30 +134,6 @@ interface IContext {
 
     // Timeout for the OpenShift rollout of the pod in minutes.
     Integer getOpenshiftRolloutTimeout()
-
-    // Whether CI skip is enabled
-    boolean getCiSkipEnabled()
-
-    // Enable/disable CI skip is enabled
-    void setCiSkipEnabled(boolean ciSkipEnabled)
-
-    // Whether Bitbucket notification is enabled
-    boolean getBitbucketNotificationEnabled()
-
-    // nable/disable Bitbucket notification
-    void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled)
-
-    // Whether local checkout is enabled
-    boolean getLocalCheckoutEnabled()
-
-    // Enable/disable local checkout
-    void setLocalCheckoutEnabled(boolean localCheckoutEnabled)
-
-    // Whether display name update is enabled
-    boolean getDisplayNameUpdateEnabled()
-
-    // Enable/disable display name update
-    void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled)
 
     // The docker directory to use when building the image in openshift
     String getDockerDir()
