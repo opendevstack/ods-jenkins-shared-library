@@ -213,6 +213,7 @@ class Context implements IContext {
   }
 
   String getNexusHostWithBasicAuth() {
+    config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
   }
 
   @NonCPS
