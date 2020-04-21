@@ -1,0 +1,20 @@
+:page-partial:
+
+Triggers (and follows) a build in the `BuildConfig` related to the repository
+being built.
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| buildArgs
+| Pass build arguments to the image build process.
+
+| imageLabels
+| Pass labels which should be aded on the image. Each label will be prefixed with `ext.`.
+
+| buildTimeoutMinutes
+| Adjust timeout of build (defaults to 15 minutes).
+|===

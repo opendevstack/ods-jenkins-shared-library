@@ -1,0 +1,10 @@
+= Jenkins Shared Library
+
+OpenDevStack provides a https://jenkins.io/doc/book/pipeline/shared-libraries/[Jenkins Shared Library] which offers two pipelines:
+
+. A xref:jenkins-shared-library:component-pipeline.adoc[pipeline to build components], `odsComponentPipeline`. This pipeline allows to have a minimal `Jenkinsfile` in each repository by providing all language-agnostic build aspects. The goal is to duplicate as little as possible between repositories and have an easy way to ship updates to all projects. As a user, you will mostly interface with this pipeline.
+. A xref:jenkins-shared-library:quickstarter-pipeline.adoc[pipeline to provision quickstarters], `odsQuickstarterPipeline`. This pipeline is useful for quickstarter authors.
+
+== Background
+
+The implementation was originally based on https://www.relaxdiego.com/2018/02/jenkins-on-jenkins-shared-libraries.html. The scripted pipeline syntax was chosen because it is a better fit for a shared library. The declarative pipeline syntax is targeted for newcomers and/or simple pipelines (see https://jenkins.io/doc/book/pipeline/syntax/#scripted-pipeline). If you try to use it e.g. within a Groovy class you'll end up with lots of `script` blocks.
