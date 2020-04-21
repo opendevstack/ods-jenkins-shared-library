@@ -30,19 +30,19 @@ class SnykService {
     ) == 0
   }
 
+  boolean test(String organisation, String buildFile) {
+    script.sh(
+        script: "snyk test --org=${organisation} --file=${buildFile} --all-sub-projects | tee -a ${reportFile}",
+        returnStatus: true,
+        label: "Run Snyk test"
+    ) == 0
+  }
+
   boolean monitor(String organisation, String buildFile, String projectName) {
     script.sh(
       script: "snyk monitor --org=${organisation} --file=${buildFile} --project-name=${projectName} --all-sub-projects | tee -a ${reportFile}",
       returnStatus: true,
       label: "Start monitoring ${projectName} in Snyk"
-    ) == 0
-  }
-
-  boolean test(String organisation, String buildFile) {
-    script.sh(
-      script: "snyk test --org=${organisation} --file=${buildFile} --all-sub-projects | tee -a ${reportFile}",
-      returnStatus: true,
-      label: "Run Snyk test"
     ) == 0
   }
 }

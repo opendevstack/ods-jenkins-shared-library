@@ -28,12 +28,6 @@ class ScanWithSnykStage extends Stage {
       script.error "Option 'snykAuthenticationCode' is not set!"
     }
 
-    script.echo "Scanning for vulnerabilities with " +
-      "organisation=${config.organisation}, " +
-      "projectName=${config.projectName}, " +
-      "buildFile=${config.buildFile}, " +
-      "failOnVulnerabilities=${config.failOnVulnerabilities}."
-
     if (!snyk.version()) {
       script.error 'Snyk binary is not in $PATH'
     }
@@ -42,29 +36,36 @@ class ScanWithSnykStage extends Stage {
       script.error 'Snyk auth failed'
     }
 
-    boolean testSuccess
+    script.echo "Scanning for vulnerabilities with " +
+        "organisation=${config.organisation}, " +
+        "projectName=${config.projectName}, " +
+        "buildFile=${config.buildFile}, " +
+        "failOnVulnerabilities=${config.failOnVulnerabilities}."
+
+    boolean vulnerabilitiesFound
 
     def envVariables = [
       "NEXUS_HOST=${context.nexusHost}",
       "NEXUS_USERNAME=${context.nexusUsername}",
       "NEXUS_PASSWORD=${context.nexusPassword}"
     ]
+    // nexus credentials are provided here because snyk runs build.gradle who needs them
     script.withEnv(envVariables) {
-      if (!snyk.monitor(config.organisation, config.buildFile, config.projectName)) {
-        script.error 'Snyk monitor failed'
-      }
-
-      testSuccess = snyk.test(config.organisation, config.buildFile)
-      if (testSuccess) {
-        script.echo 'No vulnerabilities detected.'
-      } else {
+      vulnerabilitiesFound = snyk.test(config.organisation, config.buildFile)
+      if (vulnerabilitiesFound) {
         script.echo 'Snyk test detected vulnerabilities.'
+      } else {
+        script.echo 'No vulnerabilities detected.'
       }
+    }
+
+    if (!snyk.monitor(config.organisation, config.buildFile, config.projectName)) {
+      script.error 'Snyk monitor failed'
     }
 
     generateAndArchiveReport()
 
-    if (!testSuccess && config.failOnVulnerabilities) {
+    if (vulnerabilitiesFound && config.failOnVulnerabilities) {
       script.error 'Snyk scan stage failed. See snyk report for details.'
     }
   }
