@@ -59,7 +59,7 @@ class ScanWithSnykStage extends Stage {
       }
     }
 
-    if (!snyk.monitor(config.organisation, config.buildFile, config.projectName)) {
+    if (!snyk.monitor(config.organisation, config.buildFile)) {
       script.error 'Snyk monitor failed'
     }
 

@@ -38,11 +38,11 @@ class SnykService {
     ) == 0
   }
 
-  boolean monitor(String organisation, String buildFile, String projectName) {
+  boolean monitor(String organisation, String buildFile) {
     script.sh(
       script: "snyk monitor --org=${organisation} --file=${buildFile} --all-sub-projects | tee -a ${reportFile}",
       returnStatus: true,
-      label: "Start monitoring ${projectName} in Snyk"
+      label: "Start monitoring in snyk.io"
     ) == 0
   }
 }
