@@ -175,7 +175,7 @@ class ScanWithSonarStage extends Stage {
     }
     
     def sonarqubeStashPath = "scrr-report-${context.componentId}-${context.buildNumber}"
-    context.sonarqubeStashPath = sonarqubeStashPath
+    context.addArtifactURI("sonarqubeScanStashPath", sonarqubeStashPath)
 
     script.stash(
       name: "${sonarqubeStashPath}",
