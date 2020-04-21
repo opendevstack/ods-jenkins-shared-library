@@ -35,9 +35,9 @@ class JUnitService {
       script.junit (testResults: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", 
         allowEmptyResults : true)
       def testStashPath = "test-reports-junit-xml-${stashNamePostFix}"
-      contextresultMap.testStashPath = testStashPath
+      contextresultMap.xunitTestResultsStashPath = testStashPath
       script.stash(name: "${testStashPath}", 
-        includes: '${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml', allowEmpty: true)
+        includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", allowEmpty: true)
     }
     return contextresultMap
   }
