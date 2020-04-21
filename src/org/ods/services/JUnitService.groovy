@@ -13,7 +13,8 @@ class JUnitService {
     this.logger = logger
   }
   
-  void stashTestResults(def customXunitResultsDir = "build/test-results/test", String stashNamePostFix = "stash") {
+  void stashTestResults(String customXunitResultsDir, String stashNamePostFix = "stash") {
+    customXunitResultsDir = (customXunitResultsDir && customXunitResultsDir.trim().length() > 0) ?: "build/test-results/test
     logger.info "Stashing testResults from ${customXunitResultsDir}"
     script.sh(
       script: "mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${customXunitResultsDir} && cp -rf ${customXunitResultsDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true", 
