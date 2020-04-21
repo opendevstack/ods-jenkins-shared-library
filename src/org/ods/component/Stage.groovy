@@ -4,6 +4,7 @@ class Stage {
   protected def script
   protected def context
   protected Map config
+  protected String componentId
 
   public final String STAGE_NAME = 'NOT SET'
 
@@ -11,11 +12,12 @@ class Stage {
     this.script = script
     this.context = context
     this.config = config
+    componentId = config.componentId ?: context.componentId
   }
 
   def execute() {
     // TODO: Replace withStage with simple echo calls once all stages use this class.
-    script.withStage(STAGE_NAME, context) {
+    script.withStage(STAGE_NAME + ' (' + componentId + ')', context) {
       this.run()
     }
   }

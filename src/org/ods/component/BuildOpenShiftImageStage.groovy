@@ -20,6 +20,10 @@ class BuildOpenShiftImageStage extends Stage {
     if (!config.buildTimeoutMinutes) {
       config.buildTimeoutMinutes = context.openshiftBuildTimeout
     }
+    if (!config.dockerDir) {
+      config.dockerDir = context.dockerDir
+    }
+    
     this.openShift = openShift
   }
 
@@ -30,7 +34,7 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     def imageLabels = buildImageLabels()
-    writeReleaseFile(imageLabels)
+    writeReleaseFile(imageLabels, config)
     patchBuildConfig(imageLabels)
 
     // Start and follow build of container image.
@@ -41,30 +45,31 @@ class BuildOpenShiftImageStage extends Stage {
     // Retrieve build status.
     def lastVersion = getLastVersion()
     if (!lastVersion) {
-      script.error "Could not get last version of BuildConfig '${context.componentId}'."
+      script.error "Could not get last version of BuildConfig '${componentId}'."
     }
-    def buildId = "${context.componentId}-${lastVersion}"
+    def buildId = "${componentId}-${lastVersion}"
     def buildStatus = getBuildStatus(buildId)
     if (buildStatus != 'complete') {
       script.error "OpenShift Build #${lastVersion} was not successful - status is '${buildStatus}'."
     }
-    context.addArtifactURI("OCP Build Id", buildId)
-
     def imageReference = getImageReference()
     script.echo "Build #${lastVersion} has produced image: ${imageReference}."
-    context.addArtifactURI("OCP Docker image", imageReference)
+    
+    context.addBuildToArtifactURIs (componentId, [ "buildId" : buildId, "image" : imageReference ])
+    
+    return ["buildId" : buildId, "image" : imageReference]
   }
 
     private String getImageReference() {
-      openShift.getImageReference(context.componentId, context.tagversion)
+      openShift.getImageReference(componentId, context.tagversion)
     }
 
     private String startAndFollowBuild() {
-      openShift.startAndFollowBuild(context.componentId, context.dockerDir)
+      openShift.startAndFollowBuild(componentId, config.dockerDir)
     }
 
     private String getLastVersion() {
-      openShift.getLastBuildVersion(context.componentId)
+      openShift.getLastBuildVersion(componentId)
     }
 
     private String getBuildStatus(String build) {
@@ -73,7 +78,7 @@ class BuildOpenShiftImageStage extends Stage {
 
     private String patchBuildConfig(Map imageLabels) {
       openShift.patchBuildConfig(
-        context.componentId,
+        componentId,
         context.tagversion,
         config.buildArgs,
         imageLabels
@@ -106,13 +111,13 @@ class BuildOpenShiftImageStage extends Stage {
     sanitizedImageLabels
   }
 
-  private writeReleaseFile(Map imageLabels) {
+  private writeReleaseFile(Map imageLabels, Map config) {
     def jsonImageLabels = []
     for (def key : imageLabels.keySet()) {
       jsonImageLabels << """{"name": "${key}", "value": "${imageLabels[key]}"}"""
     }
 
     // Write docker/release.json file to be reachable from Dockerfile.
-    script.writeFile(file: 'docker/release.json', text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
+    script.writeFile(file: '${config.dockerDir}/release.json', text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
   }
 }

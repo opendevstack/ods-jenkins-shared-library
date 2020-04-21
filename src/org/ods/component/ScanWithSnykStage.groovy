@@ -15,10 +15,16 @@ class ScanWithSnykStage extends Stage {
       config.organisation = context.projectId
     }
     if (!config.projectName) {
-      config.projectName = context.componentId
+      config.projectName = componentId
     }
     if (!config.buildFile) {
       config.buildFile = 'build.gradle'
+    }
+    if (!config.severityThreshold) {
+      // low is the default, it is equal to not providing the option to snyk
+      config.severityThreshold = 'low'
+    } else {
+      config.severityThreshold = config.severityThreshold.trim().toLowerCase()
     }
     this.snyk = snyk
   }
@@ -26,6 +32,10 @@ class ScanWithSnykStage extends Stage {
   def run() {
     if (!config.snykAuthenticationCode) {
       script.error "Option 'snykAuthenticationCode' is not set!"
+    }
+    def allowedSeverityThresholds = ['low', 'medium', 'high']
+    if(!allowedSeverityThresholds.contains(config.severityThreshold)) {
+      script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'! Please use one of ${allowedSeverityThresholds}."
     }
 
     if (!snyk.version()) {
@@ -40,7 +50,8 @@ class ScanWithSnykStage extends Stage {
         "organisation=${config.organisation}, " +
         "projectName=${config.projectName}, " +
         "buildFile=${config.buildFile}, " +
-        "failOnVulnerabilities=${config.failOnVulnerabilities}."
+        "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
+        "severityThreshold=${config.severityThreshold}."
 
     boolean noVulnerabilitiesFound
 
@@ -63,15 +74,15 @@ class ScanWithSnykStage extends Stage {
       script.error 'Snyk monitor failed'
     }
 
-    generateAndArchiveReport()
+    generateAndArchiveReport(context.localCheckoutEnabled)
 
     if (!noVulnerabilitiesFound && config.failOnVulnerabilities) {
       script.error 'Snyk scan stage failed. See snyk report for details.'
     }
   }
 
-  private generateAndArchiveReport() {
-    def targetReport = "SCSR-${context.projectId}-${context.componentId}-${snyk.reportFile}"
+  private generateAndArchiveReport(boolean archive) {
+    def targetReport = "SCSR-${context.projectId}-${componentId}-${snyk.reportFile}"
     script.sh(
       label: 'Create artifacts dir',
       script: 'mkdir -p artifacts/SCSR'
@@ -80,9 +91,11 @@ class ScanWithSnykStage extends Stage {
       label: 'Rename report to SCSR',
       script: "mv ${snyk.reportFile} artifacts/${targetReport}"
     )
-    script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+    if (archive) {
+      script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+    }
     script.stash(
-      name: "scrr-report-${context.componentId}-${context.buildNumber}",
+      name: "scrr-report-${componentId}-${context.buildNumber}",
       includes: 'artifacts/SCSR*',
       allowEmpty: true
     )

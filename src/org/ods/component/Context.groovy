@@ -10,29 +10,19 @@ class Context implements IContext {
   private Map config
   private Logger logger
 
-  private def artifactUriStore = [:]
+  private def artifactUriStore = [ "builds" : [ : ], "deployments" : [ : ]]
+  
+  private boolean localCheckoutEnabled
 
-  Context(def script, Map config, Logger logger) {
+  Context(def script, Map config, Logger logger, boolean localCheckoutEnabled = true) {
     this.script = script
     this.config = config
     this.logger = logger
-    // Must be done in constructor. Otherwise CpsCallableInvocation throws ProxyException.
-    if (!this.config.containsKey('localCheckoutEnabled')) {
-      this.config.localCheckoutEnabled = true
-    }
+    this.localCheckoutEnabled = localCheckoutEnabled
   }
 
   def assemble() {
     logger.debug "Validating input ..."
-    if (!config.projectId) {
-      logger.error "Param 'projectId' is required"
-    }
-    if (!config.componentId) {
-      logger.error "Param 'componentId' is required"
-    }
-    if (!config.image && !config.imageStreamTag && !config.podContainers) {
-      logger.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
-    }
     // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
     // if the repository should not be deployed to OpenShift at all.
     if (!config.containsKey('branchToEnvironmentMapping')) {
@@ -49,7 +39,6 @@ class Context implements IContext {
     config.nexusUsername = script.env.NEXUS_USERNAME
     config.nexusPassword = script.env.NEXUS_PASSWORD
     config.openshiftHost = script.env.OPENSHIFT_API_URL
-    config.dockerRegistry = script.env.DOCKER_REGISTRY
 
     if (script.env.BITBUCKET_URL) {
       config.bitbucketUrl = script.env.BITBUCKET_URL
@@ -118,9 +107,6 @@ class Context implements IContext {
     if (!config.containsKey('dependencyCheckBranch')) {
       config.dependencyCheckBranch = 'master'
     }
-    if (!config.containsKey('notifyNotGreen')) {
-      config.notifyNotGreen = true
-    }
     if (!config.containsKey('environmentLimit')) {
       config.environmentLimit = 5
     }
@@ -133,55 +119,6 @@ class Context implements IContext {
     if (!config.groupId) {
       config.groupId = "org.opendevstack.${config.projectId}"
     }
-    if (!config.podVolumes) {
-      config.podVolumes = []
-    }
-    if (!config.containsKey('podServiceAccount')) {
-      config.podServiceAccount = 'jenkins'
-    }
-    if (!config.containsKey('alwaysPullImage')) {
-      config.alwaysPullImage = true
-    }
-    if (!config.containsKey('resourceRequestMemory')) {
-      config.resourceRequestMemory = '1Gi'
-    }
-    if (!config.containsKey('resourceLimitMemory')) {
-      // 2Gi is required for e.g. jenkins-slave-maven, which selects the Java
-      // version based on available memory.
-      // Also, e.g. Angular is known to use a lot of memory during production
-      // builds.
-      // Quickstarters should set a lower value if possible.
-      config.resourceLimitMemory = '2Gi'
-    }
-    if (!config.containsKey('resourceRequestCpu')) {
-      config.resourceRequestCpu = '100m'
-    }
-    if (!config.containsKey('resourceLimitCpu')) {
-      // 1 core is a lot but this directly influences build time.
-      // Quickstarters should set a lower value if possible.
-      config.resourceLimitCpu = '1'
-    }
-    if (!config.containsKey('podContainers')) {
-      if (!config.image) {
-        config.image = "${config.dockerRegistry}/${config.imageStreamTag}"
-      }
-      config.podContainers = [
-          script.containerTemplate(
-              name: 'jnlp',
-              image: config.image,
-              workingDir: '/tmp',
-              resourceRequestMemory: config.resourceRequestMemory,
-              resourceLimitMemory: config.resourceLimitMemory,
-              resourceRequestCpu: config.resourceRequestCpu,
-              resourceLimitCpu: config.resourceLimitCpu,
-              alwaysPullImage: config.alwaysPullImage,
-              args: '${computer.jnlpmac} ${computer.name}'
-          )
-      ]
-    }
-    if (!config.containsKey('podLabel')) {
-      config.podLabel = "pod-${UUID.randomUUID().toString()}"
-    }
 
     logger.debug "Retrieving Git information ..."
     config.gitUrl = retrieveGitUrl()
@@ -192,19 +129,8 @@ class Context implements IContext {
     config.gitCommitTime = retrieveGitCommitTime()
     config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
 
-    if (!config.containsKey('bitbucketNotificationEnabled')) {
-      config.bitbucketNotificationEnabled = true
-    }
-    if (!config.containsKey('displayNameUpdateEnabled')) {
-      config.displayNameUpdateEnabled = true
-    }
-
     if (!config.containsKey('testResults')) {
       config.testResults = ''
-    }
-
-    if (!config.containsKey('ciSkipEnabled')) {
-      config.ciSkipEnabled = true
     }
 
     if (!config.containsKey('dockerDir')) {
@@ -216,8 +142,6 @@ class Context implements IContext {
     if (config.environment) {
       config.targetProject = "${config.projectId}-${config.environment}"
     }
-
-    config.podLabel = "pod-${UUID.randomUUID().toString()}"
 
     logger.debug "Assembled configuration: ${config}"
   }
@@ -255,46 +179,6 @@ class Context implements IContext {
     config.credentialsId
   }
 
-  String getImage() {
-    config.image
-  }
-
-  String getPodLabel() {
-    config.podLabel
-  }
-
-  Object getPodContainers() {
-    config.podContainers
-  }
-
-  Object getPodVolumes() {
-    config.podVolumes
-  }
-
-  boolean getAlwaysPullImage() {
-    config.alwaysPullImage
-  }
-
-  String getResourceRequestMemory() {
-    config.resourceRequestMemory
-  }
-
-  String getResourceLimitMemory() {
-    config.resourceLimitMemory
-  }
-
-  String getResourceRequestCpu() {
-    config.resourceRequestCpu
-  }
-
-  String getResourceLimitCpu() {
-    config.resourceLimitCpu
-  }
-
-  String getPodServiceAccount() {
-    config.podServiceAccount
-  }
-
   String getGitUrl() {
     config.gitUrl
   }
@@ -310,14 +194,6 @@ class Context implements IContext {
   String[] getCommittedFiles() {
     def lastSuccessfulCommit = getLastSuccessfulCommit()
     retrieveGitCommitFiles(lastSuccessfulCommit)
-  }
-
-  boolean getNotifyNotGreen() {
-    config.notifyNotGreen
-  }
-
-  void setNotifyNotGreen(boolean notifyNotGreen) {
-    config.notifyNotGreen = notifyNotGreen
   }
 
   String getNexusHost() {
@@ -447,42 +323,11 @@ class Context implements IContext {
     config.openshiftRolloutTimeout
   }
 
-  boolean getCiSkipEnabled() {
-    return config.ciSkipEnabled
-  }
-
-  void setCiSkipEnabled(boolean ciSkipEnabled) {
-    config.ciSkipEnabled = ciSkipEnabled
-  }
-
-  boolean getBitbucketNotificationEnabled() {
-    return config.bitbucketNotificationEnabled
-  }
-
-  void setBitbucketNotificationEnabled(boolean bitbucketNotificationEnabled) {
-    config.bitbucketNotificationEnabled = bitbucketNotificationEnabled
-  }
-
-  boolean getLocalCheckoutEnabled() {
-    return config.localCheckoutEnabled
-  }
-
   String getTestResults() {
     return config.testResults
   }
 
-  void setLocalCheckoutEnabled(boolean localCheckoutEnabled) {
-    config.localCheckoutEnabled = localCheckoutEnabled
-  }
-
-  boolean getDisplayNameUpdateEnabled() {
-    return config.displayNameUpdateEnabled
-  }
-
-  void setDisplayNameUpdateEnabled(boolean displayNameUpdateEnabled) {
-    config.displayNameUpdateEnabled = displayNameUpdateEnabled
-  }
-
+  @NonCPS
   String getDockerDir() {
     return config.dockerDir
   }
@@ -554,7 +399,7 @@ class Context implements IContext {
 
   private String retrieveGitBranch() {
     def branch
-    if (this.getLocalCheckoutEnabled()) {
+    if (this.localCheckoutEnabled) {
       def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
       def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
@@ -649,7 +494,7 @@ class Context implements IContext {
       return
     }
 
-    logger.info "No environment to deploy to was determined " +
+    logger.info "No environment to deploy to was determined, returning" +
         "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
     config.environment = ""
     config.cloneSourceEnv = ""
@@ -700,12 +545,20 @@ class Context implements IContext {
     return m
   }
 
-  public Map<String, String> getBuildArtifactURIs() {
-    return this.artifactUriStore
+  public Map<String, Object> getBuildArtifactURIs() {
+    return artifactUriStore.asImmutable()
+  }
+  
+  public void addArtifactURI(String key, value) {
+    artifactUriStore.put(key, value)
   }
 
-  public void addArtifactURI(String key, value) {
-    this.artifactUriStore.put(key, value)
+  public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
+    artifactUriStore.builds [buildConfigName] = buildInformation
+  }
+  
+  public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
+    artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
   }
 
   // get extension image labels
@@ -738,4 +591,15 @@ class Context implements IContext {
         kvMap
       }
   }
+  
+  // set the application domain
+  void setOpenshiftApplicationDomain (String domain) {
+    config.domain = domain
+  }
+
+  // get the application domain
+  String getOpenshiftApplicationDomain () {
+    return config.domain
+  }
+
 }
