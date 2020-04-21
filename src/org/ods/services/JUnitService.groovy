@@ -36,9 +36,10 @@ class JUnitService {
         allowEmptyResults : true)
       def testStashPath = "test-reports-junit-xml-${stashNamePostFix}"
       contextresultMap.xunitTestResultsStashPath = testStashPath
-      script.stash(name: "${testStashPath}", 
-        includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", allowEmpty: true)
     }
+    // leave here to NOT break the MRO
+    script.stash(name: "${testStashPath}", 
+      includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", allowEmpty: true)
     return contextresultMap
   }
 
