@@ -150,6 +150,10 @@ class Context implements IContext {
     config.debug
   }
 
+  void setDebug(def debug) {
+    config.debug = debug
+  }
+
   String getJobName() {
     config.jobName
   }
@@ -209,7 +213,6 @@ class Context implements IContext {
   }
 
   String getNexusHostWithBasicAuth() {
-    config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
   }
 
   @NonCPS
