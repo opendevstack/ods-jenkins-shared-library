@@ -285,7 +285,6 @@ class Pipeline implements Serializable {
       return
     }
 
-    logger.info "Setting Bitbucket build status to '${state}' ..."
     def buildName = "${context.jobName}-${context.tagversion}"
     bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
   }
