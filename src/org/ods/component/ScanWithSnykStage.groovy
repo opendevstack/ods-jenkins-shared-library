@@ -62,7 +62,7 @@ class ScanWithSnykStage extends Stage {
     ]
     // nexus credentials are provided here because snyk runs build.gradle who needs them
     script.withEnv(envVariables) {
-      noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile)
+      noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
       if (noVulnerabilitiesFound) {
         script.echo 'No vulnerabilities detected.'
       } else {
