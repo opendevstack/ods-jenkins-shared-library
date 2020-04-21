@@ -13,8 +13,11 @@ class JUnitService {
     this.logger = logger
   }
   
-  void stashTestResults(String customXunitResultsDir, String stashNamePostFix = "stash") {
-    customXunitResultsDir = customXunitResultsDir?.trim()?.length() > 0 ? customXunitResultsDir : "build/test-results/test"
+  def stashTestResults(String customXunitResultsDir, String stashNamePostFix = "stash") {
+    def contextresultMap = [ : ] 
+    customXunitResultsDir = customXunitResultsDir?.trim()?.length() > 0 ? 
+      customXunitResultsDir : "build/test-results/test"
+    
     logger.info "Stashing testResults from location: '${customXunitResultsDir}'"
     script.sh(
       script: "mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${customXunitResultsDir} && cp -rf ${customXunitResultsDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true", 
@@ -23,21 +26,19 @@ class JUnitService {
     def foundTests = script.sh(script: "ls -la ${XUNIT_SYSTEM_RESULT_DIR}/*.xml | wc -l", 
       returnStdout: true, label: "Counting test results in ${XUNIT_SYSTEM_RESULT_DIR}").trim()
       
-    logger.info "Found ${foundTests} tests in '${XUNIT_SYSTEM_RESULT_DIR}'"
+    logger.debug "Found ${foundTests} tests in '${XUNIT_SYSTEM_RESULT_DIR}'"
 
-    context.addArtifactURI("testResultsFolder", XUNIT_SYSTEM_RESULT_DIR)
-    context.addArtifactURI("testResults", foundTests)
+    contextresultMap.testResultsFolder = XUNIT_SYSTEM_RESULT_DIR
+    contextresultMap.testResults = foundTests
 
     script.junit (testResults: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", allowEmptyResults : true)
     
-    if (foundTests.toInteger() == 0) {
-      logger.debug "ODS Build did fail, and no test results,.. returning"
-      return
+    if (foundTests.toInteger() > 0) {
+      // stash them in the mro pattern
+      script.stash(name: "test-reports-junit-xml-${stashNamePostFix}", 
+        includes: '${XUNIT_SYSTEM_RESULT_DIR}/*.xml', allowEmpty: true)
     }
-
-    // stash them in the mro pattern
-    script.stash(name: "test-reports-junit-xml-${stashNamePostFix}", 
-      includes: '${XUNIT_SYSTEM_RESULT_DIR}/*.xml', allowEmpty: true)
+    return contextresultMap
   }
 
 }

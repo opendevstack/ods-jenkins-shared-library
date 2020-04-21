@@ -198,7 +198,10 @@ class Pipeline implements Serializable {
               }
             }
           } finally {
-            junitService.stashTestResults(context.testResults, "${context.componentId}-${context.buildNumber}")
+            junitService.stashTestResults(
+              context.testResults, "${context.componentId}-${context.buildNumber}").each {resultKey, resultValue ->
+                context.addArtifactURI (resultKey, resultValue)
+              }
             logger.debug ("ODS Build Artifacts '${context.componentId}': \r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}")
           }
         }
