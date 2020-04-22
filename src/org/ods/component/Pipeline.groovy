@@ -216,6 +216,7 @@ class Pipeline implements Serializable {
     config.displayNameUpdateEnabled  = false
     config.ciSkipEnabled = false
     config.notifyNotGreen = false
+    config.sonarQubeBranch = '*'
     def buildEnv = script.env.MULTI_REPO_ENV
     if (buildEnv) {
       config.environment = buildEnv
