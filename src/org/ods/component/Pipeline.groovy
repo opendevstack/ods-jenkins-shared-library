@@ -60,7 +60,7 @@ class Pipeline implements Serializable {
     }
 
     prepareAgentPodConfig(config)
-    logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
+    logger.info "***** Starting ODS Pipeline (${config.componentId})*****"
     
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild(config)
