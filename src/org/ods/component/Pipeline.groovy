@@ -186,12 +186,12 @@ class Pipeline implements Serializable {
               if (notifyNotGreen) {
                 doNotifyNotGreen()
               }
-                // this is the case on a parallel node to be interrupted
-              if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
-                throw err
-              }
               if (!!script.env.MULTI_REPO_BUILD) {
                 context.addArtifactURI('failedStage', script.env.STAGE_NAME)
+                // this is the case on a parallel node to be interrupted
+                if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
+                  throw err
+                }
                 return this
               } else {
                 throw err
