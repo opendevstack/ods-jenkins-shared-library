@@ -1,6 +1,2 @@
-name: ods-jenkins-shared-library
-title: Jenkins Shared Library
-version: 2.0
-nav: 
-- modules/ROOT/nav.adoc
-
+name: opendevstack
+version: 2.x

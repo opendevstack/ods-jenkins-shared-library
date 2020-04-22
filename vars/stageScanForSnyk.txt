@@ -1,1 +1,1 @@
-see the documentation in the antora module / documentation at https://github.com/opendevstack/ods-jenkins-shared-library/tree/master/docs/modules/ROOT/pages
+see the documentation in the antora module / documentation at https://github.com/opendevstack/ods-jenkins-shared-library/tree/master/docs/modules/jenkins-shared-library/pages
