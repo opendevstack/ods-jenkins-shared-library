@@ -42,7 +42,9 @@ class Pipeline implements Serializable {
     if (!config.componentId) {
       logger.error "Param 'componentId' is required"
     }
-
+    if (!!script.env.MULTI_REPO_BUILD) {
+      setupForMultiRepoBuild(config)
+    }
     if (config.containsKey('notifyNotGreen')) {
       this.notifyNotGreen = config.notifyNotGreen
     }
@@ -60,15 +62,11 @@ class Pipeline implements Serializable {
     }
 
     prepareAgentPodConfig(config)
-
+    logger.info "***** Starting ODS Pipeline (${config.componentId})*****"
     context = new Context(script, config, logger, this.localCheckoutEnabled)
-    logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
-    if (!!script.env.MULTI_REPO_BUILD) {
-      setupForMultiRepoBuild()
-    }
 
     boolean skipCi = false
-    def cl = {
+    def bootstrap = {
       try {
         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
           if (this.localCheckoutEnabled) {
@@ -125,9 +123,9 @@ class Pipeline implements Serializable {
     }
     if (this.localCheckoutEnabled) {
       logger.info "***** Continuing on node 'master' *****"
-      script.node('master', cl)
+      script.node('master', bootstrap)
     } else {
-      cl()
+      bootstrap()
     }
 
     if (!skipCi) {
@@ -211,25 +209,22 @@ class Pipeline implements Serializable {
     }
   }
 
-  def setupForMultiRepoBuild() {
-    logger.info '***** Multi Repo Build detected *****'
-    this.bitbucketNotificationEnabled = false
-    this.localCheckoutEnabled = false
-    this.displayNameUpdateEnabled = false
-    this.ciSkipEnabled = false
-    this.notifyNotGreen = false
-    context.sonarQubeBranch = '*'
+  def setupForMultiRepoBuild(def config) {
+    logger.info '-> Detected multirepo MRO build'
+    config.bitbucketNotificationEnabled = false
+    config.localCheckoutEnabled = false
+    config.displayNameUpdateEnabled  = false
+    config.ciSkipEnabled = false
+    config.notifyNotGreen = false
+    config.sonarQubeBranch = '*'
     def buildEnv = script.env.MULTI_REPO_ENV
     if (buildEnv) {
-      context.environment = buildEnv
-      logger.debug("Setting target env ${context.environment} on ${context.projectId}")
-      def debug = !!script.env.DEBUG
-      logger.debug("Setting ${debug} on ${context.projectId}")
-      context.debug = debug
+      config.environment = buildEnv
+      logger.debug("Setting target env ${config.environment} on ${config.projectId}")
     } else {
-      logger.error("Variable MULTI_REPO_ENV must not be null!")
+      logger.error("Variable MULTI_REPO_ENV (target environment!) must not be null!")
       // Using exception because error step would skip post steps
-      throw new RuntimeException("Variable MULTI_REPO_ENV must not be null!")
+      throw new RuntimeException("Variable MULTI_REPO_ENV (target environment!) must not be null!")
     }
   }
 
