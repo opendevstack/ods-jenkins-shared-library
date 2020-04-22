@@ -31,7 +31,7 @@ odsComponentPipeline(
 }
 ----
 
-The version in `@Library` can be any Git revsison, such as a branch (e.g. `master` or 2.x`), a tag (e.g. v2.0) or even a specific commit.
+The version in `@Library` can be any Git revsison, such as a branch (e.g. `master` or `2.x`), a tag (e.g. `v2.0`) or even a specific commit.
 
 There are many built-in stages like `odsComponentStageScanWithSonar` that you can use, please see <<_stages,Stages>> for more details.
 
