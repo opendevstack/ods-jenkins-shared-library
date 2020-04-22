@@ -12,13 +12,9 @@ class Pipeline implements Serializable {
 
   private GitService gitService
   private OpenShiftService openShiftService
-<<<<<<< HEAD
   private JenkinsService jenkinsService
-  
-=======
   private BitbucketService bitbucketService
 
->>>>>>> github-ods/master
   private def script
   private IContext context
   private ILogger logger
