@@ -53,7 +53,7 @@ class Pipeline implements Serializable {
       this.displayNameUpdateEnabled = config.displayNameUpdateEnabled
     }
     if (config.containsKey('localCheckoutEnabled')) {
-      this.localCheckoutEnabled = !!!script.env.MULTI_REPO_BUILD
+      this.localCheckoutEnabled = config.localCheckoutEnabled
     }
     if (config.containsKey('bitbucketNotificationEnabled')) {
       this.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled
@@ -64,7 +64,7 @@ class Pipeline implements Serializable {
     context = new Context(script, config, logger, this.localCheckoutEnabled)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
     if (!!script.env.MULTI_REPO_BUILD) {
-      setupForMultiRepoBuild()
+      setupForMultiRepoBuild(config)
     }
 
     boolean skipCi = false
@@ -211,13 +211,18 @@ class Pipeline implements Serializable {
     }
   }
 
-  def setupForMultiRepoBuild() {
+  def setupForMultiRepoBuild(def config) {
     logger.info '***** Multi Repo Build detected *****'
     this.bitbucketNotificationEnabled = false
+    config.bitbucketNotificationEnabled = false
     this.localCheckoutEnabled = false
-    this.displayNameUpdateEnabled = false
+    config.localCheckoutEnabled = false
+    this.localCheckoutEnabled = false
+    config.localCheckoutEnabled = false
     this.ciSkipEnabled = false
+    config.ciSkipEnabled = false
     this.notifyNotGreen = false
+    config.notifyNotGreen = false
     def buildEnv = script.env.MULTI_REPO_ENV
     if (buildEnv) {
       context.environment = buildEnv
