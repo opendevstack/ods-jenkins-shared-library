@@ -45,11 +45,41 @@ class BitbucketService {
     withTokenCredentials { username, token ->
       res = script.sh(
         label: 'Get pullrequests via API',
-        script: "curl -H 'Authorization: Bearer ${token}' ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}",
+        script: """curl \\
+          --fail \\
+          --silent \\
+          --header \"Authorization: Bearer ${token}\" \\
+          ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}""",
         returnStdout: true
       ).trim()
     }
     res
+  }
+
+  void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
+    script.echo "Setting Bitbucket build status to '${state}' ..."
+    withTokenCredentials { username, token ->
+      def maxAttempts = 3
+      def retries = 0
+      while (retries++ < maxAttempts) {
+        try {
+          script.sh(
+            label: 'Set build status via API',
+            script: """curl \\
+              --fail \\
+              --silent \\
+              --request POST \\
+              --header \"Authorization: Bearer ${token}\" \\
+              --header \"Content-Type: application/json\" \\
+              --data '{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}' \\
+              ${bitbucketUrl}/rest/build-status/1.0/commits/${gitCommit}"""
+          )
+          return
+        } catch (err) {
+          script.echo "WARN: Could not set Bitbucket build status to '${state}' due to: ${err}"
+        }
+      }
+    }
   }
 
   def withTokenCredentials(Closure block) {
