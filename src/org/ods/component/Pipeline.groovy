@@ -60,12 +60,13 @@ class Pipeline implements Serializable {
     }
 
     prepareAgentPodConfig(config)
-
-    context = new Context(script, config, logger, this.localCheckoutEnabled)
     logger.info "***** Starting ODS Pipeline (${context.componentId})*****"
+    
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild(config)
     }
+
+    context = new Context(script, config, logger, this.localCheckoutEnabled)
 
     boolean skipCi = false
     def cl = {
@@ -212,7 +213,7 @@ class Pipeline implements Serializable {
   }
 
   def setupForMultiRepoBuild(def config) {
-    logger.info '***** Multi Repo Build detected *****'
+    logger.info 'Detected multirepo MRO build'
     this.bitbucketNotificationEnabled = false
     config.bitbucketNotificationEnabled = false
     this.localCheckoutEnabled = false
