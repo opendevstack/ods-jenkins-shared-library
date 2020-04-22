@@ -93,8 +93,11 @@ class ScanWithSnykStage extends Stage {
     if (archive) {
       script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
     }
+    def snykScanStashPath = "scsr-report-${componentId}-${context.buildNumber}"
+    context.addArtifactURI("snykScanStashPath", snykScanStashPath)
+
     script.stash(
-      name: "scrr-report-${componentId}-${context.buildNumber}",
+      name: "${snykScanStashPath}",
       includes: 'artifacts/SCSR*',
       allowEmpty: true
     )
