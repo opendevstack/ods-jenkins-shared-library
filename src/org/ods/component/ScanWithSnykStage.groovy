@@ -38,13 +38,6 @@ class ScanWithSnykStage extends Stage {
       script.error "'${config.severityThreshold}' is not a valid value for option 'severityThreshold'! Please use one of ${allowedSeverityThresholds}."
     }
 
-    script.echo "Scanning for vulnerabilities with " +
-      "organisation=${config.organisation}, " +
-      "projectName=${config.projectName}, " +
-      "buildFile=${config.buildFile}, " +
-      "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
-      "severityThreshold=${config.severityThreshold}."
-
     if (!snyk.version()) {
       script.error 'Snyk binary is not in $PATH'
     }
@@ -53,29 +46,37 @@ class ScanWithSnykStage extends Stage {
       script.error 'Snyk auth failed'
     }
 
-    boolean testSuccess
+    script.echo "Scanning for vulnerabilities with " +
+        "organisation=${config.organisation}, " +
+        "projectName=${config.projectName}, " +
+        "buildFile=${config.buildFile}, " +
+        "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
+        "severityThreshold=${config.severityThreshold}."
+
+    boolean noVulnerabilitiesFound
 
     def envVariables = [
       "NEXUS_HOST=${context.nexusHost}",
       "NEXUS_USERNAME=${context.nexusUsername}",
       "NEXUS_PASSWORD=${context.nexusPassword}"
     ]
+    // nexus credentials are provided here because snyk runs build.gradle who needs them
     script.withEnv(envVariables) {
-      if (!snyk.monitor(config.organisation, config.buildFile, config.projectName)) {
-        script.error 'Snyk monitor failed'
-      }
-
-      testSuccess = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
-      if (testSuccess) {
+      noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
+      if (noVulnerabilitiesFound) {
         script.echo 'No vulnerabilities detected.'
       } else {
         script.echo 'Snyk test detected vulnerabilities.'
       }
     }
 
+    if (!snyk.monitor(config.organisation, config.buildFile)) {
+      script.error 'Snyk monitor failed'
+    }
+
     generateAndArchiveReport(context.localCheckoutEnabled)
 
-    if (!testSuccess && config.failOnVulnerabilities) {
+    if (!noVulnerabilitiesFound && config.failOnVulnerabilities) {
       script.error 'Snyk scan stage failed. See snyk report for details.'
     }
   }
