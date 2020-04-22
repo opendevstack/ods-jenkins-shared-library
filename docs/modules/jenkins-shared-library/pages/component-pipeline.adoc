@@ -1,0 +1,66 @@
+= Component Pipeline
+
+This pipeline allows to have a minimal `Jenkinsfile` in each repository by providing all language-agnostic build aspects. The goal is to duplicate as little as possible between repositories and have an easy way to ship updates to all projects.
+
+== Usage
+
+Load the shared library in your `Jenkinsfile` like this:
+
+[source,groovy]
+----
+def final projectId = 'foo'
+def final componentId = 'bar'
+
+@Library('ods-jenkins-shared-library@2.x') _
+
+odsComponentPipeline(
+  imageStreamTag: 'cd/jenkins-slave-golang:2.x',
+  projectId: projectId,
+  componentId: componentId,
+  branchToEnvironmentMapping: [
+    'master': 'dev',
+    // 'release/*': 'test'
+  ]
+) { context ->
+  stage('Build') {
+      // custom stage
+  }
+  odsComponentStageScanWithSonar(context)
+  odsComponentStageBuildOpenShiftImage(context)
+  odsComponentStageRolloutOpenShiftDeployment(context)
+}
+----
+
+The version in `@Library` can be any Git revsison, such as a branch (e.g. `master` or `2.x`), a tag (e.g. `v2.0`) or even a specific commit.
+
+There are many built-in stages like `odsComponentStageScanWithSonar` that you can use, please see <<_stages,Stages>> for more details.
+
+include::./odsComponentPipeline.adoc[]
+
+== Stages
+
+Each built-in stage (like `odsComponentStageScanWithSonar`) takes two arguments:
+
+- `context` (required, this is the <<_pipeline_context,pipeline context>>)
+- `config` (optional, a map of configuration options)
+
+Example:
+----
+odsComponentStageScanWithSonar(context, [branch: 'production'])
+----
+
+=== odsComponentStageScanWithSonar
+
+include::./odsComponentStageScanWithSonar.adoc[leveloffset=+2]
+
+=== odsComponentStageScanWithSnyk
+
+include::./odsComponentStageScanWithSnyk.adoc[leveloffset=+2]
+
+=== odsComponentStageBuildOpenShiftImage
+
+include::./odsComponentStageBuildOpenShiftImage.adoc[leveloffset=+2]
+
+=== odsComponentStageRolloutOpenShiftDeployment
+
+include::./odsComponentStageRolloutOpenShiftDeployment.adoc[leveloffset=+2]

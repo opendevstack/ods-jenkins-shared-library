@@ -1,0 +1,350 @@
+:page-partial:
+
+== Pipeline Options
+
+`odsComponentPipeline` can be customized by passing configuration options like this:
+----
+odsComponentPipeline(
+  imageStreamTag: 'cd/jenkins-slave-golang:2.x',
+  projectId: projectId,
+  componentId: componentId,
+  dockerDir: 'foo'
+)
+----
+
+Available options are:
+
+[cols="1,2"]
+|===
+| Property | Description
+
+| image
+| Container image to use for the Jenkins agent container. This value is not used when `podContainers` is set.
+
+| imageStreamTag
+| Container image tag of an `ImageStream` in your OpenShift cluster to use for the Jenkins agent container. This value is not used when `podContainers` or `image` is set.
+
+| alwaysPullImage
+| Determine whether to always pull the container image before each build run. Defaults to `true`. This value is not used when `podContainers` is set.
+
+| resourceRequestMemory
+| How much memory the container requests - defaults to 1Gi. This value is not used when `podContainers` is set.
+
+| resourceLimitMemory
+| Maximum memory the container can use - defaults to 2Gi. This value is not used when `podContainers` is set.
+
+| resourceRequestCpu
+| How much CPU the container requests - defaults to 10mi. This value is not used when `podContainers` is set.
+
+| resourceLimitCpu
+| Maximum CPU the container can use - defaults to 300mi. This value is not used when `podContainers` is set.
+
+| podLabel
+| Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds.
+
+| podContainers
+| Custom pod containers to use if the default, automatically configured container is not suitable for your use case (e.g. if you need multiple containers such as app and database). See <<_slave_customization,Slave customization>>.
+
+| podVolumes
+| Volumes to make available to the pod.
+
+| podServiceAccount
+| Serviceaccount to use when running the pod.
+
+| notifyNotGreen
+| Whether to send notifications if the build is not successful.
+
+| branchToEnvironmentMapping
+| Define which branches are deployed to which environments, see <<_git_workflow_branch_to_environment_mapping,Git Workflow / Branch to Environment Mapping>>
+
+| autoCloneEnvironmentsFromSourceMapping
+| Define which environments are cloned from which source environments.
+
+| projectId
+| Project ID, e.g. `foo`.
+
+| componentId
+| Component ID, e.g. `be-auth-service`.
+
+| environmentLimit
+| Number of environments to allow.
+
+| dockerDir
+| The docker directory to use when building the image in openshift. Defaults to `docker`.
+
+| sonarQubeBranch
+| Deprecated in 3.x! Please use option `branch` on `odsComponentStageScanWithSonar`.
+
+| failOnSnykScanVulnerabilities
+| Deprecated in 3.x! Please use option `failOnVulnerabilities` on `odsComponentStageScanWithSnyk`.
+
+| openshiftBuildTimeout
+| Deprecated in 3.x! Please use option `buildTimeoutMinutes` on `odsComponentBuildOpenShiftImage`.
+|===
+
+== Pipeline Context
+
+When you write custom stages inside the closure passed to `odsComponentPipeline`, you have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsComponentPipeline`, see <<_pipeline_options,Pipeline Options>>.
+
+The `context` object contains the following properties:
+
+[cols="1,2"]
+|===
+| Property | Description
+
+| jobName
+| Value of JOB_NAME. It is the name of the project of the build.
+
+| buildNumber
+| Value of BUILD_NUMBER. The current build number, such as `153`.
+
+| buildUrl
+| Value of BUILD_URL. The URL where the results of the build can be found (e.g. `http://buildserver/jenkins/job/MyJobName/123/`)
+
+| buildTime
+| Time of the build, collected when the odsComponentPipeline starts.
+
+| credentialsId
+| Credentials identifier (Credentials are created and named automatically by the OpenShift Jenkins plugin).
+
+| tagversion
+| The tagversion is made up of the build number and the first 8 chars of the commit SHA.
+
+| nexusHost
+| Nexus host (with scheme).
+
+| nexusUsername
+| Nexus username.
+
+| nexusPassword
+| Nexus password.
+
+| nexusHostWithBasicAuth
+| Nexus host (with scheme), including username and password as BasicAuth.
+
+| cloneSourceEnv
+| The environment which was chosen as the clone source.
+
+| environment
+| The environment which was chosen as the deployment target, e.g. `dev`.
+
+| targetProject
+| Target project, based on the environment. E.g. `foo-dev`.
+
+| groupId
+| Group ID, defaults to: org.opendevstack.+++<projectID>+++.+++</projectID>+++
+
+| projectId
+| Project ID, e.g. `foo`.
+
+| componentId
+| Component ID, e.g. `be-auth-service`.
+
+| gitUrl
+| Git URL of repository
+
+| gitBranch
+| Git branch for which the build runs.
+
+| gitCommit
+| Git commit SHA to build.
+
+| gitCommitAuthor
+| Git commit author.
+
+| gitCommitMessage
+| Git commit message.
+
+| gitCommitTime
+| Git commit time in RFC 3399.
+
+| openshiftHost
+| OpenShift host - value taken from `OPENSHIFT_API_URL`.
+
+| odsSharedLibVersion
+| ODS Jenkins shared library version, taken from reference in `Jenkinsfile`.
+
+| bitbucketUrl
+| BitBucket URL - value taken from `BITBUCKET_URL`. If BITBUCKET_URL is not present, it will default to `https://<BITBUCKET_HOST>``.
+
+| bitbucketHost
+| BitBucket host - value derived from `bitbucketUrl`.
+
+| dockerDir
+| The docker directory to use when building the image in openshift. Defaults to `docker`.
+|===
+
+== Git Workflow / Branch to Environment Mapping
+
+The shared library does not impose which Git workflow you use. Whether you use https://nvie.com/posts/a-successful-git-branching-model/[git-flow], https://guides.github.com/introduction/flow/[GitHub flow] or a custom workflow, it is possible to configure the pipeline according to your needs by configuring the pipeline option `branchToEnvironmentMapping`. The setting could look like this:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  'develop': 'dev',
+  'hotfix/': 'hotfix',
+  '*': 'review'
+]
+----
+
+There are three ways to reference branches:
+
+* Fixed name (e.g. `master`)
+* Prefix (ending with a slash, e.g. `hotfix/`)
+* Any branch (`*`)
+
+Matches are made top-to-bottom. For prefixes / any branch, a more specific environment might be selected if:
+
+* the branch contains a ticket ID and a corresponding env exists in OpenShift. E.g. for mapping `"feature/": "dev"` and branch `feature/foo-123-bar`, the env `dev-123` is selected instead of `dev` if it exists.
+* the branch name corresponds to an existing env in OpenShift. E.g. for mapping `"release/": "rel"` and branch `release/1.0.0`, the env `rel-1.0.0` is selected instead of `rel` if it exists.
+
+=== Examples
+
+If you use git-flow, the following config fits well:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  'develop': 'dev',
+  'release/': 'rel',
+  'hotfix/': 'hotfix',
+  '*': 'preview'
+]
+----
+
+If you use GitHub Flow, the following config fits well:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  '*': 'preview'
+]
+----
+
+If you use a custom workflow, the config could look like this:
+
+----
+branchToEnvironmentMapping: [
+  'production': 'prod',
+  'master': 'dev',
+  'staging': 'uat'
+]
+----
+
+== Advanced
+
+=== Slave customization
+
+The slave used in the pipeline can be customized by adjusting the `image` (or `imageStreamTag` to
+use. Further, `alwaysPullImage` (defaulting to `true`) can be used to
+determine whether this image should be refreshed on each build.
+
+Resource constraints of the container can be changed via `resourceRequestCpu`,
+`resourceLimitCpu`, `resourceRequestMemory` and `resourceLimitMemory`.
+
+The setting `podVolumes` allows to mount persistent volume claims to the pod
+(the value is passed to the `podTemplate` call as `volumes`).
+
+To completely control the container(s) within the pod, set `podContainers`
+(which is passed to the `podTemplate` call as `containers`).
+
+Configuring of a customized slave container in a `Jenkinsfile`:
+----
+odsComponentPipeline(
+  projectId: projectId,
+  podContainers: [
+    containerTemplate(
+      name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
+      image: "${dockerRegistry}/foo-cd/jenkins-slave-custom",
+      workingDir: '/tmp',
+      resourceRequestCpu: '100m',
+      resourceLimitCpu: '500m',
+      resourceRequestMemory: '2Gi',
+      resourceLimitMemory: '4Gi',
+      alwaysPullImage: true,
+      args: '${computer.jnlpmac} ${computer.name}'
+    )
+  ],
+  ...
+  ) { context ->
+  stageBuild(context)
+  ...
+}
+----
+See the https://github.com/jenkinsci/kubernetes-plugin#pod-and-container-template-configuration[kubernetes-plugin]
+documentation for possible configuration.
+
+=== Git LFS (Git Large File Storage extension)
+
+If you are working with large files (e.g.: binary files, media files, files bigger than 5MB...),
+you can follow the following steps:
+
+* Check this HOWTO about https://www.atlassian.com/git/tutorials/git-lfs[Git LFS]
+* Track your large files in your local clone, as explained in previous step
+* Enable Git LFS in your repository (if BitBucket: under repository's settings main page you can enable it)
+
+*NOTE*: if already having a repository with large files and you want to migrate it to using git LFS:
+
+[source,bash]
+----
+git lfs migrate
+----
+
+=== Automatically cloning environments on the fly
+
+Caution! Cloning environments on-the-fly is an advanced feature and should only be used if you understand OpenShift well, as there are many moving parts and things can go wrong in multiple places.
+
+Example:
+
+----
+autoCloneEnvironmentsFromSourceMapping: [
+  "hotfix": "prod",
+  "review": "dev"
+]
+----
+
+Instead of deploying multiple branches to the same environment, individual environments can be created on-the-fly. For example, the mapping `"*": "review"` deploys all branches to the `review` environment. To have one environment per branch / ticket ID, you can add the `review` environment to `autoCloneEnvironmentsFromSourceMapping`, e.g. like this: `"review": "dev"`. This will create individual environments (named e.g. `review-123` or `review-foobar`), each cloned from the `dev` environment.
+
+==== Examples
+
+If you use git-flow, the following config fits well:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  'develop': 'dev',
+  'release/': 'rel',
+  'hotfix/': 'hotfix',
+  '*': 'preview'
+]
+autoCloneEnvironmentsFromSourceMapping: [
+  'rel': 'dev',
+  'hotfix': 'prod',
+  'preview': 'dev'
+]
+----
+
+If you use GitHub Flow, the following config fits well:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  '*': 'preview'
+]
+autoCloneEnvironmentsFromSourceMapping: [
+  'preview': 'prod'
+]
+----
+
+If you use a custom workflow, the config could look like this:
+
+----
+branchToEnvironmentMapping: [
+  'production': 'prod',
+  'master': 'dev',
+  'staging': 'uat'
+]
+autoCloneEnvironmentsFromSourceMapping: [
+  'uat': 'prod'
+]
+----

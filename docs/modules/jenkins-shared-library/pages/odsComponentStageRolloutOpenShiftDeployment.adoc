@@ -1,0 +1,16 @@
+:page-partial:
+
+Triggers (and follows) a rollout of the `DeploymentConfig` related to the repository
+being built.
+
+It achieves this by tagging the image built in `odsComponentStageBuildOpenShiftImage` with `latest`. This might already trigger a rollout based on an existing `ImageTrigger`. If none is set, the stage will start a manual rollout.
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| deployTimeoutMinutes
+| Adjust timeout of rollout (defaults to 5 minutes).
+|===
