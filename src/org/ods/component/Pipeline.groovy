@@ -53,7 +53,7 @@ class Pipeline implements Serializable {
       this.displayNameUpdateEnabled = config.displayNameUpdateEnabled
     }
     if (config.containsKey('localCheckoutEnabled')) {
-      this.localCheckoutEnabled = config.localCheckoutEnabled
+      this.localCheckoutEnabled = !!!script.env.MULTI_REPO_BUILD
     }
     if (config.containsKey('bitbucketNotificationEnabled')) {
       this.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled
@@ -218,18 +218,14 @@ class Pipeline implements Serializable {
     this.displayNameUpdateEnabled = false
     this.ciSkipEnabled = false
     this.notifyNotGreen = false
-    context.sonarQubeBranch = '*'
     def buildEnv = script.env.MULTI_REPO_ENV
     if (buildEnv) {
       context.environment = buildEnv
       logger.debug("Setting target env ${context.environment} on ${context.projectId}")
-      def debug = !!script.env.DEBUG
-      logger.debug("Setting ${debug} on ${context.projectId}")
-      context.debug = debug
     } else {
-      logger.error("Variable MULTI_REPO_ENV must not be null!")
+      logger.error("Variable MULTI_REPO_ENV (target environment!) must not be null!")
       // Using exception because error step would skip post steps
-      throw new RuntimeException("Variable MULTI_REPO_ENV must not be null!")
+      throw new RuntimeException("Variable MULTI_REPO_ENV (target environment!) must not be null!")
     }
   }
 
