@@ -1,5 +1,3 @@
-:page-partial:
-
 The "Snyk Security Scan" stage performs two tasks:
 
 . It uploads your 3rd party dependencies including their licenses for monitoring. Snyk will then notify developers about new vulnerabilities per email once they are reported to the Snyk Vulnerability Database.

@@ -1,5 +1,3 @@
-:page-partial:
-
 The "SonarQube Analysis" stage scans your source code and reports findings to
 SonarQube. The configuration of the scan happens via the
 `sonar-project.properties` file in the repository being built.

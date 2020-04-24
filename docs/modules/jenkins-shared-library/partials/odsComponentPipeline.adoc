@@ -1,5 +1,3 @@
-:page-partial:
-
 == Pipeline Options
 
 `odsComponentPipeline` can be customized by passing configuration options like this:
