@@ -140,6 +140,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.RA as String)     : ["${LeVADocumentUseCase.DocumentType.RA}"],
             (LeVADocumentUseCase.DocumentType.TIP as String)    : ["${LeVADocumentUseCase.DocumentType.TIP}_Q",
                                                                     "${LeVADocumentUseCase.DocumentType.TIP}_P"],
+            (LeVADocumentUseCase.DocumentType.TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}"],
+            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}"],
             (LeVADocumentUseCase.DocumentType.IVP as String)    : ["${LeVADocumentUseCase.DocumentType.IVP}_Q",
                                                                     "${LeVADocumentUseCase.DocumentType.IVP}_P"],
             (LeVADocumentUseCase.DocumentType.CFTP as String)   : ["${LeVADocumentUseCase.DocumentType.CFTP}"],

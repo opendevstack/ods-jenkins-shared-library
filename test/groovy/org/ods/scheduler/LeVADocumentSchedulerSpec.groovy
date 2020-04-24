@@ -5891,13 +5891,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
+        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        // 1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
+        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -5921,6 +5922,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
+        1 * usecase.invokeMethod("createOverallTIR", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6308,12 +6310,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
+        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
+        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6345,6 +6349,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
+        1 * usecase.invokeMethod("createOverallTIR", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
