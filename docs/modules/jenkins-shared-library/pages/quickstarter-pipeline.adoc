@@ -1,3 +1,69 @@
 = Quickstarter Pipeline
 
-TBD
+This pipeline allows to have a minimal `Jenkinsfile` for a quickstarter by providing all language-agnostic provision aspects. The goal is to duplicate as little as possible between quickstarters.
+
+CAUTION: This pipeline is NOT for building components. It is only to be used when you are authoring a (new) quickstarter itself. If you are building a component (an application), please refer to the xref:jenkins-shared-library:component-pipeline.adoc[component pipeline].
+
+== Usage
+
+Load the shared library in your `Jenkinsfile` like this:
+
+[source,groovy]
+----
+def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
+library("ods-jenkins-shared-library@${odsGitRef}")
+
+odsQuickstarterPipeline(
+  imageStreamTag: "cd/jenkins-slave-golang:${odsImageTag}",
+) { context ->
+
+  odsQuickstarterStageCopyFiles(context)
+
+  stage('Write go.mod') {
+    dir(context.targetDir) {
+      sh "go mod init module example.com/${context.projectId}/${context.componentId}'"
+    }
+  }
+
+  odsQuickstarterStageCreateOpenShiftResources(context)
+
+  odsQuickstarterStageRenderJenkinsfile(context)
+
+  odsQuickstarterStageRenderSonarProperties(context)
+}
+----
+
+There are many built-in stages like `odsQuickstarterStageCopyFiles` that you can use, please see <<_stages,Stages>> for more details.
+
+include::partial$odsQuickstarterPipeline.adoc[]
+
+== Stages
+
+Each built-in stage (like `odsQuickstarterStageCreateOpenShiftResources`) takes two arguments:
+
+- `context` (required, this is the <<_pipeline_context,pipeline context>>)
+- `config` (optional, a map of configuration options)
+
+Example:
+----
+odsQuickstarterStageCreateOpenShiftResources(
+    context, [directory: 'common/foobar']
+)
+----
+
+=== odsQuickstarterStageCopyFiles
+
+include::partial$odsQuickstarterStageCopyFiles.adoc[leveloffset=+2]
+
+=== odsQuickstarterStageCreateOpenShiftResources
+
+include::partial$odsQuickstarterStageCreateOpenShiftResources.adoc[leveloffset=+2]
+
+=== odsQuickstarterStageRenderJenkinsfile
+
+include::partial$odsQuickstarterStageRenderJenkinsfile.adoc[leveloffset=+2]
+
+=== odsQuickstarterStageRenderSonarProperties
+
+include::partial$odsQuickstarterStageRenderSonarProperties.adoc[leveloffset=+2]

@@ -1,0 +1,19 @@
+Processes a `sonar-project.properties` template in the source directory by replacing tokens (`@token@`) with actual values, and placing the rendered file into the target directory.
+
+The handled replacements are:
+
+- `@project_id@` => `context.projectId`
+- `@component_id@` => `context.componentId`
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| source
+| `sonar-project.properties` template to use, defaults to `sonar-project.properties.template`
+
+| target
+| `sonar-project.properties` filename, defaults to `sonar-project.properties`
+|===
