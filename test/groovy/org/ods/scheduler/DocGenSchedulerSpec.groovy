@@ -28,6 +28,11 @@ class DocGenSchedulerSpec extends SpecHelper {
         String getDocumentTemplatesVersion() {
             return "0.1"
         }
+        
+        boolean isArchivalRelevant (String documentType) {
+            return true
+        }
+    
     }
 
     class DocGenSchedulerImpl extends DocGenScheduler {

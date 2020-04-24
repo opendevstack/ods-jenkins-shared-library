@@ -32,15 +32,15 @@ def call(Map config) {
 
         def steps = new PipelineSteps(this)
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
+        def stageStartTime = System.currentTimeMillis();
 
         withPodTemplate(odsImageTag) {
-
+            echo "MRO main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-
                 def ciSkip = false
-
                 stage('Init') {
                     echo "**** STARTING stage Init ****"
+                    stageStartTime = System.currentTimeMillis();
                     def result = phaseInit()
                     if (result) {
                         project = result.project
@@ -48,7 +48,7 @@ def call(Map config) {
                     } else {
                         ciSkip = true
                     }
-                    echo "**** ENDED stage Init ****"
+                    echo "**** ENDED stage Init (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
                 }
 
                 if (ciSkip) {
@@ -57,32 +57,37 @@ def call(Map config) {
 
                 stage('Build') {
                     echo "**** STARTING stage Build ****"
+                    stageStartTime = System.currentTimeMillis();
                     phaseBuild(project, repos)
-                    echo "**** ENDED stage Build ****"
+                    echo "**** ENDED stage Build (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
                 }
 
                 stage('Deploy') {
                     echo "**** STARTING stage Deploy ****"
+                    stageStartTime = System.currentTimeMillis();
                     phaseDeploy(project, repos)
-                    echo "**** ENDED stage Deploy ****"
+                    echo "**** ENDED stage Deploy (time: ${System.currentTimeMillis() - stageStartTime}ms)****"
                 }
 
                 stage('Test') {
                     echo "**** STARTING stage Test ****"
+                    stageStartTime = System.currentTimeMillis();
                     phaseTest(project, repos)
-                    echo "**** ENDED stage Test ****"
+                    echo "**** ENDED stage Test (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
                 }
 
                 stage('Release') {
                     echo "**** STARTING stage Release ****"
+                    stageStartTime = System.currentTimeMillis();
                     phaseRelease(project, repos)
-                    echo "**** ENDED stage Release ****"
+                    echo "**** ENDED stage Release (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
                 }
 
                 stage('Finalize') {
                     echo "**** STARTING stage Finalize ****"
+                    stageStartTime = System.currentTimeMillis();
                     phaseFinalize(project, repos)
-                    echo "**** ENDED stage Finalize ****"
+                    echo "**** ENDED stage Finalize (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
                 }
             }
         }

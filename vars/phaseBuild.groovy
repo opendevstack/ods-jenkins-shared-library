@@ -40,7 +40,6 @@ def call(Project project, List<Set<Map>> repos) {
 
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, data)
 
-                steps_.echo("Reporting unit test results to corresponding test cases in Jira for ${repo.id}")
                 jira.reportTestResultsForComponent("Technology-${repo.id}", [Project.TestType.UNIT], data.tests.unit.testResults)
 
                 globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)

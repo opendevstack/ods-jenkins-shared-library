@@ -51,7 +51,7 @@ abstract class DocGenUseCase {
                 "raw/${basename}.json": JsonOutput.toJson(data).getBytes()
             ] << files.collectEntries { path, contents ->
                 [ path, contents ]
-            }
+            }, isArchivalRelevant(documentType)
         )
 
         // Store the archive as an artifact in Nexus
@@ -125,4 +125,6 @@ abstract class DocGenUseCase {
     abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
+    
+    abstract boolean isArchivalRelevant (String documentType)
 }

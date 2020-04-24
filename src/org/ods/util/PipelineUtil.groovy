@@ -66,7 +66,7 @@ class PipelineUtil {
         return dir
     }
 
-    byte[] createZipArtifact(String name, Map<String, byte[]> files) {
+    byte[] createZipArtifact(String name, Map<String, byte[]> files, boolean archive = true) {
         if (!name?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
         }
@@ -77,7 +77,10 @@ class PipelineUtil {
 
         def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
         def result = this.createZipFile(path, files)
-        this.archiveArtifact(path, result)
+        if (archive) {
+          this.archiveArtifact(path, result)
+        }
+
         return result
     }
 

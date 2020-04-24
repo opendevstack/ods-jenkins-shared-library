@@ -25,6 +25,11 @@ class DocGenUseCaseSpec extends SpecHelper {
         String getDocumentTemplatesVersion() {
             return "0.1"
         }
+
+        boolean isArchivalRelevant (String documentType) {
+            return true
+        }
+    
     }
 
     DocGenService docGen
@@ -87,7 +92,7 @@ class DocGenUseCaseSpec extends SpecHelper {
                 "raw/${basename}.json": JsonOutput.toJson(data).bytes,
                 "raw/${logFile1.name}": logFile1.bytes,
                 "raw/${logFile2.name}": logFile2.bytes
-            ]
+            ], true
         ) >> archive
 
         then:
@@ -137,7 +142,7 @@ class DocGenUseCaseSpec extends SpecHelper {
             [
                 "${basename}.pdf": document,
                 "raw/${basename}.json": JsonOutput.toJson(data).bytes
-            ]
+            ], true
         ) >> new byte[0]
 
         then:
@@ -177,7 +182,7 @@ class DocGenUseCaseSpec extends SpecHelper {
             [
                 "${basename}.pdf": "PDF-modified".bytes,
                 "raw/${basename}.json": JsonOutput.toJson(data).bytes
-            ]
+            ], true
         ) >> new byte[0]
 
         then:
@@ -213,7 +218,7 @@ class DocGenUseCaseSpec extends SpecHelper {
             [
                 "${basename}.pdf": documentWithWatermark,
                 "raw/${basename}.json": JsonOutput.toJson(data).bytes
-            ]
+            ], true
         ) >> new byte[0]
         1 * nexus.storeArtifact(*_) >> nexusUri
     }
@@ -249,7 +254,7 @@ class DocGenUseCaseSpec extends SpecHelper {
             [
                 "${basename}.pdf": document,
                 "raw/${basename}.json": JsonOutput.toJson(data).bytes
-            ]
+            ], true
         ) >> new byte[0]
 
         then:
