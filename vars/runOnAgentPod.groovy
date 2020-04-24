@@ -13,7 +13,9 @@ def call(Project project, boolean condition, Closure block) {
         def bitbucketHost = env.BITBUCKET_HOST
         def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
         echo "Starting MRO slave pod '${podLabel}'"
+        def nodeStartTime = System.currentTimeMillis();
         node(podLabel) {
+            echo "MRO pod '${podLabel}' starttime: ${System.currentTimeMillis() - nodeStartTime}ms"
             git.configureUser()
             unstash("wholeWorkspace")
             withCredentials([usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: 'BITBUCKET_USER', passwordVariable: 'BITBUCKET_PW')]) {
