@@ -8,6 +8,7 @@ class UploadToNexusStage extends Stage {
   }
 
   def run() {
+    /*
     String repoType = config.repoType ?: "candidates"
     String distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
     String groupId  = config.groupId ?: context.groupId
@@ -19,6 +20,6 @@ class UploadToNexusStage extends Stage {
       label : "Uploading ${distFile} to Nexus"
     )
     
-    return uploadPath
+    return uploadPath */
   }
 }
