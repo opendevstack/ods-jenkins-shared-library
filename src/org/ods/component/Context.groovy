@@ -187,6 +187,7 @@ class Context implements IContext {
     config.gitUrl
   }
 
+  @NonCPS
   String getTagversion() {
     config.tagversion
   }
@@ -245,6 +246,7 @@ class Context implements IContext {
     config.environment = environment
   }
 
+  @NonCPS
   String getGroupId() {
     config.groupId
   }
