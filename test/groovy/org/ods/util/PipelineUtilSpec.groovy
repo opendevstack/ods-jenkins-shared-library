@@ -1,11 +1,11 @@
-package org.ods.util
+package org.ods.orchestration.util
 
 import java.nio.file.Files
 import java.nio.file.Paths
 
 import org.apache.pdfbox.pdmodel.PDDocument
-import org.ods.util.IPipelineSteps
-import org.ods.util.Project
+import org.ods.orchestration.util.IPipelineSteps
+import org.ods.orchestration.util.Project
 
 import spock.lang.*
 

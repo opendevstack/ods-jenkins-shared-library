@@ -1,4 +1,4 @@
-package org.ods.service
+package org.ods.orchestration.service
 
 import spock.lang.*
 

@@ -1,7 +1,7 @@
-package org.ods.usecase
+package org.ods.orchestration.usecase
 
-import org.ods.service.*
-import org.ods.util.*
+import org.ods.orchestration.service.*
+import org.ods.orchestration.util.*
 
 import spock.lang.*
 

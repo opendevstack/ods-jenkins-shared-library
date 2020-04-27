@@ -1,11 +1,11 @@
-package org.ods.usecase
+package org.ods.orchestration.usecase
 
 import groovy.json.JsonOutput
 
 import java.nio.file.Files
 
-import org.ods.service.*
-import org.ods.util.*
+import org.ods.orchestration.service.*
+import org.ods.orchestration.util.*
 
 import spock.lang.*
 

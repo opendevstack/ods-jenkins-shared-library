@@ -4,10 +4,10 @@ import java.nio.file.Paths
 
 import kong.unirest.Unirest
 
-import org.ods.scheduler.*
-import org.ods.service.*
-import org.ods.usecase.*
-import org.ods.util.*
+import org.ods.orchestration.scheduler.*
+import org.ods.orchestration.service.*
+import org.ods.orchestration.usecase.*
+import org.ods.orchestration.util.*
 
 def call() {
     def steps = new PipelineSteps(this)

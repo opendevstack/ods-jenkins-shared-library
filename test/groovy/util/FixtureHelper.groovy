@@ -5,10 +5,10 @@ import groovy.transform.InheritConstructors
 
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
-import org.ods.parser.*
-import org.ods.service.*
-import org.ods.usecase.*
-import org.ods.util.*
+import org.ods.orchestration.parser.*
+import org.ods.orchestration.service.*
+import org.ods.orchestration.usecase.*
+import org.ods.orchestration.util.*
 import org.yaml.snakeyaml.Yaml
 
 @InheritConstructors

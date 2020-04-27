@@ -1,9 +1,9 @@
-package org.ods.usecase
+package org.ods.orchestration.usecase
 
 import java.nio.file.Files
 
-import org.ods.parser.*
-import org.ods.util.*
+import org.ods.orchestration.parser.*
+import org.ods.orchestration.util.*
 
 import spock.lang.*
 

@@ -1,5 +1,5 @@
-import org.ods.util.PipelineSteps
-import org.ods.util.Project
+import org.ods.orchestration.util.PipelineSteps
+import org.ods.orchestration.util.Project
 
 def call(Map config) {
 

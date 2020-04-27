@@ -1,10 +1,10 @@
-package org.ods.usecase
+package org.ods.orchestration.usecase
 
 
-import org.ods.service.JiraService
-import org.ods.util.IPipelineSteps
-import org.ods.util.MROPipelineUtil
-import org.ods.util.Project
+import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.util.IPipelineSteps
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import spock.lang.Ignore
 import util.SpecHelper
 

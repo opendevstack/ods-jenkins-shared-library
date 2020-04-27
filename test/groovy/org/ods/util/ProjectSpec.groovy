@@ -1,10 +1,10 @@
-package org.ods.util
+package org.ods.orchestration.util
 
 import java.nio.file.Files
 
 import org.apache.http.client.utils.URIBuilder
-import org.ods.service.*
-import org.ods.usecase.*
+import org.ods.orchestration.service.*
+import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
 
 import static util.FixtureHelper.*

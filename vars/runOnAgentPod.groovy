@@ -1,6 +1,6 @@
-import org.ods.service.ServiceRegistry
-import org.ods.util.GitUtil
-import org.ods.util.Project
+import org.ods.orchestration.service.ServiceRegistry
+import org.ods.orchestration.util.GitUtil
+import org.ods.orchestration.util.Project
 
 // TODO: How to reuse agent pod across phases?
 def call(Project project, boolean condition, Closure block) {

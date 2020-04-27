@@ -1,6 +1,6 @@
 package util
 
-import org.ods.util.IPipelineSteps
+import org.ods.orchestration.util.IPipelineSteps
 
 class PipelineSteps implements IPipelineSteps {
 

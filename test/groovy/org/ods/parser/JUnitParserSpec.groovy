@@ -1,4 +1,4 @@
-package org.ods.parser
+package org.ods.orchestration.parser
 
 import groovy.json.JsonBuilder
 

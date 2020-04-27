@@ -1,9 +1,9 @@
 import hudson.Functions
 
-import org.ods.scheduler.*
-import org.ods.service.*
-import org.ods.usecase.*
-import org.ods.util.*
+import org.ods.orchestration.scheduler.*
+import org.ods.orchestration.service.*
+import org.ods.orchestration.usecase.*
+import org.ods.orchestration.util.*
 
 def call(Project project, List<Set<Map>> repos) {
     try {
