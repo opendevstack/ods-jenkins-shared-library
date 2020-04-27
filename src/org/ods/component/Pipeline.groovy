@@ -368,14 +368,14 @@ class Pipeline implements Serializable {
   
   void amendProjectAndComponentFromOrigin (Map config) {
     script.node {
-      def origin = script.sh(script: "git config remote.origin.url", returnStdout: true)
+      def origin = script.sh(script: "git config remote.origin.url", returnStdout: true).trim()
       List splittedOrigin = origin.split ("/")
       def project = splittedOrigin[splittedOrigin.size()-2]
       if (!config.projectId) {
-        config ["projectId"] = project
+        config ["projectId"] = project.trim()
       }
       if (!config.componentId) {
-        config ["componentId"] = splittedOrigin[splittedOrigin.size()-1].replace (".git", "").replace("${project}-","")
+        config ["componentId"] = splittedOrigin[splittedOrigin.size()-1].replace (".git", "").replace("${project}-","").trim()
       }
       logger.debug ("Config from origin: ${config.projectId} / ${config.componentId}")
     }
