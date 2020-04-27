@@ -8,15 +8,12 @@ Load the shared library in your `Jenkinsfile` like this:
 
 [source,groovy]
 ----
-def final projectId = 'foo'
-def final componentId = 'bar'
-
 @Library('ods-jenkins-shared-library@2.x') _
 
 odsComponentPipeline(
   imageStreamTag: 'cd/jenkins-slave-golang:2.x',
-  projectId: projectId,
-  componentId: componentId,
+  projectId: 'foo',
+  componentId: 'bar',
   branchToEnvironmentMapping: [
     'master': 'dev',
     // 'release/*': 'test'
@@ -35,7 +32,7 @@ The version in `@Library` can be any Git revsison, such as a branch (e.g. `maste
 
 There are many built-in stages like `odsComponentStageScanWithSonar` that you can use, please see <<_stages,Stages>> for more details.
 
-include::./odsComponentPipeline.adoc[]
+include::partial$odsComponentPipeline.adoc[]
 
 == Stages
 
@@ -51,16 +48,16 @@ odsComponentStageScanWithSonar(context, [branch: 'production'])
 
 === odsComponentStageScanWithSonar
 
-include::./odsComponentStageScanWithSonar.adoc[leveloffset=+2]
+include::partial$odsComponentStageScanWithSonar.adoc[leveloffset=+2]
 
 === odsComponentStageScanWithSnyk
 
-include::./odsComponentStageScanWithSnyk.adoc[leveloffset=+2]
+include::partial$odsComponentStageScanWithSnyk.adoc[leveloffset=+2]
 
 === odsComponentStageBuildOpenShiftImage
 
-include::./odsComponentStageBuildOpenShiftImage.adoc[leveloffset=+2]
+include::partial$odsComponentStageBuildOpenShiftImage.adoc[leveloffset=+2]
 
 === odsComponentStageRolloutOpenShiftDeployment
 
-include::./odsComponentStageRolloutOpenShiftDeployment.adoc[leveloffset=+2]
+include::partial$odsComponentStageRolloutOpenShiftDeployment.adoc[leveloffset=+2]

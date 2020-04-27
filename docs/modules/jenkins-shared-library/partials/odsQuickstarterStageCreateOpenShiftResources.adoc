@@ -1,0 +1,17 @@
+Uses a set of OpenShift templates to create resources in OpenShift. The resources are created both in `*-dev` and `*-test` namespace. https://github.com/opendevstack/tailor[Tailor] is used to apply the templates, and fed with a parameter file if it exists.
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| directory
+| Directory in which templates are located, defaults to `${context.sourceDir}/openshift`.
+
+| envFile
+| Parameter file to use, defaults to `${context.sourceDir}/ocp.env`
+
+| selector
+| Label selector to constrain `tailor apply` to, defaults to `app=${context.projectId}-${context.componentId}`.
+|===

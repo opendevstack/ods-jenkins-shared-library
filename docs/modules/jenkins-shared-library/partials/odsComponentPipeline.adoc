@@ -1,5 +1,3 @@
-:page-partial:
-
 == Pipeline Options
 
 `odsComponentPipeline` can be customized by passing configuration options like this:
@@ -255,7 +253,7 @@ odsComponentPipeline(
   podContainers: [
     containerTemplate(
       name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
-      image: "${dockerRegistry}/foo-cd/jenkins-slave-custom",
+      image: "${env.DOCKER_REGISTRY}/foo-cd/jenkins-slave-custom",
       workingDir: '/tmp',
       resourceRequestCpu: '100m',
       resourceLimitCpu: '500m',

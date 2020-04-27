@@ -1,5 +1,3 @@
-:page-partial:
-
 Triggers (and follows) a build in the `BuildConfig` related to the repository
 being built.
 

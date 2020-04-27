@@ -1,0 +1,23 @@
+Processes a `Jenkinsfile` template in the source directory by replacing tokens (`@token@`) with actual values, and placing the rendered file into the target directory.
+
+The handled replacements are:
+
+- `@project_id@` => `context.projectId`
+- `@component_id@` => `context.componentId`
+- `@component_type@` => `context.sourceDir`
+- `@git_url_http@` => `context.gitUrlHttp`
+- `@ods_image_tag@` => `context.odsImageTag`
+- `@ods_git_ref@` => `context.odsGitRef`
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| source
+| `Jenkinsfile` template to use, defaults to `Jenkinsfile.template`
+
+| target
+| `Jenkinsfile` filename, defaults to `Jenkinsfile`
+|===

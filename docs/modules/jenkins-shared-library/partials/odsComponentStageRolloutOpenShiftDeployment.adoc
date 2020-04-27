@@ -1,5 +1,3 @@
-:page-partial:
-
 Triggers (and follows) a rollout of the `DeploymentConfig` related to the repository
 being built.
 
