@@ -46,7 +46,7 @@ class DeployStage extends Stage {
             // not work on agent nodes yet.
             if (agentPodCondition) {
                 script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${env.WORKSPACE}/docs"
+                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
                     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
                 }
             } else {

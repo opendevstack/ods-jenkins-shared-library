@@ -1,6 +1,15 @@
+
+import hudson.Functions
+
+import java.nio.file.Paths
+
+@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
+import kong.unirest.Unirest
+
+import org.ods.orchestration.util.PipelineUtil
+import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PipelineSteps
 import org.ods.orchestration.util.Project
-
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage
@@ -8,7 +17,12 @@ import org.ods.orchestration.TestStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
 
+
 def call(Map config) {
+
+    Unirest.config()
+        .socketTimeout(1200000)
+        .connectTimeout(120000)
 
     Project project
     def repos = []
@@ -21,6 +35,12 @@ def call(Map config) {
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
 
     node {
+
+        // Clean workspace from previous runs
+        [PipelineUtil.ARTIFACTS_BASE_DIR, PipelineUtil.SONARQUBE_BASE_DIR, PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR, MROPipelineUtil.REPOS_BASE_DIR].each { name ->
+            steps.echo("Cleaning workspace directory '${name}' from previous runs")
+            Paths.get(env.WORKSPACE, name).toFile().deleteDir()
+        }
 
         def scmBranches = scm.branches
         def branch = scmBranches[0]?.getName()
@@ -49,7 +69,7 @@ def call(Map config) {
                     project = result.project
                     repos = result.repos
                 } else {
-                    // skip pipeline
+                    echo "Skip pipeline as no project/repos computed"
                     return
                 }
 

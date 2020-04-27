@@ -1,8 +1,6 @@
 package org.ods.orchestration
 
 import hudson.Functions
-import java.nio.file.Paths
-import kong.unirest.Unirest
 
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
@@ -19,10 +17,6 @@ class InitStage extends Stage {
     def run() {
         def steps = new PipelineSteps(script)
         def project = new Project(steps)
-
-        Unirest.config()
-            .socketTimeout(1200000)
-            .connectTimeout(120000)
 
         def git = new GitUtil(steps)
         git.configureUser()
@@ -68,10 +62,10 @@ class InitStage extends Stage {
             }
         }
 
-        // Load build params and metadata file information.
+        steps.echo "Load build params and metadata file information"
         project.init()
 
-        // Register global services
+        steps.echo "Register global services"
         def registry = ServiceRegistry.instance
         registry.add(GitUtil, git)
         registry.add(PDFUtil, new PDFUtil())
@@ -219,10 +213,11 @@ class InitStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
+        steps.echo "Run Project#load"
         project.load(registry.get(GitUtil), registry.get(JiraUseCase))
         def repos = project.repositories
 
-        // Validate that for Q and P we have a valid version
+        steps.echo "Validate that for Q and P we have a valid version"
         if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken) && buildParams.version == "WIP") {
             throw new RuntimeException("Error: trying to deploy to Q or P without having defined a correct version. ${buildParams.version} version value is not allowed for those environments. If you are using Jira, please check that all values are set in the release manager issue. Build parameters obtained: ${buildParams}")
         }
@@ -237,22 +232,16 @@ class InitStage extends Stage {
 
         def jobMode = project.isPromotionMode ? "(promote)" : "(assemble)"
 
-        // Configure current build
-        script.currentBuild.description = "Build ${jobMode} #${BUILD_NUMBER} - Change: ${env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.key}, Target Environment: ${project.key}-${env.MULTI_REPO_ENV}, Version: ${env.VERSION}"
+        steps.echo "Configure current build description"
+        script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.key}, Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, Version: ${script.env.VERSION}"
 
-        // Clean workspace from previous runs
-        [PipelineUtil.ARTIFACTS_BASE_DIR, PipelineUtil.SONARQUBE_BASE_DIR, PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR, MROPipelineUtil.REPOS_BASE_DIR].each { name ->
-            steps.echo("Cleaning workspace directory '${name}' from previous runs")
-            Paths.get(script.env.WORKSPACE, name).toFile().deleteDir()
-        }
-
-        // Checkout repositories into the workspace
+        steps.echo "Checkout repositories into the workspace"
         script.parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
             steps.echo("Repository: ${repo}")
             steps.echo("Environment configuration: ${script.env.getEnvironment()}")
         })
 
-        // Load configs from each repo's release-manager.yml
+        steps.echo "Load configs from each repo's release-manager.yml"
         util.loadPipelineConfigs(repos)
 
         def os = registry.get(OpenShiftService)
@@ -311,7 +300,7 @@ class InitStage extends Stage {
             }
         }
 
-        // Compute groups of repository configs for convenient parallelization
+        steps.echo "Compute groups of repository configs for convenient parallelization"
         repos = util.computeRepoGroups(repos)
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
@@ -319,5 +308,23 @@ class InitStage extends Stage {
         return [project: project, repos: repos]
     }
 
+    private boolean privateKeyExists(def privateKeyCredentialsId) {
+        try {
+            script.withCredentials([script.sshUserPrivateKey(credentialsId: privateKeyCredentialsId, keyFileVariable: 'PKEY_FILE')]) {
+                true
+            }
+        } catch (_) {
+            false
+        }
+    }
 
+    private checkoutGitRef(String gitRef, def extensions) {
+        script.checkout([
+            $class                           : 'GitSCM',
+            branches                         : [[name: gitRef]],
+            doGenerateSubmoduleConfigurations: false,
+            extensions                       : extensions,
+            userRemoteConfigs                : script.scm.userRemoteConfigs
+        ])
+    }
 }

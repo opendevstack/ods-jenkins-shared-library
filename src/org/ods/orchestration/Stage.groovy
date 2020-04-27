@@ -2,6 +2,7 @@ package org.ods.orchestration
 
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.GitUtil
+import org.ods.orchestration.util.PipelineSteps
 import org.ods.orchestration.service.ServiceRegistry
 
 class Stage {
@@ -19,10 +20,10 @@ class Stage {
 
     def execute() {
         script.stage(STAGE_NAME) {
-            echo "**** STARTING stage ${STAGE_NAME} ****"
+            script.echo "**** STARTING stage ${STAGE_NAME} ****"
             def stageStartTime = System.currentTimeMillis()
             try {
-                this.run()
+                return this.run()
             } catch (e) {
                 // Check for random null references which occur after a Jenkins restart
                 if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
@@ -41,7 +42,7 @@ class Stage {
 
                 throw e
             }
-            echo "**** ENDED stage ${STAGE_NAME} (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
+            script.echo "**** ENDED stage ${STAGE_NAME} (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
         }
     }
 
