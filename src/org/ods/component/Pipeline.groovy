@@ -367,7 +367,9 @@ class Pipeline implements Serializable {
   }
   
   void amendProjectAndComponentFromOrigin (Map config) {
-    def origin = script.sh(script: "git config remote.origin.url", returnStdout: true)
+    script.node {
+      def origin = script.sh(script: "git config remote.origin.url", returnStdout: true)
+    }
     List splittedOrigin = origin.split ("/")
     def project = splittedOrigin[splittedOrigin.size()-2]
     if (!config.projectId) {
