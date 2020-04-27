@@ -1,4 +1,4 @@
-name: ODS Library Build
+name: ODS Jenkins Library Build
 
 on: [ push, pull_request ]
 
