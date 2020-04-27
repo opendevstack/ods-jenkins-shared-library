@@ -1,6 +1,8 @@
 package org.ods.orchestration
 
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.GitUtil
+import org.ods.orchestration.service.ServiceRegistry
 
 class Stage {
     protected def script
@@ -40,6 +42,33 @@ class Stage {
                 throw e
             }
             echo "**** ENDED stage ${STAGE_NAME} (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
+        }
+    }
+
+    protected def runOnAgentPod(Project project, boolean condition, Closure block) {
+        if (condition) {
+            def git = ServiceRegistry.instance.get(GitUtil)
+            script.dir(script.env.WORKSPACE) {
+                script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
+            }
+
+            def bitbucketHost = script.env.BITBUCKET_HOST
+            def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
+            script.echo "Starting MRO slave pod '${podLabel}'"
+            def nodeStartTime = System.currentTimeMillis();
+            script.node(podLabel) {
+                script.echo "MRO pod '${podLabel}' starttime: ${System.currentTimeMillis() - nodeStartTime}ms"
+                git.configureUser()
+                script.unstash("wholeWorkspace")
+                script.withCredentials([script.usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: 'BITBUCKET_USER', passwordVariable: 'BITBUCKET_PW')]) {
+                    def urlWithCredentials = "https://${script.BITBUCKET_USER}:${script.BITBUCKET_PW}@${bitbucketHost}"
+                    script.writeFile(file: "${script.env.HOME}/.git-credentials", text: urlWithCredentials)
+                    script.sh(script: "git config --global credential.helper store", label : "setup credential helper")
+                }
+                block()
+            }
+        } else {
+            block()
         }
     }
 }
