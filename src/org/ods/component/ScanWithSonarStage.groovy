@@ -178,7 +178,7 @@ class ScanWithSonarStage extends Stage {
     context.addArtifactURI("sonarqubeScanStashPath", sonarqubeStashPath)
 
     script.stash(
-      name: "${sonarqubeStashPath}",
+      name: sonarqubeStashPath,
       includes: 'artifacts/SCRR*',
       allowEmpty: true
     )

@@ -37,7 +37,7 @@ class JenkinsService {
 
       def testStashPath = "test-reports-junit-xml-${stashNamePostFix}"
       contextresultMap.xunitTestResultsStashPath = testStashPath
-      script.stash(name: "${testStashPath}", 
+      script.stash(name: testStashPath, 
         includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml", allowEmpty: true)
     } else {
       logger.info("No xUnit results found!!")
