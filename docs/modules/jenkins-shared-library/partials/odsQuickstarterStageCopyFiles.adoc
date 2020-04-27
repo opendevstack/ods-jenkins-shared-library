@@ -1,0 +1,3 @@
+Copies files from `${context.sourceDir}/files` to `${context.targetDir}`.
+
+There are no configuration options.
