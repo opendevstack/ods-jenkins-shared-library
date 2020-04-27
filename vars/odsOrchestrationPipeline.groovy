@@ -1,6 +1,13 @@
 import org.ods.orchestration.util.PipelineSteps
 import org.ods.orchestration.util.Project
 
+import org.ods.orchestration.InitStage
+import org.ods.orchestration.BuildStage
+import org.ods.orchestration.DeployStage
+import org.ods.orchestration.TestStage
+import org.ods.orchestration.ReleaseStage
+import org.ods.orchestration.FinalizeStage
+
 def call(Map config) {
 
     Project project
@@ -37,58 +44,24 @@ def call(Map config) {
         withPodTemplate(odsImageTag) {
             echo "MRO main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-                def ciSkip = false
-                stage('Init') {
-                    echo "**** STARTING stage Init ****"
-                    stageStartTime = System.currentTimeMillis();
-                    def result = phaseInit()
-                    if (result) {
-                        project = result.project
-                        repos = result.repos
-                    } else {
-                        ciSkip = true
-                    }
-                    echo "**** ENDED stage Init (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
-                }
-
-                if (ciSkip) {
+                def result = new InitStage(this, project, repos).execute()
+                if (result) {
+                    project = result.project
+                    repos = result.repos
+                } else {
+                    // skip pipeline
                     return
                 }
 
-                stage('Build') {
-                    echo "**** STARTING stage Build ****"
-                    stageStartTime = System.currentTimeMillis();
-                    phaseBuild(project, repos)
-                    echo "**** ENDED stage Build (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
-                }
+                new BuildStage(this, project, repos).execute()
 
-                stage('Deploy') {
-                    echo "**** STARTING stage Deploy ****"
-                    stageStartTime = System.currentTimeMillis();
-                    phaseDeploy(project, repos)
-                    echo "**** ENDED stage Deploy (time: ${System.currentTimeMillis() - stageStartTime}ms)****"
-                }
+                new DeployStage(this, project, repos).execute()
 
-                stage('Test') {
-                    echo "**** STARTING stage Test ****"
-                    stageStartTime = System.currentTimeMillis();
-                    phaseTest(project, repos)
-                    echo "**** ENDED stage Test (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
-                }
+                new TestStage(this, project, repos).execute()
 
-                stage('Release') {
-                    echo "**** STARTING stage Release ****"
-                    stageStartTime = System.currentTimeMillis();
-                    phaseRelease(project, repos)
-                    echo "**** ENDED stage Release (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
-                }
+                new ReleaseStage(this, project, repos).execute()
 
-                stage('Finalize') {
-                    echo "**** STARTING stage Finalize ****"
-                    stageStartTime = System.currentTimeMillis();
-                    phaseFinalize(project, repos)
-                    echo "**** ENDED stage Finalize (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
-                }
+                new FinalizeStage(this, project, repos).execute()
             }
         }
     }
