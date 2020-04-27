@@ -61,3 +61,7 @@ include::partial$odsComponentStageBuildOpenShiftImage.adoc[leveloffset=+2]
 === odsComponentStageRolloutOpenShiftDeployment
 
 include::partial$odsComponentStageRolloutOpenShiftDeployment.adoc[leveloffset=+2]
+
+=== odsComponentStageUploadToNexus
+
+include::partial$odsComponentStageUploadToNexus.adoc[leveloffset=+2]

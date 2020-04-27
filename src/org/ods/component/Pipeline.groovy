@@ -18,24 +18,20 @@ class Pipeline implements Serializable {
   private def script
   private IContext context
   private ILogger logger
-  private boolean notifyNotGreen
-  private boolean ciSkipEnabled
-  private boolean displayNameUpdateEnabled
-  private boolean localCheckoutEnabled
-  private boolean bitbucketNotificationEnabled
+  private boolean notifyNotGreen = true
+  private boolean ciSkipEnabled  = true
+  private boolean displayNameUpdateEnabled = true
+  private boolean localCheckoutEnabled = true
+  private boolean bitbucketNotificationEnabled  = true
 
   Pipeline(def script, ILogger logger) {
     this.script = script
     this.logger = logger
-    this.notifyNotGreen = true
-    this.ciSkipEnabled = true
-    this.displayNameUpdateEnabled= true
-    this.localCheckoutEnabled = true
-    this.bitbucketNotificationEnabled = true
   }
 
   // Main entry point.
   def execute(Map config, Closure stages) {
+    amendProjectAndComponentFromOrigin (config)
     if (!config.projectId) {
       logger.error "Param 'projectId' is required"
     }
@@ -367,6 +363,21 @@ class Pipeline implements Serializable {
     }
     if (!config.containsKey('podLabel')) {
       config.podLabel = "pod-${UUID.randomUUID().toString()}"
+    }
+  }
+  
+  void amendProjectAndComponentFromOrigin (Map config) {
+    script.node {
+      def origin = script.sh(script: "git config remote.origin.url", returnStdout: true).trim()
+      List splittedOrigin = origin.split ("/")
+      def project = splittedOrigin[splittedOrigin.size()-2]
+      if (!config.projectId) {
+        config ["projectId"] = project.trim()
+      }
+      if (!config.componentId) {
+        config ["componentId"] = splittedOrigin[splittedOrigin.size()-1].replace (".git", "").replace("${project}-","").trim()
+      }
+      logger.debug ("Project / component config from git origin url: ${config.projectId} / ${config.componentId}")
     }
   }
 }

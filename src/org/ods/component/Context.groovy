@@ -187,6 +187,7 @@ class Context implements IContext {
     config.gitUrl
   }
 
+  @NonCPS
   String getTagversion() {
     config.tagversion
   }
@@ -200,14 +201,17 @@ class Context implements IContext {
     retrieveGitCommitFiles(lastSuccessfulCommit)
   }
 
+  @NonCPS
   String getNexusHost() {
     config.nexusHost
   }
 
+  @NonCPS
   String getNexusUsername() {
     config.nexusUsername
   }
 
+  @NonCPS
   String getNexusPassword() {
     config.nexusPassword
   }
@@ -245,6 +249,7 @@ class Context implements IContext {
     config.environment = environment
   }
 
+  @NonCPS
   String getGroupId() {
     config.groupId
   }

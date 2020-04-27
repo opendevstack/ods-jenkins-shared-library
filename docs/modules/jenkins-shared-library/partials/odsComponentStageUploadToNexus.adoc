@@ -1,0 +1,19 @@
+:page-partial:
+
+Triggers the upload of an artifact to Nexus
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| distributionFile
+| default is `${projectId}-${componentId}.tar.gz`
+
+| repoType
+| default is `candidates`
+
+| groupId
+| default is the `groupId` on project level, or in case not set at all `org.opendevstack.${projectId}`
+|===
