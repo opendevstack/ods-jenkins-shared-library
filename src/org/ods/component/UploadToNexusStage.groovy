@@ -9,10 +9,15 @@ class UploadToNexusStage extends Stage {
 
   def run() {
     def repoType = config.repoType ?: "candidates"
+    script.echo "repo"
     def distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
+    script.echo "distf"
     def groupId  = config.groupId ?: context.groupId
-
+    script.echo "group"
+    
     def uploadPath = "${context.nexusHost}/repository/${repoType}/${groupId.replace('.', '/')}/${componentId}/${context.tagversion}/${distFile}"
+    script.echo "path"
+    
     script.echo ("Uploading ${distFile} to ${uploadPath}")
     script.sh (
       script : "curl -u ${context.nexusUsername}:${context.nexusPassword} --upload-file ${distFile} ${uploadPath}",
