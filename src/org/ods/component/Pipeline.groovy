@@ -377,7 +377,7 @@ class Pipeline implements Serializable {
       if (!config.componentId) {
         config ["componentId"] = splittedOrigin[splittedOrigin.size()-1].replace (".git", "").replace("${project}-","").trim()
       }
-      logger.debug ("Config from origin: ${config.projectId} / ${config.componentId}")
+      logger.debug ("Project / component config from git origin url: ${config.projectId} / ${config.componentId}")
     }
   }
 }
