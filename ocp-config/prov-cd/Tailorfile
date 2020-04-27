@@ -1,0 +1,4 @@
+namespace prov-cd
+selector app=mro-sharedlib
+param-file ../../../ods-configuration/ods-core.env
+ignore-unknown-parameters true
