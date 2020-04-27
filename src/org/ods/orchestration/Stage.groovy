@@ -19,7 +19,26 @@ class Stage {
         script.stage(STAGE_NAME) {
             echo "**** STARTING stage ${STAGE_NAME} ****"
             def stageStartTime = System.currentTimeMillis()
-            this.run()
+            try {
+                this.run()
+            } catch (e) {
+                // Check for random null references which occur after a Jenkins restart
+                if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
+                    e = new IllegalStateException("Error: invalid references have been detected for critical pipeline services. Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!").initCause(e)
+                }
+
+                script.echo(e.message)
+
+                try {
+                    project.reportPipelineStatus(e.message, true)
+                } catch (reportError) {
+                    script.echo("Error: unable to report pipeline status because of: ${reportError.message}.")
+                    reportError.initCause(e)
+                    throw reportError
+                }
+
+                throw e
+            }
             echo "**** ENDED stage ${STAGE_NAME} (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
         }
     }
