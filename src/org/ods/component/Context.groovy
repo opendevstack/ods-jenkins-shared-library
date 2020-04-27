@@ -201,14 +201,17 @@ class Context implements IContext {
     retrieveGitCommitFiles(lastSuccessfulCommit)
   }
 
+  @NonCPS
   String getNexusHost() {
     config.nexusHost
   }
 
+  @NonCPS
   String getNexusUsername() {
     config.nexusUsername
   }
 
+  @NonCPS
   String getNexusPassword() {
     config.nexusPassword
   }

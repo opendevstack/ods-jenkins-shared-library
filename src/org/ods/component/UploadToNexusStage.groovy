@@ -17,7 +17,7 @@ class UploadToNexusStage extends Stage {
   }
 
   def run() {
-    script.echo ("Uploading ${distFile} to ${uploadPath}")
+    script.echo ("Uploading '${distFile}' to: ${uploadPath}")
     
     if (!script.fileExists (distFile)) {
       script.error ("Could not upload file ${distFile} - it does NOT exist!")
