@@ -64,4 +64,7 @@ class PipelineScript {
         return true
     }
     
+    def zip (Map cfg) {
+      
+    }
 }

@@ -8,6 +8,7 @@ class UploadToNexusStage extends Stage {
   }
 
   def run() {
+    script.echo "repo"
     def repoType = config.repoType ?: "candidates"
     script.echo "repo"
     def distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
