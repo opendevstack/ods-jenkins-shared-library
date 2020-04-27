@@ -1,3 +1,4 @@
 * xref:jenkins-shared-library:index.adoc[Jenkins Shared Library]
 ** xref:jenkins-shared-library:component-pipeline.adoc[Component Pipeline]
+** xref:jenkins-shared-library:orchestration-pipeline.adoc[Orchestration Pipeline]
 ** xref:jenkins-shared-library:quickstarter-pipeline.adoc[Quickstarter Pipeline]
