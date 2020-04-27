@@ -18,6 +18,11 @@ class UploadToNexusStage extends Stage {
 
   def run() {
     script.echo ("Uploading ${distFile} to ${uploadPath}")
+    
+    if (!script.fileExists (distFile)) {
+      script.error ("Could not upload file ${distFile} - it does NOT exist!")
+    }
+    
     script.sh (
       script : "curl -u ${context.nexusUsername}:${context.nexusPassword} --upload-file ${distFile} ${uploadPath}",
       label : "Uploading ${distFile} to Nexus"

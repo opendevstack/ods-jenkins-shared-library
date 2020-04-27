@@ -60,7 +60,7 @@ class PipelineScript {
         println msg
     }
 
-    def fileExists (String file) {
+    def fileExists (file) {
         return true
     }
     
