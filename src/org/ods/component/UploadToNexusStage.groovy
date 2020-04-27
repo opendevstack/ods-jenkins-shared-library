@@ -7,7 +7,7 @@ class UploadToNexusStage extends Stage {
   def distFile
   def groupId
   def uploadPath
-
+  
   UploadToNexusStage(def script, IContext context, Map config) {
     super(script, context, config)
     repoType = config.repoType ?: "candidates"
