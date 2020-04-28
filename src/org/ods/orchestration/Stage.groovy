@@ -1,9 +1,9 @@
 package org.ods.orchestration
 
+import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.GitUtil
 import org.ods.orchestration.util.PipelineSteps
-import org.ods.orchestration.service.ServiceRegistry
 
 class Stage {
     protected def script

@@ -11,7 +11,7 @@ import java.nio.file.Paths
 import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.orchestration.service.OpenShiftService
-import org.ods.orchestration.service.ServiceRegistry
+import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.yaml.snakeyaml.Yaml
 
