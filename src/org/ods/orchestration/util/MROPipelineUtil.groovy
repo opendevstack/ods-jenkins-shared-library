@@ -11,7 +11,7 @@ import java.nio.file.Paths
 import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.orchestration.service.OpenShiftService
-import org.ods.orchestration.service.ServiceRegistry
+import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.yaml.snakeyaml.Yaml
 
@@ -287,7 +287,7 @@ class MROPipelineUtil extends PipelineUtil {
         this.steps.dir(baseDir) {
             def job
             this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
-              job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
             // Collect ODS build artifacts for repo
             repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()

@@ -31,13 +31,6 @@ class Pipeline implements Serializable {
 
   // Main entry point.
   def execute(Map config, Closure stages) {
-    amendProjectAndComponentFromOrigin (config)
-    if (!config.projectId) {
-      logger.error "Param 'projectId' is required"
-    }
-    if (!config.componentId) {
-      logger.error "Param 'componentId' is required"
-    }
     if (!!script.env.MULTI_REPO_BUILD) {
       setupForMultiRepoBuild(config)
     }
@@ -55,6 +48,15 @@ class Pipeline implements Serializable {
     }
     if (config.containsKey('bitbucketNotificationEnabled')) {
       this.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled
+    }
+    if (!config.projectId || !config.componentId) {
+      amendProjectAndComponentFromOrigin(config)
+    }
+    if (!config.projectId) {
+      logger.error "Param 'projectId' is required"
+    }
+    if (!config.componentId) {
+      logger.error "Param 'componentId' is required"
     }
 
     prepareAgentPodConfig(config)
@@ -216,9 +218,9 @@ class Pipeline implements Serializable {
     def buildEnv = script.env.MULTI_REPO_ENV
     if (buildEnv) {
       config.environment = buildEnv
-      logger.debug("Setting target env ${config.environment} on ${config.projectId}")
+      logger.debug("Setting target env ${config.environment}")
     } else {
-      logger.error("Variable MULTI_REPO_ENV (target environment!) must not be null!")
+      logger.echo("Variable MULTI_REPO_ENV (target environment!) must not be null!")
       // Using exception because error step would skip post steps
       throw new RuntimeException("Variable MULTI_REPO_ENV (target environment!) must not be null!")
     }
@@ -365,19 +367,27 @@ class Pipeline implements Serializable {
       config.podLabel = "pod-${UUID.randomUUID().toString()}"
     }
   }
-  
-  void amendProjectAndComponentFromOrigin (Map config) {
-    script.node {
-      def origin = script.sh(script: "git config remote.origin.url", returnStdout: true).trim()
-      List splittedOrigin = origin.split ("/")
+
+  private void amendProjectAndComponentFromOrigin(Map config) {
+    def block = {
+      def origin = script.sh(
+        script: 'git config --get remote.origin.url',
+        returnStdout: true
+      ).trim()
+      def splittedOrigin = origin.split('/')
       def project = splittedOrigin[splittedOrigin.size()-2]
       if (!config.projectId) {
-        config ["projectId"] = project.trim()
+        config.projectId = project.trim()
       }
       if (!config.componentId) {
-        config ["componentId"] = splittedOrigin[splittedOrigin.size()-1].replace (".git", "").replace("${project}-","").trim()
+        config.componentId = splittedOrigin[splittedOrigin.size()-1].replace('.git', '').replace("${project}-", '').trim()
       }
-      logger.debug ("Project / component config from git origin url: ${config.projectId} / ${config.componentId}")
+      logger.debug("Project / component config from Git origin url: ${config.projectId} / ${config.componentId}")
+    }
+    if (this.localCheckoutEnabled) {
+      script.node('master', block)
+    } else {
+      block()
     }
   }
 }
