@@ -67,3 +67,7 @@ include::partial$odsQuickstarterStageRenderJenkinsfile.adoc[leveloffset=+2]
 === odsQuickstarterStageRenderSonarProperties
 
 include::partial$odsQuickstarterStageRenderSonarProperties.adoc[leveloffset=+2]
+
+=== odsQuickstarterStageForkODS
+
+include::partial$odsQuickstarterStageForkODS.adoc[leveloffset=+2]

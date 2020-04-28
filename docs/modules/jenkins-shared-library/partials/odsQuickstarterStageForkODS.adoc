@@ -1,0 +1,12 @@
+Forks a component from ODS
+
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| odsComponent
+| the `component` from (github) ODS to fork
+|===
