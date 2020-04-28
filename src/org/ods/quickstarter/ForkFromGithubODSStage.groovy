@@ -5,6 +5,9 @@ class ForkFromGithubODSStage extends Stage {
 
   ForkFromGithubODSStage(def script, IContext context, Map config = [:]) {
     super(script, context, config)
+    if (!config.branch) {
+      config.branch = 'master'
+    }
   }
 
   def run() {
@@ -23,12 +26,12 @@ class ForkFromGithubODSStage extends Stage {
         script: """
           git init
           git remote add origin ${context.gitUrlHttp}
-          git remote add github ${githubUrl}
+          git remote add github ${githubRepoUrl}
           git fetch github
           git checkout github/${config.branch}
           git checkout -b ${config.branch}
         """,
-        label: "Fork from github ${url}",
+        label: "Fork '${config.odsComponent}' from github @${githubRepoUrl}",
         returnStatus: true
       )
       
