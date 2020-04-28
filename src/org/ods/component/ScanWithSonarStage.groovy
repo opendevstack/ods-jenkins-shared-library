@@ -38,7 +38,10 @@ class ScanWithSonarStage extends Stage {
     }
 
     def sonarProperties = sonarQube.readProperties()
-    def sonarProjectKey = sonarProperties['sonar.projectKey']
+
+    def sonarProjectKey = "${context.projectId}-${context.componentId}"
+    sonarProperties.putAt("sonar.projectKey", sonarProjectKey)
+    sonarProperties.putAt("sonar.projectName", sonarProjectKey)
 
     scan(sonarProperties)
 
