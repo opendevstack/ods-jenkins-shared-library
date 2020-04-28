@@ -28,8 +28,7 @@ class ForkFromGithubODSStage extends Stage {
           git remote add origin ${context.gitUrlHttp}
           git remote add github ${githubRepoUrl}
           git fetch github
-          git checkout github/${config.branch}
-          git checkout -b ${config.branch}
+          git checkout --no-track -b ${config.branch} github/${config.branch}
         """,
         label: "Fork '${config.odsComponent}' from github @${githubRepoUrl}",
         returnStatus: true
@@ -39,5 +38,5 @@ class ForkFromGithubODSStage extends Stage {
         error ("Could not fork ${githubRepoUrl}, status ${status}")
       }
     }
-  }  
+  }
 }
