@@ -40,7 +40,7 @@ class Pipeline implements Serializable {
       config.cdUserCredentialsId = "${config.openShiftProject}-cd-user-with-password"
     }
     if (!config.targetDir) {
-      config.targetDir = 'out'
+      config.targetDir = config.componentId
     }
     if (!config.podVolumes) {
       config.podVolumes = []
