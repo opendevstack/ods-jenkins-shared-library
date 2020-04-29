@@ -16,7 +16,7 @@ import com.vladsch.flexmark.pdf.converter.PdfConverterExtension
 import com.vladsch.flexmark.ext.tables.TablesExtension
 
 class MarkdownUtil {
-	private def CSS_STYLE = """
+    private def CSS_STYLE = """
     <style>
         @page landscapeA4 {
             size: A4 landscape;
@@ -87,8 +87,8 @@ class MarkdownUtil {
             text-align: right;
         }
     </style>
-	"""
-   private def OPTIONS = new MutableDataSet()
+    """
+    private def OPTIONS = new MutableDataSet()
        .set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create()))
        .setFrom(ParserEmulationProfile.MARKDOWN)
 

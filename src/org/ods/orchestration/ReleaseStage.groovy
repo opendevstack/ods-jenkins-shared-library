@@ -14,8 +14,8 @@ class ReleaseStage extends Stage {
         super(script, project, repos)
     }
 
+    @SuppressWarnings('ParameterName')
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
 

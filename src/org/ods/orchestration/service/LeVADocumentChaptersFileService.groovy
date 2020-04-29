@@ -19,7 +19,9 @@ class LeVADocumentChaptersFileService {
 
     Map getDocumentChapterData(String documentType) {
         if (!documentType?.trim()) {
-            throw new IllegalArgumentException("Error: unable to load document chapters. 'documentType' is undefined.")
+            throw new IllegalArgumentException(
+                "Error: unable to load document chapters. 'documentType' is undefined."
+            )
         }
 
         def String yamlText
@@ -32,7 +34,9 @@ class LeVADocumentChaptersFileService {
 
         def data = [:]
         if (!yamlText) {
-            throw new RuntimeException("Error: unable to load document chapters. File 'docs/${documentType}.yaml' could not be read.")
+            throw new RuntimeException(
+                "Error: unable to load document chapters. File 'docs/${documentType}.yaml' could not be read."
+            )
         } else {
             data = new Yaml().load(yamlText) ?: [:]
         }

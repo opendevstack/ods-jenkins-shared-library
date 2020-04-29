@@ -1,18 +1,18 @@
 def call(def context) {
 
-  withStage('OWASP Dependency Check', context) {
+    withStage('OWASP Dependency Check', context) {
 
-    if (context.dependencyCheckBranch != '*' && context.dependencyCheckBranch != context.gitBranch) {
-      echo "Stage is skipped since this build is for a branch that was not specified in the dependencyCheckBranch property."
-    } else {
+        if (context.dependencyCheckBranch != '*' && context.dependencyCheckBranch != context.gitBranch) {
+            echo "Skipping as branch is not specified in 'dependencyCheckBranch'."
+        } else {
 
-      sh "dependency-check " +
-          "--project ${context.projectId}-${context.componentId} " +
-          "--scan . " +
-          "--data /mnt/owasp-dependency-check/dependency-check-data " +
-          "--format ALL"
+            sh "dependency-check " +
+                "--project ${context.projectId}-${context.componentId} " +
+                "--scan . " +
+                "--data /mnt/owasp-dependency-check/dependency-check-data " +
+                "--format ALL"
+        }
     }
-  }
 }
 
 return this

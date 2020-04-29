@@ -1,11 +1,12 @@
 import org.ods.component.IContext
 
 def call(IContext context, Map buildArgs = [:], Map imageLabels = [:]) {
-  echo "'stageStartOpenShiftbuild' has been replaced with 'odsComponentStageBuildOpenShiftImage', please use that instead."
-  odsComponentStageBuildOpenShiftImage(
-    context,
-    [buildArgs: buildArgs, imageLabels: imageLabels]
-  )
+    echo "'stageStartOpenShiftbuild' is deprecated, please use " +
+        "'odsComponentStageBuildOpenShiftImage' instead."
+    odsComponentStageBuildOpenShiftImage(
+        context,
+        [buildArgs: buildArgs, imageLabels: imageLabels]
+    )
 }
 
 return this

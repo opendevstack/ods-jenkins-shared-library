@@ -111,6 +111,12 @@ test {
 
 codenarc {
     configFile = file('codenarc.groovy')
-    ignoreFailures = true
+    maxPriority1Violations = 0
+    maxPriority2Violations = 0
+    maxPriority3Violations = 1858
     reportFormat = 'html'
+}
+
+codenarcTest {
+    ignoreFailures = true
 }

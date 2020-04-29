@@ -8,6 +8,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.SortUtil
 
+@SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof'])
 class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
 
     private JiraZephyrService zephyr

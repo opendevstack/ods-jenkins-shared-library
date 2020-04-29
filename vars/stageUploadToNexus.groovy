@@ -1,10 +1,9 @@
 import org.ods.component.IContext
 
 def call(IContext context) {
-  echo "'uploadToNexus' has been replaced with 'odsComponentStageUploadToNexus', please use that instead."
-  odsComponentStageUploadToNexus(
-    context
-  )
+    echo "'stageUploadToNexus' is deprecated, please use " +
+        "'odsComponentStageUploadToNexus' instead."
+    odsComponentStageUploadToNexus(context)
 }
 
 return this

@@ -25,7 +25,9 @@ class DocGenService {
         try {
             this.baseURL = new URIBuilder(baseURL).build()
         } catch (e) {
-            throw new IllegalArgumentException("Error: unable to connect to DocGen. '${baseURL}' is not a valid URI.").initCause(e)
+            throw new IllegalArgumentException(
+                "Error: unable to connect to DocGen. '${baseURL}' is not a valid URI."
+            ).initCause(e)
         }
     }
 
@@ -44,10 +46,12 @@ class DocGenService {
             .asString()
 
         response.ifFailure {
-            def message = "Error: unable to create document '${type} (v${version})'. DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+            def message = "Error: unable to create document '${type} (v${version})'. " +
+                "DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to create document '${type} (v${version})'. DocGen could not be found at: '${this.baseURL}'."
+                message = "Error: unable to create document '${type} (v${version})'. " +
+                    "DocGen could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)

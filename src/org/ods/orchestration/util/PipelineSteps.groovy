@@ -25,7 +25,9 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     }
 
     void echo(String message) {
-        def dateTimeString = OffsetDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss'Z'"))
+        def dateTimeString = OffsetDateTime
+            .now(ZoneOffset.UTC)
+            .format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss'Z'"))
         this.context.echo("${dateTimeString} ${message}")
     }
 

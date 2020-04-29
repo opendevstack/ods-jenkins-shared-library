@@ -9,6 +9,7 @@ import groovy.json.JsonSlurperClassic
 
 import kong.unirest.Unirest
 
+@SuppressWarnings('LineLength')
 class JiraZephyrService extends JiraService {
 
     class ExecutionStatus {

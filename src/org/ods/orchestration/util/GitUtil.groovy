@@ -34,7 +34,7 @@ class GitUtil {
             label: 'Get Git commit author'
         ).trim()
     }
-  
+
     String getCommitMessage() {
         return this.steps.sh(
             returnStdout: true,
@@ -42,7 +42,7 @@ class GitUtil {
             label: 'Get Git commit message'
         ).trim()
     }
-  
+
     String getCommitTime() {
         return this.steps.sh(
             returnStdout: true,
@@ -82,7 +82,11 @@ class GitUtil {
         )
     }
 
-    def checkout(String gitRef, def extensions, def userRemoteConfigs, boolean doGenerateSubmoduleConfigurations = false) {
+    def checkout(
+        String gitRef,
+        def extensions,
+        def userRemoteConfigs,
+        boolean doGenerateSubmoduleConfigurations = false) {
         steps.checkout([
             $class: 'GitSCM',
             branches: [[name: gitRef]],
@@ -144,11 +148,12 @@ class GitUtil {
 
     String readBaseTagList(String version, String changeId, String envToken) {
         def previousEnvToken = 'D'
-            if (envToken == 'P') {
-                previousEnvToken = 'Q'
-            }
+        if (envToken == 'P') {
+            previousEnvToken = 'Q'
+        }
+        def tagPattern = "${GitTag.ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-[0-9]*-${previousEnvToken}"
         steps.sh(
-            script: "git tag --list '${GitTag.ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-[0-9]*-${previousEnvToken}'",
+            script: "git tag --list '${tagPattern}'",
             returnStdout: true,
             label: "list tags for version ${version}-${changeId}-*-${previousEnvToken}"
         ).trim()

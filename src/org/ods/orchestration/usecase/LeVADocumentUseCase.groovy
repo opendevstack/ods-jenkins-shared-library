@@ -9,6 +9,7 @@ import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 
+@SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof', 'VariableName', 'UnusedMethodParameter', 'UnusedVariable', 'ParameterCount', 'NonFinalPublicField', 'PropertyName', 'MethodCount', 'UseCollectMany', 'ParameterName'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
@@ -401,7 +402,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         tests.collect { testIssue ->
 
             def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
-			def riskLevels = testIssue.getResolvedRisks().collect{
+            def riskLevels = testIssue.getResolvedRisks().collect{
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
             }
@@ -433,7 +434,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             test.getResolvedComponents().collect {[test: test.key, component: it.name] }
         }.flatten()
         issueComponentMapping.groupBy{ it.component }.collectEntries { c, v ->
-             [(c.replaceAll("Technology-", "")): v.collect{it.test}]
+            [(c.replaceAll("Technology-", "")): v.collect{it.test}]
         }
     }
 
@@ -766,6 +767,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    @SuppressWarnings('CyclomaticComplexity')
     String createTCR(Map repo = null, Map data = null) {
         String documentType = DocumentType.TCR as String
 
@@ -1113,9 +1115,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         
         def deploynoteData = "Components were built & deployed during installation."
         if (!repo.data.openshift?.builds || repo.data.openshift?.builds?.size() == 0) {
-           deploynoteData = "NO Components were built during installation, existing components (created in Dev) were deployed."
+            deploynoteData = "NO Components were built during installation, existing components (created in Dev) were deployed."
         }
-        
+
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
@@ -1139,7 +1141,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         
         def modifier = { document ->
             if (codeReviewReport) {
-              document = this.pdf.merge([ document, codeReviewReport])
+                document = this.pdf.merge([ document, codeReviewReport])
             }
             repo.data.documents[documentType] = document
             return document
@@ -1370,11 +1372,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
     
     boolean isArchivalRelevant (String documentType) {
-      List notArchiveDocTypes = 
-        [
-          DocumentType.TIR as String,
-          DocumentType.DTR as String
+        List notArchiveDocTypes = [
+            DocumentType.TIR as String,
+            DocumentType.DTR as String
         ]
-      return !(documentType && notArchiveDocTypes.contains(documentType))
+        return !(documentType && notArchiveDocTypes.contains(documentType))
     }
 }
