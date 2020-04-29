@@ -1,5 +1,7 @@
 package org.ods.quickstarter
 
+import com.cloudbees.groovy.cps.NonCPS
+
 interface IContext {
 
   // Value of JOB_NAME. It is the name of the project of the build.
@@ -36,4 +38,11 @@ interface IContext {
   String getGroup()
 
   String getCdUserCredentialsId()
+
+  String getNexusHost()
+
+  String getNexusUsername()
+
+  String getNexusPassword()
+
 }

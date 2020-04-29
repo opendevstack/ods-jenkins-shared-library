@@ -370,10 +370,23 @@ class Pipeline implements Serializable {
 
   private void amendProjectAndComponentFromOrigin(Map config) {
     def block = {
-      def origin = script.sh(
-        script: 'git config --get remote.origin.url',
-        returnStdout: true
-      ).trim()
+      def origin
+      try {
+        origin = script.sh(
+          script: 'git config --get remote.origin.url',
+          returnStdout: true
+        ).trim()
+      } catch (err) {
+        def jobSplitList = script.env.JOB_NAME.split("/")
+        def projectName = jobSplitList[0]
+        def bcName = jobSplitList[1].replace("${projectName}-", '')
+        origin = script.sh(
+          script: "oc -n ${projectName} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
+          returnStdout: true,
+          label : "get origin from openshift bc ${bcName}"
+        ).trim()
+      }
+      
       def splittedOrigin = origin.split('/')
       def project = splittedOrigin[splittedOrigin.size()-2]
       if (!config.projectId) {

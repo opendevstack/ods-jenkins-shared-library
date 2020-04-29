@@ -80,4 +80,18 @@ class Context implements IContext {
     config.cdUserCredentialsId
   }
 
+  @NonCPS
+  String getNexusHost() {
+    config.nexusHost
+  }
+
+  @NonCPS
+  String getNexusUsername() {
+    config.nexusUsername
+  }
+
+  @NonCPS
+  String getNexusPassword() {
+    config.nexusPassword
+  }
 }
