@@ -55,6 +55,11 @@ class Pipeline implements Serializable {
       config.buildUrl = script.env.BUILD_URL
       config.buildTime = new Date()
       config.dockerRegistry = script.env.DOCKER_REGISTRY
+
+      // get nexus params
+      config.nexusHost = script.env.NEXUS_HOST
+      config.nexusUsername = script.env.NEXUS_USERNAME
+      config.nexusPassword = script.env.NEXUS_PASSWORD
     }
 
     onAgentNode(config) { context ->
