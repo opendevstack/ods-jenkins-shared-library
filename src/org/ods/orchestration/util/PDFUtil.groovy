@@ -26,6 +26,7 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState
 import org.apache.pdfbox.util.Matrix
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 
+@SuppressWarnings(['JavaIoPackageAccess', 'LineLength'])
 class PDFUtil {
 
     @NonCPS
@@ -46,7 +47,9 @@ class PDFUtil {
         } catch (e) {
             throw new RuntimeException("Error: unable to add watermark to PDF document: ${e.message}").initCause(e)
         } finally {
-            if (doc) doc.close()
+            if (doc) {
+                doc.close()
+            }
         }
 
         return result
@@ -122,7 +125,9 @@ class PDFUtil {
         } catch (e) {
             throw new RuntimeException("Error: unable to convert Word document to PDF: ${e.message}").initCause(e)
         } finally {
-            if (doc) doc.close()
+            if (doc) {
+                doc.close()
+            }
         }
 
         return result

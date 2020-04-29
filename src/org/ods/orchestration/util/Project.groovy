@@ -12,6 +12,7 @@ import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
 
+@SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
 class Project {
 
     class JiraDataItem implements Map, Serializable {
@@ -318,12 +319,13 @@ class Project {
 
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
-                result[type] = data[type].findAll { key, issue ->
-                    issue.status != null && !issue.status.equalsIgnoreCase("done") && !issue.status.equalsIgnoreCase("cancelled")
-                }
-                .collect { key, issue ->
-                    return key
-                }
+                result[type] = data[type]
+                    .findAll { key, issue ->
+                        issue.status != null && !issue.status.equalsIgnoreCase("done") && !issue.status.equalsIgnoreCase("cancelled")
+                    }
+                    .collect { key, issue ->
+                        return key
+                    }
             }
         }
 
@@ -452,18 +454,18 @@ class Project {
 
     @NonCPS
     boolean getTargetClusterIsExternal() {
-      def isExternal = false
-      def sessionApiUrl = this.data.openshift.sessionApiUrl
-      def targetApiUrl = this.data.openshift.targetApiUrl
-      def targetApiUrlMatcher = targetApiUrl =~ /:[0-9]+$/
-      if (targetApiUrlMatcher.find()) {
-        isExternal = sessionApiUrl != targetApiUrl
-      } else {
-        def sessionApiUrlWithoutPort = sessionApiUrl.split(':').dropRight(1).join(':')
-        isExternal = sessionApiUrlWithoutPort != targetApiUrl
-      }
-      this.steps.echo("Cluster ${targetApiUrl} is external=${isExternal}")
-      isExternal
+        def isExternal = false
+        def sessionApiUrl = this.data.openshift.sessionApiUrl
+        def targetApiUrl = this.data.openshift.targetApiUrl
+        def targetApiUrlMatcher = targetApiUrl =~ /:[0-9]+$/
+        if (targetApiUrlMatcher.find()) {
+            isExternal = sessionApiUrl != targetApiUrl
+        } else {
+            def sessionApiUrlWithoutPort = sessionApiUrl.split(':').dropRight(1).join(':')
+            isExternal = sessionApiUrlWithoutPort != targetApiUrl
+        }
+        this.steps.echo("Cluster ${targetApiUrl} is external=${isExternal}")
+        isExternal
     }
 
     String getSourceEnv() {
@@ -1046,7 +1048,7 @@ class Project {
         def result = this.data.subMap(["build", "buildParams", "metadata", "git", "jira"])
 
         if (!services?.jira && capabilities?.empty) {
-          result.remove("jira")
+            result.remove("jira")
         }
 
         // Don't serialize temporarily stored document artefacts
@@ -1056,19 +1058,22 @@ class Project {
 
         return JsonOutput.prettyPrint(JsonOutput.toJson(result))
     }
-    
+
     List<String> getMainReleaseManagerEnv () {
-        def mroSharedLibVersion = 
-          this.steps.sh(script: "env | grep 'library.ods-mro-jenkins-shared-library.version' | cut -d= -f2", returnStdout: true, label: 'getting ODS shared lib version').trim()
+        def mroSharedLibVersion = this.steps.sh(
+            script: "env | grep 'library.ods-mro-jenkins-shared-library.version' | cut -d= -f2",
+            returnStdout: true,
+            label: 'getting ODS shared lib version'
+        ).trim()
         
         return [
-          "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
-          "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
-          "ods.build.rm.${getKey()}.repo.commit.msg=${gitData.message}",
-          "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
-          "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
-          "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
-          "ods.build.mro.lib.version=${mroSharedLibVersion}"
+            "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
+            "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
+            "ods.build.rm.${getKey()}.repo.commit.msg=${gitData.message}",
+            "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
+            "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
+            "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
+            "ods.build.mro.lib.version=${mroSharedLibVersion}"
         ]
     }
 }

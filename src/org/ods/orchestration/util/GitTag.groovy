@@ -7,8 +7,9 @@ class GitTag {
     private int buildNumber
     private String envToken
 
+    @SuppressWarnings('NonFinalPublicField')
     public static String ODS_GIT_TAG_BRANCH_PREFIX = "ods-generated-"
-    
+
     GitTag(String version, String changeId, int buildNumber, String envToken) {
         this.version = version
         this.changeId = changeId
@@ -34,9 +35,9 @@ class GitTag {
 
     static GitTag readLatestBaseTag(String tagList, String version, String changeId, String envToken) {
         def previousEnvToken = 'D'
-            if (envToken == 'P') {
-                previousEnvToken = 'Q'
-            }
+        if (envToken == 'P') {
+            previousEnvToken = 'Q'
+        }
         def highestBuildNumber = -1
         if (tagList) {
             def buildNumbers = tagList.split("\n").collect {

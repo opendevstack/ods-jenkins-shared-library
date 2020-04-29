@@ -33,7 +33,9 @@ class NexusService {
         try {
             this.baseURL = new URIBuilder(baseURL).build()
         } catch (e) {
-            throw new IllegalArgumentException("Error: unable to connect to Nexus. '${baseURL}' is not a valid URI.").initCause(e)
+            throw new IllegalArgumentException(
+                "Error: unable to connect to Nexus. '${baseURL}' is not a valid URI."
+            ).initCause(e)
         }
 
         this.username = username
@@ -52,12 +54,16 @@ class NexusService {
 
         response.ifSuccess {
             if (response.getStatus() != 204) {
-                throw new RuntimeException("Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+                throw new RuntimeException(
+                    "Error: unable to store artifact. " +
+                        "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+                )
             }
         }
 
         response.ifFailure {
-            def message = "Error: unable to store artifact. Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+            def message = "Error: unable to store artifact. " +
+                "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
                 message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}'."
@@ -69,7 +75,12 @@ class NexusService {
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
     }
     
-    def URI storeArtifactFromFile(String repository, String directory, String name, File artifact, String contentType) {
+    def URI storeArtifactFromFile(
+        String repository,
+        String directory,
+        String name,
+        File artifact,
+        String contentType) {
         return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
     }
 }

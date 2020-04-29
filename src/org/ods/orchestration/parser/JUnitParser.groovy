@@ -4,18 +4,25 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonBuilder
 
-// JUnit XML 5 Schema: https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd
-// Collection.find() failing in Jenkins: https://stackoverflow.com/questions/54364380/same-script-work-well-at-the-jenkins-script-console-but-not-at-the-pipline
+// JUnit XML 5 Schema:
+// https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd
+// Collection.find() failing in Jenkins:
+// https://stackoverflow.com/questions/54364380/
+// same-script-work-well-at-the-jenkins-script-console-but-not-at-the-pipline
 class JUnitParser {
     @NonCPS
     // Parse a JUnit XML <property> element
     private static def parseJUnitXMLPropertyElement(def property) {
         if (!property.@name) {
-            throw new IllegalArgumentException("Error: unable to parse JUnit XML <property> element. Required attribute 'name' is missing.")
+            throw new IllegalArgumentException(
+                "Error: unable to parse JUnit XML <property> element. Required attribute 'name' is missing."
+            )
         }
 
         if (!property.@value) {
-            throw new IllegalArgumentException("Error: unable to parse JUnit XML <property> element. Required attribute 'value' is missing.")
+            throw new IllegalArgumentException(
+                "Error: unable to parse JUnit XML <property> element. Required attribute 'value' is missing."
+            )
         }
 
         return property.attributes()
@@ -25,7 +32,9 @@ class JUnitParser {
     // Parse a JUnit XML <testcase> element
     private static def parseJUnitXMLTestCaseElement(def testcase) {
         if (testcase.@name.isEmpty()) {
-            throw new IllegalArgumentException("Error: unable to parse JUnit XML <testcase> element. Required attribute 'name' is missing.")
+            throw new IllegalArgumentException(
+                "Error: unable to parse JUnit XML <testcase> element. Required attribute 'name' is missing."
+            )
         }
 
         def result = [:]
@@ -63,11 +72,15 @@ class JUnitParser {
     // Parse a JUnit XML <testsuite> element
     private static def parseJUnitXMLTestSuiteElement(def testsuite) {
         if (testsuite.@name.isEmpty()) {
-            throw new IllegalArgumentException("Error: unable to parse JUnit XML <testsuite> element. Required attribute 'name' is missing.")
+            throw new IllegalArgumentException(
+                "Error: unable to parse JUnit XML <testsuite> element. Required attribute 'name' is missing."
+            )
         }
 
         if (testsuite.@tests.isEmpty()) {
-            throw new IllegalArgumentException("Error: unable to parse JUnit XML <testsuite> element. Required attribute 'tests' is missing.")
+            throw new IllegalArgumentException(
+                "Error: unable to parse JUnit XML <testsuite> element. Required attribute 'tests' is missing."
+            )
         }
 
         def result = [:]
@@ -129,12 +142,16 @@ class JUnitParser {
     // Parse a JUnit 4/5 XML document
     static Map parseJUnitXML(String xml) {
         if (!xml || xml.isEmpty()) {
-            throw new IllegalArgumentException("Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format.")
+            throw new IllegalArgumentException(
+                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format."
+            )
         }
 
         def root = new XmlSlurper().parseText(xml)
         if (!["testsuites", "testsuite"].contains(root.name())) {
-            throw new IllegalArgumentException("Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format.")
+            throw new IllegalArgumentException(
+                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format."
+            )
         }
 
         def result = [:]
@@ -167,8 +184,8 @@ class JUnitParser {
                 // Find all testcases that exhibit the current issue
                 testResults.testsuites.each { testsuite ->
                     testsuite.testcases.each { testcase ->
-                        def _issue = issue.findAll { it.key != "testsuites" }
-                        if (testcase[type] && testcase[type].equals(_issue)) {
+                        def i = issue.findAll { it.key != "testsuites" }
+                        if (testcase[type] && testcase[type] == i) {
                             if (!issue.containsKey("testsuites")) {
                                 issue.testsuites = []
                             }

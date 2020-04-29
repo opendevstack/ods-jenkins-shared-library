@@ -5,6 +5,7 @@ import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 
+@SuppressWarnings('LineLength')
 class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per GAMP category
@@ -133,6 +134,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
     ]
 
     // Document types per environment token and label to track with Jira
+    @SuppressWarnings('NonFinalPublicField')
     public static Map ENVIRONMENT_TYPE = [
         "D": [
             (LeVADocumentUseCase.DocumentType.CSD as String)    : ["${LeVADocumentUseCase.DocumentType.CSD}"],
@@ -245,6 +247,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         return !this.isRepositoryLevelDocument(documentType)
     }
 
+    @SuppressWarnings('UseCollectMany')
     private boolean isRepositoryLevelDocument(String documentType) {
         return this.REPSITORY_TYPES.values().collect { it.keySet() }.flatten().contains(documentType)
     }
@@ -280,7 +283,9 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
                 if (this.isDocumentApplicable(documentType, phase, stage, repo)) {
                     def message = "Creating document of type '${documentType}' for project '${this.project.key}'"
-                    if (repo) message += " and repo '${repo.id}'"
+                    if (repo) {
+                        message += " and repo '${repo.id}'"
+                    }
                     message += " in phase '${phase}' and stage '${stage}'"
                     this.steps.echo(message)
 

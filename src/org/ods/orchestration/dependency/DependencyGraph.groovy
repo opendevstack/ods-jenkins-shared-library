@@ -7,6 +7,7 @@ class DependencyGraph<T> implements Serializable {
         this.nodes = nodes
     }
 
+    @SuppressWarnings('MethodName')
     private static void _resolve(List<Node> nodes, Closure handler) {
         // Create a mapping of nodes to distinct sets of dependencies
         def Map<Node, Set> nodeDependencies = [:]
@@ -88,6 +89,7 @@ class DependencyGraph<T> implements Serializable {
         return graph
     }
 
+    @SuppressWarnings('Println')
     String toString() {
         this.nodes.each { node ->
             node.to.each { to ->

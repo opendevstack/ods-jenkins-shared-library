@@ -9,6 +9,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
 
+@SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
 
     class IssueTypes {

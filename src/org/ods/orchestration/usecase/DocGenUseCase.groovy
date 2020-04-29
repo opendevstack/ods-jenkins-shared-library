@@ -9,6 +9,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.Project
 
+@SuppressWarnings(['AbstractClassWithPublicConstructor', 'LineLength', 'ParameterCount', 'GStringAsMapKey'])
 abstract class DocGenUseCase {
 
     protected Project project
@@ -44,14 +45,17 @@ abstract class DocGenUseCase {
         def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
 
         // Create an archive with the document and raw data
+        def artifacts = [
+            "${basename}.pdf": document,
+            "raw/${basename}.json": JsonOutput.toJson(data).getBytes()
+        ]
+        artifacts << files.collectEntries { path, contents ->
+            [ path, contents ]
+        }
         def archive = this.util.createZipArtifact(
             "${basename}.zip",
-            [
-                "${basename}.pdf": document,
-                "raw/${basename}.json": JsonOutput.toJson(data).getBytes()
-            ] << files.collectEntries { path, contents ->
-                [ path, contents ]
-            }, isArchivalRelevant(documentType)
+            artifacts,
+            isArchivalRelevant(documentType)
         )
 
         // Store the archive as an artifact in Nexus
@@ -64,7 +68,9 @@ abstract class DocGenUseCase {
         )
 
         def message = "Document ${documentType}"
-        if (repo) message += " for ${repo.id}"
+        if (repo) {
+            message += " for ${repo.id}"
+        }
         message += " uploaded @ ${uri.toString()}"
         this.steps.echo message
         return uri.toString()

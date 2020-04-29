@@ -15,6 +15,7 @@ class DeployStage extends Stage {
         super(script, project, repos)
     }
 
+    @SuppressWarnings(['ParameterName', 'AbcMetric'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -48,10 +49,20 @@ class DeployStage extends Stage {
             if (agentPodCondition) {
                 script.node {
                     script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
-                    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+                    levaDocScheduler.run(
+                        phase,
+                        MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                        repo,
+                        repo.data
+                    )
                 }
             } else {
-                levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo, repo.data)
+                levaDocScheduler.run(
+                    phase,
+                    MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                    repo,
+                    repo.data
+                )
             }
         }
 
@@ -77,7 +88,10 @@ class DeployStage extends Stage {
 
                 // Check if the target environment exists in OpenShift
                 if (!os.envExists(targetProject)) {
-                    throw new RuntimeException("Error: target environment '${targetProject}' does not exist in ${project.openShiftTargetApiUrl}.")
+                    throw new RuntimeException(
+                        "Error: target environment '${targetProject}' does not exist " +
+                        "in ${project.openShiftTargetApiUrl}."
+                    )
                 }
             }
 

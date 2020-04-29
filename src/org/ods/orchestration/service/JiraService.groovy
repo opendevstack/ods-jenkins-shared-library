@@ -13,6 +13,7 @@ import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
 
+@SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
 
     URI baseURL
@@ -34,7 +35,7 @@ class JiraService {
         }
 
         if (baseURL.endsWith('/')) {
-           baseURL = baseURL.substring(0, baseURL.size() - 1)
+            baseURL = baseURL.substring(0, baseURL.size() - 1)
         }
 
         try {

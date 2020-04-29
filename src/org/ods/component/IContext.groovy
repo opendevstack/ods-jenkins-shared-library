@@ -1,5 +1,6 @@
 package org.ods.component
 
+@SuppressWarnings('MethodCount')
 interface IContext {
 
     def assemble()
@@ -16,7 +17,8 @@ interface IContext {
     // Value of BUILD_NUMBER. The current build number, such as "153".
     String getBuildNumber()
 
-    // Value of BUILD_URL. The URL where the results of the build can be found (e.g. http://buildserver/jenkins/job/MyJobName/123/)
+    // Value of BUILD_URL. The URL where the results of the build can be found
+    // E.g. http://buildserver/jenkins/job/MyJobName/123/
     String getBuildUrl()
 
     // Value of BUILD_TAG. The tag of the build as a string in the format 'jenkins-${JOB_NAME}-${BUILD_NUMBER}'

@@ -8,6 +8,7 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 
+@SuppressWarnings('AbcMetric')
 class InitStage extends Stage {
     public final String STAGE_NAME = 'Init'
     
@@ -15,6 +16,7 @@ class InitStage extends Stage {
         super(script, project, repos)
     }
 
+    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth'])
     def run() {
         def steps = new PipelineSteps(script)
         def project = new Project(steps)
@@ -43,7 +45,9 @@ class InitStage extends Stage {
                     buildParams.targetEnvironmentToken
                 )?.toString()
                 if (!baseTag) {
-                    throw new RuntimeException("Error: unable to find latest tag for version ${buildParams.version}/${buildParams.changeId}.")
+                    throw new RuntimeException(
+                        "Error: unable to find latest tag for version ${buildParams.version}/${buildParams.changeId}."
+                    )
                 }
                 steps.echo("Checkout release manager repository @ ${baseTag}")
                 checkoutGitRef(
@@ -101,7 +105,13 @@ class InitStage extends Stage {
         )
 
         if (project.services?.jira) {
-            script.withCredentials([script.usernamePassword(credentialsId: project.services.jira.credentials.id, usernameVariable: "JIRA_USERNAME", passwordVariable: "JIRA_PASSWORD")]) {
+            script.withCredentials(
+                [script.usernamePassword(
+                    credentialsId: project.services.jira.credentials.id,
+                    usernameVariable: "JIRA_USERNAME",
+                    passwordVariable: "JIRA_PASSWORD"
+                )]
+            ) {
                 registry.add(JiraService,
                     new JiraService(
                         script.env.JIRA_URL,
@@ -143,7 +153,13 @@ class InitStage extends Stage {
             }
         }
 
-        script.withCredentials([script.usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: "BITBUCKET_USER", passwordVariable: "BITBUCKET_PW")]) {
+        script.withCredentials(
+            [script.usernamePassword(
+                credentialsId: project.services.bitbucket.credentials.id,
+                usernameVariable: "BITBUCKET_USER",
+                passwordVariable: "BITBUCKET_PW"
+            )]
+        ) {
             registry.add(OpenShiftService,
                 new OpenShiftService(
                     registry.get(PipelineSteps),
@@ -163,11 +179,21 @@ class InitStage extends Stage {
             registry.get(JiraService)
         )
 
-        jiraUseCase.setSupport(
-            project.hasCapability("Zephyr")
-                ? new JiraUseCaseZephyrSupport(project, steps, jiraUseCase, registry.get(JiraZephyrService), registry.get(MROPipelineUtil))
-                : new JiraUseCaseSupport(project, steps, jiraUseCase)
-        )
+        if (project.hasCapability("Zephyr")) {
+            jiraUseCase.setSupport(
+                new JiraUseCaseZephyrSupport(
+                    project,
+                    steps,
+                    jiraUseCase,
+                    registry.get(JiraZephyrService),
+                    registry.get(MROPipelineUtil)
+                )
+            )
+        } else {
+            jiraUseCase.setSupport(
+                new JiraUseCaseSupport(project, steps, jiraUseCase)
+            )
+        }
 
         registry.add(JiraUseCase, jiraUseCase)
 
@@ -219,25 +245,37 @@ class InitStage extends Stage {
         def repos = project.repositories
 
         steps.echo "Validate that for Q and P we have a valid version"
-        if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken) && buildParams.version == "WIP") {
-            throw new RuntimeException("Error: trying to deploy to Q or P without having defined a correct version. ${buildParams.version} version value is not allowed for those environments. If you are using Jira, please check that all values are set in the release manager issue. Build parameters obtained: ${buildParams}")
+        if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
+            && buildParams.version == "WIP") {
+            throw new RuntimeException(
+                "Error: trying to deploy to Q or P without having defined a correct version. " +
+                "${buildParams.version} version value is not allowed for those environments. " +
+                "If you are using Jira, please check that all values are set in the release manager issue. " +
+                "Build parameters obtained: ${buildParams}"
+            )
         }
 
-    if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
+        if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
             if (project.buildParams.targetEnvironmentToken == 'Q') {
                 steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
             } else {
-                throw new RuntimeException("Error: tag ${project.targetTag} already exists - it cannot be deployed again to P.")
+                throw new RuntimeException(
+                    "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
+                )
             }
         }
 
         def jobMode = project.isPromotionMode ? "(promote)" : "(assemble)"
 
         steps.echo "Configure current build description"
-        script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, Project: ${project.key}, Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, Version: ${script.env.VERSION}"
+        script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
+            "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
+            "Project: ${project.key}, " +
+            "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
+            "Version: ${script.env.VERSION}"
 
         steps.echo "Checkout repositories into the workspace"
-        script.parallel(util.prepareCheckoutReposNamedJob(repos) { steps_, repo ->
+        script.parallel(util.prepareCheckoutReposNamedJob(repos) { s, repo ->
             steps.echo("Repository: ${repo}")
             steps.echo("Environment configuration: ${script.env.getEnvironment()}")
         })
@@ -265,7 +303,10 @@ class InitStage extends Stage {
                         def openshiftDir = 'openshift-exported'
                         def exportRequired = true
                         if (script.fileExists('openshift')) {
-                            steps.echo("Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'.")
+                            steps.echo(
+                                "Found 'openshift' folder, current OpenShift state " +
+                                    "will not be exported into 'openshift-exported'."
+                            )
                             openshiftDir = 'openshift'
                             exportRequired = false
                         } else {
@@ -287,7 +328,10 @@ class InitStage extends Stage {
                                 )
                             }
 
-                            steps.echo("Applying desired OpenShift state defined in ${openshiftDir} to ${project.targetProject}.")
+                            steps.echo(
+                                "Applying desired OpenShift state defined in ${openshiftDir} " +
+                                "to ${project.targetProject}."
+                            )
                             os.tailorApply(
                                 project.targetProject,
                                 componentSelector,
@@ -311,7 +355,9 @@ class InitStage extends Stage {
 
     private boolean privateKeyExists(def privateKeyCredentialsId) {
         try {
-            script.withCredentials([script.sshUserPrivateKey(credentialsId: privateKeyCredentialsId, keyFileVariable: 'PKEY_FILE')]) {
+            script.withCredentials(
+                [script.sshUserPrivateKey(credentialsId: privateKeyCredentialsId, keyFileVariable: 'PKEY_FILE')]
+            ) {
                 true
             }
         } catch (_) {

@@ -12,6 +12,7 @@ import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 import org.yaml.snakeyaml.Yaml
 
+@SuppressWarnings('JavaIoPackageAccess')
 class PipelineUtil {
 
     static final String ARTIFACTS_BASE_DIR = "artifacts"
@@ -30,11 +31,15 @@ class PipelineUtil {
 
     void archiveArtifact(String path, byte[] data) {
         if (!path?.trim()) {
-            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' is undefined.")
+            throw new IllegalArgumentException(
+                "Error: unable to archive artifact. 'path' is undefined."
+            )
         }
 
         if (!path.startsWith(this.steps.env.WORKSPACE)) {
-            throw new IllegalArgumentException("Error: unable to archive artifact. 'path' must be inside the Jenkins workspace: ${path}")
+            throw new IllegalArgumentException(
+                "Error: unable to archive artifact. 'path' must be inside the Jenkins workspace: ${path}"
+            )
         }
 
         def file = null
@@ -78,7 +83,7 @@ class PipelineUtil {
         def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
         def result = this.createZipFile(path, files)
         if (archive) {
-          this.archiveArtifact(path, result)
+            this.archiveArtifact(path, result)
         }
 
         return result

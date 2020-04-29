@@ -27,7 +27,10 @@ class Stage {
             } catch (e) {
                 // Check for random null references which occur after a Jenkins restart
                 if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
-                    e = new IllegalStateException("Error: invalid references have been detected for critical pipeline services. Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!").initCause(e)
+                    e = new IllegalStateException(
+                        "Error: invalid references have been detected for critical pipeline services. " +
+                        "Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!"
+                    ).initCause(e)
                 }
 
                 script.echo(e.message)
@@ -61,7 +64,13 @@ class Stage {
                 script.echo "MRO pod '${podLabel}' starttime: ${System.currentTimeMillis() - nodeStartTime}ms"
                 git.configureUser()
                 script.unstash("wholeWorkspace")
-                script.withCredentials([script.usernamePassword(credentialsId: project.services.bitbucket.credentials.id, usernameVariable: 'BITBUCKET_USER', passwordVariable: 'BITBUCKET_PW')]) {
+                script.withCredentials(
+                    [script.usernamePassword(
+                        credentialsId: project.services.bitbucket.credentials.id,
+                        usernameVariable: 'BITBUCKET_USER',
+                        passwordVariable: 'BITBUCKET_PW'
+                    )]
+                ) {
                     def urlWithCredentials = "https://${script.BITBUCKET_USER}:${script.BITBUCKET_PW}@${bitbucketHost}"
                     script.writeFile(file: "${script.env.HOME}/.git-credentials", text: urlWithCredentials)
                     script.sh(script: "git config --global credential.helper store", label : "setup credential helper")

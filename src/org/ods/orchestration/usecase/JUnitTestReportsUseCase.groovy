@@ -6,6 +6,7 @@ import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 
+@SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])
 class JUnitTestReportsUseCase {
 
     private Project project

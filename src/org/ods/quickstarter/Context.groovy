@@ -4,94 +4,94 @@ import com.cloudbees.groovy.cps.NonCPS
 
 class Context implements IContext {
 
-  private Map config
+    private Map config
 
-  Context(Map config) {
-    this.config = config
-  }
+    Context(Map config) {
+        this.config = config
+    }
 
-  @NonCPS
-  String getJobName() {
-    config.jobName
-  }
+    @NonCPS
+    String getJobName() {
+        config.jobName
+    }
 
-  @NonCPS
-  String getBuildNumber() {
-    config.buildNumber
-  }
+    @NonCPS
+    String getBuildNumber() {
+        config.buildNumber
+    }
 
-  @NonCPS
-  String getBuildUrl() {
-    config.buildUrl
-  }
+    @NonCPS
+    String getBuildUrl() {
+        config.buildUrl
+    }
 
-  @NonCPS
-  String getBuildTime() {
-    config.buildTime
-  }
+    @NonCPS
+    String getBuildTime() {
+        config.buildTime
+    }
 
-  @NonCPS
-  String getProjectId() {
-    config.projectId
-  }
+    @NonCPS
+    String getProjectId() {
+        config.projectId
+    }
 
-  @NonCPS
-  String getComponentId() {
-    config.componentId
-  }
+    @NonCPS
+    String getComponentId() {
+        config.componentId
+    }
 
-  @NonCPS
-  String getSourceDir() {
-    config.sourceDir
-  }
+    @NonCPS
+    String getSourceDir() {
+        config.sourceDir
+    }
 
-  @NonCPS
-  String getGitUrlHttp() {
-    config.gitUrlHttp
-  }
+    @NonCPS
+    String getGitUrlHttp() {
+        config.gitUrlHttp
+    }
 
-  @NonCPS
-  String getOdsImageTag() {
-    config.odsImageTag
-  }
+    @NonCPS
+    String getOdsImageTag() {
+        config.odsImageTag
+    }
 
-  @NonCPS
-  String getOdsGitRef() {
-    config.odsGitRef
-  }
+    @NonCPS
+    String getOdsGitRef() {
+        config.odsGitRef
+    }
 
-  @NonCPS
-  String getTargetDir() {
-    config.targetDir
-  }
+    @NonCPS
+    String getTargetDir() {
+        config.targetDir
+    }
 
-  @NonCPS
-  String getPackageName() {
-    config.packageName
-  }
+    @NonCPS
+    String getPackageName() {
+        config.packageName
+    }
 
-  @NonCPS
-  String getGroup() {
-    config.group
-  }
+    @NonCPS
+    String getGroup() {
+        config.group
+    }
 
-  @NonCPS
-  String getCdUserCredentialsId() {
-    config.cdUserCredentialsId
-  }
+    @NonCPS
+    String getCdUserCredentialsId() {
+        config.cdUserCredentialsId
+    }
 
-  @NonCPS
-  String getNexusHost() {
-    config.nexusHost
-  }
+    @NonCPS
+    String getNexusHost() {
+        config.nexusHost
+    }
 
-  @NonCPS
-  String getNexusUsername() {
-    config.nexusUsername
-  }
+    @NonCPS
+    String getNexusUsername() {
+        config.nexusUsername
+    }
 
-  @NonCPS
-  String getNexusPassword() {
-    config.nexusPassword
-  }
+    @NonCPS
+    String getNexusPassword() {
+        config.nexusPassword
+    }
 }

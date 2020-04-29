@@ -4,6 +4,7 @@ import org.ods.orchestration.service.NexusService
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 
+@SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])
 class SonarQubeUseCase {
 
     private Project project

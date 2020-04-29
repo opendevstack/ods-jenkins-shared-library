@@ -52,7 +52,7 @@ ruleset {
     WhileStatementBraces
 
     // rulesets/comments.xml
-    ClassJavadoc
+    ClassJavadoc(enabled: false) // TODO: enable
     JavadocConsecutiveEmptyLines
     JavadocEmptyAuthorTag
     JavadocEmptyExceptionTag
@@ -110,7 +110,7 @@ ruleset {
     MethodParameterTypeRequired(enabled: false)
     MethodReturnTypeRequired(enabled: false)
     NoDef(enabled: false)
-    NoJavaUtilDate
+    NoJavaUtilDate(enabled: false) // TODO: enable
     NoTabCharacter
     ParameterReassignment
     PublicMethodsBeforeNonPublicMethods
@@ -126,7 +126,7 @@ ruleset {
     AbstractClassWithoutAbstractMethod
     AssignmentToStaticFieldFromInstanceMethod
     BooleanMethodReturnsNull
-    BuilderMethodWithSideEffects
+    BuilderMethodWithSideEffects(enabled: false)
     CloneableWithoutClone
     CloseWithoutCloseable
     CompareToWithoutComparable
@@ -138,7 +138,7 @@ ruleset {
     LocaleSetDefault
     NestedForLoop
     PrivateFieldCouldBeFinal
-    PublicInstanceField
+    PublicInstanceField(enabled: false) // TODO: enable
     ReturnsNullInsteadOfEmptyArray
     ReturnsNullInsteadOfEmptyCollection
     SimpleDateFormatMissingLocale
@@ -148,8 +148,8 @@ ruleset {
     // rulesets/dry.xml
     DuplicateListLiteral
     DuplicateMapLiteral
-    DuplicateNumberLiteral
-    DuplicateStringLiteral
+    DuplicateNumberLiteral(enabled: false)
+    DuplicateStringLiteral(enabled: false)
 
     // rulesets/enhanced.xml
     CloneWithoutCloneable
@@ -160,7 +160,7 @@ ruleset {
     // rulesets/exceptions.xml
     CatchArrayIndexOutOfBoundsException
     CatchError
-    CatchException
+    CatchException(enabled: false) // TODO: Check if for Jenkins we SHOULD catch "Exception"?
     CatchIllegalMonitorStateException
     CatchIndexOutOfBoundsException
     CatchNullPointerException
@@ -176,7 +176,7 @@ ruleset {
     ThrowError
     ThrowException
     ThrowNullPointerException
-    ThrowRuntimeException
+    ThrowRuntimeException(enabled: false) // TODO: Enable
     ThrowThrowable
 
     // rulesets/formatting.xml
@@ -207,7 +207,7 @@ ruleset {
     SpaceAfterSwitch
     SpaceAfterWhile
     SpaceAroundClosureArrow
-    SpaceAroundMapEntryColon(characterBeforeColonRegex: /\\S/, characterAfterColonRegex: /\\s/)
+    SpaceAroundMapEntryColon(enabled: false) // TODO: should be enabled, but I wasn't able to configure properly
     SpaceAroundOperator
     SpaceBeforeClosingBrace
     SpaceBeforeOpeningBrace
@@ -250,7 +250,7 @@ ruleset {
     ExplicitCallToEqualsMethod
     ExplicitCallToGetAtMethod
     ExplicitCallToLeftShiftMethod
-    ExplicitCallToMinusMethod
+    ExplicitCallToMinusMethod(enabled: false) // TODO: enable
     ExplicitCallToModMethod
     ExplicitCallToMultiplyMethod
     ExplicitCallToOrMethod
@@ -266,7 +266,7 @@ ruleset {
     ExplicitStackInstantiation
     ExplicitTreeSetInstantiation
     GStringAsMapKey
-    GStringExpressionWithinString
+    GStringExpressionWithinString(enabled: false) // TODO: Could this be enabled without triggering false positives?
     GetterMethodCouldBeProperty
     GroovyLangImmutable
     UseCollectMany
@@ -329,8 +329,8 @@ ruleset {
     ClassNameSameAsFilename
     ClassNameSameAsSuperclass
     ConfusingMethodName
-    FactoryMethodName
-    FieldName
+    FactoryMethodName(enabled: false)
+    FieldName(enabled: false) // TODO: enable
     InterfaceName
     InterfaceNameSameAsSuperInterface
     MethodName
@@ -356,7 +356,7 @@ ruleset {
     EnumCustomSerializationIgnored
     SerialPersistentFields
     SerialVersionUID
-    SerializableClassMustDefineSerialVersionUID
+    SerializableClassMustDefineSerialVersionUID(enabled: false) // TODO: enable
 
     // rulesets/size.xml
     AbcMetric   // Requires the GMetrics jar
@@ -406,7 +406,7 @@ ruleset {
     UnnecessaryPackageReference
     UnnecessaryParenthesesForMethodCallWithClosure
     UnnecessaryPublicModifier
-    UnnecessaryReturnKeyword
+    UnnecessaryReturnKeyword(enabled: false)
     UnnecessarySafeNavigationOperator
     UnnecessarySelfAssignment
     UnnecessarySemicolon

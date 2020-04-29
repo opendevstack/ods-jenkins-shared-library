@@ -14,7 +14,7 @@ jobs:
               with:
                   java-version: 1.8
             - name: Build with Gradle
-              run: ./gradlew clean test
+              run: ./gradlew clean build
               env:
                   NO_NEXUS: true
             - uses: actions/cache@v1

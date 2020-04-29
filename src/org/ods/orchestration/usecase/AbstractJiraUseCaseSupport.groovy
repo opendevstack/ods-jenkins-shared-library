@@ -3,6 +3,7 @@ package org.ods.orchestration.usecase
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 
+@SuppressWarnings('AbstractClassWithPublicConstructor')
 abstract class AbstractJiraUseCaseSupport {
 
     protected Project project

@@ -15,12 +15,12 @@ class FinalizeStage extends Stage {
         super(script, project, repos)
     }
 
+    @SuppressWarnings('ParameterName')
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        def git = ServiceRegistry.instance.get(GitUtil)
 
         def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
@@ -36,7 +36,9 @@ class FinalizeStage extends Stage {
             // Check if the target environment exists in OpenShift
             def targetProject = project.targetProject
             if (!os.envExists(targetProject)) {
-                throw new RuntimeException("Error: target environment '${targetProject}' does not exist in OpenShift.")
+                throw new RuntimeException(
+                    "Error: target environment '${targetProject}' does not exist in OpenShift."
+                )
             }
         }
 
@@ -56,7 +58,8 @@ class FinalizeStage extends Stage {
         }
 
         if (project.isAssembleMode && !project.isWorkInProgress) {
-            steps.echo("!!! CAUTION: Any future changes that should affect version '${project.buildParams.version}' need to be committed into branch '${project.gitReleaseBranch}'.")
+            steps.echo("!!! CAUTION: Any future changes that should affect version '${project.buildParams.version}' " +
+                "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
