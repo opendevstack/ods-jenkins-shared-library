@@ -223,15 +223,18 @@ class OdsPipeline implements Serializable {
 
   private void notifyNotGreen() {
     if (context.notifyNotGreen) {
+      String subject = "Build $context.componentId on project $context.projectId  failed!"
+      String body = "<p>$subject</p> <p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> "
+
       script.emailext(
-          body: '${script.DEFAULT_CONTENT}', mimeType: 'text/html',
-          replyTo: '$script.DEFAULT_REPLYTO', subject: '${script.DEFAULT_SUBJECT}',
-          to: script.emailextrecipients([
-              [$class: 'CulpritsRecipientProvider'],
-              [$class: 'DevelopersRecipientProvider'],
-              [$class: 'RequesterRecipientProvider'],
-              [$class: 'UpstreamComitterRecipientProvider']
-          ])
+        body: body, mimeType: 'text/html',
+        replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
+        to: script.emailextrecipients([
+          [$class: 'CulpritsRecipientProvider'],
+          [$class: 'DevelopersRecipientProvider'],
+          [$class: 'RequesterRecipientProvider'],
+          [$class: 'UpstreamComitterRecipientProvider']
+        ])
       )
     }
   }
