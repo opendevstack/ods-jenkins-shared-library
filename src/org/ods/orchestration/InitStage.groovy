@@ -365,11 +365,11 @@ class InitStage extends Stage {
 
     private checkoutGitRef(String gitRef, def extensions) {
         script.checkout([
-            $class                           : 'GitSCM',
-            branches                         : [[name: gitRef]],
+            $class: 'GitSCM',
+            branches: [[name: gitRef]],
             doGenerateSubmoduleConfigurations: false,
-            extensions                       : extensions,
-            userRemoteConfigs                : script.scm.userRemoteConfigs
+            extensions: extensions,
+            userRemoteConfigs: script.scm.userRemoteConfigs
         ])
     }
 }

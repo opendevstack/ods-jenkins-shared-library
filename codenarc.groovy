@@ -207,7 +207,7 @@ ruleset {
     SpaceAfterSwitch
     SpaceAfterWhile
     SpaceAroundClosureArrow
-    SpaceAroundMapEntryColon(enabled: false) // TODO: should be enabled, but I wasn't able to configure properly
+    SpaceAroundMapEntryColon(priority: 2, characterAfterColonRegex: /\s/)
     SpaceAroundOperator
     SpaceBeforeClosingBrace
     SpaceBeforeOpeningBrace

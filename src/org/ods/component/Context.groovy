@@ -11,7 +11,7 @@ class Context implements IContext {
     private Map config
     private Logger logger
 
-    private def artifactUriStore = [ "builds" : [ : ], "deployments" : [ : ]]
+    private def artifactUriStore = [builds: [:], deployments: [:]]
     
     private boolean localCheckoutEnabled
 

@@ -136,10 +136,10 @@ class JiraService {
             .header("Content-Type", "application/json")
             .body(JsonOutput.toJson(
                 [
-                    type        : [
+                    type: [
                         name: linkType
                     ],
-                    inwardIssue : [
+                    inwardIssue: [
                         key: inwardIssue.key
                     ],
                     outwardIssue: [
@@ -196,12 +196,12 @@ class JiraService {
             .body(JsonOutput.toJson(
                 [
                     fields: [
-                        project    : [
+                        project: [
                             key: projectKey.toUpperCase()
                         ],
-                        summary    : summary,
+                        summary: summary,
                         description: description,
-                        issuetype  : [
+                        issuetype: [
                             name: type
                         ]
                     ]
@@ -275,7 +275,7 @@ class JiraService {
 
         return [
             contentType: response.getHeaders()["Content-Type"][0],
-            data       : response.getBody()
+            data: response.getBody()
         ]
     }
 

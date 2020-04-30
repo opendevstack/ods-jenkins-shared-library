@@ -25,17 +25,17 @@ class TestStage extends Stage {
 
         def globalData = [
             tests: [
-                acceptance  : [
+                acceptance: [
                     testReportFiles: [],
-                    testResults    : [:]
+                    testResults: [:]
                 ],
                 installation: [
                     testReportFiles: [],
-                    testResults    : [:]
+                    testResults: [:]
                 ],
-                integration : [
+                integration: [
                     testReportFiles: [],
-                    testResults    : [:]
+                    testResults: [:]
                 ]
             ]
         ]
@@ -48,9 +48,9 @@ class TestStage extends Stage {
             if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                 def data = [
                     tests: [
-                        acceptance  : getAcceptanceTestResults(steps, repo),
+                        acceptance: getAcceptanceTestResults(steps, repo),
                         installation: getInstallationTestResults(steps, repo),
-                        integration : getIntegrationTestResults(steps, repo)
+                        integration: getIntegrationTestResults(steps, repo)
                     ]
                 ]
 
@@ -146,7 +146,7 @@ class TestStage extends Stage {
             // Load JUnit test report files from path
             testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
-            testResults    : junit.parseTestReportFiles(testReportFiles)
+            testResults: junit.parseTestReportFiles(testReportFiles)
         ]
     }
 }

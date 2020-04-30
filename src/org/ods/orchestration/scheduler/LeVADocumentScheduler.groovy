@@ -5,7 +5,7 @@ import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 
-@SuppressWarnings('LineLength')
+@SuppressWarnings(['LineLength', 'SpaceAroundMapEntryColon'])
 class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per GAMP category

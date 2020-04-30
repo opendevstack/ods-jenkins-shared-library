@@ -58,11 +58,11 @@ class GitService {
 
     void checkout(String gitCommit, def userRemoteConfigs) {
         def gitParams = [
-            $class                           : 'GitSCM',
-            branches                         : [[name: gitCommit]],
+            $class: 'GitSCM',
+            branches: [[name: gitCommit]],
             doGenerateSubmoduleConfigurations: false,
-            submoduleCfg                     : [],
-            userRemoteConfigs                : userRemoteConfigs
+            submoduleCfg: [],
+            userRemoteConfigs: userRemoteConfigs
         ]
         if (isSlaveNodeGitLfsEnabled()) {
             gitParams.extensions = [

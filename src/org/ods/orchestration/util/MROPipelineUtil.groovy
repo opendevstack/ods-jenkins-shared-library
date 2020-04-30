@@ -149,7 +149,7 @@ class MROPipelineUtil extends PipelineUtil {
                 }
                 
                 List imagesFromOtherProjectsFail = []
-                Map odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [ : ]
+                Map odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [:]
                 odsBuiltDeploymentInformation.each {odsBuildDeployment, odsBuildDeploymentInfo ->
                     odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
                         String owningProject = os.getImageInformationFromImageUrl(containerImage).imageStreamProject
@@ -225,7 +225,7 @@ class MROPipelineUtil extends PipelineUtil {
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             
             def sourceProject = "${this.project.key}-${Project.getConcreteEnvironment(this.project.sourceEnv, this.project.buildParams.version, this.project.versionedDevEnvsEnabled)}"
-            repo.data["openshift"] = [ "deployments" : [ : ]]
+            repo.data["openshift"] = [deployments: [:]]
             deployments.each { deploymentName, deployment -> 
                 deployment.containers?.each {containerName, imageRaw ->
                     // skip excluded images from defined image streams!
@@ -271,7 +271,7 @@ class MROPipelineUtil extends PipelineUtil {
                     }
                 }
                 def pod = os.getPodDataForDeployment(deploymentName, latestVersion)
-                repo.data.openshift.deployments << ["${deploymentName}" : pod]
+                repo.data.openshift.deployments << ["${deploymentName}": pod]
             }
             tagAndPush(this.project.targetTag)
         }

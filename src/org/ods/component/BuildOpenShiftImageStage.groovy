@@ -55,9 +55,12 @@ class BuildOpenShiftImageStage extends Stage {
         def imageReference = getImageReference()
         script.echo "Build #${lastVersion} has produced image: ${imageReference}."
 
-        context.addBuildToArtifactURIs (componentId, [ "buildId" : buildId, "image" : imageReference ])
+        context.addBuildToArtifactURIs(
+            componentId,
+            [buildId: buildId, image: imageReference]
+        )
 
-        return ["buildId" : buildId, "image" : imageReference]
+        return [buildId: buildId, image: imageReference]
     }
 
     private String getImageReference() {

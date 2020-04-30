@@ -27,7 +27,7 @@ class BuildStage extends Stage {
             tests: [
                 unit: [
                     testReportFiles: [],
-                    testResults    : [:]
+                    testResults: [:]
                 ]
             ]
         ]
@@ -108,7 +108,7 @@ class BuildStage extends Stage {
             // Load JUnit test report files from path
             testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
-            testResults    : junit.parseTestReportFiles(testReportFiles)
+            testResults: junit.parseTestReportFiles(testReportFiles)
         ]
     }
 }
