@@ -1,6 +1,4 @@
 
-import hudson.Functions
-
 import java.nio.file.Paths
 
 @Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
