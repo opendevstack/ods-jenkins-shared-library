@@ -3,12 +3,10 @@ package org.ods.orchestration.util
 import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurperClassic
 
 import java.nio.file.Paths
 
 import org.apache.http.client.utils.URIBuilder
-import org.ods.orchestration.service.JiraService
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
 

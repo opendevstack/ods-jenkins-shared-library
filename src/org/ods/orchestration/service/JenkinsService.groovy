@@ -1,14 +1,7 @@
 package org.ods.orchestration.service
 
-import hudson.model.Action
-import hudson.model.Result
-
 import java.io.StringWriter
 
-import org.jenkinsci.plugins.workflow.actions.LabelAction
-import org.jenkinsci.plugins.workflow.actions.WarningAction
-import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode
-import org.jenkinsci.plugins.workflow.graph.FlowNode
 import org.ods.orchestration.util.IPipelineSteps
 
 // courtesy https://stackoverflow.com/questions/36502945/access-stage-name-during-the-build-in-jenkins-pipeline

@@ -10,7 +10,6 @@ import net.lingala.zip4j.model.ZipParameters
 
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
-import org.yaml.snakeyaml.Yaml
 
 @SuppressWarnings('JavaIoPackageAccess')
 class PipelineUtil {

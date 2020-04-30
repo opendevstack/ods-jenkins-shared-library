@@ -279,7 +279,7 @@ ruleset {
     MisorderedStaticImports
     NoWildcardImports
     UnnecessaryGroovyImport
-    UnusedImport
+    UnusedImport(priority: 1)
 
     // rulesets/jdbc.xml
     DirectConnectionManagement

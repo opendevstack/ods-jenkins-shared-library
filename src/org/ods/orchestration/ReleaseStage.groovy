@@ -1,7 +1,5 @@
 package org.ods.orchestration
 
-import hudson.Functions
-
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*

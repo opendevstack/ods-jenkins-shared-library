@@ -1,10 +1,7 @@
 package org.ods.orchestration.usecase
 
-import groovy.json.JsonOutput
-
 import java.time.LocalDateTime
 
-import org.apache.commons.io.FilenameUtils
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*

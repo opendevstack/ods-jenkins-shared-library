@@ -4,8 +4,6 @@ package org.ods.orchestration.util
 
 import groovy.transform.InheritConstructors
 
-import hudson.Functions
-
 import java.nio.file.Paths
 
 import org.ods.orchestration.dependency.DependencyGraph

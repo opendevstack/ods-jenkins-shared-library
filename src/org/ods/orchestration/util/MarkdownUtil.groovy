@@ -5,9 +5,6 @@ package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
 
-import java.nio.file.Files
-
-import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.parser.ParserEmulationProfile
