@@ -124,12 +124,12 @@ class JiraUseCase {
 
             // Create a JiraDataItem from the newly created bug
             def bugJiraDataItem = new JiraDataItem(project, [ // add project reference for access to Project.JiraDataItem
-              key     : bug.key,
-              name    : failure.type,
+              key: bug.key,
+              name: failure.type,
               assignee: "Unassigned",
-              dueDate : "",
-              status  : "TO DO",
-              tests   : bugAffectedTestIssues.keySet() as List
+              dueDate: "",
+              status: "TO DO",
+              tests: bugAffectedTestIssues.keySet() as List
             ], Project.JiraDataItem.TYPE_BUGS)
 
             // Add JiraDataItem into the Jira data structure
@@ -149,7 +149,7 @@ class JiraUseCase {
         def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
 
         def jqlQuery = [
-            jql   : "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
+            jql: "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
             expand: ["names", "renderedFields"]
         ]
 
@@ -183,7 +183,7 @@ class JiraUseCase {
             return [
                 "sec${number.replaceAll(/\./, "s")}".toString(),
                 [
-                    number : number,
+                    number: number,
                     heading: issue.fields.summary,
                     content: content?.replaceAll("\u00a0", " ") ?: "",
                     status: issue.fields.status.name,
@@ -199,7 +199,7 @@ class JiraUseCase {
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
         def result = [
-            matched  : [:],
+            matched: [:],
             unmatched: []
         ]
 

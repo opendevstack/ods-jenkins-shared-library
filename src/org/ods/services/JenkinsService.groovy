@@ -14,9 +14,9 @@ class JenkinsService {
     }
     
     def stashTestResults(String customXunitResultsDir, String stashNamePostFix = "stash") {
-        def contextresultMap = [ : ] 
+        def contextresultMap = [:]
         customXunitResultsDir = customXunitResultsDir?.trim()?.length() > 0 ? 
-            customXunitResultsDir : "build/test-results/test"
+            customXunitResultsDir: "build/test-results/test"
         
         logger.info "Stashing testResults from location: '${customXunitResultsDir}'"
         script.sh(
@@ -41,7 +41,7 @@ class JenkinsService {
         if (foundTests.toInteger() > 0) {
             script.junit(
                 testResults: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml",
-                allowEmptyResults : true
+                allowEmptyResults: true
             )
 
             def testStashPath = "test-reports-junit-xml-${stashNamePostFix}"

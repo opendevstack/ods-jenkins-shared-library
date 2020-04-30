@@ -218,7 +218,7 @@ class Project {
         this.config = config
 
         this.data.build = [
-            hasFailingTests       : false,
+            hasFailingTests: false,
             hasUnexecutedJiraTests: false
         ]
     }
@@ -756,13 +756,13 @@ class Project {
         def changeDescription = steps.env.changeDescription?.trim() ?: "UNDEFINED"
 
         return [
-            changeDescription            : changeDescription,
-            changeId                     : changeId,
-            configItem                   : configItem,
-            releaseStatusJiraIssueKey    : releaseStatusJiraIssueKey,
-            targetEnvironment            : targetEnvironment,
-            targetEnvironmentToken       : targetEnvironmentToken,
-            version                      : version
+            changeDescription: changeDescription,
+            changeId: changeId,
+            configItem: configItem,
+            releaseStatusJiraIssueKey: releaseStatusJiraIssueKey,
+            targetEnvironment: targetEnvironment,
+            targetEnvironmentToken: targetEnvironmentToken,
+            version: version
         ]
     }
 
@@ -810,11 +810,11 @@ class Project {
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
         return jiraBugs.collectEntries { jiraBug ->
             def bug = [
-                key      : jiraBug.key,
-                name     : jiraBug.fields.summary,
-                assignee : jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
-                dueDate  : "", // TODO: currently unsupported for not being enabled on a Bug issue
-                status   : jiraBug.fields.status.name
+                key: jiraBug.key,
+                name: jiraBug.fields.summary,
+                assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
+                dueDate: "", // TODO: currently unsupported for not being enabled on a Bug issue
+                status: jiraBug.fields.status.name
             ]
 
             def testKeys = []
@@ -862,11 +862,11 @@ class Project {
             [
                 jiraIssue.key,
                 [
-                    key        : jiraIssue.key,
-                    name       : jiraIssue.fields.summary,
+                    key: jiraIssue.key,
+                    name: jiraIssue.fields.summary,
                     description: jiraIssue.fields.description,
-                    status     : jiraIssue.fields.status.name,
-                    labels     : jiraIssue.fields.labels
+                    status: jiraIssue.fields.status.name,
+                    labels: jiraIssue.fields.labels
                 ]
             ]
         }
@@ -881,9 +881,9 @@ class Project {
             [
                 jiraIssueType.name,
                 [
-                    id     : jiraIssueType.id,
-                    name   : jiraIssueType.name,
-                    fields : this.jiraUseCase.jira.getIssueTypeMetadata(this.jiraProjectKey, jiraIssueType.id).values.collectEntries { value ->
+                    id: jiraIssueType.id,
+                    name: jiraIssueType.name,
+                    fields: this.jiraUseCase.jira.getIssueTypeMetadata(this.jiraProjectKey, jiraIssueType.id).values.collectEntries { value ->
                         [
                             value.name,
                             [

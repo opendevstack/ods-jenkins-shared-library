@@ -6,7 +6,7 @@ import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 
-@SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof', 'VariableName', 'UnusedMethodParameter', 'UnusedVariable', 'ParameterCount', 'NonFinalPublicField', 'PropertyName', 'MethodCount', 'UseCollectMany', 'ParameterName'])
+@SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof', 'VariableName', 'UnusedMethodParameter', 'UnusedVariable', 'ParameterCount', 'NonFinalPublicField', 'PropertyName', 'MethodCount', 'UseCollectMany', 'ParameterName', 'SpaceAroundMapEntryColon'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {

@@ -72,8 +72,14 @@ class Stage {
                     )]
                 ) {
                     def urlWithCredentials = "https://${script.BITBUCKET_USER}:${script.BITBUCKET_PW}@${bitbucketHost}"
-                    script.writeFile(file: "${script.env.HOME}/.git-credentials", text: urlWithCredentials)
-                    script.sh(script: "git config --global credential.helper store", label : "setup credential helper")
+                    script.writeFile(
+                        file: "${script.env.HOME}/.git-credentials",
+                        text: urlWithCredentials
+                    )
+                    script.sh(
+                        script: "git config --global credential.helper store",
+                        label: "setup credential helper"
+                    )
                 }
                 block()
             }

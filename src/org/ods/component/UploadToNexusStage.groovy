@@ -26,8 +26,8 @@ class UploadToNexusStage extends Stage {
 
         def user = "${context.nexusUsername}:${context.nexusPassword}"
         script.sh (
-            script : "curl -u ${user} --upload-file ${distFile} ${uploadPath}",
-            label : "Uploading ${distFile} to Nexus"
+            script: "curl -u ${user} --upload-file ${distFile} ${uploadPath}",
+            label: "Uploading ${distFile} to Nexus"
         )
 
         return uploadPath

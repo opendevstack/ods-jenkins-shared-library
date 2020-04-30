@@ -405,7 +405,7 @@ class Pipeline implements Serializable {
                 origin = script.sh(
                     script: "oc -n ${projectName} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
                     returnStdout: true,
-                    label : "get origin from openshift bc ${bcName}"
+                    label: "get origin from openshift bc ${bcName}"
                 ).trim()
             }
             

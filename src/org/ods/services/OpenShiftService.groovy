@@ -225,7 +225,7 @@ class OpenShiftService {
         def podOCData = j.items[0]
 
         // strip all data not needed out
-        def pod = [ : ]
+        def pod = [:]
         pod.podName = podOCData?.metadata?.name?: "N/A"
         pod.podNamespace = podOCData?.metadata?.namespace?: "N/A"
         pod.podMetaDataCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
@@ -234,7 +234,7 @@ class OpenShiftService {
         pod.podIp = podOCData?.status?.podIP ?: "N/A"
         pod.podStatus = podOCData?.status?.phase ?: "N/A"
         pod.podStartupTimeStamp = podOCData?.status?.startTime ?: "N/A"
-        pod["containers"] = [ : ]
+        pod["containers"] = [:]
         
         podOCData?.spec?.containers?.each { container ->
             pod.containers[container.name] = container.image
@@ -246,21 +246,26 @@ class OpenShiftService {
         def routeName = "test-route-" + System.currentTimeMillis()
         script.sh (
             script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
-            label : "create dummy route for extraction (${routeName})"
+            label: "create dummy route for extraction (${routeName})"
         )
-        def routeUrl = script.sh (script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
-          returnStdout : true, label : "get cluster route domain")
+        def routeUrl = script.sh (
+            script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
+            returnStdout: true,
+            label: "get cluster route domain"
+        )
         def routePrefixLength = "${routeName}-${project}".length() + 1
         String openShiftPublicHost = routeUrl.substring(routePrefixLength)
-        script.sh (script: "oc -n ${project} delete route ${routeName} | true",
-          label : "delete dummy route for extraction (${routeName})")
+        script.sh (
+            script: "oc -n ${project} delete route ${routeName} | true",
+            label: "delete dummy route for extraction (${routeName})"
+        )
         
         return openShiftPublicHost
     }
 
     Map<String, String> getImageInformationFromImageUrl (String url) {
         script.echo ("Deciphering imageURL ${url} into pieces")
-        def imageInformation = [ : ]
+        def imageInformation = [:]
         List <String> imagePath
         if (url?.contains("@")) {
             List <String> imageStreamDefinition = (url.split ("@"))
@@ -282,8 +287,8 @@ class OpenShiftService {
     List<Map<String, String>> getImageStreamsForDeploymentConfig (String dc) {
         String imageString = script.sh (
             script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
-            label : "Get container images for deploymentconfigs (${dc})",
-            returnStdout : true
+            label: "Get container images for deploymentconfigs (${dc})",
+            returnStdout: true
         )
         List images = []
         imageString.tokenize(" ").each { image ->
