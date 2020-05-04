@@ -12,7 +12,7 @@ class Context implements IContext {
     private Logger logger
 
     private def artifactUriStore = [builds: [:], deployments: [:]]
-    
+
     private boolean localCheckoutEnabled
 
     Context(def script, Map config, Logger logger, boolean localCheckoutEnabled = true) {
@@ -28,7 +28,7 @@ class Context implements IContext {
         // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
         // if the repository should not be deployed to OpenShift at all.
         if (!config.containsKey('branchToEnvironmentMapping')) {
-            logger.error "Param 'branchToEnvironmentMapping' is required"
+            throw new IllegalArgumentException("Param 'branchToEnvironmentMapping' is required")
         }
 
         logger.debug "Collecting environment variables ..."
@@ -62,28 +62,28 @@ class Context implements IContext {
 
         logger.debug "Validating environment variables ..."
         if (!config.jobName) {
-            logger.error 'JOB_NAME is required, but not set (usually provided by Jenkins)'
+            throw new IllegalArgumentException('JOB_NAME is required, but not set (usually provided by Jenkins)')
         }
         if (!config.buildNumber) {
-            logger.error 'BUILD_NUMBER is required, but not set (usually provided by Jenkins)'
+            throw new IllegalArgumentException('BUILD_NUMBER is required, but not set (usually provided by Jenkins)')
         }
         if (!config.buildTag) {
-            logger.error 'BUILD_TAG is required, but not set (usually provided by Jenkins)'
+            throw new IllegalArgumentException('BUILD_TAG is required, but not set (usually provided by Jenkins)')
         }
         if (!config.nexusHost) {
-            logger.error 'NEXUS_HOST is required, but not set'
+            throw new IllegalArgumentException('NEXUS_HOST is required, but not set')
         }
         if (!config.nexusUsername) {
-            logger.error 'NEXUS_USERNAME is required, but not set'
+            throw new IllegalArgumentException('NEXUS_USERNAME is required, but not set')
         }
         if (!config.nexusPassword) {
-            logger.error 'NEXUS_PASSWORD is required, but not set'
+            throw new IllegalArgumentException('NEXUS_PASSWORD is required, but not set')
         }
         if (!config.openshiftHost) {
-            logger.error 'OPENSHIFT_API_URL is required, but not set'
+            throw new IllegalArgumentException('OPENSHIFT_API_URL is required, but not set')
         }
         if (!config.bitbucketUrl) {
-            logger.error 'BITBUCKET_URL is required, but not set'
+            throw new IllegalArgumentException('BITBUCKET_URL is required, but not set')
         }
         if (!config.buildUrl) {
             logger.info 'BUILD_URL is required to set a proper build status in ' +
@@ -565,7 +565,7 @@ class Context implements IContext {
     public Map<String, Object> getBuildArtifactURIs() {
         return artifactUriStore.asImmutable()
     }
-    
+
     public void addArtifactURI(String key, value) {
         artifactUriStore.put(key, value)
     }
@@ -573,7 +573,7 @@ class Context implements IContext {
     public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
         artifactUriStore.builds [buildConfigName] = buildInformation
     }
-    
+
     public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
         artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
     }
@@ -608,7 +608,7 @@ class Context implements IContext {
             kvMap
         }
     }
-    
+
     // set the application domain
     void setOpenshiftApplicationDomain (String domain) {
         config.domain = domain

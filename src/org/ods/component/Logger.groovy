@@ -20,8 +20,4 @@ class Logger implements ILogger {
         script.echo message
     }
 
-    void error(String message) {
-        script.error message
-    }
-
 }
