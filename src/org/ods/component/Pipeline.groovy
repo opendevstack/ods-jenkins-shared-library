@@ -90,7 +90,7 @@ class Pipeline implements Serializable {
                         bitbucketService = registry.get(BitbucketService)
 
                         registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
-                        
+
                         registry.add(JenkinsService, new JenkinsService(script, logger))
                         jenkinsService = registry.get(JenkinsService)
                     }
@@ -103,7 +103,7 @@ class Pipeline implements Serializable {
                     } else {
                         context.setOpenshiftApplicationDomain (
                             ServiceRegistry.instance.get(OpenShiftService).getOpenshiftApplicationDomain())
-                
+
                         def autoCloneEnabled = !!context.cloneSourceEnv
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
@@ -234,12 +234,12 @@ class Pipeline implements Serializable {
         if (!this.bitbucketNotificationEnabled) {
             return
         }
-        if (!context.jobName || !context.tagversion || !context.buildUrl || !context.gitCommit) {
+        if (!context.buildUrl || !context.gitCommit) {
             logger.info "Cannot set Bitbucket build status to '${state}' because required data is missing!"
             return
         }
 
-        def buildName = "${context.jobName}-${context.tagversion}"
+        def buildName = "${context.gitCommit.take(8)}"
         bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
     }
 
@@ -408,7 +408,7 @@ class Pipeline implements Serializable {
                     label: "get origin from openshift bc ${bcName}"
                 ).trim()
             }
-            
+
             def splittedOrigin = origin.split('/')
             def project = splittedOrigin[splittedOrigin.size()-2]
             if (!config.projectId) {
