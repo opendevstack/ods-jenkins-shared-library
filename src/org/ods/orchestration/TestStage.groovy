@@ -8,7 +8,7 @@ import org.ods.orchestration.util.*
 
 class TestStage extends Stage {
     public final String STAGE_NAME = 'Test'
-    
+
     TestStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }
@@ -54,27 +54,20 @@ class TestStage extends Stage {
                     ]
                 ]
 
-                project.repositories.each { repo_ ->
-                    if (repo_.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                        jira.reportTestResultsForComponent(
-                            "Technology-${repo_.id}",
-                            [Project.TestType.INSTALLATION],
-                            data.tests.installation.testResults
-                        )
+                jira.reportTestResultsForProject(
+                    [Project.TestType.INSTALLATION],
+                    data.tests.installation.testResults
+                )
 
-                        jira.reportTestResultsForComponent(
-                            "Technology-${repo_.id}",
-                            [Project.TestType.INTEGRATION],
-                            data.tests.integration.testResults
-                        )
+                jira.reportTestResultsForProject(
+                    [Project.TestType.INTEGRATION],
+                    data.tests.integration.testResults
+                )
 
-                        jira.reportTestResultsForComponent(
-                            "Technology-${repo_.id}",
-                            [Project.TestType.ACCEPTANCE],
-                            data.tests.acceptance.testResults
-                        )
-                    }
-                }
+                jira.reportTestResultsForProject(
+                    [Project.TestType.ACCEPTANCE],
+                    data.tests.acceptance.testResults
+                )
 
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 

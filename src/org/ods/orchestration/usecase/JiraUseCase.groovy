@@ -226,11 +226,11 @@ class JiraUseCase {
         }
     }
 
-    void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
+    void reportTestResultsForComponent(String componentName = null, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
         steps.echo("Reporting unit test results to corresponding test cases in Jira for ${componentName} /type: ${testTypes}\rresults: ${testResults}")
-        
+
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
@@ -250,6 +250,11 @@ class JiraUseCase {
             def failures = JUnitParser.Helper.getFailures(testResults)
             this.createBugsForFailedTestIssues(testIssues, failures, this.steps.env.RUN_DISPLAY_URL)
         }
+    }
+
+    void reportTestResultsForProject(List<String> testTypes, Map testResults) {
+        // No componentName passed to method to get all automated issues from project
+        this.reportTestResultsForComponent(null, testTypes, testResults)
     }
 
     void updateJiraReleaseStatusBuildNumber() {
