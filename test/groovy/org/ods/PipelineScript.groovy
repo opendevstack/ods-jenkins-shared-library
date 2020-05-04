@@ -7,6 +7,12 @@ class PipelineScript {
             'BUILD_ID'   : 15,
             'BRANCH_NAME': 'PR-10',
             'JOB_NAME': 'foo-cd/foo-cd-JOB-10',
+            'BUILD_NUMBER': '1',
+            'BUILD_TAG': 'foo',
+            'NEXUS_HOST': 'https//nexus.example.com',
+            'NEXUS_USERNAME': 'foo',
+            'NEXUS_PASSWORD': 'bar',
+            'OPENSHIFT_API_URL': 'https://api.openshift.example.com',
             'BITBUCKET_HOST': 'bitbucket.example.com',
             "getEnvironment" : { [ : ] }
     ]

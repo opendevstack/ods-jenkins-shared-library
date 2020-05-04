@@ -53,10 +53,10 @@ class Pipeline implements Serializable {
             amendProjectAndComponentFromOrigin(config)
         }
         if (!config.projectId) {
-            logger.error "Param 'projectId' is required"
+            script.error "Param 'projectId' is required"
         }
         if (!config.componentId) {
-            logger.error "Param 'componentId' is required"
+            script.error "Param 'componentId' is required"
         }
 
         prepareAgentPodConfig(config)
@@ -302,7 +302,7 @@ class Pipeline implements Serializable {
             }
 
             if (openShiftService.tooManyEnvironments(context.projectId, context.environmentLimit)) {
-                logger.error "Cannot create OC project " +
+                script.error "Cannot create OC project " +
                     "as there are already ${context.environmentLimit} OC projects! " +
                     "Please clean up and run the pipeline again."
             }
@@ -363,7 +363,7 @@ class Pipeline implements Serializable {
 
     private def prepareAgentPodConfig(Map config) {
         if (!config.image && !config.imageStreamTag && !config.podContainers) {
-            logger.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
+            script.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
         }
         if (!config.podVolumes) {
             config.podVolumes = []
@@ -416,7 +416,7 @@ class Pipeline implements Serializable {
                     label: "get origin from openshift bc ${bcName}"
                 ).trim()
             }
-            
+
             def splittedOrigin = origin.split('/')
             def project = splittedOrigin[splittedOrigin.size()-2]
             if (!config.projectId) {
