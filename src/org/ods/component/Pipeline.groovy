@@ -79,7 +79,7 @@ class Pipeline implements Serializable {
                         def registry = ServiceRegistry.instance
 
                         registry.add(GitService, new GitService(script))
-                        gitService = registry.get(GitService)
+                        this.gitService = registry.get(GitService)
 
                         registry.add(BitbucketService, new BitbucketService(
                             script,
@@ -87,12 +87,16 @@ class Pipeline implements Serializable {
                             context.projectId,
                             context.credentialsId
                         ))
-                        bitbucketService = registry.get(BitbucketService)
+                        this.bitbucketService = registry.get(BitbucketService)
 
-                        registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
-                        
+                        registry.add(OpenShiftService, new OpenShiftService(
+                            script,
+                            context.targetProject
+                        ))
+                        this.openShiftService = registry.get(OpenShiftService)
+
                         registry.add(JenkinsService, new JenkinsService(script, logger))
-                        jenkinsService = registry.get(JenkinsService)
+                        this.jenkinsService = registry.get(JenkinsService)
                     }
 
                     skipCi = isCiSkip()
@@ -100,10 +104,14 @@ class Pipeline implements Serializable {
                         logger.info 'Skipping build due to [ci skip] in the commit message ...'
                         updateBuildStatus('NOT_BUILT')
                         setBitbucketBuildStatus('SUCCESSFUL')
-                    } else {
-                        context.setOpenshiftApplicationDomain (
-                            ServiceRegistry.instance.get(OpenShiftService).getOpenshiftApplicationDomain())
-                
+                        return
+                    }
+
+                    if (context.environment) {
+                        context.setOpenshiftApplicationDomain(
+                            openShiftService.getOpenshiftApplicationDomain()
+                        )
+
                         def autoCloneEnabled = !!context.cloneSourceEnv
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
