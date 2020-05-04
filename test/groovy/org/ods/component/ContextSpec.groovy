@@ -15,15 +15,15 @@ class ContextSpec extends Specification {
     def "Gitflow: when branch is #branch and existingEnv is #existingEnv expectedEnv should be #expectedEnv"(branch, existingEnv, expectedEnv) {
         given:
         def config = [
-                projectId                             : 'foo',
-                branchToEnvironmentMapping            : [
-                        'master'  : 'prod',
-                        'develop' : 'dev',
-                        'release/': 'rel',
-                        'hotfix/' : 'hotfix',
-                        '*'       : 'preview'
-                ],
-                autoCloneEnvironmentsFromSourceMapping: [:]
+            projectId                             : 'foo',
+            branchToEnvironmentMapping            : [
+                'master'  : 'prod',
+                'develop' : 'dev',
+                'release/': 'rel',
+                'hotfix/' : 'hotfix',
+                '*'       : 'preview'
+            ],
+            autoCloneEnvironmentsFromSourceMapping: [:]
         ]
 
         when:
@@ -49,14 +49,14 @@ class ContextSpec extends Specification {
 
         given:
         def config = [
-                projectId                             : 'foo',
-                branchToEnvironmentMapping            : [
-                        'master': 'prod',
-                        '*'     : 'preview'
-                ],
-                autoCloneEnvironmentsFromSourceMapping: [
-                        'preview': 'prod'
-                ]
+            projectId                             : 'foo',
+            branchToEnvironmentMapping            : [
+                'master': 'prod',
+                '*'     : 'preview'
+            ],
+            autoCloneEnvironmentsFromSourceMapping: [
+                'preview': 'prod'
+            ]
         ]
 
         when:
@@ -77,15 +77,15 @@ class ContextSpec extends Specification {
 
         given:
         def config = [
-                projectId                             : 'foo',
-                branchToEnvironmentMapping            : [
-                        'master'     : 'prod',
-                        'develop'    : 'dev',
-                        'integration': 'int'
-                ],
-                autoCloneEnvironmentsFromSourceMapping: [
-                        'int': 'dev'
-                ]
+            projectId                             : 'foo',
+            branchToEnvironmentMapping            : [
+                'master'     : 'prod',
+                'develop'    : 'dev',
+                'integration': 'int'
+            ],
+            autoCloneEnvironmentsFromSourceMapping: [
+                'int': 'dev'
+            ]
         ]
 
         when:
@@ -106,19 +106,19 @@ class ContextSpec extends Specification {
 
         given:
         def config = [
-                projectId                             : 'foo',
-                branchToEnvironmentMapping            : [
-                        'master'  : 'prod',
-                        'develop' : 'dev',
-                        'release/': 'rel',
-                        'hotfix/' : 'hotfix',
-                        '*'       : 'preview'
-                ],
-                autoCloneEnvironmentsFromSourceMapping: [
-                        'rel'    : 'dev',
-                        'hotfix' : 'prod',
-                        'preview': 'dev'
-                ]
+            projectId                             : 'foo',
+            branchToEnvironmentMapping            : [
+                'master'  : 'prod',
+                'develop' : 'dev',
+                'release/': 'rel',
+                'hotfix/' : 'hotfix',
+                '*'       : 'preview'
+            ],
+            autoCloneEnvironmentsFromSourceMapping: [
+                'rel'    : 'dev',
+                'hotfix' : 'prod',
+                'preview': 'dev'
+            ]
         ]
 
         when:
@@ -156,9 +156,9 @@ class ContextSpec extends Specification {
     def testCloneProjectScriptUrlsDefault() {
         when:
         def m = getCloneProjectScriptUrls([
-                podContainers: [],
-                jobName      : 'test-job-name',
-                environment  : 'foo-dev',
+            podContainers: [],
+            branchToEnvironmentMapping: [:],
+            environment: 'foo-dev',
         ])
 
         then:
@@ -172,9 +172,10 @@ class ContextSpec extends Specification {
 
         when:
         def m = getCloneProjectScriptUrls([
-                podContainers           : [],
-                environment             : 'foo-dev',
-                cloneProjectScriptBranch: 'fix/gh318-test',
+            podContainers: [],
+            branchToEnvironmentMapping: [:],
+            environment: 'foo-dev',
+            cloneProjectScriptBranch: 'fix/gh318-test',
         ])
 
         then:

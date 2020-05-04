@@ -53,10 +53,10 @@ class Pipeline implements Serializable {
             amendProjectAndComponentFromOrigin(config)
         }
         if (!config.projectId) {
-            logger.error "Param 'projectId' is required"
+            script.error "Param 'projectId' is required"
         }
         if (!config.componentId) {
-            logger.error "Param 'componentId' is required"
+            script.error "Param 'componentId' is required"
         }
 
         prepareAgentPodConfig(config)
@@ -79,7 +79,7 @@ class Pipeline implements Serializable {
                         def registry = ServiceRegistry.instance
 
                         registry.add(GitService, new GitService(script))
-                        gitService = registry.get(GitService)
+                        this.gitService = registry.get(GitService)
 
                         registry.add(BitbucketService, new BitbucketService(
                             script,
@@ -87,12 +87,16 @@ class Pipeline implements Serializable {
                             context.projectId,
                             context.credentialsId
                         ))
-                        bitbucketService = registry.get(BitbucketService)
+                        this.bitbucketService = registry.get(BitbucketService)
 
-                        registry.add(OpenShiftService, new OpenShiftService(script, context.targetProject))
+                        registry.add(OpenShiftService, new OpenShiftService(
+                            script,
+                            context.targetProject
+                        ))
+                        this.openShiftService = registry.get(OpenShiftService)
 
                         registry.add(JenkinsService, new JenkinsService(script, logger))
-                        jenkinsService = registry.get(JenkinsService)
+                        this.jenkinsService = registry.get(JenkinsService)
                     }
 
                     skipCi = isCiSkip()
@@ -100,9 +104,13 @@ class Pipeline implements Serializable {
                         logger.info 'Skipping build due to [ci skip] in the commit message ...'
                         updateBuildStatus('NOT_BUILT')
                         setBitbucketBuildStatus('SUCCESSFUL')
-                    } else {
-                        context.setOpenshiftApplicationDomain (
-                            ServiceRegistry.instance.get(OpenShiftService).getOpenshiftApplicationDomain())
+                        return
+                    }
+
+                    if (context.environment) {
+                        context.setOpenshiftApplicationDomain(
+                            openShiftService.getOpenshiftApplicationDomain()
+                        )
 
                         def autoCloneEnabled = !!context.cloneSourceEnv
                         if (autoCloneEnabled) {
@@ -294,7 +302,7 @@ class Pipeline implements Serializable {
             }
 
             if (openShiftService.tooManyEnvironments(context.projectId, context.environmentLimit)) {
-                logger.error "Cannot create OC project " +
+                script.error "Cannot create OC project " +
                     "as there are already ${context.environmentLimit} OC projects! " +
                     "Please clean up and run the pipeline again."
             }
@@ -355,7 +363,7 @@ class Pipeline implements Serializable {
 
     private def prepareAgentPodConfig(Map config) {
         if (!config.image && !config.imageStreamTag && !config.podContainers) {
-            logger.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
+            script.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
         }
         if (!config.podVolumes) {
             config.podVolumes = []
