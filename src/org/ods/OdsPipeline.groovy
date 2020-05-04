@@ -192,13 +192,13 @@ class OdsPipeline implements Serializable {
     if (!context.getBitbucketNotificationEnabled()) {
       return
     }
-    if (!context.jobName || !context.tagversion || !context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
+    if (!context.credentialsId || !context.buildUrl || !context.bitbucketHost || !context.gitCommit) {
       logger.info "Cannot set BitBucket build status to ${state} because required data is missing!"
       return
     }
 
     logger.info "Setting BitBucket build status to ${state} ..."
-    def buildName = "${context.jobName}-${context.tagversion}"
+    def buildName = "${context.gitCommit.take(8)}"
     def maxAttempts = 3
     def retries = 0
     while (retries++ < maxAttempts) {
