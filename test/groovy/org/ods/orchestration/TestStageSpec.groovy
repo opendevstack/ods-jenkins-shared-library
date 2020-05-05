@@ -88,7 +88,6 @@ class TestStageSpec extends SpecHelper {
     }
 
     def "get test results from file"() {
-
         given:
         steps.env >> [WORKSPACE : "", BUILD_ID : 1]
         jenkins.unstashFilesIntoPath(_, _, "JUnit XML Report") >> true
@@ -100,6 +99,5 @@ class TestStageSpec extends SpecHelper {
 
         then:
         1 * junit.loadTestReportsFromPath(_)
-
     }
 }
