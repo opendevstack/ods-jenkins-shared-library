@@ -16,7 +16,7 @@ class Pipeline implements Serializable {
         checkRequiredBuildParams()
         config.odsImageTag = script.env.ODS_IMAGE_TAG ?: 'latest'
         config.odsGitRef = script.env.ODS_GIT_REF ?: 'production'
-        config.projectId = script.env.PROJECT_ID
+        config.projectId = script.env.PROJECT_ID.toLowerCase()
         config.componentId = script.env.COMPONENT_ID.toLowerCase()
         config.gitUrlHttp = script.env.GIT_URL_HTTP
         config.packageName = script.env.PACKAGE_NAME
