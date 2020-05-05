@@ -100,19 +100,19 @@ class TestStage extends Stage {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }
 
-    private List getAcceptanceTestResults(def steps, Map repo) {
+    private Map getAcceptanceTestResults(def steps, Map repo) {
         return this.getTestResults(steps, repo, "acceptance")
     }
 
-    private List getInstallationTestResults(def steps, Map repo) {
+    private Map getInstallationTestResults(def steps, Map repo) {
         return this.getTestResults(steps, repo, "installation")
     }
 
-    private List getIntegrationTestResults(def steps, Map repo) {
+    private Map getIntegrationTestResults(def steps, Map repo) {
         return this.getTestResults(steps, repo, "integration")
     }
 
-    private List getTestResults(def steps, Map repo, String type) {
+    private Map getTestResults(def steps, Map repo, String type) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
 
