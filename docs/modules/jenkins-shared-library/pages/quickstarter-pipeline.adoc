@@ -11,11 +11,12 @@ Load the shared library in your `Jenkinsfile` like this:
 [source,groovy]
 ----
 def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
 library("ods-jenkins-shared-library@${odsGitRef}")
 
 odsQuickstarterPipeline(
-  imageStreamTag: "cd/jenkins-slave-golang:${odsImageTag}",
+  imageStreamTag: "${odsNamespace}/jenkins-slave-golang:${odsImageTag}",
 ) { context ->
 
   odsQuickstarterStageCopyFiles(context)
