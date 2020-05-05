@@ -242,12 +242,12 @@ class Pipeline implements Serializable {
         if (!this.bitbucketNotificationEnabled) {
             return
         }
-        if (!context.jobName || !context.tagversion || !context.buildUrl || !context.gitCommit) {
+        if (!context.buildUrl || !context.gitCommit) {
             logger.info "Cannot set Bitbucket build status to '${state}' because required data is missing!"
             return
         }
 
-        def buildName = "${context.jobName}-${context.tagversion}"
+        def buildName = "${context.gitCommit.take(8)}"
         bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
     }
 
