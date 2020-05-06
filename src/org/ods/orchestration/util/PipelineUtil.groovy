@@ -102,7 +102,10 @@ class PipelineUtil {
         // Create parent directory if needed
         this.createDirectory(new File(path).getParent())
         new File(path).leftShift(file)
-        this.steps.stash(path)
+        
+        this.steps.dir(new File(path).getParent()) {
+            this.steps.stash(name)
+        }
     }
 
     @NonCPS
