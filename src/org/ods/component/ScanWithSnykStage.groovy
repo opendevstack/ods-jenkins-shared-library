@@ -3,8 +3,9 @@ package org.ods.component
 import org.ods.services.SnykService
 
 class ScanWithSnykStage extends Stage {
+  
     public final String STAGE_NAME = 'Snyk Security Scan'
-    private SnykService snyk
+    private final SnykService snyk
 
     ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk) {
         super(script, context, config)
@@ -34,7 +35,7 @@ class ScanWithSnykStage extends Stage {
             script.error "Option 'snykAuthenticationCode' is not set!"
         }
         def allowedSeverityThresholds = ['low', 'medium', 'high']
-        if(!allowedSeverityThresholds.contains(config.severityThreshold)) {
+        if (!allowedSeverityThresholds.contains(config.severityThreshold)) {
             script.error "'${config.severityThreshold}' is not a valid value " +
                 "for option 'severityThreshold'! Please use one of ${allowedSeverityThresholds}."
         }
@@ -47,7 +48,7 @@ class ScanWithSnykStage extends Stage {
             script.error 'Snyk auth failed'
         }
 
-        script.echo "Scanning for vulnerabilities with " +
+        script.echo 'Scanning for vulnerabilities with ' +
             "organisation=${config.organisation}, " +
             "projectName=${config.projectName}, " +
             "buildFile=${config.buildFile}, " +
@@ -59,7 +60,7 @@ class ScanWithSnykStage extends Stage {
         def envVariables = [
             "NEXUS_HOST=${context.nexusHost}",
             "NEXUS_USERNAME=${context.nexusUsername}",
-            "NEXUS_PASSWORD=${context.nexusPassword}"
+            "NEXUS_PASSWORD=${context.nexusPassword}",
         ]
         // nexus credentials are provided here because snyk runs build.gradle who needs them
         script.withEnv(envVariables) {
@@ -105,4 +106,5 @@ class ScanWithSnykStage extends Stage {
         )
         context.addArtifactURI('SCSR', targetReport)
     }
+
 }

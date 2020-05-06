@@ -4,7 +4,7 @@ import org.ods.services.OpenShiftService
 
 class RolloutOpenShiftDeploymentStage extends Stage {
     public final String STAGE_NAME = 'Deploy to Openshift'
-    private OpenShiftService openShift
+    private final OpenShiftService openShift
     
     RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift) {
         super(script, context, config)
@@ -16,7 +16,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     def run() {
         if (!context.environment) {
-            script.echo "Skipping for empty environment ..."
+            script.echo 'Skipping for empty environment ...'
             return
         }
 
@@ -54,14 +54,13 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
         def replicationController = "${componentId}-${latestVersion}"
         def rolloutStatus = getRolloutStatus(replicationController)
-        if (rolloutStatus != "complete") {
+        if (rolloutStatus != 'complete') {
             script.error "Deployment #${latestVersion} failed with status '${rolloutStatus}', " +
-                "please check the error in the OpenShift web console."
+                'please check the error in the OpenShift web console.'
         } else {
             script.echo "Deployment #${latestVersion} successfully rolled out."
         }
         def pod = getPodDataForRollout(replicationController)
-        script.echo "Pod ${pod} for #${latestVersion}"
         context.addDeploymentToArtifactURIs (componentId, pod)
 
         return pod
@@ -111,8 +110,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private String getRolloutStatus(String replicationController) {
         openShift.getRolloutStatus(replicationController)
     }
-    
+
     private Map getPodDataForRollout(String replicationController) {
         openShift.getPodDataForDeployment(replicationController)
     }
+
 }

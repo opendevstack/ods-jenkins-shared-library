@@ -1,6 +1,7 @@
 package org.ods.component
 
 class Stage {
+  
     protected def script
     protected def context
     protected Map config
@@ -21,4 +22,5 @@ class Stage {
             this.run()
         }
     }
+
 }

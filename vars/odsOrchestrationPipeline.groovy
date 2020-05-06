@@ -1,7 +1,6 @@
-
 import java.nio.file.Paths
 
-@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
+@Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 import kong.unirest.Unirest
 
 import org.ods.orchestration.util.PipelineUtil
@@ -15,9 +14,7 @@ import org.ods.orchestration.TestStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
 
-
 def call(Map config) {
-
     Unirest.config()
         .socketTimeout(1200000)
         .connectTimeout(120000)
@@ -33,7 +30,6 @@ def call(Map config) {
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
 
     node {
-
         // Clean workspace from previous runs
         [
             PipelineUtil.ARTIFACTS_BASE_DIR,
@@ -46,8 +42,8 @@ def call(Map config) {
         }
 
         def scmBranches = scm.branches
-        def branch = scmBranches[0]?.getName()
-        if (branch && !branch.startsWith("*/")) {
+        def branch = scmBranches[0]?.name
+        if (branch && !branch.startsWith('*/')) {
             scmBranches = [[name: "*/${branch}"]]
         }
 
@@ -56,13 +52,13 @@ def call(Map config) {
             $class: 'GitSCM',
             branches: scmBranches,
             doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-            extensions: [[$class: 'LocalBranch', localBranch: "**"]],
-            userRemoteConfigs: scm.userRemoteConfigs
+            extensions: [[$class: 'LocalBranch', localBranch: '**']],
+            userRemoteConfigs: scm.userRemoteConfigs,
         ])
 
         def steps = new PipelineSteps(this)
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
-        def stageStartTime = System.currentTimeMillis();
+        def stageStartTime = System.currentTimeMillis()
 
         withPodTemplate(odsImageTag) {
             echo "MRO main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
@@ -90,7 +86,7 @@ def call(Map config) {
     }
 }
 
-private def withPodTemplate(String odsImageTag, Closure block) {
+private withPodTemplate(String odsImageTag, Closure block) {
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     podTemplate(
         label: podLabel,

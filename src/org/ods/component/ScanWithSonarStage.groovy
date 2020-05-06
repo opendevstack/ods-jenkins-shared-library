@@ -6,9 +6,10 @@ import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
 
 class ScanWithSonarStage extends Stage {
+  
     public final String STAGE_NAME = 'SonarQube Analysis'
-    private BitbucketService bitbucket
-    private SonarQubeService sonarQube
+    private final BitbucketService bitbucket
+    private final SonarQubeService sonarQube
 
     ScanWithSonarStage(
         def script,
@@ -54,12 +55,12 @@ class ScanWithSonarStage extends Stage {
 
         if (config.requireQualityGatePass) {
             def qualityGateResult = getQualityGateResult(sonarProjectKey)
-            if (qualityGateResult == "ERROR") {
-                script.error "Quality gate failed!"
-            } else if (qualityGateResult == "UNKNOWN") {
-                script.error "Quality gate unknown!"
+            if (qualityGateResult == 'ERROR') {
+                script.error 'Quality gate failed!'
+            } else if (qualityGateResult == 'UNKNOWN') {
+                script.error 'Quality gate unknown!'
             } else {
-                script.echo "Quality gate passed."
+                script.echo 'Quality gate passed.'
             }
         }
     }
@@ -104,12 +105,12 @@ class ScanWithSonarStage extends Stage {
 
     private assemblePullRequestInfo() {
         if (!config.analyzePullRequests) {
-            script.echo "PR analysis is disabled."
+            script.echo 'PR analysis is disabled.'
             return [:]
         }
         if (config.longLivedBranches.contains(context.gitBranch)) {
             script.echo "Branch '${context.gitBranch}' is considered to be long-lived. " +
-                "PR analysis will not be performed."
+                'PR analysis will not be performed.'
             return [:]
         }
 
@@ -124,7 +125,7 @@ class ScanWithSonarStage extends Stage {
                 bitbucketRepository: repo,
                 bitbucketPullRequestKey: pullRequest.key,
                 branch: context.gitBranch,
-                baseBranch: pullRequest.base
+                baseBranch: pullRequest.base,
             ]
         } else {
             def longLivedList = config.longLivedBranches.join(', ')
@@ -206,8 +207,9 @@ class ScanWithSonarStage extends Stage {
             def status = qualityGateResult?.projectStatus?.projectStatus ?: 'UNKNOWN'
             return status.toUpperCase()
         } catch (Exception ex) {
-            script.error "Quality gate status could not be retrieved. " +
+            script.error 'Quality gate status could not be retrieved. ' +
                 "Status was: '${qualityGateJSON}'. Error was: ${ex}"
         }
     }
+
 }
