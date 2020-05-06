@@ -60,11 +60,11 @@ class FinalizeStage extends Stage {
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
-        
         // Dump a representation of the project
         steps.echo(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
 
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        
         // Fail the build in case of failing tests.
         if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
             def message = "Error: "
