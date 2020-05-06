@@ -26,5 +26,10 @@ jobs:
                       ${{ runner.os }}-gradle-
             - uses: actions/upload-artifact@v2
               with:
-                  name: reports
-                  path: build/reports/
+                  name: CodeNarc Report
+                  path: build/reports/codenarc/main.html
+            - uses: actions/upload-artifact@v2
+              if: failure()
+              with:
+                  name: Test Report
+                  path: build/reports/tests/test/
