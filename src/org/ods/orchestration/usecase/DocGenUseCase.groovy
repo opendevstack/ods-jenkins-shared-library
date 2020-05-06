@@ -89,6 +89,7 @@ abstract class DocGenUseCase {
         return uri.toString()
     }
 
+    @SuppressWarnings(['JavaIoPackageAccess'])
     String createOverallDocument(String coverType, String documentType, Map metadata,Closure visitor = null, String watermarkText = null) {
         def documents = []
         def sections = []
@@ -99,6 +100,7 @@ abstract class DocGenUseCase {
             if (documentName) {
                 def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
                 jenkins.unstashFilesIntoPath(documentName, path, documentType)
+                // writeFile and bytes does not work :(
                 documents << new File("${path}/${documentName}").readBytes()
 
                 sections << [
