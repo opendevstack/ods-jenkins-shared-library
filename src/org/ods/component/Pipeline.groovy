@@ -434,6 +434,7 @@ class Pipeline implements Serializable {
         if (this.localCheckoutEnabled) {
             script.node('master', block)
         } else {
+            logger.debug("running on current node ...")
             block()
         }
     }
