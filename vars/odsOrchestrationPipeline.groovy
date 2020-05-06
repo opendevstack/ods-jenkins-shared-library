@@ -92,13 +92,14 @@ def call(Map config) {
 
 private def withPodTemplate(String odsImageTag, Closure block) {
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
+    def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     podTemplate(
         label: podLabel,
         cloud: 'openshift',
         containers: [
             containerTemplate(
                 name: 'jnlp',
-                image: "${env.DOCKER_REGISTRY}/cd/jenkins-slave-base:${odsImageTag}",
+                image: "${env.DOCKER_REGISTRY}/${odsNamespace}/jenkins-slave-base:${odsImageTag}",
                 workingDir: '/tmp',
                 resourceRequestMemory: '512Mi',
                 resourceLimitMemory: '1Gi',

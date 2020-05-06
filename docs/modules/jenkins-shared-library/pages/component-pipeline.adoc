@@ -11,7 +11,7 @@ Load the shared library in your `Jenkinsfile` like this:
 @Library('ods-jenkins-shared-library@2.x') _
 
 odsComponentPipeline(
-  imageStreamTag: 'cd/jenkins-slave-golang:2.x',
+  imageStreamTag: 'ods/jenkins-slave-golang:2.x',
   projectId: 'foo',
   componentId: 'bar',
   branchToEnvironmentMapping: [
