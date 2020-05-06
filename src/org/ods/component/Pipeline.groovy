@@ -260,7 +260,6 @@ class Pipeline implements Serializable {
             replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
             to: script.emailextrecipients([
                 [$class: 'CulpritsRecipientProvider'],
-                [$class: 'DevelopersRecipientProvider'],
                 [$class: 'RequesterRecipientProvider'],
                 [$class: 'UpstreamComitterRecipientProvider']
             ])
