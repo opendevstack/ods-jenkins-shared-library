@@ -17,8 +17,8 @@ class SonarQubeService {
     def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], boolean debug = false) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
-                '-Dsonar.host.url=${hostUrl}',
-                '-Dsonar.auth.token=${authToken}',
+                "-Dsonar.host.url=${hostUrl}",
+                "-Dsonar.auth.token=${authToken}",
                 '-Dsonar.scm.provider=git'
             ]
             if (!properties.containsKey('sonar.projectVersion')) {
