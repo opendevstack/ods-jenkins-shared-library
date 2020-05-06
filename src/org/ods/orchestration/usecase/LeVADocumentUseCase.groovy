@@ -6,6 +6,8 @@ import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 
+import groovy.xml.XmlUtil
+
 @SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof', 'VariableName', 'UnusedMethodParameter', 'UnusedVariable', 'ParameterCount', 'NonFinalPublicField', 'PropertyName', 'MethodCount', 'UseCollectMany', 'ParameterName', 'SpaceAroundMapEntryColon'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
@@ -481,7 +483,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 },
                 numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isUnexecuted },
                 testFiles         : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
-                    [name: file.name, path: file.path, text: file.text]
+                    [name: file.name, path: file.path, text: XmlUtil.serialize(file.text)]
                 } ?: [], ["name"]),
                 discrepancies     : discrepancies.discrepancies,
                 conclusion        : [
