@@ -2,33 +2,33 @@ package org.ods.services
 
 class BitbucketService {
 
-    private def script
+    private final def script
 
     // Bae URL of Bitbucket server, such as "https://bitbucket.example.com".
-    private String bitbucketUrl
+    private final String bitbucketUrl
 
     // Name of Bitbucket project, such as "foo".
     // This name is also the prefix for OpenShift projects ("foo-cd", "foo-dev", ...).
-    private String project
+    private final String project
 
     // Name of the CD project in OpenShift, based on the "project" name.
-    private String openShiftCdProject
+    private final String openShiftCdProject
 
     // Name of the credentials which store the username/password of a user with
     // access to the BitBucket server identified by "bitbucketUrl".
-    private String passwordCredentialsId
+    private final String passwordCredentialsId
 
     // Name of the secret in "openShiftCdProject", which contains the username/token
     // of a user with access to the BitBucket server identified by "bitbucketUrl".
     // This secret does not need to exist ahead of time, it will be created
     // automatically through the API using "passwordCredentialsId".
-    private String tokenSecretName
+    private final String tokenSecretName
 
     // Name of the credentials which store the username/token of a user with
     // access to the BitBucket server identified by "bitbucketUrl".
     // These credentials do not need to exist ahead of time, it will be created
     // automatically (by syncing the "tokenSecretName").
-    private String tokenCredentialsId
+    private final String tokenCredentialsId
 
     BitbucketService(def script, String bitbucketUrl, String project, String passwordCredentialsId) {
         this.script = script
@@ -134,7 +134,7 @@ class BitbucketService {
             throw new RuntimeException(
                 "ERROR: Secret ${openShiftCdProject}/${tokenSecretName} has been created, " +
                 "but credentials '${credentialsId}' are not available. " +
-                "Please ensure that the secret is synced and re-run the pipeline."
+                'Please ensure that the secret is synced and re-run the pipeline.'
             )
         }
     }
@@ -200,4 +200,5 @@ class BitbucketService {
             false
         }
     }
+
 }

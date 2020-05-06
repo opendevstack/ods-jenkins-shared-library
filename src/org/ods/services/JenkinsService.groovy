@@ -4,20 +4,20 @@ import org.ods.component.ILogger
 
 class JenkinsService {
 
-    private def script
-    private ILogger logger
-    private static final String XUNIT_SYSTEM_RESULT_DIR = "build/test-results/test"
+    private final def script
+    private final ILogger logger
+    private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
 
     JenkinsService(script, ILogger logger) {
         this.script = script
         this.logger = logger
     }
-    
-    def stashTestResults(String customXunitResultsDir, String stashNamePostFix = "stash") {
+
+    def stashTestResults(String customXunitResultsDir, String stashNamePostFix = 'stash') {
         def contextresultMap = [:]
         customXunitResultsDir = customXunitResultsDir?.trim()?.length() > 0 ? 
-            customXunitResultsDir: "build/test-results/test"
-        
+            customXunitResultsDir : XUNIT_SYSTEM_RESULT_DIR
+
         logger.info "Stashing testResults from location: '${customXunitResultsDir}'"
         script.sh(
             script: """
@@ -47,12 +47,12 @@ class JenkinsService {
             def testStashPath = "test-reports-junit-xml-${stashNamePostFix}"
             contextresultMap.xunitTestResultsStashPath = testStashPath
             script.stash(
-                name: "${testStashPath}", 
+                name: "${testStashPath}",
                 includes: "${XUNIT_SYSTEM_RESULT_DIR}/**/*.xml",
                 allowEmpty: true
             )
         } else {
-            logger.info("No xUnit results found!!")
+            logger.info 'No xUnit results found!!'
         }
 
         return contextresultMap

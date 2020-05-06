@@ -4,7 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 
 class Context implements IContext {
 
-    private Map config
+    private final Map config
 
     Context(Map config) {
         this.config = config
@@ -94,4 +94,5 @@ class Context implements IContext {
     String getNexusPassword() {
         config.nexusPassword
     }
+
 }

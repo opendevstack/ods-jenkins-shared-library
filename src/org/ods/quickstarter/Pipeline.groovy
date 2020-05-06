@@ -2,8 +2,8 @@ package org.ods.quickstarter
 
 class Pipeline implements Serializable {
 
-    private def script
-    private Map config
+    private final def script
+    private final Map config
 
     Pipeline(def script, Map config) {
         this.script = script
@@ -50,7 +50,7 @@ class Pipeline implements Serializable {
         // vars from jenkins master
         def gitHost
         script.node {
-            gitHost =  script.env.BITBUCKET_HOST.split(":")[0]
+            gitHost =  script.env.BITBUCKET_HOST.split(':')[0]
             config.jobName = script.env.JOB_NAME
             config.buildNumber = script.env.BUILD_NUMBER
             config.buildUrl = script.env.BUILD_URL
@@ -84,7 +84,7 @@ class Pipeline implements Serializable {
         }
     }
 
-    private def onAgentNode(Map config, Closure block) {
+    private onAgentNode(Map config, Closure block) {
         if (!config.podContainers) {
             if (!config.containsKey('alwaysPullImage')) {
                 config.alwaysPullImage = true
@@ -137,4 +137,5 @@ class Pipeline implements Serializable {
             }
         }
     }
+
 }

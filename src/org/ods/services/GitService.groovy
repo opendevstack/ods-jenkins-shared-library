@@ -2,7 +2,7 @@ package org.ods.services
 
 class GitService {
 
-    private def script
+    private final def script
 
     GitService(script) {
         this.script = script
@@ -35,7 +35,7 @@ class GitService {
     String getCommitMessage() {
         script.sh(
             returnStdout: true,
-            script: "git log -1 --pretty=%B HEAD",
+            script: 'git log -1 --pretty=%B HEAD',
             label: 'Get Git commit message'
         ).trim()
     }
@@ -43,7 +43,7 @@ class GitService {
     String getCommitTime() {
         script.sh(
             returnStdout: true,
-            script: "git show -s --format=%ci HEAD",
+            script: 'git show -s --format=%ci HEAD',
             label: 'Get Git commit timestamp'
         ).trim()
     }
@@ -53,7 +53,7 @@ class GitService {
         return script.sh(
             returnStdout: true, script: 'git show --pretty=%s%b -s',
             label: 'check skip CI?'
-        ).toLowerCase().replaceAll("[\\s\\-\\_]", "").contains('[ciskip]')
+        ).toLowerCase().replaceAll('[\\s\\-\\_]', '').contains('[ciskip]')
     }
 
     void checkout(String gitCommit, def userRemoteConfigs) {
@@ -74,10 +74,11 @@ class GitService {
 
     private boolean isSlaveNodeGitLfsEnabled() {
         def statusCode = script.sh(
-            script: "git lfs &> /dev/null",
-            label: "Check if Git LFS is enabled",
+            script: 'git lfs &> /dev/null',
+            label: 'Check if Git LFS is enabled',
             returnStatus: true
         )
         return statusCode == 0
     }
+
 }

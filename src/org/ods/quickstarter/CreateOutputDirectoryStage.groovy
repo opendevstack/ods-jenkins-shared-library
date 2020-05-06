@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 class CreateOutputDirectoryStage extends Stage {
+
     protected String STAGE_NAME = 'Initialize output directory'
 
     CreateOutputDirectoryStage(def script, IContext context, Map config = [:]) {
@@ -13,4 +14,5 @@ class CreateOutputDirectoryStage extends Stage {
             label: "Create directory '${context.targetDir}'"
         )
     }
+
 }

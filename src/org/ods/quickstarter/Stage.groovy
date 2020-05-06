@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 class Stage {
+
     protected def script
     protected def context
     protected Map config
@@ -18,4 +19,5 @@ class Stage {
         this.run()
         script.echo "**** ENDED stage '${STAGE_NAME}' ****"
     }
+
 }
