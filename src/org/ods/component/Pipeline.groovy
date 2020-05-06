@@ -401,7 +401,6 @@ class Pipeline implements Serializable {
         def block = {
             def origin
             try {
-                logger.info("get remote")
                 origin = script.sh(
                     script: 'git config --get remote.origin.url',
                     returnStdout: true
@@ -433,10 +432,10 @@ class Pipeline implements Serializable {
             )
         }
         if (this.localCheckoutEnabled) {
-            logger.info("running on master node ...")
+            logger.debug("running on master node ...")
             script.node('master', block)
         } else {
-            logger.info("running on current node ...")
+            logger.debug("running on current node ...")
             block()
         }
     }
