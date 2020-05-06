@@ -87,6 +87,23 @@ class PipelineUtil {
 
         return result
     }
+    
+    void createAndStashArtifact(String name, byte[] file) {
+        if (!name?.trim()) {
+            throw new IllegalArgumentException("Error: unable to stash artifact. 'name' is undefined.")
+        }
+  
+        if (file == null) {
+            throw new IllegalArgumentException("Error: unable to stash artifact. 'files' is undefined.")
+        }
+  
+        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
+  
+        // Create parent directory if needed
+        this.createDirectory(new File(path).getParent())
+        new File(path).leftShift(file)
+        this.steps.stash(path)
+    }
 
     @NonCPS
     byte[] createZipFile(String path, Map<String, byte[]> files) {

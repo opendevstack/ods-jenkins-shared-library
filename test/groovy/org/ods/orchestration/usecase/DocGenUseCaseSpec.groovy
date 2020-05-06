@@ -16,8 +16,8 @@ import util.*
 class DocGenUseCaseSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends DocGenUseCase {
-        DocGenUseCaseImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
-            super(project, steps, util, docGen, nexus, pdf)
+        DocGenUseCaseImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
+            super(project, steps, util, docGen, nexus, pdf, jenkins)
         }
 
         List<String> getSupportedDocuments() {}
@@ -29,7 +29,6 @@ class DocGenUseCaseSpec extends SpecHelper {
         boolean isArchivalRelevant (String documentType) {
             return true
         }
-    
     }
 
     DocGenService docGen
@@ -39,6 +38,7 @@ class DocGenUseCaseSpec extends SpecHelper {
     IPipelineSteps steps
     DocGenUseCase usecase
     MROPipelineUtil util
+    JenkinsService jenkins
 
     def setup() {
         steps = Spy(util.PipelineSteps)
@@ -49,7 +49,8 @@ class DocGenUseCaseSpec extends SpecHelper {
         docGen = Mock(DocGenService)
         nexus = Mock(NexusService)
         pdf = Mock(PDFUtil)
-        usecase = Spy(new DocGenUseCaseImpl(project, steps, util, docGen, nexus, pdf))
+        jenkins = Mock(JenkinsService)
+        usecase = Spy(new DocGenUseCaseImpl(project, steps, util, docGen, nexus, pdf, jenkins))
     }
 
     def "create document"() {
@@ -85,6 +86,9 @@ class DocGenUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID,repo)
 
         then:
+        0 * util.createAndStashArtifact(*_)
+
+        then:
         1 * util.createZipArtifact(
             "${basename}.zip",
             [
@@ -107,6 +111,73 @@ class DocGenUseCaseSpec extends SpecHelper {
         then:
         result == nexusUri.toString()
 
+        cleanup:
+        logFile1.delete()
+        logFile2.delete()
+    }
+
+    
+    def "create document and stash"() {
+        given:
+        // Test Parameters
+        def logFile1 = Files.createTempFile("raw", ".log").toFile() << "Log File 1"
+        def logFile2 = Files.createTempFile("raw", ".log").toFile() << "Log File 2"
+  
+        def documentType = "myDocumentType"
+        def version = project.buildParams.version
+        def repo = project.repositories.first()
+        def data = [ a: 1, b: 2, c: 3 ]
+        def files = [
+            "raw/${logFile1.name}": logFile1.bytes,
+            "raw/${logFile2.name}": logFile2.bytes
+        ]
+  
+        // Argument Constraints
+        def basename = "${documentType}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
+  
+        // Stubbed Method Responses
+        def document = "PDF".bytes
+        def archive = "Archive".bytes
+        def nexusUri = new URI("http://nexus")
+  
+        when:
+        def result = usecase.createDocument(documentType, repo, data, files)
+
+        then:
+        1 * docGen.createDocument(documentType, "0.1", data) >> document
+
+        then:
+        1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID,repo)
+
+        then:
+        1 * usecase.isArchivalRelevant(documentType) >> false
+
+        then:
+        1 * util.createZipArtifact(
+            "${basename}.zip",
+            [
+                "${basename}.pdf": document,
+                "raw/${basename}.json": JsonOutput.toJson(data).bytes,
+                "raw/${logFile1.name}": logFile1.bytes,
+                "raw/${logFile2.name}": logFile2.bytes
+            ], false
+        ) >> archive
+
+        then:
+        1 * util.createAndStashArtifact(*_)
+
+        then:
+        1 * nexus.storeArtifact(
+            project.services.nexus.repository.name,
+            "${project.key.toLowerCase()}-${version}",
+            "${basename}.zip",
+            archive,
+            "application/zip"
+        ) >> nexusUri
+  
+        then:
+        result == nexusUri.toString()
+  
         cleanup:
         logFile1.delete()
         logFile2.delete()
@@ -295,14 +366,23 @@ class DocGenUseCaseSpec extends SpecHelper {
         // Test Parameters
         def coverType = "myCoverType"
         def documentType = "myDocumentType"
-        project.repositories.first().data.documents[documentType] = "myDocument".bytes
-        def metadata = [:]
+        def docName = "myDocument.pdf"
+        project.repositories.first().data.documents[documentType] = docName
 
+        def path = "${this.steps.env.WORKSPACE}/reports/${project.repositories.first().id}"
+        new File ("${path}").mkdirs()
+        new File ("${path}/${docName}").write("test")
+
+        def metadata = [:]
+        
         when:
         usecase.createOverallDocument(coverType, documentType, metadata)
 
         then:
         1 * usecase.createDocument(coverType, null, _, [:], _, documentType, null)
+
+        then:
+        0 * util.createAndStashArtifact(*_)
 
         then:
         project.repositories.first().data.documents[documentType] == null

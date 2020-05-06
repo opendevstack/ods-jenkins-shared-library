@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.NexusService
+import org.ods.orchestration.service.JenkinsService
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
@@ -18,14 +19,16 @@ abstract class DocGenUseCase {
     protected DocGenService docGen
     protected NexusService nexus
     protected PDFUtil pdf
+    protected JenkinsService jenkins
 
-    DocGenUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
+    DocGenUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
         this.project = project
         this.steps = steps
         this.util = util
         this.docGen = docGen
         this.nexus = nexus
         this.pdf = pdf
+        this.jenkins = jenkins
     }
 
     String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String documentTypeEmbedded = null, String watermarkText = null) {
@@ -44,19 +47,29 @@ abstract class DocGenUseCase {
 
         def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
 
+        def pdfName = "${basename}.pdf"
         // Create an archive with the document and raw data
         def artifacts = [
-            "${basename}.pdf": document,
+            "${pdfName}": document,
             "raw/${basename}.json": JsonOutput.toJson(data).getBytes()
         ]
         artifacts << files.collectEntries { path, contents ->
             [ path, contents ]
         }
+        
+        def doArchive = isArchivalRelevant(documentType);
+        
         def archive = this.util.createZipArtifact(
             "${basename}.zip",
             artifacts,
-            isArchivalRelevant(documentType)
+            doArchive
         )
+
+        // dtr / tir for single repo
+        if (!doArchive) {
+            this.util.createAndStashArtifact(pdfName, document)
+            repo.data.documents[documentType] = pdfName
+        }
 
         // Store the archive as an artifact in Nexus
         def uri = this.nexus.storeArtifact(
@@ -81,9 +94,12 @@ abstract class DocGenUseCase {
         def sections = []
 
         this.project.repositories.each { repo ->
-            def document = repo.data.documents[documentType]
-            if (document) {
-                documents << document
+            def documentName = repo.data.documents[documentType]
+
+            if (documentName) {
+                def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
+                jenkins.unstashFilesIntoPath(documentName, path, documentType)
+                documents << new File("${path}/${documentName}").readBytes()
 
                 sections << [
                     heading: "${documentType} for component: ${repo.id} (merged)"

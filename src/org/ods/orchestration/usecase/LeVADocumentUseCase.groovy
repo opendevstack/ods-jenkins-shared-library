@@ -62,7 +62,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     public static String WORK_IN_PROGRESS_WATERMARK = "Work in Progress"
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = "Attention: this document is work in progress!"
 
-    private JenkinsService jenkins
     private JiraUseCase jiraUseCase
     private JUnitTestReportsUseCase junit
     private LeVADocumentChaptersFileService levaFiles
@@ -70,8 +69,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private SonarQubeUseCase sq
 
     LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
-        super(project, steps, util, docGen, nexus, pdf)
-        this.jenkins = jenkins
+        super(project, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
         this.levaFiles = levaFiles
@@ -1140,7 +1138,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (codeReviewReport) {
                 document = this.pdf.merge([ document, codeReviewReport])
             }
-            repo.data.documents[documentType] = document
             return document
         }
 
