@@ -28,7 +28,7 @@ class BitbucketService {
     // access to the BitBucket server identified by "bitbucketUrl".
     // These credentials do not need to exist ahead of time, it will be created
     // automatically (by syncing the "tokenSecretName").
-    private final String tokenCredentialsId
+    private String tokenCredentialsId
 
     BitbucketService(def script, String bitbucketUrl, String project, String passwordCredentialsId) {
         this.script = script
