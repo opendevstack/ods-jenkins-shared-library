@@ -253,7 +253,7 @@ class InitStage extends Stage {
         def repos = project.repositories
 
         bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit, 
-            "INPROGRESS", script.currentBuild.description)
+            "INPROGRESS", "Release Manager for commit: ${project.gitData.commit}")
 
         steps.echo "Validate that for Q and P we have a valid version"
         if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
