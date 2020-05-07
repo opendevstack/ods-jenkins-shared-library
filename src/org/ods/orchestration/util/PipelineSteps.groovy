@@ -110,4 +110,8 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     def usernamePassword (Map credentialsData) {
         this.context.usernamePassword (credentialsData)
     }
+
+    def withCredentials (List credentialsList, Closure block) {
+        this.context.withCredentials (credentialsList, block) 
+    }
 }

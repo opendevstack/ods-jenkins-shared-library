@@ -50,4 +50,5 @@ interface IPipelineSteps {
 
     def usernamePassword (Map credentialsData)
 
+    def withCredentials (List credentialsList, Closure block)
 }
