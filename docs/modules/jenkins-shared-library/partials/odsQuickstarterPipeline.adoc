@@ -3,7 +3,7 @@
 `odsQuickstgarterPipeline` can be customized by passing configuration options like this:
 ----
 odsQuickstgarterPipeline(
-  imageStreamTag: 'cd/jenkins-slave-golang:2.x'
+  imageStreamTag: 'ods/jenkins-slave-golang:2.x'
 )
 ----
 
