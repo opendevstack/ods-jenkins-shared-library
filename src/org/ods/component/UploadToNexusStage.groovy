@@ -28,7 +28,7 @@ class UploadToNexusStage extends Stage {
             script.error ("Could not upload file ${distFile} - it does NOT exist!")
         }
         def uploadUri = nexus.storeArtifactFromFile(repoType, uploadPath, distFile,
-            script.readFile(distFile), "application/octet-stream")
+            script.readFile(distFile, 'Base64').getBytes(), 'application/octet-stream')
         script.echo "Uploaded '${distFile}' to '${uploadUri}'"
         return uploadUri
     }
