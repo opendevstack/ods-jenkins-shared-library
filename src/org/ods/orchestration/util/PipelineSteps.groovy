@@ -9,6 +9,7 @@ class PipelineSteps extends HashMap implements IPipelineSteps, Serializable {
     private def context
 
     PipelineSteps(def context) {
+        super()
         this.context = context
     }
 
