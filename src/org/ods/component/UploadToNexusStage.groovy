@@ -1,16 +1,17 @@
 package org.ods.component
 
 class UploadToNexusStage extends Stage {
+
     public final String STAGE_NAME = 'Upload to Nexus'
 
-    def repoType
-    def distFile
-    def groupId
-    def uploadPath
-    
+    final def repoType
+    final def distFile
+    final def groupId
+    final def uploadPath
+
     UploadToNexusStage(def script, IContext context, Map config) {
         super(script, context, config)
-        this.repoType = config.repoType ?: "candidates"
+        this.repoType = config.repoType ?: 'candidates'
         this.distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
         this.groupId  = config.groupId ?: context.groupId
         def repo = "${context.nexusHost}/repository/${repoType}"
@@ -29,7 +30,7 @@ class UploadToNexusStage extends Stage {
             script: "curl -u ${user} --upload-file ${distFile} ${uploadPath}",
             label: "Uploading ${distFile} to Nexus"
         )
-
         return uploadPath
     }
+
 }

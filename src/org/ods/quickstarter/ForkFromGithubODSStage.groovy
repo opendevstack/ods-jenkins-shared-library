@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 class ForkFromGithubODSStage extends Stage {
+
     protected String STAGE_NAME = 'Fork from ODS Github'
 
     ForkFromGithubODSStage(def script, IContext context, Map config = [:]) {
@@ -14,7 +15,7 @@ class ForkFromGithubODSStage extends Stage {
         if (!config.odsComponent) {
             script.error("Cannot fork from github with null component name! please provide valid param 'odsComponent'")
         }
-        
+
         script.withCredentials(
             [script.usernamePassword(
                 credentialsId: context.cdUserCredentialsId,
@@ -23,7 +24,7 @@ class ForkFromGithubODSStage extends Stage {
             )]
         ) {
             script.writeFile(
-                file: "/home/jenkins/.netrc",
+                file: '/home/jenkins/.netrc',
                 text: "machine ${config.gitHost} login ${script.user} password ${script.pass}"
             )
         }
@@ -42,10 +43,11 @@ class ForkFromGithubODSStage extends Stage {
                 label: "Fork '${config.odsComponent}' from github @${githubRepoUrl}",
                 returnStatus: true
             )
-            
+
             if (status != 0) {
                 script.error ("Could not fork ${githubRepoUrl}, status ${status}")
             }
         }
     }
+
 }

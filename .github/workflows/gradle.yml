@@ -8,7 +8,8 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v1
+            - name: Checkout repository
+              uses: actions/checkout@v2.0.0
             - name: Set up JDK 1.8
               uses: actions/setup-java@v1
               with:
@@ -23,3 +24,12 @@ jobs:
                   key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
                   restore-keys: |
                       ${{ runner.os }}-gradle-
+            - uses: actions/upload-artifact@v2
+              with:
+                  name: CodeNarc Report
+                  path: build/reports/codenarc/main.html
+            - uses: actions/upload-artifact@v2
+              if: failure()
+              with:
+                  name: Test Report
+                  path: build/reports/tests/test/

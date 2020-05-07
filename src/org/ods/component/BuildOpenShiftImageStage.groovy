@@ -3,16 +3,17 @@ package org.ods.component
 import org.ods.services.OpenShiftService
 
 class BuildOpenShiftImageStage extends Stage {
+
     public final String STAGE_NAME = 'Build Openshift Image'
-    private OpenShiftService openShift
+    private final OpenShiftService openShift
 
     BuildOpenShiftImageStage(def script, IContext context, Map config, OpenShiftService openShift) {
         super(script, context, config)
         if (!config.imageLabels) {
             config.imageLabels = [:]
         }
-        if (context.getExtensionImageLabels()) {
-            config.imageLabels << context.getExtensionImageLabels()
+        if (context.extensionImageLabels) {
+            config.imageLabels << context.extensionImageLabels
         }
         if (!config.buildArgs) {
             config.buildArgs = [:]
@@ -23,13 +24,13 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
-        
+
         this.openShift = openShift
     }
 
     def run() {
         if (!context.environment) {
-            script.echo "Skipping for empty environment ..."
+            script.echo 'Skipping for empty environment ...'
             return [:]
         }
 
@@ -57,10 +58,10 @@ class BuildOpenShiftImageStage extends Stage {
 
         context.addBuildToArtifactURIs(
             componentId,
-            [buildId: buildId, image: imageReference]
+            [buildId: buildId, image: imageReference,]
         )
 
-        return [buildId: buildId, image: imageReference]
+        return [buildId: buildId, image: imageReference,]
     }
 
     private String getImageReference() {
@@ -108,7 +109,7 @@ class BuildOpenShiftImageStage extends Stage {
         def sanitizedImageLabels = [:]
         for (def key : imageLabels.keySet()) {
             def val = imageLabels[key].toString()
-            def sanitizedVal = val.replaceAll("[\r\n]+", " ").trim().replaceAll("[\"']+", "")
+            def sanitizedVal = val.replaceAll("[\r\n]+", ' ').trim().replaceAll("[\"']+", '')
             sanitizedImageLabels[key] = sanitizedVal
         }
         sanitizedImageLabels
@@ -123,4 +124,5 @@ class BuildOpenShiftImageStage extends Stage {
         // Write docker/release.json file to be reachable from Dockerfile.
         script.writeFile(file: "${config.dockerDir}/release.json", text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
     }
+
 }

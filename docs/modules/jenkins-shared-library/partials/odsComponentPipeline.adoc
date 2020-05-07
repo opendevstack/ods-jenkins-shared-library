@@ -3,9 +3,7 @@
 `odsComponentPipeline` can be customized by passing configuration options like this:
 ----
 odsComponentPipeline(
-  imageStreamTag: 'cd/jenkins-slave-golang:2.x',
-  projectId: projectId,
-  componentId: componentId,
+  imageStreamTag: 'ods/jenkins-slave-golang:2.x',
   dockerDir: 'foo'
 )
 ----

@@ -8,13 +8,14 @@ import org.ods.orchestration.util.*
 import org.ods.services.BitbucketService
 
 class FinalizeStage extends Stage {
+
     public final String STAGE_NAME = 'Finalize'
-    
+
     FinalizeStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }
 
-    @SuppressWarnings('ParameterName')
+    @SuppressWarnings(['ParameterName', 'AbcMetric'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -54,6 +55,9 @@ class FinalizeStage extends Stage {
             // record release manager repo state
             if (project.isAssembleMode && !project.isWorkInProgress) {
                 util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
+                // add the tag commit that was created for traceability ..
+                GitUtil gitUtl = ServiceRegistry.instance.get(GitUtil)
+                project.getGitData.createdExecutionCommit = gitUtl.commit
             }
         }
 
@@ -62,25 +66,25 @@ class FinalizeStage extends Stage {
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
-        
         // Dump a representation of the project
         steps.echo(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
 
+        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+
         // Fail the build in case of failing tests.
         if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
-            def message = "Error: "
+            def message = 'Error: '
 
             if (project.hasFailingTests()) {
-                message += "found failing tests"
+                message += 'found failing tests'
             }
 
             if (project.hasFailingTests() && project.hasUnexecutedJiraTests()) {
-                message += " and "
+                message += ' and '
             }
 
             if (project.hasUnexecutedJiraTests()) {
-                message += "found unexecuted Jira tests"
+                message += 'found unexecuted Jira tests'
             }
 
             message += "."
@@ -96,4 +100,5 @@ class FinalizeStage extends Stage {
                 "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
         }
     }
+
 }

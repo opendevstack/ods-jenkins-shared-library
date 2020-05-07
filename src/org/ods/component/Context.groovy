@@ -6,14 +6,15 @@ import com.cloudbees.groovy.cps.NonCPS
 class Context implements IContext {
 
     // script is the context of the Jenkinsfile. That means that things like "sh" need to be called on script.
-    private def script
+    private final def script
     // config is a map of config properties to customise the behaviour.
-    private Map config
-    private Logger logger
+    private final Map config
+    private final Logger logger
+    // artifact store, the interface to MRP
+    private final def artifactUriStore = [builds: [:], deployments: [:]]
 
-    private def artifactUriStore = [builds: [:], deployments: [:]]
-
-    private boolean localCheckoutEnabled
+    // is the library checking out the code again, or relying on check'd out source?
+    private final boolean localCheckoutEnabled
 
     Context(def script, Map config, Logger logger, boolean localCheckoutEnabled = true) {
         this.script = script
@@ -22,16 +23,16 @@ class Context implements IContext {
         this.localCheckoutEnabled = localCheckoutEnabled
     }
 
-    @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity'])
+    @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def assemble() {
-        logger.debug "Validating input ..."
+        logger.debug 'Validating input ...'
         // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
         // if the repository should not be deployed to OpenShift at all.
         if (!config.containsKey('branchToEnvironmentMapping')) {
             throw new IllegalArgumentException("Param 'branchToEnvironmentMapping' is required")
         }
 
-        logger.debug "Collecting environment variables ..."
+        logger.debug 'Collecting environment variables ...'
         config.jobName = script.env.JOB_NAME
         config.buildNumber = script.env.BUILD_NUMBER
         config.buildUrl = script.env.BUILD_URL
@@ -50,6 +51,8 @@ class Context implements IContext {
             config.bitbucketUrl = "https://${config.bitbucketHost}"
         }
 
+        config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
+
         config.globalExtensionImageLabels = getExtensionBuildParams()
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
@@ -60,7 +63,7 @@ class Context implements IContext {
             label: 'getting ODS shared lib version'
         ).trim()
 
-        logger.debug "Validating environment variables ..."
+        logger.debug 'Validating environment variables ...'
         if (!config.jobName) {
             throw new IllegalArgumentException('JOB_NAME is required, but not set (usually provided by Jenkins)')
         }
@@ -91,16 +94,16 @@ class Context implements IContext {
                 'by Jenkins - please check your JenkinsUrl configuration.'
         }
 
-        logger.debug "Deriving configuration from input ..."
+        logger.debug 'Deriving configuration from input ...'
         config.openshiftProjectId = "${config.projectId}-cd"
         config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
 
-        logger.debug "Setting defaults ..."
+        logger.debug 'Setting defaults ...'
         if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
             config.autoCloneEnvironmentsFromSourceMapping = [:]
         }
         if (!config.containsKey('cloneProjectScriptBranch')) {
-            config.cloneProjectScriptBranch = 'production'
+            config.cloneProjectScriptBranch = 'master'
         }
         if (config.containsKey('sonarQubeBranch')) {
             script.echo "Setting option 'sonarQubeBranch' of the pipeline is deprecated, " +
@@ -127,7 +130,7 @@ class Context implements IContext {
             config.groupId = "org.opendevstack.${config.projectId}"
         }
 
-        logger.debug "Retrieving Git information ..."
+        logger.debug 'Retrieving Git information ...'
         config.gitUrl = retrieveGitUrl()
         config.gitBranch = retrieveGitBranch()
         config.gitCommit = retrieveGitCommit()
@@ -144,7 +147,7 @@ class Context implements IContext {
             config.dockerDir = 'docker'
         }
 
-        logger.debug "Setting environment ..."
+        logger.debug 'Setting target OCP environment ...'
         determineEnvironment()
         if (config.environment) {
             config.targetProject = "${config.projectId}-${config.environment}"
@@ -224,7 +227,7 @@ class Context implements IContext {
     }
 
     String getNexusHostWithBasicAuth() {
-        config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
+        config.nexusHost.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
     }
 
     @NonCPS
@@ -350,7 +353,8 @@ class Context implements IContext {
 
     private String retrieveGitUrl() {
         def gitUrl = script.sh(
-            returnStdout: true, script: 'git config --get remote.origin.url',
+            returnStdout: true, 
+            script: 'git config --get remote.origin.url',
             label: 'getting GIT url'
         ).trim()
         return gitUrl
@@ -372,7 +376,7 @@ class Context implements IContext {
 
     private String retrieveGitCommitMessage() {
         script.sh(
-            returnStdout: true, script: "git log -1 --pretty=%B HEAD",
+            returnStdout: true, script: 'git log -1 --pretty=%B HEAD',
             label: 'getting GIT commit message'
         ).trim()
     }
@@ -380,8 +384,8 @@ class Context implements IContext {
     private String retrieveLastSuccessfulCommit() {
         def lastSuccessfulBuild = script.currentBuild.rawBuild.getPreviousSuccessfulBuild()
         if (!lastSuccessfulBuild) {
-            logger.info("There seems to be no last successful build.")
-            return ""
+            logger.info 'There seems to be no last successful build.'
+            return ''
         }
         return commitHashForBuild(lastSuccessfulBuild)
     }
@@ -407,7 +411,8 @@ class Context implements IContext {
 
     private String retrieveGitCommitTime() {
         script.sh(
-            returnStdout: true, script: "git show -s --format=%ci HEAD",
+            returnStdout: true, 
+            script: 'git show -s --format=%ci HEAD',
             label: 'getting GIT commit date/time'
         ).trim()
     }
@@ -428,7 +433,7 @@ class Context implements IContext {
             // in case code is already checked out, OpenShift build config can not be used for retrieving branch
             branch = script.sh(
                 returnStdout: true,
-                script: "git rev-parse --abbrev-ref HEAD",
+                script: 'git rev-parse --abbrev-ref HEAD',
                 label: 'getting GIT branch to build').trim()
             branch = script.sh(
                 returnStdout: true,
@@ -451,17 +456,17 @@ class Context implements IContext {
     // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
     // "HUGO-4" from it.
     private String extractBranchCode(String branch) {
-        if (branch.startsWith("feature/")) {
-            def list = branch.drop("feature/".length()).tokenize("-")
+        if (branch.startsWith('feature/')) {
+            def list = branch.drop('feature/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
-        } else if (branch.startsWith("bugfix/")) {
-            def list = branch.drop("bugfix/".length()).tokenize("-")
+        } else if (branch.startsWith('bugfix/')) {
+            def list = branch.drop('bugfix/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
-        } else if (branch.startsWith("hotfix/")) {
-            def list = branch.drop("hotfix/".length()).tokenize("-")
+        } else if (branch.startsWith('hotfix/')) {
+            def list = branch.drop('hotfix/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
-        } else if (branch.startsWith("release/")) {
-            def list = branch.drop("release/".length()).tokenize("-")
+        } else if (branch.startsWith('release/')) {
+            def list = branch.drop('release/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
         } else {
             branch
@@ -494,26 +499,26 @@ class Context implements IContext {
             if (config.gitBranch.startsWith(key)) {
                 setMostSpecificEnvironment(
                     config.branchToEnvironmentMapping[key],
-                    config.gitBranch.replace(key, "")
+                    config.gitBranch.replace(key, '')
                 )
                 return
             }
         }
 
         // Any branch
-        def genericEnv = config.branchToEnvironmentMapping["*"]
+        def genericEnv = config.branchToEnvironmentMapping['*']
         if (genericEnv) {
             setMostSpecificEnvironment(
                 genericEnv,
-                config.gitBranch.replace("/", "")
+                config.gitBranch.replace('/', '')
             )
             return
         }
 
-        logger.info "No environment to deploy to was determined, returning" +
+        logger.info 'No environment to deploy to was determined, returning..\r' +
             "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
-        config.environment = ""
-        config.cloneSourceEnv = ""
+        config.environment = ''
+        config.cloneSourceEnv = ''
     }
 
     // Based on given +genericEnv+ (e.g. "preview") and +branchSuffix+ (e.g.
@@ -522,11 +527,11 @@ class Context implements IContext {
     // - the +genericEnv+ suffixed with the +branchSuffix+
     // - the +genericEnv+ without suffix
     protected void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
-        def specifcEnv = genericEnv + "-" + branchSuffix
+        def specifcEnv = genericEnv + '-' + branchSuffix
 
         def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
         if (ticketId) {
-            specifcEnv = genericEnv + "-" + ticketId
+            specifcEnv = genericEnv + '-' + ticketId
         }
 
         config.cloneSourceEnv = config.autoCloneEnvironmentsFromSourceMapping[genericEnv]
@@ -539,22 +544,22 @@ class Context implements IContext {
     }
 
     protected String getTicketIdFromBranch(String branchName, String projectId) {
-        def tokens = extractBranchCode(branchName).split("-")
+        def tokens = extractBranchCode(branchName).split('-')
         def pId = tokens[0]
         if (!pId || !pId.equalsIgnoreCase(projectId)) {
-            return ""
+            return ''
         }
         if (!tokens[1].isNumber()) {
-            return ""
+            return ''
         }
         return tokens[1]
     }
 
     Map<String, String> getCloneProjectScriptUrls() {
-        def scripts = ['clone-project.sh', 'import-project.sh', 'export-project.sh']
+        def scripts = ['clone-project.sh', 'import-project.sh', 'export-project.sh',]
         def m = [:]
         def branch = getCloneProjectScriptBranch().replace('/', '%2F')
-        def baseUrl = "${config.bitbucketUrl}/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts"
+        def baseUrl = "${config.bitbucketUrl}/projects/${config.odsBitbucketProject}/repos/ods-core/raw/ocp-scripts"
         for (script in scripts) {
             def url = "${baseUrl}/${script}?at=refs%2Fheads%2F${branch}"
             m.put(script, url)
@@ -562,25 +567,25 @@ class Context implements IContext {
         return m
     }
 
-    public Map<String, Object> getBuildArtifactURIs() {
+    Map<String, Object> getBuildArtifactURIs() {
         return artifactUriStore.asImmutable()
     }
 
-    public void addArtifactURI(String key, value) {
+    void addArtifactURI(String key, value) {
         artifactUriStore.put(key, value)
     }
 
-    public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
+    void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
         artifactUriStore.builds [buildConfigName] = buildInformation
     }
 
-    public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
+    void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
         artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
     }
 
     // get extension image labels
     @NonCPS
-    public Map<String, String> getExtensionImageLabels () {
+    Map<String, String> getExtensionImageLabels () {
         return config.globalExtensionImageLabels
     }
 
@@ -594,7 +599,7 @@ class Context implements IContext {
 
     Map<String,String> getExtensionBuildParams () {
         String rawEnv = script.sh(
-            returnStdout: true, script: "env | grep ods.build. || true",
+            returnStdout: true, script: 'env | grep ods.build. || true',
             label: 'getting extension environment labels'
           ).trim()
 
@@ -602,9 +607,9 @@ class Context implements IContext {
             return [:]
         }
 
-        return rawEnv.normalize().split(System.getProperty("line.separator")).inject([ : ] ) { kvMap, line ->
-            Iterator kv = line.toString().tokenize("=").iterator()
-            kvMap.put(kv.next(), kv.hasNext() ? kv.next() : "")
+        return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
+            Iterator kv = line.toString().tokenize('=').iterator()
+            kvMap.put(kv.next(), kv.hasNext() ? kv.next() : '')
             kvMap
         }
     }

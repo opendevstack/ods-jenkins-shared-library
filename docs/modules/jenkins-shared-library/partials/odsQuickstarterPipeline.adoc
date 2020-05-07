@@ -3,7 +3,7 @@
 `odsQuickstgarterPipeline` can be customized by passing configuration options like this:
 ----
 odsQuickstgarterPipeline(
-  imageStreamTag: 'cd/jenkins-slave-golang:2.x'
+  imageStreamTag: 'ods/jenkins-slave-golang:2.x'
 )
 ----
 
@@ -95,6 +95,9 @@ The `context` object contains the following properties:
 
 | group
 | Group, retrieved from `GROUP` build parameter.
+
+| odsNamespace
+| Central namespace where images are located, retrieved from `ODS_NAMESPACE` build parameter.
 
 | odsImageTag
 | Image tag used for the agent pod, retrieved from `ODS_IMAGE_TAG` build parameter.

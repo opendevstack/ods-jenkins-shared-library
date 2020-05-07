@@ -62,7 +62,6 @@ interface IContext {
 
     Map<String, String> getCloneProjectScriptUrls()
 
-
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
 
@@ -141,28 +140,28 @@ interface IContext {
     String getDockerDir()
 
     // get any build artifact URIs there were created
-    public Map<String, Object> getBuildArtifactURIs()
+    Map<String, Object> getBuildArtifactURIs()
 
     // adds a build artifact URI to the context for later retrieval,
     // e.g. in case a stage fails - the failed stage name - with key failedStage
-    public void addArtifactURI (String key, value)
+    void addArtifactURI (String key, value)
 
     // add a build to the artifact urls (key buildConfig name)
-    public void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation)
-    
+    void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation)
+
     // add a deployment to the artifact urls (key deploymentConfig name)
-    public void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation)
-    
+    void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation)
+
     // get extension image labels
-    public Map<String, String> getExtensionImageLabels ()
+    Map<String, String> getExtensionImageLabels ()
 
     // set and add image labels
     void setExtensionImageLabels (Map <String, String> extensionLabels)
-    
-    // set the application domain 
+
+    // set the application domain
     void setOpenshiftApplicationDomain (String domain)
 
     // get the application domain
     String getOpenshiftApplicationDomain ()
-    
+
 }

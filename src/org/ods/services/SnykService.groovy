@@ -2,8 +2,8 @@ package org.ods.services
 
 class SnykService {
 
-    private def script
-    private String reportFile
+    private final def script
+    private final String reportFile
 
     SnykService(def script, String reportFile) {
         this.script = script
@@ -18,7 +18,7 @@ class SnykService {
         script.sh(
           script: "snyk version | tee -a ${reportFile}",
           returnStatus: true,
-          label: "Get Snyk version"
+          label: 'Get Snyk version'
         ) == 0
     }
 
@@ -26,7 +26,7 @@ class SnykService {
         script.sh(
           script: "snyk auth ${authCode} | tee -a ${reportFile}",
           returnStatus: true,
-          label: "Authenticate with Snyk server"
+          label: 'Authenticate with Snyk server'
         ) == 0
     }
 
@@ -40,7 +40,7 @@ class SnykService {
             --severity-threshold=${severityThreshold} | tee -a ${reportFile}
           """,
           returnStatus: true,
-          label: "Run Snyk test"
+          label: 'Run Snyk test'
         ) == 0
     }
 
@@ -48,7 +48,8 @@ class SnykService {
         script.sh(
             script: "snyk monitor --org=${organisation} --file=${buildFile} --all-sub-projects | tee -a ${reportFile}",
             returnStatus: true,
-            label: "Start monitoring in snyk.io"
+            label: 'Start monitoring in snyk.io'
         ) == 0
     }
+
 }

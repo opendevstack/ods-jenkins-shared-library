@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 class RenderSonarPropertiesStage extends Stage {
+
     protected String STAGE_NAME = 'Create sonar-project.properties'
 
     RenderSonarPropertiesStage(def script, IContext context, Map config = [:]) {
@@ -23,4 +24,5 @@ class RenderSonarPropertiesStage extends Stage {
             label: "Render '${config.source}' to '${config.target}'"
         )
     }
+
 }

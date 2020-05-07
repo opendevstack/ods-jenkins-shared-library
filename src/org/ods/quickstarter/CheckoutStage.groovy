@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 class CheckoutStage extends Stage {
+
     protected String STAGE_NAME = 'Checkout quickstarter'
 
     CheckoutStage(def script, IContext context, Map config = [:]) {
@@ -10,4 +11,5 @@ class CheckoutStage extends Stage {
     def run() {
         script.checkout script.scm
     }
+
 }

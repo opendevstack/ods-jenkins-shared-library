@@ -2,8 +2,8 @@ package org.ods.component
 
 class Logger implements ILogger {
 
-    private Object script
-    private boolean debugOn
+    private final Object script
+    private final boolean debugOn
 
     Logger(script, debug) {
         this.debugOn = debugOn
