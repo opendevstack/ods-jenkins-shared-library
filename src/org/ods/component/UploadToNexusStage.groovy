@@ -10,6 +10,7 @@ class UploadToNexusStage extends Stage {
     final def distFile
     final def uploadPath
     final NexusService nexus
+    final def path
 
     UploadToNexusStage(def script, IContext context, Map config) {
         super(script, context, config)
@@ -17,19 +18,20 @@ class UploadToNexusStage extends Stage {
         this.distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
         def groupId  = config.groupId ?: context.groupId
         this.uploadPath = "${groupId.replace('.', '/')}/${componentId}/${context.tagversion}"
-        
+        this.path = config.path ?: script.env.WORKSPACE
+
         nexus = new NexusService(context.nexusHost, context.nexusUsername, context.nexusPassword)
     }
 
     def run() {
         script.echo ("Uploading '${distFile}' to: ${uploadPath}")
 
-        if (!script.fileExists (distFile)) {
-            script.error ("Could not upload file ${distFile} - it does NOT exist!")
+        if (!script.fileExists ("${path}/${distFile}")) {
+            script.error ("Could not upload file '${path}/${distFile}' - it does NOT exist!")
         }
 
         return nexus.storeArtifactFromFile(repoType, uploadPath, distFile, 
-            new File("${script.env.WORKSPACE}/${distFile}"), "application/octet-stream")
+            new File("${path}/${distFile}"), "application/octet-stream")
     }
 
 }
