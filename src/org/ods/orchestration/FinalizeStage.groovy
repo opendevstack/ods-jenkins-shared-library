@@ -5,6 +5,7 @@ import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
+import org.ods.services.BitbucketService
 
 class FinalizeStage extends Stage {
 
@@ -20,6 +21,7 @@ class FinalizeStage extends Stage {
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
+        def bitbucket = ServiceRegistry.instance.get(BitbucketService)
 
         def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
@@ -85,11 +87,17 @@ class FinalizeStage extends Stage {
                 message += 'found unexecuted Jira tests'
             }
 
-            message += '.'
+            message += "."
+
+            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                "FAILURE", "Release Manager for commit: ${project.gitData.commit}")
+
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
             project.reportPipelineStatus()
+            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
         }
     }
 

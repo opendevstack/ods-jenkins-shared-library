@@ -1,6 +1,8 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
+
+import org.ods.services.BitbucketService
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
@@ -25,7 +27,7 @@ class InitStage extends Stage {
 
         // load build params
         def buildParams = Project.loadBuildParams(steps)
-        steps.echo("Build Parameters: ${buildParams}")
+        steps.echo("Release Manager Build Parameters: ${buildParams}")
 
         // git checkout
         def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)
@@ -57,7 +59,7 @@ class InitStage extends Stage {
                     steps.echo("Checkout release manager repository @ ${gitReleaseBranch}")
                     checkoutGitRef(
                         "*/${gitReleaseBranch}",
-                        [[$class: 'LocalBranch', localBranch: "**"]]
+                        [[$class: 'LocalBranch', localBranch: '**']]
                     )
                 } else {
                     git.checkoutNewLocalBranch(gitReleaseBranch)
@@ -65,10 +67,10 @@ class InitStage extends Stage {
             }
         }
 
-        steps.echo "Load build params and metadata file information"
+        steps.echo 'Load build params and metadata file information'
         project.init()
 
-        steps.echo "Register global services"
+        steps.echo 'Register global services'
         def registry = ServiceRegistry.instance
         registry.add(GitUtil, git)
         registry.add(PDFUtil, new PDFUtil())
@@ -106,8 +108,8 @@ class InitStage extends Stage {
             script.withCredentials(
                 [script.usernamePassword(
                     credentialsId: project.services.jira.credentials.id,
-                    usernameVariable: "JIRA_USERNAME",
-                    passwordVariable: "JIRA_PASSWORD"
+                    usernameVariable: 'JIRA_USERNAME',
+                    passwordVariable: 'JIRA_PASSWORD'
                 )]
             ) {
                 registry.add(JiraService,
@@ -154,8 +156,8 @@ class InitStage extends Stage {
         script.withCredentials(
             [script.usernamePassword(
                 credentialsId: project.services.bitbucket.credentials.id,
-                usernameVariable: "BITBUCKET_USER",
-                passwordVariable: "BITBUCKET_PW"
+                usernameVariable: 'BITBUCKET_USER',
+                passwordVariable: 'BITBUCKET_PW'
             )]
         ) {
             registry.add(OpenShiftService,
@@ -177,7 +179,7 @@ class InitStage extends Stage {
             registry.get(JiraService)
         )
 
-        if (project.hasCapability("Zephyr")) {
+        if (project.hasCapability('Zephyr')) {
             jiraUseCase.setSupport(
                 new JiraUseCaseZephyrSupport(
                     project,
@@ -236,19 +238,31 @@ class InitStage extends Stage {
             )
         )
 
+        registry.add(BitbucketService, new BitbucketService(
+            registry.get(PipelineSteps).unwrap(),
+            project.releaseManagerBitbucketHostUrl,
+            project.key,
+            project.services.bitbucket.credentials.id
+        ))
+
+        BitbucketService bitbucket = registry.get(BitbucketService)
+
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
-        steps.echo "Run Project#load"
+        steps.echo 'Run Project#load'
         project.load(registry.get(GitUtil), registry.get(JiraUseCase))
         def repos = project.repositories
 
-        steps.echo "Validate that for Q and P we have a valid version"
+        bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+            'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
+
+        steps.echo 'Validate that for Q and P we have a valid version'
         if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
-            && buildParams.version == "WIP") {
+            && buildParams.version == 'WIP') {
             throw new RuntimeException(
-                "Error: trying to deploy to Q or P without having defined a correct version. " +
+                'Error: trying to deploy to Q or P without having defined a correct version. ' +
                 "${buildParams.version} version value is not allowed for those environments. " +
-                "If you are using Jira, please check that all values are set in the release manager issue. " +
+                'If you are using Jira, please check that all values are set in the release manager issue. ' +
                 "Build parameters obtained: ${buildParams}"
             )
         }
@@ -263,16 +277,16 @@ class InitStage extends Stage {
             }
         }
 
-        def jobMode = project.isPromotionMode ? "(promote)" : "(assemble)"
+        def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
 
-        steps.echo "Configure current build description"
+        steps.echo 'Configure current build description'
         script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
             "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
             "Project: ${project.key}, " +
             "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
             "Version: ${script.env.VERSION}"
 
-        steps.echo "Checkout repositories into the workspace"
+        steps.echo 'Checkout repositories into the workspace'
         script.parallel(util.prepareCheckoutReposNamedJob(repos) { s, repo ->
             steps.echo("Repository: ${repo}")
             steps.echo("Environment configuration: ${script.env.getEnvironment()}")
@@ -343,7 +357,7 @@ class InitStage extends Stage {
             }
         }
 
-        steps.echo "Compute groups of repository configs for convenient parallelization"
+        steps.echo 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
@@ -372,4 +386,5 @@ class InitStage extends Stage {
             userRemoteConfigs: script.scm.userRemoteConfigs
         ])
     }
+
 }

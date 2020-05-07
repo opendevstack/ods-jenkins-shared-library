@@ -14,9 +14,9 @@ class Pipeline implements Serializable {
     private JenkinsService jenkinsService
     private BitbucketService bitbucketService
 
+    private final ILogger logger
     private final def script
     private IContext context
-    private final ILogger logger
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled  = true
     private boolean displayNameUpdateEnabled = true
@@ -221,7 +221,6 @@ class Pipeline implements Serializable {
 
     def setupForMultiRepoBuild(def config) {
         logger.info '-> Detected multirepo MRO build'
-        config.bitbucketNotificationEnabled = false
         config.localCheckoutEnabled = false
         config.displayNameUpdateEnabled  = false
         config.ciSkipEnabled = false

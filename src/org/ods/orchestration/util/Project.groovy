@@ -1069,4 +1069,8 @@ class Project {
             "ods.build.mro.lib.version=${mroSharedLibVersion}"
         ]
     }
+
+    String getReleaseManagerBitbucketHostUrl () {
+      return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
+    }
 }

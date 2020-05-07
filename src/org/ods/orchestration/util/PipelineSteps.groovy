@@ -98,12 +98,24 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     def deleteDir() {
         this.context.deleteDir()
     }
-    
+
     def withEnv(List<String> env, Closure block) {
         this.context.withEnv (env, block)
     }
-    
+
     def unstable (String message) {
         this.context.unstable(message)
+    }
+
+    def usernamePassword (Map credentialsData) {
+        this.context.usernamePassword (credentialsData)
+    }
+
+    def withCredentials (List credentialsList, Closure block) {
+        this.context.withCredentials (credentialsList, block)
+    }
+
+    def unwrap () {
+      return this.context
     }
 }

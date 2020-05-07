@@ -107,4 +107,23 @@ class PipelineSteps implements IPipelineSteps {
     @Override
     def unstable (String message) {
     }
+
+    def usernamePassword (Map credentialsData) {
+    }
+
+    def withCredentials (List credentialsList, Closure block) {
+      block ()
+    }
+
+    def get (def key) {
+      return currentBuild.get(key)
+    }
+
+    def put (def key, def value) {
+      currentBuild.put(key, value)
+    }
+
+    def unwrap () {
+      return [ : ]
+    }
 }
