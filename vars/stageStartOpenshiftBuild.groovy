@@ -5,7 +5,7 @@ def call(IContext context, Map buildArgs = [:], Map imageLabels = [:]) {
         "'odsComponentStageBuildOpenShiftImage' instead."
     odsComponentStageBuildOpenShiftImage(
         context,
-        [buildArgs: buildArgs, imageLabels: imageLabels]
+        [buildArgs: buildArgs, imageLabels: imageLabels,]
     )
 }
 

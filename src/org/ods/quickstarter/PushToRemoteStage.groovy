@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 class PushToRemoteStage extends Stage {
+
     protected String STAGE_NAME = 'Push to remote'
 
     PushToRemoteStage(def script, IContext context, Map config = [:]) {
@@ -19,13 +20,13 @@ class PushToRemoteStage extends Stage {
             )]
         ) {
             script.writeFile(
-                file: "/home/jenkins/.netrc",
+                file: '/home/jenkins/.netrc',
                 text: "machine ${config.gitHost} login ${script.user} password ${script.pass}"
             )
         }
 
         script.dir(context.targetDir) {
-            if (!script.fileExists (".git")) {
+            if (!script.fileExists ('.git')) {
                 script.echo("Initializing quickstarter git repo ${context.targetDir} @${context.gitUrlHttp}")
                 script.sh(
                     script: """
@@ -49,7 +50,7 @@ class PushToRemoteStage extends Stage {
                     git add --all .
                     git commit -m "Initial OpenDevStack commit"
                     """,
-                    label: "Copy and commit quickstarter files"
+                    label: 'Copy and commit quickstarter files'
                 )
             }
             script.echo("Pushing quickstarter git repo to ${context.gitUrlHttp}")
@@ -57,8 +58,9 @@ class PushToRemoteStage extends Stage {
                 script: """
                   git push -u origin ${config.branch}
                   """,
-                label: "Push to remote"
+                label: 'Push to remote'
             )
         }
     }
+
 }

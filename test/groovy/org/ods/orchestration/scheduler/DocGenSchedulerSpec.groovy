@@ -13,8 +13,8 @@ import util.*
 class DocGenSchedulerSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends DocGenUseCase {
-        DocGenUseCaseImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf) {
-            super(project, steps, util, docGen, nexus, pdf)
+        DocGenUseCaseImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
+            super(project, steps, util, docGen, nexus, pdf, jenkins)
         }
 
         void createA() {}
@@ -51,7 +51,7 @@ class DocGenSchedulerSpec extends SpecHelper {
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
-        def usecase = Spy(new DocGenUseCaseImpl(project, steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil)))
+        def usecase = Spy(new DocGenUseCaseImpl(project, steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil), Mock (JenkinsService)))
         def scheduler = Spy(new DocGenSchedulerImpl(project, steps, util, usecase))
 
         // Test Parameters

@@ -6,6 +6,8 @@ import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 
+import groovy.xml.XmlUtil
+
 @SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof', 'VariableName', 'UnusedMethodParameter', 'UnusedVariable', 'ParameterCount', 'NonFinalPublicField', 'PropertyName', 'MethodCount', 'UseCollectMany', 'ParameterName', 'SpaceAroundMapEntryColon'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
@@ -62,7 +64,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     public static String WORK_IN_PROGRESS_WATERMARK = "Work in Progress"
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = "Attention: this document is work in progress!"
 
-    private JenkinsService jenkins
     private JiraUseCase jiraUseCase
     private JUnitTestReportsUseCase junit
     private LeVADocumentChaptersFileService levaFiles
@@ -70,8 +71,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private SonarQubeUseCase sq
 
     LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
-        super(project, steps, util, docGen, nexus, pdf)
-        this.jenkins = jenkins
+        super(project, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
         this.levaFiles = levaFiles
@@ -483,7 +483,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 },
                 numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isUnexecuted },
                 testFiles         : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
-                    [name: file.name, path: file.path, text: file.text]
+                    [name: file.name, path: file.path, text: XmlUtil.serialize(file.text)]
                 } ?: [], ["name"]),
                 discrepancies     : discrepancies.discrepancies,
                 conclusion        : [
@@ -498,7 +498,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def modifier = { document ->
-            repo.data.documents[documentType] = document
             return document
         }
 
@@ -1140,7 +1139,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (codeReviewReport) {
                 document = this.pdf.merge([ document, codeReviewReport])
             }
-            repo.data.documents[documentType] = document
             return document
         }
 

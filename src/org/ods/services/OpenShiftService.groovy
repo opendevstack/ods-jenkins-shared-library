@@ -4,8 +4,8 @@ import groovy.json.JsonSlurperClassic
 
 class OpenShiftService {
 
-    private def script
-    private String project
+    private final def script
+    private final String project
 
     OpenShiftService(def script, String project) {
         this.script = script
@@ -14,8 +14,8 @@ class OpenShiftService {
 
     String getServer() {
         script.sh(
-            script: "oc whoami --show-server",
-            label: "Get OpenShift server URL",
+            script: 'oc whoami --show-server',
+            label: 'Get OpenShift server URL',
             returnStdout: true
         ).trim()
     }
@@ -43,7 +43,7 @@ class OpenShiftService {
     }
 
     String getRolloutStatus(String name) {
-        def jsonPath = "{.metadata.annotations.openshift\\.io/deployment\\.phase}"
+        def jsonPath = '{.metadata.annotations.openshift\\.io/deployment\\.phase}'
         script.sh(
             script: "oc -n ${project} get rc/${name} -o jsonpath='${jsonPath}'",
             label: "Get status of ReplicationController ${name}",
@@ -67,7 +67,7 @@ class OpenShiftService {
                 returnStdout: true,
                 label: "Check ImageChange trigger for dc/${name}"
             ).trim()
-            automaticValue.contains("true")
+            automaticValue.contains('true')
         } catch (Exception ex) {
             return false
         }
@@ -102,7 +102,7 @@ class OpenShiftService {
         def retries = 3
         for (def i = 0; i < retries; i++) {
             buildStatus = checkForBuildStatus(buildId)
-            if (buildStatus == "complete") {
+            if (buildStatus == 'complete') {
                 return buildStatus
             }
             // Wait 5 seconds before asking again. Sometimes the build finishes but the
@@ -121,14 +121,14 @@ class OpenShiftService {
 
         // Normally we want to replace the imageLabels, but in case they are not
         // present yet, we need to add them this time.
-        def imageLabelsOp = "replace"
+        def imageLabelsOp = 'replace'
         def imageLabelsValue = script.sh(
             script: "oc -n ${project} get bc/${name} -o jsonpath='{.spec.output.imageLabels}'",
             returnStdout: true,
-            label: "Test existance of path .spec.output.imageLabels"
+            label: 'Test existance of path .spec.output.imageLabels'
         ).trim()
         if (imageLabelsValue.length() == 0) {
-            imageLabelsOp = "add"
+            imageLabelsOp = 'add'
         }
 
         def patches = [
@@ -168,7 +168,7 @@ class OpenShiftService {
         script.sh(
             returnStdout: true,
             script: "oc projects | grep '^\\s*${projectId}-' | wc -l",
-            label: "check ocp environment maximum"
+            label: "check ocp environment maximum for '${projectId}-*'"
         ).trim().toInteger() >= limit
     }
 
@@ -179,8 +179,8 @@ class OpenShiftService {
             label: "Get phase of build ${buildId}"
         ).trim().toLowerCase()
     }
-    
-    public String getContainerForImage (String projectId, String rc, String image) {
+
+    String getContainerForImage (String projectId, String rc, String image) {
         def jsonPath = """{.spec.template.spec.containers[?(contains .image "${image}")].name}"""
         script.sh(
             script: "oc -n ${projectId} get rc ${rc} -o jsonpath='${jsonPath}'",
@@ -188,7 +188,7 @@ class OpenShiftService {
             label: "Getting containers for ${rc} and image ${image}"
         )
     }
-    
+
     // Gets pod of deployment
     Map getPodDataForDeployment(String rc) {
         def index = 5
@@ -198,14 +198,14 @@ class OpenShiftService {
                 returnStdout: true,
                 label: "Getting OpenShift pod data for deployment ${rc}"
             )
-            if (podStatus && podStatus == "Running") {
+            if (podStatus && podStatus == 'Running') {
                 break
             } else {
                 script.sleep(5000)
                 index--
             }
         }
-          
+
         def stdout = script.sh(
             script: "oc -n ${project} get pod -l deployment=${rc} -o json",
             returnStdout: true,
@@ -226,16 +226,16 @@ class OpenShiftService {
 
         // strip all data not needed out
         def pod = [:]
-        pod.podName = podOCData?.metadata?.name?: "N/A"
-        pod.podNamespace = podOCData?.metadata?.namespace?: "N/A"
-        pod.podMetaDataCreationTimestamp = podOCData?.metadata?.creationTimestamp?: "N/A"
-        pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name']?: "N/A"
-        pod.podNode = podOCData?.spec?.nodeName ?: "N/A"
-        pod.podIp = podOCData?.status?.podIP ?: "N/A"
-        pod.podStatus = podOCData?.status?.phase ?: "N/A"
-        pod.podStartupTimeStamp = podOCData?.status?.startTime ?: "N/A"
-        pod["containers"] = [:]
-        
+        pod.podName = podOCData?.metadata?.name ?: 'N/A'
+        pod.podNamespace = podOCData?.metadata?.namespace ?: 'N/A'
+        pod.podMetaDataCreationTimestamp = podOCData?.metadata?.creationTimestamp ?: 'N/A'
+        pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name'] ?: 'N/A'
+        pod.podNode = podOCData?.spec?.nodeName ?: 'N/A'
+        pod.podIp = podOCData?.status?.podIP ?: 'N/A'
+        pod.podStatus = podOCData?.status?.phase ?: 'N/A'
+        pod.podStartupTimeStamp = podOCData?.status?.startTime ?: 'N/A'
+        pod['containers'] = [:]
+
         podOCData?.spec?.containers?.each { container ->
             pod.containers[container.name] = container.image
         }
@@ -243,7 +243,7 @@ class OpenShiftService {
     }
 
     String getOpenshiftApplicationDomain () {
-        def routeName = "test-route-" + System.currentTimeMillis()
+        def routeName = 'test-route-' + System.currentTimeMillis()
         script.sh (
             script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
             label: "create dummy route for extraction (${routeName})"
@@ -251,7 +251,7 @@ class OpenShiftService {
         def routeUrl = script.sh (
             script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
             returnStdout: true,
-            label: "get cluster route domain"
+            label: 'get cluster route domain'
         )
         def routePrefixLength = "${routeName}-${project}".length() + 1
         String openShiftPublicHost = routeUrl.substring(routePrefixLength)
@@ -259,7 +259,6 @@ class OpenShiftService {
             script: "oc -n ${project} delete route ${routeName} | true",
             label: "delete dummy route for extraction (${routeName})"
         )
-        
         return openShiftPublicHost
     }
 
@@ -267,23 +266,23 @@ class OpenShiftService {
         script.echo ("Deciphering imageURL ${url} into pieces")
         def imageInformation = [:]
         List <String> imagePath
-        if (url?.contains("@")) {
-            List <String> imageStreamDefinition = (url.split ("@"))
-            imageInformation [ "imageSha" ] = imageStreamDefinition [1]
-            imageInformation [ "imageShaStripped" ] = (imageStreamDefinition [1]).replace("sha256:","")
-            imagePath = imageStreamDefinition[0].split("/")
+        if (url?.contains('@')) {
+            List <String> imageStreamDefinition = (url.split ('@'))
+            imageInformation [ 'imageSha' ] = imageStreamDefinition [1]
+            imageInformation [ 'imageShaStripped' ] = (imageStreamDefinition [1]).replace('sha256:','')
+            imagePath = imageStreamDefinition[0].split('/')
         } else {
-            url = url.split(":")[0]
-            imagePath = url.split("/")
-            imageInformation [ "imageSha" ] = url
-            imageInformation [ "imageShaStripped" ] = url
+            url = url.split(':')[0]
+            imagePath = url.split('/')
+            imageInformation [ 'imageSha' ] = url
+            imageInformation [ 'imageShaStripped' ] = url
         }
-        imageInformation [ "imageStreamProject" ] = imagePath[imagePath.size()-2]
-        imageInformation [ "imageStream" ] = imagePath[imagePath.size()-1]
+        imageInformation [ 'imageStreamProject' ] = imagePath[imagePath.size() - 2]
+        imageInformation [ 'imageStream' ] = imagePath.last()
 
         return imageInformation
     }
-    
+
     List<Map<String, String>> getImageStreamsForDeploymentConfig (String dc) {
         String imageString = script.sh (
             script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
@@ -291,9 +290,10 @@ class OpenShiftService {
             returnStdout: true
         )
         List images = []
-        imageString.tokenize(" ").each { image ->
+        imageString.tokenize(' ').each { image ->
             images << getImageInformationFromImageUrl(image)
         }
         return images
     }
+
 }

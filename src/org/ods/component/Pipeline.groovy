@@ -14,9 +14,9 @@ class Pipeline implements Serializable {
     private JenkinsService jenkinsService
     private BitbucketService bitbucketService
 
-    private def script
+    private final def script
     private IContext context
-    private ILogger logger
+    private final ILogger logger
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled  = true
     private boolean displayNameUpdateEnabled = true
@@ -29,7 +29,7 @@ class Pipeline implements Serializable {
     }
 
     // Main entry point.
-    @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity'])
+    @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
@@ -160,7 +160,7 @@ class Pipeline implements Serializable {
                 cloud: 'openshift',
                 containers: config.podContainers,
                 volumes: config.podVolumes,
-                serviceAccount: config.podServiceAccount
+                serviceAccount: config.podServiceAccount,
             ) {
                 script.node(config.podLabel) {
                     try {
@@ -232,9 +232,9 @@ class Pipeline implements Serializable {
             config.environment = buildEnv
             logger.debug("Setting target env ${config.environment}")
         } else {
-            logger.echo("Variable MULTI_REPO_ENV (target environment!) must not be null!")
+            logger.echo 'Variable MULTI_REPO_ENV (target environment!) must not be null!'
             // Using exception because error step would skip post steps
-            throw new RuntimeException("Variable MULTI_REPO_ENV (target environment!) must not be null!")
+            throw new RuntimeException('Variable MULTI_REPO_ENV (target environment!) must not be null!')
         }
     }
 
@@ -274,7 +274,7 @@ class Pipeline implements Serializable {
             }
 
             if (!!script.env.MULTI_REPO_BUILD) {
-                logger.info "MRO Build - skipping env mapping"
+                logger.info 'MRO Build - skipping env mapping'
             } else {
                 def assumedEnvironments = context.branchToEnvironmentMapping.values()
                 def envExists = context.environmentExists(context.targetProject)
@@ -301,9 +301,9 @@ class Pipeline implements Serializable {
             }
 
             if (openShiftService.tooManyEnvironments(context.projectId, context.environmentLimit)) {
-                script.error "Cannot create OC project " +
+                script.error 'Cannot create OC project ' +
                     "as there are already ${context.environmentLimit} OC projects! " +
-                    "Please clean up and run the pipeline again."
+                    'Please clean up and run the pipeline again.'
             }
 
             logger.info 'Environment does not exist yet. Creating now ...'
@@ -318,9 +318,9 @@ class Pipeline implements Serializable {
                 scriptToUrls.each { scriptName, url ->
                     script.sh(script: "curl --fail -s --user ${userPass} -G '${url}' -d raw -o '${scriptName}'")
                 }
-                def debugMode = ""
+                def debugMode = ''
                 if (context.getDebug()) {
-                    debugMode = "--debug"
+                    debugMode = '--debug'
                 }
                 userPass = userPass.replace('@', '\\@')
                 script.sh(
@@ -406,7 +406,7 @@ class Pipeline implements Serializable {
                     returnStdout: true
                 ).trim()
             } catch (err) {
-                def jobSplitList = script.env.JOB_NAME.split("/")
+                def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
                 origin = script.sh(
@@ -417,12 +417,12 @@ class Pipeline implements Serializable {
             }
 
             def splittedOrigin = origin.split('/')
-            def project = splittedOrigin[splittedOrigin.size()-2]
+            def project = splittedOrigin[splittedOrigin.size() - 2]
             if (!config.projectId) {
                 config.projectId = project.trim()
             }
             if (!config.componentId) {
-                config.componentId = splittedOrigin[splittedOrigin.size()-1]
+                config.componentId = splittedOrigin.last()
                     .replace('.git', '')
                     .replace("${project}-", '')
                     .trim()
@@ -437,4 +437,5 @@ class Pipeline implements Serializable {
             block()
         }
     }
+
 }

@@ -2,8 +2,8 @@ package org.ods.quickstarter
 
 class Pipeline implements Serializable {
 
-    private def script
-    private Map config
+    private final def script
+    private final Map config
 
     Pipeline(def script, Map config) {
         this.script = script
@@ -51,7 +51,7 @@ class Pipeline implements Serializable {
         // vars from jenkins master
         def gitHost
         script.node {
-            gitHost =  script.env.BITBUCKET_HOST.split(":")[0]
+            gitHost =  script.env.BITBUCKET_HOST.split(':')[0]
             config.jobName = script.env.JOB_NAME
             config.buildNumber = script.env.BUILD_NUMBER
             config.buildUrl = script.env.BUILD_URL
@@ -75,7 +75,7 @@ class Pipeline implements Serializable {
         }
     }
 
-    private def checkRequiredBuildParams() {
+    private checkRequiredBuildParams() {
         def requiredParams = ['PROJECT_ID', 'COMPONENT_ID', 'GIT_URL_HTTP']
         for (def i = 0; i < requiredParams.size(); i++) {
             def param = requiredParams[i]
@@ -85,7 +85,7 @@ class Pipeline implements Serializable {
         }
     }
 
-    private def onAgentNode(Map config, Closure block) {
+    private onAgentNode(Map config, Closure block) {
         if (!config.podContainers) {
             if (!config.containsKey('alwaysPullImage')) {
                 config.alwaysPullImage = true
@@ -130,7 +130,7 @@ class Pipeline implements Serializable {
             cloud: 'openshift',
             containers: config.podContainers,
             volumes: config.podVolumes,
-            serviceAccount: config.podServiceAccount
+            serviceAccount: config.podServiceAccount,
         ) {
             script.node(podLabel) {
                 IContext context = new Context(config)
@@ -138,4 +138,5 @@ class Pipeline implements Serializable {
             }
         }
     }
+
 }

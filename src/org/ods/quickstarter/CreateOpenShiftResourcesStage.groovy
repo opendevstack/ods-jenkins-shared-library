@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 class CreateOpenShiftResourcesStage extends Stage {
+
     protected String STAGE_NAME = 'Create OpenShift resources'
 
     CreateOpenShiftResourcesStage(def script, IContext context, Map config = [:]) {
@@ -21,11 +22,11 @@ class CreateOpenShiftResourcesStage extends Stage {
             def namespace = "${context.projectId}-${env}"
 
             def tailorParams = [
-                "--upsert-only",
+                '--upsert-only',
                 "--selector ${config.selector}",
                 "--param=PROJECT=${context.projectId}",
                 "--param=COMPONENT=${context.componentId}",
-                "--param=ENV=${env}"
+                "--param=ENV=${env}",
             ]
 
             if (script.fileExists(config.envFile)) {
@@ -40,4 +41,5 @@ class CreateOpenShiftResourcesStage extends Stage {
             }
         }
     }
+
 }

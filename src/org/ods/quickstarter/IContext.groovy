@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 interface IContext {
+
     // Value of JOB_NAME. It is the name of the project of the build.
     String getJobName()
 
@@ -44,4 +45,5 @@ interface IContext {
     String getNexusUsername()
 
     String getNexusPassword()
+
 }

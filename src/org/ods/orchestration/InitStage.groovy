@@ -8,8 +8,9 @@ import org.ods.orchestration.util.*
 
 @SuppressWarnings('AbcMetric')
 class InitStage extends Stage {
+
     public final String STAGE_NAME = 'Init'
-    
+
     InitStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }
@@ -25,7 +26,6 @@ class InitStage extends Stage {
         // load build params
         def buildParams = Project.loadBuildParams(steps)
         steps.echo("Build Parameters: ${buildParams}")
-
 
         // git checkout
         def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)

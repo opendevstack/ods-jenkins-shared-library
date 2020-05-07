@@ -2,8 +2,8 @@ package org.ods.services
 
 class SonarQubeService {
 
-    private def script
-    private String sonarQubeEnv
+    private final def script
+    private final String sonarQubeEnv
 
     SonarQubeService(def script, String sonarQubeEnv) {
         this.script = script
@@ -19,7 +19,7 @@ class SonarQubeService {
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
                 "-Dsonar.auth.token=${authToken}",
-                "-Dsonar.scm.provider=git"
+                '-Dsonar.scm.provider=git',
             ]
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
@@ -36,11 +36,11 @@ class SonarQubeService {
                     "-Dsonar.pullrequest.bitbucketserver.repository=${pullRequestInfo.bitbucketRepository}",
                     "-Dsonar.pullrequest.key=${pullRequestInfo.bitbucketPullRequestKey}",
                     "-Dsonar.pullrequest.branch=${pullRequestInfo.branch}",
-                    "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}"
+                    "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}",
                 ].each { scannerParams << it }
             }
             script.sh(
-                label: "Run SonarQube scan",
+                label: 'Run SonarQube scan',
                 script: "${getScannerBinary()} ${scannerParams.join(' ')}"
             )
         }
@@ -49,7 +49,7 @@ class SonarQubeService {
     def generateCNESReport(String projectKey, String author) {
         withSonarServerConfig { hostUrl, authToken ->
             script.sh(
-                label: "Generate CNES Report",
+                label: 'Generate CNES Report',
                 script: """
                 java -jar /usr/local/cnes/cnesreport.jar \
                     -s ${hostUrl} \
@@ -64,7 +64,7 @@ class SonarQubeService {
     def getQualityGateJSON(String projectKey) {
         withSonarServerConfig { hostUrl, authToken ->
             script.sh(
-                label: "Get status of quality gate",
+                label: 'Get status of quality gate',
                 script: "curl -s -u ${authToken}: ${hostUrl}/api/qualitygates/project_status?projectKey=${projectKey}",
                 returnStdout: true
             )
@@ -76,7 +76,7 @@ class SonarQubeService {
         def status = script.sh(
             returnStatus: true,
             script: "which ${scannerBinary}",
-            label: "Find scanner binary"
+            label: 'Find sq scanner binary'
         )
         if (status != 0) {
             def scannerHome = script.tool('SonarScanner')
@@ -85,10 +85,11 @@ class SonarQubeService {
         scannerBinary
     }
 
-    private def withSonarServerConfig(Closure block) {
+    private withSonarServerConfig(Closure block) {
         // SonarServerConfig is set in the Jenkins master via init.groovy.d/sonarqube.groovy.
         script.withSonarQubeEnv(sonarQubeEnv) {
             block(script.SONAR_HOST_URL, script.SONAR_AUTH_TOKEN)
         }
     }
+
 }
