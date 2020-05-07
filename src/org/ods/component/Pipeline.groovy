@@ -14,9 +14,9 @@ class Pipeline implements Serializable {
     private JenkinsService jenkinsService
     private BitbucketService bitbucketService
 
+    private final ILogger logger
     private final def script
     private IContext context
-    private final ILogger logger
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled  = true
     private boolean displayNameUpdateEnabled = true
