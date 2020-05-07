@@ -93,7 +93,7 @@ class FinalizeStage extends Stage {
         } else {
             project.reportPipelineStatus()
             bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                "SUCCESS", "Release Manager for commit: ${project.gitData.commit}")
+                "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
         }
     }
 }
