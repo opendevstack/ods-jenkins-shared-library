@@ -102,7 +102,7 @@ class Context implements IContext {
             config.autoCloneEnvironmentsFromSourceMapping = [:]
         }
         if (!config.containsKey('cloneProjectScriptBranch')) {
-            config.cloneProjectScriptBranch = 'production'
+            config.cloneProjectScriptBranch = 'master'
         }
         if (config.containsKey('sonarQubeBranch')) {
             script.echo "Setting option 'sonarQubeBranch' of the pipeline is deprecated, " +
