@@ -251,7 +251,8 @@ class InitStage extends Stage {
         project.load(registry.get(GitUtil), registry.get(JiraUseCase))
         def repos = project.repositories
 
-        bitbucket (steps.env.BUILD_URL, project.gitData.commit, "INPROGRESS", script.currentBuild.description)
+        bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit, 
+            "INPROGRESS", script.currentBuild.description)
 
         steps.echo "Validate that for Q and P we have a valid version"
         if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
