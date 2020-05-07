@@ -25,6 +25,8 @@ interface IContext {
 
     String getGitUrlHttp()
 
+    String getOdsNamespace()
+
     String getOdsImageTag()
 
     String getOdsGitRef()

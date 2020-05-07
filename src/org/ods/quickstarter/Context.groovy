@@ -51,6 +51,11 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getOdsNamespace() {
+        config.odsNamespace
+    }
+
+    @NonCPS
     String getOdsImageTag() {
         config.odsImageTag
     }

@@ -96,6 +96,9 @@ The `context` object contains the following properties:
 | group
 | Group, retrieved from `GROUP` build parameter.
 
+| odsNamespace
+| Central namespace where images are located, retrieved from `ODS_NAMESPACE` build parameter.
+
 | odsImageTag
 | Image tag used for the agent pod, retrieved from `ODS_IMAGE_TAG` build parameter.
 

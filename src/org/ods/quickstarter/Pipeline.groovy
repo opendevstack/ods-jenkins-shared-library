@@ -14,6 +14,7 @@ class Pipeline implements Serializable {
     def execute(Closure block) {
         // build params
         checkRequiredBuildParams()
+        config.odsNamespace = script.env.ODS_NAMESPACE ?: 'ods'
         config.odsImageTag = script.env.ODS_IMAGE_TAG ?: 'latest'
         config.odsGitRef = script.env.ODS_GIT_REF ?: 'production'
         config.projectId = script.env.PROJECT_ID.toLowerCase()
