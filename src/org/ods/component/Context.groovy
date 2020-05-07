@@ -50,6 +50,8 @@ class Context implements IContext {
             config.bitbucketUrl = "https://${config.bitbucketHost}"
         }
 
+        config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
+
         config.globalExtensionImageLabels = getExtensionBuildParams()
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
@@ -554,7 +556,7 @@ class Context implements IContext {
         def scripts = ['clone-project.sh', 'import-project.sh', 'export-project.sh']
         def m = [:]
         def branch = getCloneProjectScriptBranch().replace('/', '%2F')
-        def baseUrl = "${config.bitbucketUrl}/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts"
+        def baseUrl = "${config.bitbucketUrl}/projects/${config.odsBitbucketProject}/repos/ods-core/raw/ocp-scripts"
         for (script in scripts) {
             def url = "${baseUrl}/${script}?at=refs%2Fheads%2F${branch}"
             m.put(script, url)

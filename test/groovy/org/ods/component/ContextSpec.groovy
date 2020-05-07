@@ -151,7 +151,7 @@ class ContextSpec extends Specification {
 
     }
 
-    def bbBaseUrl = 'https://bitbucket.example.com/projects/OPENDEVSTACK/repos/ods-core/raw/ocp-scripts'
+    def bbBaseUrl = 'https://bitbucket.example.com/projects/opendevstack/repos/ods-core/raw/ocp-scripts'
 
     def testCloneProjectScriptUrlsDefault() {
         when:
