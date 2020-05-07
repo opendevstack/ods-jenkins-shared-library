@@ -115,11 +115,7 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.withCredentials (credentialsList, block)
     }
 
-    def get (def key) {
-        this.context.get(key)
-    }
-
-    def put (def key, def value) {
-        this.context.put(key, value)
+    def unwrap () {
+      return this.context
     }
 }

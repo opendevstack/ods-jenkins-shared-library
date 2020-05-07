@@ -238,7 +238,7 @@ class InitStage extends Stage {
         )
 
         registry.add(BitbucketService, new BitbucketService(
-            registry.get(PipelineSteps),
+            registry.get(PipelineSteps).unwrap(),
             script.env.BITBUCKET_HOST,
             registry.get(Project).getJiraProjectKey(),
             project.services.bitbucket.credentials.id

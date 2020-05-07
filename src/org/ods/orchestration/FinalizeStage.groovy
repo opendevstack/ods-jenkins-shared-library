@@ -86,14 +86,14 @@ class FinalizeStage extends Stage {
             message += "."
 
             bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-              "FAILURE", steps.currentBuild.description)
+                "FAILURE", steps.currentBuild.description)
 
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
             project.reportPipelineStatus()
             bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-              "SUCCESS", steps.currentBuild.description)
+                "SUCCESS", steps.currentBuild.description)
         }
     }
 }

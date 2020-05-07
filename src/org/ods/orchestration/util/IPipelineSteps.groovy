@@ -52,7 +52,5 @@ interface IPipelineSteps {
 
     def withCredentials (List credentialsList, Closure block)
 
-    def get (def key);
-
-    def put (def key, def value)
+    def unwrap ()
 }

@@ -123,4 +123,7 @@ class PipelineSteps implements IPipelineSteps {
       currentBuild.put(key, value)
     }
 
+    def unwrap () {
+      return [ : ]
+    }
 }
