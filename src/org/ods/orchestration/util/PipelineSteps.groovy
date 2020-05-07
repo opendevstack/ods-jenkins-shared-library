@@ -4,12 +4,11 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-class PipelineSteps extends HashMap implements IPipelineSteps, Serializable {
+class PipelineSteps implements IPipelineSteps, Serializable {
 
     private def context
 
     PipelineSteps(def context) {
-        super()
         this.context = context
     }
 
@@ -116,4 +115,11 @@ class PipelineSteps extends HashMap implements IPipelineSteps, Serializable {
         this.context.withCredentials (credentialsList, block)
     }
 
+    def get (def key) {
+        this.context.get(key)
+    }
+
+    def put (def key, def value) {
+        this.context.put(key, value)
+    }
 }

@@ -2,7 +2,7 @@ package util
 
 import org.ods.orchestration.util.IPipelineSteps
 
-class PipelineSteps extends HashMap implements IPipelineSteps {
+class PipelineSteps implements IPipelineSteps {
 
     private Map currentBuild = [:]
     private Map env = [:]
@@ -114,4 +114,13 @@ class PipelineSteps extends HashMap implements IPipelineSteps {
     def withCredentials (List credentialsList, Closure block) {
       block ()
     }
+
+    def get (def key) {
+      return currentBuild.get(key)
+    }
+
+    def put (def key, def value) {
+      currentBuild.put(key, value)
+    }
+
 }

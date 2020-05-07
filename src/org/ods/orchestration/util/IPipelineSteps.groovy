@@ -1,6 +1,6 @@
 package org.ods.orchestration.util
 
-interface IPipelineSteps extends Map {
+interface IPipelineSteps {
 
     void archiveArtifacts(String artifacts)
 
@@ -51,4 +51,8 @@ interface IPipelineSteps extends Map {
     def usernamePassword (Map credentialsData)
 
     def withCredentials (List credentialsList, Closure block)
+
+    def get (def key);
+
+    def put (def key, def value)
 }
