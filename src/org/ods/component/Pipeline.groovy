@@ -221,7 +221,6 @@ class Pipeline implements Serializable {
 
     def setupForMultiRepoBuild(def config) {
         logger.info '-> Detected multirepo MRO build'
-        config.bitbucketNotificationEnabled = false
         config.localCheckoutEnabled = false
         config.displayNameUpdateEnabled  = false
         config.ciSkipEnabled = false

@@ -1,6 +1,8 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
+
+import org.ods.services.BitbucketService
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
@@ -24,8 +26,7 @@ class InitStage extends Stage {
 
         // load build params
         def buildParams = Project.loadBuildParams(steps)
-        steps.echo("Build Parameters: ${buildParams}")
-
+        steps.echo("Release Manager Build Parameters: ${buildParams}")
 
         // git checkout
         def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)
@@ -236,11 +237,21 @@ class InitStage extends Stage {
             )
         )
 
+        registry.add(BitbucketService, new BitbucketService(
+            registry.get(PipelineSteps),
+            script.env.BITBUCKET_HOST,
+            registry.get(Project).getJiraProjectKey(),
+            project.services.bitbucket.credentials.id
+        ))
+        BitbucketService bitbucket = registry.get(BitbucketService)
+
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
         steps.echo "Run Project#load"
         project.load(registry.get(GitUtil), registry.get(JiraUseCase))
         def repos = project.repositories
+
+        bitbucket (steps.env.BUILD_URL, project.gitData.commit, "INPROGRESS", script.currentBuild.description)
 
         steps.echo "Validate that for Q and P we have a valid version"
         if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
