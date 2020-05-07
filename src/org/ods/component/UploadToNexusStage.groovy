@@ -1,21 +1,24 @@
 package org.ods.component
 
+import org.ods.services.NexusService
+
 class UploadToNexusStage extends Stage {
 
     public final String STAGE_NAME = 'Upload to Nexus'
 
     final def repoType
     final def distFile
-    final def groupId
     final def uploadPath
+    final NexusService nexus
 
     UploadToNexusStage(def script, IContext context, Map config) {
         super(script, context, config)
         this.repoType = config.repoType ?: 'candidates'
         this.distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
-        this.groupId  = config.groupId ?: context.groupId
-        def repo = "${context.nexusHost}/repository/${repoType}"
-        this.uploadPath = "${repo}/${groupId.replace('.', '/')}/${componentId}/${context.tagversion}/${distFile}"
+        def groupId  = config.groupId ?: context.groupId
+        this.uploadPath = "${groupId.replace('.', '/')}/${componentId}/${context.tagversion}"
+        
+        nexus = new NexusService(context.nexusHost, context.nexusUsername, context.nexusPassword)
     }
 
     def run() {
@@ -25,12 +28,7 @@ class UploadToNexusStage extends Stage {
             script.error ("Could not upload file ${distFile} - it does NOT exist!")
         }
 
-        def user = "${context.nexusUsername}:${context.nexusPassword}"
-        script.sh (
-            script: "curl -u ${user} --upload-file ${distFile} ${uploadPath}",
-            label: "Uploading ${distFile} to Nexus"
-        )
-        return uploadPath
+        return nexus.storeArtifactFromFile(repoType, uploadPath, distFile, new File(distFile), "application/octet-stream")
     }
 
 }

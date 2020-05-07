@@ -1,10 +1,10 @@
 package vars
 
-import org.ods.component.Logger
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
+import org.ods.util.Logger
 import org.ods.services.ServiceRegistry
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*

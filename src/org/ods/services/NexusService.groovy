@@ -1,4 +1,4 @@
-package org.ods.orchestration.service
+package org.ods.services
 
 @Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
@@ -12,10 +12,10 @@ import org.apache.http.client.utils.URIBuilder
 
 class NexusService {
 
-    URI baseURL
+    final URI baseURL
 
-    String username
-    String password
+    final String username
+    final String password
 
     NexusService(String baseURL, String username, String password) {
         if (!baseURL?.trim()) {
@@ -55,14 +55,14 @@ class NexusService {
         response.ifSuccess {
             if (response.getStatus() != 204) {
                 throw new RuntimeException(
-                    "Error: unable to store artifact. " +
+                    'Error: unable to store artifact. ' +
                         "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
                 )
             }
         }
 
         response.ifFailure {
-            def message = "Error: unable to store artifact. " +
+            def message = 'Error: unable to store artifact. ' +
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
@@ -74,7 +74,7 @@ class NexusService {
 
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
     }
-    
+
     def URI storeArtifactFromFile(
         String repository,
         String directory,
@@ -83,4 +83,5 @@ class NexusService {
         String contentType) {
         return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
     }
+
 }

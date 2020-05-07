@@ -1,4 +1,4 @@
-package org.ods.component
+package org.ods.util
 
 class Logger implements ILogger {
 

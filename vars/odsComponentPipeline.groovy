@@ -1,5 +1,5 @@
-import org.ods.component.Logger
 import org.ods.component.Pipeline
+import org.ods.util.Logger
 
 def call(Map config, Closure body) {
     def debug = env.DEBUG

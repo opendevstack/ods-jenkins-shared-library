@@ -1,8 +1,10 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
-
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
 import org.ods.services.BitbucketService
+
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*

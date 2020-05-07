@@ -1,6 +1,7 @@
 package org.ods.services
 
-import org.ods.component.ILogger
+import org.ods.util.ILogger
+import org.ods.util.Logger
 
 class JenkinsService {
 
@@ -8,8 +9,11 @@ class JenkinsService {
     private final ILogger logger
     private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
 
-    JenkinsService(script, ILogger logger) {
+    JenkinsService(script, ILogger logger = null) {
         this.script = script
+        if (!logger) {
+          logger = new Logger(script, script.env.DEBUG)
+        }
         this.logger = logger
     }
 
@@ -56,6 +60,32 @@ class JenkinsService {
         }
 
         return contextresultMap
+    }
+
+    String getCurrentBuildLogAsHtml () {
+        StringWriter writer = new StringWriter()
+        this.script.currentBuild.getRawBuild().getLogText().writeHtmlTo(0, writer)
+        return writer.getBuffer().toString()
+    }
+
+    String getCurrentBuildLogAsText () {
+        StringWriter writer = new StringWriter()
+        this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)
+        return writer.getBuffer().toString()
+    }
+  
+    boolean unstashFilesIntoPath(String name, String path, String type) {
+        def result = true
+  
+        this.script.dir(path) {
+            try {
+                this.script.unstash(name)
+            } catch (e) {
+                this.script.echo("Could not find any files of type '${type}' to unstash for name '${name}'")
+                result = false
+            }
+        }
+        return result
     }
 
 }

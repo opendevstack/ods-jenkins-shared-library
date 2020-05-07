@@ -1,8 +1,8 @@
 package org.ods.orchestration.usecase
 
-import org.ods.orchestration.service.NexusService
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
+import org.ods.services.NexusService
 
 @SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])
 class SonarQubeUseCase {

@@ -5,6 +5,7 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.services.ServiceRegistry
+import org.ods.services.JenkinsService
 
 class BuildStage extends Stage {
 

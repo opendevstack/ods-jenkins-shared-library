@@ -1,7 +1,7 @@
 package vars
 
-import org.ods.component.Logger
 import org.ods.component.Context
+import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 
 class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
