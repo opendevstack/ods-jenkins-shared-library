@@ -28,7 +28,8 @@ class UploadToNexusStage extends Stage {
             script.error ("Could not upload file ${distFile} - it does NOT exist!")
         }
 
-        return nexus.storeArtifactFromFile(repoType, uploadPath, distFile, new File(distFile), "application/octet-stream")
+        return nexus.storeArtifactFromFile(repoType, uploadPath, distFile, 
+            new File("${script.env.WORKSPACE}/${distFile}"), "application/octet-stream")
     }
 
 }
