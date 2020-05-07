@@ -107,7 +107,7 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.unstable(message)
     }
 
-    def usernamePassword (List credentialsData) {
+    def usernamePassword (Map credentialsData) {
         this.context.usernamePassword (credentialsData)
     }
 }

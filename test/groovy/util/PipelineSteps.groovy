@@ -108,7 +108,7 @@ class PipelineSteps implements IPipelineSteps {
     def unstable (String message) {
     }
 
-    def usernamePassword (List credentialsData) {
+    def usernamePassword (Map credentialsData) {
         
     }
 
