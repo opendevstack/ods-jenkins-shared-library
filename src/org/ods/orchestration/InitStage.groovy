@@ -239,10 +239,11 @@ class InitStage extends Stage {
 
         registry.add(BitbucketService, new BitbucketService(
             registry.get(PipelineSteps).unwrap(),
-            script.env.BITBUCKET_HOST,
-            registry.get(Project).getJiraProjectKey(),
+            project.releaseManagerBitbucketHostUrl,
+            project.key,
             project.services.bitbucket.credentials.id
         ))
+
         BitbucketService bitbucket = registry.get(BitbucketService)
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
