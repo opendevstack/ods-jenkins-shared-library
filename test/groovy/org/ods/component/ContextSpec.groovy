@@ -163,9 +163,9 @@ class ContextSpec extends Specification {
 
         then:
         m.keySet() == ['clone-project.sh', 'import-project.sh', 'export-project.sh'] as Set
-        m['clone-project.sh'] == "${bbBaseUrl}/clone-project.sh?at=refs%2Fheads%2Fproduction"
-        m['export-project.sh'] == "${bbBaseUrl}/export-project.sh?at=refs%2Fheads%2Fproduction"
-        m['import-project.sh'] == "${bbBaseUrl}/import-project.sh?at=refs%2Fheads%2Fproduction"
+        m['clone-project.sh'] == "${bbBaseUrl}/clone-project.sh?at=refs%2Fheads%2Fmaster"
+        m['export-project.sh'] == "${bbBaseUrl}/export-project.sh?at=refs%2Fheads%2Fmaster"
+        m['import-project.sh'] == "${bbBaseUrl}/import-project.sh?at=refs%2Fheads%2Fmaster"
     }
 
     void testCloneProjectScriptUrlsAtBranch() {
