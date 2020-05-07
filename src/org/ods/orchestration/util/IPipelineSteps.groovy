@@ -1,6 +1,6 @@
 package org.ods.orchestration.util
 
-interface IPipelineSteps {
+interface IPipelineSteps extends Map {
 
     void archiveArtifacts(String artifacts)
 

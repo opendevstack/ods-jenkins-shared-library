@@ -2,7 +2,7 @@ package util
 
 import org.ods.orchestration.util.IPipelineSteps
 
-class PipelineSteps implements IPipelineSteps {
+class PipelineSteps extends HashMap implements IPipelineSteps {
 
     private Map currentBuild = [:]
     private Map env = [:]

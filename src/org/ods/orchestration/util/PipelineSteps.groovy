@@ -4,7 +4,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-class PipelineSteps implements IPipelineSteps, Serializable {
+class PipelineSteps extends HashMap implements IPipelineSteps, Serializable {
 
     private def context
 
@@ -98,11 +98,11 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     def deleteDir() {
         this.context.deleteDir()
     }
-    
+
     def withEnv(List<String> env, Closure block) {
         this.context.withEnv (env, block)
     }
-    
+
     def unstable (String message) {
         this.context.unstable(message)
     }
@@ -112,6 +112,7 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     }
 
     def withCredentials (List credentialsList, Closure block) {
-        this.context.withCredentials (credentialsList, block) 
+        this.context.withCredentials (credentialsList, block)
     }
+
 }
