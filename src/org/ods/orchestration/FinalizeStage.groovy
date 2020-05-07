@@ -7,8 +7,9 @@ import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 
 class FinalizeStage extends Stage {
+
     public final String STAGE_NAME = 'Finalize'
-    
+
     FinalizeStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }
@@ -67,28 +68,29 @@ class FinalizeStage extends Stage {
         steps.echo(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
-        
+
         // Fail the build in case of failing tests.
         if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
-            def message = "Error: "
+            def message = 'Error: '
 
             if (project.hasFailingTests()) {
-                message += "found failing tests"
+                message += 'found failing tests'
             }
 
             if (project.hasFailingTests() && project.hasUnexecutedJiraTests()) {
-                message += " and "
+                message += ' and '
             }
 
             if (project.hasUnexecutedJiraTests()) {
-                message += "found unexecuted Jira tests"
+                message += 'found unexecuted Jira tests'
             }
 
-            message += "."
+            message += '.'
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
             project.reportPipelineStatus()
         }
     }
+
 }

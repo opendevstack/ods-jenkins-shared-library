@@ -26,7 +26,7 @@ class CreateOpenShiftResourcesStage extends Stage {
                 "--selector ${config.selector}",
                 "--param=PROJECT=${context.projectId}",
                 "--param=COMPONENT=${context.componentId}",
-                "--param=ENV=${env}", 
+                "--param=ENV=${env}",
             ]
 
             if (script.fileExists(config.envFile)) {

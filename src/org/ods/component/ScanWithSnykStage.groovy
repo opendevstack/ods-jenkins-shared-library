@@ -3,7 +3,7 @@ package org.ods.component
 import org.ods.services.SnykService
 
 class ScanWithSnykStage extends Stage {
-  
+
     public final String STAGE_NAME = 'Snyk Security Scan'
     private final SnykService snyk
 
@@ -97,7 +97,7 @@ class ScanWithSnykStage extends Stage {
             script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
         }
         def snykScanStashPath = "scsr-report-${componentId}-${context.buildNumber}"
-        context.addArtifactURI("snykScanStashPath", snykScanStashPath)
+        context.addArtifactURI('snykScanStashPath', snykScanStashPath)
 
         script.stash(
             name: "${snykScanStashPath}",

@@ -1,7 +1,7 @@
 package org.ods.quickstarter
 
 class RenderJenkinsfileStage extends Stage {
-  
+
     protected String STAGE_NAME = 'Create Jenkinsfile'
 
     RenderJenkinsfileStage(def script, IContext context, Map config = [:]) {

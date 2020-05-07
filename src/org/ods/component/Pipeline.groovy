@@ -29,7 +29,7 @@ class Pipeline implements Serializable {
     }
 
     // Main entry point.
-    @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity'])
+    @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
@@ -160,7 +160,7 @@ class Pipeline implements Serializable {
                 cloud: 'openshift',
                 containers: config.podContainers,
                 volumes: config.podVolumes,
-                serviceAccount: config.podServiceAccount
+                serviceAccount: config.podServiceAccount,
             ) {
                 script.node(config.podLabel) {
                     try {
@@ -406,7 +406,7 @@ class Pipeline implements Serializable {
                     returnStdout: true
                 ).trim()
             } catch (err) {
-                def jobSplitList = script.env.JOB_NAME.split("/")
+                def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
                 origin = script.sh(
@@ -422,7 +422,7 @@ class Pipeline implements Serializable {
                 config.projectId = project.trim()
             }
             if (!config.componentId) {
-                config.componentId = splittedOrigin[splittedOrigin.size() - 1]
+                config.componentId = splittedOrigin.last()
                     .replace('.git', '')
                     .replace("${project}-", '')
                     .trim()

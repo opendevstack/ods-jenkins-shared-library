@@ -35,7 +35,7 @@ def call(Map config) {
             PipelineUtil.ARTIFACTS_BASE_DIR,
             PipelineUtil.SONARQUBE_BASE_DIR,
             PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
-            MROPipelineUtil.REPOS_BASE_DIR
+            MROPipelineUtil.REPOS_BASE_DIR,
         ].each { name ->
             steps.echo("Cleaning workspace directory '${name}' from previous runs")
             Paths.get(env.WORKSPACE, name).toFile().deleteDir()
@@ -68,7 +68,7 @@ def call(Map config) {
                     project = result.project
                     repos = result.repos
                 } else {
-                    echo "Skip pipeline as no project/repos computed"
+                    echo 'Skip pipeline as no project/repos computed'
                     return
                 }
 

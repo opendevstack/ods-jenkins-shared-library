@@ -50,7 +50,7 @@ class PushToRemoteStage extends Stage {
                     git add --all .
                     git commit -m "Initial OpenDevStack commit"
                     """,
-                    label: "Copy and commit quickstarter files"
+                    label: 'Copy and commit quickstarter files'
                 )
             }
             script.echo("Pushing quickstarter git repo to ${context.gitUrlHttp}")

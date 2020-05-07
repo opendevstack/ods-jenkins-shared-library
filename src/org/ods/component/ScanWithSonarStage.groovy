@@ -6,7 +6,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
 
 class ScanWithSonarStage extends Stage {
-  
+
     public final String STAGE_NAME = 'SonarQube Analysis'
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
@@ -154,7 +154,7 @@ class ScanWithSonarStage extends Stage {
                 if (prFromBranch == branch) {
                     return [
                         key: prCandidate['id'],
-                        base: prCandidate['toRef']['displayId']
+                        base: prCandidate['toRef']['displayId'],
                     ]
                 }
             } catch (Exception ex) {
@@ -187,9 +187,9 @@ class ScanWithSonarStage extends Stage {
         if (archive) {
             script.archiveArtifacts(artifacts: 'artifacts/SCRR*')
         }
-        
+
         def sonarqubeStashPath = "scrr-report-${context.componentId}-${context.buildNumber}"
-        context.addArtifactURI("sonarqubeScanStashPath", sonarqubeStashPath)
+        context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
 
         script.stash(
             name: "${sonarqubeStashPath}",

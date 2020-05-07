@@ -225,7 +225,7 @@ class Context implements IContext {
     }
 
     String getNexusHostWithBasicAuth() {
-        config.nexusHost.replace("://", "://${config.nexusUsername}:${config.nexusPassword}@")
+        config.nexusHost.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
     }
 
     @NonCPS
@@ -351,7 +351,8 @@ class Context implements IContext {
 
     private String retrieveGitUrl() {
         def gitUrl = script.sh(
-            returnStdout: true, script: 'git config --get remote.origin.url',
+            returnStdout: true, 
+            script: 'git config --get remote.origin.url',
             label: 'getting GIT url'
         ).trim()
         return gitUrl
@@ -373,7 +374,7 @@ class Context implements IContext {
 
     private String retrieveGitCommitMessage() {
         script.sh(
-            returnStdout: true, script: "git log -1 --pretty=%B HEAD",
+            returnStdout: true, script: 'git log -1 --pretty=%B HEAD',
             label: 'getting GIT commit message'
         ).trim()
     }
@@ -408,7 +409,8 @@ class Context implements IContext {
 
     private String retrieveGitCommitTime() {
         script.sh(
-            returnStdout: true, script: "git show -s --format=%ci HEAD",
+            returnStdout: true, 
+            script: 'git show -s --format=%ci HEAD',
             label: 'getting GIT commit date/time'
         ).trim()
     }
@@ -453,16 +455,16 @@ class Context implements IContext {
     // "HUGO-4" from it.
     private String extractBranchCode(String branch) {
         if (branch.startsWith('feature/')) {
-            def list = branch.drop('feature/'.length()).tokenize("-")
+            def list = branch.drop('feature/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
         } else if (branch.startsWith('bugfix/')) {
-            def list = branch.drop('bugfix/'.length()).tokenize("-")
+            def list = branch.drop('bugfix/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
         } else if (branch.startsWith('hotfix/')) {
-            def list = branch.drop('hotfix/'.length()).tokenize("-")
+            def list = branch.drop('hotfix/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
         } else if (branch.startsWith('release/')) {
-            def list = branch.drop('release/'.length()).tokenize("-")
+            def list = branch.drop('release/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
         } else {
             branch
@@ -511,7 +513,7 @@ class Context implements IContext {
             return
         }
 
-        logger.info 'No environment to deploy to was determined, returning ' +
+        logger.info 'No environment to deploy to was determined, returning..\r' +
             "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
         config.environment = ''
         config.cloneSourceEnv = ''
@@ -540,7 +542,7 @@ class Context implements IContext {
     }
 
     protected String getTicketIdFromBranch(String branchName, String projectId) {
-        def tokens = extractBranchCode(branchName).split("-")
+        def tokens = extractBranchCode(branchName).split('-')
         def pId = tokens[0]
         if (!pId || !pId.equalsIgnoreCase(projectId)) {
             return ''

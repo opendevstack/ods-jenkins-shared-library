@@ -19,7 +19,7 @@ class SonarQubeService {
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
                 "-Dsonar.auth.token=${authToken}",
-                '-Dsonar.scm.provider=git'
+                '-Dsonar.scm.provider=git',
             ]
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
@@ -36,7 +36,7 @@ class SonarQubeService {
                     "-Dsonar.pullrequest.bitbucketserver.repository=${pullRequestInfo.bitbucketRepository}",
                     "-Dsonar.pullrequest.key=${pullRequestInfo.bitbucketPullRequestKey}",
                     "-Dsonar.pullrequest.branch=${pullRequestInfo.branch}",
-                    "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}"
+                    "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}",
                 ].each { scannerParams << it }
             }
             script.sh(
@@ -85,7 +85,7 @@ class SonarQubeService {
         scannerBinary
     }
 
-    private def withSonarServerConfig(Closure block) {
+    private withSonarServerConfig(Closure block) {
         // SonarServerConfig is set in the Jenkins master via init.groovy.d/sonarqube.groovy.
         script.withSonarQubeEnv(sonarQubeEnv) {
             block(script.SONAR_HOST_URL, script.SONAR_AUTH_TOKEN)

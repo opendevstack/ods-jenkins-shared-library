@@ -1,14 +1,15 @@
 package org.ods.orchestration
 
-import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
+import org.ods.services.ServiceRegistry
 
 class BuildStage extends Stage {
+
     public final String STAGE_NAME = 'Build'
-    
+
     BuildStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }
@@ -93,7 +94,7 @@ class BuildStage extends Stage {
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
             testReportsStashName,
             testReportsUnstashPath,
-            "JUnit XML Report"
+            'JUnit XML Report'
         )
         if (!hasStashedTestReports) {
             throw new RuntimeException(
@@ -108,7 +109,8 @@ class BuildStage extends Stage {
             // Load JUnit test report files from path
             testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
-            testResults: junit.parseTestReportFiles(testReportFiles)
+            testResults: junit.parseTestReportFiles(testReportFiles),
         ]
     }
+
 }

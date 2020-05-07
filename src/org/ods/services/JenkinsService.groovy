@@ -15,7 +15,7 @@ class JenkinsService {
 
     def stashTestResults(String customXunitResultsDir, String stashNamePostFix = 'stash') {
         def contextresultMap = [:]
-        customXunitResultsDir = customXunitResultsDir?.trim()?.length() > 0 ? 
+        customXunitResultsDir = customXunitResultsDir?.trim()?.length() > 0 ?
             customXunitResultsDir : XUNIT_SYSTEM_RESULT_DIR
 
         logger.info "Stashing testResults from location: '${customXunitResultsDir}'"
@@ -23,7 +23,7 @@ class JenkinsService {
             script: """
             mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${customXunitResultsDir} &&
                 cp -rf ${customXunitResultsDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true
-            """, 
+            """,
             label: "Moving test results to system location: ${XUNIT_SYSTEM_RESULT_DIR}"
           )
 

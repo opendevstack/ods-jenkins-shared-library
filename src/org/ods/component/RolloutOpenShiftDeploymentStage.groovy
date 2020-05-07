@@ -3,9 +3,10 @@ package org.ods.component
 import org.ods.services.OpenShiftService
 
 class RolloutOpenShiftDeploymentStage extends Stage {
+
     public final String STAGE_NAME = 'Deploy to Openshift'
     private final OpenShiftService openShift
-    
+
     RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift) {
         super(script, context, config)
         if (!config.deployTimeoutMinutes) {

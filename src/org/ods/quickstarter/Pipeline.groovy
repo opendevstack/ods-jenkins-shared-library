@@ -74,7 +74,7 @@ class Pipeline implements Serializable {
         }
     }
 
-    private def checkRequiredBuildParams() {
+    private checkRequiredBuildParams() {
         def requiredParams = ['PROJECT_ID', 'COMPONENT_ID', 'GIT_URL_HTTP']
         for (def i = 0; i < requiredParams.size(); i++) {
             def param = requiredParams[i]
@@ -129,7 +129,7 @@ class Pipeline implements Serializable {
             cloud: 'openshift',
             containers: config.podContainers,
             volumes: config.podVolumes,
-            serviceAccount: config.podServiceAccount
+            serviceAccount: config.podServiceAccount,
         ) {
             script.node(podLabel) {
                 IContext context = new Context(config)

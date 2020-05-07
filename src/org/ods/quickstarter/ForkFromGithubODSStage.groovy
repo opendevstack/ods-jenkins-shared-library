@@ -43,7 +43,7 @@ class ForkFromGithubODSStage extends Stage {
                 label: "Fork '${config.odsComponent}' from github @${githubRepoUrl}",
                 returnStatus: true
             )
-            
+
             if (status != 0) {
                 script.error ("Could not fork ${githubRepoUrl}, status ${status}")
             }

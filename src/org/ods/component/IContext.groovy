@@ -158,7 +158,7 @@ interface IContext {
     // set and add image labels
     void setExtensionImageLabels (Map <String, String> extensionLabels)
 
-    // set the application domain 
+    // set the application domain
     void setOpenshiftApplicationDomain (String domain)
 
     // get the application domain

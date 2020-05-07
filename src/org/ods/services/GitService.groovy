@@ -62,7 +62,7 @@ class GitService {
             branches: [[name: gitCommit]],
             doGenerateSubmoduleConfigurations: false,
             submoduleCfg: [],
-            userRemoteConfigs: userRemoteConfigs
+            userRemoteConfigs: userRemoteConfigs,
         ]
         if (isSlaveNodeGitLfsEnabled()) {
             gitParams.extensions = [

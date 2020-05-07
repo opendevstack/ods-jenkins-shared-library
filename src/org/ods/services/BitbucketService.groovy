@@ -142,7 +142,7 @@ class BitbucketService {
     @SuppressWarnings('LineLength')
     private Map<String, String> createUserToken() {
         def tokenMap = [username: '', password: '']
-        def res = ""
+        def res = ''
         def payload = "{\"name\":\"ods-jenkins-shared-library\",\"permissions\":[\"PROJECT_WRITE\", \"REPO_WRITE\"]}"
         script.withCredentials(
             [script.usernamePassword(

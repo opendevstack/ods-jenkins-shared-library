@@ -7,8 +7,9 @@ import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 
 class DeployStage extends Stage {
+
     public final String STAGE_NAME = 'Deploy'
-    
+
     DeployStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }
@@ -76,8 +77,8 @@ class DeployStage extends Stage {
                     script.withCredentials([
                         script.usernamePassword(
                             credentialsId: project.environmentConfig.credentialsId,
-                            usernameVariable: "EXTERNAL_OCP_API_SA",
-                            passwordVariable: "EXTERNAL_OCP_API_TOKEN"
+                            usernameVariable: 'EXTERNAL_OCP_API_SA',
+                            passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
                         )
                     ]) {
                         os.loginToExternalCluster(project.openShiftTargetApiUrl, script.EXTERNAL_OCP_API_TOKEN)
@@ -112,4 +113,5 @@ class DeployStage extends Stage {
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
+
 }
