@@ -43,8 +43,11 @@ interface IPipelineSteps {
     def timeout(Map args, Closure block)
 
     def deleteDir()
-    
+
     def withEnv(List<String> env, Closure block)
-    
+
     def unstable (String message)
+
+    def usernamePassword (List credentialsData)
+
 }

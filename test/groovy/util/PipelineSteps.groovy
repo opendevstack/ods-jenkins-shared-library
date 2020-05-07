@@ -107,4 +107,9 @@ class PipelineSteps implements IPipelineSteps {
     @Override
     def unstable (String message) {
     }
+
+    def usernamePassword (List credentialsData) {
+        
+    }
+
 }
