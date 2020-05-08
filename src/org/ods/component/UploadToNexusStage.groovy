@@ -6,11 +6,11 @@ class UploadToNexusStage extends Stage {
 
     public final String STAGE_NAME = 'Upload to Nexus'
 
-    final def repository
-    final def distFile
-    final def groupId
-    final def artifactId
-    final def version
+    final String repository
+    final String distFile
+    final String groupId
+    final String artifactId
+    final String version
     final NexusService nexus
     
     UploadToNexusStage(def script, IContext context, Map config) {
@@ -21,18 +21,24 @@ class UploadToNexusStage extends Stage {
         this.artifactId = config.componentId ?: componentId
         this.version = config.version ?: context.tagversion
 
-        nexus = new NexusService(context.nexusHost, context.nexusUsername, context.nexusPassword)
+        nexus = new NexusService(
+            context.nexusHost, 
+            context.nexusUsername, 
+            context.nexusPassword)
     }
 
     def run() {
         if (!script.fileExists (distFile)) {
             script.error ("Could not upload file ${distFile} - it does NOT exist!")
+            return
         }
 
+        def fileExtension = distFile.substring(distFile.lastIndexOf('.'))
         Map nexusParams = [
             'groupId' : this.groupId,
             'artifactId' : this.artifactId,
             'version' : this.version,
+            'extension' : fileExtension,
         ]
         def uploadUri = nexus.storeComplextArtifact(
             repository,

@@ -403,7 +403,8 @@ class Pipeline implements Serializable {
             try {
                 origin = script.sh(
                     script: 'git config --get remote.origin.url',
-                    returnStdout: true
+                    returnStdout: true,
+                    label: 'retrieving git url to derive component / project name'
                 ).trim()
             } catch (err) {
                 def jobSplitList = script.env.JOB_NAME.split('/')

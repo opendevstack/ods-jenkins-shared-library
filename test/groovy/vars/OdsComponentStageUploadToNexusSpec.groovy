@@ -25,7 +25,10 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args -> 
       true
     }
-    
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args ->
+      'abc'
+    }
+
     def uploadUrl = script.call(context)
 
     then:
@@ -53,6 +56,9 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       true
     }
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args ->
+      'abc'
+    }
 
     def uploadUrl = script.call(context, config)
 
@@ -79,7 +85,10 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args -> 
       false
     }
-    
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args ->
+      'abc'
+    }
+
     def uploadUrl = script.call(context)
 
     then:
