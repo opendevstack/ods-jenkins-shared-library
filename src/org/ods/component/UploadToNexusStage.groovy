@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.services.NexusService
+import java.nio.charset.StandardCharsets
 
 class UploadToNexusStage extends Stage {
 
