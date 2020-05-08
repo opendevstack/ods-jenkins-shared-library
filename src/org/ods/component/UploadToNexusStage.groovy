@@ -27,8 +27,8 @@ class UploadToNexusStage extends Stage {
             return
         }
 
-        String fileAbsolute = script.sh(
-            script: "find . -name ${distFile}",
+        String fileAbsolutePath = script.sh(
+            script: "find ~+ -type f -name ${distFile}",
             returnStdout: true,
             label: "find file '${distFile}'"
         ).trim()
@@ -42,10 +42,10 @@ class UploadToNexusStage extends Stage {
             nexusParams << ['maven2.asset1.extension' : distFile.substring(distFile.lastIndexOf('.') + 1)]
         }
 
-        script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile}")
+        script.echo ("Nexus upload params: ${nexusParams}, file: ${fileAbsolutePath}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            new File("${fileAbsolute}").getBytes(),
+            new File("${fileAbsolutePath}").getBytes(),
             'application/octet-stream',
             repositoryType,
             nexusParams)
