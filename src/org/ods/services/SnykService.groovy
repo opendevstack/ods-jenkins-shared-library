@@ -17,9 +17,9 @@ class SnykService {
     boolean version() {
         script.sh(
             script: """
-            set -e
-            set -o pipefail
-            snyk version | tee -a ${reportFile}
+              set -e
+              set -o pipefail
+              snyk version | tee -a ${reportFile}
             """,
             returnStatus: true,
             label: 'Get Snyk version'
@@ -29,10 +29,10 @@ class SnykService {
     boolean auth(String authCode) {
         script.sh(
             script: """
-            set -e
-            set -o pipefail
-            snyk auth ${authCode} | tee -a ${reportFile}
-          """,
+              set -e
+              set -o pipefail
+              snyk auth ${authCode} | tee -a ${reportFile}
+            """,
             returnStatus: true,
             label: 'Authenticate with Snyk server'
         ) == 0
@@ -41,14 +41,14 @@ class SnykService {
     boolean test(String organisation, String buildFile, String severityThreshold) {
         script.sh(
             script: """
-            set -e
-            set -o pipefail
-            snyk test \
-            --org=${organisation} \
-            --file=${buildFile} \
-            --all-sub-projects \
-            --severity-threshold=${severityThreshold} | tee -a ${reportFile}
-          """,
+              set -e
+              set -o pipefail
+              snyk test \
+              --org=${organisation} \
+              --file=${buildFile} \
+              --all-sub-projects \
+              --severity-threshold=${severityThreshold} | tee -a ${reportFile}
+            """,
             returnStatus: true,
             label: 'Run Snyk test'
         ) == 0
