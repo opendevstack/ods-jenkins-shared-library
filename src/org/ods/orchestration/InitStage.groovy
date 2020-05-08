@@ -93,8 +93,8 @@ class InitStage extends Stage {
 
         registry.add(JenkinsService,
             new JenkinsService(
-                registry.get(PipelineSteps),
-                new Logger(registry.get(PipelineSteps))
+                steps,
+                new Logger(steps, steps.env.DEBUG)
             )
         )
 
