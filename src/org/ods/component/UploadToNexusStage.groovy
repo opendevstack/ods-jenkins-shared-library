@@ -33,6 +33,12 @@ class UploadToNexusStage extends Stage {
             return
         }
 
+        String currentDir = sh(
+            script: "pwd",
+            returnStdout: true,
+            label: "get current working dir"
+        ).trim()
+        
         def fileExtension = distFile.substring(distFile.lastIndexOf('.') + 1)
         Map nexusParams = [ : ]
         
@@ -42,11 +48,11 @@ class UploadToNexusStage extends Stage {
             nexusParams << ['maven2.version' : this.version]
             nexusParams << ['maven2.asset1.extension' : fileExtension]
         } 
-        script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile}, extension: ${fileExtension}")
+        script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes(),
-            'application/zip', 
+            new File("${currentDir}/${distFile}").getBytes(),
+            'application/octet-stream',
             repositoryType,
             nexusParams)
         script.echo "Uploaded '${distFile}' to '${uploadUri}'"
