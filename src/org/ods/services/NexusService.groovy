@@ -1,6 +1,6 @@
 package org.ods.services
 
-@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
+@Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
 
@@ -44,14 +44,36 @@ class NexusService {
 
     @NonCPS
     def URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
-        def response = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
-            .routeParam("repository", repository)
-            .basicAuth(this.username, this.password)
-            .field("raw.directory", directory)
-            .field("raw.asset1", new ByteArrayInputStream(artifact), contentType)
-            .field("raw.asset1.filename", name)
-            .asString()
 
+      Map nexusParams = [
+          'raw.directory' : directory, 
+          'raw.asset1.filename' : name,
+      ]
+
+      return storeComplextArtifact(repository, artifact, contentType, nexusParams)
+    }
+
+    def URI storeArtifactFromFile(
+        String repository,
+        String directory,
+        String name,
+        File artifact,
+        String contentType) {
+        return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
+    }
+
+    @NonCPS
+    def URI storeComplextArtifact(String repository, byte[] artifact, String contentType, Map nexusParams = [ : ]) {
+        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+            .routeParam('repository', repository)
+            .basicAuth(this.username, this.password)
+            .field('raw.asset1', new ByteArrayInputStream(artifact), contentType)
+
+        nexusParams.each { key, value -> 
+            restCall = restCall.field(key, value)
+        }
+            
+        def response = restCall.asString()
         response.ifSuccess {
             if (response.getStatus() != 204) {
                 throw new RuntimeException(
@@ -73,15 +95,6 @@ class NexusService {
         }
 
         return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
-    }
-
-    def URI storeArtifactFromFile(
-        String repository,
-        String directory,
-        String name,
-        File artifact,
-        String contentType) {
-        return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
     }
 
 }
