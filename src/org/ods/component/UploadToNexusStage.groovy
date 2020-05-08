@@ -33,7 +33,7 @@ class UploadToNexusStage extends Stage {
             return
         }
 
-        String currentDir = sh(
+        String currentDir = script.sh(
             script: "pwd",
             returnStdout: true,
             label: "get current working dir"
