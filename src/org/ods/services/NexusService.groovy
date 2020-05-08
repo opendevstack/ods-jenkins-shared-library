@@ -46,7 +46,7 @@ class NexusService {
     def URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
 
       Map nexusParams = [
-          'raw.directory' : directory, 
+          'raw.directory' : directory,
           'raw.asset1.filename' : name,
       ]
 
@@ -67,15 +67,16 @@ class NexusService {
         def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
-            .field('raw.asset1', new ByteArrayInputStream(artifact), contentType)
 
-        if (fileExtension) {
-          restCall = restCall.field('raw.asset1.extension', fileExtension)
-        }
         nexusParams.each { key, value -> 
             restCall = restCall.field(key, value)
         }
-        
+
+        if (fileExtension) {
+            restCall = restCall.field('raw.asset1.extension', fileExtension)
+        }
+        restCall = restCall.field('raw.asset1', new ByteArrayInputStream(artifact), contentType)
+
         def response = restCall.asString()
         response.ifSuccess {
             if (response.getStatus() != 204) {
