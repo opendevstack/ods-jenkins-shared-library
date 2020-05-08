@@ -33,12 +33,13 @@ class UploadToNexusStage extends Stage {
             return
         }
 
-        def fileExtension = distFile.substring(distFile.lastIndexOf('.'))
+        def fileExtension = distFile.substring(distFile.lastIndexOf('.') + 1)
         Map nexusParams = [
             'groupId' : this.groupId,
             'artifactId' : this.artifactId,
             'version' : this.version,
         ]
+        script.echo ("Nexus params: ${nexusParams}, file: ${distFile}, fileExtension: ${fileExtension}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
             script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes(),
