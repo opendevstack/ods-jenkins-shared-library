@@ -6,6 +6,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.services.JenkinsService
+import org.ods.services.NexusService
 import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
@@ -98,6 +99,9 @@ class Pipeline implements Serializable {
 
                         registry.add(JenkinsService, new JenkinsService(script, logger))
                         this.jenkinsService = registry.get(JenkinsService)
+
+                        registry.add(NexusService, new NexusService(
+                            context.nexusHost, context.nexusUsername, context.nexusPassword))
                     }
 
                     skipCi = isCiSkip()

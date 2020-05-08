@@ -42,18 +42,19 @@ class NexusService {
         this.password = password
     }
 
+    @SuppressWarnings('SpaceAroundMapEntryColon')
     @NonCPS
-    def URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
+    URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
 
         Map nexusParams = [
-            'raw.directory' : directory,
-            'raw.asset1.filename' : name,
+            'raw.directory':directory,
+            'raw.asset1.filename':name,
         ]
   
         return storeComplextArtifact(repository, artifact, contentType, 'raw', nexusParams)
     }
 
-    def URI storeArtifactFromFile(
+    URI storeArtifactFromFile(
         String repository,
         String directory,
         String name,
@@ -62,8 +63,9 @@ class NexusService {
         return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
     }
 
+    @SuppressWarnings('LineLength')
     @NonCPS
-    def URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+    URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
         def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)

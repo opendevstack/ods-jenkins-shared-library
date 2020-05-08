@@ -1,7 +1,6 @@
 package org.ods.services
 
 import org.ods.util.ILogger
-import org.ods.util.Logger
 
 class JenkinsService {
 
