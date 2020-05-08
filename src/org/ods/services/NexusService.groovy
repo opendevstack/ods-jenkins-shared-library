@@ -73,7 +73,7 @@ class NexusService {
         }
 
         restCall = restCall.field(
-            repositoryType == 'raw' || repositoryType == 'maven2' ? "${repoType}.asset1" : "${repoType}.asset",
+            repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset",
             new ByteArrayInputStream(artifact), contentType)
 
         def response = restCall.asString()
