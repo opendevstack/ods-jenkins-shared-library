@@ -37,16 +37,18 @@ class UploadToNexusStage extends Stage {
         Map nexusParams = [ : ]
         
         if (repositoryType == 'maven2') {
-            nexusParams << ['groupId' : this.groupId]
-            nexusParams << ['artifactId' : this.artifactId]
-            nexusParams << ['version' : this.version]
+            nexusParams << ['maven2.groupId' : this.groupId]
+            nexusParams << ['maven2.artifactId' : this.artifactId]
+            nexusParams << ['maven2.version' : this.version]
+            nexusParams << ['maven2.asset1.extension' : fileExtension]
         } 
         script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile}, extension: ${fileExtension}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
             script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes(),
-            'application/octet-stream',
-            nexusParams, fileExtension)
+            'application/octet-stream', 
+            repositoryType,
+            nexusParams)
         script.echo "Uploaded '${distFile}' to '${uploadUri}'"
         return uploadUri
     }
