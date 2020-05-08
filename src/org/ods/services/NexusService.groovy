@@ -73,9 +73,11 @@ class NexusService {
         }
 
         restCall = restCall.field('raw.asset1', new ByteArrayInputStream(artifact), contentType)
-        if (fileExtension) {
-            restCall = restCall.field('asset1.extension', fileExtension)
+/*        if (fileExtension) {
+            restCall = restCall.field('raw.asset1.extension', fileExtension)
         }
+*/
+        restCall = restCall.field('raw.asset1.extension', 'zip')
 
         def response = restCall.asString()
         response.ifSuccess {
