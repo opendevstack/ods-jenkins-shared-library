@@ -11,9 +11,6 @@ class JenkinsService {
 
     JenkinsService(script, ILogger logger = null) {
         this.script = script
-        if (!logger) {
-          logger = new Logger(script, script.env.DEBUG)
-        }
         this.logger = logger
     }
 

@@ -9,6 +9,7 @@ import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
+import org.ods.util.*
 
 @SuppressWarnings('AbcMetric')
 class InitStage extends Stage {
@@ -92,7 +93,8 @@ class InitStage extends Stage {
 
         registry.add(JenkinsService,
             new JenkinsService(
-                registry.get(PipelineSteps)
+                registry.get(PipelineSteps),
+                new Logger(registry.get(PipelineSteps))
             )
         )
 
