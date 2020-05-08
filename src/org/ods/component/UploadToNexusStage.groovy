@@ -7,6 +7,7 @@ class UploadToNexusStage extends Stage {
     public final String STAGE_NAME = 'Upload to Nexus'
 
     final String repository
+    final String repositoryType
     final String distFile
     final String groupId
     final String artifactId
@@ -16,15 +17,14 @@ class UploadToNexusStage extends Stage {
     UploadToNexusStage(def script, IContext context, Map config) {
         super(script, context, config)
         this.repository = config.repository ?: 'candidates'
+        this.repositoryType = config.repositoryType ?: 'maven2'
         this.distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
         this.groupId  = config.groupId ?: context.groupId.replace('.', '/')
-        this.artifactId = config.componentId ?: componentId
+        this.artifactId = config.artifactId ?: componentId
         this.version = config.version ?: context.tagversion
 
         nexus = new NexusService(
-            context.nexusHost, 
-            context.nexusUsername, 
-            context.nexusPassword)
+            context.nexusHost, context.nexusUsername, context.nexusPassword)
     }
 
     def run() {
@@ -34,12 +34,14 @@ class UploadToNexusStage extends Stage {
         }
 
         def fileExtension = distFile.substring(distFile.lastIndexOf('.') + 1)
-        Map nexusParams = [
-            'groupId' : this.groupId,
-            'artifactId' : this.artifactId,
-            'version' : this.version,
-        ]
-        script.echo ("Nexus params: ${nexusParams}, file: ${distFile}, fileExtension: ${fileExtension}")
+        Map nexusParams = [ : ]
+        
+        if (repositoryType == 'maven2') {
+            nexusParams << ['groupId' : this.groupId]
+            nexusParams << ['artifactId' : this.artifactId]
+            nexusParams << ['version' : this.version]
+        } 
+        script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile}, extension: ${fileExtension}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
             script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes(),

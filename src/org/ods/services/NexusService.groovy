@@ -63,21 +63,22 @@ class NexusService {
     }
 
     @NonCPS
-    def URI storeComplextArtifact(String repository, byte[] artifact, String contentType, Map nexusParams = [ : ], String fileExtension =  null) {
+    def URI storeComplextArtifact(String repository, byte[] artifact, String contentType, Map nexusParams = [ : ]) {
         def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
 
+        def repoType
         nexusParams.each { key, value -> 
             restCall = restCall.field(key, value)
+            // find the repoType
+            if (!repoType) {
+                repoType = key.substring(0, key.indexOf('.'))
+            }
         }
-
-        restCall = restCall.field('raw.asset1', new ByteArrayInputStream(artifact), contentType)
-/*        if (fileExtension) {
-            restCall = restCall.field('raw.asset1.extension', fileExtension)
-        }
-*/
-        restCall = restCall.field('raw.asset1.fields.extension', 'zip')
+        restCall = restCall.field(
+            repoType == 'raw' ? "${repoType}.asset1" : "${repoType}.asset",
+            new ByteArrayInputStream(artifact), contentType)
 
         def response = restCall.asString()
         response.ifSuccess {
