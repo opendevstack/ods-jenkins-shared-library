@@ -32,9 +32,14 @@ class UploadToNexusStage extends Stage {
             returnStdout: true,
             label: "find file '${distFile}'"
         ).trim()
-        
+
+        script.sh(
+            script: "pwd && ls -la \$(find ~+ -type f -name ${distFile})",
+            returnStdout: true,
+            label: "find debug file '${distFile}'"
+        ).trim()
         Map nexusParams = [ : ]
-        
+
         if (repositoryType == 'maven2') {
             nexusParams << ['maven2.groupId' : config.groupId ?: context.groupId.replace('.', '/')]
             nexusParams << ['maven2.artifactId' : config.artifactId ?: componentId]
