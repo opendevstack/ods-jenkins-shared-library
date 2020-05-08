@@ -9,9 +9,6 @@ class UploadToNexusStage extends Stage {
     final String repository
     final String repositoryType
     final String distFile
-    final String groupId
-    final String artifactId
-    final String version
     final NexusService nexus
     
     UploadToNexusStage(def script, IContext context, Map config) {
@@ -19,9 +16,6 @@ class UploadToNexusStage extends Stage {
         this.repository = config.repository ?: 'candidates'
         this.repositoryType = config.repositoryType ?: 'maven2'
         this.distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
-        this.groupId  = config.groupId ?: context.groupId.replace('.', '/')
-        this.artifactId = config.artifactId ?: componentId
-        this.version = config.version ?: context.tagversion
 
         nexus = new NexusService(
             context.nexusHost, context.nexusUsername, context.nexusPassword)
@@ -33,25 +27,25 @@ class UploadToNexusStage extends Stage {
             return
         }
 
-        String currentDir = script.sh(
-            script: "pwd",
+        String fileAbsolute = script.sh(
+            script: "find . -name ${distFile}",
             returnStdout: true,
-            label: "get current working dir"
+            label: "find file '${distFile}'"
         ).trim()
         
-        def fileExtension = distFile.substring(distFile.lastIndexOf('.') + 1)
         Map nexusParams = [ : ]
         
         if (repositoryType == 'maven2') {
-            nexusParams << ['maven2.groupId' : this.groupId]
-            nexusParams << ['maven2.artifactId' : this.artifactId]
-            nexusParams << ['maven2.version' : this.version]
-            nexusParams << ['maven2.asset1.extension' : fileExtension]
-        } 
+            nexusParams << ['maven2.groupId' : config.groupId ?: context.groupId.replace('.', '/')]
+            nexusParams << ['maven2.artifactId' : config.artifactId ?: componentId]
+            nexusParams << ['maven2.version' : config.version ?: context.tagversion]
+            nexusParams << ['maven2.asset1.extension' : distFile.substring(distFile.lastIndexOf('.') + 1)]
+        }
+
         script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            new File("${currentDir}/${distFile}").getBytes(),
+            new File("${fileAbsolute}").getBytes(),
             'application/octet-stream',
             repositoryType,
             nexusParams)
