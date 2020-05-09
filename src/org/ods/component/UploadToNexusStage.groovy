@@ -29,14 +29,6 @@ class UploadToNexusStage extends Stage {
             return
         }
 
-//        def absolutePath = script.sh (
-//            script : "find ~+ -name ${distFile}", returnStdout: true).trim()
-//
-//        script.echo "exists jenkins? ${script.fileExists (absolutePath)} exists nio? " +
-//            "${Paths.get(absolutePath).toFile().exists()}"
-//
-//        byte[] content = Paths.get(absolutePath).toFile().getBytes()
-//
         Map nexusParams = [ : ]
 
         if (repositoryType == 'maven2') {
@@ -53,7 +45,7 @@ class UploadToNexusStage extends Stage {
         script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile} to repo ${nexus.baseURL}/${repository}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            java.util.Base64.getEncoder().encode(data),
+            java.util.Base64.getMimeEncoder().encode(data),
             'application/octet-stream',
             repositoryType,
             nexusParams)
