@@ -1,9 +1,7 @@
 package org.ods.component
 
 import org.ods.services.NexusService
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.util.Base64
 
 class UploadToNexusStage extends Stage {
 
@@ -41,11 +39,11 @@ class UploadToNexusStage extends Stage {
             nexusParams << ['raw.directory':config.targetDirectory ?: context.projectId]
         }
 
-        def data = script.readFile(['file' : distFile]).getBytes()
+        def data = script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes()
         script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile} to repo ${nexus.baseURL}/${repository}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            java.util.Base64.getMimeEncoder().encode(data),
+            getMimeEncoder().encode(Base64.getDecoder().decode(data)),
             'application/octet-stream',
             repositoryType,
             nexusParams)
