@@ -43,8 +43,8 @@ class UploadToNexusStage extends Stage {
         script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile} to repo ${nexus.baseURL}/${repository}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            Base64.getMimeEncoder().encode(Base64.getDecoder().decode(data)),
-            'application/octet-stream',
+            Base64.getDecoder().decode(data),
+            'application/zip',
             repositoryType,
             nexusParams)
         script.echo "Uploaded '${distFile}' to '${uploadUri}'"
