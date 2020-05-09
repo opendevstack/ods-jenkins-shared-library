@@ -2,6 +2,8 @@ package org.ods.component
 
 import org.ods.services.NexusService
 import java.nio.charset.StandardCharsets
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class UploadToNexusStage extends Stage {
 
@@ -27,6 +29,11 @@ class UploadToNexusStage extends Stage {
             return
         }
 
+        def absolutePath = script.sh (
+            script : "find ~+ -name ${distFile}", returnStdout: true).trim()
+
+        byte[] content = Paths.get(URI.create(absolutePath)).getBytes()
+
         Map nexusParams = [ : ]
 
         if (repositoryType == 'maven2') {
@@ -42,7 +49,8 @@ class UploadToNexusStage extends Stage {
         script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile} to repo ${nexus.baseURL}/${repository}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes(),
+            //script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes(),
+            content,
             'application/octet-stream',
             repositoryType,
             nexusParams)
