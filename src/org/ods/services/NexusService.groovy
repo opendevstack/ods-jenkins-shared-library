@@ -100,7 +100,8 @@ class NexusService {
         }
 
         if (repositoryType == 'raw') {
-            return this.baseURL.resolve("/repository/${repository}/${nexusParams['raw.directory']}/${nexusParams['raw.asset1.filename']}")
+            return this.baseURL.resolve("/repository/${repository}/${nexusParams['raw.directory']}/" +
+              "${nexusParams['raw.asset1.filename']}")
         }
         return this.baseURL.resolve("/repository/${repository}")
     }

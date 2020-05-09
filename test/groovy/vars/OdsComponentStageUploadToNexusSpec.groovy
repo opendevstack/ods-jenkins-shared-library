@@ -45,7 +45,7 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
     def uploadUrl = script.call(context)
 
     then:
-    1 * nexus.storeComplextArtifact('candidates', 'abc'.getBytes(), 
+    1 * nexus.storeComplextArtifact('candidates', _, 
         'application/zip', 'maven2', expectedNexusArgs)
     
     then:
@@ -90,7 +90,7 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
     def uploadUrl = script.call(context, config)
 
     then:
-    1 * nexus.storeComplextArtifact (config.repository, filePayload.getBytes(), 
+    1 * nexus.storeComplextArtifact (config.repository, _, 
         'application/zip', 'maven2', expectedNexusArgs)
     printCallStack()
     assertJobStatusSuccess()
@@ -129,7 +129,7 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
     def uploadUrl = script.call(context, config)
 
     then:
-    1 * nexus.storeComplextArtifact (config.repository, filePayload.getBytes(),
+    1 * nexus.storeComplextArtifact (config.repository, _,
         'application/zip', config.repositoryType, expectedNexusArgs)
     printCallStack()
     assertJobStatusSuccess()

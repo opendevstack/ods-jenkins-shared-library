@@ -1,7 +1,6 @@
 package org.ods.component
 
 import org.ods.services.NexusService
-import java.util.Base64
 
 class UploadToNexusStage extends Stage {
 
@@ -30,21 +29,22 @@ class UploadToNexusStage extends Stage {
         Map nexusParams = [ : ]
 
         if (repositoryType == 'maven2') {
-            nexusParams << ['maven2.groupId':config.groupId ?: context.groupId.replace('.', '/')]
-            nexusParams << ['maven2.artifactId':config.artifactId ?: componentId]
-            nexusParams << ['maven2.version':config.version ?: context.tagversion]
-            nexusParams << ['maven2.asset1.extension':distFile.substring(distFile.lastIndexOf('.') + 1)]
+            nexusParams << ['maven2.groupId' : (config.groupId ?: context.groupId.replace('.', '/'))]
+            nexusParams << ['maven2.artifactId': (config.artifactId ?: componentId)]
+            nexusParams << ['maven2.version': (config.version ?: context.tagversion)]
+            nexusParams << ['maven2.asset1.extension': (distFile.substring(distFile.lastIndexOf('.') + 1))]
         } else if (repositoryType == 'raw') {
-            nexusParams << ['raw.asset1.filename':distFile]
-            nexusParams << ['raw.directory':config.targetDirectory ?: context.projectId]
+            nexusParams << ['raw.asset1.filename': distFile]
+            nexusParams << ['raw.directory': (config.targetDirectory ?: context.projectId)]
         }
 
         def data = script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes()
-        script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile} to repo ${nexus.baseURL}/${repository}")
+        script.echo ("Nexus upload params: ${nexusParams}, " +
+            " file: ${distFile} to repo ${nexus.baseURL}/${repository}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
             Base64.getDecoder().decode(data),
-            'application/zip',
+            'application/octet-stream',
             repositoryType,
             nexusParams)
         script.echo "Uploaded '${distFile}' to '${uploadUri}'"
