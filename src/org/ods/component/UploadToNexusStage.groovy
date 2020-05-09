@@ -31,7 +31,7 @@ class UploadToNexusStage extends Stage {
 
 //        def absolutePath = script.sh (
 //            script : "find ~+ -name ${distFile}", returnStdout: true).trim()
-
+//
 //        script.echo "exists jenkins? ${script.fileExists (absolutePath)} exists nio? " +
 //            "${Paths.get(absolutePath).toFile().exists()}"
 //
@@ -49,10 +49,11 @@ class UploadToNexusStage extends Stage {
             nexusParams << ['raw.directory':config.targetDirectory ?: context.projectId]
         }
 
+        String data = script.readFile(['file' : distFile]).getBytes()
         script.echo ("Nexus upload params: ${nexusParams}, file: ${distFile} to repo ${nexus.baseURL}/${repository}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
-            script.readFile(distFile).getBytes(),
+            java.util.Base64.getEncoder().encode(data),
             'application/octet-stream',
             repositoryType,
             nexusParams)
