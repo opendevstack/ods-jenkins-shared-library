@@ -32,7 +32,8 @@ class UploadToNexusStage extends Stage {
         def absolutePath = script.sh (
             script : "find ~+ -name ${distFile}", returnStdout: true).trim()
 
-        byte[] content = Paths.get(URI.create(absolutePath)).getBytes()
+        script.echo "exists? ${Paths.get(absolutePath).toFile().exists()}"
+        byte[] content = Paths.get(absolutePath).toFile().getBytes()
 
         Map nexusParams = [ : ]
 
