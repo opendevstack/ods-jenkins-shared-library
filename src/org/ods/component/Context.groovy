@@ -304,7 +304,7 @@ class Context implements IContext {
     }
 
     @NonCPS
-    String getFailOnSnykScanVulnerabilities() {
+    boolean getFailOnSnykScanVulnerabilities() {
         config.failOnSnykScanVulnerabilities
     }
 

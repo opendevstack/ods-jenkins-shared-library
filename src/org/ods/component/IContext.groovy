@@ -109,8 +109,9 @@ interface IContext {
 
     // set branch on which to run SonarQube analysis.
     void setSonarQubeBranch(String sonarQubeBranch)
+
     // snyk behaviour configuration in case it reports vulnerabilities
-    String getFailOnSnykScanVulnerabilities()
+    boolean getFailOnSnykScanVulnerabilities()
 
     // Branch on which to run dependency checks.
     String getDependencyCheckBranch()
