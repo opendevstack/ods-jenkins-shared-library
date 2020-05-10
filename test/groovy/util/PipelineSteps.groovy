@@ -54,6 +54,9 @@ class PipelineSteps implements IPipelineSteps {
     void stash(String name) {
     }
 
+    void stash(Map config) {
+    }
+
     void unstash(String name) {
     }
 

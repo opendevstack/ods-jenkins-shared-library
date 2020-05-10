@@ -3,13 +3,14 @@ package org.ods.services
 import spock.lang.*
 
 import util.*
+import org.ods.util.Logger
 
 class JenkinsServiceSpec extends SpecHelper {
 
     def "unstash files into path"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = new JenkinsService(steps)
+        def service = new JenkinsService(steps, new Logger(steps, false))
 
         def name = "myStash"
         def path = "myPath"
@@ -31,7 +32,7 @@ class JenkinsServiceSpec extends SpecHelper {
     def "unstash files into path with failure"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = new JenkinsService(steps)
+        def service = new JenkinsService(steps, new Logger(steps, false))
 
         def name = "myStash"
         def path = "myPath"
