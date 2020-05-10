@@ -120,3 +120,7 @@ codenarc {
 codenarcTest {
     ignoreFailures = true
 }
+
+jacoco {
+  toolVersion = "0.8.3"
+}
