@@ -12,12 +12,12 @@ import org.ods.orchestration.util.*
 import org.yaml.snakeyaml.Yaml
 
 @InheritConstructors
-class FakeGitUtil extends GitUtil {
-    String getCommit() {
+class FakeGitUtil extends GitService {
+    String getCommitSha() {
         return "my-commit"
     }
 
-    String getURL() {
+    String getOriginUrl() {
         return "https://github.com/my-org/my-repo-A.git"
     }
 }
@@ -45,11 +45,11 @@ class FakeProject extends Project {
     }
 
     @Override
-    Project load(GitUtil git, JiraUseCase jira) {
+    Project load(GitService git, JiraUseCase jira) {
         this.git = git
         this.jiraUseCase = jiraUseCase
 
-        this.data.git = [ commit: git.getCommit(), url: git.getURL() ]
+        this.data.git = [ commit: git.getCommitSha(), url: git.getOriginUrl() ]
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)

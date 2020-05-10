@@ -25,7 +25,7 @@ class InitStage extends Stage {
         def steps = new PipelineSteps(script)
         def project = new Project(steps)
 
-        def git = new GitUtil(steps)
+        def git = new GitService(steps)
         git.configureUser()
 
         // load build params
@@ -33,7 +33,7 @@ class InitStage extends Stage {
         steps.echo("Release Manager Build Parameters: ${buildParams}")
 
         // git checkout
-        def gitReleaseBranch = GitUtil.getReleaseBranch(buildParams.version)
+        def gitReleaseBranch = org.ods.services.GitService.getReleaseBranch(buildParams.version)
         if (!Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
@@ -75,7 +75,7 @@ class InitStage extends Stage {
 
         steps.echo 'Register global services'
         def registry = ServiceRegistry.instance
-        registry.add(GitUtil, git)
+        registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
         registry.add(PipelineSteps, steps)
         def util = new MROPipelineUtil(project, steps, git)
@@ -248,7 +248,7 @@ class InitStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
         steps.echo 'Run Project#load'
-        project.load(registry.get(GitUtil), registry.get(JiraUseCase))
+        project.load(registry.get(GitService), registry.get(JiraUseCase))
         def repos = project.repositories
 
         bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,

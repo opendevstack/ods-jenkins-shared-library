@@ -13,7 +13,7 @@ import util.*
 
 class ProjectSpec extends SpecHelper {
 
-    GitUtil git
+    GitService git
     IPipelineSteps steps
     JiraUseCase jiraUseCase
     Project project
@@ -56,7 +56,7 @@ class ProjectSpec extends SpecHelper {
     }
 
     def setup() {
-        git = Mock(GitUtil)
+        git = Mock(GitService)
         jiraUseCase = Mock(JiraUseCase)
         steps = Spy(util.PipelineSteps)
         steps.env.WORKSPACE = ""

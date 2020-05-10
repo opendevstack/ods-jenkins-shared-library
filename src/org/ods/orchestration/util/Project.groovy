@@ -9,6 +9,7 @@ import java.nio.file.Paths
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
+import org.ods.services.GitService
 
 @SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
 class Project {
@@ -207,7 +208,7 @@ class Project {
     protected static String METADATA_FILE_NAME = "metadata.yml"
 
     protected IPipelineSteps steps
-    protected GitUtil git
+    protected GitService git
     protected JiraUseCase jiraUseCase
     protected Map config
 
@@ -231,7 +232,7 @@ class Project {
 
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
-    Project load(GitUtil git, JiraUseCase jiraUseCase) {
+    Project load(GitService git, JiraUseCase jiraUseCase) {
         this.git = git
         this.jiraUseCase = jiraUseCase
 
@@ -260,8 +261,8 @@ class Project {
         }
 
         this.data.git = [
-            commit: git.getCommit(),
-            url: git.getURL(),
+            commit: git.getCommitSha(),
+            url: git.getOriginUrl(),
             baseTag: baseTag ? baseTag.toString() : '',
             targetTag: targetTag ? targetTag.toString() : '',
             author: git.getCommitAuthor(),
@@ -731,7 +732,7 @@ class Project {
     }
 
     String getGitReleaseBranch() {
-        GitUtil.getReleaseBranch(buildParams.version)
+        GitService.getReleaseBranch(buildParams.version)
     }
 
     String getTargetProject() {

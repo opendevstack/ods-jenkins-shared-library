@@ -578,8 +578,8 @@ class MROPipelineUtil extends PipelineUtil {
                         }
                     }
                     // add the tag commit that was created for traceability ..
-                    GitUtil gitUtl = ServiceRegistry.instance.get(GitUtil)
-                    repo.data.git.createdExecutionCommit = gitUtl.commit
+                    GitService gitUtl = ServiceRegistry.instance.get(GitService)
+                    repo.data.git.createdExecutionCommit = gitUtl.commitSha
 
                     if (postExecute) {
                         postExecute(this.steps, repo)

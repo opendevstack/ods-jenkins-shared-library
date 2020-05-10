@@ -3,15 +3,18 @@ package org.ods.orchestration.util
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.GitTag
 
-class GitUtil {
+class GitService {
 
     private IPipelineSteps steps
 
-    GitUtil(IPipelineSteps steps) {
+    @SuppressWarnings('NonFinalPublicField')
+    public static String ODS_GIT_TAG_BRANCH_PREFIX = "ods-generated-"
+
+    GitService(IPipelineSteps steps) {
         this.steps = steps
     }
 
-    String getCommit() {
+    String getCommitSha() {
         return this.steps.sh(
             script: "git rev-parse HEAD",
             returnStdout: true,
@@ -19,7 +22,7 @@ class GitUtil {
         ).trim()
     }
 
-    String getURL() {
+    String getOriginUrl() {
         return this.steps.sh(
             script: "git config --get remote.origin.url",
             returnStdout: true,
@@ -151,7 +154,7 @@ class GitUtil {
         if (envToken == 'P') {
             previousEnvToken = 'Q'
         }
-        def tagPattern = "${GitTag.ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-[0-9]*-${previousEnvToken}"
+        def tagPattern = "${ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-[0-9]*-${previousEnvToken}"
         steps.sh(
             script: "git tag --list '${tagPattern}'",
             returnStdout: true,
@@ -159,7 +162,4 @@ class GitUtil {
         ).trim()
     }
 
-    static String getReleaseBranch(String version) {
-        "release/${GitTag.ODS_GIT_TAG_BRANCH_PREFIX}${version}"
-    }
 }

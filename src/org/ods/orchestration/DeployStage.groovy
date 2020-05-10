@@ -20,7 +20,7 @@ class DeployStage extends Stage {
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        def git = ServiceRegistry.instance.get(GitUtil)
+        def git = ServiceRegistry.instance.get(GitService)
 
         def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 

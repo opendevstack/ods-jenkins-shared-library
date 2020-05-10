@@ -22,7 +22,7 @@ class PipelineUtilSpec extends SpecHelper {
     def setup() {
         project = createProject()
         steps = Spy(util.PipelineSteps)
-        def git = Mock(GitUtil)
+        def git = Mock(GitService)
         util = Spy(new PipelineUtil(project, steps, git))
     }
 
