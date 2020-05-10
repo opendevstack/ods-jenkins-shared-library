@@ -33,7 +33,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
-        logger.info 'ODS global pipeline setup'
+        logger.info '-> ODS global pipeline setup'
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
@@ -423,20 +423,13 @@ class Pipeline implements Serializable {
         def block = {
             def origin
             try {
-                origin = script.sh(
-                    script: 'git config --get remote.origin.url',
-                    returnStdout: true,
-                    label: 'retrieving git url to derive component / project name'
-                ).trim()
+                origin = gitService.getOriginUrl()
             } catch (err) {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = script.sh(
-                    script: "oc -n ${projectName} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
-                    returnStdout: true,
-                    label: "get origin from openshift bc ${bcName}"
-                ).trim()
+                origin = openShiftService.getOriginUrlFromBuildConfig (projectName,
+                    bcName)
             }
 
             def splittedOrigin = origin.split('/')

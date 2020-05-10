@@ -1,6 +1,6 @@
 :page-partial:
 
-Triggers the upload of an artifact to Nexus
+Triggers the upload of an artifact to Nexus. Implementation is based on https://help.sonatype.com/repomanager3/rest-and-integration-api/components-api
 
 Available options:
 
