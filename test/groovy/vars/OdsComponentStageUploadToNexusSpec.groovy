@@ -46,7 +46,7 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
 
     then:
     1 * nexus.storeComplextArtifact('candidates', _, 
-        'application/zip', 'maven2', expectedNexusArgs)
+        'application/octet-stream', 'maven2', expectedNexusArgs)
     
     then:
     printCallStack()
@@ -91,7 +91,7 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
 
     then:
     1 * nexus.storeComplextArtifact (config.repository, _, 
-        'application/zip', 'maven2', expectedNexusArgs)
+        'application/octet-stream', 'maven2', expectedNexusArgs)
     printCallStack()
     assertJobStatusSuccess()
   }
@@ -130,7 +130,7 @@ class OdsComponentStageUploadToNexusSpec extends PipelineSpockTestBase {
 
     then:
     1 * nexus.storeComplextArtifact (config.repository, _,
-        'application/zip', config.repositoryType, expectedNexusArgs)
+        'application/octet-stream', config.repositoryType, expectedNexusArgs)
     printCallStack()
     assertJobStatusSuccess()
   }

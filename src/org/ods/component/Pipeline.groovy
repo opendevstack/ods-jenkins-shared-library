@@ -33,6 +33,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
+        logger.info 'ODS global pipeline setup'
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
@@ -80,28 +81,45 @@ class Pipeline implements Serializable {
                         // register services after context was assembled
                         def registry = ServiceRegistry.instance
 
-                        registry.add(GitService, new GitService(script))
+                        // if we run in another context there is a good chance 
+                        // services have been already registered
+                        if (!registry.get(GitService)) {
+                            logger.debug 'Registering GitService'
+                            registry.add(GitService, new GitService(script))
+                        }
                         this.gitService = registry.get(GitService)
 
-                        registry.add(BitbucketService, new BitbucketService(
-                            script,
-                            context.bitbucketUrl,
-                            context.projectId,
-                            context.credentialsId
-                        ))
+                        if (!registry.get(BitbucketService)) {
+                            logger.debug 'Registering BitbucketService'
+                            registry.add(BitbucketService, new BitbucketService(
+                                script,
+                                context.bitbucketUrl,
+                                context.projectId,
+                                context.credentialsId
+                            ))
+                        }
                         this.bitbucketService = registry.get(BitbucketService)
 
-                        registry.add(OpenShiftService, new OpenShiftService(
-                            script,
-                            context.targetProject
-                        ))
+                        if (!registry.get(OpenShiftService)) {
+                            logger.debug 'Registering OpenShiftService'
+                            registry.add(OpenShiftService, new OpenShiftService(
+                                script,
+                                context.targetProject
+                            ))
+                        }
                         this.openShiftService = registry.get(OpenShiftService)
 
-                        registry.add(JenkinsService, new JenkinsService(script, logger))
+                        if (!registry.get(JenkinsService)) {
+                            logger.debug 'Registering JenkinsService'
+                            registry.add(JenkinsService, new JenkinsService(script, logger))
+                        }
                         this.jenkinsService = registry.get(JenkinsService)
 
-                        registry.add(NexusService, new NexusService(
-                            context.nexusHost, context.nexusUsername, context.nexusPassword))
+                        if (!registry.get(NexusService)) {
+                            logger.debug 'Registering NexusService'
+                            registry.add(NexusService, new NexusService(
+                                context.nexusHost, context.nexusUsername, context.nexusPassword))
+                        }
                     }
 
                     skipCi = isCiSkip()
