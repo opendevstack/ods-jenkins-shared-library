@@ -8,7 +8,7 @@ class JenkinsService {
     private final ILogger logger
     private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
 
-    JenkinsService(script, ILogger logger = null) {
+    JenkinsService(script) {
         this.script = script
         this.logger = logger
     }
