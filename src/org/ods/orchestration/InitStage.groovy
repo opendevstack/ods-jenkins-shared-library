@@ -102,12 +102,6 @@ class InitStage extends Stage {
             new LeVADocumentChaptersFileService(steps)
         )
 
-        registry.add(JenkinsService,
-            new JenkinsService(
-                registry.get(PipelineSteps)
-            )
-        )
-
         if (project.services?.jira) {
             script.withCredentials(
                 [script.usernamePassword(
