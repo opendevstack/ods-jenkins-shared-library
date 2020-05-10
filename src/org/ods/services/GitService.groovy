@@ -85,7 +85,7 @@ class GitService {
     }
 
     def configureUser() {
-      steps.sh(
+      script.sh(
           script: """
             git config --global user.email "undefined"
             git config --global user.name "MRO System User"
@@ -95,21 +95,21 @@ class GitService {
     }
 
     def createTag(String name) {
-        steps.sh(
+        script.sh(
           script: """git tag -a -m "${name}" ${name}""",
             label: "tag with ${name}"
         )
     }
 
     def pushTag(String name) {
-        steps.sh(
+        script.sh(
             script: "git push origin ${name}",
             label: "push tag ${name}"
         )
     }
 
     def pushBranchWithTags(String name) {
-        steps.sh(
+        script.sh(
             script: "git push --tags origin ${name}",
             label: "push branch ${name} with tags"
         )
@@ -120,7 +120,7 @@ class GitService {
         def extensions,
         def userRemoteConfigs,
         boolean doGenerateSubmoduleConfigurations = false) {
-        steps.checkout([
+        script.checkout([
             $class: 'GitSCM',
             branches: [[name: gitRef]],
             doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
@@ -130,7 +130,7 @@ class GitService {
     }
 
     boolean remoteTagExists(String name) {
-        def tagStatus = steps.sh(
+        def tagStatus = script.sh(
             script: "git ls-remote --exit-code --tags origin ${name} &>/dev/null",
             label: "check if tag ${name} exists",
             returnStatus: true
@@ -139,7 +139,7 @@ class GitService {
     }
 
     boolean localTagExists(String name) {
-        def tagStatus = steps.sh(
+        def tagStatus = script.sh(
             script: "git rev-parse ${name} &>/dev/null",
             label: "check if tag ${name} exists",
             returnStatus: true
@@ -156,7 +156,7 @@ class GitService {
     }
 
     boolean branchExists(String name) {
-        def branchCheckStatus = steps.sh(
+        def branchCheckStatus = script.sh(
             script: """git show-ref --verify --quiet ${name}""",
             returnStatus: true,
             label: "Check if ${name} already exists"
@@ -168,12 +168,12 @@ class GitService {
         // Local state might have a branch from previous, failed pipeline runs.
         // If so, we'd rather start from a clean state.
         if (localBranchExists(name)) {
-            steps.sh(
+            script.sh(
                 script: "git branch -D ${name}",
                 label: "delete local ${name} branch"
             )
         }
-        steps.sh(
+        script.sh(
             script: "git checkout -b ${name}",
             label: "create new ${name} branch"
         )
@@ -185,7 +185,7 @@ class GitService {
             previousEnvToken = 'Q'
         }
         def tagPattern = "${ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-[0-9]*-${previousEnvToken}"
-        steps.sh(
+        script.sh(
             script: "git tag --list '${tagPattern}'",
             returnStdout: true,
             label: "list tags for version ${version}-${changeId}-*-${previousEnvToken}"
