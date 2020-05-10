@@ -3,6 +3,7 @@ package org.ods.orchestration.util
 import java.nio.file.Files
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.services.GitService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml

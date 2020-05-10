@@ -3,6 +3,7 @@ package util
 import groovy.json.JsonSlurperClassic
 import groovy.transform.InheritConstructors
 
+import org.ods.services.GitService
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.ods.orchestration.parser.*

@@ -2,7 +2,7 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.GitService
+import org.ods.services.GitService
 import org.ods.orchestration.util.PipelineSteps
 
 class Stage {

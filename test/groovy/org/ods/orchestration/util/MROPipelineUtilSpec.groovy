@@ -6,6 +6,7 @@ import java.nio.file.Paths
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
+import org.ods.services.GitService
 
 import spock.lang.*
 
