@@ -36,6 +36,9 @@ class PipelineSteps implements IPipelineSteps {
     void junit(String path) {
     }
 
+    void junit(Map config) {
+    }
+
     def load(String path) {
         return [:]
     }

@@ -43,6 +43,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.junit(path)
     }
 
+    void junit(Map config) {
+        this.context.junit(config)
+    }
+
     def load(String path) {
         return this.context.load(path)
     }

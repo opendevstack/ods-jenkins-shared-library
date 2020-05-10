@@ -16,6 +16,8 @@ interface IPipelineSteps {
 
     void junit(String path)
 
+    void junit(Map config)
+
     def load(String path)
 
     def sh(def args)
