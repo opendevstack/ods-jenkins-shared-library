@@ -92,7 +92,7 @@ class OpenShiftService {
         }
         def tailorParams = """
         -l ${selector} ${excludeFlag} ${buildParamFileFlag(paramFile)} ${tailorPrivateKeyFlag} ${verifyFlag} \
-        --param=ODS_OPENSHIFT_APP_DOMAIN=${getOpenshiftApplicationDomain(project)} \
+        --param=ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomainOfProject(project)} \
         --ignore-unknown-parameters
         """
         doTailorApply(tailorParams)
@@ -355,8 +355,8 @@ class OpenShiftService {
         return deploymentNames
     }
 
-    String getOpenshiftApplicationDomain() {
-        getOpenshiftApplicationDomain(project)
+    String getApplicationDomain() {
+        getApplicationDomainOfProject(project)
     }
 
     Map<String, String> getImageInformationFromImageUrl(String url) {
@@ -463,7 +463,7 @@ class OpenShiftService {
 
     private void doTailorExport(String exportProject, String tailorParams, Map<String, String> envParams, String targetFile) {
         envParams['TAILOR_NAMESPACE'] = exportProject
-        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getOpenshiftApplicationDomain(exportProject)
+        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomainOfProject(exportProject)
         def templateParams = ''
         def sedReplacements = ''
         envParams.each { key, val ->
@@ -484,7 +484,7 @@ class OpenShiftService {
         )
     }
 
-    private String getOpenshiftApplicationDomain(String appProject) {
+    private String getApplicationDomainOfProject(String appProject) {
         def routeName = 'test-route-' + System.currentTimeMillis()
         steps.sh (
             script: "oc -n ${appProject} create route edge ${routeName} --service=dummy --port=80 | true",
