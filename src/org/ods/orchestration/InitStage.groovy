@@ -34,7 +34,7 @@ class InitStage extends Stage {
         steps.echo("Release Manager Build Parameters: ${buildParams}")
 
         // git checkout
-        def gitReleaseBranch = org.ods.services.GitService.getReleaseBranch(buildParams.version)
+        def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
         if (!Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(

@@ -33,7 +33,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
-        logger.info "-> ODS global pipeline setup, debug mode? ${logger.debugMode}"
+        logger.info "-> ODS Component pipeline setup, debug mode? ${logger.debugMode}"
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
@@ -63,7 +63,7 @@ class Pipeline implements Serializable {
         }
 
         prepareAgentPodConfig(config)
-        logger.info "***** Starting ODS Build Pipeline (${config.componentId}) *****"
+        logger.info "***** Starting ODS Component Pipeline (${config.componentId}) *****"
         context = new Context(script, config, logger, this.localCheckoutEnabled)
 
         boolean skipCi = false
