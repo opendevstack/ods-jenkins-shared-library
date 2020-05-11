@@ -1,10 +1,15 @@
 package org.ods
 
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
 class OdsContext implements Context {
 
   def script
   Logger logger
   Map config
+
+  final List excludeFromContextDebugConfig = ['nexusPassword', 'nexusUsername']
 
   def artifactUriStore = [ : ]
 
@@ -165,7 +170,17 @@ class OdsContext implements Context {
 
     config.podLabel = "pod-${UUID.randomUUID().toString()}"
 
-    logger.info "Assembled configuration: ${config}"
+    // clone the map and overwrite exclusions
+    Map debugConfig = new JsonSlurper().
+        parseText(JsonOutput.toJson(config))
+
+    excludeFromContextDebugConfig.each { exclusion ->
+        if (debugConfig[exclusion]) {
+            debugConfig[exclusion] = '****'
+        }
+    }
+
+    logger.debug "Assembled configuration: ${debugConfig}"
   }
 
   boolean getDebug() {
