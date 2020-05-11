@@ -161,7 +161,9 @@ class Context implements IContext {
             parseText(JsonOutput.toJson(config))
 
         excludeFromContextDebugConfig.each { exclusion ->
-            debugConfig << ["${exclusion}", '****']
+            if (debugConfig[exclusion]) {
+                debugConfig[exclusion] = '****'
+            }
         }
 
         logger.debug "Assembled configuration: ${debugConfig}"
