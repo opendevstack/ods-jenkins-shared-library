@@ -77,7 +77,7 @@ class OpenShiftService {
         }
     }
 
-    void tailorApply(String target, String paramFile, String tailorPrivateKeyFile, boolean verify) {
+    void tailorApply(Map<String, String> target, String paramFile, String tailorPrivateKeyFile, boolean verify) {
         def verifyFlag = ''
         if (verify) {
             verifyFlag = '--verify'
