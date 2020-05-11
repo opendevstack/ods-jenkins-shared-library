@@ -79,7 +79,7 @@ class GitService {
       script.sh(
           script: """
             git config --global user.email 'undefined'
-            git config --global user.name 'MRO System User'
+            git config --global user.name 'ODS Jenkins Shared Library System User'
             """,
           label: 'configure git system user'
       )

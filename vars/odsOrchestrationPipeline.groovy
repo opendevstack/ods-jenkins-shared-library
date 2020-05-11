@@ -61,7 +61,7 @@ def call(Map config) {
         def stageStartTime = System.currentTimeMillis()
 
         withPodTemplate(odsImageTag) {
-            echo "MRO main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
+            echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
                 def result = new InitStage(this, project, repos).execute()
                 if (result) {

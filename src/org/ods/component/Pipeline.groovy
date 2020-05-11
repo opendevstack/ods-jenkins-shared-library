@@ -249,7 +249,7 @@ class Pipeline implements Serializable {
     }
 
     def setupForMultiRepoBuild(def config) {
-        logger.info '-> Detected multirepo MRO build'
+        logger.info '-> Detected multirepo orchestration pipeline build'
         config.localCheckoutEnabled = false
         config.displayNameUpdateEnabled  = false
         config.ciSkipEnabled = false
@@ -302,7 +302,7 @@ class Pipeline implements Serializable {
             }
 
             if (!!script.env.MULTI_REPO_BUILD) {
-                logger.info 'MRO Build - skipping env mapping'
+                logger.info 'Orchestration pipeline build - skipping env mapping'
             } else {
                 def assumedEnvironments = context.branchToEnvironmentMapping.values()
                 def envExists = context.environmentExists(context.targetProject)

@@ -58,10 +58,10 @@ class Stage {
 
             def bitbucketHost = script.env.BITBUCKET_HOST
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
-            script.echo "Starting MRO slave pod '${podLabel}'"
+            script.echo "Starting orchestration pipeline slave pod '${podLabel}'"
             def nodeStartTime = System.currentTimeMillis();
             script.node(podLabel) {
-                script.echo "MRO pod '${podLabel}' starttime: ${System.currentTimeMillis() - nodeStartTime}ms"
+                script.echo "Orchestration pipeline pod '${podLabel}' starttime: ${System.currentTimeMillis() - nodeStartTime}ms"
                 git.configureUser()
                 script.unstash("wholeWorkspace")
                 script.withCredentials(
