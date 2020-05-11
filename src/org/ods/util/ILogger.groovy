@@ -5,4 +5,6 @@ interface ILogger {
     void info(String message)
     void debug(String message)
 
+    boolean getDebugMode ()
+
 }

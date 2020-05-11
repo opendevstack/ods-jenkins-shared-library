@@ -20,4 +20,8 @@ class Logger implements ILogger, Serializable {
         script.echo message
     }
 
+    boolean getDebugMode () {
+        debugOn
+    }
+
 }
