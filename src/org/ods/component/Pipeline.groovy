@@ -33,7 +33,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
-        logger.info '-> ODS global pipeline setup, debug mode? ${config.debug}'
+        logger.info "-> ODS global pipeline setup, debug mode? ${config.debug}"
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
