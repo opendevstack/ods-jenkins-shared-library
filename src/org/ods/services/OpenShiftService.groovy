@@ -11,6 +11,7 @@ class OpenShiftService {
     private final IPipelineSteps steps
     private final ILogger logger
     private final String project
+    private String appDomain
 
     OpenShiftService(IPipelineSteps steps, ILogger logger, String project) {
         this.steps = steps
@@ -85,7 +86,7 @@ class OpenShiftService {
         def excludeFlag = target.exclude ? "--exclude ${target.exclude}" : ''
         def includeArg = target.include ?: ''
         def paramFileFlag = paramFile ? "--param-file ${paramFile}" : ''
-        def appDomainParam = "--param=ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomainOfProject(project)}"
+        def appDomainParam = "--param=ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain()}"
         doTailorApply("${selectorFlag} ${excludeFlag} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} ${appDomainParam} --ignore-unknown-parameters ${includeArg}")
     }
 
@@ -340,7 +341,10 @@ class OpenShiftService {
     }
 
     String getApplicationDomain() {
-        getApplicationDomainOfProject(project)
+        if (!this.appDomain) {
+            this.appDomain = getApplicationDomainOfProject(project)
+        }
+        this.appDomain
     }
 
     Map<String, String> getImageInformationFromImageUrl(String url) {
