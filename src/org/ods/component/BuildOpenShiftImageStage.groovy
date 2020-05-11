@@ -31,6 +31,9 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
+        if (!config.openshiftDir) {
+            config.openshiftDir = 'openshift'
+        }
         if (!config.tailorPrivateKeyCredentialsId) {
             config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
         }
@@ -56,14 +59,16 @@ class BuildOpenShiftImageStage extends Stage {
             return [:]
         }
 
-        if (script.fileExists('openshift')) {
-            jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
-                openShift.tailorApply(
-                    [selector: config.tailorSelector, include: config.tailorInclude],
-                    config.tailorParamFile,
-                    pkeyFile,
-                    config.tailorVerify
-                )
+        if (script.fileExists(config.openshiftDir)) {
+            script.dir(config.openshiftDir) {
+                jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                    openShift.tailorApply(
+                        [selector: config.tailorSelector, include: config.tailorInclude],
+                        config.tailorParamFile,
+                        pkeyFile,
+                        config.tailorVerify
+                    )
+                }
             }
         }
 

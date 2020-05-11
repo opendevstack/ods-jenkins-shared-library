@@ -19,6 +19,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.deployTimeoutMinutes) {
             config.deployTimeoutMinutes = context.openshiftRolloutTimeout
         }
+        if (!config.openshiftDir) {
+            config.openshiftDir = 'openshift'
+        }
         if (!config.tailorPrivateKeyCredentialsId) {
             config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
         }
@@ -44,14 +47,16 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             return
         }
 
-        if (script.fileExists('openshift')) {
-            jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
-                openShift.tailorApply(
-                    [selector: config.tailorSelector, exclude: config.tailorExclude],
-                    config.tailorParamFile,
-                    pkeyFile,
-                    config.tailorVerify
-                )
+        if (script.fileExists(config.openshiftDir)) {
+            script.dir(config.openshiftDir) {
+                jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                    openShift.tailorApply(
+                        [selector: config.tailorSelector, exclude: config.tailorExclude],
+                        config.tailorParamFile,
+                        pkeyFile,
+                        config.tailorVerify
+                    )
+                }
             }
         }
 
