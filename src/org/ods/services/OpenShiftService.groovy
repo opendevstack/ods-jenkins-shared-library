@@ -46,14 +46,14 @@ class OpenShiftService {
     // END TODO
 
     boolean envExists() {
-        steps.echo("searching for ${project}")
         def statusCode = steps.sh(
             script: "oc project ${project} &> /dev/null",
-            label: "check if OCP project exists",
+            label: "Check if OpenShift project '${project}' exists",
             returnStatus: true
         )
-        steps.echo("searching for ${project} - result ${statusCode}")
-        return (statusCode == 0)
+        def exists = statusCode == 0
+        steps.echo("OpenShift project '${project}' ${exists ? 'exists' : 'does not exist'}")
+        return exists
     }
 
     def createVersionedDevelopmentEnvironment(String projectKey, String sourceEnvName) {
