@@ -3,8 +3,8 @@ package org.ods.orchestration.usecase
 import groovy.json.JsonOutput
 
 import org.ods.orchestration.service.DocGenService
-import org.ods.orchestration.service.NexusService
-import org.ods.orchestration.service.JenkinsService
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil

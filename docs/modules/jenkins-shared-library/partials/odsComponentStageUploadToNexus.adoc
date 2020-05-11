@@ -1,6 +1,6 @@
 :page-partial:
 
-Triggers the upload of an artifact to Nexus
+Triggers the upload of an artifact to Nexus. Implementation is based on https://help.sonatype.com/repomanager3/rest-and-integration-api/components-api
 
 Available options:
 
@@ -8,12 +8,24 @@ Available options:
 |===
 | Option | Description
 
+| repositoryType
+| default is the `maven2`
+
 | distributionFile
 | default is `${projectId}-${componentId}.tar.gz`
 
-| repoType
-| default is `candidates`
+| repository
+| the nexus repository name, default is `candidates`
 
-| groupId
+| for 'maven2' groupId
 | default is the `groupId` on project level, or in case not set at all `org.opendevstack.${projectId}`
+
+| for 'maven2' version
+| default is the `${tagVersion}`
+
+| for 'maven2' artifactId
+| default is the `${componentId}`
+
+| for 'raw' targetDirectory
+| default is the `${projectId}`
 |===

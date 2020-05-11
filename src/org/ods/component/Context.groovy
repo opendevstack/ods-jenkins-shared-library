@@ -1,5 +1,6 @@
 package org.ods.component
 
+import org.ods.util.Logger
 import com.cloudbees.groovy.cps.NonCPS
 
 @SuppressWarnings('MethodCount')

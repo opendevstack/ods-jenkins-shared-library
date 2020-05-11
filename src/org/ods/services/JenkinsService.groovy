@@ -1,6 +1,6 @@
 package org.ods.services
 
-import org.ods.component.ILogger
+import org.ods.util.ILogger
 
 class JenkinsService {
 
@@ -56,6 +56,32 @@ class JenkinsService {
         }
 
         return contextresultMap
+    }
+
+    String getCurrentBuildLogAsHtml () {
+        StringWriter writer = new StringWriter()
+        this.script.currentBuild.getRawBuild().getLogText().writeHtmlTo(0, writer)
+        return writer.getBuffer().toString()
+    }
+
+    String getCurrentBuildLogAsText () {
+        StringWriter writer = new StringWriter()
+        this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)
+        return writer.getBuffer().toString()
+    }
+  
+    boolean unstashFilesIntoPath(String name, String path, String type) {
+        def result = true
+  
+        this.script.dir(path) {
+            try {
+                this.script.unstash(name)
+            } catch (e) {
+                this.script.echo("Could not find any files of type '${type}' to unstash for name '${name}'")
+                result = false
+            }
+        }
+        return result
     }
 
 }

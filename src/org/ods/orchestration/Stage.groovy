@@ -2,7 +2,7 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.GitUtil
+import org.ods.services.GitService
 import org.ods.orchestration.util.PipelineSteps
 
 class Stage {
@@ -51,7 +51,7 @@ class Stage {
 
     protected def runOnAgentPod(Project project, boolean condition, Closure block) {
         if (condition) {
-            def git = ServiceRegistry.instance.get(GitUtil)
+            def git = ServiceRegistry.instance.get(GitService)
             script.dir(script.env.WORKSPACE) {
                 script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }

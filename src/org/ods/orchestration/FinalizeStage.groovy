@@ -1,6 +1,7 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
+import org.ods.services.GitService
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
@@ -56,8 +57,8 @@ class FinalizeStage extends Stage {
             if (project.isAssembleMode && !project.isWorkInProgress) {
                 util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
                 // add the tag commit that was created for traceability ..
-                GitUtil gitUtl = ServiceRegistry.instance.get(GitUtil)
-                project.getGitData.createdExecutionCommit = gitUtl.commit
+                GitService gitUtl = ServiceRegistry.instance.get(GitService)
+                project.getGitData.createdExecutionCommit = gitUtl.commitSha
             }
         }
 

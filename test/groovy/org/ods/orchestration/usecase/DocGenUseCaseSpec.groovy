@@ -4,6 +4,8 @@ import groovy.json.JsonOutput
 
 import java.nio.file.Files
 
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 

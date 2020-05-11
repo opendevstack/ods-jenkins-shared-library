@@ -6,6 +6,7 @@ import java.nio.file.Paths
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
+import org.ods.services.GitService
 
 import spock.lang.*
 
@@ -22,7 +23,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def setup() {
         project = createProject()
         steps = Spy(util.PipelineSteps)
-        def git = Mock(GitUtil)
+        def git = Mock(GitService)
         util = new MROPipelineUtil(project, steps, git)
     }
 

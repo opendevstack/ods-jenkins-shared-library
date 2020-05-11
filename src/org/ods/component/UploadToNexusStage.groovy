@@ -1,36 +1,54 @@
 package org.ods.component
 
+import org.ods.services.NexusService
+
 class UploadToNexusStage extends Stage {
 
     public final String STAGE_NAME = 'Upload to Nexus'
 
-    final def repoType
-    final def distFile
-    final def groupId
-    final def uploadPath
-
-    UploadToNexusStage(def script, IContext context, Map config) {
+    final String repository
+    final String repositoryType
+    final String distFile
+    final NexusService nexus
+    
+    UploadToNexusStage(def script, IContext context, Map config, NexusService nexus) {
         super(script, context, config)
-        this.repoType = config.repoType ?: 'candidates'
+        this.repository = config.repository ?: 'candidates'
+        this.repositoryType = config.repositoryType ?: 'maven2'
         this.distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
-        this.groupId  = config.groupId ?: context.groupId
-        def repo = "${context.nexusHost}/repository/${repoType}"
-        this.uploadPath = "${repo}/${groupId.replace('.', '/')}/${componentId}/${context.tagversion}/${distFile}"
+        this.nexus = nexus
     }
 
+    @SuppressWarnings('SpaceAroundMapEntryColon')
     def run() {
-        script.echo ("Uploading '${distFile}' to: ${uploadPath}")
-
         if (!script.fileExists (distFile)) {
             script.error ("Could not upload file ${distFile} - it does NOT exist!")
+            return
         }
 
-        def user = "${context.nexusUsername}:${context.nexusPassword}"
-        script.sh (
-            script: "curl -u ${user} --upload-file ${distFile} ${uploadPath}",
-            label: "Uploading ${distFile} to Nexus"
-        )
-        return uploadPath
+        Map nexusParams = [ : ]
+
+        if (repositoryType == 'maven2') {
+            nexusParams << ['maven2.groupId' : (config.groupId ?: context.groupId.replace('.', '/'))]
+            nexusParams << ['maven2.artifactId': (config.artifactId ?: componentId)]
+            nexusParams << ['maven2.version': (config.version ?: context.tagversion)]
+            nexusParams << ['maven2.asset1.extension': (distFile.substring(distFile.lastIndexOf('.') + 1))]
+        } else if (repositoryType == 'raw') {
+            nexusParams << ['raw.asset1.filename': distFile]
+            nexusParams << ['raw.directory': (config.targetDirectory ?: context.projectId)]
+        }
+
+        def data = script.readFile(['file' : distFile, 'encoding' : 'Base64']).getBytes()
+        script.echo ("Nexus upload params: ${nexusParams}, " +
+            " file: ${distFile} to repo ${nexus.baseURL}/${repository}")
+        def uploadUri = nexus.storeComplextArtifact(
+            repository,
+            Base64.getDecoder().decode(data),
+            'application/octet-stream',
+            repositoryType,
+            nexusParams)
+        script.echo "Uploaded '${distFile}' to '${uploadUri}'"
+        return uploadUri
     }
 
 }

@@ -10,6 +10,7 @@ import net.lingala.zip4j.model.ZipParameters
 
 import org.ods.orchestration.util.IPipelineSteps
 import org.ods.orchestration.util.Project
+import org.ods.services.GitService
 
 @SuppressWarnings('JavaIoPackageAccess')
 class PipelineUtil {
@@ -20,9 +21,9 @@ class PipelineUtil {
 
     protected Project project
     protected IPipelineSteps steps
-    protected GitUtil git
+    protected GitService git
 
-    PipelineUtil(Project project, IPipelineSteps steps, GitUtil git) {
+    PipelineUtil(Project project, IPipelineSteps steps, GitService git) {
         this.project = project
         this.steps = steps
         this.git = git

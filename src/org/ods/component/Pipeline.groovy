@@ -4,7 +4,9 @@ import org.ods.services.GitService
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.util.ILogger
 import org.ods.services.JenkinsService
+import org.ods.services.NexusService
 import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
@@ -31,6 +33,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
+        logger.info "-> ODS Component pipeline setup, debug mode? ${logger.debugMode}"
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
@@ -60,7 +63,7 @@ class Pipeline implements Serializable {
         }
 
         prepareAgentPodConfig(config)
-        logger.info "***** Starting ODS Pipeline (${config.componentId})*****"
+        logger.info "***** Starting ODS Component Pipeline (${config.componentId}) *****"
         context = new Context(script, config, logger, this.localCheckoutEnabled)
 
         boolean skipCi = false
@@ -76,27 +79,48 @@ class Pipeline implements Serializable {
                         }
                         context.assemble()
                         // register services after context was assembled
+                        logger.debug('-> Registering & loading global services')
                         def registry = ServiceRegistry.instance
 
-                        registry.add(GitService, new GitService(script))
+                        // if we run in another context there is a good chance
+                        // services have been already registered
+                        if (!registry.get(GitService)) {
+                            logger.debug 'Registering GitService'
+                            registry.add(GitService, new GitService(script))
+                        }
                         this.gitService = registry.get(GitService)
 
-                        registry.add(BitbucketService, new BitbucketService(
-                            script,
-                            context.bitbucketUrl,
-                            context.projectId,
-                            context.credentialsId
-                        ))
+                        if (!registry.get(BitbucketService)) {
+                            logger.debug 'Registering BitbucketService'
+                            registry.add(BitbucketService, new BitbucketService(
+                                script,
+                                context.bitbucketUrl,
+                                context.projectId,
+                                context.credentialsId
+                            ))
+                        }
                         this.bitbucketService = registry.get(BitbucketService)
 
-                        registry.add(OpenShiftService, new OpenShiftService(
-                            script,
-                            context.targetProject
-                        ))
+                        if (!registry.get(OpenShiftService)) {
+                            logger.debug 'Registering OpenShiftService'
+                            registry.add(OpenShiftService, new OpenShiftService(
+                                script,
+                                context.targetProject
+                            ))
+                        }
                         this.openShiftService = registry.get(OpenShiftService)
 
-                        registry.add(JenkinsService, new JenkinsService(script, logger))
+                        if (!registry.get(JenkinsService)) {
+                            logger.debug 'Registering JenkinsService'
+                            registry.add(JenkinsService, new JenkinsService(script, logger))
+                        }
                         this.jenkinsService = registry.get(JenkinsService)
+
+                        if (!registry.get(NexusService)) {
+                            logger.debug 'Registering NexusService'
+                            registry.add(NexusService, new NexusService(
+                                context.nexusHost, context.nexusUsername, context.nexusPassword))
+                        }
                     }
 
                     skipCi = isCiSkip()
@@ -400,19 +424,13 @@ class Pipeline implements Serializable {
         def block = {
             def origin
             try {
-                origin = script.sh(
-                    script: 'git config --get remote.origin.url',
-                    returnStdout: true
-                ).trim()
+                origin = new GitService(script).getOriginUrl()
             } catch (err) {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = script.sh(
-                    script: "oc -n ${projectName} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
-                    returnStdout: true,
-                    label: "get origin from openshift bc ${bcName}"
-                ).trim()
+                origin = new OpenShiftService(script, null).
+                    getOriginUrlFromBuildConfig (projectName, bcName)
             }
 
             def splittedOrigin = origin.split('/')

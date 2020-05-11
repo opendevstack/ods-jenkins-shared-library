@@ -1,9 +1,9 @@
-package org.ods.orchestration.service
+package org.ods.services
 
 import com.github.tomakehurst.wiremock.client.*
 
 import org.apache.http.client.utils.URIBuilder
-
+import org.ods.services.NexusService
 import spock.lang.*
 
 import util.*

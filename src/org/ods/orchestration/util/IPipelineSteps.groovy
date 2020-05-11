@@ -16,6 +16,8 @@ interface IPipelineSteps {
 
     void junit(String path)
 
+    void junit(Map config)
+
     def load(String path)
 
     def sh(def args)
@@ -23,6 +25,8 @@ interface IPipelineSteps {
     void stage(String name, Closure block)
 
     void stash(String name)
+
+    void stash(Map config)
 
     void unstash(String name)
 

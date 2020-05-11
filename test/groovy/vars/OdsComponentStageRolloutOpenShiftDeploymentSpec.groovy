@@ -1,10 +1,10 @@
 package vars
 
-import org.ods.component.Logger
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
 

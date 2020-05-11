@@ -1,6 +1,7 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
+import org.ods.services.GitService
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
@@ -20,7 +21,7 @@ class DeployStage extends Stage {
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        def git = ServiceRegistry.instance.get(GitUtil)
+        def git = ServiceRegistry.instance.get(GitService)
 
         def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 

@@ -113,10 +113,14 @@ codenarc {
     configFile = file('codenarc.groovy')
     maxPriority1Violations = 0
     maxPriority2Violations = 0
-    maxPriority3Violations = 1514
+    maxPriority3Violations = 1490
     reportFormat = 'html'
 }
 
 codenarcTest {
     ignoreFailures = true
+}
+
+jacoco {
+  toolVersion = "0.8.3"
 }

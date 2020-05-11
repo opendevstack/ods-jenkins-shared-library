@@ -1,13 +1,13 @@
-package org.ods.component
+package org.ods.util
 
-class Logger implements ILogger {
+class Logger implements ILogger, Serializable {
 
     private final Object script
     private final boolean debugOn
 
     Logger(script, debug) {
-        this.debugOn = debugOn
         this.script = script
+        this.debugOn = debug
     }
 
     void debug(String message) {
@@ -18,6 +18,10 @@ class Logger implements ILogger {
 
     void info(String message) {
         script.echo message
+    }
+
+    boolean getDebugMode () {
+        debugOn
     }
 
 }

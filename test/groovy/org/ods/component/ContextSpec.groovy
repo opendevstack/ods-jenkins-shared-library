@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.PipelineScript
+import org.ods.util.Logger
 import spock.lang.*
 
 class ContextSpec extends Specification {
