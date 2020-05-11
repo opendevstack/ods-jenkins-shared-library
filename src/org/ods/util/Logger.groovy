@@ -1,6 +1,6 @@
 package org.ods.util
 
-class Logger implements ILogger {
+class Logger implements ILogger, Serializable {
 
     private final Object script
     private final boolean debugOn
