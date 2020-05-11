@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.services.OpenShiftService
+import org.ods.services.JenkinsService
 
 class RolloutOpenShiftDeploymentStage extends Stage {
 
