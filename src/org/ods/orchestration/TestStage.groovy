@@ -6,6 +6,7 @@ import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
+import org.ods.util.PipelineSteps
 
 class TestStage extends Stage {
 
