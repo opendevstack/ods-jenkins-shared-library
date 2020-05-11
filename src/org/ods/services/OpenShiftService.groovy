@@ -341,18 +341,11 @@ class OpenShiftService {
     }
 
     List getDeploymentConfigsForComponent(String componentSelector) {
-        def stdout = this.steps.sh(
+        steps.sh(
             script: "oc -n ${project} get dc -l ${componentSelector} -o jsonpath='{.items[*].metadata.name}'",
             returnStdout: true,
             label: "Getting all DeploymentConfig names for selector '${componentSelector}'"
-        ).trim()
-
-        def deploymentNames = []
-
-        stdout.tokenize(' ').each { dc ->
-            deploymentNames.add (dc)
-        }
-        return deploymentNames
+        ).trim().tokenize(' ')
     }
 
     String getApplicationDomain() {
@@ -360,11 +353,11 @@ class OpenShiftService {
     }
 
     Map<String, String> getImageInformationFromImageUrl(String url) {
-        this.steps.echo("Deciphering imageURL ${url} into pieces")
+        steps.echo("Deciphering imageURL ${url} into pieces")
         def imageInformation = [:]
-        List <String> imagePath
+        List<String> imagePath
         if (url?.contains('@')) {
-            List <String> imageStreamDefinition = (url.split('@'))
+            List<String> imageStreamDefinition = (url.split('@'))
             imageInformation['imageSha'] = imageStreamDefinition[1]
             imageInformation['imageShaStripped'] = (imageStreamDefinition[1]).replace('sha256:', '')
             imagePath = imageStreamDefinition[0].split('/')
@@ -381,16 +374,12 @@ class OpenShiftService {
     }
 
     List<Map<String, String>> getImageStreamsForDeploymentConfig(String dc) {
-        String imageString = steps.sh (
+        def imageString = steps.sh (
             script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
             label: "Get container images for deploymentconfigs (${dc})",
             returnStdout: true
         )
-        List images = []
-        imageString.tokenize(' ').each { image ->
-            images << getImageInformationFromImageUrl(image)
-        }
-        return images
+        imageString.tokenize(' ').collect { getImageInformationFromImageUrl(it) }
     }
 
     String getOriginUrlFromBuildConfig(String bcName) {
