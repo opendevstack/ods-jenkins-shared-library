@@ -29,7 +29,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.tailorVerify = false
         }
         if (!config.containsKey('tailorSelector')) {
-            config.tailorSelector = "${context.projectId}-${componentId}"
+            config.tailorSelector = "app=${context.projectId}-${componentId}"
         }
         if (!config.containsKey('tailorExclude')) {
             config.tailorExclude = 'bc,is'

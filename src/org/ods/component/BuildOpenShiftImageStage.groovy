@@ -41,7 +41,7 @@ class BuildOpenShiftImageStage extends Stage {
             config.tailorVerify = false
         }
         if (!config.containsKey('tailorSelector')) {
-            config.tailorSelector = "${context.projectId}-${componentId}"
+            config.tailorSelector = "app=${context.projectId}-${componentId}"
         }
         if (!config.containsKey('tailorInclude')) {
             config.tailorInclude = 'bc,is'
