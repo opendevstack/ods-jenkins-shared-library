@@ -82,7 +82,7 @@ class Pipeline implements Serializable {
                         logger.debug('Registering & loading global services')
                         def registry = ServiceRegistry.instance
 
-                        // if we run in another context there is a good chance 
+                        // if we run in another context there is a good chance
                         // services have been already registered
                         if (!registry.get(GitService)) {
                             logger.debug 'Registering GitService'
