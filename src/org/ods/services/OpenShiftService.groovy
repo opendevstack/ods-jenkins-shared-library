@@ -451,7 +451,12 @@ class OpenShiftService {
         )
     }
 
-    private void doTailorExport(String exportProject, String tailorParams, Map<String, String> envParams, String targetFile) {
+    private void doTailorExport(
+        String exportProject,
+        String tailorParams,
+        Map<String,
+        String> envParams,
+        String targetFile) {
         envParams['TAILOR_NAMESPACE'] = exportProject
         envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomainOfProject(exportProject)
         def templateParams = ''

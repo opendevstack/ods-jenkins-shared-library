@@ -61,7 +61,8 @@ class Stage {
             script.echo "Starting orchestration pipeline slave pod '${podLabel}'"
             def nodeStartTime = System.currentTimeMillis();
             script.node(podLabel) {
-                script.echo "Orchestration pipeline pod '${podLabel}' starttime: ${System.currentTimeMillis() - nodeStartTime}ms"
+                def slaveStartTime = System.currentTimeMillis() - nodeStartTime
+                script.echo "Orchestration pipeline pod '${podLabel}' starttime: ${slaveStartTime}ms"
                 git.configureUser()
                 script.unstash("wholeWorkspace")
                 script.withCredentials(

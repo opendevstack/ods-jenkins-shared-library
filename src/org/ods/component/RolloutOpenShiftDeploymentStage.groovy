@@ -9,7 +9,12 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
 
-    RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift, JenkinsService jenkins) {
+    RolloutOpenShiftDeploymentStage(
+        def script,
+        IContext context,
+        Map config,
+        OpenShiftService openShift,
+        JenkinsService jenkins) {
         super(script, context, config)
         if (!config.deployTimeoutMinutes) {
             config.deployTimeoutMinutes = context.openshiftRolloutTimeout

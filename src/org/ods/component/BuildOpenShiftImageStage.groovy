@@ -9,7 +9,12 @@ class BuildOpenShiftImageStage extends Stage {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
 
-    BuildOpenShiftImageStage(def script, IContext context, Map config, OpenShiftService openShift, JenkinsService jenkins) {
+    BuildOpenShiftImageStage(
+        def script,
+        IContext context,
+        Map config,
+        OpenShiftService openShift,
+        JenkinsService jenkins) {
         super(script, context, config)
         if (!config.imageLabels) {
             config.imageLabels = [:]
