@@ -72,7 +72,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     private boolean imageStreamExists() {
         config.imagestreams
-            .findAll{ context.targetProject == it.imageStreamProject }
+            .findAll { context.targetProject == it.imageStreamProject }
             .every { openShift.resourceExists('ImageStream', it.imageStream) }
     }
 

@@ -2,6 +2,7 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
+import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
