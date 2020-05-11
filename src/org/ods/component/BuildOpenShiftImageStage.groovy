@@ -52,6 +52,9 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.containsKey('tailorPreserve')) {
             config.tailorPreserve = ['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name']
         }
+        if (!config.containsKey('tailorParams')) {
+            config.tailorParams = ["TAGVERSION=${context.tagversion}"]
+        }
         this.openShift = openShift
         this.jenkins = jenkins
     }
@@ -68,6 +71,7 @@ class BuildOpenShiftImageStage extends Stage {
                     openShift.tailorApply(
                         [selector: config.tailorSelector, include: config.tailorInclude],
                         config.tailorParamFile,
+                        config.tailorParams,
                         config.tailorPreserve,
                         pkeyFile,
                         config.tailorVerify

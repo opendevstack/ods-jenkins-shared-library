@@ -40,6 +40,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('tailorPreserve')) {
             config.tailorPreserve = [] // do not preserve any paths in live config
         }
+        if (!config.containsKey('tailorParams')) {
+            config.tailorParams = ["TAGVERSION=${context.tagversion}"]
+        }
         this.openShift = openShift
         this.jenkins = jenkins
     }
@@ -56,10 +59,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     openShift.tailorApply(
                         [selector: config.tailorSelector, exclude: config.tailorExclude],
                         config.tailorParamFile,
+                        config.tailorParams,
                         config.tailorPreserve,
                         pkeyFile,
                         config.tailorVerify
                     )
+                    // TODO: If we had a ConfigTrigger, then we have a rollout now ...
+                    // The only way to avoid two rollouts is to already change the image reference, so that
+                    // the config trigger fires, but the image tagging does not trigger anything.
                 }
             }
         }

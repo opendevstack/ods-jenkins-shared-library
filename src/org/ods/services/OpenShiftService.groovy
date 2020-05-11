@@ -79,16 +79,17 @@ class OpenShiftService {
     }
 
     @SuppressWarnings('LineLength')
-    void tailorApply(Map<String, String> target, String paramFile, List<String> preserve, String tailorPrivateKeyFile, boolean verify) {
+    void tailorApply(Map<String, String> target, String paramFile, List<String> params, List<String> preserve, String tailorPrivateKeyFile, boolean verify) {
         def verifyFlag = verify ? '--verify' : ''
         def tailorPrivateKeyFlag = tailorPrivateKeyFile ? "--private-key ${tailorPrivateKeyFile}" : ''
         def selectorFlag = target.selector ? "--selector ${target.selector}" : ''
         def excludeFlag = target.exclude ? "--exclude ${target.exclude}" : ''
         def includeArg = target.include ?: ''
         def paramFileFlag = paramFile ? "--param-file ${paramFile}" : ''
+        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain()}"
+        def paramFlags = params.collect { "--param ${it}" }.join(' ')
         def preserveFlags = preserve.collect { "--preserve ${it}" }.join(' ')
-        def appDomainParam = "--param=ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain()}"
-        doTailorApply("${selectorFlag} ${excludeFlag} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} ${appDomainParam} --ignore-unknown-parameters ${includeArg}")
+        doTailorApply("${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}")
     }
 
     void tailorExport(String selector, Map<String, String> envParams, String targetFile) {
