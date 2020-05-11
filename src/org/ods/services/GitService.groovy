@@ -5,7 +5,7 @@ class GitService {
     private final def script
 
     @SuppressWarnings('NonFinalPublicField')
-    public static String ODS_GIT_TAG_BRANCH_PREFIX = "ods-generated-"
+    public static String ODS_GIT_TAG_BRANCH_PREFIX = 'ods-generated-'
 
     GitService(script) {
         this.script = script
@@ -75,22 +75,13 @@ class GitService {
         script.checkout(gitParams)
     }
 
-    private boolean isSlaveNodeGitLfsEnabled() {
-        def statusCode = script.sh(
-            script: 'git lfs &> /dev/null',
-            label: 'Check if Git LFS is enabled',
-            returnStatus: true
-        )
-        return statusCode == 0
-    }
-
     def configureUser() {
       script.sh(
           script: """
-            git config --global user.email "undefined"
-            git config --global user.name "MRO System User"
+            git config --global user.email 'undefined'
+            git config --global user.name 'MRO System User'
             """,
-          label: "configure git system user"
+          label: 'configure git system user'
       )
     }
 
@@ -194,6 +185,15 @@ class GitService {
 
     static String getReleaseBranch(String version) {
         "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
+    }
+
+    private boolean isSlaveNodeGitLfsEnabled() {
+        def statusCode = script.sh(
+            script: 'git lfs &> /dev/null',
+            label: 'Check if Git LFS is enabled',
+            returnStatus: true
+        )
+        return statusCode == 0
     }
 
 }
