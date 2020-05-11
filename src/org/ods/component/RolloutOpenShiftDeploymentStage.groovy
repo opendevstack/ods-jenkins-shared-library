@@ -30,9 +30,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
         def isExists = imageStreamExists()
         if (!isExists) {
-            List imageStreamNamesNice = []
-            config.imagestreams.each { imageStream ->
-                imageStreamNamesNice << "${imageStream.imageStreamProject}/${imageStream.imageStream}"
+            def imageStreamNamesNice = config.imagestreams.collect {
+                "${it.imageStreamProject}/${it.imageStream}"
             }
             script.error "One of the imagestreams '${imageStreamNamesNice}' " +
                 "for component '${componentId}' does not exist."
@@ -72,15 +71,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     }
 
     private boolean imageStreamExists() {
-        boolean allStreamExists = true
-        config.imagestreams.each { imageStream ->
-            script.echo ("Checking imagestream ${imageStream} against ${context.targetProject}")
-            if (imageStream.imageStreamProject == context.targetProject &&
-                !openShift.resourceExists('ImageStream', imageStream.imageStream)) {
-                allStreamExists = false
-            }
-        }
-        return allStreamExists
+        config.imagestreams
+            .findAll{ context.targetProject == it.imageStreamProject }
+            .every { openShift.resourceExists('ImageStream', it.imageStream)) }
     }
 
     private boolean automaticImageChangeTriggerEnabled() {
@@ -88,12 +81,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     }
 
     private void setImageTagLatest() {
-        config.imagestreams.each { imageStream ->
-            // only tag imagestreams that this project owns
-            if (context.targetProject == imageStream.imageStreamProject) {
-                openShift.setImageTag(imageStream.imageStream, context.tagversion, 'latest')
-            }
-        }
+        config.imagestreams
+            .findAll { context.targetProject == it.imageStreamProject }
+            .each { openShift.setImageTag(it.imageStream, context.tagversion, 'latest') }
     }
 
     private void startRollout() {
