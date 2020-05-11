@@ -7,7 +7,7 @@ class Logger implements ILogger, Serializable {
 
     Logger(script, debug) {
         this.script = script
-        this.debugOn = debugOn
+        this.debugOn = !!debugOn
     }
 
     void debug(String message) {

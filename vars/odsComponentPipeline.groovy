@@ -9,9 +9,7 @@ def call(Map config, Closure body) {
 
     config.debug = !!config.debug
 
-    println ("logger debug? ${config.debug}")
     def logger = new Logger(this, config.debug)
-    println ("logger debug? ${logger.debugMode}")
     def pipeline = new Pipeline(this, logger)
 
     pipeline.execute(config, body)
