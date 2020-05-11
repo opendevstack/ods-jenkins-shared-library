@@ -72,7 +72,7 @@ class OpenShiftService {
         steps.dir(tmpDir) {
             createProject(project)
             doTailorExport("${projectKey}-${sourceEnvName}", 'serviceaccount,rolebinding', [:], 'template.yml')
-            doTailorApply(project, 'serviceaccount,rolebinding --upsert-only')
+            doTailorApply('serviceaccount,rolebinding --upsert-only')
             steps.deleteDir()
         }
     }
@@ -96,45 +96,11 @@ class OpenShiftService {
         --param=ODS_OPENSHIFT_APP_DOMAIN=${openshiftAppDomain} \
         --ignore-unknown-parameters
         """
-        doTailorApply(project, tailorParams)
-    }
-
-    private void doTailorApply(String tailorParams) {
-        steps.sh(
-            script: """tailor \
-              ${tailorVerboseFlag()} \
-              --non-interactive \
-              -n ${project} \
-              apply ${tailorParams}""",
-            label: "tailor apply for ${project} (${tailorParams})"
-        )
+        doTailorApply(tailorParams)
     }
 
     void tailorExport(String selector, Map<String, String> envParams, String targetFile) {
         doTailorExport(project, "-l ${selector}", envParams, targetFile)
-    }
-
-    private void doTailorExport(String tailorParams, Map<String, String> envParams, String targetFile) {
-        envParams['TAILOR_NAMESPACE'] = project
-        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getOpenshiftApplicationDomain(project)
-        def templateParams = ''
-        def sedReplacements = ''
-        envParams.each { key, val ->
-            sedReplacements += "s|${val}|\\\${${key}}|g;"
-            templateParams += "- name: ${key}\n  required: true\n"
-        }
-        steps.sh(
-            script: """
-                tailor \
-                    ${tailorVerboseFlag()} \
-                    -n ${project} \
-                    export ${tailorParams} > ${targetFile}
-                    sed -i -e "${sedReplacements}" ${targetFile}
-                    echo "parameters:" >> ${targetFile}
-                    echo "${templateParams}" >> ${targetFile}
-            """,
-            label: "tailor export of ${project} (${tailorParams}) into ${targetFile}"
-        )
     }
 
     void startRollout(String name) {
@@ -498,6 +464,40 @@ class OpenShiftService {
         steps.sh(
             script: "oc new-project ${project}",
             label: "create new OpenShift project ${project}"
+        )
+    }
+
+    private void doTailorApply(String tailorParams) {
+        steps.sh(
+            script: """tailor \
+              ${tailorVerboseFlag()} \
+              --non-interactive \
+              -n ${project} \
+              apply ${tailorParams}""",
+            label: "tailor apply for ${project} (${tailorParams})"
+        )
+    }
+
+    private void doTailorExport(String exportProject, String tailorParams, Map<String, String> envParams, String targetFile) {
+        envParams['TAILOR_NAMESPACE'] = exportProject
+        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getOpenshiftApplicationDomain(exportProject)
+        def templateParams = ''
+        def sedReplacements = ''
+        envParams.each { key, val ->
+            sedReplacements += "s|${val}|\\\${${key}}|g;"
+            templateParams += "- name: ${key}\n  required: true\n"
+        }
+        steps.sh(
+            script: """
+                tailor \
+                    ${tailorVerboseFlag()} \
+                    -n ${exportProject} \
+                    export ${tailorParams} > ${targetFile}
+                    sed -i -e "${sedReplacements}" ${targetFile}
+                    echo "parameters:" >> ${targetFile}
+                    echo "${templateParams}" >> ${targetFile}
+            """,
+            label: "tailor export of ${exportProject} (${tailorParams}) into ${targetFile}"
         )
     }
 }
