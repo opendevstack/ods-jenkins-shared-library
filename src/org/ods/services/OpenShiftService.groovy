@@ -296,7 +296,7 @@ class OpenShiftService {
         return images
     }
 
-    String getOriginUrlFromBuildConfig (String project, String bcName) {
+    String getOriginUrlFromBuildConfig(String bcName) {
         return script.sh(
             script: "oc -n ${project} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
             returnStdout: true,
