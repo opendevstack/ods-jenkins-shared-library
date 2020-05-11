@@ -5,7 +5,7 @@ import groovy.json.JsonSlurperClassic
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
-@SuppressWarnings(['MethodCount'])
+@SuppressWarnings('MethodCount')
 class OpenShiftService {
 
     private final IPipelineSteps steps
@@ -77,33 +77,16 @@ class OpenShiftService {
         }
     }
 
+    @SuppressWarnings('LineLength')
     void tailorApply(Map<String, String> target, String paramFile, String tailorPrivateKeyFile, boolean verify) {
-        def verifyFlag = ''
-        if (verify) {
-            verifyFlag = '--verify'
-        }
-        def tailorPrivateKeyFlag = ''
-        if (tailorPrivateKeyFile) {
-            tailorPrivateKeyFlag = "--private-key ${tailorPrivateKeyFile}"
-        }
-        def selectorFlag = ''
-        if (target.selector) {
-            selectorFlag = "--selector ${target.selector}"
-        }
-        def excludeFlag = ''
-        if (target.exclude) {
-            excludeFlag = "--exclude ${target.exclude}"
-        }
-        def includeArg = ''
-        if (target.include) {
-            includeArg = "${target.include}"
-        }
-        def tailorParams = """
-        ${selectorFlag} ${excludeFlag} ${paramFileFlag(paramFile)} ${tailorPrivateKeyFlag} ${verifyFlag} \
-        --param=ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomainOfProject(project)} \
-        --ignore-unknown-parameters ${includeArg}
-        """
-        doTailorApply(tailorParams)
+        def verifyFlag = verify ? '--verify' : ''
+        def tailorPrivateKeyFlag = tailorPrivateKeyFile ? "--private-key ${tailorPrivateKeyFile}" : ''
+        def selectorFlag = target.selector ? "--selector ${target.selector}" : ''
+        def excludeFlag = target.exclude ? "--exclude ${target.exclude}" : ''
+        def includeArg = target.include ?: ''
+        def paramFileFlag = paramFile ? "--param-file ${paramFile}" : ''
+        def appDomainParam = "--param=ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomainOfProject(project)}"
+        doTailorApply("${selectorFlag} ${excludeFlag} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} ${appDomainParam} --ignore-unknown-parameters ${includeArg}")
     }
 
     void tailorExport(String selector, Map<String, String> envParams, String targetFile) {
@@ -423,10 +406,6 @@ class OpenShiftService {
             pod.containers[container.name] = container.image
         }
         return pod
-    }
-
-    private String paramFileFlag(String paramFile) {
-        paramFile ? "--param-file ${paramFile}" : ''
     }
 
     private String tailorVerboseFlag() {
