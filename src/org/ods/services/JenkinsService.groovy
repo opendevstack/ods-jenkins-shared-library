@@ -84,7 +84,22 @@ class JenkinsService {
         return result
     }
 
-    boolean privateKeyExists(def privateKeyCredentialsId) {
+    def maybeWithPrivateKeyCredentials(String credentialsId, Closure block) {
+        if (privateKeyExists(credentialsId)) {
+            script.withCredentials([
+                script.sshUserPrivateKey(
+                    credentialsId: credentialsId,
+                    keyFileVariable: 'PKEY_FILE'
+                )
+            ]) {
+                block(script.env.PKEY_FILE)
+            }
+        } else {
+            block('')
+        }
+    }
+
+    boolean privateKeyExists(String privateKeyCredentialsId) {
         try {
             script.withCredentials(
                 [script.sshUserPrivateKey(credentialsId: privateKeyCredentialsId, keyFileVariable: 'PKEY_FILE')]

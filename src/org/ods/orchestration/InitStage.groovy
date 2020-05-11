@@ -323,8 +323,7 @@ class InitStage extends Stage {
                             )
                             applyFunc = { pkeyFile ->
                                 os.tailorApply(
-                                        componentSelector,
-                                        '', // do not exlude any resources
+                                        [selector: componentSelector],
                                         envParamsFile,
                                         pkeyFile,
                                         false

@@ -6,13 +6,30 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy to Openshift'
     private final OpenShiftService openShift
+    private final JenkinsService jenkins
 
-    RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift) {
+    RolloutOpenShiftDeploymentStage(def script, IContext context, Map config, OpenShiftService openShift, JenkinsService jenkins) {
         super(script, context, config)
         if (!config.deployTimeoutMinutes) {
             config.deployTimeoutMinutes = context.openshiftRolloutTimeout
         }
+        if (!config.tailorPrivateKeyCredentialsId) {
+            config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
+        }
+        if (!config.containsKey('tailorVerify')) {
+            config.tailorVerify = false
+        }
+        if (!config.containsKey('tailorSelector')) {
+            config.tailorSelector = "${context.projectId}-${componentId}"
+        }
+        if (!config.containsKey('tailorExclude')) {
+            config.tailorExclude = 'bc,is'
+        }
+        if (!config.containsKey('tailorParamFile')) {
+            config.tailorParamFile = '' // none apart the automatic param file
+        }
         this.openShift = openShift
+        this.jenkins = jenkins
     }
 
     def run() {
@@ -21,25 +38,35 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             return
         }
 
+        if (script.fileExists('openshift')) {
+            jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                openShift.tailorApply(
+                    [selector: config.tailorSelector, exclude: config.tailorExclude],
+                    config.tailorParamFile,
+                    pkeyFile,
+                    config.tailorVerify
+                )
+            }
+        }
+
         def dcExists = deploymentConfigExists()
         if (!dcExists) {
             script.error "DeploymentConfig '${componentId}' does not exist."
         }
 
-        config.imagestreams = openShift.getImageStreamsForDeploymentConfig(componentId)
-
-        def isExists = imageStreamExists()
-        if (!isExists) {
-            def imageStreamNamesNice = config.imagestreams.collect {
+        def imageStreams = openShift.getImageStreamsForDeploymentConfig(componentId)
+        def missingStreams = missingImageStreams(imageStreams)
+        if (!missingStreams) {
+            def imageStreamNamesNice = missingStreams.collect {
                 "${it.imageStreamProject}/${it.imageStream}"
             }
-            script.error "One of the imagestreams '${imageStreamNamesNice}' " +
-                "for component '${componentId}' does not exist."
+            script.error "The following ImageStream resources  for component '${componentId}' " +
+                "do not exist: '${imageStreamNamesNice}'."
         }
 
         def imageTriggerEnabled = automaticImageChangeTriggerEnabled()
 
-        setImageTagLatest()
+        setImageTagLatest(imageStreams)
 
         if (!imageTriggerEnabled) {
             startRollout()
@@ -70,18 +97,18 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         openShift.resourceExists('DeploymentConfig', componentId)
     }
 
-    private boolean imageStreamExists() {
-        config.imagestreams
+    private boolean missingImageStreams(List<Map<String, String>> imageStreams) {
+        imageStreams
             .findAll { context.targetProject == it.imageStreamProject }
-            .every { openShift.resourceExists('ImageStream', it.imageStream) }
+            .findAll { !openShift.resourceExists('ImageStream', it.imageStream) }
     }
 
     private boolean automaticImageChangeTriggerEnabled() {
         openShift.automaticImageChangeTriggerEnabled(componentId)
     }
 
-    private void setImageTagLatest() {
-        config.imagestreams
+    private void setImageTagLatest(List<Map<String, String>> imageStreams) {
+        imageStreams
             .findAll { context.targetProject == it.imageStreamProject }
             .each { openShift.setImageTag(it.imageStream, context.tagversion, 'latest') }
     }
@@ -105,5 +132,4 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private Map getPodDataForRollout(String replicationController) {
         openShift.getPodDataForDeployment(replicationController)
     }
-
 }

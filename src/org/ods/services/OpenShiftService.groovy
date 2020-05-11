@@ -77,23 +77,31 @@ class OpenShiftService {
         }
     }
 
-    void tailorApply(String selector, String exclude, String paramFile, String tailorPrivateKeyFile, boolean verify) {
+    void tailorApply(String target, String paramFile, String tailorPrivateKeyFile, boolean verify) {
         def verifyFlag = ''
         if (verify) {
             verifyFlag = '--verify'
-        }
-        def excludeFlag = ''
-        if (exclude) {
-            excludeFlag = "--exclude ${exclude}"
         }
         def tailorPrivateKeyFlag = ''
         if (tailorPrivateKeyFile) {
             tailorPrivateKeyFlag = "--private-key ${tailorPrivateKeyFile}"
         }
+        def selectorFlag = ''
+        if (target.selector) {
+            selectorFlag = "--selector ${target.selector}"
+        }
+        def excludeFlag = ''
+        if (target.exclude) {
+            excludeFlag = "--exclude ${target.exclude}"
+        }
+        def includeArg = ''
+        if (target.include) {
+            includeArg = "${target.include}"
+        }
         def tailorParams = """
-        -l ${selector} ${excludeFlag} ${buildParamFileFlag(paramFile)} ${tailorPrivateKeyFlag} ${verifyFlag} \
+        ${selectorFlag} ${excludeFlag} ${paramFileFlag(paramFile)} ${tailorPrivateKeyFlag} ${verifyFlag} \
         --param=ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomainOfProject(project)} \
-        --ignore-unknown-parameters
+        --ignore-unknown-parameters ${includeArg}
         """
         doTailorApply(tailorParams)
     }
@@ -417,19 +425,12 @@ class OpenShiftService {
         return pod
     }
 
-    private String buildParamFileFlag(String paramFile) {
-        def paramFileFlag = ''
-        if (paramFile) {
-            paramFileFlag = "--param-file ${paramFile}"
-        }
-        paramFileFlag
+    private String paramFileFlag(String paramFile) {
+        paramFile ? "--param-file ${paramFile}" : ''
     }
 
     private String tailorVerboseFlag() {
-        if (steps.env.DEBUG) {
-            return '--verbose'
-        }
-        ''
+        steps.env.DEBUG ? '--verbose' : ''
     }
 
     private def createProject() {

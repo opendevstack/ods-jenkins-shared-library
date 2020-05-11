@@ -210,8 +210,7 @@ class MROPipelineUtil extends PipelineUtil {
                 steps.echo("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
                 applyFunc = { pkeyFile ->
                     os.tailorApply(
-                            componentSelector,
-                            'bc', // exclude build configs
+                            [selector: componentSelector, exclude: 'bc'],
                             envParamsFile,
                             pkeyFile,
                             true

@@ -6,8 +6,9 @@ class BuildOpenShiftImageStage extends Stage {
 
     public final String STAGE_NAME = 'Build Openshift Image'
     private final OpenShiftService openShift
+    private final JenkinsService jenkins
 
-    BuildOpenShiftImageStage(def script, IContext context, Map config, OpenShiftService openShift) {
+    BuildOpenShiftImageStage(def script, IContext context, Map config, OpenShiftService openShift, JenkinsService jenkins) {
         super(script, context, config)
         if (!config.imageLabels) {
             config.imageLabels = [:]
@@ -24,14 +25,40 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
-
+        if (!config.tailorPrivateKeyCredentialsId) {
+            config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
+        }
+        if (!config.containsKey('tailorVerify')) {
+            config.tailorVerify = false
+        }
+        if (!config.containsKey('tailorSelector')) {
+            config.tailorSelector = "${context.projectId}-${componentId}"
+        }
+        if (!config.containsKey('tailorInclude')) {
+            config.tailorInclude = 'bc,is'
+        }
+        if (!config.containsKey('tailorParamFile')) {
+            config.tailorParamFile = '' // none apart the automatic param file
+        }
         this.openShift = openShift
+        this.jenkins = jenkins
     }
 
     def run() {
         if (!context.environment) {
             script.echo 'Skipping for empty environment ...'
             return [:]
+        }
+
+        if (script.fileExists('openshift')) {
+            jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                openShift.tailorApply(
+                    [selector: config.tailorSelector, include: config.tailorInclude],
+                    config.tailorParamFile,
+                    pkeyFile,
+                    config.tailorVerify
+                )
+            }
         }
 
         def imageLabels = assembleImageLabels()
