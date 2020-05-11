@@ -423,13 +423,13 @@ class Pipeline implements Serializable {
         def block = {
             def origin
             try {
-                origin = gitService.getOriginUrl()
+                origin = new GitService(script).getOriginUrl()
             } catch (err) {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = openShiftService.getOriginUrlFromBuildConfig (projectName,
-                    bcName)
+                origin = new OpenShiftService(script, null).
+                    getOriginUrlFromBuildConfig (projectName, bcName)
             }
 
             def splittedOrigin = origin.split('/')
