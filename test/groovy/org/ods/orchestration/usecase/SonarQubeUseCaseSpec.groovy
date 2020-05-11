@@ -7,6 +7,7 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.services.NexusService
 import spock.lang.*
+import org.ods.util.IPipelineSteps
 
 import static util.FixtureHelper.*
 

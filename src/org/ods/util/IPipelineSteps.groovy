@@ -1,4 +1,4 @@
-package org.ods.orchestration.util
+package org.ods.util
 
 interface IPipelineSteps {
 
@@ -47,6 +47,8 @@ interface IPipelineSteps {
     def timeout(Map args, Closure block)
 
     def deleteDir()
+
+    def sleep(int seconds)
 
     def withEnv(List<String> env, Closure block)
 

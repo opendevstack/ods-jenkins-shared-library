@@ -10,6 +10,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
 import org.ods.services.GitService
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
 class Project {

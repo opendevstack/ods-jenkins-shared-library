@@ -8,7 +8,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 

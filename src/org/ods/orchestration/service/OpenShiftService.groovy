@@ -2,7 +2,7 @@ package org.ods.orchestration.service
 
 import groovy.json.JsonSlurperClassic
 
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings('LineLength')
 class OpenShiftService {

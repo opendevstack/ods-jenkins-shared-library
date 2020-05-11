@@ -3,7 +3,7 @@ package org.ods.orchestration
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
-import org.ods.orchestration.util.PipelineSteps
+import org.ods.util.PipelineSteps
 
 class Stage {
     protected def script

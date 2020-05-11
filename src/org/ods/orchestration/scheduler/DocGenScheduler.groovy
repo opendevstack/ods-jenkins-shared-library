@@ -3,7 +3,7 @@ package org.ods.orchestration.scheduler
 import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.usecase.DocGenUseCase
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 

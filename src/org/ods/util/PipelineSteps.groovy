@@ -1,4 +1,4 @@
-package org.ods.orchestration.util
+package org.ods.util
 
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -105,6 +105,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
 
     def deleteDir() {
         this.context.deleteDir()
+    }
+
+    def sleep(int seconds) {
+        this.context.sleep(seconds)
     }
 
     def withEnv(List<String> env, Closure block) {

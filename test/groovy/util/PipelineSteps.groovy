@@ -1,6 +1,6 @@
 package util
 
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 
 class PipelineSteps implements IPipelineSteps {
 
@@ -104,7 +104,11 @@ class PipelineSteps implements IPipelineSteps {
     def deleteDir() {
         return null
     }
-    
+
+    def sleep(int seconds) {
+        return null
+    }
+
     @Override
     def withEnv(java.util.List env, groovy.lang.Closure block) {
       block()

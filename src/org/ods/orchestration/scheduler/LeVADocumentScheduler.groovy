@@ -1,7 +1,7 @@
 package org.ods.orchestration.scheduler
 
 import org.ods.orchestration.usecase.LeVADocumentUseCase
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 

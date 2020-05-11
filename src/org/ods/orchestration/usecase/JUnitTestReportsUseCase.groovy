@@ -3,7 +3,7 @@ package org.ods.orchestration.usecase
 import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.parser.JUnitParser
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 
 @SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])

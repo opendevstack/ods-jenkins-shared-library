@@ -5,6 +5,8 @@ import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import groovy.json.JsonOutput
@@ -62,6 +64,8 @@ class Pipeline implements Serializable {
             script.error "Param 'componentId' is required"
         }
 
+        IPipelineSteps steps = new PipelineSteps(script)
+
         prepareAgentPodConfig(config)
         logger.info "***** Starting ODS Component Pipeline (${config.componentId}) *****"
         context = new Context(script, config, logger, this.localCheckoutEnabled)
@@ -104,7 +108,8 @@ class Pipeline implements Serializable {
                         if (!registry.get(OpenShiftService)) {
                             logger.debug 'Registering OpenShiftService'
                             registry.add(OpenShiftService, new OpenShiftService(
-                                script,
+                                steps,
+                                logger,
                                 context.targetProject
                             ))
                         }
