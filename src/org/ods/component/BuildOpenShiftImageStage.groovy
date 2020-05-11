@@ -37,11 +37,11 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.tailorPrivateKeyCredentialsId) {
             config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
         }
+        if (!config.tailorSelector) {
+            config.tailorSelector = "app=${context.projectId}-${componentId}"
+        }
         if (!config.containsKey('tailorVerify')) {
             config.tailorVerify = false
-        }
-        if (!config.containsKey('tailorSelector')) {
-            config.tailorSelector = "app=${context.projectId}-${componentId}"
         }
         if (!config.containsKey('tailorInclude')) {
             config.tailorInclude = 'bc,is'
