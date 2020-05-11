@@ -49,6 +49,9 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.containsKey('tailorParamFile')) {
             config.tailorParamFile = '' // none apart the automatic param file
         }
+        if (!config.containsKey('tailorPreserve')) {
+            config.tailorPreserve = ['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name']
+        }
         this.openShift = openShift
         this.jenkins = jenkins
     }
@@ -65,6 +68,7 @@ class BuildOpenShiftImageStage extends Stage {
                     openShift.tailorApply(
                         [selector: config.tailorSelector, include: config.tailorInclude],
                         config.tailorParamFile,
+                        config.tailorPreserve,
                         pkeyFile,
                         config.tailorVerify
                     )

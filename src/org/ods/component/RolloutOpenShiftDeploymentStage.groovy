@@ -37,6 +37,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('tailorParamFile')) {
             config.tailorParamFile = '' // none apart the automatic param file
         }
+        if (!config.containsKey('tailorPreserve')) {
+            config.tailorPreserve = [] // do not preserve any paths in live config
+        }
         this.openShift = openShift
         this.jenkins = jenkins
     }
@@ -53,6 +56,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     openShift.tailorApply(
                         [selector: config.tailorSelector, exclude: config.tailorExclude],
                         config.tailorParamFile,
+                        config.tailorPreserve,
                         pkeyFile,
                         config.tailorVerify
                     )
@@ -67,7 +71,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
         def imageStreams = openShift.getImageStreamsForDeploymentConfig(componentId)
         def missingStreams = missingImageStreams(imageStreams)
-        if (!missingStreams) {
+        if (missingStreams) {
             def imageStreamNamesNice = missingStreams.collect {
                 "${it.imageStreamProject}/${it.imageStream}"
             }

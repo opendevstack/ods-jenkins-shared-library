@@ -321,10 +321,12 @@ class InitStage extends Stage {
                                 "Applying desired OpenShift state defined in ${openshiftDir} " +
                                 "to ${project.targetProject}."
                             )
+                            def preserve = []
                             applyFunc = { pkeyFile ->
                                 os.tailorApply(
                                         [selector: componentSelector],
                                         envParamsFile,
+                                        preserve,
                                         pkeyFile,
                                         false
                                     )
