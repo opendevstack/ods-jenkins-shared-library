@@ -33,7 +33,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
-        logger.info '-> ODS global pipeline setup'
+        logger.info '-> ODS global pipeline setup, debug mode? ${config.debug}'
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
@@ -79,6 +79,7 @@ class Pipeline implements Serializable {
                         }
                         context.assemble()
                         // register services after context was assembled
+                        logger.debug('Registering & loading global services')
                         def registry = ServiceRegistry.instance
 
                         // if we run in another context there is a good chance 
