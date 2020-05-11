@@ -30,7 +30,7 @@ class Context implements IContext {
         // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
         // if the repository should not be deployed to OpenShift at all.
         if (!config.containsKey('branchToEnvironmentMapping') ||
-            !config.branchToEnvironmentMapping instanceof Map) {
+            !(config.branchToEnvironmentMapping instanceof Map)) {
             throw new IllegalArgumentException("Param 'branchToEnvironmentMapping, type: Map' is required")
         }
 
