@@ -2,10 +2,13 @@ package org.ods.component
 
 import org.ods.util.Logger
 import com.cloudbees.groovy.cps.NonCPS
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
 
 @SuppressWarnings('MethodCount')
 class Context implements IContext {
 
+    final String excludeFromContextDebugConfig = ['nexusPassword', 'nexusUsername']
     // script is the context of the Jenkinsfile. That means that things like "sh" need to be called on script.
     private final def script
     // config is a map of config properties to customise the behaviour.
@@ -153,8 +156,17 @@ class Context implements IContext {
         if (config.environment) {
             config.targetProject = "${config.projectId}-${config.environment}"
         }
+        // clone the map and overwrite exclusions
+        def debugConfig = new JsonSlurper().
+            parseText(JsonOutput.toJson(config))
 
-        logger.debug "Assembled configuration: ${config}"
+        excludeFromContextDebugConfig.each { exclusion ->
+            if (debugConfig[exclusion]) {
+                  debugConfig.replace(exclusion, '****')
+            }
+        }
+
+        logger.debug "Assembled configuration: ${debugConfig}"
     }
 
     boolean getDebug() {
