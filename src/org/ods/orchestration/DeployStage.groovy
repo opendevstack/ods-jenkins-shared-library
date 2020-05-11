@@ -87,7 +87,7 @@ class DeployStage extends Stage {
                 }
 
                 // Check if the target environment exists in OpenShift
-                if (!os.envExists(targetProject)) {
+                if (!os.envExists()) {
                     throw new RuntimeException(
                         "Error: target environment '${targetProject}' does not exist " +
                         "in ${project.openShiftTargetApiUrl}."

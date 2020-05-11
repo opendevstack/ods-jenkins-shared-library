@@ -5,6 +5,7 @@ import groovy.json.JsonSlurperClassic
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
+@SuppressWarnings(['MethodCount'])
 class OpenShiftService {
 
     private final IPipelineSteps steps
@@ -17,12 +18,123 @@ class OpenShiftService {
         this.project = project
     }
 
-    String getServer() {
+    // TODO
+
+    void loginToExternalCluster(String apiUrl, String apiToken) {
+        steps.sh(
+            script: """oc login ${apiUrl} --token=${apiToken} >& /dev/null""",
+            label: "login to external cluster (${apiUrl})"
+        )
+    }
+
+    String getApiUrl() {
         steps.sh(
             script: 'oc whoami --show-server',
-            label: 'Get OpenShift server URL',
+            label: 'Get OpenShift API server URL',
             returnStdout: true
         ).trim()
+    }
+
+    boolean tooManyEnvironments(String projectId, Integer limit) {
+        steps.sh(
+            returnStdout: true,
+            script: "oc projects | grep '^\\s*${projectId}-' | wc -l",
+            label: "check ocp environment maximum for '${projectId}-*'"
+        ).trim().toInteger() >= limit
+    }
+
+    // END TODO
+
+    boolean envExists() {
+        steps.echo("searching for ${project}")
+        def statusCode = steps.sh(
+            script: "oc project ${project} &> /dev/null",
+            label: "check if OCP project exists",
+            returnStatus: true
+        )
+        steps.echo("searching for ${project} - result ${statusCode}")
+        return (statusCode == 0)
+    }
+
+    def createVersionedDevelopmentEnvironment(String projectKey, String sourceEnvName) {
+        def limit = 3
+        if (tooManyEnvironments("${projectKey}-dev-", limit)) {
+            throw new RuntimeException(
+                "Error: only ${limit} versioned ${projectKey}-dev-* environments are allowed. " +
+                'Please clean up and run the pipeline again.'
+            )
+        }
+        def tmpDir = "tmp-${project}"
+        steps.sh(
+            script: "mkdir -p ${tmpDir}",
+            label: "Ensure ${tmpDir} exists"
+        )
+        steps.dir(tmpDir) {
+            createProject(project)
+            doTailorExport("${projectKey}-${sourceEnvName}", 'serviceaccount,rolebinding', [:], 'template.yml')
+            doTailorApply(project, 'serviceaccount,rolebinding --upsert-only')
+            steps.deleteDir()
+        }
+    }
+
+    void tailorApply(String selector, String exclude, String paramFile, String tailorPrivateKeyFile, boolean verify) {
+        def verifyFlag = ''
+        if (verify) {
+            verifyFlag = '--verify'
+        }
+        def excludeFlag = ''
+        if (exclude) {
+            excludeFlag = "--exclude ${exclude}"
+        }
+        def tailorPrivateKeyFlag = ''
+        if (tailorPrivateKeyFile) {
+            tailorPrivateKeyFlag = "--private-key ${tailorPrivateKeyFile}"
+        }
+        String openshiftAppDomain = getOpenshiftApplicationDomain(project)
+        def tailorParams = """
+        -l ${selector} ${excludeFlag} ${buildParamFileFlag(paramFile)} ${tailorPrivateKeyFlag} ${verifyFlag} \
+        --param=ODS_OPENSHIFT_APP_DOMAIN=${openshiftAppDomain} \
+        --ignore-unknown-parameters
+        """
+        doTailorApply(project, tailorParams)
+    }
+
+    private void doTailorApply(String tailorParams) {
+        steps.sh(
+            script: """tailor \
+              ${tailorVerboseFlag()} \
+              --non-interactive \
+              -n ${project} \
+              apply ${tailorParams}""",
+            label: "tailor apply for ${project} (${tailorParams})"
+        )
+    }
+
+    void tailorExport(String selector, Map<String, String> envParams, String targetFile) {
+        doTailorExport(project, "-l ${selector}", envParams, targetFile)
+    }
+
+    private void doTailorExport(String tailorParams, Map<String, String> envParams, String targetFile) {
+        envParams['TAILOR_NAMESPACE'] = project
+        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getOpenshiftApplicationDomain(project)
+        def templateParams = ''
+        def sedReplacements = ''
+        envParams.each { key, val ->
+            sedReplacements += "s|${val}|\\\${${key}}|g;"
+            templateParams += "- name: ${key}\n  required: true\n"
+        }
+        steps.sh(
+            script: """
+                tailor \
+                    ${tailorVerboseFlag()} \
+                    -n ${project} \
+                    export ${tailorParams} > ${targetFile}
+                    sed -i -e "${sedReplacements}" ${targetFile}
+                    echo "parameters:" >> ${targetFile}
+                    echo "${templateParams}" >> ${targetFile}
+            """,
+            label: "tailor export of ${project} (${tailorParams}) into ${targetFile}"
+        )
     }
 
     void startRollout(String name) {
@@ -169,14 +281,6 @@ class OpenShiftService {
         ).trim()
     }
 
-    boolean tooManyEnvironments(String projectId, Integer limit) {
-        steps.sh(
-            returnStdout: true,
-            script: "oc projects | grep '^\\s*${projectId}-' | wc -l",
-            label: "check ocp environment maximum for '${projectId}-*'"
-        ).trim().toInteger() >= limit
-    }
-
     private String checkForBuildStatus(String buildId) {
         steps.sh(
             returnStdout: true,
@@ -185,13 +289,64 @@ class OpenShiftService {
         ).trim().toLowerCase()
     }
 
-    String getContainerForImage (String projectId, String rc, String image) {
+    String getContainerForImage(String projectId, String rc, String image) {
         def jsonPath = """{.spec.template.spec.containers[?(contains .image "${image}")].name}"""
         steps.sh(
             script: "oc -n ${projectId} get rc ${rc} -o jsonpath='${jsonPath}'",
             returnStdout: true,
             label: "Getting containers for ${rc} and image ${image}"
         )
+    }
+
+    String getRunningImageSha(String component, String version, index = 0) {
+        def runningImage = steps.sh(
+            script: """oc -n ${project} get rc/${component}-${version} \
+            -o jsonpath='{.spec.template.spec.containers[${index}].image}'
+            """,
+            label: "Get running image for rc/${component}-${version} containerIndex: ${index}",
+            returnStdout: true
+        ).trim()
+        return runningImage.substring(runningImage.lastIndexOf("@sha256:") + 1)
+    }
+
+    void importImageFromProject(String name, String sourceProject, String imageSha, String imageTag) {
+        steps.sh(
+            script: """oc -n ${project} tag ${sourceProject}/${name}@${imageSha} ${name}:${imageTag}""",
+            label: "tag image ${name} into ${project}"
+        )
+    }
+
+    void importImageFromSourceRegistry(String name, String sourceProject, String imageSha, String imageTag) {
+        def sourceClusterRegistryHost = getSourceClusterRegistryHost()
+        def sourceImage = "${sourceClusterRegistryHost}/${sourceProject}/${name}@${imageSha}"
+        steps.sh(
+            script: """
+              oc -n ${project} import-image ${name}:${imageTag} \
+                --from=${sourceImage} \
+                --confirm
+            """,
+            label: "import image ${sourceImage} into ${project}/${name}:${imageTag}"
+        )
+    }
+
+    private String getSourceClusterRegistryHost() {
+        def secretName = 'mro-image-pull'
+        def dockerConfig = steps.sh(
+            script: """
+            oc -n ${project} get secret ${secretName} --output="jsonpath={.data.\\.dockerconfigjson}" | base64 --decode
+            """,
+            returnStdout: true,
+            label: "read source cluster registry host from ${secretName}"
+        )
+        def dockerConfigJson = steps.readJSON(text: dockerConfig)
+        def auths = dockerConfigJson.auths
+        def authKeys = auths.keySet()
+        if (authKeys.size() > 1) {
+            throw new RuntimeException(
+                "Error: 'dockerconfigjson' of secret '${secretName}' has more than one registry host entry."
+            )
+        }
+        authKeys.first()
     }
 
     // Gets pod of deployment
@@ -218,6 +373,83 @@ class OpenShiftService {
         ).trim()
 
         extractPodData(stdout, "deployment '${rc}'")
+    }
+
+    List getDeploymentConfigsForComponent(String componentSelector) {
+        def stdout = this.steps.sh(
+            script: "oc -n ${project} get dc -l ${componentSelector} -o jsonpath='{.items[*].metadata.name}'",
+            returnStdout: true,
+            label: "Getting all DeploymentConfig names for selector '${componentSelector}'"
+        ).trim()
+
+        def deploymentNames = []
+
+        stdout.tokenize(' ').each { dc ->
+            deploymentNames.add (dc)
+        }
+        return deploymentNames
+    }
+
+    String getOpenshiftApplicationDomain() {
+        def routeName = 'test-route-' + System.currentTimeMillis()
+        steps.sh (
+            script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
+            label: "create dummy route for extraction (${routeName})"
+        )
+        def routeUrl = steps.sh (
+            script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
+            returnStdout: true,
+            label: 'get cluster route domain'
+        )
+        def routePrefixLength = "${routeName}-${project}".length() + 1
+        String openShiftPublicHost = routeUrl.substring(routePrefixLength)
+        steps.sh (
+            script: "oc -n ${project} delete route ${routeName} | true",
+            label: "delete dummy route for extraction (${routeName})"
+        )
+        return openShiftPublicHost
+    }
+
+    Map<String, String> getImageInformationFromImageUrl(String url) {
+        this.steps.echo("Deciphering imageURL ${url} into pieces")
+        def imageInformation = [:]
+        List <String> imagePath
+        if (url?.contains('@')) {
+            List <String> imageStreamDefinition = (url.split('@'))
+            imageInformation['imageSha'] = imageStreamDefinition[1]
+            imageInformation['imageShaStripped'] = (imageStreamDefinition[1]).replace('sha256:', '')
+            imagePath = imageStreamDefinition[0].split('/')
+        } else {
+            url = url.split(':')[0]
+            imagePath = url.split('/')
+            imageInformation['imageSh'] = url
+            imageInformation['imageShaStrippe'] = url
+        }
+        imageInformation['imageStreamProject'] = imagePath[imagePath.size()-2]
+        imageInformation['imageStream'] = imagePath[imagePath.size()-1]
+
+        return imageInformation
+    }
+
+    List<Map<String, String>> getImageStreamsForDeploymentConfig(String dc) {
+        String imageString = steps.sh (
+            script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
+            label: "Get container images for deploymentconfigs (${dc})",
+            returnStdout: true
+        )
+        List images = []
+        imageString.tokenize(' ').each { image ->
+            images << getImageInformationFromImageUrl(image)
+        }
+        return images
+    }
+
+    String getOriginUrlFromBuildConfig(String bcName) {
+        return steps.sh(
+            script: "oc -n ${project} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
+            returnStdout: true,
+            label: "get origin from openshift bc ${bcName}"
+        ).trim()
     }
 
     @SuppressWarnings('CyclomaticComplexity')
@@ -247,65 +479,25 @@ class OpenShiftService {
         return pod
     }
 
-    String getOpenshiftApplicationDomain () {
-        def routeName = 'test-route-' + System.currentTimeMillis()
-        steps.sh (
-            script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
-            label: "create dummy route for extraction (${routeName})"
-        )
-        def routeUrl = steps.sh (
-            script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
-            returnStdout: true,
-            label: 'get cluster route domain'
-        )
-        def routePrefixLength = "${routeName}-${project}".length() + 1
-        String openShiftPublicHost = routeUrl.substring(routePrefixLength)
-        steps.sh (
-            script: "oc -n ${project} delete route ${routeName} | true",
-            label: "delete dummy route for extraction (${routeName})"
-        )
-        return openShiftPublicHost
-    }
-
-    Map<String, String> getImageInformationFromImageUrl (String url) {
-        logger.info("Deciphering imageURL ${url} into pieces")
-        def imageInformation = [:]
-        List <String> imagePath
-        if (url?.contains('@')) {
-            List <String> imageStreamDefinition = (url.split ('@'))
-            imageInformation [ 'imageSha' ] = imageStreamDefinition [1]
-            imageInformation [ 'imageShaStripped' ] = (imageStreamDefinition [1]).replace('sha256:','')
-            imagePath = imageStreamDefinition[0].split('/')
-        } else {
-            url = url.split(':')[0]
-            imagePath = url.split('/')
-            imageInformation [ 'imageSha' ] = url
-            imageInformation [ 'imageShaStripped' ] = url
+    private String buildParamFileFlag(String paramFile) {
+        def paramFileFlag = ''
+        if (paramFile) {
+            paramFileFlag = "--param-file ${paramFile}"
         }
-        imageInformation [ 'imageStreamProject' ] = imagePath[imagePath.size() - 2]
-        imageInformation [ 'imageStream' ] = imagePath.last()
-
-        return imageInformation
+        paramFileFlag
     }
 
-    List<Map<String, String>> getImageStreamsForDeploymentConfig (String dc) {
-        String imageString = steps.sh (
-            script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
-            label: "Get container images for deploymentconfigs (${dc})",
-            returnStdout: true
-        )
-        List images = []
-        imageString.tokenize(' ').each { image ->
-            images << getImageInformationFromImageUrl(image)
+    private String tailorVerboseFlag() {
+        if (steps.env.DEBUG) {
+            return '--verbose'
         }
-        return images
+        ''
     }
 
-    String getOriginUrlFromBuildConfig(String bcName) {
-        return steps.sh(
-            script: "oc -n ${project} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
-            returnStdout: true,
-            label: "get origin from openshift bc ${bcName}"
-        ).trim()
+    private def createProject() {
+        steps.sh(
+            script: "oc new-project ${project}",
+            label: "create new OpenShift project ${project}"
+        )
     }
 }

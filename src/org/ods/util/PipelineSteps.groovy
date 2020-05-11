@@ -115,19 +115,23 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.withEnv (env, block)
     }
 
-    def unstable (String message) {
+    def unstable(String message) {
         this.context.unstable(message)
     }
 
-    def usernamePassword (Map credentialsData) {
-        this.context.usernamePassword (credentialsData)
+    def usernamePassword(Map credentialsData) {
+        this.context.usernamePassword(credentialsData)
     }
 
-    def withCredentials (List credentialsList, Closure block) {
-        this.context.withCredentials (credentialsList, block)
+    def sshUserPrivateKey(Map credentialsData) {
+        this.context.sshUserPrivateKey(credentialsData)
     }
 
-    def unwrap () {
+    def withCredentials(List credentialsList, Closure block) {
+        this.context.withCredentials(credentialsList, block)
+    }
+
+    def unwrap() {
       return this.context
     }
 }

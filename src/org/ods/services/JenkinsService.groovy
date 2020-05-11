@@ -84,4 +84,15 @@ class JenkinsService {
         return result
     }
 
+    boolean privateKeyExists(def privateKeyCredentialsId) {
+        try {
+            script.withCredentials(
+                [script.sshUserPrivateKey(credentialsId: privateKeyCredentialsId, keyFileVariable: 'PKEY_FILE')]
+            ) {
+                true
+            }
+        } catch (_) {
+            false
+        }
+    }
 }

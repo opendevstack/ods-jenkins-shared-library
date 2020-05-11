@@ -5,6 +5,7 @@ import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
+import org.ods.services.OpenShiftService
 
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
@@ -75,6 +76,7 @@ class InitStage extends Stage {
         project.init()
 
         steps.echo 'Register global services'
+        def logger = new Logger(steps, steps.env.DEBUG)
         def registry = ServiceRegistry.instance
         registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
@@ -95,7 +97,7 @@ class InitStage extends Stage {
         registry.add(JenkinsService,
             new JenkinsService(
                 steps,
-                new Logger(steps, steps.env.DEBUG)
+                logger
             )
         )
 
@@ -139,37 +141,13 @@ class InitStage extends Stage {
             )
         )
 
-        def tailorPrivateKeyFile = ''
-        def tailorPrivateKeyCredentialsId = "${project.key}-cd-tailor-private-key"
-        if (privateKeyExists(tailorPrivateKeyCredentialsId)) {
-            script.withCredentials([
-                script.sshUserPrivateKey(
-                    credentialsId: tailorPrivateKeyCredentialsId,
-                    keyFileVariable: 'PKEY_FILE'
-                )
-            ]) {
-                tailorPrivateKeyFile = script.env.PKEY_FILE
-            }
-        }
-
-        script.withCredentials(
-            [script.usernamePassword(
-                credentialsId: project.services.bitbucket.credentials.id,
-                usernameVariable: 'BITBUCKET_USER',
-                passwordVariable: 'BITBUCKET_PW'
-            )]
-        ) {
-            registry.add(OpenShiftService,
-                new OpenShiftService(
-                    registry.get(PipelineSteps),
-                    script.env.OPENSHIFT_API_URL,
-                    script.env.BITBUCKET_HOST,
-                    script.env.BITBUCKET_USER,
-                    script.env.BITBUCKET_PW,
-                    tailorPrivateKeyFile
-                )
+        registry.add(OpenShiftService,
+            new OpenShiftService(
+                registry.get(PipelineSteps),
+                logger,
+                project.targetProject
             )
-        }
+        )
 
         def jiraUseCase = new JiraUseCase(
             registry.get(Project),
@@ -296,15 +274,15 @@ class InitStage extends Stage {
 
         def os = registry.get(OpenShiftService)
 
-        project.setOpenShiftData(os.sessionApiUrl)
+        project.setOpenShiftData(os.apiUrl)
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
-        if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists(project.targetProject)) {
+        if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
 
             runOnAgentPod(project, true) {
 
                 def sourceEnv = project.buildParams.targetEnvironment
-                os.createVersionedDevelopmentEnvironment(project.key, sourceEnv, project.concreteEnvironment)
+                os.createVersionedDevelopmentEnvironment(project.key, sourceEnv)
 
                 def envParamsFile = project.environmentParamsFile
                 def envParams = project.getEnvironmentParams(envParamsFile)
@@ -331,8 +309,8 @@ class InitStage extends Stage {
                             if (exportRequired) {
                                 steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
-                                os.tailorExport(
-                                    "${project.key}-${sourceEnv}",
+                                def openShiftService = new OpenShiftService(steps, "${project.key}-${sourceEnv}")
+                                openShiftService.tailorExport(
                                     componentSelector,
                                     envParams,
                                     targetFile
@@ -343,13 +321,29 @@ class InitStage extends Stage {
                                 "Applying desired OpenShift state defined in ${openshiftDir} " +
                                 "to ${project.targetProject}."
                             )
-                            os.tailorApply(
-                                project.targetProject,
-                                componentSelector,
-                                '', // do not exlude any resources
-                                envParamsFile,
-                                false
-                            )
+                            applyFunc = { pkeyFile ->
+                                os.tailorApply(
+                                        componentSelector,
+                                        '', // do not exlude any resources
+                                        envParamsFile,
+                                        pkeyFile,
+                                        false
+                                    )
+                            }
+                            def tailorPrivateKeyCredentialsId = "${project.key}-cd-tailor-private-key"
+                            def jenkinsService = registry.get(JenkinsService)
+                            if (jenkinsService.privateKeyExists(tailorPrivateKeyCredentialsId)) {
+                                steps.withCredentials([
+                                    steps.sshUserPrivateKey(
+                                        credentialsId: tailorPrivateKeyCredentialsId,
+                                        keyFileVariable: 'PKEY_FILE'
+                                    )
+                                ]) {
+                                    applyFunc(steps.env.PKEY_FILE)
+                                }
+                            } else {
+                                applyFunc('')
+                            }
                         }
                     }
                 }
@@ -362,18 +356,6 @@ class InitStage extends Stage {
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         return [project: project, repos: repos]
-    }
-
-    private boolean privateKeyExists(def privateKeyCredentialsId) {
-        try {
-            script.withCredentials(
-                [script.sshUserPrivateKey(credentialsId: privateKeyCredentialsId, keyFileVariable: 'PKEY_FILE')]
-            ) {
-                true
-            }
-        } catch (_) {
-            false
-        }
     }
 
     private checkoutGitRef(String gitRef, def extensions) {

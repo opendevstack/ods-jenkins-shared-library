@@ -8,7 +8,7 @@ import java.nio.file.Paths
 
 import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
-import org.ods.orchestration.service.OpenShiftService
+import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
 import org.ods.orchestration.util.Project
@@ -117,7 +117,6 @@ class MROPipelineUtil extends PipelineUtil {
                     steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                     def targetFile = 'template.yml'
                     os.tailorExport(
-                        targetProject,
                         componentSelector,
                         envParams,
                         targetFile
@@ -126,9 +125,6 @@ class MROPipelineUtil extends PipelineUtil {
                 } else {
                     commitMessage = "ODS: Export Openshift deployment state \r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
                     // TODO: Display drift?
-                    // if (os.tailorHasDrift(targetProject, componentSelector, envParamsFile)) {
-                    //     throw new RuntimeException("Error: environment '${targetProject}' is not in sync with definition in 'openshift' folder.")
-                    // }
                 }
 
                 // verify that all DCs are managed thru ods 
@@ -199,7 +195,6 @@ class MROPipelineUtil extends PipelineUtil {
     private void deployODSComponent(Map repo, String baseDir) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
-        def targetProject = this.project.targetProject
         def envParamsFile = this.project.environmentParamsFile
         def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
 
@@ -213,13 +208,29 @@ class MROPipelineUtil extends PipelineUtil {
 
             steps.dir(openshiftDir) {
                 steps.echo("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
-                os.tailorApply(
-                    targetProject,
-                    componentSelector,
-                    'bc', // exclude build configs
-                    envParamsFile,
-                    true
-                )
+                applyFunc = { pkeyFile ->
+                    os.tailorApply(
+                            componentSelector,
+                            'bc', // exclude build configs
+                            envParamsFile,
+                            pkeyFile,
+                            true
+                        )
+                }
+                def tailorPrivateKeyCredentialsId = "${project.key}-cd-tailor-private-key"
+                def jenkinsService = registry.get(JenkinsService)
+                if (jenkinsService.privateKeyExists(tailorPrivateKeyCredentialsId)) {
+                    steps.withCredentials([
+                        steps.sshUserPrivateKey(
+                            credentialsId: tailorPrivateKeyCredentialsId,
+                            keyFileVariable: 'PKEY_FILE'
+                        )
+                    ]) {
+                        applyFunc(steps.env.PKEY_FILE)
+                    }
+                } else {
+                    applyFunc('')
+                }
             }
 
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
@@ -240,7 +251,6 @@ class MROPipelineUtil extends PipelineUtil {
                                 imageInformation.imageStream,
                                 sourceProject,
                                 imageInformation.imageSha,
-                                targetProject,
                                 this.project.targetTag
                             )
                         } else {
@@ -248,22 +258,23 @@ class MROPipelineUtil extends PipelineUtil {
                                 imageInformation.imageStream,
                                 sourceProject,
                                 imageInformation.imageSha,
-                                targetProject,
                                 this.project.targetTag
                             )
                         }
                         // tag with latest, which triggers rollout
-                        os.tagImageWithLatest(imageInformation.imageStream, targetProject, this.project.targetTag)
+                        os.setImageTag(imageInformation.imageStream, this.project.targetTag, 'latest')
                     }
                 }
 
                 // verify that image sha is running
                 // caution: relies on an image trigger being present ...
-                def latestVersion = os.getLatestVersion(targetProject, deploymentName)
-                os.watchRollout(targetProject, deploymentName, openshiftRolloutTimeoutMinutes)
+                def latestVersion = os.getLatestVersion(deploymentName)
+                steps.timeout(time: openshiftRolloutTimeoutMinutes) {
+                    os.watchRollout(deploymentName)
+                }
                 
                 deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
-                    def runningImageSha = os.getRunningImageSha(targetProject, deploymentName, latestVersion, index)
+                    def runningImageSha = os.getRunningImageSha(deploymentName, latestVersion, index)
                     def imageInformation = os.getImageInformationFromImageUrl(imageRaw)
                     if (imageInformation.imageSha != runningImageSha) {
                         throw new RuntimeException("Error: in container '${containerName}' running image '${imageInformation.imageSha}' is not the same as the defined image '${runningImageSha}'.")
@@ -271,7 +282,7 @@ class MROPipelineUtil extends PipelineUtil {
                         steps.echo("Running container '${containerName}' is using defined image '${imageInformation.imageSha}'.")
                     }
                 }
-                def pod = os.getPodDataForDeployment(deploymentName, latestVersion)
+                def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
                 repo.data.openshift.deployments << ["${deploymentName}": pod]
             }
             tagAndPush(this.project.targetTag)
