@@ -92,7 +92,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         setImageTagLatest(imageStreams)
 
         if (getLatestVersion() > originalDeploymentVersion) {
-            script.echo 'Rollout has been triggered automatically.'
+            script.echo "Rollout of deployment for '${componentId}' has been triggered automatically."
         } else {
             startRollout()
         }
