@@ -244,7 +244,7 @@ class MROPipelineUtil extends PipelineUtil {
                         )
                 }
                 def tailorPrivateKeyCredentialsId = "${project.key}-cd-tailor-private-key"
-                def jenkinsService = registry.get(JenkinsService)
+                def jenkinsService = ServiceRegistry.instance.get(JenkinsService)
                 if (jenkinsService.privateKeyExists(tailorPrivateKeyCredentialsId)) {
                     steps.withCredentials([
                         steps.sshUserPrivateKey(
