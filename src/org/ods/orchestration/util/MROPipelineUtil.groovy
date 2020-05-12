@@ -9,6 +9,7 @@ import java.nio.file.Paths
 import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
+import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
 import org.ods.orchestration.util.Project
