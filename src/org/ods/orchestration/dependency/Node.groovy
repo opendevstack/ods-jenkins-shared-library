@@ -1,6 +1,7 @@
 package org.ods.orchestration.dependency
 
 class Node implements Serializable {
+
     Map data = [:]
 
     List<Node> from = []
@@ -19,23 +20,25 @@ class Node implements Serializable {
         this.from << node
     }
 
-    def int inDegree() {
-        return this.from.size()
+    int inDegree() {
+        this.from.size()
     }
 
-    def int outDegree() {
-        return this.to.size()
+    int outDegree() {
+        this.to.size()
     }
 
-    def boolean isIsolated() {
-        return this.inDegree() == 0 && this.outDegree() == 0
+    boolean isIsolated() {
+        this.inDegree() == 0 && this.outDegree() == 0
     }
 
-    def boolean hasDirectLinkTo(Node n) {
-        return this.from.contains(n) || this.to.contains(n)
+    boolean hasDirectLinkTo(Node n) {
+        this.from.contains(n) || this.to.contains(n)
     }
 
-    def String toString() {
-        return this.data.toString()
+    @Override
+    String toString() {
+        this.data.toString()
     }
+
 }
