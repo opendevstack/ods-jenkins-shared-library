@@ -54,7 +54,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         def dcExists = deploymentConfigExists()
-        def originalDeploymentVersion = dcExists ? openShift.getLatestVersion(componentId) : 0
+        def originalDeploymentVersion = dcExists ? getLatestVersion() : 0
 
         if (script.fileExists(config.openshiftDir)) {
             script.dir(config.openshiftDir) {
@@ -67,10 +67,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                         pkeyFile,
                         config.tailorVerify
                     )
-                    // TODO: If we had a ConfigTrigger, then we have a rollout now ...
-                    // The only way to avoid two rollouts is to already change the image reference, so that
-                    // the config trigger fires, but the image tagging does not trigger anything.
-                    // BUT if we do not have an image trigger, then the MRO won't work anymore :((
                 }
             }
             // If DC did not exist prior to this stage, check again now as Tailor might have created it.
@@ -104,9 +100,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         def latestVersion = getLatestVersion()
-        if (!latestVersion) {
-            script.error "Could not get latest version of DeploymentConfig '${componentId}'."
-        }
         def replicationController = "${componentId}-${latestVersion}"
         def rolloutStatus = getRolloutStatus(replicationController)
         if (rolloutStatus != 'complete') {
@@ -129,11 +122,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         imageStreams
             .findAll { context.targetProject == it.imageStreamProject }
             .findAll { !openShift.resourceExists('ImageStream', it.imageStream) }
-    }
-
-    // TODO: remove!
-    private boolean automaticImageChangeTriggerEnabled() {
-        openShift.automaticImageChangeTriggerEnabled(componentId)
     }
 
     private void setImageTagLatest(List<Map<String, String>> imageStreams) {

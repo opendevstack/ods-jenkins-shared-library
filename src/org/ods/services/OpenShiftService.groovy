@@ -134,21 +134,6 @@ class OpenShiftService {
         )
     }
 
-    @SuppressWarnings('LineLength')
-    boolean automaticImageChangeTriggerEnabled(String name) {
-        def tmpl = '{{range .spec.triggers}}{{if eq .type "ImageChange" }}{{.imageChangeParams.automatic}}{{end}}{{end}}'
-        try {
-            def automaticValue = steps.sh(
-                script: """oc -n ${project} get dc/${name} -o template --template '${tmpl}'""",
-                returnStdout: true,
-                label: "Check ImageChange trigger for dc/${name}"
-            ).trim()
-            automaticValue.contains('true')
-        } catch (Exception ex) {
-            return false
-        }
-    }
-
     boolean resourceExists(String kind, String name) {
         steps.sh(
             script: "oc -n ${project} get ${kind}/${name} &> /dev/null",
