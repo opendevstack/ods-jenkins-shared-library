@@ -359,7 +359,7 @@ class OpenShiftService {
         ).trim()
     }
 
-    @SuppressWarnings('CyclomaticComplexity')
+    @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
     private Map extractPodData(String ocOutput, String description) {
         def j = new JsonSlurperClassic().parseText(ocOutput)
         if (j?.items[0]?.status?.phase?.toLowerCase() != 'running') {
@@ -369,23 +369,21 @@ class OpenShiftService {
         def podOCData = j.items[0] ?: [:]
 
         def pod = [:]
-        pod.with {
-            // Only set needed data on "pod"
-            podName = podOCData.metadata?.name ?: 'N/A'
-            podNamespace = podOCData.metadata?.namespace ?: 'N/A'
-            podMetaDataCreationTimestamp = podOCData.metadata?.creationTimestamp ?: 'N/A'
-            deploymentId = 'N/A'
-            if (podOCData.metadata?.annotations && podOCData.metadata.annotations['openshift.io/deployment.name']) {
-                deploymentId = podOCData.metadata.annotations['openshift.io/deployment.name']
-            }
-            podNode = podOCData.spec?.nodeName ?: 'N/A'
-            podIp = podOCData.status?.podIP ?: 'N/A'
-            podStatus = podOCData.status?.phase ?: 'N/A'
-            podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
-            containers = [:]
-            podOCData.spec?.containers?.each { container ->
-                containers[container.name] = container.image
-            }
+        // Only set needed data on "pod"
+        pod.podName = podOCData.metadata?.name ?: 'N/A'
+        pod.podNamespace = podOCData.metadata?.namespace ?: 'N/A'
+        pod.podMetaDataCreationTimestamp = podOCData.metadata?.creationTimestamp ?: 'N/A'
+        pod.deploymentId = 'N/A'
+        if (podOCData.metadata?.annotations && podOCData.metadata.annotations['openshift.io/deployment.name']) {
+            pod.deploymentId = podOCData.metadata.annotations['openshift.io/deployment.name']
+        }
+        pod.podNode = podOCData.spec?.nodeName ?: 'N/A'
+        pod.podIp = podOCData.status?.podIP ?: 'N/A'
+        pod.podStatus = podOCData.status?.phase ?: 'N/A'
+        pod.podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
+        pod.containers = [:]
+        podOCData.spec?.containers?.each { container ->
+            pod.containers[container.name] = container.image
         }
         pod
     }
