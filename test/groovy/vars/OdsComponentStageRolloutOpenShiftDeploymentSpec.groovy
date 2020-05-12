@@ -34,7 +34,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.automaticImageChangeTriggerEnabled(*_) >> true
-    openShiftService.getLatestVersion(*_) >> '123'
+    openShiftService.getLatestVersion(*_) >> 123
     openShiftService.getRolloutStatus(*_) >> 'complete'
     openShiftService.getPodDataForDeployment(*_) >> [ "deploymentId": "${config.componentId}-123" ]
     openShiftService.getImageStreamsForDeploymentConfig (*_) >> [[ "repository" : 'foo', 'name' : 'bar' ]]
@@ -42,6 +42,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      false
+    }
     def deploymentInfo = script.call(context)
 
     then:
@@ -73,6 +76,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      false
+    }
     script.call(context)
 
     then:
@@ -82,10 +88,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     where:
     dcExists | isExists | imageTrigger | latestVersion | rolloutStatus || errorMessage
-    false    | true     | true         | '123'         | 'complete'    || "DeploymentConfig 'bar' does not exist."
-    //true     | false    | true         | '123'         | 'complete'    || "One of the imagestreams '[foo/bar]' for component 'bar' does not exist."
-    true     | true     | true         | ''            | 'complete'    || "Could not get latest version of DeploymentConfig 'bar'."
-    true     | true     | true         | '123'         | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
+    false    | true     | true         | 123         | 'complete'    || "DeploymentConfig 'bar' does not exist."
+    //true     | false    | true         | 123         | 'complete'    || "One of the imagestreams '[foo/bar]' for component 'bar' does not exist."
+    true     | true     | true         | 123         | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
   }
 
   def "skip when no environment given"() {

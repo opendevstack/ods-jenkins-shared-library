@@ -139,7 +139,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         openShift.watchRollout(componentId)
     }
 
-    private String getLatestVersion() {
+    private int getLatestVersion() {
         openShift.getLatestVersion(componentId)
     }
 

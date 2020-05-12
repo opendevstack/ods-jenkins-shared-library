@@ -32,7 +32,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.startAndFollowBuild(_, _) >> 'foo-123'
-    openShiftService.getLastBuildVersion(_) >> '123'
+    openShiftService.getLastBuildVersion(_) >> 123
     openShiftService.getBuildStatus(_) >> 'complete'
     openShiftService.getImageReference(_, _) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
@@ -41,6 +41,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
     String fileContent
     helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> fileContent = args.text }
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      false
+    }
     def buildInfo = script.call(context)
 
     then:
@@ -78,7 +81,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.startAndFollowBuild(_, _) >> 'foo-123'
-    openShiftService.getLastBuildVersion(_) >> '123'
+    openShiftService.getLastBuildVersion(_) >> 123
     openShiftService.getBuildStatus(_) >> 'complete'
     openShiftService.getImageReference(_, _) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
@@ -88,6 +91,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
     String fileContent
     helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> fileContent = args.text }
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      false
+    }
     def buildInfo = script.call(context, configOverwrite)
 
     then:
@@ -136,6 +142,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     when:
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
     helper.registerAllowedMethod("writeFile", [ Map ]) { }
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      false
+    }
     script.call(context)
 
     then:
@@ -145,8 +154,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
     where:
     startBuildOutput        | lastBuildVersion | buildStatus | imageReference || errorMessage
-    'Build foo-123 started' | ''               | 'complete'  | '0daecc05'     || 'Could not get last version of BuildConfig'
-    'Build foo-123 started' | '123'            | 'running'   | '0daecc05'     || 'OpenShift Build #123 was not successful'
+    'Build foo-123 started' | 123              | 'running'   | '0daecc05'     || 'OpenShift Build #123 was not successful'
   }
 
   def "skip when no environment given"() {

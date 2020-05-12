@@ -110,12 +110,18 @@ class OpenShiftService {
         )
     }
 
-    String getLatestVersion(String name) {
-        steps.sh(
+    int getLatestVersion(String name) {
+        def versionNumber = steps.sh(
             script: "oc -n ${project} get dc/${name} -o jsonpath='{.status.latestVersion}'",
             label: "Get latest version of dc/${name}",
             returnStdout: true
         ).trim()
+        if (!versionNumber.isInteger()) {
+            throw new RuntimeException(
+                "ERROR: Latest version of DeploymentConfig '${name}' is not a number: '${versionNumber}"
+            )
+        }
+        versionNumber as int
     }
 
     String getRolloutStatus(String name) {
@@ -150,12 +156,18 @@ class OpenShiftService {
         ).trim()
     }
 
-    String getLastBuildVersion(String name) {
-        steps.sh(
+    int getLastBuildVersion(String name) {
+        def versionNumber = steps.sh(
             returnStdout: true,
-            script: "oc -n ${project} get bc ${name} -o jsonpath='{.status.lastVersion}'",
+            script: "oc -n ${project} get bc/${name} -o jsonpath='{.status.lastVersion}'",
             label: "Get lastVersion of BuildConfig ${name}"
         ).trim()
+        if (!versionNumber.isInteger()) {
+            throw new RuntimeException(
+                "ERROR: Last version of BuildConfig '${name}' is not a number: '${versionNumber}"
+            )
+        }
+        versionNumber as int
     }
 
     String getBuildStatus(String buildId) {

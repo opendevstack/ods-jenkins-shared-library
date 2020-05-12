@@ -91,9 +91,6 @@ class BuildOpenShiftImageStage extends Stage {
 
         // Retrieve build status.
         def lastVersion = getLastVersion()
-        if (!lastVersion) {
-            script.error "Could not get last version of BuildConfig '${componentId}'."
-        }
         def buildId = "${componentId}-${lastVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
@@ -118,7 +115,7 @@ class BuildOpenShiftImageStage extends Stage {
         openShift.startAndFollowBuild(componentId, config.dockerDir)
     }
 
-    private String getLastVersion() {
+    private int getLastVersion() {
         openShift.getLastBuildVersion(componentId)
     }
 
