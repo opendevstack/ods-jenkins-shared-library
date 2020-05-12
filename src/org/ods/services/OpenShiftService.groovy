@@ -308,9 +308,17 @@ class OpenShiftService {
         this.appDomain
     }
 
-    // Example inputs:
+    // getImageInformationFromImageUrl expects an image URL like one of the following:
     // 172.30.21.196:5000/foo/bar:2-3ec425bc
     // 172.30.21.196:5000/foo/bar@sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
+    //
+    // It returns a map with image parts:
+    // - registry
+    // - repository (= OpenShift project in case of image from ImageStream)
+    // - name (= ImageStream name in case of image from ImageStream)
+    // - reference (= <name>@sha256:<sha-identifier>)
+    // - sha (= sha256:<sha-identifier>)
+    // - shaStripped (= <sha-identifier>)
     Map<String, String> getImageInformationFromImageUrl(String url) {
         steps.echo("Deciphering image URL ${url} into pieces")
         def imageInfo = [:]
@@ -325,7 +333,9 @@ class OpenShiftService {
         imageInfo['repository'] = urlParts[1]
 
         // If last part of URL contains a tag, resolve to SHA
-        if (urlParts[2].contains(':')) {
+        if (urlParts[2].contains('@')) {
+            imageInfo['reference'] = urlParts[2]
+        } else {
             def tagParts = urlParts[2].split(':')
             def shaUrl = getImageReference(tagParts[0], tagParts[1])
             def shaUrlParts = shaUrl.split('/')
@@ -335,8 +345,6 @@ class OpenShiftService {
                 )
             }
             imageInfo['reference'] = shaUrlParts[2]
-        } else {
-            imageInfo['reference'] = urlParts[2]
         }
 
         if (!imageInfo['reference'].contains('@')) {
