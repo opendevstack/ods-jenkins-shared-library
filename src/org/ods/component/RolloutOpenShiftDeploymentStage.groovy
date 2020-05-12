@@ -53,6 +53,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             return
         }
 
+        def dcExists = deploymentConfigExists()
+        def originalDeploymentVersion = dcExists ? openShift.getLatestVersion(componentId) : 0
+
         if (script.fileExists(config.openshiftDir)) {
             script.dir(config.openshiftDir) {
                 jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
@@ -67,11 +70,15 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     // TODO: If we had a ConfigTrigger, then we have a rollout now ...
                     // The only way to avoid two rollouts is to already change the image reference, so that
                     // the config trigger fires, but the image tagging does not trigger anything.
+                    // BUT if we do not have an image trigger, then the MRO won't work anymore :((
                 }
+            }
+            // If DC did not exist prior to this stage, check again now as Tailor might have created it.
+            if (!dcExists) {
+                dcExists = deploymentConfigExists()
             }
         }
 
-        def dcExists = deploymentConfigExists()
         if (!dcExists) {
             script.error "DeploymentConfig '${componentId}' does not exist."
         }
@@ -86,13 +93,12 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 "do not exist: '${imageStreamNamesNice}'."
         }
 
-        def imageTriggerEnabled = automaticImageChangeTriggerEnabled()
-
         setImageTagLatest(imageStreams)
 
-        if (!imageTriggerEnabled) {
+        if (getLatestVersion() == originalDeploymentVersion) {
             startRollout()
         }
+
         script.timeout(time: config.deployTimeoutMinutes) {
             watchRollout()
         }
@@ -125,6 +131,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             .findAll { !openShift.resourceExists('ImageStream', it.imageStream) }
     }
 
+    // TODO: remove!
     private boolean automaticImageChangeTriggerEnabled() {
         openShift.automaticImageChangeTriggerEnabled(componentId)
     }
