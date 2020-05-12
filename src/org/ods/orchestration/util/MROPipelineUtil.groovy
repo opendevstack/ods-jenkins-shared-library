@@ -206,6 +206,16 @@ class MROPipelineUtil extends PipelineUtil {
                 openshiftDir = 'openshift'
             }
 
+            def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
+            def deployments = new JsonSlurperClassic().parseText(storedDeployments)
+            repo.data["openshift"] = [deployments: [:]]
+
+            def originalDeploymentVersions = [:]
+            deployments.each { deploymentName, deployment ->
+                def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
+                originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
+            }
+
             steps.dir(openshiftDir) {
                 steps.echo("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
                 def params = []
@@ -236,12 +246,9 @@ class MROPipelineUtil extends PipelineUtil {
                 }
             }
 
-            def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
-            def deployments = new JsonSlurperClassic().parseText(storedDeployments)
-            
             def sourceProject = "${this.project.key}-${Project.getConcreteEnvironment(this.project.sourceEnv, this.project.buildParams.version, this.project.versionedDevEnvsEnabled)}"
-            repo.data["openshift"] = [deployments: [:]]
-            deployments.each { deploymentName, deployment -> 
+            deployments.each { deploymentName, deployment ->
+
                 deployment.containers?.each {containerName, imageRaw ->
                     // skip excluded images from defined image streams!
                     def imageInformation = os.getImageInformationFromImageUrl(imageRaw)
@@ -270,12 +277,15 @@ class MROPipelineUtil extends PipelineUtil {
                 }
 
                 // verify that image sha is running
-                // caution: relies on an image trigger being present ...
-                def latestVersion = os.getLatestVersion(deploymentName)
+                if (os.getLatestVersion(deploymentName) == originalDeploymentVersions[deploymentName]) {
+                    os.startRollout(deploymentName)
+                }
                 steps.timeout(time: openshiftRolloutTimeoutMinutes) {
                     os.watchRollout(deploymentName)
                 }
-                
+
+                def latestVersion = os.getLatestVersion(deploymentName)
+
                 deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
                     def runningImageSha = os.getRunningImageSha(deploymentName, latestVersion, index)
                     def imageInformation = os.getImageInformationFromImageUrl(imageRaw)

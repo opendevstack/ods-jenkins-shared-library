@@ -94,7 +94,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (getLatestVersion() == originalDeploymentVersion) {
             startRollout()
         }
-
         script.timeout(time: config.deployTimeoutMinutes) {
             watchRollout()
         }
