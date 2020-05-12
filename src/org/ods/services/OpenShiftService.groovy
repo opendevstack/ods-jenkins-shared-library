@@ -78,7 +78,7 @@ class OpenShiftService {
         }
     }
 
-    @SuppressWarnings('LineLength')
+    @SuppressWarnings(['LineLength', 'ParameterCount'])
     void tailorApply(Map<String, String> target, String paramFile, List<String> params, List<String> preserve, String tailorPrivateKeyFile, boolean verify) {
         def verifyFlag = verify ? '--verify' : ''
         def tailorPrivateKeyFlag = tailorPrivateKeyFile ? "--private-key ${tailorPrivateKeyFile}" : ''
@@ -196,8 +196,8 @@ class OpenShiftService {
             '{"op": "replace", "path": "/spec/source", "value": {"type":"Binary"}}',
             """{"op": "replace", "path": "/spec/output/to/name", "value": "${name}:${tag}"}""",
             """{"op": "${imageLabelsOp}", "path": "/spec/output/imageLabels", "value": [
-              ${odsImageLabels.join(",")}
-            ]}"""
+              ${odsImageLabels.join(',')}
+            ]}""",
         ]
 
         // Add build args
@@ -207,7 +207,7 @@ class OpenShiftService {
             buildArgsItems << """{"name": "${key}", "value": "${val}"}"""
         }
         if (buildArgsItems.size() > 0) {
-            def buildArgsPatch = """{"op": "replace", "path": "/spec/strategy/dockerStrategy/buildArgs", "value": [${buildArgsItems.join(",")}]}"""
+            def buildArgsPatch = """{"op": "replace", "path": "/spec/strategy/dockerStrategy/buildArgs", "value": [${buildArgsItems.join(',')}]}"""
             patches << buildArgsPatch
         }
 
@@ -223,14 +223,6 @@ class OpenShiftService {
             script: "oc get -n ${project} istag ${name}:${tag} -o jsonpath='{.image.dockerImageReference}'",
             label: "Get image reference of ${name}:${tag}"
         ).trim()
-    }
-
-    private String checkForBuildStatus(String buildId) {
-        steps.sh(
-            returnStdout: true,
-            script: "oc -n ${project} get build ${buildId} -o jsonpath='{.status.phase}'",
-            label: "Get phase of build ${buildId}"
-        ).trim().toLowerCase()
     }
 
     String getContainerForImage(String projectId, String rc, String image) {
@@ -250,13 +242,13 @@ class OpenShiftService {
             label: "Get running image for rc/${component}-${version} containerIndex: ${index}",
             returnStdout: true
         ).trim()
-        return runningImage.substring(runningImage.lastIndexOf("@sha256:") + 1)
+        return runningImage.substring(runningImage.lastIndexOf('@sha256:') + 1)
     }
 
     void importImageFromProject(String name, String sourceProject, String imageSha, String imageTag) {
         steps.sh(
             script: """oc -n ${project} tag ${sourceProject}/${name}@${imageSha} ${name}:${imageTag}""",
-            label: "tag image ${name} into ${project}"
+            label: "Tag image ${name} into ${project}"
         )
     }
 
@@ -269,28 +261,8 @@ class OpenShiftService {
                 --from=${sourceImage} \
                 --confirm
             """,
-            label: "import image ${sourceImage} into ${project}/${name}:${imageTag}"
+            label: "Import image ${sourceImage} into ${project}/${name}:${imageTag}"
         )
-    }
-
-    private String getSourceClusterRegistryHost() {
-        def secretName = 'mro-image-pull'
-        def dockerConfig = steps.sh(
-            script: """
-            oc -n ${project} get secret ${secretName} --output="jsonpath={.data.\\.dockerconfigjson}" | base64 --decode
-            """,
-            returnStdout: true,
-            label: "read source cluster registry host from ${secretName}"
-        )
-        def dockerConfigJson = steps.readJSON(text: dockerConfig)
-        def auths = dockerConfigJson.auths
-        def authKeys = auths.keySet()
-        if (authKeys.size() > 1) {
-            throw new RuntimeException(
-                "Error: 'dockerconfigjson' of secret '${secretName}' has more than one registry host entry."
-            )
-        }
-        authKeys.first()
     }
 
     // Gets pod of deployment
@@ -416,7 +388,7 @@ class OpenShiftService {
         steps.env.DEBUG ? '--verbose' : ''
     }
 
-    private def createProject() {
+    private void createProject() {
         steps.sh(
             script: "oc new-project ${project}",
             label: "create new OpenShift project ${project}"
@@ -481,4 +453,33 @@ class OpenShiftService {
         )
         return openShiftPublicHost
     }
+
+    private String getSourceClusterRegistryHost() {
+        def secretName = 'mro-image-pull'
+        def dockerConfig = steps.sh(
+            script: """
+            oc -n ${project} get secret ${secretName} --output="jsonpath={.data.\\.dockerconfigjson}" | base64 --decode
+            """,
+            returnStdout: true,
+            label: "read source cluster registry host from ${secretName}"
+        )
+        def dockerConfigJson = steps.readJSON(text: dockerConfig)
+        def auths = dockerConfigJson.auths
+        def authKeys = auths.keySet()
+        if (authKeys.size() > 1) {
+            throw new RuntimeException(
+                "Error: 'dockerconfigjson' of secret '${secretName}' has more than one registry host entry."
+            )
+        }
+        authKeys.first()
+    }
+
+    private String checkForBuildStatus(String buildId) {
+        steps.sh(
+            returnStdout: true,
+            script: "oc -n ${project} get build ${buildId} -o jsonpath='{.status.phase}'",
+            label: "Get phase of build ${buildId}"
+        ).trim().toLowerCase()
+    }
+
 }
