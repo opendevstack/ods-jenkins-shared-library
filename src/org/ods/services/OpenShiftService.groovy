@@ -19,6 +19,13 @@ class OpenShiftService {
         this.project = project
     }
 
+    static void createProject(IPipelineSteps steps, String name) {
+        steps.sh(
+            script: "oc new-project ${name}",
+            label: "Create new OpenShift project ${name}"
+        )
+    }
+
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
         steps.sh(
             script: """oc login ${apiUrl} --token=${apiToken} >& /dev/null""",
@@ -70,7 +77,7 @@ class OpenShiftService {
             label: "Ensure ${tmpDir} exists"
         )
         steps.dir(tmpDir) {
-            createProject(project)
+            createProject(steps, project)
             doTailorExport("${projectKey}-${sourceEnvName}", 'serviceaccount,rolebinding', [:], 'template.yml')
             doTailorApply('serviceaccount,rolebinding --upsert-only')
             steps.deleteDir()
@@ -429,13 +436,6 @@ class OpenShiftService {
 
     private String tailorVerboseFlag() {
         steps.env.DEBUG ? '--verbose' : ''
-    }
-
-    private void createProject() {
-        steps.sh(
-            script: "oc new-project ${project}",
-            label: "create new OpenShift project ${project}"
-        )
     }
 
     private void doTailorApply(String tailorParams) {
