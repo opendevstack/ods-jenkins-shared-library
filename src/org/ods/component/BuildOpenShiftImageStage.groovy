@@ -53,7 +53,7 @@ class BuildOpenShiftImageStage extends Stage {
             config.tailorPreserve = ['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name']
         }
         if (!config.containsKey('tailorParams')) {
-            config.tailorParams = ["TAGVERSION=${context.tagversion}"]
+            config.tailorParams = []
         }
         this.openShift = openShift
         this.jenkins = jenkins

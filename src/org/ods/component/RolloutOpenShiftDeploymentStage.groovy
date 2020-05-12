@@ -41,7 +41,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.tailorPreserve = [] // do not preserve any paths in live config
         }
         if (!config.containsKey('tailorParams')) {
-            config.tailorParams = ["TAGVERSION=${context.tagversion}"]
+            config.tailorParams = []
         }
         this.openShift = openShift
         this.jenkins = jenkins
