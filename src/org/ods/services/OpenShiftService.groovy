@@ -220,7 +220,7 @@ class OpenShiftService {
     String getImageReference(String name, String tag) {
         steps.sh(
             returnStdout: true,
-            script: "oc get -n ${project} istag ${name}:${tag} -o jsonpath='{.image.dockerImageReference}'",
+            script: "oc -n ${project} get istag ${name}:${tag} -o jsonpath='{.image.dockerImageReference}'",
             label: "Get image reference of ${name}:${tag}"
         ).trim()
     }
@@ -308,36 +308,52 @@ class OpenShiftService {
         this.appDomain
     }
 
-    // Examples:
-    // 172.30.21.196:5000/prost-dev/go-y:3-3ec425bc
-    // 172.30.21.196:5000/prost-dev/go-y@sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
+    // Example inputs:
+    // 172.30.21.196:5000/foo/bar:2-3ec425bc
+    // 172.30.21.196:5000/foo/bar@sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
     Map<String, String> getImageInformationFromImageUrl(String url) {
         steps.echo("Deciphering image URL ${url} into pieces")
         def imageInfo = [:]
 
-        def imageUrlParts = url.split('/')
-        if (imageUrlParts.size() != 3) {
+        def urlParts = url.split('/')
+        if (urlParts.size() != 3) {
             throw new RuntimeException(
                 "ERROR: Image URL ${url} does not consist of three parts (registry/repository/reference)"
             )
         }
-        imageInfo['registry'] = imageUrlParts[0]
-        imageInfo['repository'] = imageUrlParts[1]
-        imageInfo['reference'] = imageUrlParts[2]
-        if (imageInfo['reference'].contains('@')) {
-            def referenceParts = imageInfo['reference'].split('@')
-            imageInfo['name'] = referenceParts[0]
-            imageInfo['sha'] = referenceParts[1]
-            imageInfo['shaStripped'] = referenceParts[1].replace('sha256:', '')
-        } else if (imageInfo['reference'].contains(':')) {
-            def referenceParts = imageInfo['reference'].split(':')
-            imageInfo['name'] = referenceParts[0]
-            imageInfo['tag'] = referenceParts[1]
+        imageInfo['registry'] = urlParts[0]
+        imageInfo['repository'] = urlParts[1]
+
+        // If last part of URL contains a tag, resolve to SHA
+        if (urlParts[2].contains(':')) {
+            def tagParts = urlParts[2].split(':')
+            def shaUrl = getImageReference(tagParts[0], tagParts[1])
+            def shaUrlParts = shaUrl.split('/')
+            if (shaUrlParts.size() != 3) {
+                throw new RuntimeException(
+                    "ERROR: Image URL ${shaUrl} does not consist of three parts (registry/repository/reference)"
+                )
+            }
+            imageInfo['reference'] = shaUrlParts[2]
         } else {
+            imageInfo['reference'] = urlParts[2]
+        }
+
+        if (!imageInfo['reference'].contains('@')) {
             throw new RuntimeException(
-                "ERROR: Image reference ${imageInfo['reference']} does not contain either '@' or ':'"
+                "ERROR: Image reference ${imageInfo['reference']} does not contain a sha256 identifier"
             )
         }
+
+        def referenceParts = imageInfo['reference'].split('@')
+        if (referenceParts.size() != 2) {
+            throw new RuntimeException(
+                "ERROR: Image reference ${imageInfo['reference']} does not consist of two parts (name@sha)"
+            )
+        }
+        imageInfo['name'] = referenceParts[0]
+        imageInfo['sha'] = referenceParts[1]
+        imageInfo['shaStripped'] = referenceParts[1].replace('sha256:', '')
 
         imageInfo
     }
