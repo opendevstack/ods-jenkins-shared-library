@@ -323,7 +323,7 @@ class InitStage extends Stage {
                             )
                             def params = []
                             def preserve = []
-                            applyFunc = { pkeyFile ->
+                            def applyFunc = { pkeyFile ->
                                 os.tailorApply(
                                         [selector: componentSelector],
                                         envParamsFile,
