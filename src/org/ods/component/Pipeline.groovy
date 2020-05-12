@@ -20,6 +20,7 @@ class Pipeline implements Serializable {
 
     private final ILogger logger
     private final def script
+    private final IPipelineSteps steps
     private IContext context
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled  = true
@@ -29,6 +30,7 @@ class Pipeline implements Serializable {
 
     Pipeline(def script, ILogger logger) {
         this.script = script
+        this.steps = new PipelineSteps(script)
         this.logger = logger
     }
 
@@ -63,8 +65,6 @@ class Pipeline implements Serializable {
         if (!config.componentId) {
             script.error "Param 'componentId' is required"
         }
-
-        IPipelineSteps steps = new PipelineSteps(script)
 
         prepareAgentPodConfig(config)
         logger.info "***** Starting ODS Component Pipeline (${config.componentId}) *****"
@@ -326,7 +326,7 @@ class Pipeline implements Serializable {
                 return
             }
 
-            if (openShiftService.tooManyEnvironments(context.projectId, context.environmentLimit)) {
+            if (OpenShiftService.tooManyEnvironments(steps, context.projectId, context.environmentLimit)) {
                 script.error 'Cannot create OC project ' +
                     "as there are already ${context.environmentLimit} OC projects! " +
                     'Please clean up and run the pipeline again.'

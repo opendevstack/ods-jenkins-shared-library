@@ -17,7 +17,7 @@ class DeployStage extends Stage {
         super(script, project, repos)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric'])
+    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -84,7 +84,11 @@ class DeployStage extends Stage {
                             passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
                         )
                     ]) {
-                        os.loginToExternalCluster(project.openShiftTargetApiUrl, script.EXTERNAL_OCP_API_TOKEN)
+                        OpenShiftService.loginToExternalCluster(
+                            steps,
+                            project.openShiftTargetApiUrl,
+                            script.EXTERNAL_OCP_API_TOKEN
+                        )
                     }
                 }
 

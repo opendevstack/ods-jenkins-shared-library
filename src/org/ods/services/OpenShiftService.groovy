@@ -19,16 +19,14 @@ class OpenShiftService {
         this.project = project
     }
 
-    // TODO
-
-    void loginToExternalCluster(String apiUrl, String apiToken) {
+    static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
         steps.sh(
             script: """oc login ${apiUrl} --token=${apiToken} >& /dev/null""",
             label: "login to external cluster (${apiUrl})"
         )
     }
 
-    String getApiUrl() {
+    static String getApiUrl(IPipelineSteps steps) {
         steps.sh(
             script: 'oc whoami --show-server',
             label: 'Get OpenShift API server URL',
@@ -36,7 +34,7 @@ class OpenShiftService {
         ).trim()
     }
 
-    boolean tooManyEnvironments(String projectId, Integer limit) {
+    static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
         steps.sh(
             returnStdout: true,
             script: "oc projects | grep '^\\s*${projectId}-' | wc -l",
@@ -44,21 +42,23 @@ class OpenShiftService {
         ).trim().toInteger() >= limit
     }
 
-    // END TODO
-
-    boolean envExists() {
+    static boolean envExists(IPipelineSteps steps, String project) {
         def exists = steps.sh(
             script: "oc project ${project} &> /dev/null",
             label: "Check if OpenShift project '${project}' exists",
             returnStatus: true
         ) == 0
         steps.echo("OpenShift project '${project}' ${exists ? 'exists' : 'does not exist'}")
-        return exists
+        exists
+    }
+
+    boolean envExists() {
+        envExists(steps, project)
     }
 
     def createVersionedDevelopmentEnvironment(String projectKey, String sourceEnvName) {
         def limit = 3
-        if (tooManyEnvironments("${projectKey}-dev-", limit)) {
+        if (tooManyEnvironments(steps, "${projectKey}-dev-", limit)) {
             throw new RuntimeException(
                 "Error: only ${limit} versioned ${projectKey}-dev-* environments are allowed. " +
                 'Please clean up and run the pipeline again.'
@@ -75,6 +75,10 @@ class OpenShiftService {
             doTailorApply('serviceaccount,rolebinding --upsert-only')
             steps.deleteDir()
         }
+    }
+
+    String getApiUrl() {
+        getApiUrl(steps)
     }
 
     @SuppressWarnings(['LineLength', 'ParameterCount'])
