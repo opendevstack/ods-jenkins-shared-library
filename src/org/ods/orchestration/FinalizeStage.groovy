@@ -60,7 +60,7 @@ class FinalizeStage extends Stage {
                 util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
                 // add the tag commit that was created for traceability ..
                 GitService gitUtl = ServiceRegistry.instance.get(GitService)
-                project.getGitData.createdExecutionCommit = gitUtl.commitSha
+                project.gitData.createdExecutionCommit = gitUtl.commitSha
             }
         }
 
