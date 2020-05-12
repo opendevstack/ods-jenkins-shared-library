@@ -3,7 +3,7 @@ package org.ods.orchestration
 import org.ods.PipelineScript
 import org.ods.orchestration.TestStage
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.service.JenkinsService
+import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
