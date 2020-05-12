@@ -334,25 +334,38 @@ class OpenShiftService {
         this.appDomain
     }
 
+    // Examples:
+    // 172.30.21.196:5000/prost-dev/go-y:3-3ec425bc
+    // 172.30.21.196:5000/prost-dev/go-y@sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
     Map<String, String> getImageInformationFromImageUrl(String url) {
         steps.echo("Deciphering imageURL ${url} into pieces")
-        def imageInformation = [:]
-        List<String> imagePath
-        if (url?.contains('@')) {
-            List<String> imageStreamDefinition = (url.split('@'))
-            imageInformation['imageSha'] = imageStreamDefinition[1]
-            imageInformation['imageShaStripped'] = (imageStreamDefinition[1]).replace('sha256:', '')
-            imagePath = imageStreamDefinition[0].split('/')
-        } else {
-            url = url.split(':')[0]
-            imagePath = url.split('/')
-            imageInformation['imageSh'] = url
-            imageInformation['imageShaStrippe'] = url
-        }
-        imageInformation['imageStreamProject'] = imagePath[imagePath.size()-2]
-        imageInformation['imageStream'] = imagePath[imagePath.size()-1]
+        def imageInfo = [:]
 
-        return imageInformation
+        def imageUrlParts = url.split('/')
+        if (imageUrlParts.size() != 3) {
+            throw new RuntimeException(
+                "ERROR: Image URL ${url} does not consist of three parts (registry/repository/reference)"
+            )
+        }
+        imageInfo['registry'] = imageUrlParts[0]
+        imageInfo['repository'] = imageUrlParts[1]
+        imageInfo['reference'] = imageUrlParts[2]
+        if (imageInfo['reference'].contains('@')) {
+            def referenceParts = url.split('@')
+            imageInfo['name'] = referenceParts[0]
+            imageInfo['sha'] = referenceParts[1]
+            imageInfo['shaStripped'] = referenceParts[1].replace('sha256:', '')
+        } else if (imageInfo['reference'].contains(':')) {
+            def referenceParts = url.split(':')
+            imageInfo['name'] = referenceParts[0]
+            imageInfo['tag'] = referenceParts[1]
+        } else {
+            throw new RuntimeException(
+                "ERROR: Image reference ${imageInfo['reference']} does not contain either '@' or ':'"
+            )
+        }
+
+        imageInfo
     }
 
     List<Map<String, String>> getImageStreamsForDeploymentConfig(String dc) {

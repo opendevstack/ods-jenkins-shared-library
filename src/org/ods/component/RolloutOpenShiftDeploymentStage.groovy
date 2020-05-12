@@ -83,7 +83,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def missingStreams = missingImageStreams(imageStreams)
         if (missingStreams) {
             def imageStreamNamesNice = missingStreams.collect {
-                "${it.imageStreamProject}/${it.imageStream}"
+                "${it.repository}/${it.name}"
             }
             script.error "The following ImageStream resources  for component '${componentId}' " +
                 "do not exist: '${imageStreamNamesNice}'."
@@ -91,7 +91,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
         setImageTagLatest(imageStreams)
 
-        if (getLatestVersion() == originalDeploymentVersion) {
+        if (getLatestVersion() > originalDeploymentVersion) {
+            script.echo 'Rollout has been triggered automatically.'
+        } else {
             startRollout()
         }
         script.timeout(time: config.deployTimeoutMinutes) {
@@ -119,14 +121,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     private boolean missingImageStreams(List<Map<String, String>> imageStreams) {
         imageStreams
-            .findAll { context.targetProject == it.imageStreamProject }
-            .findAll { !openShift.resourceExists('ImageStream', it.imageStream) }
+            .findAll { context.targetProject == it.repository }
+            .findAll { !openShift.resourceExists('ImageStream', it.name) }
     }
 
     private void setImageTagLatest(List<Map<String, String>> imageStreams) {
         imageStreams
-            .findAll { context.targetProject == it.imageStreamProject }
-            .each { openShift.setImageTag(it.imageStream, context.tagversion, 'latest') }
+            .findAll { context.targetProject == it.repository }
+            .each { openShift.setImageTag(it.name, context.tagversion, 'latest') }
     }
 
     private void startRollout() {

@@ -37,7 +37,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getLatestVersion(*_) >> '123'
     openShiftService.getRolloutStatus(*_) >> 'complete'
     openShiftService.getPodDataForDeployment(*_) >> [ "deploymentId": "${config.componentId}-123" ]
-    openShiftService.getImageStreamsForDeploymentConfig (*_) >> [[ "imageStreamProject" : 'foo', 'imageStream' : 'bar' ]] 
+    openShiftService.getImageStreamsForDeploymentConfig (*_) >> [[ "repository" : 'foo', 'name' : 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
