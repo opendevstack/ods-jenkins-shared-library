@@ -4,9 +4,10 @@ import org.ods.util.ILogger
 
 class JenkinsService {
 
+    private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
+
     private final def script
     private final ILogger logger
-    private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
 
     JenkinsService(script, ILogger logger) {
         this.script = script
@@ -15,14 +16,16 @@ class JenkinsService {
 
     def stashTestResults(String customXunitResultsDir, String stashNamePostFix = 'stash') {
         def contextresultMap = [:]
-        customXunitResultsDir = customXunitResultsDir?.trim()?.length() > 0 ?
-            customXunitResultsDir : XUNIT_SYSTEM_RESULT_DIR
+        def xUnitResultDir = XUNIT_SYSTEM_RESULT_DIR
+        if (customXunitResultsDir?.trim()?.length() > 0) {
+            xUnitResultDir = customXunitResultsDir.trim()
+        }
 
-        logger.info "Stashing testResults from location: '${customXunitResultsDir}'"
+        logger.info "Stashing testResults from location: '${xUnitResultDir}'"
         script.sh(
             script: """
-            mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${customXunitResultsDir} &&
-                cp -rf ${customXunitResultsDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true
+            mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${xUnitResultDir} &&
+                cp -rf ${xUnitResultDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true
             """,
             label: "Moving test results to system location: ${XUNIT_SYSTEM_RESULT_DIR}"
           )

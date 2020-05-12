@@ -61,4 +61,5 @@ interface IPipelineSteps {
     def withCredentials(List credentialsList, Closure block)
 
     def unwrap()
+
 }

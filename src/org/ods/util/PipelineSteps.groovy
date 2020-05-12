@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 
 class PipelineSteps implements IPipelineSteps, Serializable {
 
-    private def context
+    private final def context
 
     PipelineSteps(def context) {
         this.context = context
@@ -132,6 +132,7 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     }
 
     def unwrap() {
-      return this.context
+        return this.context
     }
+
 }

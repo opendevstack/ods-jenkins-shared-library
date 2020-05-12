@@ -1073,6 +1073,6 @@ class Project {
     }
 
     String getReleaseManagerBitbucketHostUrl () {
-      return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
+        return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
     }
 }
