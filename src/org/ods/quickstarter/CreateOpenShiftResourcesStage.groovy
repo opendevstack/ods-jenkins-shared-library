@@ -12,7 +12,7 @@ class CreateOpenShiftResourcesStage extends Stage {
         if (!config.envFile) {
             config.envFile = "${context.sourceDir}/ocp.env"
         }
-        if(!config.selector) {
+        if (!config.selector) {
             config.selector = "app=${context.projectId}-${context.componentId}"
         }
     }
