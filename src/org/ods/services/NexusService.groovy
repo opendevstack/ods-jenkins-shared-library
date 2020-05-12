@@ -50,7 +50,7 @@ class NexusService {
             'raw.directory':directory,
             'raw.asset1.filename':name,
         ]
-  
+
         return storeComplextArtifact(repository, artifact, contentType, 'raw', nexusParams)
     }
 
@@ -70,7 +70,7 @@ class NexusService {
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
 
-        nexusParams.each { key, value -> 
+        nexusParams.each { key, value ->
             restCall = restCall.field(key, value)
         }
 

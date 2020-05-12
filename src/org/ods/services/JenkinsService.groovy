@@ -69,10 +69,10 @@ class JenkinsService {
         this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)
         return writer.getBuffer().toString()
     }
-  
+
     boolean unstashFilesIntoPath(String name, String path, String type) {
         def result = true
-  
+
         this.script.dir(path) {
             try {
                 this.script.unstash(name)
@@ -110,4 +110,5 @@ class JenkinsService {
             false
         }
     }
+
 }

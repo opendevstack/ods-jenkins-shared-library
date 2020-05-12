@@ -212,7 +212,7 @@ class OpenShiftService {
         }
 
         steps.sh(
-            script: """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(",")}]'""",
+            script: """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(',')}]'""",
             label: "Patch BuildConfig ${name}"
         )
     }
@@ -234,6 +234,8 @@ class OpenShiftService {
         )
     }
 
+    // getRunningImageSha returns the sha with "sha256:" prefix, e.g.
+    // sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
     String getRunningImageSha(String component, String version, index = 0) {
         def runningImage = steps.sh(
             script: """oc -n ${project} get rc/${component}-${version} \
@@ -242,7 +244,7 @@ class OpenShiftService {
             label: "Get running image for rc/${component}-${version} containerIndex: ${index}",
             returnStdout: true
         ).trim()
-        return runningImage.substring(runningImage.lastIndexOf('@sha256:') + 1)
+        runningImage[(runningImage.lastIndexOf('@sha256:') + 1)..-1]
     }
 
     void importImageFromProject(String name, String sourceProject, String imageSha, String imageTag) {
@@ -364,24 +366,28 @@ class OpenShiftService {
             throw new RuntimeException("Error: no pod for ${description} running / found.")
         }
 
-        def podOCData = j.items[0]
+        def podOCData = j.items[0] ?: [:]
 
-        // strip all data not needed out
         def pod = [:]
-        pod.podName = podOCData?.metadata?.name ?: 'N/A'
-        pod.podNamespace = podOCData?.metadata?.namespace ?: 'N/A'
-        pod.podMetaDataCreationTimestamp = podOCData?.metadata?.creationTimestamp ?: 'N/A'
-        pod.deploymentId = podOCData?.metadata?.annotations['openshift.io/deployment.name'] ?: 'N/A'
-        pod.podNode = podOCData?.spec?.nodeName ?: 'N/A'
-        pod.podIp = podOCData?.status?.podIP ?: 'N/A'
-        pod.podStatus = podOCData?.status?.phase ?: 'N/A'
-        pod.podStartupTimeStamp = podOCData?.status?.startTime ?: 'N/A'
-        pod['containers'] = [:]
-
-        podOCData?.spec?.containers?.each { container ->
-            pod.containers[container.name] = container.image
+        pod.with {
+            // Only set needed data on "pod"
+            podName = podOCData.metadata?.name ?: 'N/A'
+            podNamespace = podOCData.metadata?.namespace ?: 'N/A'
+            podMetaDataCreationTimestamp = podOCData.metadata?.creationTimestamp ?: 'N/A'
+            deploymentId = 'N/A'
+            if (podOCData.metadata?.annotations && podOCData.metadata.annotations['openshift.io/deployment.name']) {
+                deploymentId = podOCData.metadata.annotations['openshift.io/deployment.name']
+            }
+            podNode = podOCData.spec?.nodeName ?: 'N/A'
+            podIp = podOCData.status?.podIP ?: 'N/A'
+            podStatus = podOCData.status?.phase ?: 'N/A'
+            podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
+            containers = [:]
+            podOCData.spec?.containers?.each { container ->
+                containers[container.name] = container.image
+            }
         }
-        return pod
+        pod
     }
 
     private String tailorVerboseFlag() {
@@ -446,7 +452,7 @@ class OpenShiftService {
             label: 'get cluster route domain'
         )
         def routePrefixLength = "${routeName}-${appProject}".length() + 1
-        String openShiftPublicHost = routeUrl.substring(routePrefixLength)
+        def openShiftPublicHost = routeUrl[routePrefixLength..-1]
         steps.sh (
             script: "oc -n ${appProject} delete route ${routeName} | true",
             label: "delete dummy route for extraction (${routeName})"

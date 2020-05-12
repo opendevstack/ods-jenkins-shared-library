@@ -211,7 +211,7 @@ ruleset {
     SpaceAroundOperator
     SpaceBeforeClosingBrace
     SpaceBeforeOpeningBrace
-    TrailingWhitespace
+    TrailingWhitespace(priority: 2)
 
     // rulesets/generic.xml
     IllegalClassMember
@@ -392,7 +392,7 @@ ruleset {
     UnnecessaryFinalOnPrivateMethod
     UnnecessaryFloatInstantiation
     UnnecessaryGString
-    UnnecessaryGetter
+    UnnecessaryGetter(enabled: false) // disabled to make grepping through files easier
     UnnecessaryIfStatement
     UnnecessaryInstanceOfCheck
     UnnecessaryInstantiationToGetClass

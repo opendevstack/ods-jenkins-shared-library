@@ -1060,7 +1060,7 @@ class Project {
             returnStdout: true,
             label: 'getting ODS shared lib version'
         ).trim()
-        
+
         return [
             "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
             "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",

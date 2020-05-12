@@ -6,6 +6,7 @@ import org.ods.services.GitService
 import org.ods.util.PipelineSteps
 
 class Stage {
+
     protected def script
     protected Project project
     protected List<Set<Map>> repos
@@ -88,4 +89,5 @@ class Stage {
             block()
         }
     }
+
 }

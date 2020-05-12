@@ -6,8 +6,9 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 
 class ReleaseStage extends Stage {
+
     public final String STAGE_NAME = 'Release'
-    
+
     ReleaseStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }
@@ -37,4 +38,5 @@ class ReleaseStage extends Stage {
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
+
 }

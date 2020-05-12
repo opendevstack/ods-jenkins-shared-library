@@ -56,9 +56,9 @@ abstract class DocGenUseCase {
         artifacts << files.collectEntries { path, contents ->
             [ path, contents ]
         }
-        
+
         def doArchive = isArchivalRelevant(documentType);
-        
+
         def archive = this.util.createZipArtifact(
             "${basename}.zip",
             artifacts,
@@ -149,6 +149,6 @@ abstract class DocGenUseCase {
     abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
-    
+
     abstract boolean isArchivalRelevant (String documentType)
 }

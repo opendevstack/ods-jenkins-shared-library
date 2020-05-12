@@ -66,8 +66,8 @@ class MROPipelineUtil extends PipelineUtil {
     static final String REPOS_BASE_DIR = "repositories"
 
     static final String ODS_DEPLOYMENTS_DESCRIPTOR = "ods-deployments.json"
-    static final List EXCLUDE_NAMESPACES_FROM_IMPORT = ["openshift"] 
-    
+    static final List EXCLUDE_NAMESPACES_FROM_IMPORT = ["openshift"]
+
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
         def nodes = repos.collect { new Node(it) }

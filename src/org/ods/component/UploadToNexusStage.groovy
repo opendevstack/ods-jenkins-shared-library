@@ -10,7 +10,7 @@ class UploadToNexusStage extends Stage {
     final String repositoryType
     final String distFile
     final NexusService nexus
-    
+
     UploadToNexusStage(def script, IContext context, Map config, NexusService nexus) {
         super(script, context, config)
         this.repository = config.repository ?: 'candidates'

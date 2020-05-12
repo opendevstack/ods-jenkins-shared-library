@@ -11,7 +11,7 @@ import org.ods.util.PipelineSteps
 class TestStage extends Stage {
 
     public final String STAGE_NAME = 'Test'
-    
+
     TestStage(def script, Project project, List<Set<Map>> repos) {
         super(script, project, repos)
     }

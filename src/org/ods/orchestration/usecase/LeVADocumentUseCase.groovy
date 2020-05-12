@@ -1112,7 +1112,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             repo.data.openshift << repo.data.odsBuildArtifacts.subMap (["builds","deployments"])
             this.steps.echo("fetched openshift data from build for repo: ${repo.id} \r${repo.data.openshift}")
         }
-        
+
         def deploynoteData = "Components were built & deployed during installation."
         if (!repo.data.openshift?.builds || repo.data.openshift?.builds?.size() == 0) {
             deploynoteData = "NO Components were built during installation, existing components (created in Dev) were deployed."
@@ -1138,7 +1138,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def currentRepoAsList = [ repo ]
             codeReviewReport = obtainCodeReviewReport(currentRepoAsList)
         }
-        
+
         def modifier = { document ->
             if (codeReviewReport) {
                 document = this.pdf.merge([ document, codeReviewReport])
@@ -1369,7 +1369,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def capability = this.project.getCapability("LeVADocs")
         return capability.templatesVersion
     }
-    
+
     boolean isArchivalRelevant (String documentType) {
         List notArchiveDocTypes = [
             DocumentType.TIR as String,
