@@ -47,12 +47,11 @@ class OpenShiftService {
     // END TODO
 
     boolean envExists() {
-        def statusCode = steps.sh(
+        def exists = steps.sh(
             script: "oc project ${project} &> /dev/null",
             label: "Check if OpenShift project '${project}' exists",
             returnStatus: true
-        )
-        def exists = statusCode == 0
+        ) == 0
         steps.echo("OpenShift project '${project}' ${exists ? 'exists' : 'does not exist'}")
         return exists
     }
