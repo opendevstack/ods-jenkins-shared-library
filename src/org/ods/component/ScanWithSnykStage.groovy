@@ -21,6 +21,11 @@ class ScanWithSnykStage extends Stage {
         if (!config.buildFile) {
             config.buildFile = 'build.gradle'
         }
+        if (config.branch) {
+            config.eligibleBranches = config.branch.split(',')
+        } else {
+            config.eligibleBranches = ['*']
+        }
         if (!config.severityThreshold) {
             // low is the default, it is equal to not providing the option to snyk
             config.severityThreshold = 'low'
@@ -31,6 +36,11 @@ class ScanWithSnykStage extends Stage {
     }
 
     def run() {
+        if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
+            script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
+            return
+        }
+
         if (!config.snykAuthenticationCode) {
             script.error "Option 'snykAuthenticationCode' is not set!"
         }
