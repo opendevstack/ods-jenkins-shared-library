@@ -310,7 +310,7 @@ class OpenShiftService {
     // 172.30.21.196:5000/prost-dev/go-y:3-3ec425bc
     // 172.30.21.196:5000/prost-dev/go-y@sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
     Map<String, String> getImageInformationFromImageUrl(String url) {
-        steps.echo("Deciphering imageURL ${url} into pieces")
+        steps.echo("Deciphering image URL ${url} into pieces")
         def imageInfo = [:]
 
         def imageUrlParts = url.split('/')
@@ -323,12 +323,12 @@ class OpenShiftService {
         imageInfo['repository'] = imageUrlParts[1]
         imageInfo['reference'] = imageUrlParts[2]
         if (imageInfo['reference'].contains('@')) {
-            def referenceParts = url.split('@')
+            def referenceParts = imageInfo['reference'].split('@')
             imageInfo['name'] = referenceParts[0]
             imageInfo['sha'] = referenceParts[1]
             imageInfo['shaStripped'] = referenceParts[1].replace('sha256:', '')
         } else if (imageInfo['reference'].contains(':')) {
-            def referenceParts = url.split(':')
+            def referenceParts = imageInfo['reference'].split(':')
             imageInfo['name'] = referenceParts[0]
             imageInfo['tag'] = referenceParts[1]
         } else {
