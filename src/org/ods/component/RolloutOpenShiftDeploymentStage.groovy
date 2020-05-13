@@ -119,13 +119,11 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     }
 
     private List<Map<String, String>> missingImageStreams(List<Map<String, String>> imageStreams) {
-        imageStreams
-            .findAll { !openShift.resourceExists('ImageStream', it.name) }
+        imageStreams.findAll { !openShift.resourceExists('ImageStream', it.name) }
     }
 
     private void setImageTagLatest(List<Map<String, String>> imageStreams) {
-        imageStreams
-            .each { openShift.setImageTag(it.name, context.tagversion, 'latest') }
+        imageStreams.each { openShift.setImageTag(it.name, context.tagversion, 'latest') }
     }
 
     private void startRollout() {
