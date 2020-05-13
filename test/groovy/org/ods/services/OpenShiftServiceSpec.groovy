@@ -31,8 +31,8 @@ class OpenShiftServiceSpec extends SpecHelper {
     def "image info with SHA for image stream URL"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = Spy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false), 'foo'])
-        service.getImageReference(*_) >> imageReference
+        def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false), 'foo'], global: true)
+        OpenShiftService.getImageReference(*_) >> imageReference
 
         when:
         def result = service.imageInfoWithShaForImageStreamUrl(imageStreamUrl)
