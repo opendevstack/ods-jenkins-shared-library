@@ -59,6 +59,26 @@ class OpenShiftService {
         exists
     }
 
+    static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
+        def routeName = 'test-route-' + System.currentTimeMillis()
+        steps.sh (
+            script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
+            label: "create dummy route for extraction (${routeName})"
+        )
+        def routeUrl = steps.sh (
+            script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
+            returnStdout: true,
+            label: 'get cluster route domain'
+        ).trim()
+        def routePrefixLength = "${routeName}-${project}".length() + 1
+        def openShiftPublicHost = routeUrl[routePrefixLength..-1]
+        steps.sh (
+            script: "oc -n ${project} delete route ${routeName} | true",
+            label: "delete dummy route for extraction (${routeName})"
+        )
+        return openShiftPublicHost
+    }
+
     boolean envExists() {
         envExists(steps, project)
     }
@@ -325,7 +345,7 @@ class OpenShiftService {
 
     String getApplicationDomain() {
         if (!this.appDomain) {
-            this.appDomain = getApplicationDomainOfProject(project)
+            this.appDomain = getApplicationDomainOfProject(steps, project)
         }
         this.appDomain
     }
@@ -456,7 +476,7 @@ class OpenShiftService {
         String> envParams,
         String targetFile) {
         envParams['TAILOR_NAMESPACE'] = exportProject
-        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomainOfProject(exportProject)
+        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomainOfProject(steps, exportProject)
         def templateParams = ''
         def sedReplacements = ''
         envParams.each { key, val ->
@@ -475,26 +495,6 @@ class OpenShiftService {
             """,
             label: "tailor export of ${exportProject} (${tailorParams}) into ${targetFile}"
         )
-    }
-
-    private String getApplicationDomainOfProject(String appProject) {
-        def routeName = 'test-route-' + System.currentTimeMillis()
-        steps.sh (
-            script: "oc -n ${appProject} create route edge ${routeName} --service=dummy --port=80 | true",
-            label: "create dummy route for extraction (${routeName})"
-        )
-        def routeUrl = steps.sh (
-            script: "oc -n ${appProject} get route ${routeName} -o jsonpath='{.spec.host}'",
-            returnStdout: true,
-            label: 'get cluster route domain'
-        )
-        def routePrefixLength = "${routeName}-${appProject}".length() + 1
-        def openShiftPublicHost = routeUrl[routePrefixLength..-1]
-        steps.sh (
-            script: "oc -n ${appProject} delete route ${routeName} | true",
-            label: "delete dummy route for extraction (${routeName})"
-        )
-        return openShiftPublicHost
     }
 
     private String getSourceClusterRegistryHost() {
