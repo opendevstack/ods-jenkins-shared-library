@@ -410,7 +410,7 @@ ruleset {
     UnnecessarySafeNavigationOperator
     UnnecessarySelfAssignment
     UnnecessarySemicolon
-    UnnecessarySetter
+    UnnecessarySetter(enabled: false) // disabled to make grepping through files easier
     UnnecessaryStringInstantiation
     UnnecessarySubstring
     UnnecessaryTernaryExpression
