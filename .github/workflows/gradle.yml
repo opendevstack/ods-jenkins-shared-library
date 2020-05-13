@@ -25,11 +25,12 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-gradle-
             - uses: actions/upload-artifact@v2
+              if: ${{ always() }}
               with:
                   name: CodeNarc Report
                   path: build/reports/codenarc/main.html
             - uses: actions/upload-artifact@v2
-              if: failure()
+              if: ${{ failure() }}
               with:
                   name: Test Report
                   path: build/reports/tests/test/
