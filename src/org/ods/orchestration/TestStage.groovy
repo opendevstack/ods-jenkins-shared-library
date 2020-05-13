@@ -57,27 +57,20 @@ class TestStage extends Stage {
                     ]
                 ]
 
-                project.repositories.each { repo_ ->
-                    if (repo_.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                        jira.reportTestResultsForComponent(
-                            "Technology-${repo_.id}",
-                            [Project.TestType.INSTALLATION],
-                            data.tests.installation.testResults
-                        )
+                jira.reportTestResultsForProject(
+                    [Project.TestType.INSTALLATION],
+                    data.tests.installation.testResults
+                )
 
-                        jira.reportTestResultsForComponent(
-                            "Technology-${repo_.id}",
-                            [Project.TestType.INTEGRATION],
-                            data.tests.integration.testResults
-                        )
+                jira.reportTestResultsForProject(
+                    [Project.TestType.INTEGRATION],
+                    data.tests.integration.testResults
+                )
 
-                        jira.reportTestResultsForComponent(
-                            "Technology-${repo_.id}",
-                            [Project.TestType.ACCEPTANCE],
-                            data.tests.acceptance.testResults
-                        )
-                    }
-                }
+                jira.reportTestResultsForProject(
+                    [Project.TestType.ACCEPTANCE],
+                    data.tests.acceptance.testResults
+                )
 
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
@@ -110,19 +103,19 @@ class TestStage extends Stage {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }
 
-    private List getAcceptanceTestResults(def steps, Map repo) {
+    private Map getAcceptanceTestResults(def steps, Map repo) {
         return this.getTestResults(steps, repo, "acceptance")
     }
 
-    private List getInstallationTestResults(def steps, Map repo) {
+    private Map getInstallationTestResults(def steps, Map repo) {
         return this.getTestResults(steps, repo, "installation")
     }
 
-    private List getIntegrationTestResults(def steps, Map repo) {
+    private Map getIntegrationTestResults(def steps, Map repo) {
         return this.getTestResults(steps, repo, "integration")
     }
 
-    private List getTestResults(def steps, Map repo, String type) {
+    private Map getTestResults(def steps, Map repo, String type) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
 

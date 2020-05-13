@@ -23,4 +23,18 @@ class Stage {
         }
     }
 
+    static boolean isEligibleBranch(def eligibleBranches, String branch) {
+        // Check if any branch is allowed
+        if (eligibleBranches.contains('*')) {
+            return true
+        }
+        // Check if prefix (e.g. "release/") is allowed
+        eligibleBranches.each { eligibleBranch ->
+            if (eligibleBranch.endsWith('/') && branch.startsWith(eligibleBranch)) {
+                return true
+            }
+        }
+        // Check if specific branch is allowed
+        return eligibleBranches.contains(branch)
+    }
 }

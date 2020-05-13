@@ -252,6 +252,11 @@ class JiraUseCase {
         }
     }
 
+    void reportTestResultsForProject(List<String> testTypes, Map testResults) {
+        // No componentName passed to method to get all automated issues from project
+        this.reportTestResultsForComponent(null, testTypes, testResults)
+    }
+
     void updateJiraReleaseStatusBuildNumber() {
         if (!this.jira) return
 

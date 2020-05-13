@@ -38,7 +38,7 @@ class ScanWithSonarStage extends Stage {
     }
 
     def run() {
-        if (!isEligible(context.gitBranch)) {
+        if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
             script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
@@ -85,22 +85,6 @@ class ScanWithSonarStage extends Stage {
         } else {
             doScan([:])
         }
-    }
-
-    private boolean isEligible(String branch) {
-        // Check if any branch is allowed
-        if (config.eligibleBranches.contains('*')) {
-            return true
-        }
-        // Check if prefix (e.g. "release/") is allowed
-        for (def i = 0; i < config.eligibleBranches.size(); i++) {
-            def eligibleBranch = config.eligibleBranches[i]
-            if (eligibleBranch.endsWith('/') && branch.startsWith(eligibleBranch)) {
-                return true
-            }
-        }
-        // Check if specific branch is allowed
-        config.eligibleBranches.contains(branch)
     }
 
     private assemblePullRequestInfo() {
