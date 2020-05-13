@@ -29,15 +29,14 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "run successfully"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
-    openShiftService.automaticImageChangeTriggerEnabled(*_) >> true
-    openShiftService.getLatestVersion(*_) >> 123
+    openShiftService.getLatestVersion(*_) >>> [123, 124]
     openShiftService.getRolloutStatus(*_) >> 'complete'
-    openShiftService.getPodDataForDeployment(*_) >> [ "deploymentId": "${config.componentId}-123" ]
-    openShiftService.getImageStreamsForDeploymentConfig (*_) >> [[ "repository" : 'foo', 'name' : 'bar' ]]
+    openShiftService.getPodDataForDeployment(*_) >> [ deploymentId: "${config.componentId}-123" ]
+    openShiftService.getImageStreamsForDeploymentConfig (*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
@@ -49,7 +48,8 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     then:
     printCallStack()
-    assertCallStackContains('Deployment #123 successfully rolled out.')
+    assertCallStackContains('''Rollout of deployment for 'bar' has been triggered automatically.''')
+    assertCallStackContains('Deployment #124 successfully rolled out.')
     assertJobStatusSuccess()
     deploymentInfo.deploymentId == "${config.componentId}-123"
     
@@ -64,12 +64,12 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
   @Unroll
   def "fails when rollout info cannot be retrieved"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists({ it == 'DeploymentConfig' }, _) >> dcExists
     openShiftService.resourceExists({ it == 'ImageStream' }, _) >> isExists
-    openShiftService.automaticImageChangeTriggerEnabled(_) >> imageTrigger
+    openShiftService.getImageStreamsForDeploymentConfig (*_) >> imageStreams
     openShiftService.getLatestVersion(*_) >> latestVersion
     openShiftService.getRolloutStatus(*_) >> rolloutStatus
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
@@ -87,10 +87,10 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     assertJobStatusFailure()
 
     where:
-    dcExists | isExists | imageTrigger | latestVersion | rolloutStatus || errorMessage
-    false    | true     | true         | 123         | 'complete'    || "DeploymentConfig 'bar' does not exist."
-    //true     | false    | true         | 123         | 'complete'    || "One of the imagestreams '[foo/bar]' for component 'bar' does not exist."
-    true     | true     | true         | 123         | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
+    dcExists | isExists | imageStreams                           | latestVersion | rolloutStatus || errorMessage
+    false    | true     | []                                     | 0             | ''            || "DeploymentConfig 'bar' does not exist."
+    true     | false    | [[repository: 'foo-dev', name: 'baz']] | 0             | ''            || "The following ImageStream resources  for component 'bar' do not exist: '[foo-dev/baz]'."
+    true     | true     | [[repository: 'foo-dev', name: 'bar']] | 123           | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
   }
 
   def "skip when no environment given"() {
