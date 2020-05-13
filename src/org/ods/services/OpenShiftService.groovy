@@ -79,6 +79,14 @@ class OpenShiftService {
         return openShiftPublicHost
     }
 
+    static String getImageReference(IPipelineSteps steps, String project, String name, String tag) {
+        steps.sh(
+            returnStdout: true,
+            script: "oc -n ${project} get istag ${name}:${tag} -o jsonpath='{.image.dockerImageReference}'",
+            label: "Get image reference of ${name}:${tag}"
+        ).trim()
+    }
+
     boolean envExists() {
         envExists(steps, project)
     }
@@ -260,11 +268,7 @@ class OpenShiftService {
     }
 
     String getImageReference(String name, String tag) {
-        steps.sh(
-            returnStdout: true,
-            script: "oc -n ${project} get istag ${name}:${tag} -o jsonpath='{.image.dockerImageReference}'",
-            label: "Get image reference of ${name}:${tag}"
-        ).trim()
+        getImageReference(steps, project, name, tag)
     }
 
     String getContainerForImage(String projectId, String rc, String image) {
@@ -409,7 +413,7 @@ class OpenShiftService {
                 "ERROR: Image reference ${urlParts[2]} does not consist of two parts (name:tag)"
             )
         }
-        def shaUrl = getImageReference(tagParts[0], tagParts[1])
+        def shaUrl = getImageReference(steps, urlParts[1], tagParts[0], tagParts[1])
         imageInfoWithSha(shaUrl.split('/').toList())
     }
 
