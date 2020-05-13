@@ -34,4 +34,10 @@ Available options:
 
 | buildFile
 | Build file from which to gather dependency information. Defaults to `build.gradle`.
+
+| branch
+| Branch(es) to scan. This can be a comma separated list. Next to exact matches, it also supports prefixes (e.g. `feature/`) and all branches (`*`). Defaults to `*`.
+
+| severityThreshold
+| Severity threshold for failing. If any found vulnerability has a severity equal or higher to the threshold, the snyk test will return with a failure status. Possible values are `low`, `medium`, `high`. Defaults to `low`.
 |===

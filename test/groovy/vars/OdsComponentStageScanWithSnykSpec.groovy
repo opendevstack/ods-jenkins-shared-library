@@ -65,7 +65,8 @@ import org.ods.services.ServiceRegistry
      helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
      script.call(context, [
        failOnVulnerabilities: failOnVulnerabilities,
-       snykAuthenticationCode: 's3cr3t'
+       snykAuthenticationCode: 's3cr3t',
+       branch: '*'
       ])
 
      then:
@@ -85,6 +86,24 @@ import org.ods.services.ServiceRegistry
      true      | true   | true      | true   | true                  || false          | 'No vulnerabilities detected'
      true      | true   | true      | false  | false                 || false          | 'Snyk test detected vulnerabilities'
      true      | true   | true      | false  | true                  || true           | 'Snyk scan stage failed'
+   }
+
+   def "skip branch should not be scanned"() {
+     given:
+     def config = [
+         branchToEnvironmentMapping: ['master': 'dev', 'release/': 'test'],
+         gitBranch: 'feature/foo'
+     ]
+     def context = new Context(null, config, logger)
+
+     when:
+     def script = loadScript('vars/odsComponentStageScanWithSnyk.groovy')
+     script.call(context, ['branch': 'master'])
+
+     then:
+     printCallStack()
+     assertCallStackContains("Skipping as branch 'feature/foo' is not covered by the 'branch' option.")
+     assertJobStatusSuccess()
    }
 
  }
