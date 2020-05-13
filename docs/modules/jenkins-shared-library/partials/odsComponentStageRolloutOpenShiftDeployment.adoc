@@ -3,6 +3,8 @@ being built.
 
 It achieves this by tagging the image built in `odsComponentStageBuildOpenShiftImage` with `latest`. This might already trigger a rollout based on an existing `ImageTrigger`. If none is set, the stage will start a manual rollout.
 
+If the directory referenced by `openshiftDir` exists, the templates in there will be applied using https://github.com/opendevstack/tailor[Tailor]. In this case, it is recommended to remove any image triggers to avoid duplicate rollouts (one when configuration changes due to a config trigger and one when the image is tagged to `latest`). In addition to the configuration options below, one can use e.g. a `Tailorfile` to adjust the behaviour of Tailor as needed.
+
 Available options:
 
 [cols="1,2"]
@@ -11,4 +13,28 @@ Available options:
 
 | deployTimeoutMinutes
 | Adjust timeout of rollout (defaults to 5 minutes).
+
+| openshiftDir
+| Directory with OpenShift templates (defaults to `openshift`).
+
+| tailorPrivateKeyCredentialsId
+| Credentials name of the secret key used by Tailor (defaults to `<PROJECT>-cd-tailor-private-key`). Only relevant if the directory referenced by `openshiftDir` exists.
+
+| tailorSelector
+| Selector scope used by Tailor (defaults to `app=<PROJECT>-<COMPONENT>`). Only relevant if the directory referenced by `openshiftDir` exists.
+
+| tailorVerify
+| Whether Tailor verifies the live configuration against the desired state after application (defaults to `false`). Only relevant if the directory referenced by `openshiftDir` exists.
+
+| tailorExclude
+| Resource kind exclusion used by Tailor (defaults to `bc,is`). Only relevant if the directory referenced by `openshiftDir` exists.
+
+| tailorParamFile
+| Path to Tailor parameter file (defaults to none). Only relevant if the directory referenced by `openshiftDir` exists.
+
+| tailorPreserve
+| Paths to preserve in the live configuration (defaults to `[]`). Only relevant if the directory referenced by `openshiftDir` exists.
+
+| tailorParams
+| Additional parameters to pass to Tailor (defaults to `[]`). Only relevant if the directory referenced by `openshiftDir` exists.
 |===
