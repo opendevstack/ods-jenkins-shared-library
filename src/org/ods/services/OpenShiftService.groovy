@@ -282,7 +282,7 @@ class OpenShiftService {
 
     // getRunningImageSha returns the sha with "sha256:" prefix, e.g.
     // sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
-    String getRunningImageSha(String component, String version, index = 0) {
+    String getRunningImageSha(String component, int version, index = 0) {
         def runningImageStreamUrl = steps.sh(
             script: """oc -n ${project} get rc/${component}-${version} \
             -o jsonpath='{.spec.template.spec.containers[${index}].image}'
