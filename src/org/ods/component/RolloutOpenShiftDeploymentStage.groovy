@@ -80,7 +80,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         def ownedImageStreams = openShift
-            .getImageStreamsForDeploymentConfig(componentId)
+            .getImagesOfDeploymentConfig(componentId)
             .findAll { context.targetProject == it.repository }
         def missingStreams = missingImageStreams(ownedImageStreams)
         if (missingStreams) {

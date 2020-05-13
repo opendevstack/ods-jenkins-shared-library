@@ -156,7 +156,7 @@ class MROPipelineUtil extends PipelineUtil {
                 def imagesFromOtherProjectsFail = []
                 odsBuiltDeploymentInformation.each {odsBuildDeployment, odsBuildDeploymentInfo ->
                     odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
-                        def owningProject = os.getImageInformationFromImageUrl(containerImage).repository
+                        def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
                         if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
                             def msg = "Deployment: ${odsBuildDeployment} / " +
                                 "Container: ${containerName} / Owner: ${owningProject}"
@@ -173,7 +173,7 @@ class MROPipelineUtil extends PipelineUtil {
                     if (this.project.isWorkInProgress) {
                         warnBuild(message)
                     } else {
-                        throw new RuntimeException (message)
+                        throw new RuntimeException("ERROR: ${message}")
                     }
                 }
 
@@ -260,7 +260,7 @@ class MROPipelineUtil extends PipelineUtil {
 
                 deployment.containers?.each {containerName, imageRaw ->
                     // skip excluded images from defined image streams!
-                    def imageInfo = os.getImageInformationFromImageUrl(imageRaw)
+                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
                     steps.echo(
                         "Importing images - deployment: ${deploymentName}, " +
                         "container: ${containerName}, imageInfo: ${imageInfo}, source: ${sourceProject}"
@@ -305,7 +305,7 @@ class MROPipelineUtil extends PipelineUtil {
 
                 deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
                     def runningImageSha = os.getRunningImageSha(deploymentName, latestVersion, index)
-                    def imageInfo = os.getImageInformationFromImageUrl(imageRaw)
+                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
                     if (imageInfo.sha != runningImageSha) {
                         throw new RuntimeException(
                             "Error: in container '${containerName}' running image '${imageInfo.sha}' " +
