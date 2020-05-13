@@ -1075,4 +1075,9 @@ class Project {
     String getReleaseManagerBitbucketHostUrl () {
         return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
     }
+
+    String getTailorPrivateKeyCredentialsId() {
+        def secretName = steps.env.TAILOR_PRIVATE_KEY_SECRET ?: 'tailor-private-key'
+        "${getKey()}-cd-${secretName}"
+    }
 }
