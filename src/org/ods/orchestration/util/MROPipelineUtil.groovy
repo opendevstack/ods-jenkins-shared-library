@@ -244,18 +244,9 @@ class MROPipelineUtil extends PipelineUtil {
                             true
                         )
                 }
-                def jenkinsService = ServiceRegistry.instance.get(JenkinsService)
-                if (jenkinsService.privateKeyExists(project.tailorPrivateKeyCredentialsId)) {
-                    steps.withCredentials([
-                        steps.sshUserPrivateKey(
-                            credentialsId: project.tailorPrivateKeyCredentialsId,
-                            keyFileVariable: 'PKEY_FILE'
-                        )
-                    ]) {
-                        applyFunc(steps.env.PKEY_FILE)
-                    }
-                } else {
-                    applyFunc('')
+                def jenkins = ServiceRegistry.instance.get(JenkinsService)
+                jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                    applyFunc(pkeyFile)
                 }
             }
 

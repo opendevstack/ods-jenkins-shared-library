@@ -309,8 +309,7 @@ class InitStage extends Stage {
                             if (exportRequired) {
                                 steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
-                                def openShiftService = new OpenShiftService(steps, "${project.key}-${sourceEnv}")
-                                openShiftService.tailorExport(
+                                (new OpenShiftService(steps, "${project.key}-${sourceEnv}")).tailorExport(
                                     componentSelector,
                                     envParams,
                                     targetFile
@@ -333,18 +332,9 @@ class InitStage extends Stage {
                                         false
                                     )
                             }
-                            def jenkinsService = registry.get(JenkinsService)
-                            if (jenkinsService.privateKeyExists(project.tailorPrivateKeyCredentialsId)) {
-                                steps.withCredentials([
-                                    steps.sshUserPrivateKey(
-                                        credentialsId: project.tailorPrivateKeyCredentialsId,
-                                        keyFileVariable: 'PKEY_FILE'
-                                    )
-                                ]) {
-                                    applyFunc(steps.env.PKEY_FILE)
-                                }
-                            } else {
-                                applyFunc('')
+                            def jenkins = registry.get(JenkinsService)
+                            jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                                applyFunc(pkeyFile)
                             }
                         }
                     }
