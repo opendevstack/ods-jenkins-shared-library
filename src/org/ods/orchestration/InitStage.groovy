@@ -309,7 +309,7 @@ class InitStage extends Stage {
                             if (exportRequired) {
                                 steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
-                                (new OpenShiftService(steps, "${project.key}-${sourceEnv}")).tailorExport(
+                                (new OpenShiftService(steps, logger, "${project.key}-${sourceEnv}")).tailorExport(
                                     componentSelector,
                                     envParams,
                                     targetFile

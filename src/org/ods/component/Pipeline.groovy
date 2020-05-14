@@ -433,7 +433,7 @@ class Pipeline implements Serializable {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = (new OpenShiftService(steps, projectName)).getOriginUrlFromBuildConfig(bcName)
+                origin = (new OpenShiftService(steps, logger, projectName)).getOriginUrlFromBuildConfig(bcName)
             }
 
             def splittedOrigin = origin.split('/')
