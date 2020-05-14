@@ -111,12 +111,12 @@ class ScanWithSonarStage extends Stage {
                 branch: context.gitBranch,
                 baseBranch: pullRequest.base,
             ]
-        } else {
-            def longLivedList = config.longLivedBranches.join(', ')
-            script.echo "No open PR found for ${context.gitBranch} " +
-                "even though it is not one of the long-lived branches (${longLivedList})."
-            return [:]
         }
+
+        def longLivedList = config.longLivedBranches.join(', ')
+        script.echo "No open PR found for ${context.gitBranch} " +
+            "even though it is not one of the long-lived branches (${longLivedList})."
+        return [:]
     }
 
     private Map findPullRequest(String apiResponse, String branch) {

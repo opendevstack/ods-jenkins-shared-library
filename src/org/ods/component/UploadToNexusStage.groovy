@@ -31,7 +31,8 @@ class UploadToNexusStage extends Stage {
             nexusParams << ['maven2.groupId': (config.groupId ?: context.groupId.replace('.', '/'))]
             nexusParams << ['maven2.artifactId': (config.artifactId ?: context.componentId)]
             nexusParams << ['maven2.version': (config.version ?: context.tagversion)]
-            nexusParams << ['maven2.asset1.extension': (distFile.substring(distFile.lastIndexOf('.') + 1))]
+            def assetExt = distFile[(distFile.lastIndexOf('.') + 1)..-1]
+            nexusParams << ['maven2.asset1.extension': assetExt]
         } else if (repositoryType == 'raw') {
             nexusParams << ['raw.asset1.filename': distFile]
             nexusParams << ['raw.directory': (config.targetDirectory ?: context.projectId)]

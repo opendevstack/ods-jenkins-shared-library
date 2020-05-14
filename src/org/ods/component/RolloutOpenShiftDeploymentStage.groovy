@@ -155,4 +155,5 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private Map getPodDataForRollout(String replicationController) {
         openShift.getPodDataForDeployment(replicationController)
     }
+
 }

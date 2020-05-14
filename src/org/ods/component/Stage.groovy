@@ -53,4 +53,5 @@ abstract class Stage {
         // Check if specific branch is allowed
         return eligibleBranches.contains(branch)
     }
+
 }

@@ -104,10 +104,16 @@ class BuildOpenShiftImageStage extends Stage {
 
         context.addBuildToArtifactURIs(
             config.name,
-            [buildId: buildId, image: imageReference]
+            [
+                buildId: buildId,
+                image: imageReference,
+            ]
         )
 
-        return [buildId: buildId, image: imageReference]
+        return [
+            buildId: buildId,
+            image: imageReference,
+        ]
     }
 
     protected String stageLabel() {
@@ -162,7 +168,7 @@ class BuildOpenShiftImageStage extends Stage {
         def sanitizedImageLabels = [:]
         for (def key : imageLabels.keySet()) {
             def val = imageLabels[key].toString()
-            def sanitizedVal = val.replaceAll("[\r\n]+", ' ').trim().replaceAll("[\"']+", '')
+            def sanitizedVal = val.replaceAll('[\r\n]+', ' ').trim().replaceAll('["\']+', '')
             sanitizedImageLabels[key] = sanitizedVal
         }
         sanitizedImageLabels
@@ -175,7 +181,10 @@ class BuildOpenShiftImageStage extends Stage {
         }
 
         // Write docker/release.json file to be reachable from Dockerfile.
-        script.writeFile(file: "${config.dockerDir}/release.json", text: "[\n" + jsonImageLabels.join(",\n") + "\n]")
+        script.writeFile(
+            file: "${config.dockerDir}/release.json",
+            text: "[\n${jsonImageLabels.join(',\n')}\n]"
+        )
     }
 
 }

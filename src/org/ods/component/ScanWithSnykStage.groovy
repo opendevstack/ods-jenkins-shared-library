@@ -26,11 +26,11 @@ class ScanWithSnykStage extends Stage {
         } else {
             config.eligibleBranches = ['*']
         }
-        if (!config.severityThreshold) {
+        if (config.severityThreshold) {
+            config.severityThreshold = config.severityThreshold.trim().toLowerCase()
+        } else {
             // low is the default, it is equal to not providing the option to snyk
             config.severityThreshold = 'low'
-        } else {
-            config.severityThreshold = config.severityThreshold.trim().toLowerCase()
         }
         this.snyk = snyk
     }
