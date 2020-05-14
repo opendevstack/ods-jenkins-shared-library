@@ -367,7 +367,7 @@ class Context implements IContext {
 
     private String retrieveGitUrl() {
         def gitUrl = script.sh(
-            returnStdout: true, 
+            returnStdout: true,
             script: 'git config --get remote.origin.url',
             label: 'getting GIT url'
         ).trim()
@@ -425,7 +425,7 @@ class Context implements IContext {
 
     private String retrieveGitCommitTime() {
         script.sh(
-            returnStdout: true, 
+            returnStdout: true,
             script: 'git show -s --format=%ci HEAD',
             label: 'getting GIT commit date/time'
         ).trim()

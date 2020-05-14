@@ -5,7 +5,7 @@ import kong.unirest.Unirest
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.PipelineSteps
+import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.BuildStage
@@ -61,7 +61,7 @@ def call(Map config) {
         def stageStartTime = System.currentTimeMillis()
 
         withPodTemplate(odsImageTag) {
-            echo "MRO main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
+            echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
                 def result = new InitStage(this, project, repos).execute()
                 if (result) {

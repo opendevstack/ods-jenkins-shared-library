@@ -10,7 +10,7 @@ class Pipeline implements Serializable {
         this.config = config
     }
 
-    @SuppressWarnings('AbcMetric')
+    @SuppressWarnings(['AbcMetric', 'UnnecessaryObjectReferences'])
     def execute(Closure block) {
         // build params
         checkRequiredBuildParams()

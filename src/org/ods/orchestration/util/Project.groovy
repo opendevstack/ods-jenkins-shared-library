@@ -10,6 +10,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
 import org.ods.services.GitService
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
 class Project {
@@ -1059,7 +1060,7 @@ class Project {
             returnStdout: true,
             label: 'getting ODS shared lib version'
         ).trim()
-        
+
         return [
             "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
             "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
@@ -1072,6 +1073,11 @@ class Project {
     }
 
     String getReleaseManagerBitbucketHostUrl () {
-      return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
+        return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
+    }
+
+    String getTailorPrivateKeyCredentialsId() {
+        def secretName = steps.env.TAILOR_PRIVATE_KEY_SECRET ?: 'tailor-private-key'
+        "${getKey()}-cd-${secretName}"
     }
 }

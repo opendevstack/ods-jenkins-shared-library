@@ -1,4 +1,4 @@
-package org.ods.orchestration.util
+package org.ods.util
 
 interface IPipelineSteps {
 
@@ -48,13 +48,18 @@ interface IPipelineSteps {
 
     def deleteDir()
 
+    def sleep(int seconds)
+
     def withEnv(List<String> env, Closure block)
 
-    def unstable (String message)
+    def unstable(String message)
 
-    def usernamePassword (Map credentialsData)
+    def usernamePassword(Map credentialsData)
 
-    def withCredentials (List credentialsList, Closure block)
+    def sshUserPrivateKey(Map credentialsData)
 
-    def unwrap ()
+    def withCredentials(List credentialsList, Closure block)
+
+    def unwrap()
+
 }

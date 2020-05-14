@@ -1,7 +1,7 @@
 package org.ods.orchestration.usecase
 
 import org.ods.orchestration.service.JiraZephyrService
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 

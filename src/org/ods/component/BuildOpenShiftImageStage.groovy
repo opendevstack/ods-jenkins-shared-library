@@ -1,13 +1,20 @@
 package org.ods.component
 
 import org.ods.services.OpenShiftService
+import org.ods.services.JenkinsService
 
 class BuildOpenShiftImageStage extends Stage {
 
     public final String STAGE_NAME = 'Build Openshift Image'
     private final OpenShiftService openShift
+    private final JenkinsService jenkins
 
-    BuildOpenShiftImageStage(def script, IContext context, Map config, OpenShiftService openShift) {
+    BuildOpenShiftImageStage(
+        def script,
+        IContext context,
+        Map config,
+        OpenShiftService openShift,
+        JenkinsService jenkins) {
         super(script, context, config)
         if (!config.imageLabels) {
             config.imageLabels = [:]
@@ -24,14 +31,53 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
-
+        if (!config.openshiftDir) {
+            config.openshiftDir = 'openshift'
+        }
+        if (!config.tailorPrivateKeyCredentialsId) {
+            config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
+        }
+        if (!config.tailorSelector) {
+            config.tailorSelector = "app=${context.projectId}-${componentId}"
+        }
+        if (!config.containsKey('tailorVerify')) {
+            config.tailorVerify = false
+        }
+        if (!config.containsKey('tailorInclude')) {
+            config.tailorInclude = 'bc,is'
+        }
+        if (!config.containsKey('tailorParamFile')) {
+            config.tailorParamFile = '' // none apart the automatic param file
+        }
+        if (!config.containsKey('tailorPreserve')) {
+            config.tailorPreserve = ['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name']
+        }
+        if (!config.containsKey('tailorParams')) {
+            config.tailorParams = []
+        }
         this.openShift = openShift
+        this.jenkins = jenkins
     }
 
     def run() {
         if (!context.environment) {
             script.echo 'Skipping for empty environment ...'
             return [:]
+        }
+
+        if (script.fileExists(config.openshiftDir)) {
+            script.dir(config.openshiftDir) {
+                jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                    openShift.tailorApply(
+                        [selector: config.tailorSelector, include: config.tailorInclude],
+                        config.tailorParamFile,
+                        config.tailorParams,
+                        config.tailorPreserve,
+                        pkeyFile,
+                        config.tailorVerify
+                    )
+                }
+            }
         }
 
         def imageLabels = assembleImageLabels()
@@ -45,9 +91,6 @@ class BuildOpenShiftImageStage extends Stage {
 
         // Retrieve build status.
         def lastVersion = getLastVersion()
-        if (!lastVersion) {
-            script.error "Could not get last version of BuildConfig '${componentId}'."
-        }
         def buildId = "${componentId}-${lastVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
@@ -72,7 +115,7 @@ class BuildOpenShiftImageStage extends Stage {
         openShift.startAndFollowBuild(componentId, config.dockerDir)
     }
 
-    private String getLastVersion() {
+    private int getLastVersion() {
         openShift.getLastBuildVersion(componentId)
     }
 

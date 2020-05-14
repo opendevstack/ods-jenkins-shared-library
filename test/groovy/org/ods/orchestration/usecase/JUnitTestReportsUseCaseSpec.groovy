@@ -4,6 +4,7 @@ import java.nio.file.Files
 
 import org.ods.orchestration.parser.*
 import org.ods.orchestration.util.*
+import org.ods.util.IPipelineSteps
 
 import spock.lang.*
 

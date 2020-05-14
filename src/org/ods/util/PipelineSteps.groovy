@@ -1,4 +1,4 @@
-package org.ods.orchestration.util
+package org.ods.util
 
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 
 class PipelineSteps implements IPipelineSteps, Serializable {
 
-    private def context
+    private final def context
 
     PipelineSteps(def context) {
         this.context = context
@@ -107,23 +107,32 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.deleteDir()
     }
 
+    def sleep(int seconds) {
+        this.context.sleep(seconds)
+    }
+
     def withEnv(List<String> env, Closure block) {
         this.context.withEnv (env, block)
     }
 
-    def unstable (String message) {
+    def unstable(String message) {
         this.context.unstable(message)
     }
 
-    def usernamePassword (Map credentialsData) {
-        this.context.usernamePassword (credentialsData)
+    def usernamePassword(Map credentialsData) {
+        this.context.usernamePassword(credentialsData)
     }
 
-    def withCredentials (List credentialsList, Closure block) {
-        this.context.withCredentials (credentialsList, block)
+    def sshUserPrivateKey(Map credentialsData) {
+        this.context.sshUserPrivateKey(credentialsData)
     }
 
-    def unwrap () {
-      return this.context
+    def withCredentials(List credentialsList, Closure block) {
+        this.context.withCredentials(credentialsList, block)
     }
+
+    def unwrap() {
+        return this.context
+    }
+
 }

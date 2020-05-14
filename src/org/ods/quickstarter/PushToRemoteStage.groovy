@@ -35,7 +35,7 @@ class PushToRemoteStage extends Stage {
                     basename=\$(basename ${context.gitUrlHttp})
                     clonedGitFolderName=\${basename%.*}
                     files=\$(ls \$clonedGitFolderName | grep -v ^l | wc -l)
-                    if [ \$files == 0 ]; then 
+                    if [ \$files == 0 ]; then
                       echo "Init project from scratch \$(pwd)"
                       git init .
                       git remote add origin ${context.gitUrlHttp}

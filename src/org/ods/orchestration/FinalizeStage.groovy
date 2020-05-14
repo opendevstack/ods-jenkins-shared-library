@@ -2,11 +2,13 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
+import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.services.BitbucketService
+import org.ods.util.PipelineSteps
 
 class FinalizeStage extends Stage {
 
@@ -37,7 +39,7 @@ class FinalizeStage extends Stage {
         if (project.isAssembleMode) {
             // Check if the target environment exists in OpenShift
             def targetProject = project.targetProject
-            if (!os.envExists(targetProject)) {
+            if (!os.envExists()) {
                 throw new RuntimeException(
                     "Error: target environment '${targetProject}' does not exist in OpenShift."
                 )
@@ -58,7 +60,7 @@ class FinalizeStage extends Stage {
                 util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
                 // add the tag commit that was created for traceability ..
                 GitService gitUtl = ServiceRegistry.instance.get(GitService)
-                project.getGitData.createdExecutionCommit = gitUtl.commitSha
+                project.gitData.createdExecutionCommit = gitUtl.commitSha
             }
         }
 

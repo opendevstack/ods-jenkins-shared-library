@@ -4,8 +4,6 @@ package org.ods.services
 
 import com.cloudbees.groovy.cps.NonCPS
 
-import java.net.URI
-
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -45,12 +43,11 @@ class NexusService {
     @SuppressWarnings('SpaceAroundMapEntryColon')
     @NonCPS
     URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
-
         Map nexusParams = [
             'raw.directory':directory,
             'raw.asset1.filename':name,
         ]
-  
+
         return storeComplextArtifact(repository, artifact, contentType, 'raw', nexusParams)
     }
 
@@ -70,7 +67,7 @@ class NexusService {
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
 
-        nexusParams.each { key, value -> 
+        nexusParams.each { key, value ->
             restCall = restCall.field(key, value)
         }
 

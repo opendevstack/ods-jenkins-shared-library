@@ -1,56 +1,11 @@
 package org.ods.orchestration.dependency
 
 class DependencyGraph<T> implements Serializable {
+
     List<T> nodes
 
     DependencyGraph(List<T> nodes = []) {
         this.nodes = nodes
-    }
-
-    @SuppressWarnings('MethodName')
-    private static void _resolve(List<Node> nodes, Closure handler) {
-        // Create a mapping of nodes to distinct sets of dependencies
-        def Map<Node, Set> nodeDependencies = [:]
-        nodes.each { node ->
-            nodeDependencies[node] = node.to as Set
-        }
-
-        while (nodeDependencies.size() != 0) {
-            def nodesReady = [] as Set<Node>
-
-            // Find ready nodes (without any outbound dependencies)
-            nodeDependencies.each { node, dependencies ->
-                if (dependencies.isEmpty()) {
-                    nodesReady << node
-                }
-            }
-
-            // If there aren't any ready nodes, we've detected a cycle
-            if (nodesReady.isEmpty()) {
-                throw new CircularDependencyException("circular dependency detected")
-            }
-
-            nodesReady.each { ready ->
-                // Handle a node ready to be processed
-                handler(ready)
-
-                // Remove ready nodes from nodeDependencies
-                def nodeDependenciesToRemove = [:]
-                nodeDependencies.each { node, dependencies ->
-                    if (node == ready) {
-                        nodeDependenciesToRemove << [ (node): dependencies ]
-                    }
-                }
-
-                nodeDependencies = nodeDependencies - nodeDependenciesToRemove
-
-                // Remove ready nodes from nodeDependencies (Groovy >= 2.5.0)
-                // nodeDependencies.removeAll { node, dependencies -> node == ready }
-
-                // Remove ready nodes from all nodes inside nodeDependencies
-                nodeDependencies.each { node, dependencies -> nodeDependencies[node] -= ready }
-            }
-        }
     }
 
     static DependencyGraph<Node> resolve(List<Node> nodes) {
@@ -97,4 +52,51 @@ class DependencyGraph<T> implements Serializable {
             }
         }
     }
+
+    @SuppressWarnings('MethodName')
+    private static void _resolve(List<Node> nodes, Closure handler) {
+        // Create a mapping of nodes to distinct sets of dependencies
+        Map<Node, Set> nodeDependencies = [:]
+        nodes.each { node ->
+            nodeDependencies[node] = node.to as Set
+        }
+
+        while (nodeDependencies.size() != 0) {
+            def nodesReady = [] as Set<Node>
+
+            // Find ready nodes (without any outbound dependencies)
+            nodeDependencies.each { node, dependencies ->
+                if (dependencies.isEmpty()) {
+                    nodesReady << node
+                }
+            }
+
+            // If there aren't any ready nodes, we've detected a cycle
+            if (nodesReady.isEmpty()) {
+                throw new CircularDependencyException('circular dependency detected')
+            }
+
+            nodesReady.each { ready ->
+                // Handle a node ready to be processed
+                handler(ready)
+
+                // Remove ready nodes from nodeDependencies
+                def nodeDependenciesToRemove = [:]
+                nodeDependencies.each { node, dependencies ->
+                    if (node == ready) {
+                        nodeDependenciesToRemove << [ (node): dependencies ]
+                    }
+                }
+
+                nodeDependencies = nodeDependencies - nodeDependenciesToRemove
+
+                // Remove ready nodes from nodeDependencies (Groovy >= 2.5.0)
+                // nodeDependencies.removeAll { node, dependencies -> node == ready }
+
+                // Remove ready nodes from all nodes inside nodeDependencies
+                nodeDependencies.each { node, dependencies -> nodeDependencies[node] -= ready }
+            }
+        }
+    }
+
 }

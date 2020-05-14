@@ -8,7 +8,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 
@@ -88,22 +88,22 @@ class PipelineUtil {
 
         return result
     }
-    
+
     void createAndStashArtifact(String name, byte[] file) {
         if (!name?.trim()) {
             throw new IllegalArgumentException("Error: unable to stash artifact. 'name' is undefined.")
         }
-  
+
         if (file == null) {
             throw new IllegalArgumentException("Error: unable to stash artifact. 'files' is undefined.")
         }
-  
+
         def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
-  
+
         // Create parent directory if needed
         this.createDirectory(new File(path).getParent())
         new File(path) << (file)
-        
+
         this.steps.dir(new File(path).getParent()) {
             this.steps.stash(name)
         }

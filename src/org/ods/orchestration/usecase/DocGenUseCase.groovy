@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 import org.ods.orchestration.service.DocGenService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.Project
@@ -56,9 +56,9 @@ abstract class DocGenUseCase {
         artifacts << files.collectEntries { path, contents ->
             [ path, contents ]
         }
-        
+
         def doArchive = isArchivalRelevant(documentType);
-        
+
         def archive = this.util.createZipArtifact(
             "${basename}.zip",
             artifacts,
@@ -149,6 +149,6 @@ abstract class DocGenUseCase {
     abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
-    
+
     abstract boolean isArchivalRelevant (String documentType)
 }

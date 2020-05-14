@@ -2,13 +2,17 @@ package org.ods.services
 
 class GitService {
 
-    private final def script
-
     @SuppressWarnings('NonFinalPublicField')
     public static String ODS_GIT_TAG_BRANCH_PREFIX = 'ods-generated-'
 
+    private final def script
+
     GitService(script) {
         this.script = script
+    }
+
+    static String getReleaseBranch(String version) {
+        "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
     }
 
     String getOriginUrl() {
@@ -76,13 +80,13 @@ class GitService {
     }
 
     def configureUser() {
-      script.sh(
-          script: """
-            git config --global user.email 'undefined'
-            git config --global user.name 'MRO System User'
-            """,
-          label: 'configure git system user'
-      )
+        script.sh(
+            script: """
+                git config --global user.email 'undefined'
+                git config --global user.name 'ODS Jenkins Shared Library System User'
+                """,
+            label: 'configure git system user'
+        )
     }
 
     def createTag(String name) {
@@ -116,7 +120,7 @@ class GitService {
             branches: [[name: gitRef]],
             doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
             extensions: extensions,
-            userRemoteConfigs: userRemoteConfigs
+            userRemoteConfigs: userRemoteConfigs,
         ])
     }
 
@@ -181,10 +185,6 @@ class GitService {
             returnStdout: true,
             label: "list tags for version ${version}-${changeId}-*-${previousEnvToken}"
         ).trim()
-    }
-
-    static String getReleaseBranch(String version) {
-        "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
     }
 
     private boolean isSlaveNodeGitLfsEnabled() {

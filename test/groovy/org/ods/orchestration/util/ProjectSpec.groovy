@@ -6,6 +6,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.ods.services.GitService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
+import org.ods.util.IPipelineSteps
 import org.yaml.snakeyaml.Yaml
 
 import static util.FixtureHelper.*

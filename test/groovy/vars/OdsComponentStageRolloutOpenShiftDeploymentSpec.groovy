@@ -3,6 +3,7 @@ package vars
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
+import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
@@ -27,52 +28,102 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
       componentId: 'bar'
   ]
 
-  def "run successfully"() {
+  def "run successfully without Tailor"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
-    openShiftService.automaticImageChangeTriggerEnabled(*_) >> true
-    openShiftService.getLatestVersion(*_) >> '123'
+    openShiftService.getLatestVersion(*_) >>> [123, 124]
     openShiftService.getRolloutStatus(*_) >> 'complete'
-    openShiftService.getPodDataForDeployment(*_) >> [ "deploymentId": "${config.componentId}-123" ]
-    openShiftService.getImageStreamsForDeploymentConfig (*_) >> [[ "imageStreamProject" : 'foo', 'imageStream' : 'bar' ]] 
+    openShiftService.getPodDataForDeployment(*_) >> [ deploymentId: "${config.componentId}-123" ]
+    openShiftService.getImagesOfDeploymentConfig (*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      false
+    }
     def deploymentInfo = script.call(context)
 
     then:
     printCallStack()
-    assertCallStackContains('Deployment #123 successfully rolled out.')
+    assertCallStackContains('''Rollout of deployment for 'bar' has been triggered automatically.''')
+    assertCallStackContains('Deployment #124 successfully rolled out.')
     assertJobStatusSuccess()
     deploymentInfo.deploymentId == "${config.componentId}-123"
-    
+
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
-    // 
     buildArtifacts.deployments.containsKey (config.componentId)
     buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo.deploymentId
+  }
+
+  def "run successfully with Tailor"() {
+    given:
+    def c = config + [environment: 'dev', targetProject: 'foo-dev']
+    IContext context = new Context(null, c, logger)
+    OpenShiftService openShiftService = Mock(OpenShiftService.class)
+    openShiftService.resourceExists(*_) >> true
+    openShiftService.getLatestVersion(*_) >>> [123, 124]
+    openShiftService.getRolloutStatus(*_) >> 'complete'
+    openShiftService.getPodDataForDeployment(*_) >> [ deploymentId: "${config.componentId}-123" ]
+    openShiftService.getImagesOfDeploymentConfig (*_) >> [[ repository: 'foo', name: 'bar' ]]
+    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
+
+    when:
+    def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      true
+    }
+    def deploymentInfo = script.call(context)
+
+    then:
+    printCallStack()
+    assertCallStackContains('''Rollout of deployment for 'bar' has been triggered automatically.''')
+    assertCallStackContains('Deployment #124 successfully rolled out.')
+    assertJobStatusSuccess()
+    deploymentInfo.deploymentId == "${config.componentId}-123"
+
+    // test artifact URIS
+    def buildArtifacts = context.getBuildArtifactURIs()
+    buildArtifacts.size() > 0
+    buildArtifacts.deployments.containsKey (config.componentId)
+    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo.deploymentId
+
+    1 * openShiftService.tailorApply(
+      [selector: 'app=foo-bar', exclude: 'bc,is'],
+      '',
+      [],
+      [],
+      '/tmp/file',
+      false
+    )
   }
 
   @Unroll
   def "fails when rollout info cannot be retrieved"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists({ it == 'DeploymentConfig' }, _) >> dcExists
     openShiftService.resourceExists({ it == 'ImageStream' }, _) >> isExists
-    openShiftService.automaticImageChangeTriggerEnabled(_) >> imageTrigger
+    openShiftService.getImagesOfDeploymentConfig (*_) >> images
     openShiftService.getLatestVersion(*_) >> latestVersion
     openShiftService.getRolloutStatus(*_) >> rolloutStatus
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
+      false
+    }
     script.call(context)
 
     then:
@@ -81,11 +132,10 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     assertJobStatusFailure()
 
     where:
-    dcExists | isExists | imageTrigger | latestVersion | rolloutStatus || errorMessage
-    false    | true     | true         | '123'         | 'complete'    || "DeploymentConfig 'bar' does not exist."
-    //true     | false    | true         | '123'         | 'complete'    || "One of the imagestreams '[foo/bar]' for component 'bar' does not exist."
-    true     | true     | true         | ''            | 'complete'    || "Could not get latest version of DeploymentConfig 'bar'."
-    true     | true     | true         | '123'         | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
+    dcExists | isExists | images                                 | latestVersion | rolloutStatus || errorMessage
+    false    | true     | []                                     | 0             | ''            || "DeploymentConfig 'bar' does not exist."
+    true     | false    | [[repository: 'foo-dev', name: 'baz']] | 0             | ''            || "The following ImageStream resources  for component 'bar' do not exist: '[foo-dev/baz]'."
+    true     | true     | [[repository: 'foo-dev', name: 'bar']] | 123           | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
   }
 
   def "skip when no environment given"() {

@@ -5,6 +5,8 @@ import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import groovy.json.JsonOutput
@@ -18,6 +20,7 @@ class Pipeline implements Serializable {
 
     private final ILogger logger
     private final def script
+    private final IPipelineSteps steps
     private IContext context
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled  = true
@@ -27,6 +30,7 @@ class Pipeline implements Serializable {
 
     Pipeline(def script, ILogger logger) {
         this.script = script
+        this.steps = new PipelineSteps(script)
         this.logger = logger
     }
 
@@ -104,7 +108,8 @@ class Pipeline implements Serializable {
                         if (!registry.get(OpenShiftService)) {
                             logger.debug 'Registering OpenShiftService'
                             registry.add(OpenShiftService, new OpenShiftService(
-                                script,
+                                steps,
+                                logger,
                                 context.targetProject
                             ))
                         }
@@ -132,9 +137,7 @@ class Pipeline implements Serializable {
                     }
 
                     if (context.environment) {
-                        context.setOpenshiftApplicationDomain(
-                            openShiftService.getOpenshiftApplicationDomain()
-                        )
+                        context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
 
                         def autoCloneEnabled = !!context.cloneSourceEnv
                         if (autoCloneEnabled) {
@@ -245,7 +248,7 @@ class Pipeline implements Serializable {
     }
 
     def setupForMultiRepoBuild(def config) {
-        logger.info '-> Detected multirepo MRO build'
+        logger.info '-> Detected multirepo orchestration pipeline build'
         config.localCheckoutEnabled = false
         config.displayNameUpdateEnabled  = false
         config.ciSkipEnabled = false
@@ -298,7 +301,7 @@ class Pipeline implements Serializable {
             }
 
             if (!!script.env.MULTI_REPO_BUILD) {
-                logger.info 'MRO Build - skipping env mapping'
+                logger.info 'Orchestration pipeline build - skipping env mapping'
             } else {
                 def assumedEnvironments = context.branchToEnvironmentMapping.values()
                 def envExists = context.environmentExists(context.targetProject)
@@ -324,7 +327,7 @@ class Pipeline implements Serializable {
                 return
             }
 
-            if (openShiftService.tooManyEnvironments(context.projectId, context.environmentLimit)) {
+            if (OpenShiftService.tooManyEnvironments(steps, context.projectId, context.environmentLimit)) {
                 script.error 'Cannot create OC project ' +
                     "as there are already ${context.environmentLimit} OC projects! " +
                     'Please clean up and run the pipeline again.'
@@ -430,8 +433,7 @@ class Pipeline implements Serializable {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = new OpenShiftService(script, null).
-                    getOriginUrlFromBuildConfig (projectName, bcName)
+                origin = (new OpenShiftService(steps, projectName)).getOriginUrlFromBuildConfig(bcName)
             }
 
             def splittedOrigin = origin.split('/')

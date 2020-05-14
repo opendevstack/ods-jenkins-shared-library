@@ -2,10 +2,12 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
+import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
+import org.ods.util.PipelineSteps
 
 class DeployStage extends Stage {
 
@@ -15,7 +17,7 @@ class DeployStage extends Stage {
         super(script, project, repos)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric'])
+    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -82,12 +84,16 @@ class DeployStage extends Stage {
                             passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
                         )
                     ]) {
-                        os.loginToExternalCluster(project.openShiftTargetApiUrl, script.EXTERNAL_OCP_API_TOKEN)
+                        OpenShiftService.loginToExternalCluster(
+                            steps,
+                            project.openShiftTargetApiUrl,
+                            script.EXTERNAL_OCP_API_TOKEN
+                        )
                     }
                 }
 
                 // Check if the target environment exists in OpenShift
-                if (!os.envExists(targetProject)) {
+                if (!os.envExists()) {
                     throw new RuntimeException(
                         "Error: target environment '${targetProject}' does not exist " +
                         "in ${project.openShiftTargetApiUrl}."

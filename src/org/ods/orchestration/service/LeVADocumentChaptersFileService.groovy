@@ -4,7 +4,7 @@ package org.ods.orchestration.service
 
 import java.nio.file.Paths
 
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.yaml.snakeyaml.Yaml
 
 class LeVADocumentChaptersFileService {

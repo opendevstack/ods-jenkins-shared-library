@@ -7,9 +7,9 @@ import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.PipelineSteps
+import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
 import util.SpecHelper
 

@@ -1,6 +1,6 @@
 package util
 
-import org.ods.orchestration.util.IPipelineSteps
+import org.ods.util.IPipelineSteps
 
 class PipelineSteps implements IPipelineSteps {
 
@@ -104,32 +104,39 @@ class PipelineSteps implements IPipelineSteps {
     def deleteDir() {
         return null
     }
-    
+
+    def sleep(int seconds) {
+        return null
+    }
+
     @Override
     def withEnv(java.util.List env, groovy.lang.Closure block) {
       block()
     }
     
     @Override
-    def unstable (String message) {
+    def unstable(String message) {
     }
 
-    def usernamePassword (Map credentialsData) {
+    def usernamePassword(Map credentialsData) {
     }
 
-    def withCredentials (List credentialsList, Closure block) {
-      block ()
+    def sshUserPrivateKey(Map credentialsData) {
     }
 
-    def get (def key) {
+    def withCredentials(List credentialsList, Closure block) {
+      block()
+    }
+
+    def get(def key) {
       return currentBuild.get(key)
     }
 
-    def put (def key, def value) {
+    def put(def key, def value) {
       currentBuild.put(key, value)
     }
 
-    def unwrap () {
-      return [ : ]
+    def unwrap() {
+      return [:]
     }
 }

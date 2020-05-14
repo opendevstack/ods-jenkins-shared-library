@@ -193,7 +193,7 @@ ruleset {
     ClosureStatementOnOpeningLineOfMultipleLineClosure
     ConsecutiveBlankLines
     FileEndsWithoutNewline
-    Indentation
+    Indentation(priority: 2)
     LineLength
     MissingBlankLineAfterImports
     MissingBlankLineAfterPackage
@@ -211,7 +211,7 @@ ruleset {
     SpaceAroundOperator
     SpaceBeforeClosingBrace
     SpaceBeforeOpeningBrace
-    TrailingWhitespace
+    TrailingWhitespace(priority: 2)
 
     // rulesets/generic.xml
     IllegalClassMember
@@ -392,7 +392,7 @@ ruleset {
     UnnecessaryFinalOnPrivateMethod
     UnnecessaryFloatInstantiation
     UnnecessaryGString
-    UnnecessaryGetter
+    UnnecessaryGetter(enabled: false) // disabled to make grepping through files easier
     UnnecessaryIfStatement
     UnnecessaryInstanceOfCheck
     UnnecessaryInstantiationToGetClass
@@ -410,7 +410,7 @@ ruleset {
     UnnecessarySafeNavigationOperator
     UnnecessarySelfAssignment
     UnnecessarySemicolon
-    UnnecessarySetter
+    UnnecessarySetter(enabled: false) // disabled to make grepping through files easier
     UnnecessaryStringInstantiation
     UnnecessarySubstring
     UnnecessaryTernaryExpression
