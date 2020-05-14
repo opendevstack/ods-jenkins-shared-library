@@ -13,14 +13,15 @@ class Stage {
         this.script = script
         this.context = context
         this.config = config
-        componentId = config.componentId ?: context.componentId
     }
 
     def execute() {
-        // TODO: Replace withStage with simple echo calls once all stages use this class.
-        script.withStage(STAGE_NAME + ' (' + componentId + ')', context) {
+        startingStageMessage()
+        def result = script.stage(stageLabel()) {
             this.run()
         }
+        endedStageMessage()
+        result
     }
 
     static boolean isEligibleBranch(def eligibleBranches, String branch) {
@@ -36,5 +37,17 @@ class Stage {
         }
         // Check if specific branch is allowed
         return eligibleBranches.contains(branch)
+    }
+
+    protected void startingStageMessage() {
+        echo "**** STARTING stage '${stageLabel()}' for component '${context.componentId}' branch '${context.gitBranch}' ****"
+    }
+
+    protected void endedStageMessage() {
+        echo "**** ENDED stage '${stageLabel()}' for component '${context.componentId}' branch '${context.gitBranch}' ****"
+    }
+
+    protected String stageLabel() {
+        "${STAGE_NAME} (${componentId})"
     }
 }
