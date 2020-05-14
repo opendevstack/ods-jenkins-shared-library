@@ -16,8 +16,8 @@ class BuildOpenShiftImageStage extends Stage {
         OpenShiftService openShift,
         JenkinsService jenkins) {
         super(script, context, config)
-        if (!config.name) {
-            config.name = context.componentId
+        if (!config.resourceName) {
+            config.resourceName = context.componentId
         }
         if (!config.imageLabels) {
             config.imageLabels = [:]
@@ -94,16 +94,16 @@ class BuildOpenShiftImageStage extends Stage {
 
         // Retrieve build status.
         def lastVersion = getLastVersion()
-        def buildId = "${config.name}-${lastVersion}"
+        def buildId = "${config.resourceName}-${lastVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
             script.error "OpenShift Build #${lastVersion} was not successful - status is '${buildStatus}'."
         }
         def imageReference = getImageReference()
-        script.echo "Build #${lastVersion} of '${config.name}' has produced image: ${imageReference}."
+        script.echo "Build #${lastVersion} of '${config.resourceName}' has produced image: ${imageReference}."
 
         context.addBuildToArtifactURIs(
-            config.name,
+            config.resourceName,
             [
                 buildId: buildId,
                 image: imageReference,
@@ -117,22 +117,22 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     protected String stageLabel() {
-        if (config.name != context.componentId) {
-            return "${STAGE_NAME} (${config.name})"
+        if (config.resourceName != context.componentId) {
+            return "${STAGE_NAME} (${config.resourceName})"
         }
         STAGE_NAME
     }
 
     private String getImageReference() {
-        openShift.getImageReference(config.name, context.tagversion)
+        openShift.getImageReference(config.resourceName, context.tagversion)
     }
 
     private String startAndFollowBuild() {
-        openShift.startAndFollowBuild(config.name, config.dockerDir)
+        openShift.startAndFollowBuild(config.resourceName, config.dockerDir)
     }
 
     private int getLastVersion() {
-        openShift.getLastBuildVersion(config.name)
+        openShift.getLastBuildVersion(config.resourceName)
     }
 
     private String getBuildStatus(String build) {
@@ -141,7 +141,7 @@ class BuildOpenShiftImageStage extends Stage {
 
     private String patchBuildConfig(Map imageLabels) {
         openShift.patchBuildConfig(
-            config.name,
+            config.resourceName,
             context.tagversion,
             config.buildArgs,
             imageLabels

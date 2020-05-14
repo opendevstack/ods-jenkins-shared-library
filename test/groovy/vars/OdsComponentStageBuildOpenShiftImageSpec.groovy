@@ -132,7 +132,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     def configOverwrite = [
-      name: 'overwrite',
+      resourceName: 'overwrite',
       imageLabels: [testLabelOnBuild: 'buildLabel'],
     ]
     when:

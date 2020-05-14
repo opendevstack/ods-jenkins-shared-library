@@ -16,8 +16,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         OpenShiftService openShift,
         JenkinsService jenkins) {
         super(script, context, config)
-        if (!config.name) {
-            config.name = context.componentId
+        if (!config.resourceName) {
+            config.resourceName = context.componentId
         }
         if (!config.deployTimeoutMinutes) {
             config.deployTimeoutMinutes = context.openshiftRolloutTimeout
@@ -79,22 +79,22 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         if (!dcExists) {
-            script.error "DeploymentConfig '${config.name}' does not exist."
+            script.error "DeploymentConfig '${config.resourceName}' does not exist."
         }
 
         def ownedImageStreams = openShift
-            .getImagesOfDeploymentConfig(config.name)
+            .getImagesOfDeploymentConfig(config.resourceName)
             .findAll { context.targetProject == it.repository }
         def missingStreams = missingImageStreams(ownedImageStreams)
         if (missingStreams) {
-            script.error "The following ImageStream resources  for DeploymentConfig '${config.name}' " +
+            script.error "The following ImageStream resources  for DeploymentConfig '${config.resourceName}' " +
                 """do not exist: '${missingStreams.collect { "${it.repository}/${it.name}" }}'."""
         }
 
         setImageTagLatest(ownedImageStreams)
 
         if (getLatestVersion() > originalDeploymentVersion) {
-            script.echo "Rollout of deployment for '${config.name}' has been triggered automatically."
+            script.echo "Rollout of deployment for '${config.resourceName}' has been triggered automatically."
         } else {
             startRollout()
         }
@@ -103,29 +103,29 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         def latestVersion = getLatestVersion()
-        def replicationController = "${config.name}-${latestVersion}"
+        def replicationController = "${config.resourceName}-${latestVersion}"
         def rolloutStatus = getRolloutStatus(replicationController)
         if (rolloutStatus != 'complete') {
             script.error "Deployment #${latestVersion} failed with status '${rolloutStatus}', " +
                 'please check the error in the OpenShift web console.'
         } else {
-            script.echo "Deployment #${latestVersion} of '${config.name}' successfully rolled out."
+            script.echo "Deployment #${latestVersion} of '${config.resourceName}' successfully rolled out."
         }
         def pod = getPodDataForRollout(replicationController)
-        context.addDeploymentToArtifactURIs(config.name, pod)
+        context.addDeploymentToArtifactURIs(config.resourceName, pod)
 
         return pod
     }
 
     protected String stageLabel() {
-        if (config.name != context.componentId) {
-            return "${STAGE_NAME} (${config.name})"
+        if (config.resourceName != context.componentId) {
+            return "${STAGE_NAME} (${config.resourceName})"
         }
         STAGE_NAME
     }
 
     private boolean deploymentConfigExists() {
-        openShift.resourceExists('DeploymentConfig', config.name)
+        openShift.resourceExists('DeploymentConfig', config.resourceName)
     }
 
     private List<Map<String, String>> missingImageStreams(List<Map<String, String>> imageStreams) {
@@ -137,15 +137,15 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     }
 
     private void startRollout() {
-        openShift.startRollout(config.name)
+        openShift.startRollout(config.resourceName)
     }
 
     private void watchRollout() {
-        openShift.watchRollout(config.name)
+        openShift.watchRollout(config.resourceName)
     }
 
     private int getLatestVersion() {
-        openShift.getLatestVersion(config.name)
+        openShift.getLatestVersion(config.resourceName)
     }
 
     private String getRolloutStatus(String replicationController) {
