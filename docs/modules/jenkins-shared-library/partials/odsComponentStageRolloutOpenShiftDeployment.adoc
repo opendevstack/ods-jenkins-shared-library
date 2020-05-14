@@ -11,6 +11,9 @@ Available options:
 |===
 | Option | Description
 
+| name
+| Name of `DeploymentConfig` to use (defaults to `context.componentId`).
+
 | deployTimeoutMinutes
 | Adjust timeout of rollout (defaults to 5 minutes).
 
