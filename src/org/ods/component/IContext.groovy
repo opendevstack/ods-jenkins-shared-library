@@ -113,9 +113,6 @@ interface IContext {
     // snyk behaviour configuration in case it reports vulnerabilities
     boolean getFailOnSnykScanVulnerabilities()
 
-    // Branch on which to run dependency checks.
-    String getDependencyCheckBranch()
-
     // Number of environments to allow.
     int getEnvironmentLimit()
 

@@ -119,9 +119,6 @@ class Context implements IContext {
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
             config.failOnSnykScanVulnerabilities = true
         }
-        if (!config.containsKey('dependencyCheckBranch')) {
-            config.dependencyCheckBranch = 'master'
-        }
         if (!config.containsKey('environmentLimit')) {
             config.environmentLimit = 5
         }
@@ -320,10 +317,6 @@ class Context implements IContext {
     @NonCPS
     boolean getFailOnSnykScanVulnerabilities() {
         config.failOnSnykScanVulnerabilities
-    }
-
-    String getDependencyCheckBranch() {
-        config.dependencyCheckBranch
     }
 
     int getEnvironmentLimit() {
