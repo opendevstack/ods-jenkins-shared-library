@@ -1,6 +1,6 @@
 package org.ods.component
 
-class Stage {
+abstract class Stage {
 
     protected def script
     protected def context
@@ -9,7 +9,7 @@ class Stage {
 
     public final String STAGE_NAME = 'NOT SET'
 
-    Stage(def script, IContext context, Map config) {
+    protected Stage(def script, IContext context, Map config) {
         this.script = script
         this.context = context
         this.config = config
@@ -24,7 +24,23 @@ class Stage {
         result
     }
 
-    static boolean isEligibleBranch(def eligibleBranches, String branch) {
+    abstract protected run()
+
+    protected void startingStageMessage() {
+        script.echo "**** STARTING stage '${stageLabel()}' " +
+            "for component '${context.componentId}' branch '${context.gitBranch}' ****"
+    }
+
+    protected void endedStageMessage() {
+        script.echo "**** ENDED stage '${stageLabel()}' " +
+            "for component '${context.componentId}' branch '${context.gitBranch}' ****"
+    }
+
+    protected String stageLabel() {
+        "${STAGE_NAME} (${componentId})"
+    }
+
+    protected boolean isEligibleBranch(def eligibleBranches, String branch) {
         // Check if any branch is allowed
         if (eligibleBranches.contains('*')) {
             return true
@@ -37,17 +53,5 @@ class Stage {
         }
         // Check if specific branch is allowed
         return eligibleBranches.contains(branch)
-    }
-
-    protected void startingStageMessage() {
-        echo "**** STARTING stage '${stageLabel()}' for component '${context.componentId}' branch '${context.gitBranch}' ****"
-    }
-
-    protected void endedStageMessage() {
-        echo "**** ENDED stage '${stageLabel()}' for component '${context.componentId}' branch '${context.gitBranch}' ****"
-    }
-
-    protected String stageLabel() {
-        "${STAGE_NAME} (${componentId})"
     }
 }

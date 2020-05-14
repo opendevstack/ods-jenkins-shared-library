@@ -37,7 +37,7 @@ class ScanWithSonarStage extends Stage {
         this.sonarQube = sonarQube
     }
 
-    def run() {
+    protected run() {
         if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
             script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return

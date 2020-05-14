@@ -59,7 +59,7 @@ class BuildOpenShiftImageStage extends Stage {
         this.jenkins = jenkins
     }
 
-    def run() {
+    protected run() {
         if (!context.environment) {
             script.echo 'Skipping for empty environment ...'
             return [:]

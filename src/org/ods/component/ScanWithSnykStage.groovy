@@ -35,7 +35,7 @@ class ScanWithSnykStage extends Stage {
         this.snyk = snyk
     }
 
-    def run() {
+    protected run() {
         if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
             script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
