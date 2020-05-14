@@ -5,7 +5,7 @@ import org.ods.services.JenkinsService
 
 class BuildOpenShiftImageStage extends Stage {
 
-    public final String STAGE_NAME = 'Build Openshift Image'
+    public final String STAGE_NAME = 'Build OpenShift Image'
     private final OpenShiftService openShift
     private final JenkinsService jenkins
 

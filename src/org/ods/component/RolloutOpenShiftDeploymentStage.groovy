@@ -5,7 +5,7 @@ import org.ods.services.JenkinsService
 
 class RolloutOpenShiftDeploymentStage extends Stage {
 
-    public final String STAGE_NAME = 'Deploy to Openshift'
+    public final String STAGE_NAME = 'Deploy to OpenShift'
     private final OpenShiftService openShift
     private final JenkinsService jenkins
 
