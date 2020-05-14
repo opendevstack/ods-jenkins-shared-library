@@ -16,6 +16,9 @@ class BuildOpenShiftImageStage extends Stage {
         OpenShiftService openShift,
         JenkinsService jenkins) {
         super(script, context, config)
+        if (!config.name) {
+            config.name = context.componentId
+        }
         if (!config.imageLabels) {
             config.imageLabels = [:]
         }
@@ -38,7 +41,7 @@ class BuildOpenShiftImageStage extends Stage {
             config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
         }
         if (!config.tailorSelector) {
-            config.tailorSelector = "app=${context.projectId}-${componentId}"
+            config.tailorSelector = "app=${context.projectId}-${context.componentId}"
         }
         if (!config.containsKey('tailorVerify')) {
             config.tailorVerify = false
@@ -91,32 +94,39 @@ class BuildOpenShiftImageStage extends Stage {
 
         // Retrieve build status.
         def lastVersion = getLastVersion()
-        def buildId = "${componentId}-${lastVersion}"
+        def buildId = "${config.name}-${lastVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
             script.error "OpenShift Build #${lastVersion} was not successful - status is '${buildStatus}'."
         }
         def imageReference = getImageReference()
-        script.echo "Build #${lastVersion} has produced image: ${imageReference}."
+        script.echo "Build #${lastVersion} of '${config.name}' has produced image: ${imageReference}."
 
         context.addBuildToArtifactURIs(
-            componentId,
-            [buildId: buildId, image: imageReference,]
+            config.name,
+            [buildId: buildId, image: imageReference]
         )
 
-        return [buildId: buildId, image: imageReference,]
+        return [buildId: buildId, image: imageReference]
+    }
+
+    protected String stageLabel() {
+        if (config.name != context.componentId) {
+            return "${STAGE_NAME} (${config.name})"
+        }
+        STAGE_NAME
     }
 
     private String getImageReference() {
-        openShift.getImageReference(componentId, context.tagversion)
+        openShift.getImageReference(config.name, context.tagversion)
     }
 
     private String startAndFollowBuild() {
-        openShift.startAndFollowBuild(componentId, config.dockerDir)
+        openShift.startAndFollowBuild(config.name, config.dockerDir)
     }
 
     private int getLastVersion() {
-        openShift.getLastBuildVersion(componentId)
+        openShift.getLastBuildVersion(config.name)
     }
 
     private String getBuildStatus(String build) {
@@ -125,7 +135,7 @@ class BuildOpenShiftImageStage extends Stage {
 
     private String patchBuildConfig(Map imageLabels) {
         openShift.patchBuildConfig(
-            componentId,
+            config.name,
             context.tagversion,
             config.buildArgs,
             imageLabels

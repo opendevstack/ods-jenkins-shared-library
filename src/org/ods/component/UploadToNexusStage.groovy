@@ -15,7 +15,7 @@ class UploadToNexusStage extends Stage {
         super(script, context, config)
         this.repository = config.repository ?: 'candidates'
         this.repositoryType = config.repositoryType ?: 'maven2'
-        this.distFile = config.distributionFile ?: "${componentId}-${context.tagversion}.tar.gz"
+        this.distFile = config.distributionFile ?: "${context.componentId}-${context.tagversion}.tar.gz"
         this.nexus = nexus
     }
 
@@ -29,7 +29,7 @@ class UploadToNexusStage extends Stage {
 
         if (repositoryType == 'maven2') {
             nexusParams << ['maven2.groupId': (config.groupId ?: context.groupId.replace('.', '/'))]
-            nexusParams << ['maven2.artifactId': (config.artifactId ?: componentId)]
+            nexusParams << ['maven2.artifactId': (config.artifactId ?: context.componentId)]
             nexusParams << ['maven2.version': (config.version ?: context.tagversion)]
             nexusParams << ['maven2.asset1.extension': (distFile.substring(distFile.lastIndexOf('.') + 1))]
         } else if (repositoryType == 'raw') {

@@ -5,7 +5,6 @@ abstract class Stage {
     protected def script
     protected def context
     protected Map config
-    protected String componentId
 
     public final String STAGE_NAME = 'NOT SET'
 
@@ -37,7 +36,7 @@ abstract class Stage {
     }
 
     protected String stageLabel() {
-        "${STAGE_NAME} (${componentId})"
+        STAGE_NAME
     }
 
     protected boolean isEligibleBranch(def eligibleBranches, String branch) {

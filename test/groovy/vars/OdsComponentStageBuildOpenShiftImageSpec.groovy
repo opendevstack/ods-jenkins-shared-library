@@ -33,7 +33,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.startAndFollowBuild(_, _) >> 'foo-123'
+    openShiftService.startAndFollowBuild(_, _) >> 'bar-123'
     openShiftService.getLastBuildVersion(_) >> 123
     openShiftService.getBuildStatus(_) >> 'complete'
     openShiftService.getImageReference(_, _) >> '0daecc05'
@@ -50,7 +50,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
     then:
     printCallStack()
-    assertCallStackContains('Build #123 has produced image: 0daecc05.')
+    assertCallStackContains('''Build #123 of 'bar' has produced image: 0daecc05.''')
     assertJobStatusSuccess()
     def expectedFileContent = """[
 {"name": "ods.build.source.repo.url", "value": "https://example.com/scm/foo/bar.git"},
@@ -65,16 +65,16 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 ]"""
     fileContent == expectedFileContent
     // test immediate return
-    buildInfo.buildId == "${config.componentId}-123"
+    buildInfo.buildId == 'bar-123'
     buildInfo.image == "0daecc05"
     
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
     // [builds:[bar:[buildId:bar-123, image:0daecc05]], deployments:[:]
-    buildArtifacts.builds.containsKey (config.componentId)
-    buildArtifacts.builds[config.componentId].buildId == buildInfo.buildId
-    buildArtifacts.builds[config.componentId].image == buildInfo.image
+    buildArtifacts.builds.containsKey('bar')
+    buildArtifacts.builds.bar.buildId == buildInfo.buildId
+    buildArtifacts.builds.bar.image == buildInfo.image
 
     0 * openShiftService.tailorApply(*_)
   }
@@ -84,7 +84,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev', projectId: 'foo']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.startAndFollowBuild(*_) >> 'foo-123'
+    openShiftService.startAndFollowBuild(*_) >> 'bar-123'
     openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
@@ -104,10 +104,10 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
     then:
     printCallStack()
-    assertCallStackContains('Build #123 has produced image: 0daecc05.')
+    assertCallStackContains('''Build #123 of 'bar' has produced image: 0daecc05.''')
     assertJobStatusSuccess()
     // test immediate return
-    buildInfo.buildId == "${config.componentId}-123"
+    buildInfo.buildId == 'bar-123'
     buildInfo.image == "0daecc05"
 
     1 * openShiftService.tailorApply(
@@ -125,13 +125,16 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev', "globalExtensionImageLabels" : [ "globalext": "extG" ]]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
-    openShiftService.startAndFollowBuild(*_) >> 'foo-123'
+    openShiftService.startAndFollowBuild(*_) >> 'overwrite-123'
     openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
-    def configOverwrite = ["componentId" : "overwrite", "imageLabels" : [ "testLabelOnBuild" : "buildLabel"]]
+    def configOverwrite = [
+      name: 'overwrite',
+      imageLabels: [testLabelOnBuild: 'buildLabel'],
+    ]
     when:
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
     String fileContent
@@ -143,7 +146,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
     then:
     printCallStack()
-    assertCallStackContains('Build #123 has produced image: 0daecc05.')
+    assertCallStackContains('''Build #123 of 'overwrite' has produced image: 0daecc05.''')
     assertJobStatusSuccess()
     def expectedFileContent = """[
 {"name": "ods.build.source.repo.url", "value": "https://example.com/scm/foo/bar.git"},
@@ -160,16 +163,16 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 ]"""
     fileContent == expectedFileContent
     // test immediate return
-    buildInfo.buildId == "${configOverwrite.componentId}-123"
+    buildInfo.buildId == 'overwrite-123'
     buildInfo.image == "0daecc05"
     
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
-    // [builds:[bar:[buildId:bar-123, image:0daecc05]], deployments:[:]
-    buildArtifacts.builds.containsKey (configOverwrite.componentId)
-    buildArtifacts.builds[configOverwrite.componentId].buildId == buildInfo.buildId
-    buildArtifacts.builds[configOverwrite.componentId].image == buildInfo.image
+    // [builds:[bar:[buildId:overwrite-123, image:0daecc05]], deployments:[:]
+    buildArtifacts.builds.containsKey('overwrite')
+    buildArtifacts.builds.overwrite.buildId == buildInfo.buildId
+    buildArtifacts.builds.overwrite.image == buildInfo.image
   }
 
   @Unroll
