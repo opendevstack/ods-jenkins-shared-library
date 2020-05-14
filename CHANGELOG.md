@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Added
+- Merge ([ods-mro-shared-library](https://github.com/opendevstack/ods-mro-jenkins-shared-library)) into this library, and consolidate services ([#271](https://github.com/opendevstack/ods-jenkins-shared-library/issues/271))
+- Introduce CodenArc for scanning of the shared lib ([#290](https://github.com/opendevstack/ods-jenkins-shared-library/issues/290))
+- Central openshift namespace is NOT fixed to 'CD' anymore, it's now configurable ([#311](https://github.com/opendevstack/ods-jenkins-shared-library/issues/311))
+- Support for mono-repos with multiple containers ([#229](https://github.com/opendevstack/ods-jenkins-shared-library/issues/229))
+- Add harmonized stage names based on the new library layout ([#215](https://github.com/opendevstack/ods-jenkins-shared-library/issues/215))
+- Allow configuration of docker context directory ([#181](https://github.com/opendevstack/ods-jenkins-shared-library/issues/181))
+
+### Changed
+- ciSkip check happens on slave node rather than master ([#199](https://github.com/opendevstack/ods-jenkins-shared-library/issues/199))
+
+### Fixed
+- Build is still "running" after it finishes ([#189](https://github.com/opendevstack/ods-jenkins-shared-library/issues/189))
+- oc rollout output parser does not work always ([#184](https://github.com/opendevstack/ods-jenkins-shared-library/issues/184))
+
 ## [2.0] - 2019-12-13
 
 ### Added

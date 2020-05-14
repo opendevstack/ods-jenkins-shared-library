@@ -143,6 +143,7 @@ class Pipeline implements Serializable {
                     }
                 }
             } catch (err) {
+                script.echo("Error during ODS component pipeline setup: ${err}")
                 updateBuildStatus('FAILURE')
                 setBitbucketBuildStatus('FAILED')
                 if (notifyNotGreen) {

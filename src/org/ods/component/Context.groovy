@@ -27,13 +27,14 @@ class Context implements IContext {
         this.localCheckoutEnabled = localCheckoutEnabled
     }
 
-    @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
+    @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'MethodSize', 'Instanceof'])
     def assemble() {
         logger.debug 'Validating input ...'
         // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
         // if the repository should not be deployed to OpenShift at all.
-        if (!config.containsKey('branchToEnvironmentMapping')) {
-            throw new IllegalArgumentException("Param 'branchToEnvironmentMapping' is required")
+        if (!config.containsKey('branchToEnvironmentMapping') ||
+            !(config.branchToEnvironmentMapping instanceof Map)) {
+            throw new IllegalArgumentException("Param 'branchToEnvironmentMapping, type: Map' is required")
         }
 
         logger.debug 'Collecting environment variables ...'
