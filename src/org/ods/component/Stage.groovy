@@ -15,25 +15,12 @@ abstract class Stage {
     }
 
     def execute() {
-        startingStageMessage()
-        def result = script.stage(stageLabel()) {
+        script.withStage(stageLabel(), context) {
             this.run()
         }
-        endedStageMessage()
-        result
     }
 
     abstract protected run()
-
-    protected void startingStageMessage() {
-        script.echo "**** STARTING stage '${stageLabel()}' " +
-            "for component '${context.componentId}' branch '${context.gitBranch}' ****"
-    }
-
-    protected void endedStageMessage() {
-        script.echo "**** ENDED stage '${stageLabel()}' " +
-            "for component '${context.componentId}' branch '${context.gitBranch}' ****"
-    }
 
     protected String stageLabel() {
         STAGE_NAME
