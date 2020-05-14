@@ -1,29 +1,32 @@
 package org.ods.component
 
-class Stage {
+abstract class Stage {
 
     protected def script
     protected def context
     protected Map config
-    protected String componentId
 
     public final String STAGE_NAME = 'NOT SET'
 
-    Stage(def script, IContext context, Map config) {
+    protected Stage(def script, IContext context, Map config) {
         this.script = script
         this.context = context
         this.config = config
-        componentId = config.componentId ?: context.componentId
     }
 
     def execute() {
-        // TODO: Replace withStage with simple echo calls once all stages use this class.
-        script.withStage(STAGE_NAME + ' (' + componentId + ')', context) {
+        script.withStage(stageLabel(), context) {
             this.run()
         }
     }
 
-    static boolean isEligibleBranch(def eligibleBranches, String branch) {
+    abstract protected run()
+
+    protected String stageLabel() {
+        STAGE_NAME
+    }
+
+    protected boolean isEligibleBranch(def eligibleBranches, String branch) {
         // Check if any branch is allowed
         if (eligibleBranches.contains('*')) {
             return true
@@ -37,4 +40,5 @@ class Stage {
         // Check if specific branch is allowed
         return eligibleBranches.contains(branch)
     }
+
 }

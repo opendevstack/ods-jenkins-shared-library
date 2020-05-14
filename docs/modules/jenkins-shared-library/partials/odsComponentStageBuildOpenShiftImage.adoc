@@ -11,6 +11,9 @@ Available options:
 |===
 | Option | Description
 
+| resourceName
+| Name of `BuildConfig`/`ImageStream` to use (defaults to `context.componentId`).
+
 | buildArgs
 | Pass build arguments to the image build process.
 

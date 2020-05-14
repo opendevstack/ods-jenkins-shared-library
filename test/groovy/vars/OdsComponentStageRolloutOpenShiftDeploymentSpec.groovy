@@ -50,7 +50,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertCallStackContains('''Rollout of deployment for 'bar' has been triggered automatically.''')
-    assertCallStackContains('Deployment #124 successfully rolled out.')
+    assertCallStackContains('''Deployment #124 of 'bar' successfully rolled out.''')
     assertJobStatusSuccess()
     deploymentInfo.deploymentId == "${config.componentId}-123"
 
@@ -86,7 +86,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertCallStackContains('''Rollout of deployment for 'bar' has been triggered automatically.''')
-    assertCallStackContains('Deployment #124 successfully rolled out.')
+    assertCallStackContains('''Deployment #124 of 'bar' successfully rolled out.''')
     assertJobStatusSuccess()
     deploymentInfo.deploymentId == "${config.componentId}-123"
 
@@ -134,7 +134,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     where:
     dcExists | isExists | images                                 | latestVersion | rolloutStatus || errorMessage
     false    | true     | []                                     | 0             | ''            || "DeploymentConfig 'bar' does not exist."
-    true     | false    | [[repository: 'foo-dev', name: 'baz']] | 0             | ''            || "The following ImageStream resources  for component 'bar' do not exist: '[foo-dev/baz]'."
+    true     | false    | [[repository: 'foo-dev', name: 'baz']] | 0             | ''            || "The following ImageStream resources  for DeploymentConfig 'bar' do not exist: '[foo-dev/baz]'."
     true     | true     | [[repository: 'foo-dev', name: 'bar']] | 123           | 'stopped'     || "Deployment #123 failed with status 'stopped', please check the error in the OpenShift web console."
   }
 

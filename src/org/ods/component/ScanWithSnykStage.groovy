@@ -16,7 +16,7 @@ class ScanWithSnykStage extends Stage {
             config.organisation = context.projectId
         }
         if (!config.projectName) {
-            config.projectName = componentId
+            config.projectName = context.componentId
         }
         if (!config.buildFile) {
             config.buildFile = 'build.gradle'
@@ -26,16 +26,16 @@ class ScanWithSnykStage extends Stage {
         } else {
             config.eligibleBranches = ['*']
         }
-        if (!config.severityThreshold) {
+        if (config.severityThreshold) {
+            config.severityThreshold = config.severityThreshold.trim().toLowerCase()
+        } else {
             // low is the default, it is equal to not providing the option to snyk
             config.severityThreshold = 'low'
-        } else {
-            config.severityThreshold = config.severityThreshold.trim().toLowerCase()
         }
         this.snyk = snyk
     }
 
-    def run() {
+    protected run() {
         if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
             script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
@@ -94,7 +94,7 @@ class ScanWithSnykStage extends Stage {
     }
 
     private generateAndArchiveReport(boolean archive) {
-        def targetReport = "SCSR-${context.projectId}-${componentId}-${snyk.reportFile}"
+        def targetReport = "SCSR-${context.projectId}-${context.componentId}-${snyk.reportFile}"
         script.sh(
             label: 'Create artifacts dir',
             script: 'mkdir -p artifacts/SCSR'
@@ -106,7 +106,7 @@ class ScanWithSnykStage extends Stage {
         if (archive) {
             script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
         }
-        def snykScanStashPath = "scsr-report-${componentId}-${context.buildNumber}"
+        def snykScanStashPath = "scsr-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('snykScanStashPath', snykScanStashPath)
 
         script.stash(

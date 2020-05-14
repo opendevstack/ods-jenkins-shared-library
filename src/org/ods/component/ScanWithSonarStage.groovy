@@ -37,7 +37,7 @@ class ScanWithSonarStage extends Stage {
         this.sonarQube = sonarQube
     }
 
-    def run() {
+    protected run() {
         if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
             script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
@@ -111,12 +111,12 @@ class ScanWithSonarStage extends Stage {
                 branch: context.gitBranch,
                 baseBranch: pullRequest.base,
             ]
-        } else {
-            def longLivedList = config.longLivedBranches.join(', ')
-            script.echo "No open PR found for ${context.gitBranch} " +
-                "even though it is not one of the long-lived branches (${longLivedList})."
-            return [:]
         }
+
+        def longLivedList = config.longLivedBranches.join(', ')
+        script.echo "No open PR found for ${context.gitBranch} " +
+            "even though it is not one of the long-lived branches (${longLivedList})."
+        return [:]
     }
 
     private Map findPullRequest(String apiResponse, String branch) {
