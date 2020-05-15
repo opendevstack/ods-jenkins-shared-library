@@ -131,6 +131,9 @@ class MROPipelineUtil extends PipelineUtil {
 
                 // Verify that all DCs are managed by ODS
                 def odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [:]
+                if (odsBuiltDeploymentInformation.contains("createdBy")) {
+                    odsBuiltDeploymentInformation.remove("createdBy")
+                }
                 def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
                 def ocpBasedDeployments = os.getDeploymentConfigsForComponent(componentSelector)
                 steps.echo(
@@ -226,8 +229,10 @@ class MROPipelineUtil extends PipelineUtil {
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->
-                def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
-                originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
+                if (!deploymentName == "createdBy") {
+                    def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
+                    originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
+                }
             }
 
             steps.dir(openshiftDir) {

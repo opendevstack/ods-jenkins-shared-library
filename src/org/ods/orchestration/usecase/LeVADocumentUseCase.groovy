@@ -444,7 +444,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!!repo.data?.odsBuildArtifacts?.resurrected)
         {
-            String resurrectBuildId = repo.data?.odsBuildArtifacts.createdBy.split("/").last()
+            String resurrectBuildId = repo.data?.odsBuildArtifacts?.createdBy?.split("/").last()
             if (resurrectBuildId) {
                 this.steps.echo "Using DTR from jenkins build: ${resurrectBuildId}"
             }
