@@ -705,24 +705,26 @@ class MROPipelineUtil extends PipelineUtil {
         List notThisVersionDeployments = []
         List notThisImages = []
         deployments.each { deploymentName, deployment ->
-            def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
-            if (!dcExists) {
-                steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
-                nonExistentDeployments << deploymentName
-            }
-            int latestDeployedVersion = os.getLatestVersion (deploymentName)
-            if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
-                notThisVersionDeployments << latestDeployedVersion
-                steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
-                    " is not latest version! (${latestDeployedVersion})"
-            }
-            deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
-                def runningImageSha = os.getRunningImageSha(deploymentName, latestDeployedVersion, index)
-                def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
-                if (imageInfo.sha != runningImageSha) {
-                    steps.echo "DeploymentConfig's container '${deploymentName}/${containerName}'" +
-                        " image is not latest version! (running: ${runningImageSha} vs ${imageInfo.sha})"
-                    notThisImages << runningImageSha
+            if (!JenkinsService.CREATED_BY_BUILD_STR == deploymentName) {
+                def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
+                if (!dcExists) {
+                    steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
+                    nonExistentDeployments << deploymentName
+                }
+                int latestDeployedVersion = os.getLatestVersion (deploymentName)
+                if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
+                    notThisVersionDeployments << latestDeployedVersion
+                    steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
+                        " is not latest version! (${latestDeployedVersion})"
+                }
+                deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
+                    def runningImageSha = os.getRunningImageSha(deploymentName, latestDeployedVersion, index)
+                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
+                    if (imageInfo.sha != runningImageSha) {
+                        steps.echo "DeploymentConfig's container '${deploymentName}/${containerName}'" +
+                            " image is not latest version! (running: ${runningImageSha} vs ${imageInfo.sha})"
+                        notThisImages << runningImageSha
+                    }
                 }
             }
         } 
