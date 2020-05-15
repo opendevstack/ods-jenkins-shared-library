@@ -443,7 +443,7 @@ class OpenShiftService {
         }
         boolean force = !!repo.forceRebuild
         
-        this.steps.echo("Verifying deployed state of repo: '${repo.id}' - force? ${force}")
+        this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: '${project}' - force? ${force}")
         if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !force) {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
