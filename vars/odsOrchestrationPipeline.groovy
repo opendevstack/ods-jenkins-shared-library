@@ -88,7 +88,7 @@ def call(Map config) {
 
 private withPodTemplate(String odsImageTag, Closure block) {
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
-    def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
+    def odsNamespace = env.ODS_NAMESPACE ?: 'cd'
     podTemplate(
         label: podLabel,
         cloud: 'openshift',
