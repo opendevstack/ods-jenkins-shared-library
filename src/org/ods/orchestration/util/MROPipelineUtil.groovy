@@ -233,6 +233,7 @@ class MROPipelineUtil extends PipelineUtil {
                     " latest deployment information, leaving ...")
                 def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
                 deployments.each { deploymentName, deployment ->
+                    def latestVersion = os.getLatestVersion(deploymentName)
                     def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
                     repo.data.openshift.deployments << ["${deploymentName}": pod]
                     if (createdByJob) {
