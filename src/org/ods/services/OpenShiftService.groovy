@@ -592,7 +592,7 @@ class OpenShiftService {
                     steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
                     nonExistentDeployments << deploymentName
                 }
-                int latestDeployedVersion = os.getLatestVersion (deploymentName)
+                int latestDeployedVersion = getLatestVersion (deploymentName)
                 if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
                     notThisVersionDeployments << latestDeployedVersion
                     steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
