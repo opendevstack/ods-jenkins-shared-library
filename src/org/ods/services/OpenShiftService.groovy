@@ -8,6 +8,8 @@ import org.ods.util.IPipelineSteps
 @SuppressWarnings('MethodCount')
 class OpenShiftService {
 
+    static final String ODS_DEPLOYMENTS_DESCRIPTOR = "ods-deployments.json"
+
     private final IPipelineSteps steps
     private final ILogger logger
     private final String project
