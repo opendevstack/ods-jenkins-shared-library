@@ -52,7 +52,7 @@ class BuildStage extends Stage {
                 jira.reportTestResultsForComponent(
                     "Technology-${repo.id}",
                     [Project.TestType.UNIT],
-                    data.tests?.unit.testResults
+                    data.tests?.unit?.testResults
                 )
             }
         }
