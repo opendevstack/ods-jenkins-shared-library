@@ -48,11 +48,11 @@ class BuildStage extends Stage {
             if (project.isAssembleMode
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
                 def data = []
-                if (!!repo.resurrected) {
-                    data << [ 
+                if (!!!repo.resurrected) {
+                    data = [
                         tests: [
                             unit: getUnitTestResults(steps, repo)
-                        ] 
+                        ]
                     ]
                 }
 
