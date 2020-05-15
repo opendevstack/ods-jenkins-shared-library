@@ -26,16 +26,6 @@ class BuildStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
-        /* cutschig -> why is this needed?
-        def globalData = [
-            tests: [
-                unit: [
-                    testReportFiles: [],
-                    testResults: [:]
-                ]
-            ]
-        ] */
-
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
@@ -62,12 +52,8 @@ class BuildStage extends Stage {
                 jira.reportTestResultsForComponent(
                     "Technology-${repo.id}",
                     [Project.TestType.UNIT],
-                    data.tests.unit.testResults
+                    data.tests?.unit.testResults
                 )
-
-                /* cutschig - idem
-                 * globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)
-                 */
             }
         }
 
@@ -79,11 +65,6 @@ class BuildStage extends Stage {
                 group.failFast = true
                 script.parallel(group)
             }
-
-        /* cutschig -idem3
-         Parse all test report files into a single data structure
-        globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
-        */
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
