@@ -443,9 +443,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def documentType = DocumentType.DTR as String
         String buildId
 
-        if (!!repo.data?.odsBuildArtifacts?.resurrected)
+        if (!!repo.data?.odsBuildArtifacts?.deployments?.resurrected)
         {
-            String build = repo.data?.odsBuildArtifacts?.get(JenkinsService.CREATED_BY_BUILD_STR);
+            String build = repo.data?.odsBuildArtifacts?.
+                deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
             if (build) {
                 buildId = build.split("/").last()
                 this.steps.echo "Using DTR from jenkins build: ${buildId}"
