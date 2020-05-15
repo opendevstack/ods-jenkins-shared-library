@@ -443,7 +443,8 @@ class OpenShiftService {
         }
         boolean force = !!repo.forceRebuild
         
-        this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: '${project}' - force? ${force}")
+        this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
+            "'${project}' - force? ${force}")
         if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !force) {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
@@ -453,7 +454,8 @@ class OpenShiftService {
                 }
                 repo.data.odsBuildArtifacts.deployments = deployments 
                 repo.data.odsBuildArtifacts.resurrected = true
-                this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+                this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': " +
+                    "\r${repo.data.odsBuildArtifacts}")
                 return true
             } else {
                 this.steps.echo("Current deployments for repo: '${repo.id}'" +
@@ -593,16 +595,10 @@ class OpenShiftService {
                     nonExistentDeployments << deploymentName
                 }
                 int latestDeployedVersion = getLatestVersion (deploymentName)
-                if (deployment.podNamespace == project) 
-                {
-                    if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
-                        notThisVersionDeployments << latestDeployedVersion
-                        steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
-                            " is not latest version! (${latestDeployedVersion})"
-                    }
-                } else {
-                    steps.echo "Source env '${deployment.podNamespace}' != Target '{project}'" +
-                        ' - skipping deployment id verification'
+                if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
+                    notThisVersionDeployments << latestDeployedVersion
+                    steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
+                        " is not latest version! (${latestDeployedVersion})"
                 }
                 deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
                     def runningImageSha = getRunningImageSha(deploymentName, latestDeployedVersion, index)
