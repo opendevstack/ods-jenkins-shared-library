@@ -26,6 +26,7 @@ class BuildStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
+        /* cutschig -> why is this needed?
         def globalData = [
             tests: [
                 unit: [
@@ -33,7 +34,7 @@ class BuildStage extends Stage {
                     testResults: [:]
                 ]
             ]
-        ]
+        ] */
 
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
@@ -46,11 +47,14 @@ class BuildStage extends Stage {
             // closure that return data.
             if (project.isAssembleMode
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
-                def data = [
-                    tests: [
-                        unit: getUnitTestResults(steps, repo)
+                def data = []
+                if (!!repo.resurrected) {
+                    data << [ 
+                        tests: [
+                            unit: getUnitTestResults(steps, repo)
+                        ] 
                     ]
-                ]
+                }
 
                 levaDocScheduler.run(
                     phase,
@@ -65,7 +69,9 @@ class BuildStage extends Stage {
                     data.tests.unit.testResults
                 )
 
-                globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)
+                /* cutschig - idem
+                 * globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)
+                 */
             }
         }
 
@@ -78,8 +84,10 @@ class BuildStage extends Stage {
                 script.parallel(group)
             }
 
-        // Parse all test report files into a single data structure
+        /* cutschig -idem3
+         Parse all test report files into a single data structure
         globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
+        */
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
