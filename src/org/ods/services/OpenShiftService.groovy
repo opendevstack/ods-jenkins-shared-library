@@ -459,7 +459,7 @@ class OpenShiftService {
                 this.steps.echo("Current deployments for repo: '${repo.id}'" +
                     " do not match last latest state (force? ${force}), rebuilding..")
             }
-        } 
+        }
         return false
     }
 
@@ -583,6 +583,7 @@ class OpenShiftService {
         List nonExistentDeployments = []
         List notThisVersionDeployments = []
         List notThisImages = []
+        steps.echo "Verifying deployments: '${deployments.keySet()}' against env: '${project}'"
         deployments.each { deploymentName, deployment ->
             if (!JenkinsService.CREATED_BY_BUILD_STR == deploymentName) {
                 def dcExists = resourceExists('DeploymentConfig', deploymentName)
