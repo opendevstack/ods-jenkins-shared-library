@@ -220,6 +220,7 @@ class MROPipelineUtil extends PipelineUtil {
             if (os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
                 steps.echo("Current deployment for '${repo.id}' is based on" +
                     " latest deployment information, leaving ...")
+                return
             }
 
             def openshiftDir = 'openshift-exported'
@@ -265,8 +266,8 @@ class MROPipelineUtil extends PipelineUtil {
                 this.project.versionedDevEnvsEnabled
             )
             def sourceProject = "${this.project.key}-${sourceEnv}"
+            def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
             deployments.each { deploymentName, deployment ->
-
                 deployment.containers?.each {containerName, imageRaw ->
                     // skip excluded images from defined image streams!
                     def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
@@ -329,6 +330,9 @@ class MROPipelineUtil extends PipelineUtil {
                 def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
                 repo.data.openshift.deployments << ["${deploymentName}": pod]
             }
+            if (createdByJob) {
+                repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob] 
+            }
             tagAndPush(this.project.targetTag)
         }
     }
@@ -336,9 +340,7 @@ class MROPipelineUtil extends PipelineUtil {
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
             OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
-            
-            if (!repo.data.odsBuildArtifacts || 
-                !os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+            if (!os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
                 def job
                 this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
                     job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
