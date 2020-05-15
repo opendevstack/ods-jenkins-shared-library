@@ -585,7 +585,8 @@ class OpenShiftService {
         List notThisImages = []
         steps.echo "Verifying deployments: '${deployments.keySet()}' against env: '${project}'"
         deployments.each { deploymentName, deployment ->
-            if (!JenkinsService.CREATED_BY_BUILD_STR == deploymentName) {
+            if (JenkinsService.CREATED_BY_BUILD_STR != deploymentName) {
+                steps.echo "Verifying deployment: '${deploymentName}'"
                 def dcExists = resourceExists('DeploymentConfig', deploymentName)
                 if (!dcExists) {
                     steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
