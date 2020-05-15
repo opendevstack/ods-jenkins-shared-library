@@ -219,12 +219,6 @@ class MROPipelineUtil extends PipelineUtil {
         def componentSelector = "app=${this.project.key}-${repo.id}"
 
         steps.dir(baseDir) {
-            if (os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
-                steps.echo("Current deployment for '${repo.id}' is based on" +
-                    " latest deployment information, leaving ...")
-                return
-            }
-
             def openshiftDir = 'openshift-exported'
             if (steps.fileExists('openshift')) {
                 openshiftDir = 'openshift'
@@ -233,6 +227,21 @@ class MROPipelineUtil extends PipelineUtil {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             repo.data["openshift"] = [deployments: [:]]
+
+            if (os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+                steps.echo("Current deployment for '${repo.id}' is based on" +
+                    " latest deployment information, leaving ...")
+                def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
+                deployments.each { deploymentName, deployment ->
+                    def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
+                    repo.data.openshift.deployments << ["${deploymentName}": pod]
+                    if (createdByJob) {
+                        repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
+                    }
+                    tagAndPush(this.project.targetTag)
+                    return
+                }
+            }
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->

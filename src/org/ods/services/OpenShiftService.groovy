@@ -600,7 +600,7 @@ class OpenShiftService {
                 }
                 deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
                     def runningImageSha = os.getRunningImageSha(deploymentName, latestDeployedVersion, index)
-                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
+                    def imageInfo = imageInfoWithShaForImageStreamUrl(imageRaw)
                     if (imageInfo.sha != runningImageSha) {
                         steps.echo "DeploymentConfig's container '${deploymentName}/${containerName}'" +
                             " image is not latest version! (running: ${runningImageSha} vs ${imageInfo.sha})"
