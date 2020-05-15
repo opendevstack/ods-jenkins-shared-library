@@ -1,5 +1,3 @@
-import kong.unirest.Unirest
-
 package org.ods.services
 
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
@@ -108,8 +106,7 @@ class NexusService {
     @SuppressWarnings('LineLength')
     @NonCPS
     URI getArtifact(String repository, String filePath) {
-        def restCall = Unirest.get("${this.baseURL}/${repository/${filePath}")
-
+        def restCall = Unirest.post("${this.baseURL}/${repository/${filePath}")
         def response = restCall.asString()
         response.ifSuccess {
             if (response.getStatus() != 204) {
