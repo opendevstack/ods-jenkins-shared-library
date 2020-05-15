@@ -706,7 +706,7 @@ class MROPipelineUtil extends PipelineUtil {
                     " is not latest version! (${latestDeployedVersion})"
             }
             deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
-                def runningImageSha = os.getRunningImageSha(deploymentName, latestVersion, index)
+                def runningImageSha = os.getRunningImageSha(deploymentName, latestDeployedVersion, index)
                 def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
                 if (imageInfo.sha != runningImageSha) {
                     steps.echo "DeploymentConfig '${deploymentName}/${containerName}'" +
