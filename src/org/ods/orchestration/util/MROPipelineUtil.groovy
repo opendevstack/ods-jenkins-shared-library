@@ -131,8 +131,8 @@ class MROPipelineUtil extends PipelineUtil {
 
                 // Verify that all DCs are managed by ODS
                 def odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [:]
-                if (odsBuiltDeploymentInformation.contains("createdBy")) {
-                    odsBuiltDeploymentInformation.remove("createdBy")
+                if (odsBuiltDeploymentInformation.containsKey(JenkinsService.CREATED_BY_BUILD_STR)) {
+                    odsBuiltDeploymentInformation.remove(JenkinsService.CREATED_BY_BUILD_STR)
                 }
                 def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
                 def ocpBasedDeployments = os.getDeploymentConfigsForComponent(componentSelector)

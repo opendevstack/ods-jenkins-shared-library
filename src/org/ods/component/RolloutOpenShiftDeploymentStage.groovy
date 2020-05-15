@@ -112,8 +112,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             script.echo "Deployment #${latestVersion} of '${config.resourceName}' successfully rolled out."
         }
         def pod = getPodDataForRollout(replicationController)
-        pod.createdBy = context.buildUrl
-
         context.addDeploymentToArtifactURIs(config.resourceName, pod)
 
         return pod
