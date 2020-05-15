@@ -3,8 +3,6 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
-import com.github.tomakehurst.wiremock.http.ResponseDefinition
-import groovy.swing.impl.DefaultAction
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
