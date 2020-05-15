@@ -286,6 +286,11 @@ class Context implements IContext {
         config.componentId
     }
 
+    @NonCPS
+    String getRepoName() {
+        config.repoName
+    }
+
     String getGitCommit() {
         config.gitCommit
     }

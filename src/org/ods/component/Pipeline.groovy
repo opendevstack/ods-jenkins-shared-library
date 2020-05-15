@@ -56,7 +56,11 @@ class Pipeline implements Serializable {
         if (config.containsKey('bitbucketNotificationEnabled')) {
             this.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled
         }
-        if (!config.projectId || !config.componentId) {
+        if (config.projectId && config.componentId) {
+            if (!config.repoName) {
+                config.repoName = "${config.projectId}-${config.componentId}"
+            }
+        } else {
             amendProjectAndComponentFromOrigin(config)
         }
         if (!config.projectId) {
@@ -433,22 +437,21 @@ class Pipeline implements Serializable {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = (new OpenShiftService(steps, logger, projectName)).getOriginUrlFromBuildConfig(bcName)
+                origin = (new OpenShiftService(steps, logger, projectName))
+                    .getOriginUrlFromBuildConfig(bcName)
             }
 
             def splittedOrigin = origin.split('/')
             def project = splittedOrigin[splittedOrigin.size() - 2]
             if (!config.projectId) {
-                config.projectId = project.trim()
+                config.projectId = project
             }
+            config.repoName = splittedOrigin.last().replace('.git', '')
             if (!config.componentId) {
-                config.componentId = splittedOrigin.last()
-                    .replace('.git', '')
-                    .replace("${project}-", '')
-                    .trim()
+                config.componentId = config.repoName - ~/^${project}-/
             }
             logger.debug(
-                "Project / component config from Git origin url: ${config.projectId} / ${config.componentId}"
+                "Project / component config: ${config.projectId} / ${config.componentId}"
             )
         }
         if (this.localCheckoutEnabled) {

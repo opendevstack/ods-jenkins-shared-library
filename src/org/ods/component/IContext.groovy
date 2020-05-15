@@ -80,6 +80,9 @@ interface IContext {
     // Component ID, e.g. "be-auth-service".
     String getComponentId()
 
+    // Repository name, e.g. "foo-be-auth-service".
+    String getRepoName()
+
     // Git URL of repository
     String getGitUrl()
 

@@ -23,7 +23,7 @@ odsQuickstarterPipeline(
 
   stage('Write go.mod') {
     dir(context.targetDir) {
-      sh "go mod init module example.com/${context.projectId}/${context.componentId}'"
+      sh "go mod init module example.com/foo/bar"
     }
   }
 
