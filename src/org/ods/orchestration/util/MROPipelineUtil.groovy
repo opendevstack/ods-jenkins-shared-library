@@ -239,9 +239,9 @@ class MROPipelineUtil extends PipelineUtil {
                     if (createdByJob) {
                         repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
                     }
-                    tagAndPush(this.project.targetTag)
-                    return
                 }
+                tagAndPush(this.project.targetTag)
+                return
             }
 
             def originalDeploymentVersions = [:]
