@@ -592,11 +592,17 @@ class OpenShiftService {
                     steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
                     nonExistentDeployments << deploymentName
                 }
-                int latestDeployedVersion = getLatestVersion (deploymentName)
-                if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
-                    notThisVersionDeployments << latestDeployedVersion
-                    steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
-                        " is not latest version! (${latestDeployedVersion})"
+                if (deployment.podNamespace == project) 
+                {
+                    int latestDeployedVersion = getLatestVersion (deploymentName)
+                    if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
+                        notThisVersionDeployments << latestDeployedVersion
+                        steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
+                            " is not latest version! (${latestDeployedVersion})"
+                    }
+                } else {
+                    steps.echo "Source env '${deployment.podNamespace}' != Target '{project}'" +
+                        ' - skipping deployment id verification'
                 }
                 deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
                     def runningImageSha = getRunningImageSha(deploymentName, latestDeployedVersion, index)
