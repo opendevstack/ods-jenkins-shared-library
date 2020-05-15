@@ -3,7 +3,8 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
-
+import com.github.tomakehurst.wiremock.http.ResponseDefinition
+import groovy.swing.impl.DefaultAction
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -106,8 +107,12 @@ class NexusService {
     @SuppressWarnings('LineLength')
     @NonCPS
     URI getArtifact(String repository, String filePath) {
-        def restCall = Unirest.post("${this.baseURL}/${repository/${filePath}")
+        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+            .routeParam('repository', repository)
+            .basicAuth(this.username, this.password)
+
         def response = restCall.asString()
+            
         response.ifSuccess {
             if (response.getStatus() != 204) {
                 throw new RuntimeException(
