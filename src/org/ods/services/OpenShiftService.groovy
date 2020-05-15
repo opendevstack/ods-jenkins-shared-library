@@ -434,6 +434,30 @@ class OpenShiftService {
         ).trim()
     }
 
+    boolean checkForExistingValidDeploymentBasedOnStoredConfig (Map repo) {
+        def openshiftDir = 'openshift-exported'
+        if (steps.fileExists('openshift')) {
+            openshiftDir = 'openshift'
+        }
+        boolean force = !!repo.forceRebuild
+        
+        this.steps.echo("Verifying deployed state of repo: '${repo.id}' - force? ${force}")
+        if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !force) {
+            def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
+            def deployments = new JsonSlurperClassic().parseText(storedDeployments)
+            if (this.isLatestDeploymentBasedOnLatestImageDefs(deployments)) {
+                repo.data.odsBuildArtifacts = deployments
+                repo.data.odsBuildArtifacts.resurrected = true
+                this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+                return true
+            } else {
+                this.steps.echo("Current deployments for repo: '${repo.id}'" +
+                    " do not match last latest state (force? ${force}), rebuilding..")
+            }
+        } 
+        return false
+    }
+
     @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
     private Map extractPodData(String ocOutput, String description) {
         def j = new JsonSlurperClassic().parseText(ocOutput)
@@ -548,6 +572,38 @@ class OpenShiftService {
         imageInfo.sha = nameParts[1]
         imageInfo.shaStripped = nameParts[1].replace('sha256:', '')
         imageInfo
+    }
+
+    private boolean isLatestDeploymentBasedOnLatestImageDefs(def deployments) {
+        List nonExistentDeployments = []
+        List notThisVersionDeployments = []
+        List notThisImages = []
+        deployments.each { deploymentName, deployment ->
+            if (!JenkinsService.CREATED_BY_BUILD_STR == deploymentName) {
+                def dcExists = resourceExists('DeploymentConfig', deploymentName)
+                if (!dcExists) {
+                    steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
+                    nonExistentDeployments << deploymentName
+                }
+                int latestDeployedVersion = os.getLatestVersion (deploymentName)
+                if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
+                    notThisVersionDeployments << latestDeployedVersion
+                    steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
+                        " is not latest version! (${latestDeployedVersion})"
+                }
+                deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
+                    def runningImageSha = os.getRunningImageSha(deploymentName, latestDeployedVersion, index)
+                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
+                    if (imageInfo.sha != runningImageSha) {
+                        steps.echo "DeploymentConfig's container '${deploymentName}/${containerName}'" +
+                            " image is not latest version! (running: ${runningImageSha} vs ${imageInfo.sha})"
+                        notThisImages << runningImageSha
+                    }
+                }
+            }
+        }
+        return (nonExistentDeployments.empty && notThisVersionDeployments.empty &&
+            notThisImages.empty)
     }
 
 }

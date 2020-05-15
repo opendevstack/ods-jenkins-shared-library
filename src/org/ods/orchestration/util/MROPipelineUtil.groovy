@@ -217,6 +217,11 @@ class MROPipelineUtil extends PipelineUtil {
         def componentSelector = "app=${this.project.key}-${repo.id}"
 
         steps.dir(baseDir) {
+            if (os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+                steps.echo("Current deployment for '${repo.id}' is based on" +
+                    " latest deployment information, leaving ...")
+            }
+
             def openshiftDir = 'openshift-exported'
             if (steps.fileExists('openshift')) {
                 openshiftDir = 'openshift'
@@ -330,29 +335,10 @@ class MROPipelineUtil extends PipelineUtil {
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
-            def openshiftDir = 'openshift-exported'
-            if (steps.fileExists('openshift')) {
-                openshiftDir = 'openshift'
-            }
-            boolean force = !!repo.forceRebuild
+            OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
             
-            this.steps.echo("Verifying deployed state of repo: '${repo.id}' - force? ${force}")
-            if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !force) {
-                def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
-                def deployments = new JsonSlurperClassic().parseText(storedDeployments)
-                if (this.isLatestDeploymentBasedOnLatestImageDefs(
-                        ServiceRegistry.instance.get(OpenShiftService),
-                        deployments)) {
-                    repo.data.odsBuildArtifacts = deployments
-                    repo.data.odsBuildArtifacts.resurrected = true
-                    this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
-                } else {
-                    this.steps.echo("Current deployments for repo: '${repo.id}'" + 
-                        " do not match last latest state (force? ${force}), rebuilding..")
-                }
-            }
-
-            if (!repo.data.odsBuildArtifacts) {
+            if (!repo.data.odsBuildArtifacts || 
+                !os.checkForExistingValidDeploymentBasedOnStoredConfig(repo) {
                 def job
                 this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
                     job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
@@ -695,41 +681,6 @@ class MROPipelineUtil extends PipelineUtil {
             this.project.setHasFailingTests(true)
             this.warnBuild("Warning: found failing tests in test reports.")
         }
-    }
-
-    private boolean isLatestDeploymentBasedOnLatestImageDefs(OpenShiftService os, def deployments) {
-        if (!os) {
-            return false
-        }
-        List nonExistentDeployments = []
-        List notThisVersionDeployments = []
-        List notThisImages = []
-        deployments.each { deploymentName, deployment ->
-            if (!JenkinsService.CREATED_BY_BUILD_STR == deploymentName) {
-                def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
-                if (!dcExists) {
-                    steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
-                    nonExistentDeployments << deploymentName
-                }
-                int latestDeployedVersion = os.getLatestVersion (deploymentName)
-                if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
-                    notThisVersionDeployments << latestDeployedVersion
-                    steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
-                        " is not latest version! (${latestDeployedVersion})"
-                }
-                deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
-                    def runningImageSha = os.getRunningImageSha(deploymentName, latestDeployedVersion, index)
-                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
-                    if (imageInfo.sha != runningImageSha) {
-                        steps.echo "DeploymentConfig's container '${deploymentName}/${containerName}'" +
-                            " image is not latest version! (running: ${runningImageSha} vs ${imageInfo.sha})"
-                        notThisImages << runningImageSha
-                    }
-                }
-            }
-        } 
-        return (nonExistentDeployments.empty && notThisVersionDeployments.empty &&
-            notThisImages.empty)
     }
 
 }
