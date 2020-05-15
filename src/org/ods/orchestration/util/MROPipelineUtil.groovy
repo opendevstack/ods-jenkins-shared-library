@@ -337,7 +337,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
             this.steps.echo("Verifying deployed state of repo: '${repo.id}'")
             if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && 
-                !repo.forceRebuild) {
+                !!!repo.forceRebuild) {
                 def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
                 def deployments = new JsonSlurperClassic().parseText(storedDeployments)
                 if (this.isLatestDeploymentBasedOnLatestImageDefs(
@@ -347,8 +347,8 @@ class MROPipelineUtil extends PipelineUtil {
                     repo.data.odsBuildArtifacts.resurrected = true
                     this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
                 } else {
-                    this.setps.echo("Current deployments for repo: '${repo.id}'" + 
-                        "do not match last latest state, rebuilding..")
+                    this.steps.echo("Current deployments for repo: '${repo.id}'" + 
+                        "do not match last latest state (force? ${!!!repo.forceRebuild}), rebuilding..")
                 }
             }
 
