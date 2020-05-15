@@ -47,13 +47,9 @@ class BuildStage extends Stage {
             // closure that return data.
             if (project.isAssembleMode
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
-                def data = []
-                if (!!!repo.resurrected) {
-                    data = [
-                        tests: [
-                            unit: getUnitTestResults(steps, repo)
-                        ]
-                    ]
+                def data = [ : ]
+                if (!!!repo.data?.odsBuildArtifacts?.resurrected) {
+                    data << [tests: [unit: getUnitTestResults(steps, repo) ]]
                 }
 
                 levaDocScheduler.run(
