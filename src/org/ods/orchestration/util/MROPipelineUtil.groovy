@@ -155,13 +155,15 @@ class MROPipelineUtil extends PipelineUtil {
 
                 def imagesFromOtherProjectsFail = []
                 odsBuiltDeploymentInformation.each {odsBuildDeployment, odsBuildDeploymentInfo ->
-                    odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
-                        def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
-                        if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
-                            def msg = "Deployment: ${odsBuildDeployment} / " +
-                                "Container: ${containerName} / Owner: ${owningProject}"
-                            steps.echo "! Image out of scope! ${msg}"
-                            imagesFromOtherProjectsFail << msg
+                    if (!odsBuildDeploymentInfo.containers instanceof String) {
+                        odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
+                            def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
+                            if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
+                                def msg = "Deployment: ${odsBuildDeployment} / " +
+                                    "Container: ${containerName} / Owner: ${owningProject}"
+                                steps.echo "! Image out of scope! ${msg}"
+                                imagesFromOtherProjectsFail << msg
+                            }
                         }
                     }
                 }
