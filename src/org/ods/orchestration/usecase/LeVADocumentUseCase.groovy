@@ -442,6 +442,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDTR(Map repo, Map data) {
         def documentType = DocumentType.DTR as String
 
+        if (!!repo.data?.odsBuildArtifacts?.resurrected)
+        {
+            String resurrectBuildId = repo.data?.odsBuildArtifacts.createdBy.split("/").last()
+            if (resurrectBuildId) {
+                this.steps.echo "Using DTR from jenkins build: ${resurrectBuildId}"
+            }
+        }
+
         def unitTestData = data.tests.unit
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)

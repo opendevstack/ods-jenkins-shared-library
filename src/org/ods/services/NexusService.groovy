@@ -1,3 +1,5 @@
+import kong.unirest.Unirest
+
 package org.ods.services
 
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
@@ -101,6 +103,35 @@ class NexusService {
               "${nexusParams['raw.asset1.filename']}")
         }
         return this.baseURL.resolve("/repository/${repository}")
+    }
+
+    @SuppressWarnings('LineLength')
+    @NonCPS
+    URI getArtifact(String repository, String filePath) {
+        def restCall = Unirest.get("${this.baseURL}/${repository/${filePath}")
+
+        def response = restCall.asString()
+        response.ifSuccess {
+            if (response.getStatus() != 204) {
+                throw new RuntimeException(
+                    'Error: unable to get artifact. ' +
+                        "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+                )
+            }
+        }
+
+        response.ifFailure {
+            def message = 'Error: unable to get artifact. ' +
+                "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return this.baseURL.resolve("/repository/${repository}/${filePath}")
     }
 
 }
