@@ -448,7 +448,10 @@ class OpenShiftService {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             if (this.isLatestDeploymentBasedOnLatestImageDefs(deployments)) {
-                repo.data.odsBuildArtifacts = deployments
+                if (!repo.data.odsBuildArtifacts) {
+                    repo.data.odsBuildArtifacts = [ : ]
+                }
+                repo.data.odsBuildArtifacts.deployments = deployments 
                 repo.data.odsBuildArtifacts.resurrected = true
                 this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
                 return true
