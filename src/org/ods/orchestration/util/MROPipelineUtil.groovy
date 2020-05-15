@@ -192,7 +192,8 @@ class MROPipelineUtil extends PipelineUtil {
                         git commit -m "${commitMessage} [ci skip]"
                         git push origin ${repo.branch}
                         """,
-                        label: "commit and push new state"
+                        label: "commit and push new state",
+                        returnStatus : true
                     )
                 } else {
                     steps.sh(
@@ -200,7 +201,8 @@ class MROPipelineUtil extends PipelineUtil {
                         git add ${filesToStage.join(' ')}
                         git commit -m "${commitMessage} [ci skip]"
                         """,
-                        label: "commit new state"
+                        label: "commit new state",
+                        returnStatus : true
                     )
                     tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                 }
