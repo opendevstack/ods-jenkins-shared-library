@@ -326,16 +326,33 @@ class MROPipelineUtil extends PipelineUtil {
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
-            def job
-            this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
-                job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+            def openshiftDir = 'openshift-exported'
+            if (steps.fileExists('openshift')) {
+                openshiftDir = 'openshift'
             }
-            // Collect ODS build artifacts for repo
-            repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
-            this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+            if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")) {
+                def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
+                def deployments = new JsonSlurperClassic().parseText(storedDeployments)
+                if (this.isLatestDeploymentBasedOnLatestImageDefs(
+                        ServiceRegistry.instance.get(OpenShiftService),
+                        deployments)) {
+                    repo.data.odsBuildArtifacts = deployments
+                    this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+                }
+            }
 
-            if (repo.data.odsBuildArtifacts?.failedStage) {
-                throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
+            if (!repo.data.odsBuildArtifacts) {
+                def job
+                this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
+                    job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                }
+                // Collect ODS build artifacts for repo
+                repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
+                this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+    
+                if (repo.data.odsBuildArtifacts?.failedStage) {
+                    throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
+                }
             }
         }
     }
@@ -668,4 +685,38 @@ class MROPipelineUtil extends PipelineUtil {
             this.warnBuild("Warning: found failing tests in test reports.")
         }
     }
+
+    private boolean isLatestDeploymentBasedOnLatestImageDefs(OpenShiftService os, def deployments) {
+        if (!os) {
+            return false
+        }
+        List nonExistentDeployments = []
+        List notThisVersionDeployments = []
+        List notThisImages = []
+        deployments.each { deploymentName, deployment ->
+            def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
+            if (!dcExists) {
+                steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
+                nonExistentDeployments << deploymentName
+            }
+            int latestDeployedVersion = os.getLatestVersion (deploymentName)
+            if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
+                notThisVersionDeployments << latestDeployedVersion
+                steps.echo "DeploymentConfig '${deploymentName}/${deployment.deploymentId}'" +
+                    " is not latest version! (${latestDeployedVersion})"
+            }
+            deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
+                def runningImageSha = os.getRunningImageSha(deploymentName, latestVersion, index)
+                def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
+                if (imageInfo.sha != runningImageSha) {
+                    steps.echo "DeploymentConfig '${deploymentName}/${containerName}'" +
+                        " image is not latest version! (${runningImageSha})"
+                    notThisImages << runningImageSha
+                }
+            }
+        } 
+        return (nonExistentDeployments.empty && notThisVersionDeployments.empty &&
+            notThisImages.empty)
+    }
+
 }

@@ -237,6 +237,7 @@ class Pipeline implements Serializable {
                         ).each { resultKey, resultValue ->
                             context.addArtifactURI(resultKey, resultValue)
                         }
+                        context.addArtifactURI("createdBy", context.buildUrl)
                         logger.debug(
                             "ODS Build Artifacts '${context.componentId}': " +
                             "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
