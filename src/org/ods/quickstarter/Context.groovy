@@ -31,6 +31,11 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getDockerRegistry() {
+        config.dockerRegistry
+    }
+
+    @NonCPS
     String getProjectId() {
         config.projectId
     }
