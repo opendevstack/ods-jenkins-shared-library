@@ -330,7 +330,7 @@ class MROPipelineUtil extends PipelineUtil {
             if (steps.fileExists('openshift')) {
                 openshiftDir = 'openshift'
             }
-            this.setps.echo("Verfying deployed state of repo: '${repo.id}'")
+            this.steps.echo("Verifying deployed state of repo: '${repo.id}'")
             if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && 
                 !repo.forceRebuild) {
                 def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
