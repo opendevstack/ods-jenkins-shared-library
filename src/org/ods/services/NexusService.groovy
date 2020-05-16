@@ -104,9 +104,9 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     @NonCPS
-    URI getArtifact(String repository, String filePath) {
-        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
-            .routeParam('repository', repository)
+    Map<URI, byte[]> getArtifact(String repository, String directory, String name) {
+        // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
+        def restCall = Unirest.post("${this.baseURL}/repository/${repository}/${directory}/${name}")
             .basicAuth(this.username, this.password)
 
         def response = restCall.asString()
@@ -131,7 +131,7 @@ class NexusService {
             throw new RuntimeException(message)
         }
 
-        return this.baseURL.resolve("/repository/${repository}/${filePath}")
+        return this.baseURL.resolve("/repository/${repository}/${directory}/${name}")
     }
 
 }
