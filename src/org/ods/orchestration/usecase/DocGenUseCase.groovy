@@ -157,8 +157,9 @@ abstract class DocGenUseCase {
                 deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
             if (build) {
                 resurrectedBuild = build.split("/").last()
-                this.steps.echo "Using ${documentType} from jenkins build: ${buildId}"
+                this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
             } else {
+                this.steps.echo "No previous valid report for ${documentType}/repo: ${repo.id} found"
                 return null
             }
         }
