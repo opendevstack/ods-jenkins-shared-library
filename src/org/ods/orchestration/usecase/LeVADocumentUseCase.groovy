@@ -157,14 +157,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
 
             // store doc - we may need it later for partial deployments
-            this.nexus.storeArtifact(
+            def uploadUri = this.nexus.storeArtifact(
                 this.project.services.nexus.repository.name,
                 "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
                 "${name}.pdf",
                 generatedSCRR,
                 "application/pdf"
             )
-
+            this.steps.echo message "Uploaded SCRR to ${generatedSCRR}"
             return generatedSCRR
         }
 
