@@ -171,8 +171,8 @@ abstract class DocGenUseCase {
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
-        String storageType = fileExtensions.storage ?: '.zip'
-        String contentType = fileExtensions.storage ?: '.pdf'
+        String storageType = fileExtensions.storage ?: 'zip'
+        String contentType = fileExtensions.storage ?: 'pdf'
         this.steps.echo "DocumentType ${documentType} storage/content: ${fileExtensions}"
         
         Map documentAsZip =
