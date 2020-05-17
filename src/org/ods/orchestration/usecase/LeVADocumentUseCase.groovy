@@ -164,7 +164,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 generatedSCRR,
                 "application/pdf"
             )
-            this.steps.echo message "Uploaded SCRR to ${generatedSCRR}"
+            this.steps.echo "Uploaded SCRR to ${uploadUri}"
             return generatedSCRR
         }
 
