@@ -586,7 +586,7 @@ class Context implements IContext {
         artifactUriStore.builds [buildConfigName] = buildInformation
     }
 
-    void addDeploymentToArtifactURIs (String deploymentConfigName, Map <String, String>  deploymentInformation) {
+    void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
         artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
     }
 

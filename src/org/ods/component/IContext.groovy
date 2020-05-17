@@ -148,7 +148,7 @@ interface IContext {
     void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation)
 
     // add a deployment to the artifact urls (key deploymentConfig name)
-    void addDeploymentToArtifactURIs (String deploymentConfigName, Map <String, String> deploymentInformation)
+    void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation)
 
     // get extension image labels
     Map<String, String> getExtensionImageLabels ()

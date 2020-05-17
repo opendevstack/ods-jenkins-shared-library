@@ -364,7 +364,8 @@ class MROPipelineUtil extends PipelineUtil {
             }
             // Collect ODS build artifacts for repo
             repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
-            repo.data.odsBuildArtifacts.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}" : context.buildUrl]
+            repo.data.odsBuildArtifacts.deployments <<
+                ["${JenkinsService.CREATED_BY_BUILD_STR}": this.steps.env.BUILD_URL]
             this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
 
             if (repo.data.odsBuildArtifacts?.failedStage) {
