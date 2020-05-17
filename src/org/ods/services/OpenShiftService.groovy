@@ -437,9 +437,6 @@ class OpenShiftService {
     }
 
     boolean checkForExistingValidDeploymentBasedOnStoredConfig (Map repo) {
-        if (!repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
-            return false
-        }
         def openshiftDir = 'openshift-exported'
         if (steps.fileExists('openshift')) {
             openshiftDir = 'openshift'
