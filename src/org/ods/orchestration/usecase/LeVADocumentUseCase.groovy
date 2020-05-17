@@ -441,16 +441,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String createDTR(Map repo, Map data) {
         def documentType = DocumentType.DTR as String
-        String buildId
-        this.steps.echo "DTR repo: ${repo.data}"
         if (!!repo.data?.odsBuildArtifacts?.resurrected)
         {
             String build = repo.data?.odsBuildArtifacts?.
                 deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
             if (build) {
-                buildId = build.split("/").last()
+                def buildId = build.split("/").last()
                 this.steps.echo "Using DTR from jenkins build: ${buildId}"
-                resurrectAndStashDocument(documentType, buildId, repo, true)
+                String resurrectUri = resurrectAndStashDocument(documentType, buildId, repo, true)
+                this.steps.echo "resurrected prevision DTR: ${resurrectUri}"
+                return resurrectUri
             }
         }
 
