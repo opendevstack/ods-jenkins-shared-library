@@ -441,17 +441,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String createDTR(Map repo, Map data) {
         def documentType = DocumentType.DTR as String
-        if (!!repo.data?.odsBuildArtifacts?.resurrected)
-        {
-            String build = repo.data?.odsBuildArtifacts?.
-                deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
-            if (build) {
-                def buildId = build.split("/").last()
-                this.steps.echo "Using DTR from jenkins build: ${buildId}"
-                String resurrectUri = resurrectAndStashDocument(documentType, buildId, repo, true)
-                this.steps.echo "resurrected prevision DTR: ${resurrectUri},\rrepo: ${repo}"
-                return resurrectUri
-            }
+        Map resurrectedDocument = resurrectDocument(documentType, repo)
+        if (resurrectedDocument.resurrected) {
+            return resurrectedDocument.uri
         }
 
         def unitTestData = data.tests.unit
@@ -1105,6 +1097,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
+
+        Map resurrectedDocument = resurrectDocument(documentType, repo)
+        if (resurrectedDocument.resurrected) {
+            return resurrectedDocument.uri
+        }
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {

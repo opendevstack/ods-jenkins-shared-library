@@ -13,6 +13,7 @@ import org.ods.orchestration.util.Project
 @SuppressWarnings(['AbstractClassWithPublicConstructor', 'LineLength', 'ParameterCount', 'GStringAsMapKey'])
 abstract class DocGenUseCase {
 
+    static final String RESURRECTED = "resurrected"
     protected Project project
     protected IPipelineSteps steps
     protected MROPipelineUtil util
@@ -168,7 +169,21 @@ abstract class DocGenUseCase {
 
         return documentAsZip.uri
     }
-    
+
+    Map resurrectDocument (String documentType, def repo) {
+        if (!!repo.data?.odsBuildArtifacts?.resurrected) {
+            String build = repo.data?.odsBuildArtifacts?.
+                deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
+            if (build) {
+                def buildId = build.split("/").last()
+                this.steps.echo "Using ${documentType} from jenkins build: ${buildId}"
+                String resurrectUri = resurrectAndStashDocument(documentType, buildId, repo, true)
+                return ["${RESURRECTED}": true, 'uri': resurrectUri]
+            }
+        }
+        return ["${RESURRECTED}": false]
+    }
+
     abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
