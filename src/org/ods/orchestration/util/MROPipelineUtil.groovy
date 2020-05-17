@@ -353,23 +353,21 @@ class MROPipelineUtil extends PipelineUtil {
         this.steps.dir(baseDir) {
             OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
             // only in case of a code component (that is deployed) do this check
-            def buildRepo = true
-            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
-                buildRepo = !os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)
+            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
+                os.checkForExistingValidDeploymentBasedOnStoredConfig(repo))
+                return
             }
-            
-            if (buildRepo) {
-                def job
-                this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
-                    job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
-                }
-                // Collect ODS build artifacts for repo
-                repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
-                this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
-    
-                if (repo.data.odsBuildArtifacts?.failedStage) {
-                    throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
-                }
+
+            def job
+            this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
+                job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+            }
+            // Collect ODS build artifacts for repo
+            repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
+            this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+
+            if (repo.data.odsBuildArtifacts?.failedStage) {
+                throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
             }
         }
     }
