@@ -181,9 +181,14 @@ abstract class DocGenUseCase {
                 "${this.project.key.toLowerCase()}-${buildVersion}",
                 "${basename}.${storageType}", path)
 
-       // stash pdf with new name / + build id
-        byte [] resurrectedDocAsBytes = this.util.extractFromZipFile(
-            "${path}/${basename}.${storageType}", "${basename}.${contentType}")
+        // stash pdf with new name / + build id
+        byte [] resurrectedDocAsBytes
+        if (storageType == 'zip') {
+            resurrectedDocAsBytes = this.util.extractFromZipFile(
+                "${path}/${basename}.${storageType}", "${basename}.${contentType}")
+        } else { 
+            resurrectedDocAsBytes = documentAsZip.content.getBytes()
+        }
 
         if (stash) {
             this.util.createAndStashArtifact("${basename}.${contentType}", resurrectedDocAsBytes)

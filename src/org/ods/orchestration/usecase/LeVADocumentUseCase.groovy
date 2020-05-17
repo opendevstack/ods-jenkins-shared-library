@@ -135,6 +135,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def reports =  repos.collect { r ->
 
             // resurrect?
+            Map resurrectedDocument = resurrectAndStashDocument('SCRR', r)
+            this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
+            if (resurrectedDocument.found) {
+            }
             
             def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
             def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
@@ -164,7 +168,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 generatedSCRR,
                 "application/pdf"
             )
-            this.steps.echo "Uploaded SCRR to ${uploadUri}"
             return generatedSCRR
         }
 
