@@ -162,6 +162,9 @@ abstract class DocGenUseCase {
                 this.steps.echo "No previous valid report for ${documentType}/repo: ${repo.id} found"
                 return [found: false]
             }
+        } else {
+            this.steps.echo "No previous valid report for ${documentType}/repo: ${repo.id} found"
+            return [found: false]
         }
         def buildVersion = this.project.buildParams.version
         def basename = getDocumentBasename (documentType, buildVersion, resurrectedBuild, repo)
