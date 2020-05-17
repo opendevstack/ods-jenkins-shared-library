@@ -172,7 +172,7 @@ abstract class DocGenUseCase {
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
         String storageType = fileExtensions.storage ?: 'zip'
-        String contentType = fileExtensions.storage ?: 'pdf'
+        String contentType = fileExtensions.content ?: 'pdf'
         this.steps.echo "DocumentType ${documentType} storage/content: ${fileExtensions}"
         
         Map documentAsZip =

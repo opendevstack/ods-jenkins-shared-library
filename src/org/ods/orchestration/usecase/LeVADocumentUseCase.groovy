@@ -131,7 +131,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    private Map obtainCodeReviewReport(List<Map> repos) {
+    private List obtainCodeReviewReport(List<Map> repos) {
         def reports =  repos.collect { r ->
             def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
             def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
@@ -151,10 +151,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def name = this.getDocumentBasename("SCRR-MD", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
             def sqReportFile = sqReportFiles.first()
 
-            return this.pdf.convertFromMarkdown(sqReportFile, true)
+            def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
+            return generatedSCRR
         }
 
-        return this.pdf.merge(reports)
+        return reports
     }
 
     protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
@@ -1045,11 +1046,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Code review report
         def codeRepos = this.project.repositories.findAll{ it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
-        def codeReviewReport = obtainCodeReviewReport(codeRepos)
+        def codeReviewReports = obtainCodeReviewReport(codeRepos)
 
         def modifier = { document ->
+            List documents = [document]
+            documents += codeReviewReports
             // Merge the current document with the code review report
-            return this.pdf.merge([ document, codeReviewReport])
+            return this.pdf.merge(documents)
         }
 
         def data_ = [
