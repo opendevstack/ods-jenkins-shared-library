@@ -228,8 +228,7 @@ class MROPipelineUtil extends PipelineUtil {
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             repo.data["openshift"] = [deployments: [:]]
 
-            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+            if (os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
                 steps.echo("Current deployment for '${repo.id}' is based on" +
                     " latest deployment information, leaving ...")
                 def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
@@ -354,8 +353,7 @@ class MROPipelineUtil extends PipelineUtil {
         this.steps.dir(baseDir) {
             OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
             // only in case of a code component (that is deployed) do this check
-            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                !os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+            if (!os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
                 def job
                 this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
                     job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")

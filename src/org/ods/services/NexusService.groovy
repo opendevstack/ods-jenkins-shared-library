@@ -106,7 +106,8 @@ class NexusService {
     @NonCPS
     Map<URI, File> getArtifact(String repository, String directory, String name, String path) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        def restCall = Unirest.post("${this.baseURL}/repository/${repository}/${directory}/${name}")
+        String urlToDownload = "${this.baseURL}/repository/${repository}/${directory}/${name}"
+        def restCall = Unirest.post("${urlToDownload}")
             .basicAuth(this.username, this.password)
 
         def response = restCall.asFile("${path}/${name}")
@@ -122,10 +123,11 @@ class NexusService {
 
         response.ifFailure {
             def message = 'Error: unable to get artifact. ' +
-                "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+                "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'." +
+                " The url called was: ${urlToDownload}"
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}'."
+                message = "Error: unable to get artifact. Nexus could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)
