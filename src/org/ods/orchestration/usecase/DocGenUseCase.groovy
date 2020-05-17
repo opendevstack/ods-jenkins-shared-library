@@ -151,12 +151,12 @@ abstract class DocGenUseCase {
         if (!repo.data?.odsBuildArtifacts) {
             return null
         }
-        String build
+        String resurrectedBuild
         if (!!repo.data.odsBuildArtifacts.resurrected) {
-            build = repo.data.odsBuildArtifacts?.
+            String build = repo.data.odsBuildArtifacts?.
                 deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
             if (build) {
-                def buildId = build.split("/").last()
+                resurrectedBuild = build.split("/").last()
                 this.steps.echo "Using ${documentType} from jenkins build: ${buildId}"
             } else {
                 return null
