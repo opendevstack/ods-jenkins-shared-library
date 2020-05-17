@@ -104,13 +104,13 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     @NonCPS
-    Map<URI, File> getArtifact(String repository, String directory, String name, String path) {
+    Map<URI, File> getArtifact(String nexuseRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        String urlToDownload = "${this.baseURL}/repository/${repository}/${directory}/${name}"
+        String urlToDownload = "${this.baseURL}/repository/${nexuseRepository}/${nexusDirectory}/${name}"
         def restCall = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)
 
-        def response = restCall.asFile("${path}/${name}")
+        def response = restCall.asFile("${extractionPath}/${name}")
 
         response.ifFailure {
             def message = 'Error: unable to get artifact. ' +
@@ -126,7 +126,7 @@ class NexusService {
             }
         }
 
-        return [uri : this.baseURL.resolve("/repository/${repository}/${directory}/${name}"),
+        return [uri : this.baseURL.resolve("/repository/${nexuseRepository}/${nexusDirectory}/${name}"),
             content : response.getBody()]
     }
 

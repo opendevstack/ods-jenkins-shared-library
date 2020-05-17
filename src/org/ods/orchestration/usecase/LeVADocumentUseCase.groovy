@@ -33,7 +33,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         TRC,
         OVERALL_DTR,
         OVERALL_IVR,
-        OVERALL_TIR
+        OVERALL_TIR,
+        SCRR
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
@@ -62,6 +63,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         DocumentType.CSD as String,
         DocumentType.CFTP as String,
         DocumentType.CFTR as String
+    ]
+
+    static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
+        (DocumentType.SCRR as String) : [storage: '.pdf', content: '.pdf' ]
     ]
 
     public static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
@@ -1387,5 +1392,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.DTR as String
         ]
         return !(documentType && notArchiveDocTypes.contains(documentType))
+    }
+
+    Map getFiletypeForDocumentType (String documentType) {
+        if (!documentType) {
+            throw new RuntimeException ("Cannot lookup Null docType for storage!")
+        }
+        if (DOCUMENT_TYPE_NAMES.containsKey(documentType)) {
+            return [storage: '.zip', content: '.pdf' ]
+        } else if (DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.containsKey(documentType)) {
+            return DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.get(documentType)
+        }
+        return [storage: '.zip', content: '.pdf' ]
     }
 }

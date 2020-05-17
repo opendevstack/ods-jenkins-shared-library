@@ -170,19 +170,26 @@ abstract class DocGenUseCase {
         def basename = getDocumentBasename (documentType, buildVersion, resurrectedBuild, repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
 
+        def fileExtensions = getFiletypeForDocumentType(documentType)
+        String storageType = fileExtensions.storage ?: '.zip'
+        String contentType = fileExtensions.storage ?: '.pdf'
+        this.steps.echo "DocumentType ${documentType} storage/content: ${fileExtensions}"
+        
         Map documentAsZip =
             this.nexus.getArtifact(
                 this.project.services.nexus.repository.name,
                 "${this.project.key.toLowerCase()}-${buildVersion}",
-                "${basename}.zip", path)
+                "${basename}.${storageType}", path)
 
        // stash pdf with new name / + build id
-        byte [] resurrectedDocAsBytes = this.util.extractFromZipFile("${path}/${basename}.zip", "${basename}.pdf")
+        byte [] resurrectedDocAsBytes = this.util.extractFromZipFile(
+            "${path}/${basename}.${storageType}", "${basename}.${contentType}")
+
         if (stash) {
-            this.util.createAndStashArtifact("${basename}.pdf", resurrectedDocAsBytes)
+            this.util.createAndStashArtifact("${basename}.${contentType}", resurrectedDocAsBytes)
         }
         if (!isArchivalRelevant(documentType)) {
-            repo.data.documents[documentType] = "${basename}.pdf"
+            repo.data.documents[documentType] = "${basename}.${contentType}"
         }
 
         return [found: true, 'uri': documentAsZip.uri]
@@ -193,4 +200,6 @@ abstract class DocGenUseCase {
     abstract List<String> getSupportedDocuments()
 
     abstract boolean isArchivalRelevant (String documentType)
+
+    abstract Map getFiletypeForDocumentType (String documentType)
 }
