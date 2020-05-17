@@ -127,7 +127,7 @@ class NexusService {
         }
 
         return [uri : this.baseURL.resolve("/repository/${repository}/${directory}/${name}"),
-          content : response.getBody()]
+            content : response.getBody()]
     }
 
 }

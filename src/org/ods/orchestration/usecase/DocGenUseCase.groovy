@@ -147,9 +147,9 @@ abstract class DocGenUseCase {
         return "${documentType}-${result}-${version}-${build}".toString()
     }
 
-    String resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
+    Map resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
         if (!repo.data?.odsBuildArtifacts) {
-            return null
+            return [found: false]
         }
         String resurrectedBuild
         if (!!repo.data.odsBuildArtifacts.resurrected) {
@@ -160,7 +160,7 @@ abstract class DocGenUseCase {
                 this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
             } else {
                 this.steps.echo "No previous valid report for ${documentType}/repo: ${repo.id} found"
-                return null
+                return [found: false]
             }
         }
         def buildVersion = this.project.buildParams.version
@@ -182,7 +182,7 @@ abstract class DocGenUseCase {
             repo.data.documents[documentType] = "${basename}.pdf"
         }
 
-        return documentAsZip.uri
+        return [found: true, 'uri': documentAsZip.uri]
     }
 
     abstract String getDocumentTemplatesVersion()
