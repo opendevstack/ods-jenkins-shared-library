@@ -107,7 +107,7 @@ class NexusService {
     Map<URI, File> getArtifact(String repository, String directory, String name, String path) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
         String urlToDownload = "${this.baseURL}/repository/${repository}/${directory}/${name}"
-        def restCall = Unirest.post("${urlToDownload}")
+        def restCall = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)
 
         def response = restCall.asFile("${path}/${name}")
