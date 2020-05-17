@@ -442,7 +442,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDTR(Map repo, Map data) {
         def documentType = DocumentType.DTR as String
         Map resurrectedDocument = resurrectDocument(documentType, repo)
-        if (!!resurrectedDocument.resurrected) {
+        this.steps.echo "Resurrected: ${repo.id} - ${resurrectedDocument} -${resurrectedDocument.resurrected}"
+        if (resurrectedDocument.resurrected) {
             return resurrectedDocument.uri
         }
 
