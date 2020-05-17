@@ -111,15 +111,6 @@ class NexusService {
             .basicAuth(this.username, this.password)
 
         def response = restCall.asFile("${path}/${name}")
-            
-        response.ifSuccess {
-            if (response.getStatus() != 200) {
-                throw new RuntimeException(
-                    'Error: unable to get artifact. ' +
-                        "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
-                )
-            }
-        }
 
         response.ifFailure {
             def message = 'Error: unable to get artifact. ' +
@@ -129,8 +120,10 @@ class NexusService {
             if (response.getStatus() == 404) {
                 message = "Error: unable to get artifact. Nexus could not be found at: '${this.baseURL}'."
             }
-
-            throw new RuntimeException(message)
+            // very weird, we get a 200 as failure with a good artifact, wtf.
+            if (response.getStatus() != 200) {
+                throw new RuntimeException(message)
+            }
         }
 
         return [uri : this.baseURL.resolve("/repository/${repository}/${directory}/${name}"),

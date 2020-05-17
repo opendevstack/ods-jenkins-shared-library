@@ -134,8 +134,15 @@ class PipelineUtil {
     }
 
     @NonCPS
-    byte[] extractFromZipFile(String path, String fileName) {
-        return "string".getBytes()
+    byte[] extractFromZipFile(String path, String fileToBeExtracted) {
+        // Create parent directory if needed
+        File parentdir = this.createDirectory(new File(path).getParent())
+  
+        // Create the Zip file
+        def zipFile = new ZipFile(path)
+        zipFile.extractFile(fileToBeExtracted, parentdir.getAbsolutePath())
+        
+        return new File(parentdir, fileToBeExtracted).getBytes()
     }
 
     void executeBlockAndFailBuild(Closure block) {
