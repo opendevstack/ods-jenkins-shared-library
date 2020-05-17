@@ -449,7 +449,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def buildId = build.split("/").last()
                 this.steps.echo "Using DTR from jenkins build: ${buildId}"
                 String resurrectUri = resurrectAndStashDocument(documentType, buildId, repo, true)
-                this.steps.echo "resurrected prevision DTR: ${resurrectUri}"
+                this.steps.echo "resurrected prevision DTR: ${resurrectUri},\rrepo: ${repo}"
                 return resurrectUri
             }
         }

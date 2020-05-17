@@ -162,7 +162,7 @@ abstract class DocGenUseCase {
         if (stash) {
             this.util.createAndStashArtifact("${basename}.pdf", resurrectedDocAsBytes)
         }
-        if (isArchivalRelevant(documentType)) {
+        if (!isArchivalRelevant(documentType)) {
             repo.data.documents[documentType] = "${basename}.pdf"
         }
 
