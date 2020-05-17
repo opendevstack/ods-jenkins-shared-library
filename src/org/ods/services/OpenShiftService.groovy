@@ -459,7 +459,7 @@ class OpenShiftService {
                 return true
             } else {
                 this.steps.echo("Current deployments for repo: '${repo.id}'" +
-                    " do not match last latest state (force? ${force}), rebuilding..")
+                    " do not match last latest committed state (force? ${force}), rebuilding..")
             }
         }
         return false

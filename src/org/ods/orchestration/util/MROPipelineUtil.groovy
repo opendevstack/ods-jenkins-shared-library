@@ -355,7 +355,7 @@ class MROPipelineUtil extends PipelineUtil {
             OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
             // only in case of a code component (that is deployed) do this check
             if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+                !os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
                 def job
                 this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
                     job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
