@@ -133,6 +133,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private List obtainCodeReviewReport(List<Map> repos) {
         def reports =  repos.collect { r ->
+
+            // resurrect?
+            
             def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
             def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
 
@@ -152,6 +155,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def sqReportFile = sqReportFiles.first()
 
             def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
+
+            // store doc - we may need it later for partial deployments
+            this.nexus.storeArtifact(
+                this.project.services.nexus.repository.name,
+                "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
+                "${name}.pdf",
+                generatedSCRR,
+                "application/pdf"
+            )
+
             return generatedSCRR
         }
 
