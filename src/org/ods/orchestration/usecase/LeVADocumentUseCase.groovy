@@ -450,6 +450,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (build) {
                 buildId = build.split("/").last()
                 this.steps.echo "Using DTR from jenkins build: ${buildId}"
+                resurrectAndStashDocument(documentType, buildId, repo, true)
             }
         }
 

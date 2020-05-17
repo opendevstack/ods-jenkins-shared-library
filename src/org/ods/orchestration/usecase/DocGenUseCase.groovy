@@ -146,6 +146,22 @@ abstract class DocGenUseCase {
         return "${documentType}-${result}-${version}-${build}".toString()
     }
 
+    String resurrectAndStashDocument(String documentType, String resurrectedBuild, Map repo = null, boolean stash = true) {
+        def buildVersion = this.project.buildParams.version
+        def basename = getDocumentBasename (documentType, buildVersion, resurrectedBuild, repo)
+        def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
+
+        Map documentAsZip = 
+            this.nexus.getArtifact(
+                this.project.services.nexus.repository.name,
+                "${this.project.key.toLowerCase()}-${buildVersion}",
+                "${basename}.zip", path)
+
+       // stash pdf with new name / + build id
+
+        return documentAsZip.uri
+    }
+    
     abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
