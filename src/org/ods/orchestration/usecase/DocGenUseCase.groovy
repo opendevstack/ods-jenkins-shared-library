@@ -147,7 +147,21 @@ abstract class DocGenUseCase {
         return "${documentType}-${result}-${version}-${build}".toString()
     }
 
-    String resurrectAndStashDocument(String documentType, String resurrectedBuild, Map repo, boolean stash = true) {
+    String resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
+        if (!repo.data?.odsBuildArtifacts) {
+            return null
+        }
+        String build
+        if (!!repo.data.odsBuildArtifacts.resurrected) {
+            build = repo.data.odsBuildArtifacts?.
+                deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
+            if (build) {
+                def buildId = build.split("/").last()
+                this.steps.echo "Using ${documentType} from jenkins build: ${buildId}"
+            } else {
+                return null
+            }
+        }
         def buildVersion = this.project.buildParams.version
         def basename = getDocumentBasename (documentType, buildVersion, resurrectedBuild, repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
@@ -168,20 +182,6 @@ abstract class DocGenUseCase {
         }
 
         return documentAsZip.uri
-    }
-
-    Map resurrectDocument (String documentType, def repo) {
-        if (!!repo.data?.odsBuildArtifacts?.resurrected) {
-            String build = repo.data?.odsBuildArtifacts?.
-                deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
-            if (build) {
-                def buildId = build.split("/").last()
-                this.steps.echo "Using ${documentType} from jenkins build: ${buildId}"
-                String resurrectUri = resurrectAndStashDocument(documentType, buildId, repo, true)
-                return ["${RESURRECTED}": true, 'uri': resurrectUri]
-            }
-        }
-        return ["${RESURRECTED}": false]
     }
 
     abstract String getDocumentTemplatesVersion()

@@ -441,10 +441,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String createDTR(Map repo, Map data) {
         def documentType = DocumentType.DTR as String
-        Map resurrectedDocument = resurrectDocument(documentType, repo)
-        this.steps.echo "Resurrected: ${repo.id} - ${resurrectedDocument} -${resurrectedDocument.resurrected}"
-        if (resurrectedDocument.resurrected) {
-            return resurrectedDocument.uri
+
+        String resurrectedDocument = resurrectAndStashDocument(documentType, repo)
+        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument} ?: 'NOT FOUND')"
+        if (resurrectedDocument) {
+            return resurrectedDocument
         }
 
         def unitTestData = data.tests.unit
@@ -1099,9 +1100,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
 
-        Map resurrectedDocument = resurrectDocument(documentType, repo)
-        if (!!resurrectedDocument.resurrected) {
-            return resurrectedDocument.uri
+        String resurrectedDocument = resurrectAndStashDocument(documentType, repo)
+        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument} ?: 'NOT FOUND')"
+        if (resurrectedDocument) {
+            return resurrectedDocument
         }
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
