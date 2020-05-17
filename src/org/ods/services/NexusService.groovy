@@ -113,7 +113,7 @@ class NexusService {
         def response = restCall.asFile("${path}/${name}")
             
         response.ifSuccess {
-            if (response.getStatus() != 204) {
+            if (response.getStatus() != 200) {
                 throw new RuntimeException(
                     'Error: unable to get artifact. ' +
                         "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."

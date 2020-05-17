@@ -158,6 +158,7 @@ abstract class DocGenUseCase {
                 "${basename}.zip", path)
 
        // stash pdf with new name / + build id
+        byte [] resurrectedDocAsBytes = this.util.extractFromZipFile(path, "${basename}.pdf")
 
         return documentAsZip.uri
     }

@@ -133,6 +133,11 @@ class PipelineUtil {
         return new File(path).getBytes()
     }
 
+    @NonCPS
+    byte[] extractFromZipFile(String path, String fileName) {
+        return "string".getBytes()
+    }
+
     void executeBlockAndFailBuild(Closure block) {
         try {
             block()
