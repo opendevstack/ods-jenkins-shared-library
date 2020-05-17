@@ -167,7 +167,7 @@ abstract class DocGenUseCase {
         def basename = getDocumentBasename (documentType, buildVersion, resurrectedBuild, repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
 
-        Map documentAsZip = 
+        Map documentAsZip =
             this.nexus.getArtifact(
                 this.project.services.nexus.repository.name,
                 "${this.project.key.toLowerCase()}-${buildVersion}",

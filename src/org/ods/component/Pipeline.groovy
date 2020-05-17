@@ -237,8 +237,6 @@ class Pipeline implements Serializable {
                         ).each { resultKey, resultValue ->
                             context.addArtifactURI(resultKey, resultValue)
                         }
-                        context.addDeploymentToArtifactURIs(
-                            JenkinsService.CREATED_BY_BUILD_STR, context.buildUrl)
                         logger.debug(
                             "ODS Build Artifacts '${context.componentId}': " +
                             "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
