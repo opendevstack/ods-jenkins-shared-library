@@ -1173,7 +1173,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def modifier = { document ->
             if (codeReviewReport) {
-                document = this.pdf.merge([ document, codeReviewReport])
+                List documents = [document]
+                documents += codeReviewReport
+                // Merge the current document with the code review report
+                document = this.pdf.merge(documents)
             }
             return document
         }
