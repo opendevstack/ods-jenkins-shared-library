@@ -197,7 +197,7 @@ abstract class DocGenUseCase {
             repo.data.documents[documentType] = "${basename}.${contentType}"
         }
 
-        return [found: true, 'uri': documentAsZip.uri]
+        return [found: true, 'uri': documentAsZip.uri, content : resurrectedDocAsBytes]
     }
 
     abstract String getDocumentTemplatesVersion()

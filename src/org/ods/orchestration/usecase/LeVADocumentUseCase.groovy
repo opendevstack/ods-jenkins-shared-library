@@ -133,11 +133,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     private List obtainCodeReviewReport(List<Map> repos) {
         def reports =  repos.collect { r ->
-
             // resurrect?
             Map resurrectedDocument = resurrectAndStashDocument('SCRR', r)
             this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
             if (resurrectedDocument.found) {
+                return resurrectedDocument.content
             }
             
             def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
