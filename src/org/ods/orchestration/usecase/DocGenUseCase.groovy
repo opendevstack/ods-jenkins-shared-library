@@ -153,10 +153,11 @@ abstract class DocGenUseCase {
             return [found: false]
         }
         String resurrectedBuild
-        if (!!repo.data.odsBuildArtifacts.resurrected) {
-            String build = repo.data.odsBuildArtifacts?.
-                deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
-            if (build) {
+        if (!!repo.data.odsBuildArtifacts.resurrected && 
+            repo.data.odsBuildArtifacts.deployments) {
+            String build = repo.data.odsBuildArtifacts.
+                deployments[JenkinsService.CREATED_BY_BUILD_STR]
+            if (build && build.contains('/')) {
                 resurrectedBuild = build.split('/').last()
                 this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
             } else {
@@ -201,7 +202,12 @@ abstract class DocGenUseCase {
             repo.data.documents[documentType] = contentFileName
         }
 
-        return [found: true, 'uri': documentFromNexus.uri, content: resurrectedDocAsBytes]
+        return [
+            found: true, 
+            'uri': documentFromNexus.uri, 
+            content: resurrectedDocAsBytes,
+            createdByBuild: resurrectedBuild,
+        ]
     }
 
     void storeDocument (String documentName, byte [] documentAsBytes, String contentType) {
