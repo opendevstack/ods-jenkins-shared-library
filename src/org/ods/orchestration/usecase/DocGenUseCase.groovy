@@ -182,6 +182,7 @@ abstract class DocGenUseCase {
                 "${this.project.key.toLowerCase()}-${buildVersion}",
                 "${basename}.${storageType}", path)
 
+        this.steps.echo "Document found: ${basename}.${storageType} \r ${documentFromNexus}"
         // stash pdf with new name / + build id
         byte [] resurrectedDocAsBytes
         if (storageType == 'zip') {
