@@ -176,7 +176,8 @@ abstract class DocGenUseCase {
         def fileExtensions = getFiletypeForDocumentType(documentType)
         String storageType = fileExtensions.storage ?: 'zip'
         String contentType = fileExtensions.content ?: 'pdf'
-        this.steps.echo "Resolved documentType '${documentType}' - storage/content formats: ${fileExtensions}"
+        this.steps.echo "Resolved documentType '${documentType}'" +
+            " - storage/content formats: ${fileExtensions}"
 
         String contentFileName = "${basename}.${contentType}"
         String storedFileName = "${basename}.${storageType}"
@@ -186,7 +187,7 @@ abstract class DocGenUseCase {
                 "${this.project.key.toLowerCase()}-${buildVersion}",
                 storedFileName, path)
 
-        this.steps.echo "Document found: ${basename}.${storageType} \r ${documentFromNexus}"
+        this.steps.echo "Document found: ${storedFileName} \r ${documentFromNexus}"
         byte [] resurrectedDocAsBytes
         if (storageType == 'zip') {
             resurrectedDocAsBytes = this.util.extractFromZipFile(
