@@ -1082,7 +1082,7 @@ class Project {
     }
 
     boolean forceGlobalRebuild () {
-        return !!this.data.metadata.forceRebuild
+        return !this.data.metadata.allowPartialRebuild
     }
 
 }
