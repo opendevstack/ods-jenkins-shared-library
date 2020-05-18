@@ -462,7 +462,7 @@ class Context implements IContext {
     }
 
     String getIssueId() {
-        GitService.getIssueIdFromBranch(config.gitBranch, config.projectId)
+        GitService.issueIdFromBranch(config.gitBranch, config.projectId)
     }
 
     // This logic must be consistent with what is described in README.md.
@@ -521,7 +521,7 @@ class Context implements IContext {
     protected void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
         def specifcEnv = genericEnv + '-' + branchSuffix
 
-        def ticketId = GitService.getIssueIdFromBranch(config.gitBranch, config.projectId)
+        def ticketId = GitService.issueIdFromBranch(config.gitBranch, config.projectId)
         if (ticketId) {
             specifcEnv = genericEnv + '-' + ticketId
         }

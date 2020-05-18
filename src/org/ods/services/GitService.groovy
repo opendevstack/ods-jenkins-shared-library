@@ -11,7 +11,24 @@ class GitService {
         this.script = script
     }
 
-    static String getIssueIdFromBranch(String branchName, String projectId) {
+    static String mergedIssueId(String project, String repository, String commitMessage) {
+        def b = mergedBranch(project, repository, commitMessage)
+        if (b) {
+            return issueIdFromBranch(b, project)
+        }
+        ''
+    }
+
+    static String mergedBranch(String project, String repository, String commitMessage) {
+        def uppercaseProject = project.toUpperCase()
+        def msgMatcher = commitMessage =~ /Merge pull request #[0-9]* in ${uppercaseProject}\/${repository} from (\S*)|^Merge branch '(.*)'/
+        if (msgMatcher) {
+            return msgMatcher[0][1] ?: msgMatcher[0][2]
+        }
+        ''
+    }
+
+    static String issueIdFromBranch(String branchName, String projectId) {
         def tokens = extractBranchCode(branchName).split('-')
         def pId = tokens[0]
         if (!pId || !pId.equalsIgnoreCase(projectId)) {
