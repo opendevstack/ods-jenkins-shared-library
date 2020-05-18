@@ -118,7 +118,7 @@ class NexusService {
                 " The url called was: ${urlToDownload}"
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to get artifact. Nexus could not be found at: '${this.baseURL}'."
+                message = "Error: unable to get artifact. Nexus could not be found at: '${urlToDownload}'."
             }
             // very weird, we get a 200 as failure with a good artifact, wtf.
             if (response.getStatus() != 200) {
