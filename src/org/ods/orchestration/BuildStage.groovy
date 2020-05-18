@@ -37,7 +37,8 @@ class BuildStage extends Stage {
             if (project.isAssembleMode
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
                 def data = [ : ]
-                if (!!!repo.data?.odsBuildArtifacts?.resurrected) {
+                boolean resultsResurrected = !!repo.data?.odsBuildArtifacts?.resurrected
+                if (!resultsResurrected) {
                     data << [tests: [unit: getUnitTestResults(steps, repo) ]]
                 }
 
@@ -48,11 +49,15 @@ class BuildStage extends Stage {
                     data
                 )
 
-                jira.reportTestResultsForComponent(
-                    "Technology-${repo.id}",
-                    [Project.TestType.UNIT],
-                    data.tests?.unit?.testResults
-                )
+                if (!resultsResurrected) {
+                    jira.reportTestResultsForComponent(
+                        "Technology-${repo.id}",
+                        [Project.TestType.UNIT],
+                        data.tests.unit.testResults
+                    )
+                } else {
+                    steps.echo("Resurrected tests - no tests will be reported to JIRA")
+                }
             }
         }
 
