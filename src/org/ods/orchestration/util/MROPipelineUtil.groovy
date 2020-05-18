@@ -186,7 +186,7 @@ class MROPipelineUtil extends PipelineUtil {
                 )
                 filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
                 steps.sh(script: "rm -rf ../${openshiftDir}@tmp",
-                    returnStdout: true)
+                    returnStdout: true, label: "delete ../${openshiftDir}@tmp")
                 if (this.project.isWorkInProgress) {
                     steps.sh(
                         script: """
