@@ -33,8 +33,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         TRC,
         OVERALL_DTR,
         OVERALL_IVR,
-        OVERALL_TIR,
-        SCRR
+        OVERALL_TIR
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
@@ -66,7 +65,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     ]
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
-        (DocumentType.SCRR as String) : [storage: 'pdf', content: 'pdf' ]
+        'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
     ]
 
     public static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
