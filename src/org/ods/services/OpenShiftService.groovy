@@ -436,16 +436,20 @@ class OpenShiftService {
         ).trim()
     }
 
-    boolean checkForExistingValidDeploymentBasedOnStoredConfig (Map repo) {
+    boolean checkForExistingValidDeploymentBasedOnStoredConfig (Map repo, boolean forceOverride = false) {
         def openshiftDir = 'openshift-exported'
         if (steps.fileExists('openshift')) {
             openshiftDir = 'openshift'
         }
-        boolean force = !!repo.forceRebuild
+
+        boolean forceRedo = !!repo.forceRebuild
+        if (forceOverride) {
+            forceRedo = true
+        }
 
         this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
-            "'${project}' - force? ${force}")
-        if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !force) {
+            "'${project}' - force? ${forceRedo}")
+        if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !forceRedo) {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             if (this.isLatestDeploymentBasedOnLatestImageDefs(deployments)) {
@@ -459,7 +463,7 @@ class OpenShiftService {
                 return true
             } else {
                 this.steps.echo("Current deployments for repo: '${repo.id}'" +
-                    " do not match last latest committed state (force? ${force}), rebuilding..")
+                    " do not match last latest committed state (force? ${forceRedo}), rebuilding..")
             }
         }
         return false
