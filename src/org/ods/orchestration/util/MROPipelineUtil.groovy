@@ -184,7 +184,7 @@ class MROPipelineUtil extends PipelineUtil {
                     file: ODS_DEPLOYMENTS_DESCRIPTOR,
                     text: JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments)
                 )
-                filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR"
+                filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
                 if (this.project.isWorkInProgress) {
                     steps.sh(
                         script: """
