@@ -441,29 +441,4 @@ class DocGenUseCaseSpec extends SpecHelper {
         result.found == false
     }
 
-    def "resurrect doc from repo - resurrect, but bad data"() {
-        given:
-        // Test Parameters
-        def documentType = "myDocumentType"
-        def version = project.buildParams.version
-        def build = "0815"
-        def repo = project.repositories.first()
-  
-        repo.data.odsBuildArtifacts = [
-            resurrected : true,
-            deployments : [
-                "${JenkinsService.CREATED_BY_BUILD_STR}" : 'bal/17',
-                flask : [
-                    abc : 124
-                ]
-            ]
-        ]
-        when:
-        def result = usecase.resurrectAndStashDocument(documentType, repo)
-  
-        then:
-        'bal/17' == repo.data.odsBuildArtifacts.deployments[JenkinsService.CREATED_BY_BUILD_STR]
-        result.found == false
-    }
-
 }
