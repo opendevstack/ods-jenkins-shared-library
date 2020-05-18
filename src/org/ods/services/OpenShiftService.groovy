@@ -444,11 +444,12 @@ class OpenShiftService {
 
         boolean forceRedo = !!repo.forceRebuild
         if (forceOverride) {
+            steps.echo '> Global override to redeploy all components'
             forceRedo = true
         }
 
         this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
-            "'${project}' - force? ${forceRedo}")
+            "'${project}' - force rebuild? ${forceRedo}")
         if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !forceRedo) {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)

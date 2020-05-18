@@ -116,6 +116,15 @@ If no `branch` parameter is provided for a repository, `master` will be assumed.
 
 Instead of merely resolving repositories into a strictly sequential execution model, our library automatically understands which repositories form independent groups and can run in parallel for best time-to-feedback and time-to-delivery.
 
+=== Building of components & partial deployments
+
+By default the shared library will rebuild ALL ods components, no matter which ones changed. In order to allow
+partial building, that is based on changes one has done to the components, the following needs to be configured
+in `metadata.yml`
+----
+allowPartialRebuild : true
+----
+
 == Automated Generation of Compliance Documents
 
 The library automatically generates Lean Validation (LeVA) compliance reports based on data in your Jira project, as well as data generated along the automated build, deploy, test, and release process by the release manager component.
