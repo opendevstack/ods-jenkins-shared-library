@@ -134,7 +134,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List obtainCodeReviewReport(List<Map> repos) {
         def reports =  repos.collect { r ->
             // resurrect?
-            Map resurrectedDocument = resurrectAndStashDocument('SCRR', r, false)
+            Map resurrectedDocument = resurrectAndStashDocument('SCRR-MD', r, false)
             this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
             if (resurrectedDocument.found) {
                 return resurrectedDocument.content
