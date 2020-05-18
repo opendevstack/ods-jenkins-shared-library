@@ -184,13 +184,11 @@ class MROPipelineUtil extends PipelineUtil {
                     file: ODS_DEPLOYMENTS_DESCRIPTOR,
                     text: JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments)
                 )
-                filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
-                steps.sh(script: "echo **/${openshiftDir}@tmp > ../.gitignore")
-                filesToStage << "../.gitignore"
+                filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR"
                 if (this.project.isWorkInProgress) {
                     steps.sh(
                         script: """
-                        git add ${filesToStage.join(' ')}
+                        git add --allow-empty ${filesToStage.join(' ')}
                         git commit -m "${commitMessage} [ci skip]"
                         git push origin ${repo.branch}
                         """,
@@ -199,7 +197,7 @@ class MROPipelineUtil extends PipelineUtil {
                 } else {
                     steps.sh(
                         script: """
-                        git add ${filesToStage.join(' ')}
+                        git add --allow-empty ${filesToStage.join(' ')}
                         git commit -m "${commitMessage} [ci skip]"
                         """,
                         label: 'commit new state'
