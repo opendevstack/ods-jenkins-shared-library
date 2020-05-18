@@ -286,6 +286,72 @@ you can follow the following steps:
 git lfs migrate
 ----
 
+=== Deploying OpenShift resources from source code
+
+By default, the component pipeline uses existing OpenShift resources, and just creates new images / deployments related to them. However, it is possible to control all OpenShift resources in code, following the infrastructure-as-code approach. This can be done by defining the resources as OpenShift templates in the directory `openshift` of the repository, which will then get applied by Tailor when running the pipeline. The advantage of this approach:
+
+- All changes to OpenShift resources are traceble: who did the change and when?
+- Moving your application between OpenShift projects or even clusters is trivial
+- Changes to your application code that require a change in configuration (e.g. a new environment variable) as well can be done in one commit.
+
+If you have an existing component for which you want to enable this feature, you simply need to run:
+
+[source,bash]
+----
+mkdir -p openshift
+tailor -n foo-dev export -l app=foo-bar > openshift/template.yml
+----
+
+Commit the result and the component pipeline should show in the ouput whether there has been drift and how it was reconciled.
+
+When using this approach, you need to keep a few things in mind:
+
+- Any changes done in the OpenShift web console will effectively be reverted with each deploy. When you store templates in code, all changes must be applied to them.
+- You can always preview the changes that will happen by running `tailor diff` from your local machine.
+- `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes.
+
+Controlling your OpenShift resources in source code enables a lot of other use cases as well. For example, you might want to preview changes to a component before merging the source code. By using Tailor to deploy your templates, you create multiple running components from one repository, e.g. one per feature branch. To do this, you could do the following:
+
+First, add `'feature/': 'dev'` to the `branchToEnvironmentMapping`. Then, create new variables in the pipeline block:
+[source,groovy]
+----
+def componentSuffix = context.issueId ? "-${context.issueId}" : ''
+def suffixedComponent = context.componentId + componentSuffix
+----
+
+With this in place, you can adapt the rollout stage:
+[source,groovy]
+----
+odsComponentStageRolloutOpenShiftDeployment(
+  context,
+  [
+    resourceName: "${suffixedComponent}",
+    tailorSelector: "app=${context.projectId}-${suffixedComponent}",
+    tailorParams: ["COMPONENT_SUFFIX=${componentSuffix}"]
+  ]
+)
+----
+
+And finally, in your `openshift/template.yml`, you need to add the `COMPONENT_SUFFIX` parameter and append `${COMPONENT_SUFFIX}` everywhere the component ID is used in deployment relevant resources (such as `Service`, `DeploymentConfig`, `Route`). That's all you need to have automatic previews!
+
+You might want to clean up when the code is merged, which can be achieved with something like this:
+[source,groovy]
+----
+stage('Cleanup preview resources') {
+  if (context.environment != 'dev') {
+    echo "Not performing cleanup outside dev environment"; return
+  }
+  def mergedIssueId = org.ods.services.GitService.mergedIssueId(context.projectId, context.repoName, context.gitCommitMessage)
+  if (mergedIssueId) {
+    echo "Perform cleanup of suffix '-${mergedIssueId}'"
+    sh("oc -n ${context.targetProject} delete all -l app=${context.projectId}-${context.componentId}-${mergedIssueId}")
+  } else {
+    echo "Nothing to cleanup"
+  }
+}
+----
+
+
 === Automatically cloning environments on the fly
 
 Caution! Cloning environments on-the-fly is an advanced feature and should only be used if you understand OpenShift well, as there are many moving parts and things can go wrong in multiple places.
