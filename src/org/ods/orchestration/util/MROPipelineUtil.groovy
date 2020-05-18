@@ -188,7 +188,7 @@ class MROPipelineUtil extends PipelineUtil {
                 if (this.project.isWorkInProgress) {
                     steps.sh(
                         script: """
-                        git add --allow-empty ${filesToStage.join(' ')}
+                        git add ${filesToStage.join(' ')}
                         git commit -m "${commitMessage} [ci skip]"
                         git push origin ${repo.branch}
                         """,
@@ -197,7 +197,7 @@ class MROPipelineUtil extends PipelineUtil {
                 } else {
                     steps.sh(
                         script: """
-                        git add --allow-empty ${filesToStage.join(' ')}
+                        git add ${filesToStage.join(' ')}
                         git commit -m "${commitMessage} [ci skip]"
                         """,
                         label: 'commit new state'
