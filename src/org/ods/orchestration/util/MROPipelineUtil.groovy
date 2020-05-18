@@ -189,7 +189,7 @@ class MROPipelineUtil extends PipelineUtil {
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}
-                        git commit -m "${commitMessage} [ci skip]"
+                        git commit -m "${commitMessage} [ci skip]" --allow-empty
                         git push origin ${repo.branch}
                         """,
                         label: 'commit and push new state'
@@ -198,7 +198,7 @@ class MROPipelineUtil extends PipelineUtil {
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}
-                        git commit -m "${commitMessage} [ci skip]"
+                        git commit -m "${commitMessage} [ci skip]" --allow-empty
                         """,
                         label: 'commit new state'
                     )
