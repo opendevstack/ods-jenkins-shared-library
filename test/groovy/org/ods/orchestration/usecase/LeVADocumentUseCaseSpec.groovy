@@ -1171,7 +1171,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def result = usecase.getSupportedDocuments()
 
         then:
-        result.size() == 18
+        result.size() == 19
 
         then:
         result.contains("CSD")
@@ -1192,6 +1192,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         result.contains("OVERALL_DTR")
         result.contains("OVERALL_IVR")
         result.contains("OVERALL_TIR")
+        result.contains("SCRR")
     }
 
     def "update Jira documentation tracking issue in DEV"() {

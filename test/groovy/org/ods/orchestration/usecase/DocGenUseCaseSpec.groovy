@@ -32,6 +32,10 @@ class DocGenUseCaseSpec extends SpecHelper {
         boolean isArchivalRelevant (String documentType) {
             return true
         }
+        
+        Map getFiletypeForDocumentType (String documentType) {
+            return [storage: 'zip', content: 'pdf']
+        }
     }
 
     DocGenService docGen

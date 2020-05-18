@@ -134,7 +134,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List obtainCodeReviewReport(List<Map> repos) {
         def reports =  repos.collect { r ->
             // resurrect?
-            Map resurrectedDocument = resurrectAndStashDocument('SCRR', r)
+            Map resurrectedDocument = resurrectAndStashDocument('SCRR', r, false)
             this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
             if (resurrectedDocument.found) {
                 return resurrectedDocument.content
@@ -1124,11 +1124,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
 
-        Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
-        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
-        if (resurrectedDocument.found) {
-            return resurrectedDocument.uri
-        }
+//        Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
+//        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
+//        if (resurrectedDocument.found) {
+//            return resurrectedDocument.uri
+//        }
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
