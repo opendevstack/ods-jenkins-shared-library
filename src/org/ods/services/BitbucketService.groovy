@@ -164,12 +164,14 @@ class BitbucketService {
                   ${bitbucketUrl}/rest/access-tokens/1.0/users/${script.USERNAME.replace('@', '_')}
                 """
             ).trim()
-        }
-        try {
-            def js = script.readJSON(text: res)
-            tokenMap['password'] = js['token']
-        } catch (Exception ex) {
-            script.echo "WARN: Could not understand API response. Error was: ${ex}"
+            try {
+                // call readJSON inside of withCredentials block,
+                // otherwise token will be displayed in output
+                def js = script.readJSON(text: res)
+                tokenMap['password'] = js['token']
+            } catch (Exception ex) {
+                script.echo "WARN: Could not understand API response. Error was: ${ex}"
+            }
         }
         return tokenMap
     }

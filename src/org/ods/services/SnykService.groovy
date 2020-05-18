@@ -27,11 +27,14 @@ class SnykService {
     }
 
     boolean auth(String authCode) {
+        // write snyk auth command into file to avoid displaying the auth code in the output log
+        script.writeFile file: 'snykauth.sh', text: "snyk auth " + authCode + " | tee -a ${reportFile}"
         script.sh(
             script: """
               set -e
               set -o pipefail
-              snyk auth ${authCode} | tee -a ${reportFile}
+              chmod +x snykauth.sh
+              ./snykauth.sh
             """,
             returnStatus: true,
             label: 'Authenticate with Snyk server'
