@@ -460,6 +460,10 @@ class Context implements IContext {
         return statusCode == 0
     }
 
+    String getIssueId() {
+        getTicketIdFromBranch(config.gitBranch, config.projectId)
+    }
+
     // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
     // "HUGO-4" from it.
     private String extractBranchCode(String branch) {

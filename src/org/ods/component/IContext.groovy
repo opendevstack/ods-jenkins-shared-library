@@ -113,6 +113,8 @@ interface IContext {
     // snyk behaviour configuration in case it reports vulnerabilities
     boolean getFailOnSnykScanVulnerabilities()
 
+    String getIssueId()
+
     // Number of environments to allow.
     int getEnvironmentLimit()
 
