@@ -102,14 +102,15 @@ class NexusService {
         return this.baseURL.resolve("/repository/${repository}")
     }
 
-    @SuppressWarnings('LineLength')
+    @SuppressWarnings(['LineLength','JavaIoPackageAccess'])
     @NonCPS
     Map<URI, File> retrieveArtifact(String nexuseRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
         String urlToDownload = "${this.baseURL}/repository/${nexuseRepository}/${nexusDirectory}/${name}"
         def restCall = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)
-        
+
+        // hurray - unirest, in case file exists - don't do anything.
         File artifactExists = new File("${extractionPath}/${name}")
         if (artifactExists) {
             artifactExists.delete()
@@ -133,7 +134,6 @@ class NexusService {
         return [
             uri: this.baseURL.resolve("/repository/${nexuseRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
-            storage: "${extractionPath}/${name}",
         ]
     }
 

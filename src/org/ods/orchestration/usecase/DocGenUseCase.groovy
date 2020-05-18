@@ -176,30 +176,42 @@ abstract class DocGenUseCase {
         String contentType = fileExtensions.content ?: 'pdf'
         this.steps.echo "Resolved documentType '${documentType}' - storage/content formats: ${fileExtensions}"
 
+        String contentFileName = "${basename}.${contentType}"
+        String storedFileName = "${basename}.${storageType}"
         Map documentFromNexus =
             this.nexus.retrieveArtifact(
                 this.project.services.nexus.repository.name,
                 "${this.project.key.toLowerCase()}-${buildVersion}",
-                "${basename}.${storageType}", path)
+                storedFileName, path)
 
         this.steps.echo "Document found: ${basename}.${storageType} \r ${documentFromNexus}"
-        // stash pdf with new name / + build id
         byte [] resurrectedDocAsBytes
         if (storageType == 'zip') {
             resurrectedDocAsBytes = this.util.extractFromZipFile(
-                "${path}/${basename}.${storageType}", "${basename}.${contentType}")
+                "${path}/${storedFileName}", contentFileName)
         } else {
             resurrectedDocAsBytes = documentFromNexus.content.getBytes()
         }
 
+        // stash doc with new name / + build id
         if (stash) {
-            this.util.createAndStashArtifact("${basename}.${contentType}", resurrectedDocAsBytes)
+            this.util.createAndStashArtifact(contentFileName, resurrectedDocAsBytes)
         }
         if (!isArchivalRelevant(documentType)) {
-            repo.data.documents[documentType] = "${basename}.${contentType}"
+            repo.data.documents[documentType] = contentFileName
         }
 
         return [found: true, 'uri': documentFromNexus.uri, content: resurrectedDocAsBytes]
+    }
+
+    void storeDocument (String documentName, byte [] documentAsBytes, String contentType) {
+        this.nexus.storeArtifact(
+            this.project.services.nexus.repository.name,
+            "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
+            "${documentName}.pdf",
+            documentAsBytes,
+            contentType
+        )
     }
 
     abstract String getDocumentTemplatesVersion()

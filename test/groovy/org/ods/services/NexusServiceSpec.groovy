@@ -97,6 +97,20 @@ class NexusServiceSpec extends SpecHelper {
         return result << mixins
     }
 
+    Map getArtifactRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                directory: "myDirectory",
+                name: "myName",
+                repository: "myRepository",
+            ],
+            password: "password",
+            path: "/repository/myRepository/myDirectory/myName",
+            username: "username"
+        ]
+        return result << mixins
+  }
+
     Map storeArtifactResponseData(Map mixins = [:]) {
         def result = [
             status: 204
@@ -165,4 +179,46 @@ class NexusServiceSpec extends SpecHelper {
         cleanup:
         stopServer(server)
     }
+
+    def "retrieve artifact with HTTP 404 failure"() {
+        given:
+        def request = getArtifactRequestData()
+        def response = storeArtifactResponseData([
+            status: 404
+        ])
+  
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+  
+        when:
+        service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
+  
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Error: unable to get artifact. Nexus could not be found at: 'http://localhost:${server.port()}${request.path}'."
+  
+        cleanup:
+        stopServer(server)
+    }
+
+    def "retrieve artifact working"() {
+        given:
+        def request = getArtifactRequestData()
+        def response = storeArtifactResponseData([
+            status: 200
+        ])
+  
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+  
+        when:
+        Map result = service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
+  
+        then:
+        result.uri == new URI("http://localhost:${server.port()}${request.path}")
+  
+        cleanup:
+        stopServer(server)
+    }
+
 }
