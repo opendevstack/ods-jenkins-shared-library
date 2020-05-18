@@ -147,13 +147,14 @@ abstract class DocGenUseCase {
         return "${documentType}-${result}-${version}-${build}".toString()
     }
 
+    @SuppressWarnings(['AbcMetric'])
     Map resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
         String notFoundMessage = "No previous valid report for ${documentType}/repo: ${repo.id} found"
         if (!repo.data?.odsBuildArtifacts) {
             return [found: false]
         }
         String resurrectedBuild
-        if (!!repo.data.odsBuildArtifacts.resurrected && 
+        if (!!repo.data.odsBuildArtifacts.resurrected &&
             repo.data.odsBuildArtifacts.deployments) {
             String build = repo.data.odsBuildArtifacts.
                 deployments[JenkinsService.CREATED_BY_BUILD_STR]
@@ -203,8 +204,8 @@ abstract class DocGenUseCase {
         }
 
         return [
-            found: true, 
-            'uri': documentFromNexus.uri, 
+            found: true,
+            'uri': documentFromNexus.uri,
             content: resurrectedDocAsBytes,
             createdByBuild: resurrectedBuild,
         ]
