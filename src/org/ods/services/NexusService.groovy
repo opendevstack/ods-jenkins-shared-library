@@ -109,7 +109,11 @@ class NexusService {
         String urlToDownload = "${this.baseURL}/repository/${nexuseRepository}/${nexusDirectory}/${name}"
         def restCall = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)
-
+        
+        File artifactExists = new File("${extractionPath}/${name}")
+        if (artifactExists) {
+            artifactExists.delete()
+        }
         def response = restCall.asFile("${extractionPath}/${name}")
 
         response.ifFailure {
@@ -129,6 +133,7 @@ class NexusService {
         return [
             uri: this.baseURL.resolve("/repository/${nexuseRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
+            storage: "${extractionPath}/${name}",
         ]
     }
 
