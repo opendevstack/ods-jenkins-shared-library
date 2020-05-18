@@ -56,6 +56,69 @@ class PDFUtil {
     }
 
     @NonCPS
+    byte[] convertFromMarkdown(File wordDoc, Boolean landscape = false) {
+        def result
+
+        try {
+            def markdownContent = IOUtils.toString(new FileInputStream(wordDoc), 'UTF-8')
+            result = new MarkdownUtil().toPDF(markdownContent, landscape)
+        } catch (e) {
+            throw new RuntimeException("Error: unable to convert Markdown document to PDF: ${e.message}").initCause(e)
+        }
+
+        return result
+    }
+
+    @NonCPS
+    byte[] convertFromWordDoc(File wordDoc) {
+        def result
+
+        XWPFDocument doc
+        try {
+            def is = new FileInputStream(wordDoc)
+            doc = new XWPFDocument(is)
+
+            def options = PdfOptions.create()
+            def os = new ByteArrayOutputStream()
+            PdfConverter.getInstance().convert(doc, os, options)
+
+            result = os.toByteArray()
+        } catch (e) {
+            throw new RuntimeException("Error: unable to convert Word document to PDF: ${e.message}").initCause(e)
+        } finally {
+            if (doc) {
+                doc.close()
+            }
+        }
+
+        return result
+    }
+
+    @NonCPS
+    byte[] merge(List<byte[]> files) {
+        def result
+
+        def tmp = Files.createTempFile('merged', '.pdf').toFile()
+        try {
+            def merger = new PDFMergerUtility()
+            merger.setDestinationStream(new FileOutputStream(tmp))
+
+            files.each { file ->
+                merger.addSource(new ByteArrayInputStream(file))
+            }
+
+            merger.mergeDocuments()
+            result = tmp.bytes
+        } catch (e) {
+            throw new RuntimeException("Error: unable to merge PDF documents: ${e.message}").initCause(e)
+        } finally {
+            tmp.delete()
+        }
+
+        return result
+    }
+
+    @NonCPS
     // Courtesy of https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/util/AddWatermarkText.java
     private addWatermarkTextToPage(PDDocument doc, PDPage page, PDFont font, String text) {
         def cs
@@ -94,66 +157,4 @@ class PDFUtil {
         }
     }
 
-    @NonCPS
-    byte[] convertFromMarkdown(File wordDoc, Boolean landscape = false) {
-        def result
-
-        try {
-            def markdownContent = IOUtils.toString(new FileInputStream(wordDoc), "UTF-8")
-            result = new MarkdownUtil().toPDF(markdownContent, landscape)
-        } catch (e) {
-            throw new RuntimeException("Error: unable to convert Markdown document to PDF: ${e.message}").initCause(e)
-        }
-
-        return result
-    }
-
-    @NonCPS
-    byte[] convertFromWordDoc(File wordDoc) {
-        def result
-
-        XWPFDocument doc
-        try {
-            def is = new FileInputStream(wordDoc)
-            doc = new XWPFDocument(is)
-
-            def options = PdfOptions.create()
-            def os = new ByteArrayOutputStream()
-            PdfConverter.getInstance().convert(doc, os, options)
-
-            result = os.toByteArray()
-        } catch (e) {
-            throw new RuntimeException("Error: unable to convert Word document to PDF: ${e.message}").initCause(e)
-        } finally {
-            if (doc) {
-                doc.close()
-            }
-        }
-
-        return result
-    }
-
-    @NonCPS
-    byte[] merge(List<byte[]> files) {
-        def result
-
-        def tmp = Files.createTempFile("merged", ".pdf").toFile()
-        try {
-            def merger = new PDFMergerUtility()
-            merger.setDestinationStream(new FileOutputStream(tmp))
-
-            files.each { file ->
-                merger.addSource(new ByteArrayInputStream(file))
-            }
-
-            merger.mergeDocuments()
-            result = tmp.bytes
-        } catch (e) {
-            throw new RuntimeException("Error: unable to merge PDF documents: ${e.message}").initCause(e)
-        } finally {
-            tmp.delete()
-        }
-
-        return result
-    }
 }

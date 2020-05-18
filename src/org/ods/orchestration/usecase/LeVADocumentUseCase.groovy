@@ -138,7 +138,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (resurrectedDocument.found) {
                 return resurrectedDocument.content
             }
-            
+
             def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
             def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
 
@@ -1120,14 +1120,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
-
-//        Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
-//        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
-//        if (resurrectedDocument.found) {
-//            return resurrectedDocument.uri
-//        }
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -1142,22 +1137,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         if (!repo.data.openshift && repo.data.odsBuildArtifacts) {
-            repo.data["openshift"] = [:]
-            repo.data.openshift << repo.data.odsBuildArtifacts.subMap (["builds","deployments"])
+            repo.data['openshift'] = [:]
+            repo.data.openshift << repo.data.odsBuildArtifacts.subMap (['builds','deployments'])
             this.steps.echo("fetched openshift data from build for repo: ${repo.id} \r${repo.data.openshift}")
         }
 
-        def deploynoteData = "Components were built & deployed during installation."
-        if (!repo.data.openshift?.builds || repo.data.openshift?.builds?.size() == 0) {
-            deploynoteData = "NO Components were built during installation, existing components (created in Dev) were deployed."
+        def deploynoteData = 'Components were built & deployed during installation.'
+        if (repo.data.openshift?.resurrected) {
+            deploynoteData = 'Component were found up to date with version control -no deployments happend!\r' +
+                ' SCRR was restored from previous build'
+        } else if (!repo.data.openshift?.builds || repo.data.openshift?.builds?.size() == 0) {
+            deploynoteData = 'NO Components were built during installation, existing components (created in Dev) were deployed.'
         }
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
             openShiftData: [
-                builds      : repo.data.openshift?.builds ?: "",
-                deployments : repo.data.openshift?.deployments ?: ""
+                builds      : repo.data.openshift?.builds ?: '',
+                deployments : repo.data.openshift?.deployments ?: ''
             ],
             data         : [
                 repo    : repo,

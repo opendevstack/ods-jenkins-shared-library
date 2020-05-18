@@ -148,6 +148,7 @@ abstract class DocGenUseCase {
     }
 
     Map resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
+        String notFoundMessage = "No previous valid report for ${documentType}/repo: ${repo.id} found"
         if (!repo.data?.odsBuildArtifacts) {
             return [found: false]
         }
@@ -156,14 +157,14 @@ abstract class DocGenUseCase {
             String build = repo.data.odsBuildArtifacts?.
                 deployments?.get(JenkinsService.CREATED_BY_BUILD_STR);
             if (build) {
-                resurrectedBuild = build.split("/").last()
+                resurrectedBuild = build.split('/').last()
                 this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
             } else {
-                this.steps.echo "No previous valid report for ${documentType}/repo: ${repo.id} found"
+                this.steps.echo notFoundMessage
                 return [found: false]
             }
         } else {
-            this.steps.echo "No previous valid report for ${documentType}/repo: ${repo.id} found"
+            this.steps.echo notFoundMessage
             return [found: false]
         }
         def buildVersion = this.project.buildParams.version
@@ -173,10 +174,10 @@ abstract class DocGenUseCase {
         def fileExtensions = getFiletypeForDocumentType(documentType)
         String storageType = fileExtensions.storage ?: 'zip'
         String contentType = fileExtensions.content ?: 'pdf'
-        this.steps.echo "DocumentType ${documentType} storage/content: ${fileExtensions}"
-        
-        Map documentAsZip =
-            this.nexus.getArtifact(
+        this.steps.echo "Resolved documentType '${documentType}' - storage/content formats: ${fileExtensions}"
+
+        Map documentFromNexus =
+            this.nexus.retrieveArtifact(
                 this.project.services.nexus.repository.name,
                 "${this.project.key.toLowerCase()}-${buildVersion}",
                 "${basename}.${storageType}", path)
@@ -186,8 +187,8 @@ abstract class DocGenUseCase {
         if (storageType == 'zip') {
             resurrectedDocAsBytes = this.util.extractFromZipFile(
                 "${path}/${basename}.${storageType}", "${basename}.${contentType}")
-        } else { 
-            resurrectedDocAsBytes = documentAsZip.content.getBytes()
+        } else {
+            resurrectedDocAsBytes = documentFromNexus.content.getBytes()
         }
 
         if (stash) {
@@ -197,7 +198,7 @@ abstract class DocGenUseCase {
             repo.data.documents[documentType] = "${basename}.${contentType}"
         }
 
-        return [found: true, 'uri': documentAsZip.uri, content : resurrectedDocAsBytes]
+        return [found: true, 'uri': documentAsZip.uri, content: resurrectedDocAsBytes]
     }
 
     abstract String getDocumentTemplatesVersion()

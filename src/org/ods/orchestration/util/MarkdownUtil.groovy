@@ -113,7 +113,6 @@ class MarkdownUtil {
         def os = new ByteArrayOutputStream()
         PdfConverterExtension.exportToPdf(os, html, "", this.OPTIONS)
         os.toByteArray()
-
     }
 
 }

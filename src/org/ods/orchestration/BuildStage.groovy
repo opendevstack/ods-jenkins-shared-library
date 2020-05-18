@@ -20,7 +20,6 @@ class BuildStage extends Stage {
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
-        def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
 

@@ -9,15 +9,14 @@ import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
 import org.ods.util.IPipelineSteps
-import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 
 @SuppressWarnings('JavaIoPackageAccess')
 class PipelineUtil {
 
-    static final String ARTIFACTS_BASE_DIR = "artifacts"
-    static final String SONARQUBE_BASE_DIR = "sonarqube"
-    static final String XUNIT_DOCUMENTS_BASE_DIR = "xunit"
+    static final String ARTIFACTS_BASE_DIR = 'artifacts'
+    static final String SONARQUBE_BASE_DIR = 'sonarqube'
+    static final String XUNIT_DOCUMENTS_BASE_DIR = 'xunit'
 
     protected Project project
     protected IPipelineSteps steps
@@ -105,7 +104,7 @@ class PipelineUtil {
         new File(path) << (file)
 
         this.steps.dir(new File(path).getParent()) {
-            this.steps.stash(['name' : stashName, 'includes' : stashName])
+            this.steps.stash(['name': stashName, 'includes': stashName])
         }
     }
 
@@ -156,12 +155,12 @@ class PipelineUtil {
     }
 
     void failBuild(String message) {
-        this.steps.currentBuild.result = "FAILURE"
+        this.steps.currentBuild.result = 'FAILURE'
         this.steps.echo(message)
     }
 
     void warnBuild(String message) {
-        this.steps.currentBuild.result = "UNSTABLE"
+        this.steps.currentBuild.result = 'UNSTABLE'
         this.steps.echo(message)
     }
 
@@ -177,4 +176,5 @@ class PipelineUtil {
 
         return this.steps.load(path)
     }
+
 }

@@ -8,7 +8,7 @@ import org.ods.util.IPipelineSteps
 @SuppressWarnings('MethodCount')
 class OpenShiftService {
 
-    static final String ODS_DEPLOYMENTS_DESCRIPTOR = "ods-deployments.json"
+    static final String ODS_DEPLOYMENTS_DESCRIPTOR = 'ods-deployments.json'
 
     private final IPipelineSteps steps
     private final ILogger logger
@@ -442,7 +442,7 @@ class OpenShiftService {
             openshiftDir = 'openshift'
         }
         boolean force = !!repo.forceRebuild
-        
+
         this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
             "'${project}' - force? ${force}")
         if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !force) {
@@ -452,7 +452,7 @@ class OpenShiftService {
                 if (!repo.data.odsBuildArtifacts) {
                     repo.data.odsBuildArtifacts = [ : ]
                 }
-                repo.data.odsBuildArtifacts.deployments = deployments 
+                repo.data.odsBuildArtifacts.deployments = deployments
                 repo.data.odsBuildArtifacts.resurrected = true
                 this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': " +
                     "\r${repo.data.odsBuildArtifacts}")
@@ -600,7 +600,7 @@ class OpenShiftService {
                     steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
                         " is not latest version! (${latestDeployedVersion})"
                 }
-                deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
+                deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
                     def runningImageSha = getRunningImageSha(deploymentName, latestDeployedVersion, index)
                     def imageInfo = imageInfoWithShaForImageStreamUrl(imageRaw)
                     if (imageInfo.sha != runningImageSha) {

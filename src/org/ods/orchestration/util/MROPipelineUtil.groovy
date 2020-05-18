@@ -89,6 +89,7 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
+    @SuppressWarnings(['Instanceof'])
     private void finalizeODSComponent(Map repo, String baseDir) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
@@ -192,8 +193,8 @@ class MROPipelineUtil extends PipelineUtil {
                         git commit -m "${commitMessage} [ci skip]"
                         git push origin ${repo.branch}
                         """,
-                        label: "commit and push new state",
-                        returnStatus : true
+                        label: 'commit and push new state',
+                        returnStatus: true
                     )
                 } else {
                     steps.sh(
@@ -201,8 +202,8 @@ class MROPipelineUtil extends PipelineUtil {
                         git add ${filesToStage.join(' ')}
                         git commit -m "${commitMessage} [ci skip]"
                         """,
-                        label: "commit new state",
-                        returnStatus : true
+                        label: 'commit new state',
+                        returnStatus: true
                     )
                     tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                 }
@@ -246,7 +247,7 @@ class MROPipelineUtil extends PipelineUtil {
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->
-                if (!deploymentName == "createdBy") {
+                if (!deploymentName == JenkinsService.CREATED_BY_BUILD_STR) {
                     def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
                     originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
                 }
@@ -343,7 +344,7 @@ class MROPipelineUtil extends PipelineUtil {
                 repo.data.openshift.deployments << ["${deploymentName}": pod]
             }
             if (createdByJob) {
-                repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob] 
+                repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
             }
             tagAndPush(this.project.targetTag)
         }
@@ -699,7 +700,7 @@ class MROPipelineUtil extends PipelineUtil {
     void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
             this.project.setHasFailingTests(true)
-            this.warnBuild("Warning: found failing tests in test reports.")
+            this.warnBuild('Warning: found failing tests in test reports.')
         }
     }
 
