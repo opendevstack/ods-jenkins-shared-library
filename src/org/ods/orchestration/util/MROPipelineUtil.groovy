@@ -185,7 +185,8 @@ class MROPipelineUtil extends PipelineUtil {
                     text: JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments)
                 )
                 filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
-                steps.sh(script: "echo **/openshift-exported@tmp > ../.gitignore")
+                steps.sh(script: "echo **/${openshiftDir}@tmp > ../.gitignore")
+                filesToStage << "../.gitignore"
                 if (this.project.isWorkInProgress) {
                     steps.sh(
                         script: """
