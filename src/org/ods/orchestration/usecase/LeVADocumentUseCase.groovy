@@ -160,8 +160,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
 
             // store doc - we may need it later for partial deployments
-            this.storeDocument("${name}.pdf", generatedSCRR, "application/pdf")
-
+            if (!resurrectedDocument.found) {
+                def result = this.storeDocument("${name}.pdf", generatedSCRR, "application/pdf")
+                this.steps.echo "Stored 'SCRR' for later consumption -> ${result}"
+            }
             return generatedSCRR
         }
 

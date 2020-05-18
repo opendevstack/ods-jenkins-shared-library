@@ -229,7 +229,8 @@ class JiraUseCase {
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
-        steps.echo("Reporting unit test results to corresponding test cases in Jira for ${componentName} /type: ${testTypes}\rresults: ${testResults}")
+        steps.echo('Reporting unit test results to corresponding test cases in Jira for' +
+            " ${componentName}/type: ${testTypes}\rresults: ${testResults}")
 
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
 

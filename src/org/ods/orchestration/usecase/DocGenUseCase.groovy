@@ -211,8 +211,8 @@ abstract class DocGenUseCase {
         ]
     }
 
-    void storeDocument (String documentName, byte [] documentAsBytes, String contentType) {
-        this.nexus.storeArtifact(
+    URI storeDocument (String documentName, byte [] documentAsBytes, String contentType) {
+        return this.nexus.storeArtifact(
             this.project.services.nexus.repository.name,
             "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
             "${documentName}.pdf",
