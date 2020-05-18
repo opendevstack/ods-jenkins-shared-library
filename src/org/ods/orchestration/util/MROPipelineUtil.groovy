@@ -356,7 +356,7 @@ class MROPipelineUtil extends PipelineUtil {
             // only in case of a code component (that is deployed) do this check
             if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
                 os.checkForExistingValidDeploymentBasedOnStoredConfig(
-                    repo, this.project.forceGlobalRebuild)) {
+                    repo, this.project.forceGlobalRebuild())) {
                 return
             }
 
