@@ -11,6 +11,36 @@ class GitService {
         this.script = script
     }
 
+    static String getIssueIdFromBranch(String branchName, String projectId) {
+        def tokens = extractBranchCode(branchName).split('-')
+        def pId = tokens[0]
+        if (!pId || !pId.equalsIgnoreCase(projectId)) {
+            return ''
+        }
+        if (!tokens[1].isNumber()) {
+            return ''
+        }
+        return tokens[1]
+    }
+
+    static String extractBranchCode(String branch) {
+        if (branch.startsWith('feature/')) {
+            def list = branch.drop('feature/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else if (branch.startsWith('bugfix/')) {
+            def list = branch.drop('bugfix/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else if (branch.startsWith('hotfix/')) {
+            def list = branch.drop('hotfix/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else if (branch.startsWith('release/')) {
+            def list = branch.drop('release/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else {
+            branch
+        }
+    }
+
     static String getReleaseBranch(String version) {
         "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
     }

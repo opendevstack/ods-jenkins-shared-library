@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.util.Logger
+import org.ods.services.GitService
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
@@ -461,27 +462,7 @@ class Context implements IContext {
     }
 
     String getIssueId() {
-        getTicketIdFromBranch(config.gitBranch, config.projectId)
-    }
-
-    // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
-    // "HUGO-4" from it.
-    private String extractBranchCode(String branch) {
-        if (branch.startsWith('feature/')) {
-            def list = branch.drop('feature/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else if (branch.startsWith('bugfix/')) {
-            def list = branch.drop('bugfix/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else if (branch.startsWith('hotfix/')) {
-            def list = branch.drop('hotfix/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else if (branch.startsWith('release/')) {
-            def list = branch.drop('release/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else {
-            branch
-        }
+        GitService.getIssueIdFromBranch(config.gitBranch, config.projectId)
     }
 
     // This logic must be consistent with what is described in README.md.
@@ -540,7 +521,7 @@ class Context implements IContext {
     protected void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
         def specifcEnv = genericEnv + '-' + branchSuffix
 
-        def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
+        def ticketId = GitService.getIssueIdFromBranch(config.gitBranch, config.projectId)
         if (ticketId) {
             specifcEnv = genericEnv + '-' + ticketId
         }
@@ -552,18 +533,6 @@ class Context implements IContext {
         } else {
             config.environment = genericEnv
         }
-    }
-
-    protected String getTicketIdFromBranch(String branchName, String projectId) {
-        def tokens = extractBranchCode(branchName).split('-')
-        def pId = tokens[0]
-        if (!pId || !pId.equalsIgnoreCase(projectId)) {
-            return ''
-        }
-        if (!tokens[1].isNumber()) {
-            return ''
-        }
-        return tokens[1]
     }
 
     Map<String, String> getCloneProjectScriptUrls() {
