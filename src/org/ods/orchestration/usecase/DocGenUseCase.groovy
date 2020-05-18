@@ -215,7 +215,7 @@ abstract class DocGenUseCase {
         return this.nexus.storeArtifact(
             this.project.services.nexus.repository.name,
             "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
-            "${documentName}.pdf",
+            "${documentName}",
             documentAsBytes,
             contentType
         )
