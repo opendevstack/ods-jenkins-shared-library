@@ -19,9 +19,10 @@ class GitService {
         ''
     }
 
+    @SuppressWarnings('LineLength')
     static String mergedBranch(String project, String repository, String commitMessage) {
         def uppercaseProject = project.toUpperCase()
-        def msgMatcher = commitMessage =~ /Merge pull request #[0-9]* in ${uppercaseProject}\/${repository} from (\S*)|^Merge branch '(.*)'/
+        def msgMatcher = commitMessage =~ /Merge pull request #[0-9]* in ${uppercaseProject}\/${repository} from (\S*)|^Merge branch '(\S*)'/
         if (msgMatcher) {
             return msgMatcher[0][1] ?: msgMatcher[0][2]
         }
