@@ -5,6 +5,7 @@ import kong.unirest.Unirest
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.InitStage
@@ -60,7 +61,7 @@ def call(Map config) {
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
         def stageStartTime = System.currentTimeMillis()
 
-        withPodTemplate(odsImageTag) {
+        withPodTemplate(odsImageTag, steps) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
                 def result = new InitStage(this, project, repos).execute()
@@ -86,9 +87,13 @@ def call(Map config) {
     }
 }
 
-private withPodTemplate(String odsImageTag, Closure block) {
+private withPodTemplate(String odsImageTag, IPipelineSteps steps, Closure block) {
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
+    if (!OpenShiftService.envExists(steps, odsNamespace)) {
+        echo "Could not find ods namespace ${odsNamespace} - defaulting to legacy namespace: 'cd'!\r" +
+            "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace"
+    }
     podTemplate(
         label: podLabel,
         cloud: 'openshift',
