@@ -281,7 +281,6 @@ When you author templates, you can also store the secrets in the param files GPG
 
 - For versioned, separate DEV environments, pulling images from the `foo-cd` namespace is not possible (because the `foo-cd:jenkins` serviceaccount does not have admin rights in `foo-cd` and therefore can't grant access to it)
 - Tagging means we are pointing to a concrete SHA of a Git repository. This enforces that no manual editing of exported config can happen between promotion to QA and promotion to PROD, which in effect forces everything to be parameterized properly.
-- Every component must have exactly one `DeploymentConfig` with exactly one pod and one container. The `DeploymentConfig` name must match the component ID. Further, the `DeploymentConfig` must have an image trigger set on the `latest` tag of the corresonding `ImageStream`.
 - JIRA always triggers the `master` branch of the release manager, which means the `Jenkinsfile` is always taken from `master` (and NOT from the correct release branch - only `metadata.yml` etc. are read from the release branch)
 - There is only one QA namespace, preventing to test multiple releases at the same time.
 - The secret of the serviceaccount in the target cluster is known to the orchestration pipeline (as a Jenkins credential synced from OpenShift), therefore developers with edit/admin rights in the CD namespace have access to that secret

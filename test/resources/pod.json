@@ -1,0 +1,178 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "openshift.io/deployment-config.latest-version": "164",
+                    "openshift.io/deployment-config.name": "bar",
+                    "openshift.io/deployment.name": "bar-164",
+                    "openshift.io/scc": "restricted"
+                },
+                "creationTimestamp": "2020-05-18T10:43:56Z",
+                "generateName": "bar-164-",
+                "labels": {
+                    "app": "foo-bar",
+                    "deployment": "bar-164",
+                    "deploymentconfig": "bar",
+                    "env": "dev"
+                },
+                "name": "bar-164-6xxbw",
+                "namespace": "foo-dev",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicationController",
+                        "name": "bar-164",
+                        "uid": "44dc33dc-98f2-11ea-94ce-0a20b7cbe558"
+                    }
+                ],
+                "resourceVersion": "374807063",
+                "selfLink": "/api/v1/namespaces/foo-dev/pods/bar-164-6xxbw",
+                "uid": "799d51ee-98f4-11ea-94ce-0a20b7cbe558"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "172.30.21.196:5000/foo-dev/bar:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "bar",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "100m",
+                                "memory": "128Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "128Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "capabilities": {
+                                "drop": [
+                                    "KILL",
+                                    "MKNOD",
+                                    "NET_RAW",
+                                    "SETGID",
+                                    "SETUID"
+                                ]
+                            },
+                            "runAsUser": 1030510000
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "default-token-grgk5",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "imagePullSecrets": [
+                    {
+                        "name": "default-dockercfg-4p2tj"
+                    }
+                ],
+                "nodeName": "ip-172-31-61-82.eu-central-1.compute.internal",
+                "nodeSelector": {
+                    "type": "compute"
+                },
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1030510000,
+                    "seLinuxOptions": {
+                        "level": "s0:c175,c30"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoSchedule",
+                        "key": "node.kubernetes.io/memory-pressure",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "default-token-grgk5",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "default-token-grgk5"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2020-05-18T10:43:56Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2020-05-18T10:44:00Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": null,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2020-05-18T10:43:56Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "docker://fdfde9264910904ea0486a18d7a01d02c86b9792d6ee39357fcbb05a7e073fa9",
+                        "image": "172.30.21.196:5000/foo-dev/bar:7-9e688f0e",
+                        "imageID": "docker-pullable://172.30.21.196:5000/foo-dev/bar@sha256:07ba1778e7003335e6f6e0f809ce7025e5a8914dc5767f2faedd495918bee58a",
+                        "lastState": {},
+                        "name": "bar",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "running": {
+                                "startedAt": "2020-05-18T10:43:59Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.31.61.82",
+                "phase": "Running",
+                "podIP": "10.128.17.92",
+                "qosClass": "Burstable",
+                "startTime": "2020-05-18T10:43:56Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": "",
+        "selfLink": ""
+    }
+}
