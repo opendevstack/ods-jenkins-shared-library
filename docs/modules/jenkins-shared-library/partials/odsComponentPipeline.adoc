@@ -288,11 +288,11 @@ git lfs migrate
 
 === Deploying OpenShift resources from source code
 
-By default, the component pipeline uses existing OpenShift resources, and just creates new images / deployments related to them. However, it is possible to control all OpenShift resources in code, following the infrastructure-as-code approach. This can be done by defining the resources as OpenShift templates in the directory `openshift` of the repository, which will then get applied by Tailor when running the pipeline. The advantage of this approach:
+By default, the component pipeline uses existing OpenShift resources, and just creates new images / deployments related to them. However, it is possible to control all OpenShift resources in code, following the infrastructure-as-code approach. This can be done by defining the resources as https://docs.openshift.com/container-platform/3.11/dev_guide/templates.html[OpenShift templates] in the directory `openshift` of the repository, which will then get applied by https://github.com/opendevstack/tailor[Tailor] when running the pipeline. The advantage of this approach:
 
 - All changes to OpenShift resources are traceble: who did the change and when?
 - Moving your application between OpenShift projects or even clusters is trivial
-- Changes to your application code that require a change in configuration (e.g. a new environment variable) as well can be done in one commit.
+- Changes to your application code that require a change in configuration (e.g. a new environment variable) as well can be done together in one commit.
 
 If you have an existing component for which you want to enable this feature, you simply need to run:
 
