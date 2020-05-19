@@ -5,7 +5,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
-@SuppressWarnings('MethodCount')
+@SuppressWarnings(['MethodCount', 'PublicMethodsBeforeNonPublicMethods'])
 class Context implements IContext {
 
     final List excludeFromContextDebugConfig = ['nexusPassword', 'nexusUsername']
