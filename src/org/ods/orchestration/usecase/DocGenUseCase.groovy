@@ -158,7 +158,7 @@ abstract class DocGenUseCase {
             this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
         } else {
             return [found: false]
-        } 
+        }
         def buildVersion = this.project.buildParams.version
         def basename = getDocumentBasename(
             documentType, buildVersion, resurrectedBuild, repo)

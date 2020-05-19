@@ -457,16 +457,18 @@ class OpenShiftService {
                 if (!repo.data.odsBuildArtifacts) {
                     repo.data.odsBuildArtifacts = [ : ]
                 }
-                repo.data.odsBuildArtifacts.deployments = deployments
-//                repo.data.odsBuildArtifacts.resurrected = true
                 def build = repo.data.odsBuildArtifacts.
                     deployments[JenkinsService.CREATED_BY_BUILD_STR]
                 if (build && build.contains('/')) {
+                    def resurrectedBuild = build.split('/').last()
                     repo.data.odsBuildArtifacts.resurrected  = build.split('/').last()
+                    repo.data.odsBuildArtifacts.deployments = deployments
+                    this.steps.echo "Using data from previous jenkins build: ${resurrectedBuild} " +
+                        "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
+                    return true
+                } else {
+                    return false
                 }
-                this.steps.echo "Using data from previous jenkins build: ${resurrectedBuild} " +
-                    "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
-                return true
             } else {
                 this.steps.echo("Current deployments for repo: '${repo.id}'" +
                     " do not match last latest committed state (force? ${forceRedo}), rebuilding..")
