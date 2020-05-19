@@ -94,6 +94,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, Closure block)
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
         echo "Could not find ods namespace ${odsNamespace} - defaulting to legacy namespace: 'cd'!\r" +
             "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace"
+        odsNamespace = 'cd'
     }
     podTemplate(
         label: podLabel,
