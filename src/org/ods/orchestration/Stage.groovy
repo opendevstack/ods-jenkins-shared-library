@@ -21,7 +21,7 @@ class Stage {
 
     def execute() {
         script.stage(STAGE_NAME) {
-            script.echo "**** STARTING MRO stage ${STAGE_NAME} for '${project.key}' ****"
+            script.echo "**** STARTING MRO stage ${STAGE_NAME} ****"
             def stageStartTime = System.currentTimeMillis()
             try {
                 return this.run()
