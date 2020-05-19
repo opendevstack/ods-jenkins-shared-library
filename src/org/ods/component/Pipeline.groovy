@@ -242,6 +242,8 @@ class Pipeline implements Serializable {
                             context.addArtifactURI(resultKey, resultValue)
                         }
                         logger.debug(
+                            "ODS Component Pipeline '${context.componentId}-${context.buildNumber}'" +
+                            " took ${System.currentTimeMillis() - podStartTime}ms\r\r" +
                             "ODS Build Artifacts '${context.componentId}': " +
                             "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
                         )
