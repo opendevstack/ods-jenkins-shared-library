@@ -310,7 +310,7 @@ When using this approach, you need to keep a few things in mind:
 - You can always preview the changes that will happen by running `tailor diff` from your local machine.
 - `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes.
 
-Controlling your OpenShift resources in source code enables a lot of other use cases as well. For example, you might want to preview changes to a component before merging the source code. By using Tailor to deploy your templates, you create multiple running components from one repository, e.g. one per feature branch. To do this, you could do the following:
+Controlling your OpenShift resources in source code enables a lot of other use cases as well. For example, you might want to preview changes to a component before merging the source code. By using Tailor to deploy your templates, you can create multiple running components from one repository, e.g. one per feature branch. Following are some steps how to achieve this:
 
 First, add `'feature/': 'dev'` to the `branchToEnvironmentMapping`. Then, create new variables in the pipeline block:
 [source,groovy]
