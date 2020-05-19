@@ -14,6 +14,7 @@ import org.ods.orchestration.DeployStage
 import org.ods.orchestration.TestStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
+import org.ods.services.OpenShiftService
 
 def call(Map config) {
     Unirest.config()
