@@ -1,7 +1,7 @@
 package org.ods.orchestration.usecase
 
 import java.time.LocalDateTime
-
+import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
@@ -95,6 +95,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected Map computeComponentMetadata(String documentType) {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll("Technology-", "")
+
+            def gitUrl = new GitService(this.steps).getOriginUrl()
+            def isReleaseManagerComponent = 
+                gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
+            if (isReleaseManagerComponent) {
+                return
+            }
 
             def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
