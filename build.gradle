@@ -110,6 +110,7 @@ test {
 }
 
 codenarc {
+    toolVersion = '1.5'
     configFile = file('codenarc.groovy')
     maxPriority1Violations = 0
     maxPriority2Violations = 0
