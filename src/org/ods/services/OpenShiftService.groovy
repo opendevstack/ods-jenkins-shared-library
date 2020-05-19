@@ -464,8 +464,8 @@ class OpenShiftService {
                 if (build && build.contains('/')) {
                     repo.data.odsBuildArtifacts.resurrected  = build.split('/').last()
                 }
-                this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}" +
-                    "\r${repo.data.odsBuildArtifacts}"
+                this.steps.echo "Using data from previous jenkins build: ${resurrectedBuild} " +
+                    "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
                 return true
             } else {
                 this.steps.echo("Current deployments for repo: '${repo.id}'" +
