@@ -11,6 +11,54 @@ class GitService {
         this.script = script
     }
 
+    static String mergedIssueId(String project, String repository, String commitMessage) {
+        def b = mergedBranch(project, repository, commitMessage)
+        if (b) {
+            return issueIdFromBranch(b, project)
+        }
+        ''
+    }
+
+    @SuppressWarnings('LineLength')
+    static String mergedBranch(String project, String repository, String commitMessage) {
+        def uppercaseProject = project.toUpperCase()
+        def msgMatcher = commitMessage =~ /Merge pull request #[0-9]* in ${uppercaseProject}\/${repository} from (\S*)|^Merge branch '(\S*)'/
+        if (msgMatcher) {
+            return msgMatcher[0][1] ?: msgMatcher[0][2]
+        }
+        ''
+    }
+
+    static String issueIdFromBranch(String branchName, String projectId) {
+        def tokens = extractBranchCode(branchName).split('-')
+        def pId = tokens[0]
+        if (!pId || !pId.equalsIgnoreCase(projectId)) {
+            return ''
+        }
+        if (!tokens[1].isNumber()) {
+            return ''
+        }
+        return tokens[1]
+    }
+
+    static String extractBranchCode(String branch) {
+        if (branch.startsWith('feature/')) {
+            def list = branch.drop('feature/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else if (branch.startsWith('bugfix/')) {
+            def list = branch.drop('bugfix/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else if (branch.startsWith('hotfix/')) {
+            def list = branch.drop('hotfix/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else if (branch.startsWith('release/')) {
+            def list = branch.drop('release/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
+        } else {
+            branch
+        }
+    }
+
     static String getReleaseBranch(String version) {
         "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
     }

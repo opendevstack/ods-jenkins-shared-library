@@ -18,6 +18,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
       bitbucketUrl: 'https://bitbucket.example.com',
       projectId: 'foo',
       componentId: 'bar',
+      repoName: 'foo-bar',
       gitUrl: 'https://bitbucket.example.com/scm/foo/foo-bar.git',
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
       gitCommitMessage: """Foo\n\nSome "explanation".""",
