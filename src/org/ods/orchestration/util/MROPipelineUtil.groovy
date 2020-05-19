@@ -303,21 +303,21 @@ class MROPipelineUtil extends PipelineUtil {
 
                 def latestVersion = os.getLatestVersion(deploymentName)
 
-                deployment.containers?.eachWithIndex {containerName, imageRaw, index ->
-                    def runningImageSha = os.getRunningImageSha(deploymentName, latestVersion, index)
-                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
-                    if (imageInfo.sha != runningImageSha) {
+                def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
+                deployment.containers?.each { containerName, imageRaw ->
+                    def runningImageSha = os.imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
+                    def definedImageSha = os.imageInfoWithShaForImageStreamUrl(imageRaw).sha
+                    if (runningImageSha != definedImageSha) {
                         throw new RuntimeException(
-                            "Error: in container '${containerName}' running image '${imageInfo.sha}' " +
-                            "is not the same as the defined image '${runningImageSha}'."
+                            "Error: in container '${containerName}' running image '${runningImageSha}' " +
+                            "is not the same as the defined image '${definedImageSha}'."
                         )
                     } else {
                         steps.echo(
-                            "Running container '${containerName}' is using defined image '${imageInfo.sha}'."
+                            "Running container '${containerName}' is using defined image '${definedImageSha}'."
                         )
                     }
                 }
-                def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
                 repo.data.openshift.deployments << ["${deploymentName}": pod]
             }
             tagAndPush(this.project.targetTag)
