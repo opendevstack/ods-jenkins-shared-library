@@ -195,7 +195,7 @@ class Pipeline implements Serializable {
                 script.node(config.podLabel) {
                     try {
                         script.echo("Build pod '${config.podLabel}' start time:" +
-                            "${System.currentTimeMillis() - stageStartTime}ms")
+                            "${System.currentTimeMillis() - podStartTime}ms")
                         setBitbucketBuildStatus('INPROGRESS')
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
