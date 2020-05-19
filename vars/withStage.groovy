@@ -1,5 +1,5 @@
 def call(String stageLabel, def context, Closure stageClosure) {
-    echo "**** STARTING stage '${stageLabel}' for component '${context.componentId}' " + 
+    echo "**** STARTING stage '${stageLabel}' for component '${context.componentId}' " +
         "branch '${context.gitBranch}' ****"
     def stageStartTime = System.currentTimeMillis()
     try {
