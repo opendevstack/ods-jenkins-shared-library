@@ -184,6 +184,7 @@ class Pipeline implements Serializable {
                 msgBasedOn = " based on image '${config.image}'"
             }
             logger.info "***** Continuing on node '${config.podLabel}'${msgBasedOn} *****"
+            def podStartTime = System.currentTimeMillis()
             script.podTemplate(
                 label: config.podLabel,
                 cloud: 'openshift',
@@ -193,6 +194,8 @@ class Pipeline implements Serializable {
             ) {
                 script.node(config.podLabel) {
                     try {
+                        script.echo("Build pod '${config.podLabel}' start time:" +
+                            "${System.currentTimeMillis() - stageStartTime}ms")
                         setBitbucketBuildStatus('INPROGRESS')
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
