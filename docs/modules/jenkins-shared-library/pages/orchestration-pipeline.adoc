@@ -125,6 +125,18 @@ in `metadata.yml`
 allowPartialRebuild : true
 ----
 
+If one repository should always be rebuild, even if partial rebuild is configured on root level, `forceRebuild : true` can be set a repository level, e.g.
+
+```
+id: PHOENIX
+name: Project Phoenix
+
+repositories:
+  - id: B
+    name: my-repo-B
+    forceRebuild : true
+```
+
 == Automated Generation of Compliance Documents
 
 The library automatically generates Lean Validation (LeVA) compliance reports based on data in your Jira project, as well as data generated along the automated build, deploy, test, and release process by the release manager component.
