@@ -56,11 +56,7 @@ class Pipeline implements Serializable {
         if (config.containsKey('bitbucketNotificationEnabled')) {
             this.bitbucketNotificationEnabled = config.bitbucketNotificationEnabled
         }
-        if (config.projectId && config.componentId) {
-            if (!config.repoName) {
-                config.repoName = "${config.projectId}-${config.componentId}"
-            }
-        } else {
+        if (!config.projectId || !config.componentId) {
             amendProjectAndComponentFromOrigin(config)
         }
         if (!config.projectId) {
@@ -69,6 +65,7 @@ class Pipeline implements Serializable {
         if (!config.componentId) {
             script.error "Param 'componentId' is required"
         }
+        config.repoName = "${config.projectId}-${config.componentId}"
 
         prepareAgentPodConfig(config)
         logger.info "***** Starting ODS Component Pipeline (${config.componentId}) *****"
@@ -446,9 +443,9 @@ class Pipeline implements Serializable {
             if (!config.projectId) {
                 config.projectId = project
             }
-            config.repoName = splittedOrigin.last().replace('.git', '')
+            def repoName = splittedOrigin.last().replace('.git', '')
             if (!config.componentId) {
-                config.componentId = config.repoName - ~/^${project}-/
+                config.componentId = repoName - ~/^${project}-/
             }
             logger.debug(
                 "Project / component config: ${config.projectId} / ${config.componentId}"
