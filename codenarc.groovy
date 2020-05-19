@@ -152,10 +152,12 @@ ruleset {
     DuplicateStringLiteral(enabled: false)
 
     // rulesets/enhanced.xml
-    CloneWithoutCloneable
-    JUnitAssertEqualsConstantActualValue
-    MissingOverrideAnnotation
-    UnsafeImplementationAsMap
+    // Disabled as they cause errors, see
+    // https://github.com/opendevstack/ods-jenkins-shared-library/issues/299
+    CloneWithoutCloneable(enabled: false)
+    JUnitAssertEqualsConstantActualValue(enabled: false)
+    MissingOverrideAnnotation(enabled: false)
+    UnsafeImplementationAsMap(enabled: false)
 
     // rulesets/exceptions.xml
     CatchArrayIndexOutOfBoundsException
@@ -361,7 +363,7 @@ ruleset {
     // rulesets/size.xml
     AbcMetric   // Requires the GMetrics jar
     ClassSize
-    CrapMetric   // Requires the GMetrics jar and a Cobertura coverage file
+    CrapMetric(enabled: false) // Requires the GMetrics jar and a Cobertura coverage file
     CyclomaticComplexity   // Requires the GMetrics jar
     MethodCount
     MethodSize
