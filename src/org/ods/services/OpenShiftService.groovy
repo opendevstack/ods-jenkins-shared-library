@@ -458,9 +458,14 @@ class OpenShiftService {
                     repo.data.odsBuildArtifacts = [ : ]
                 }
                 repo.data.odsBuildArtifacts.deployments = deployments
-                repo.data.odsBuildArtifacts.resurrected = true
-                this.steps.echo("Resurrected ODS build artifacts for repo '${repo.id}': " +
-                    "\r${repo.data.odsBuildArtifacts}")
+//                repo.data.odsBuildArtifacts.resurrected = true
+                def build = repo.data.odsBuildArtifacts.
+                    deployments[JenkinsService.CREATED_BY_BUILD_STR]
+                if (build && build.contains('/')) {
+                    repo.data.odsBuildArtifacts.resurrected  = build.split('/').last()
+                }
+                this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}" +
+                    "\r${repo.data.odsBuildArtifacts}"
                 return true
             } else {
                 this.steps.echo("Current deployments for repo: '${repo.id}'" +

@@ -1140,9 +1140,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def deploynoteData = 'Components were built & deployed during installation.'
-        if (repo.data.odsBuildArtifacts?.resurrected) {
+        if (!!repo.data.odsBuildArtifacts?.resurrected) {
             deploynoteData = "Components were found, and are 'up to date' with version control -no deployments happend!\r" +
-                ' SCRR was restored from the corresponding creation build'
+                " SCRR was restored from the corresponding creation build (${repo.data.odsBuildArtifacts?.resurrected})"
         } else if (!repo.data.openshift?.builds) {
             deploynoteData = 'NO Components were built during installation, existing components (created in Dev) were deployed.'
         }

@@ -149,28 +149,19 @@ abstract class DocGenUseCase {
 
     @SuppressWarnings(['AbcMetric'])
     Map resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
-        String notFoundMessage = "No previous valid report for ${documentType}/repo: ${repo.id} found"
-        if (!repo.data?.odsBuildArtifacts) {
+        if (!repo.data?.odsBuildArtifacts || !repo.data.odsBuildArtifacts?.deployments) {
             return [found: false]
         }
         String resurrectedBuild
-        if (!!repo.data.odsBuildArtifacts.resurrected &&
-            repo.data.odsBuildArtifacts.deployments) {
-            String build = repo.data.odsBuildArtifacts.
-                deployments[JenkinsService.CREATED_BY_BUILD_STR]
-            if (build && build.contains('/')) {
-                resurrectedBuild = build.split('/').last()
-                this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
-            } else {
-                this.steps.echo notFoundMessage
-                return [found: false]
-            }
+        if (!!repo.data.odsBuildArtifacts.resurrected) {
+            resurrectedBuild = repo.data.odsBuildArtifacts.resurrected
+            this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
         } else {
-            this.steps.echo notFoundMessage
             return [found: false]
-        }
+        } 
         def buildVersion = this.project.buildParams.version
-        def basename = getDocumentBasename (documentType, buildVersion, resurrectedBuild, repo)
+        def basename = getDocumentBasename(
+            documentType, buildVersion, resurrectedBuild, repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
