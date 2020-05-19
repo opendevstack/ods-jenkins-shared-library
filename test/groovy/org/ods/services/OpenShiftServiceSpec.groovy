@@ -16,16 +16,14 @@ class OpenShiftServiceSpec extends SpecHelper {
         def result = service.imageInfoForImageUrl(imageUrl)
 
         then:
-        result == [
-            registry: registry,
-            repository: repository,
-            name: name,
-        ]
+        result == [registry: registry, repository: repository, name: name,]
 
         where:
         imageUrl                                || registry             | repository | name
         '172.30.21.196:5000/foo/bar:2-3ec425bc' || '172.30.21.196:5000' | 'foo'      | 'bar'
         '172.30.21.196:5000/baz/qux@sha256:abc' || '172.30.21.196:5000' | 'baz'      | 'qux'
+        'baz/qux@sha256:abc'                    || ''                   | 'baz'      | 'qux'
+        'foo/bar:2-3ec425bc'                    || ''                   | 'foo'      | 'bar'
     }
 
     def "image info with SHA for image stream URL"() {
@@ -50,6 +48,8 @@ class OpenShiftServiceSpec extends SpecHelper {
         imageStreamUrl                          | imageReference                          || registry             | repository | name  | sha          | shaStripped
         '172.30.21.196:5000/foo/bar:2-3ec425bc' | '172.30.21.196:5000/foo/bar@sha256:xyz' || '172.30.21.196:5000' | 'foo'      | 'bar' | 'sha256:xyz' | 'xyz'
         '172.30.21.196:5000/baz/qux@sha256:abc' | 'n/a'                                   || '172.30.21.196:5000' | 'baz'      | 'qux' | 'sha256:abc' | 'abc'
+        'foo/bar:2-3ec425bc'                    | '172.30.21.196:5000/foo/bar@sha256:xyz' || '172.30.21.196:5000' | 'foo'      | 'bar' | 'sha256:xyz' | 'xyz'
+        'baz/qux@sha256:abc'                    | 'n/a'                                   || ''                   | 'baz'      | 'qux' | 'sha256:abc' | 'abc'
     }
 
 }

@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.util.Logger
+import org.ods.services.GitService
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
@@ -285,6 +286,11 @@ class Context implements IContext {
         config.componentId
     }
 
+    @NonCPS
+    String getRepoName() {
+        config.repoName
+    }
+
     String getGitCommit() {
         config.gitCommit
     }
@@ -356,6 +362,136 @@ class Context implements IContext {
     @NonCPS
     String getDockerDir() {
         return config.dockerDir
+    }
+
+    boolean environmentExists(String name) {
+        def statusCode = script.sh(
+            script: "oc project ${name} &> /dev/null",
+            label: "check if OCP environment ${name} exists",
+            returnStatus: true
+        )
+        return statusCode == 0
+    }
+
+    String getIssueId() {
+        GitService.issueIdFromBranch(config.gitBranch, config.projectId)
+    }
+
+    // This logic must be consistent with what is described in README.md.
+    // To make it easier to follow the logic, it is broken down by workflow (at
+    // the cost of having some duplication).
+    void determineEnvironment() {
+        if (config.environment) {
+            // environment already set
+            return
+        }
+        // Fixed name
+        def env = config.branchToEnvironmentMapping[config.gitBranch]
+        if (env) {
+            config.environment = env
+            config.cloneSourceEnv = environmentExists(env)
+                ? false
+                : config.autoCloneEnvironmentsFromSourceMapping[env]
+            return
+        }
+
+        // Prefix
+        // Loop needs to be done like this due to
+        // https://issues.jenkins-ci.org/browse/JENKINS-27421 and
+        // https://issues.jenkins-ci.org/browse/JENKINS-35191.
+        for (def key : config.branchToEnvironmentMapping.keySet()) {
+            if (config.gitBranch.startsWith(key)) {
+                setMostSpecificEnvironment(
+                    config.branchToEnvironmentMapping[key],
+                    config.gitBranch.replace(key, '')
+                )
+                return
+            }
+        }
+
+        // Any branch
+        def genericEnv = config.branchToEnvironmentMapping['*']
+        if (genericEnv) {
+            setMostSpecificEnvironment(
+                genericEnv,
+                config.gitBranch.replace('/', '')
+            )
+            return
+        }
+
+        logger.info 'No environment to deploy to was determined, returning..\r' +
+            "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
+        config.environment = ''
+        config.cloneSourceEnv = ''
+    }
+
+    Map<String, String> getCloneProjectScriptUrls() {
+        def scripts = ['clone-project.sh', 'import-project.sh', 'export-project.sh',]
+        def m = [:]
+        def branch = getCloneProjectScriptBranch().replace('/', '%2F')
+        def baseUrl = "${config.bitbucketUrl}/projects/${config.odsBitbucketProject}/repos/ods-core/raw/ocp-scripts"
+        for (script in scripts) {
+            def url = "${baseUrl}/${script}?at=refs%2Fheads%2F${branch}"
+            m.put(script, url)
+        }
+        return m
+    }
+
+    Map<String, Object> getBuildArtifactURIs() {
+        return artifactUriStore.asImmutable()
+    }
+
+    void addArtifactURI(String key, value) {
+        artifactUriStore.put(key, value)
+    }
+
+    void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
+        artifactUriStore.builds [buildConfigName] = buildInformation
+    }
+
+    void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
+        artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
+    }
+
+    // get extension image labels
+    @NonCPS
+    Map<String, String> getExtensionImageLabels () {
+        return config.globalExtensionImageLabels
+    }
+
+    // set and add image labels
+    @NonCPS
+    void setExtensionImageLabels (Map <String, String> extensionLabels) {
+        if (extensionLabels) {
+            config.globalExtensionImageLabels.putAll(extensionLabels)
+        }
+    }
+
+    Map<String,String> getExtensionBuildParams () {
+        String rawEnv = script.sh(
+            returnStdout: true, script: 'env | grep ods.build. || true',
+            label: 'getting extension environment labels'
+          ).trim()
+
+        if (rawEnv.size() == 0 ) {
+            return [:]
+        }
+
+        return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
+            Iterator kv = line.toString().tokenize('=').iterator()
+            kvMap.put(kv.next(), kv.hasNext() ? kv.next() : '')
+            kvMap
+        }
+    }
+
+    // set the application domain
+    void setOpenshiftApplicationDomain (String domain) {
+        config.domain = domain
+    }
+
+    // get the application domain
+    String getOpenshiftApplicationDomain () {
+        return config.domain
     }
 
     private String retrieveGitUrl() {
@@ -451,92 +587,15 @@ class Context implements IContext {
         return branch
     }
 
-    boolean environmentExists(String name) {
-        def statusCode = script.sh(
-            script: "oc project ${name} &> /dev/null",
-            label: "check if OCP environment ${name} exists",
-            returnStatus: true
-        )
-        return statusCode == 0
-    }
-
-    // Given a branch like "feature/HUGO-4-brown-bag-lunch", it extracts
-    // "HUGO-4" from it.
-    private String extractBranchCode(String branch) {
-        if (branch.startsWith('feature/')) {
-            def list = branch.drop('feature/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else if (branch.startsWith('bugfix/')) {
-            def list = branch.drop('bugfix/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else if (branch.startsWith('hotfix/')) {
-            def list = branch.drop('hotfix/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else if (branch.startsWith('release/')) {
-            def list = branch.drop('release/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
-        } else {
-            branch
-        }
-    }
-
-    // This logic must be consistent with what is described in README.md.
-    // To make it easier to follow the logic, it is broken down by workflow (at
-    // the cost of having some duplication).
-    void determineEnvironment() {
-        if (config.environment) {
-            // environment already set
-            return
-        }
-        // Fixed name
-        def env = config.branchToEnvironmentMapping[config.gitBranch]
-        if (env) {
-            config.environment = env
-            config.cloneSourceEnv = environmentExists(env)
-                ? false
-                : config.autoCloneEnvironmentsFromSourceMapping[env]
-            return
-        }
-
-        // Prefix
-        // Loop needs to be done like this due to
-        // https://issues.jenkins-ci.org/browse/JENKINS-27421 and
-        // https://issues.jenkins-ci.org/browse/JENKINS-35191.
-        for (def key : config.branchToEnvironmentMapping.keySet()) {
-            if (config.gitBranch.startsWith(key)) {
-                setMostSpecificEnvironment(
-                    config.branchToEnvironmentMapping[key],
-                    config.gitBranch.replace(key, '')
-                )
-                return
-            }
-        }
-
-        // Any branch
-        def genericEnv = config.branchToEnvironmentMapping['*']
-        if (genericEnv) {
-            setMostSpecificEnvironment(
-                genericEnv,
-                config.gitBranch.replace('/', '')
-            )
-            return
-        }
-
-        logger.info 'No environment to deploy to was determined, returning..\r' +
-            "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
-        config.environment = ''
-        config.cloneSourceEnv = ''
-    }
-
     // Based on given +genericEnv+ (e.g. "preview") and +branchSuffix+ (e.g.
     // "foo-123-bar"), it finds the most specific environment. This is either:
     // - the +genericEnv+ suffixed with a numeric ticket ID
     // - the +genericEnv+ suffixed with the +branchSuffix+
     // - the +genericEnv+ without suffix
-    protected void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
+    private void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
         def specifcEnv = genericEnv + '-' + branchSuffix
 
-        def ticketId = getTicketIdFromBranch(config.gitBranch, config.projectId)
+        def ticketId = GitService.issueIdFromBranch(config.gitBranch, config.projectId)
         if (ticketId) {
             specifcEnv = genericEnv + '-' + ticketId
         }
@@ -548,87 +607,6 @@ class Context implements IContext {
         } else {
             config.environment = genericEnv
         }
-    }
-
-    protected String getTicketIdFromBranch(String branchName, String projectId) {
-        def tokens = extractBranchCode(branchName).split('-')
-        def pId = tokens[0]
-        if (!pId || !pId.equalsIgnoreCase(projectId)) {
-            return ''
-        }
-        if (!tokens[1].isNumber()) {
-            return ''
-        }
-        return tokens[1]
-    }
-
-    Map<String, String> getCloneProjectScriptUrls() {
-        def scripts = ['clone-project.sh', 'import-project.sh', 'export-project.sh',]
-        def m = [:]
-        def branch = getCloneProjectScriptBranch().replace('/', '%2F')
-        def baseUrl = "${config.bitbucketUrl}/projects/${config.odsBitbucketProject}/repos/ods-core/raw/ocp-scripts"
-        for (script in scripts) {
-            def url = "${baseUrl}/${script}?at=refs%2Fheads%2F${branch}"
-            m.put(script, url)
-        }
-        return m
-    }
-
-    Map<String, Object> getBuildArtifactURIs() {
-        return artifactUriStore.asImmutable()
-    }
-
-    void addArtifactURI(String key, value) {
-        artifactUriStore.put(key, value)
-    }
-
-    void addBuildToArtifactURIs (String buildConfigName, Map <String, String> buildInformation) {
-        artifactUriStore.builds [buildConfigName] = buildInformation
-    }
-
-    void addDeploymentToArtifactURIs (String deploymentConfigName, Map deploymentInformation) {
-        artifactUriStore.deployments [deploymentConfigName] = deploymentInformation
-    }
-
-    // get extension image labels
-    @NonCPS
-    Map<String, String> getExtensionImageLabels () {
-        return config.globalExtensionImageLabels
-    }
-
-    // set and add image labels
-    @NonCPS
-    void setExtensionImageLabels (Map <String, String> extensionLabels) {
-        if (extensionLabels) {
-            config.globalExtensionImageLabels.putAll(extensionLabels)
-        }
-    }
-
-    Map<String,String> getExtensionBuildParams () {
-        String rawEnv = script.sh(
-            returnStdout: true, script: 'env | grep ods.build. || true',
-            label: 'getting extension environment labels'
-          ).trim()
-
-        if (rawEnv.size() == 0 ) {
-            return [:]
-        }
-
-        return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
-            Iterator kv = line.toString().tokenize('=').iterator()
-            kvMap.put(kv.next(), kv.hasNext() ? kv.next() : '')
-            kvMap
-        }
-    }
-
-    // set the application domain
-    void setOpenshiftApplicationDomain (String domain) {
-        config.domain = domain
-    }
-
-    // get the application domain
-    String getOpenshiftApplicationDomain () {
-        return config.domain
     }
 
 }

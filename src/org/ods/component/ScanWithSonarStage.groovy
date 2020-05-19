@@ -98,15 +98,14 @@ class ScanWithSonarStage extends Stage {
             return [:]
         }
 
-        def repo = "${context.projectId}-${context.componentId}"
-        def apiResponse = bitbucket.getPullRequests(repo)
+        def apiResponse = bitbucket.getPullRequests(context.repoName)
         def pullRequest = findPullRequest(apiResponse, context.gitBranch)
 
         if (pullRequest) {
             return [
                 bitbucketUrl: context.bitbucketUrl,
                 bitbucketProject: context.projectId,
-                bitbucketRepository: repo,
+                bitbucketRepository: context.repoName,
                 bitbucketPullRequestKey: pullRequest.key,
                 branch: context.gitBranch,
                 baseBranch: pullRequest.base,

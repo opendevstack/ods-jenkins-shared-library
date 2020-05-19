@@ -23,10 +23,12 @@ class CreateOpenShiftResourcesStage extends Stage {
 
             def tailorParams = [
                 '--upsert-only',
+                '--ignore-unknown-parameters',
                 "--selector ${config.selector}",
                 "--param=PROJECT=${context.projectId}",
                 "--param=COMPONENT=${context.componentId}",
                 "--param=ENV=${env}",
+                "--param=DOCKER_REGISTRY=${context.dockerRegistry}",
             ]
 
             if (script.fileExists(config.envFile)) {

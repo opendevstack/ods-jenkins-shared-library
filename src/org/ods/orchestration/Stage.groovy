@@ -46,7 +46,8 @@ class Stage {
 
                 throw e
             } finally {
-                script.echo "**** ENDED stage ${STAGE_NAME} (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
+                script.echo "**** ENDED stage ${STAGE_NAME} " + 
+                    "(time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
             }
         }
     }

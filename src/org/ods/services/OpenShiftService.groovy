@@ -359,28 +359,36 @@ class OpenShiftService {
     // imageInfoForImageUrl expects an image URL like one of the following:
     // 172.30.21.196:5000/foo/bar:2-3ec425bc
     // 172.30.21.196:5000/foo/bar@sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
+    // The registry part is optional.
     //
     // It returns a map with image parts:
-    // - registry
+    // - registry (empty if not specified)
     // - repository (= OpenShift project in case of image from ImageStream)
     // - name (= ImageStream name in case of image from ImageStream)
     Map<String, String> imageInfoForImageUrl(String url) {
         def imageInfo = [:]
+        def urlParts = url.split('/').toList()
 
-        def urlParts = url.split('/')
-        if (urlParts.size() != 3) {
+        if (urlParts.size() < 2) {
             throw new RuntimeException(
-                "ERROR: Image URL ${url} does not consist of three parts (registry/repository/reference)"
+                "ERROR: Image URL ${url} must have at least two parts (repository/reference)"
             )
         }
-        imageInfo.registry = urlParts[0]
-        imageInfo.repository = urlParts[1]
 
-        if (urlParts[2].contains('@')) {
-            def shaParts = urlParts[2].split('@')
+        if (urlParts.size() > 2) {
+            imageInfo.registry = urlParts[-3]
+        } else {
+            logger.debug "Image URL ${url} does not define the registry explicitly."
+            imageInfo.registry = ''
+        }
+
+        imageInfo.repository = urlParts[-2]
+
+        if (urlParts[-1].contains('@')) {
+            def shaParts = urlParts[-1].split('@').toList()
             imageInfo.name = shaParts[0]
         } else {
-            def tagParts = urlParts[2].split(':')
+            def tagParts = urlParts[-1].split(':').toList()
             imageInfo.name = tagParts[0]
         }
         imageInfo
@@ -389,9 +397,10 @@ class OpenShiftService {
     // imageInfoWithShaForImageStreamUrl expects an image URL like one of the following:
     // 172.30.21.196:5000/foo/bar:2-3ec425bc
     // 172.30.21.196:5000/foo/bar@sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
+    // The registry part is optional.
     //
     // It returns a map with image parts:
-    // - registry
+    // - registry (empty if not specified)
     // - repository (= OpenShift project in case of image from ImageStream)
     // - name (= ImageStream name in case of image from ImageStream)
     // - reference (= <name>@sha256:<sha-identifier>)
@@ -399,23 +408,23 @@ class OpenShiftService {
     // - shaStripped (= <sha-identifier>)
     Map<String, String> imageInfoWithShaForImageStreamUrl(String imageStreamUrl) {
         def urlParts = imageStreamUrl.split('/').toList()
-        if (urlParts.size() != 3) {
+        if (urlParts.size() < 2) {
             throw new RuntimeException(
-                "ERROR: Image URL ${imageStreamUrl} does not consist of three parts (registry/repository/reference)"
+                "ERROR: Image URL ${imageStreamUrl} must have at least two parts (repository/reference)"
             )
         }
-        if (urlParts[2].contains('@sha256:')) {
+        if (urlParts[-1].contains('@sha256:')) {
             return imageInfoWithSha(urlParts)
         }
 
         // If the imageStreamUrl contains a tag, we resolve it to a SHA.
-        def tagParts = urlParts[2].split(':')
+        def tagParts = urlParts[-1].split(':')
         if (tagParts.size() != 2) {
             throw new RuntimeException(
                 "ERROR: Image reference ${urlParts[2]} does not consist of two parts (name:tag)"
             )
         }
-        def shaUrl = getImageReference(steps, urlParts[1], tagParts[0], tagParts[1])
+        def shaUrl = getImageReference(steps, urlParts[-2], tagParts[0], tagParts[1])
         imageInfoWithSha(shaUrl.split('/').toList())
     }
 
@@ -578,14 +587,20 @@ class OpenShiftService {
 
     private Map<String, String> imageInfoWithSha(List<String> urlParts) {
         def imageInfo = [:]
-        if (urlParts.size() != 3 || !urlParts[2].contains('@sha256:')) {
+        def url = urlParts.join('/')
+        if (urlParts.size() < 2 || !urlParts[-1].contains('@sha256:')) {
             throw new RuntimeException(
-                "ERROR: Image URL '${urlParts.join('/')}' must be of form REGISTRY/REPOSITORY/NAME@sha256:ID)"
+                "ERROR: Image URL '${url}' must be of form [REGISTRY/]REPOSITORY/NAME@sha256:ID)"
             )
         }
-        imageInfo.registry = urlParts[0]
-        imageInfo.repository = urlParts[1]
-        def nameParts = urlParts[2].split('@')
+        if (urlParts.size() > 2) {
+            imageInfo.registry = urlParts[-3]
+        } else {
+            logger.debug "Image URL ${url} does not define the registry explicitly."
+            imageInfo.registry = ''
+        }
+        imageInfo.repository = urlParts[-2]
+        def nameParts = urlParts[-1].split('@')
         imageInfo.name = nameParts[0]
         imageInfo.sha = nameParts[1]
         imageInfo.shaStripped = nameParts[1].replace('sha256:', '')
