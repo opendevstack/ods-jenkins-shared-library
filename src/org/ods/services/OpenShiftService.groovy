@@ -457,11 +457,10 @@ class OpenShiftService {
                 if (!repo.data.odsBuildArtifacts) {
                     repo.data.odsBuildArtifacts = [ : ]
                 }
-                def build = repo.data.odsBuildArtifacts.
-                    deployments[JenkinsService.CREATED_BY_BUILD_STR]
+                def build = deployments.get(JenkinsService.CREATED_BY_BUILD_STR)
                 if (build && build.contains('/')) {
                     def resurrectedBuild = build.split('/').last()
-                    repo.data.odsBuildArtifacts.resurrected  = build.split('/').last()
+                    repo.data.odsBuildArtifacts.resurrected = resurrectedBuild
                     repo.data.odsBuildArtifacts.deployments = deployments
                     this.steps.echo "Using data from previous jenkins build: ${resurrectedBuild} " +
                         "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
