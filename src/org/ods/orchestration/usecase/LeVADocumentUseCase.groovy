@@ -97,10 +97,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def normComponentName = component.name.replaceAll("Technology-", "")
 
             def gitUrl = new GitService(this.steps).getOriginUrl()
-            def isReleaseManagerComponent = 
+            def isReleaseManagerComponent =
                 gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
             if (isReleaseManagerComponent) {
-                return
+                return [ : ]
             }
 
             def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }

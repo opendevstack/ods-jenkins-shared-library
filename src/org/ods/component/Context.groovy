@@ -3,7 +3,7 @@ package org.ods.component
 import org.ods.util.Logger
 import org.ods.services.GitService
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
 
 @SuppressWarnings(['MethodCount', 'PublicMethodsBeforeNonPublicMethods'])
@@ -156,7 +156,7 @@ class Context implements IContext {
             config.targetProject = "${config.projectId}-${config.environment}"
         }
         // clone the map and overwrite exclusions
-        Map debugConfig = new JsonSlurper().
+        Map debugConfig = new JsonSlurperClassic().
             parseText(JsonOutput.toJson(config))
 
         excludeFromContextDebugConfig.each { exclusion ->
