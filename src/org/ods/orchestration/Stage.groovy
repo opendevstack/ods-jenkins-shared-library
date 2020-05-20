@@ -73,7 +73,9 @@ class Stage {
                         passwordVariable: 'BITBUCKET_PW'
                     )]
                 ) {
-                    def urlWithCredentials = "https://${script.BITBUCKET_USER}:${script.BITBUCKET_PW}@${bitbucketHost}"
+                    def bbUser = URLEncoder.encode(script.env.BITBUCKET_USER, 'UTF-8')
+                    def bbPwd = URLEncoder.encode(script.env.BITBUCKET_PW, 'UTF-8')
+                    def urlWithCredentials = "https://${bbUser}:${bbPwd}@${bitbucketHost}"
                     script.writeFile(
                         file: "${script.env.HOME}/.git-credentials",
                         text: urlWithCredentials
