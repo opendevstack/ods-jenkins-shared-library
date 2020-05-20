@@ -63,7 +63,7 @@ def call(Map config) {
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
         def stageStartTime = System.currentTimeMillis()
 
-        withPodTemplate(odsImageTag, steps) {
+        withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
                 def result = new InitStage(this, project, repos).execute()
