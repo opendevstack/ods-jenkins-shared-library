@@ -618,8 +618,8 @@ class OpenShiftService {
                 }
                 def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
                 deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
-                    def runningImageSha = os.imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
-                    def definedImageSha = os.imageInfoWithShaForImageStreamUrl(imageRaw).sha
+                    def runningImageSha = imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
+                    def definedImageSha = imageInfoWithShaForImageStreamUrl(imageRaw).sha
                     if (runningImageSha != definedImageSha) {
                         steps.echo "Error: in container '${containerName}' running image '${runningImageSha}' " +
                             "is not the same as the defined image '${definedImageSha}'."
