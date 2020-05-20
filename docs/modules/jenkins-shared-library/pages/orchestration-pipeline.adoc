@@ -12,7 +12,6 @@ Load the shared library in your `Jenkinsfile` like this:
 odsOrchestrationPipeline(
   debug: true,
   odsImageTag: '2.x'
-  alwaysPullImage: true
 )
 ----
 
@@ -119,14 +118,14 @@ Instead of merely resolving repositories into a strictly sequential execution mo
 
 === Building of components & partial deployments
 
-By default the shared library will rebuild ALL ods components, no matter which ones changed. In order to allow
+By default the shared library will rebuild all type `ods` components, no matter which ones changed. In order to allow
 partial building, that is based on changes one has done to the components, the following needs to be configured
 in `metadata.yml`
 ----
 allowPartialRebuild : true
 ----
 
-If one repository should always be rebuild, even if partial rebuild is configured on root level, `forceRebuild : true` can be set a repository level, e.g.
+If one repository should always be *rebuilt*, even if partial rebuild is configured on root level, `forceRebuild : true` can be set at repository level, e.g.
 
 ```
 id: PHOENIX
@@ -137,6 +136,14 @@ repositories:
     name: my-repo-B
     forceRebuild : true
 ```
+
+=== Optimization of runtime performance
+
+By default the shared library will always pull the *slave image* from the internal docker repository. Depending on the
+cluster node setup, this may decrease execution performance. In order to re-use loaded images, a knob in the `Jenkinsfile` configuration of the stage `odsOrchestrationPipeline` can be turned on:
+----
+alwaysPullImage: true
+----
 
 == Automated Generation of Compliance Documents
 
