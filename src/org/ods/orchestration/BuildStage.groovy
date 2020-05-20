@@ -56,7 +56,7 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
                 } else {
-                    steps.echo("Resurrected tests - no tests will be reported to JIRA")
+                    steps.echo("Resurrected tests - no tests results will be reported to JIRA")
                 }
             }
         }
