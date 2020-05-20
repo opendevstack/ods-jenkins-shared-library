@@ -616,12 +616,13 @@ class OpenShiftService {
                     steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
                         " is not latest version! (${latestDeployedVersion})"
                 }
+                def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
                 deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
-                    def runningImageSha = getRunningImageSha(deploymentName, latestDeployedVersion, index)
-                    def imageInfo = imageInfoWithShaForImageStreamUrl(imageRaw)
-                    if (imageInfo.sha != runningImageSha) {
-                        steps.echo "DeploymentConfig's container '${deploymentName}/${containerName}'" +
-                            " image is not latest version! (running: ${runningImageSha} vs ${imageInfo.sha})"
+                    def runningImageSha = os.imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
+                    def definedImageSha = os.imageInfoWithShaForImageStreamUrl(imageRaw).sha
+                    if (runningImageSha != definedImageSha) {
+                        steps.echo "Error: in container '${containerName}' running image '${runningImageSha}' " +
+                            "is not the same as the defined image '${definedImageSha}'."
                         notThisImages << runningImageSha
                     }
                 }
