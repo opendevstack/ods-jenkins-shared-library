@@ -282,19 +282,6 @@ class OpenShiftService {
         )
     }
 
-    // getRunningImageSha returns the sha with "sha256:" prefix, e.g.
-    // sha256:eec4a4451a307bd1fa44bde6642077a3c2a722e0ad370c1c22fcebcd8d4efd33
-    String getRunningImageSha(String component, int version, index = 0) {
-        def runningImageStreamUrl = steps.sh(
-            script: """oc -n ${project} get rc/${component}-${version} \
-            -o jsonpath='{.spec.template.spec.containers[${index}].image}'
-            """,
-            label: "Get running image for rc/${component}-${version} containerIndex: ${index}",
-            returnStdout: true
-        ).trim()
-        imageInfoWithShaForImageStreamUrl(runningImageStreamUrl).sha
-    }
-
     void importImageFromProject(String name, String sourceProject, String imageSha, String imageTag) {
         steps.sh(
             script: """oc -n ${project} tag ${sourceProject}/${name}@${imageSha} ${name}:${imageTag}""",
@@ -403,7 +390,6 @@ class OpenShiftService {
     // - registry (empty if not specified)
     // - repository (= OpenShift project in case of image from ImageStream)
     // - name (= ImageStream name in case of image from ImageStream)
-    // - reference (= <name>@sha256:<sha-identifier>)
     // - sha (= sha256:<sha-identifier>)
     // - shaStripped (= <sha-identifier>)
     Map<String, String> imageInfoWithShaForImageStreamUrl(String imageStreamUrl) {
@@ -509,7 +495,11 @@ class OpenShiftService {
         pod.podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
         pod.containers = [:]
         podOCData.spec?.containers?.each { container ->
-            pod.containers[container.name] = container.image
+            podOCData.status?.containerStatuses?.each { containerStatus ->
+                if (containerStatus.name == container.name) {
+                    pod.containers[container.name] = containerStatus.imageID - ~/^docker-pullable:\/\//
+                }
+            }
         }
         pod
     }

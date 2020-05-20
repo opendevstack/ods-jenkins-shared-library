@@ -52,4 +52,29 @@ class OpenShiftServiceSpec extends SpecHelper {
         'baz/qux@sha256:abc'                    | 'n/a'                                   || ''                   | 'baz'      | 'qux' | 'sha256:abc' | 'abc'
     }
 
+    def "pod data extraction"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false), 'foo')
+        def file = new FixtureHelper().getResource("pod.json")
+
+        when:
+        def result = service.extractPodData(file.text, "deployment 'bar'")
+
+        then:
+        result == [
+            podName: 'bar-164-6xxbw',
+            podNamespace: 'foo-dev',
+            podMetaDataCreationTimestamp: '2020-05-18T10:43:56Z',
+            deploymentId: 'bar-164',
+            podNode: 'ip-172-31-61-82.eu-central-1.compute.internal',
+            podIp: '10.128.17.92',
+            podStatus: 'Running',
+            podStartupTimeStamp: '2020-05-18T10:43:56Z',
+            containers: [
+                bar: '172.30.21.196:5000/foo-dev/bar@sha256:07ba1778e7003335e6f6e0f809ce7025e5a8914dc5767f2faedd495918bee58a'
+            ]
+        ]
+    }
+
 }
