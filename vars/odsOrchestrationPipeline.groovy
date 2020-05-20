@@ -30,6 +30,7 @@ def call(Map config) {
         error "You must set 'odsImageTag' in the config map"
     }
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
+    def alwaysPullImage = !!config.get('alwaysPullImage', true)
 
     node {
         // Clean workspace from previous runs
@@ -88,7 +89,7 @@ def call(Map config) {
     }
 }
 
-private withPodTemplate(String odsImageTag, IPipelineSteps steps, Closure block) {
+private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, Closure block) {
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
@@ -108,7 +109,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, Closure block)
                 resourceLimitMemory: '1Gi',
                 resourceRequestCpu: '200m',
                 resourceLimitCpu: '1',
-                alwaysPullImage: true,
+                alwaysPullImage: "${alwaysPullImage}",
                 args: '${computer.jnlpmac} ${computer.name}',
                 envVars: []
             )

@@ -12,6 +12,7 @@ Load the shared library in your `Jenkinsfile` like this:
 odsOrchestrationPipeline(
   debug: true,
   odsImageTag: '2.x'
+  alwaysPullImage: true
 )
 ----
 
