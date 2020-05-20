@@ -616,7 +616,7 @@ class OpenShiftService {
                     steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
                         " is not latest version! (${latestDeployedVersion})"
                 }
-                def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
+                def pod = getPodDataForDeployment("${deploymentName}-${latestVersion}")
                 deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
                     def runningImageSha = imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
                     def definedImageSha = imageInfoWithShaForImageStreamUrl(imageRaw).sha
