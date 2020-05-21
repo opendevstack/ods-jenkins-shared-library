@@ -21,7 +21,7 @@ class Stage {
 
     def execute() {
         script.stage(STAGE_NAME) {
-            script.echo "**** STARTING stage ${STAGE_NAME} ****"
+            script.echo "**** STARTING orchestration stage ${STAGE_NAME} ****"
             def stageStartTime = System.currentTimeMillis()
             try {
                 return this.run()
@@ -45,8 +45,10 @@ class Stage {
                 }
 
                 throw e
+            } finally {
+                script.echo "**** ENDED orchestration stage ${STAGE_NAME} " +
+                    "(time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
             }
-            script.echo "**** ENDED stage ${STAGE_NAME} (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
         }
     }
 

@@ -1,7 +1,7 @@
 package org.ods.orchestration.usecase
 
 import java.time.LocalDateTime
-
+import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
@@ -64,6 +64,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         DocumentType.CFTR as String
     ]
 
+    static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
+        'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
+    ]
+
     public static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
     public static String WORK_IN_PROGRESS_WATERMARK = "Work in Progress"
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = "Attention: this document is work in progress!"
@@ -91,6 +95,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected Map computeComponentMetadata(String documentType) {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll("Technology-", "")
+
+            def gitUrl = new GitService(this.steps).getOriginUrl()
+            def isReleaseManagerComponent =
+                gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
+            if (isReleaseManagerComponent) {
+                return [ : ]
+            }
 
             def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
@@ -126,8 +137,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    private Map obtainCodeReviewReport(List<Map> repos) {
+    private List obtainCodeReviewReport(List<Map> repos) {
         def reports =  repos.collect { r ->
+            // resurrect?
+            Map resurrectedDocument = resurrectAndStashDocument('SCRR-MD', r, false)
+            this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
+            if (resurrectedDocument.found) {
+                return resurrectedDocument.content
+            }
+
             def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
             def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
 
@@ -146,10 +164,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def name = this.getDocumentBasename("SCRR-MD", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
             def sqReportFile = sqReportFiles.first()
 
-            return this.pdf.convertFromMarkdown(sqReportFile, true)
+            def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
+
+            // store doc - we may need it later for partial deployments
+            if (!resurrectedDocument.found) {
+                def result = this.storeDocument("${name}.pdf", generatedSCRR, "application/pdf")
+                this.steps.echo "Stored 'SCRR' for later consumption -> ${result}"
+            }
+            return generatedSCRR
         }
 
-        return this.pdf.merge(reports)
+        return reports
     }
 
     protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
@@ -441,6 +466,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String createDTR(Map repo, Map data) {
         def documentType = DocumentType.DTR as String
+
+        Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
+        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
+        if (resurrectedDocument.found) {
+            return resurrectedDocument.uri
+        }
 
         def unitTestData = data.tests.unit
 
@@ -1034,11 +1065,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Code review report
         def codeRepos = this.project.repositories.findAll{ it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
-        def codeReviewReport = obtainCodeReviewReport(codeRepos)
+        def codeReviewReports = obtainCodeReviewReport(codeRepos)
 
         def modifier = { document ->
+            List documents = [document]
+            documents += codeReviewReports
             // Merge the current document with the code review report
-            return this.pdf.merge([ document, codeReviewReport])
+            return this.pdf.merge(documents)
         }
 
         def data_ = [
@@ -1091,6 +1124,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
 
@@ -1107,22 +1141,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         if (!repo.data.openshift && repo.data.odsBuildArtifacts) {
-            repo.data["openshift"] = [:]
-            repo.data.openshift << repo.data.odsBuildArtifacts.subMap (["builds","deployments"])
+            repo.data['openshift'] = [:]
+            repo.data.openshift << repo.data.odsBuildArtifacts.subMap (['builds','deployments'])
             this.steps.echo("fetched openshift data from build for repo: ${repo.id} \r${repo.data.openshift}")
         }
 
-        def deploynoteData = "Components were built & deployed during installation."
-        if (!repo.data.openshift?.builds || repo.data.openshift?.builds?.size() == 0) {
-            deploynoteData = "NO Components were built during installation, existing components (created in Dev) were deployed."
+        def deploynoteData = 'Components were built & deployed during installation.'
+        if (!!repo.data.odsBuildArtifacts?.resurrected) {
+            deploynoteData = "Components were found, and are 'up to date' with version control -no deployments happend!\r" +
+                " SCRR was restored from the corresponding creation build (${repo.data.odsBuildArtifacts?.resurrected})"
+        } else if (!repo.data.openshift?.builds) {
+            deploynoteData = 'NO Components were built during installation, existing components (created in Dev) were deployed.'
         }
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
             openShiftData: [
-                builds      : repo.data.openshift?.builds ?: "",
-                deployments : repo.data.openshift?.deployments ?: ""
+                builds      : repo.data.openshift?.builds ?: '',
+                deployments : repo.data.openshift?.deployments ?: ''
             ],
             data         : [
                 repo    : repo,
@@ -1140,7 +1177,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def modifier = { document ->
             if (codeReviewReport) {
-                document = this.pdf.merge([ document, codeReviewReport])
+                List documents = [document]
+                documents += codeReviewReport
+                // Merge the current document with the code review report
+                document = this.pdf.merge(documents)
             }
             return document
         }
@@ -1375,5 +1415,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.DTR as String
         ]
         return !(documentType && notArchiveDocTypes.contains(documentType))
+    }
+
+    Map getFiletypeForDocumentType (String documentType) {
+        if (!documentType) {
+            throw new RuntimeException ("Cannot lookup Null docType for storage!")
+        }
+        Map defaultTypes = [storage: 'zip', content: 'pdf' ]
+
+        if (DOCUMENT_TYPE_NAMES.containsKey(documentType)) {
+            return defaultTypes
+        } else if (DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.containsKey(documentType)) {
+            return DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.get(documentType)
+        }
+        return defaultTypes
     }
 }

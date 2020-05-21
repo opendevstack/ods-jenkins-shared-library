@@ -13,6 +13,7 @@ import org.ods.orchestration.util.Project
 @SuppressWarnings(['AbstractClassWithPublicConstructor', 'LineLength', 'ParameterCount', 'GStringAsMapKey'])
 abstract class DocGenUseCase {
 
+    static final String RESURRECTED = "resurrected"
     protected Project project
     protected IPipelineSteps steps
     protected MROPipelineUtil util
@@ -146,9 +147,77 @@ abstract class DocGenUseCase {
         return "${documentType}-${result}-${version}-${build}".toString()
     }
 
+    @SuppressWarnings(['AbcMetric'])
+    Map resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
+        if (!repo.data?.odsBuildArtifacts || !repo.data.odsBuildArtifacts?.deployments) {
+            return [found: false]
+        }
+        String resurrectedBuild
+        if (!!repo.data.odsBuildArtifacts.resurrected) {
+            resurrectedBuild = repo.data.odsBuildArtifacts.resurrected
+            this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
+        } else {
+            return [found: false]
+        }
+        def buildVersion = this.project.buildParams.version
+        def basename = getDocumentBasename(
+            documentType, buildVersion, resurrectedBuild, repo)
+        def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
+
+        def fileExtensions = getFiletypeForDocumentType(documentType)
+        String storageType = fileExtensions.storage ?: 'zip'
+        String contentType = fileExtensions.content ?: 'pdf'
+        this.steps.echo "Resolved documentType '${documentType}'" +
+            " - storage/content formats: ${fileExtensions}"
+
+        String contentFileName = "${basename}.${contentType}"
+        String storedFileName = "${basename}.${storageType}"
+        Map documentFromNexus =
+            this.nexus.retrieveArtifact(
+                this.project.services.nexus.repository.name,
+                "${this.project.key.toLowerCase()}-${buildVersion}",
+                storedFileName, path)
+
+        this.steps.echo "Document found: ${storedFileName} \r ${documentFromNexus}"
+        byte [] resurrectedDocAsBytes
+        if (storageType == 'zip') {
+            resurrectedDocAsBytes = this.util.extractFromZipFile(
+                "${path}/${storedFileName}", contentFileName)
+        } else {
+            resurrectedDocAsBytes = documentFromNexus.content.getBytes()
+        }
+
+        // stash doc with new name / + build id
+        if (stash) {
+            this.util.createAndStashArtifact(contentFileName, resurrectedDocAsBytes)
+        }
+        if (!isArchivalRelevant(documentType)) {
+            repo.data.documents[documentType] = contentFileName
+        }
+
+        return [
+            found: true,
+            'uri': documentFromNexus.uri,
+            content: resurrectedDocAsBytes,
+            createdByBuild: resurrectedBuild,
+        ]
+    }
+
+    URI storeDocument (String documentName, byte [] documentAsBytes, String contentType) {
+        return this.nexus.storeArtifact(
+            this.project.services.nexus.repository.name,
+            "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
+            "${documentName}",
+            documentAsBytes,
+            contentType
+        )
+    }
+
     abstract String getDocumentTemplatesVersion()
 
     abstract List<String> getSupportedDocuments()
 
     abstract boolean isArchivalRelevant (String documentType)
+
+    abstract Map getFiletypeForDocumentType (String documentType)
 }

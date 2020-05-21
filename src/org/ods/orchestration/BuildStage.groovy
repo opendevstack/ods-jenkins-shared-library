@@ -20,20 +20,10 @@ class BuildStage extends Stage {
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
-        def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
-
-        def globalData = [
-            tests: [
-                unit: [
-                    testReportFiles: [],
-                    testResults: [:]
-                ]
-            ]
-        ]
 
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
@@ -46,11 +36,11 @@ class BuildStage extends Stage {
             // closure that return data.
             if (project.isAssembleMode
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
-                def data = [
-                    tests: [
-                        unit: getUnitTestResults(steps, repo)
-                    ]
-                ]
+                def data = [ : ]
+                def resultsResurrected = !!repo.data?.odsBuildArtifacts?.resurrected
+                if (!resultsResurrected) {
+                    data << [tests: [unit: getUnitTestResults(steps, repo) ]]
+                }
 
                 levaDocScheduler.run(
                     phase,
@@ -59,13 +49,15 @@ class BuildStage extends Stage {
                     data
                 )
 
-                jira.reportTestResultsForComponent(
-                    "Technology-${repo.id}",
-                    [Project.TestType.UNIT],
-                    data.tests.unit.testResults
-                )
-
-                globalData.tests.unit.testReportFiles.addAll(data.tests.unit.testReportFiles)
+                if (!resultsResurrected) {
+                    jira.reportTestResultsForComponent(
+                        "Technology-${repo.id}",
+                        [Project.TestType.UNIT],
+                        data.tests.unit.testResults
+                    )
+                } else {
+                    steps.echo("Resurrected tests - no tests results will be reported to JIRA")
+                }
             }
         }
 
@@ -77,9 +69,6 @@ class BuildStage extends Stage {
                 group.failFast = true
                 script.parallel(group)
             }
-
-        // Parse all test report files into a single data structure
-        globalData.tests.unit.testResults = junit.parseTestReportFiles(globalData.tests.unit.testReportFiles)
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }

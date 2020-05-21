@@ -3,7 +3,6 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import kong.unirest.Unirest
 
 import org.apache.http.client.utils.URIBuilder
@@ -101,6 +100,41 @@ class NexusService {
               "${nexusParams['raw.asset1.filename']}")
         }
         return this.baseURL.resolve("/repository/${repository}")
+    }
+
+    @SuppressWarnings(['LineLength','JavaIoPackageAccess'])
+    @NonCPS
+    Map<URI, File> retrieveArtifact(String nexuseRepository, String nexusDirectory, String name, String extractionPath) {
+        // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
+        String urlToDownload = "${this.baseURL}/repository/${nexuseRepository}/${nexusDirectory}/${name}"
+        def restCall = Unirest.get("${urlToDownload}")
+            .basicAuth(this.username, this.password)
+
+        // hurray - unirest, in case file exists - don't do anything.
+        File artifactExists = new File("${extractionPath}/${name}")
+        if (artifactExists) {
+            artifactExists.delete()
+        }
+        def response = restCall.asFile("${extractionPath}/${name}")
+
+        response.ifFailure {
+            def message = 'Error: unable to get artifact. ' +
+                "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'." +
+                " The url called was: ${urlToDownload}"
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get artifact. Nexus could not be found at: '${urlToDownload}'."
+            }
+            // very weird, we get a 200 as failure with a good artifact, wtf.
+            if (response.getStatus() != 200) {
+                throw new RuntimeException(message)
+            }
+        }
+
+        return [
+            uri: this.baseURL.resolve("/repository/${nexuseRepository}/${nexusDirectory}/${name}"),
+            content: response.getBody(),
+        ]
     }
 
 }

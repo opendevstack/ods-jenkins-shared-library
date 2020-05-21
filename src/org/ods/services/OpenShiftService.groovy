@@ -8,6 +8,8 @@ import org.ods.util.IPipelineSteps
 @SuppressWarnings('MethodCount')
 class OpenShiftService {
 
+    static final String ODS_DEPLOYMENTS_DESCRIPTOR = 'ods-deployments.json'
+
     private final IPipelineSteps steps
     private final ILogger logger
     private final String project
@@ -429,6 +431,46 @@ class OpenShiftService {
         ).trim()
     }
 
+    boolean checkForExistingValidDeploymentBasedOnStoredConfig (Map repo, boolean forceOverride = false) {
+        def openshiftDir = 'openshift-exported'
+        if (steps.fileExists('openshift')) {
+            openshiftDir = 'openshift'
+        }
+
+        boolean forceRedo = !!repo.forceRebuild
+        if (forceOverride) {
+            steps.echo '> Global override to redeploy all components'
+            forceRedo = true
+        }
+
+        this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
+            "'${project}' - force rebuild? ${forceRedo}")
+        if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !forceRedo) {
+            def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
+            def deployments = new JsonSlurperClassic().parseText(storedDeployments)
+            if (this.isLatestDeploymentBasedOnLatestImageDefs(deployments)) {
+                if (!repo.data.odsBuildArtifacts) {
+                    repo.data.odsBuildArtifacts = [ : ]
+                }
+                def build = deployments.get(JenkinsService.CREATED_BY_BUILD_STR)
+                if (build && build.contains('/')) {
+                    def resurrectedBuild = build.split('/').last()
+                    repo.data.odsBuildArtifacts.resurrected = resurrectedBuild
+                    repo.data.odsBuildArtifacts.deployments = deployments
+                    this.steps.echo "Using data from previous jenkins build: ${resurrectedBuild} " +
+                        "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
+                    return true
+                } else {
+                    return false
+                }
+            } else {
+                this.steps.echo("Current deployments for repo: '${repo.id}'" +
+                    " do not match last latest committed state (force? ${forceRedo}), rebuilding..")
+            }
+        }
+        return false
+    }
+
     @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
     private Map extractPodData(String ocOutput, String description) {
         def j = new JsonSlurperClassic().parseText(ocOutput)
@@ -553,6 +595,41 @@ class OpenShiftService {
         imageInfo.sha = nameParts[1]
         imageInfo.shaStripped = nameParts[1].replace('sha256:', '')
         imageInfo
+    }
+
+    private boolean isLatestDeploymentBasedOnLatestImageDefs(def deployments) {
+        List nonExistentDeployments = []
+        List notThisVersionDeployments = []
+        List notThisImages = []
+        steps.echo "Verifying deployments: '${deployments.keySet()}' against env: '${project}'"
+        deployments.each { deploymentName, deployment ->
+            if (JenkinsService.CREATED_BY_BUILD_STR != deploymentName) {
+                steps.echo "Verifying deployment: '${deploymentName}'"
+                def dcExists = resourceExists('DeploymentConfig', deploymentName)
+                if (!dcExists) {
+                    steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
+                    nonExistentDeployments << deploymentName
+                }
+                int latestDeployedVersion = getLatestVersion (deploymentName)
+                if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
+                    notThisVersionDeployments << latestDeployedVersion
+                    steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
+                        " is not latest version! (${latestDeployedVersion})"
+                }
+                def pod = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
+                deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
+                    def runningImageSha = imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
+                    def definedImageSha = imageInfoWithShaForImageStreamUrl(imageRaw).sha
+                    if (runningImageSha != definedImageSha) {
+                        steps.echo "Error: in container '${containerName}' running image '${runningImageSha}' " +
+                            "is not the same as the defined image '${definedImageSha}'."
+                        notThisImages << runningImageSha
+                    }
+                }
+            }
+        }
+        return (nonExistentDeployments.empty && notThisVersionDeployments.empty &&
+            notThisImages.empty)
     }
 
 }

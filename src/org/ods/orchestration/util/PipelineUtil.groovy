@@ -9,15 +9,14 @@ import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
 import org.ods.util.IPipelineSteps
-import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 
 @SuppressWarnings('JavaIoPackageAccess')
 class PipelineUtil {
 
-    static final String ARTIFACTS_BASE_DIR = "artifacts"
-    static final String SONARQUBE_BASE_DIR = "sonarqube"
-    static final String XUNIT_DOCUMENTS_BASE_DIR = "xunit"
+    static final String ARTIFACTS_BASE_DIR = 'artifacts'
+    static final String SONARQUBE_BASE_DIR = 'sonarqube'
+    static final String XUNIT_DOCUMENTS_BASE_DIR = 'xunit'
 
     protected Project project
     protected IPipelineSteps steps
@@ -89,8 +88,8 @@ class PipelineUtil {
         return result
     }
 
-    void createAndStashArtifact(String name, byte[] file) {
-        if (!name?.trim()) {
+    void createAndStashArtifact(String stashName, byte[] file) {
+        if (!stashName?.trim()) {
             throw new IllegalArgumentException("Error: unable to stash artifact. 'name' is undefined.")
         }
 
@@ -98,14 +97,14 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to stash artifact. 'files' is undefined.")
         }
 
-        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
+        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${stashName}".toString()
 
         // Create parent directory if needed
         this.createDirectory(new File(path).getParent())
         new File(path) << (file)
 
         this.steps.dir(new File(path).getParent()) {
-            this.steps.stash(name)
+            this.steps.stash(['name': stashName, 'includes': stashName])
         }
     }
 
@@ -133,6 +132,18 @@ class PipelineUtil {
         return new File(path).getBytes()
     }
 
+    @NonCPS
+    byte[] extractFromZipFile(String path, String fileToBeExtracted) {
+        // Create parent directory if needed
+        File parentdir = this.createDirectory(new File(path).getParent())
+
+        // Create the Zip file
+        def zipFile = new ZipFile(path)
+        zipFile.extractFile(fileToBeExtracted, parentdir.getAbsolutePath())
+
+        return new File(parentdir, fileToBeExtracted).getBytes()
+    }
+
     void executeBlockAndFailBuild(Closure block) {
         try {
             block()
@@ -144,12 +155,12 @@ class PipelineUtil {
     }
 
     void failBuild(String message) {
-        this.steps.currentBuild.result = "FAILURE"
+        this.steps.currentBuild.result = 'FAILURE'
         this.steps.echo(message)
     }
 
     void warnBuild(String message) {
-        this.steps.currentBuild.result = "UNSTABLE"
+        this.steps.currentBuild.result = 'UNSTABLE'
         this.steps.echo(message)
     }
 
@@ -165,4 +176,5 @@ class PipelineUtil {
 
         return this.steps.load(path)
     }
+
 }

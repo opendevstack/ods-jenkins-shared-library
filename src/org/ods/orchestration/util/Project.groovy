@@ -1080,4 +1080,9 @@ class Project {
         def secretName = steps.env.TAILOR_PRIVATE_KEY_SECRET ?: 'tailor-private-key'
         "${getKey()}-cd-${secretName}"
     }
+
+    boolean forceGlobalRebuild () {
+        return !this.data.metadata.allowPartialRebuild
+    }
+
 }

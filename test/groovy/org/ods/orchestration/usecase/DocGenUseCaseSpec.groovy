@@ -32,6 +32,10 @@ class DocGenUseCaseSpec extends SpecHelper {
         boolean isArchivalRelevant (String documentType) {
             return true
         }
+        
+        Map getFiletypeForDocumentType (String documentType) {
+            return [storage: 'zip', content: 'pdf']
+        }
     }
 
     DocGenService docGen
@@ -406,7 +410,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         result == "${documentType}-${project.key}-${version}-${build}"
     }
 
-    def "get document basename with repo"() {
+    def "get document basename with repo -missing data"() {
         given:
         // Test Parameters
         def documentType = "myDocumentType"
@@ -415,9 +419,26 @@ class DocGenUseCaseSpec extends SpecHelper {
         def repo = project.repositories.first()
 
         when:
-        def result = usecase.getDocumentBasename(documentType, version, build, repo)
+        def result = usecase.resurrectAndStashDocument(documentType, repo)
 
         then:
-        result == "${documentType}-${project.key}-${repo.id}-${version}-${build}"
+        result.found == false
     }
+
+    def "resurrect doc from repo - missing build data"() {
+        given:
+        // Test Parameters
+        def documentType = "myDocumentType"
+        def version = project.buildParams.version
+        def build = "0815"
+        def repo = project.repositories.first()
+  
+        repo.data.odsBuildArtifacts = [ : ]
+        when:
+        def result = usecase.resurrectAndStashDocument(documentType, repo)
+  
+        then:
+        result.found == false
+    }
+
 }

@@ -5,6 +5,7 @@ import kong.unirest.Unirest
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.InitStage
@@ -13,6 +14,7 @@ import org.ods.orchestration.DeployStage
 import org.ods.orchestration.TestStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
+import org.ods.services.OpenShiftService
 
 def call(Map config) {
     Unirest.config()
@@ -28,6 +30,7 @@ def call(Map config) {
         error "You must set 'odsImageTag' in the config map"
     }
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
+    def alwaysPullImage = !!config.get('alwaysPullImage', true)
 
     node {
         // Clean workspace from previous runs
@@ -60,7 +63,7 @@ def call(Map config) {
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
         def stageStartTime = System.currentTimeMillis()
 
-        withPodTemplate(odsImageTag) {
+        withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
                 def result = new InitStage(this, project, repos).execute()
@@ -86,9 +89,14 @@ def call(Map config) {
     }
 }
 
-private withPodTemplate(String odsImageTag, Closure block) {
+private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, Closure block) {
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
+    if (!OpenShiftService.envExists(steps, odsNamespace)) {
+        echo "Could not find ods namespace ${odsNamespace} - defaulting to legacy namespace: 'cd'!\r" +
+            "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace"
+        odsNamespace = 'cd'
+    }
     podTemplate(
         label: podLabel,
         cloud: 'openshift',
@@ -101,7 +109,7 @@ private withPodTemplate(String odsImageTag, Closure block) {
                 resourceLimitMemory: '1Gi',
                 resourceRequestCpu: '200m',
                 resourceLimitCpu: '1',
-                alwaysPullImage: true,
+                alwaysPullImage: "${alwaysPullImage}",
                 args: '${computer.jnlpmac} ${computer.name}',
                 envVars: []
             )

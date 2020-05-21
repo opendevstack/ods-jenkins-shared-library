@@ -89,6 +89,7 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
+    @SuppressWarnings(['Instanceof'])
     private void finalizeODSComponent(Map repo, String baseDir) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
@@ -155,13 +156,15 @@ class MROPipelineUtil extends PipelineUtil {
 
                 def imagesFromOtherProjectsFail = []
                 odsBuiltDeploymentInformation.each {odsBuildDeployment, odsBuildDeploymentInfo ->
-                    odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
-                        def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
-                        if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
-                            def msg = "Deployment: ${odsBuildDeployment} / " +
-                                "Container: ${containerName} / Owner: ${owningProject}"
-                            steps.echo "! Image out of scope! ${msg}"
-                            imagesFromOtherProjectsFail << msg
+                    if (!odsBuildDeploymentInfo instanceof String) {
+                        odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
+                            def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
+                            if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
+                                def msg = "Deployment: ${odsBuildDeployment} / " +
+                                    "Container: ${containerName} / Owner: ${owningProject}"
+                                steps.echo "! Image out of scope! ${msg}"
+                                imagesFromOtherProjectsFail << msg
+                            }
                         }
                     }
                 }
@@ -182,23 +185,22 @@ class MROPipelineUtil extends PipelineUtil {
                     text: JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments)
                 )
                 filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
-
                 if (this.project.isWorkInProgress) {
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}
-                        git commit -m "${commitMessage} [ci skip]"
+                        git commit -m "${commitMessage} [ci skip]" --allow-empty
                         git push origin ${repo.branch}
                         """,
-                        label: "commit and push new state"
+                        label: 'commit and push new state'
                     )
                 } else {
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}
-                        git commit -m "${commitMessage} [ci skip]"
+                        git commit -m "${commitMessage} [ci skip]" --allow-empty
                         """,
-                        label: "commit new state"
+                        label: 'commit new state'
                     )
                     tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                 }
@@ -222,12 +224,30 @@ class MROPipelineUtil extends PipelineUtil {
 
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
-            repo.data["openshift"] = [deployments: [:]]
+            repo.data['openshift'] = [deployments: [:]]
+            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
+                os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+                steps.echo("Current deployment for '${repo.id}' is based on" +
+                    ' latest deployment information, leaving ...')
+                def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
+                deployments.each { deploymentName, deployment ->
+                    def latestVersion = os.getLatestVersion(deploymentName)
+                    def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
+                    repo.data.openshift.deployments << ["${deploymentName}": pod]
+                    if (createdByJob) {
+                        repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
+                    }
+                }
+                tagAndPush(this.project.targetTag)
+                return
+            }
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->
-                def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
-                originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
+                if (!deploymentName == JenkinsService.CREATED_BY_BUILD_STR) {
+                    def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
+                    originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
+                }
             }
 
             steps.dir(openshiftDir) {
@@ -256,8 +276,8 @@ class MROPipelineUtil extends PipelineUtil {
                 this.project.versionedDevEnvsEnabled
             )
             def sourceProject = "${this.project.key}-${sourceEnv}"
+            def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
             deployments.each { deploymentName, deployment ->
-
                 deployment.containers?.each {containerName, imageRaw ->
                     // skip excluded images from defined image streams!
                     def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
@@ -320,18 +340,32 @@ class MROPipelineUtil extends PipelineUtil {
                 }
                 repo.data.openshift.deployments << ["${deploymentName}": pod]
             }
+            if (createdByJob) {
+                repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
+            }
             tagAndPush(this.project.targetTag)
         }
     }
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
+            OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
+            // only in case of a code component (that is deployed) do this check
+            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
+                this.project.isWorkInProgress &&
+                os.checkForExistingValidDeploymentBasedOnStoredConfig(
+                    repo, this.project.forceGlobalRebuild())) {
+                return
+            }
+
             def job
             this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
             // Collect ODS build artifacts for repo
             repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
+            repo.data.odsBuildArtifacts.deployments <<
+                ["${JenkinsService.CREATED_BY_BUILD_STR}": this.steps.env.BUILD_URL]
             this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
 
             if (repo.data.odsBuildArtifacts?.failedStage) {
@@ -665,7 +699,8 @@ class MROPipelineUtil extends PipelineUtil {
     void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
             this.project.setHasFailingTests(true)
-            this.warnBuild("Warning: found failing tests in test reports.")
+            this.warnBuild('Warning: found failing tests in test reports.')
         }
     }
+
 }
