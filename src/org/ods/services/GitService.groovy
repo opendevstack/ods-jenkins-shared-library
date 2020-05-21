@@ -223,7 +223,7 @@ class GitService {
                       returnStdout: true,
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
-              if (files.toString() == '[]' || files.size() == 0) {
+              if (filesChanged.toString() == '[]' || filesChanged.size() == 0) {
                   return false
               } else {
                   script.echo ("Found files other than '${fileName}' after commit '${commitOfFile}'\r" +
