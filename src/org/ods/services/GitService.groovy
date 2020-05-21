@@ -223,7 +223,12 @@ class GitService {
                       returnStdout: true,
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
-              List<String> files = filesChanged.split('\n')
+              List<String> files = filesChanged.split('\n').inject([]) { item ->
+                  if (item?.trim) {
+                      script.echo ("adding '${item}'")
+                      return item.trim()
+                  }
+              }
               if (files == '[ ]' || files.size() == 0) {
                   return false
               } else {
