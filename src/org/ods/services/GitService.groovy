@@ -209,7 +209,7 @@ class GitService {
 
     boolean otherFilesChangedAfterCommitOfFile(String fileName) {
         if (!script.fileExists(fileName)) {
-            return false
+            return true
         }
         try {
             def commitOfFile = script.sh(
@@ -225,16 +225,16 @@ class GitService {
                   ).trim()
               List<String> files = filesChanged.split('\r')
               files.remove(fileName)
-              if (files) {
-                  return true
+              if (files.size() == 0) {
+                  return false
               } else {
                   script.echo ("Found files other than '${fileName}' after commit '${commitOfFile}'\r" +
                       "Files modified: ${files}")
-                  return false
+                  return true
               }
             }
         } catch (err) {
-            return false
+            return true
         }
     }
 
