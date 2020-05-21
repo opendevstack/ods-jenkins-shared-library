@@ -353,6 +353,7 @@ class MROPipelineUtil extends PipelineUtil {
             // only in case of a code component (that is deployed) do this check
             if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
                 this.project.isWorkInProgress &&
+                !areFilesOtherThanDeploymentDescriptorModified() &&
                 os.checkForExistingValidDeploymentBasedOnStoredConfig(
                     repo, this.project.forceGlobalRebuild())) {
                 return
@@ -683,19 +684,12 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private void walkRepoDirectories(List<Map> repos, Closure visitor) {
-        repos.each { repo ->
-            // Apply the visitor to the repo at the repo's base dir
-            visitor("${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
-        }
-    }
-
     void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {
         this.project.setHasUnexecutedJiraTests(true)
         def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
         this.warnBuild("Warning: found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
     }
-
+  
     void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
             this.project.setHasFailingTests(true)
@@ -703,4 +697,22 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
+    private void walkRepoDirectories(List<Map> repos, Closure visitor) {
+        repos.each { repo ->
+            // Apply the visitor to the repo at the repo's base dir
+            visitor("${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
+        }
+    }
+
+    private boolean areFilesOtherThanDeploymentDescriptorModified () {
+        def openshiftDir = 'openshift-exported'
+        if (steps.fileExists('openshift')) {
+            openshiftDir = 'openshift'
+        }
+        GitService git = ServiceRegistry.instance.get(GitService)
+        steps.dir(openshiftDir) {
+            return git.otherFilesChangedAfterCommitOfFile(
+                ODS_DEPLOYMENTS_DESCRIPTOR)
+        }
+    }
 }

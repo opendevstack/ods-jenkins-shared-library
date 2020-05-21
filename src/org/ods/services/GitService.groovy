@@ -207,6 +207,37 @@ class GitService {
         return branchCheckStatus == 0
     }
 
+    boolean otherFilesChangedAfterCommitOfFile(String fileName) {
+        if (!script.fileExists(fileName)) {
+            return false
+        }
+        try {
+            def commitOfFile = script.sh(
+                script: """git log -1 --format=%H ${fileName}""",
+                    returnStdout: true,
+                    label: "Get commit of ${fileName}"
+                ).trim()
+            if (commitOfFile) {
+              def filesChanged = script.sh(
+                  script: """git diff ${commitOfFile} HEAD --name-only""",
+                      returnStdout: true,
+                      label: "Get changes after commit ${commitOfFile}"
+                  ).trim()
+              List<String> files = filesChanged.split('\r')
+              files.remove(fileName)
+              if (files) {
+                  return true
+              } else {
+                  script.echo ("Found files other than '${fileName}' after commit '${commitOfFile}'\r" +
+                      "Files modified: ${files}")
+                  return false
+              }
+            }
+        } catch (err) {
+            return false
+        }
+    }
+
     def checkoutNewLocalBranch(String name) {
         // Local state might have a branch from previous, failed pipeline runs.
         // If so, we'd rather start from a clean state.
