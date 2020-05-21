@@ -224,6 +224,9 @@ class GitService {
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
               List<String> files = filesChanged.split('\n')
+              files.each { file -> 
+                  script.echo("'${file}'")
+              }
               files.remove(fileName)
               script.echo("Filesize? ${files.size()}")
               if (files.size() == 0) {
