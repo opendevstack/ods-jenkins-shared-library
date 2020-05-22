@@ -224,6 +224,7 @@ class GitService {
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
               def files = filesChanged.normalize().readLines()
+              script.echo ">>> ${openshiftDir}/template.yml"
               files.remove ("${openshiftDir}/template.yml") 
               if (files.size() == 0) {
                   script.echo ('Clean tree, no changes')
