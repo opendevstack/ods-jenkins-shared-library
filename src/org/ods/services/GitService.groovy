@@ -207,7 +207,7 @@ class GitService {
         return branchCheckStatus == 0
     }
 
-    boolean otherFilesChangedAfterCommitOfFile(String fileName) {
+    boolean otherFilesChangedAfterCommitOfFile(String fileName, String openshiftDir) {
         if (!script.fileExists(fileName)) {
             return true
         }
@@ -223,7 +223,8 @@ class GitService {
                       returnStdout: true,
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
-              def files = filesChanged.normalize().readLines() 
+              def files = filesChanged.normalize().readLines()
+              files.remove ("${openshiftDir}/template.yml") 
               if (files.size() == 0) {
                   script.echo ('Clean tree, no changes')
                   return false
