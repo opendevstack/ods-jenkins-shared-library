@@ -66,24 +66,28 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-                def result = new InitStage(this, project, repos).execute()
-                if (result) {
-                    project = result.project
-                    repos = result.repos
-                } else {
-                    echo 'Skip pipeline as no project/repos computed'
-                    return
-                }
-
-                new BuildStage(this, project, repos).execute()
-
-                new DeployStage(this, project, repos).execute()
-
-                new TestStage(this, project, repos).execute()
-
-                new ReleaseStage(this, project, repos).execute()
-
-                new FinalizeStage(this, project, repos).execute()
+                def execMap = ['main': {
+                    def result = new InitStage(this, project, repos).execute()
+                    if (result) {
+                        project = result.project
+                        repos = result.repos
+                    } else {
+                        echo 'Skip pipeline as no project/repos computed'
+                        return
+                    }
+    
+                    new BuildStage(this, project, repos).execute()
+    
+                    new DeployStage(this, project, repos).execute()
+    
+                    new TestStage(this, project, repos).execute()
+    
+                    new ReleaseStage(this, project, repos).execute()
+    
+                    new FinalizeStage(this, project, repos).execute()
+                },
+                'bootstrap' : {echo "boot"}]
+                parallel (execMap)
             }
         }
     }
@@ -93,7 +97,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
-        echo "Could not find ods namespace ${odsNamespace} - defaulting to legacy namespace: 'cd'!\r" +
+        echo "Could not find ods namespace '${odsNamespace}' - defaulting to legacy namespace: 'cd'!\r" +
             "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace"
         odsNamespace = 'cd'
     }

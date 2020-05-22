@@ -58,11 +58,6 @@ class FinalizeStage extends Stage {
             allRepos.failFast = true
             script.parallel(allRepos)
 
-//                .each { group ->
-//                    group.failFast = true
-//                    script.parallel(group)
-//                }
-
             // record release manager repo state
             if (project.isAssembleMode && !project.isWorkInProgress) {
                 util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)

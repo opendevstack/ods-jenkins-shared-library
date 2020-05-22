@@ -224,7 +224,9 @@ class GitService {
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
               List files = filesChanged.normalize().readLines()
-              //  "${openshiftDir}/template.yml"
+              // remove with ${} does not work .. wtf..
+              def templateYml = openshiftDir + '/template.yml'
+              files.remove(templateYml)
               if (files.size() == 0) {
                   script.echo ('Clean tree, no changes')
                   return false
