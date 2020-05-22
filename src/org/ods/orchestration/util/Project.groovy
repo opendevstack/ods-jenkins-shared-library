@@ -221,7 +221,7 @@ class Project {
 
         this.data.build = [
             hasFailingTests: false,
-            hasUnexecutedJiraTests: false
+            hasUnexecutedTests: false
         ]
     }
 
@@ -722,8 +722,8 @@ class Project {
         return this.data.build.hasFailingTests
     }
 
-    boolean hasUnexecutedJiraTests() {
-        return this.data.build.hasUnexecutedJiraTests
+    boolean hasUnexecutedTests() {
+        return this.data.build.hasUnexecutedTests
     }
 
     static boolean isTriggeredByChangeManagementProcess(steps) {
@@ -1039,8 +1039,8 @@ class Project {
         this.data.build.hasFailingTests = status
     }
 
-    void setHasUnexecutedJiraTests(boolean status) {
-        this.data.build.hasUnexecutedJiraTests = status
+    void setHasUnexecutedTests(boolean status) {
+        this.data.build.hasUnexecutedTests = status
     }
 
     String toString() {

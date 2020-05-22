@@ -237,7 +237,7 @@ class JiraUseCase {
         this.util.warnBuildIfTestResultsContainFailure(testResults)
         this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
             if (!unexecutedJiraTests.isEmpty()) {
-                this.util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
+                this.util.warnBuildAboutUnexecutedTests(unexecutedJiraTests.collect { it.key })
             }
         }
 

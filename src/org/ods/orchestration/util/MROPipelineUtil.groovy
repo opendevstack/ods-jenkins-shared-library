@@ -12,7 +12,6 @@ import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
-import org.ods.orchestration.util.Project
 import org.yaml.snakeyaml.Yaml
 
 import groovy.json.JsonOutput
@@ -690,10 +689,9 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {
-        this.project.setHasUnexecutedJiraTests(true)
-        def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
-        this.warnBuild("Warning: found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
+    void warnBuildAboutUnexecutedTests(List unexecutedTestKeys) {
+        this.project.setHasUnexecutedTests(true)
+        this.warnBuild("Warning: found unexecuted tests: ${unexecutedTestKeys.join(", ")}.")
     }
 
     void warnBuildIfTestResultsContainFailure(Map testResults) {

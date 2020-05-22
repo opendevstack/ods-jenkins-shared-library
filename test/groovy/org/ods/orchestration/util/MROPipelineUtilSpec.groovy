@@ -1,14 +1,10 @@
 package org.ods.orchestration.util
 
-import java.nio.file.Files
+
 import java.nio.file.Paths
 
-import org.ods.orchestration.parser.JUnitParser
 import org.ods.util.IPipelineSteps
-import org.ods.orchestration.util.Project
 import org.ods.services.GitService
-
-import spock.lang.*
 
 import static util.FixtureHelper.*
 
@@ -564,14 +560,14 @@ class MROPipelineUtilSpec extends SpecHelper {
         ]
 
         when:
-        util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
+        util.warnBuildAboutUnexecutedTests(unexecutedJiraTests.collect { it.key })
 
         then:
-        project.hasUnexecutedJiraTests() == true
+        project.hasUnexecutedTests() == true
 
         then:
         steps.currentBuild.result == "UNSTABLE"
-        1 * steps.echo("Warning: found unexecuted Jira tests: KEY-1, KEY-2, KEY-3.")
+        1 * steps.echo("Warning: found unexecuted tests: KEY-1, KEY-2, KEY-3.")
 
         then:
         noExceptionThrown() // pipeline does not stop here

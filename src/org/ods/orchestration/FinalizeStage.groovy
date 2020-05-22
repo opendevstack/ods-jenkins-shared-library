@@ -75,19 +75,19 @@ class FinalizeStage extends Stage {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         // Fail the build in case of failing tests.
-        if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
+        if (project.hasFailingTests() || project.hasUnexecutedTests()) {
             def message = 'Error: '
 
             if (project.hasFailingTests()) {
                 message += 'found failing tests'
             }
 
-            if (project.hasFailingTests() && project.hasUnexecutedJiraTests()) {
+            if (project.hasFailingTests() && project.hasUnexecutedTests()) {
                 message += ' and '
             }
 
-            if (project.hasUnexecutedJiraTests()) {
-                message += 'found unexecuted Jira tests'
+            if (project.hasUnexecutedTests()) {
+                message += 'found unexecuted tests'
             }
 
             message += "."

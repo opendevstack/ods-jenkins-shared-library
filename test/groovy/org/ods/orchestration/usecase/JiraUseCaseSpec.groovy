@@ -5,7 +5,6 @@ import org.ods.orchestration.service.JiraService
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import spock.lang.Ignore
 import util.SpecHelper
 
 import static util.FixtureHelper.*
@@ -282,7 +281,7 @@ class JiraUseCaseSpec extends SpecHelper {
         then:
         1 * support.applyXunitTestResults(testIssues, testResults)
         1 * util.warnBuildIfTestResultsContainFailure(testResults)
-        1 * util.warnBuildAboutUnexecutedJiraTests(_)
+        1 * util.warnBuildAboutUnexecutedTests(_)
     }
 
     def "report test results for component with unexecuted Jira tests"() {
@@ -297,6 +296,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         // Stubbed Method Responses
         def testIssues = createJiraTestIssues()
+        def testIssueKeys = testIssues.collect { it.key }
 
         when:
         usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
@@ -305,7 +305,7 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
-        1 * util.warnBuildAboutUnexecutedJiraTests(testIssues)
+        1 * util.warnBuildAboutUnexecutedTests(testIssueKeys)
     }
 
     def "report test results for component in QA"() {
