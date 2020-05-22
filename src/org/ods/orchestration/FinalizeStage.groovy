@@ -49,11 +49,16 @@ class FinalizeStage extends Stage {
         def agentCondition = project.isAssembleMode && repos.size() > 0
         runOnAgentPod(project, agentCondition) {
             // Execute phase for each repository
-            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-                .each { group ->
-                    group.failFast = true
-                    script.parallel(group)
-                }
+            Map repoGroups = util.prepareExecutePhaseForReposNamedJob(
+                phase, repos, preExecuteRepo, postExecuteRepo).flatten()
+
+            repoGroups.failFast = true
+            script.parallel(repoGroups)
+
+//                .each { group ->
+//                    group.failFast = true
+//                    script.parallel(group)
+//                }
 
             // record release manager repo state
             if (project.isAssembleMode && !project.isWorkInProgress) {

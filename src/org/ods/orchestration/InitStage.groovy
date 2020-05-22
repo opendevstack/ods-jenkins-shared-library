@@ -31,6 +31,7 @@ class InitStage extends Stage {
         git.configureUser()
 
         // load build params
+        steps.echo('Loading orchestration build params ...')
         def buildParams = Project.loadBuildParams(steps)
         steps.echo("Release Manager Build Parameters: ${buildParams}")
 

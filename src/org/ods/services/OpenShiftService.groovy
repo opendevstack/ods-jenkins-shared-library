@@ -431,20 +431,16 @@ class OpenShiftService {
         ).trim()
     }
 
-    boolean checkForExistingValidDeploymentBasedOnStoredConfig (Map repo, boolean forceOverride = false) {
+    boolean isOCPDeploymentBasedOnLatestRepoState (Map repo) {
         def openshiftDir = 'openshift-exported'
         if (steps.fileExists('openshift')) {
             openshiftDir = 'openshift'
         }
 
         boolean forceRedo = !!repo.forceRebuild
-        if (forceOverride) {
-            steps.echo '> Global override to redeploy all components'
-            forceRedo = true
-        }
 
         this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
-            "'${project}' - force rebuild? ${forceRedo}")
+            "'${project}' - force local rebuild? ${forceRedo}")
         if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !forceRedo) {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
