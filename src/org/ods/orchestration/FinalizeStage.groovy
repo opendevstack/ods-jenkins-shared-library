@@ -49,7 +49,7 @@ class FinalizeStage extends Stage {
         def agentCondition = project.isAssembleMode && repos.size() > 0
         runOnAgentPod(project, agentCondition) {
             // Execute phase for each repository
-            Map allRepos
+            Map allRepos = [ : ]
             util.prepareExecutePhaseForReposNamedJob(
                 phase, repos, preExecuteRepo, postExecuteRepo).each { group ->
                 allRepos << group
