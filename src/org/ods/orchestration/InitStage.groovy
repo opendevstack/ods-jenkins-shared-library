@@ -271,9 +271,8 @@ class InitStage extends Stage {
         steps.echo "repolist: ${reposToCheckout}"
         reposToCheckout << ["${project.getKey()} - init": {
             def nexusRepoExists = registry.get(NexusService).groupExists(
-                project.getKey(),
-                project.buildParams.version)
-
+                project.services.nexus.repository.name,
+                "${project.getKey()}-${project.buildParams.version}")
             project.addConfigSetting('nexusRepoExists', nexusRepoExists)
             steps.echo("Nexus repository for version exists? ${nexusRepoExists}")
         }]
