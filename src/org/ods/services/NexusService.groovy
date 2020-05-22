@@ -145,6 +145,9 @@ class NexusService {
             .basicAuth(this.username, this.password)
             .asString()
 
+        response.ifFailure {
+            throw new RuntimeException ("Could not retrieve data from '${urlToDownload}'")
+        }
         return !response.getBody().contains('\"items\" : [ ]')
     }
 

@@ -1082,7 +1082,7 @@ class Project {
     }
 
     boolean forceGlobalRebuild () {
-        return (!this.data.metadata.allowPartialRebuild &&
+        return (!this.data.metadata.allowPartialRebuild ||
             !this.config.get('nexusRepoExists', false))
     }
 
