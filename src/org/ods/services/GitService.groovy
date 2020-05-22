@@ -223,7 +223,8 @@ class GitService {
                       returnStdout: true,
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
-              if (filesChanged.toString() == '[]' || filesChanged.size() == 0) {
+              def files = filesChanged.normalize().readLines() 
+              if (files.size() == 0) {
                   script.echo ('Clean tree, no changes')
                   return false
               } else {

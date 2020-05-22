@@ -104,7 +104,7 @@ class NexusService {
 
     @SuppressWarnings(['LineLength','JavaIoPackageAccess'])
     @NonCPS
-    Map<URI, File> retrieveArtifact(String nexuseRepository, String nexusDirectory, String name, String extractionPath) {
+    Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
         String urlToDownload = "${this.baseURL}/repository/${nexuseRepository}/${nexusDirectory}/${name}"
         def restCall = Unirest.get("${urlToDownload}")
@@ -137,4 +137,22 @@ class NexusService {
         ]
     }
 
+    boolean groupExists(String nexusRepository, String groupName) {
+        //'http://nexus3-cd.testapps.am.boehringer.com/service/rest/v1/search?repository=leva-documentation&group=/odsst-WIP
+        String urlToDownload = 
+            "${this.baseURL}/service/rest/v1/search?/repository=${nexusRepository}&group=/${groupName}"
+        def response = Unirest.get("${urlToDownload}")
+            .basicAuth(this.username, this.password)
+            .asString()
+
+        response.ifFailure {
+            return false
+        }
+
+        response.ifSuccess {
+            return true
+        }
+
+        return true
+    }
 }
