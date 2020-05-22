@@ -166,9 +166,8 @@ abstract class DocGenUseCase {
         }
 
         def oldBuildVersion = buildVersionKey[0]
-        def buildVersion = this.project.buildParams.version
         def basename = getDocumentBasename(
-            documentType, buildVersion, resurrectedBuild, repo)
+            documentType, oldBuildVersion, buildVersionKey[1], repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
@@ -182,7 +181,7 @@ abstract class DocGenUseCase {
         Map documentFromNexus =
             this.nexus.retrieveArtifact(
                 this.project.services.nexus.repository.name,
-                "${this.project.key.toLowerCase()}-${buildVersion}",
+                "${this.project.key.toLowerCase()}-${oldBuildVersion}",
                 storedFileName, path)
 
         this.steps.echo "Document found: ${storedFileName} \r ${documentFromNexus}"
