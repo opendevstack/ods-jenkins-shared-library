@@ -264,10 +264,17 @@ class InitStage extends Stage {
             "Version: ${script.env.VERSION}"
 
         steps.echo 'Checkout repositories into the workspace'
-        script.parallel(util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-            steps.echo("Repository: ${repo}")
-            steps.echo("Environment configuration: ${script.env.getEnvironment()}")
-        })
+        Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
+            steps.echo("Repository: ${repo}\r" +
+                "Environment configuration: ${script.env.getEnvironment()}")
+        }
+        reposToCheckout << [ 'Project verification', {
+            def nexusRepoExists = registry.get(NexusService).groupExists(
+                this.project.getKey(),
+                this.project.buildParams.version)
+            steps.echo("Nexus repository for version exists? ${nexusRepoExists}")
+        }]
+        script.parallel(reposToCheckout)
 
         steps.echo "Load configs from each repo's release-manager.yml"
         util.loadPipelineConfigs(repos)
