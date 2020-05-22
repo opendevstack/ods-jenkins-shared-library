@@ -224,15 +224,16 @@ class GitService {
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
               def files = filesChanged.normalize().readLines()
-              script.echo ">>> ${openshiftDir}/template.yml"
-              files.remove ("${openshiftDir}/template.yml") 
+              boolean cleaned = files.remove ("${openshiftDir}/template.yml")
+              script.echo ">>> ${openshiftDir}/template.yml -removed? ${cleaned}"
+
               if (files.size() == 0) {
                   script.echo ('Clean tree, no changes')
                   return false
               } else {
                   script.echo ("Found modified files other than '${fileName}' " +
                       "after commit '${commitOfFile}'\rFiles modified: '${files}'")
-                  return true
+                  return false//true
               }
             }
         } catch (err) {
