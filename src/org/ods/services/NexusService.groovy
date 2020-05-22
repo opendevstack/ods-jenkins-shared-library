@@ -148,6 +148,10 @@ class NexusService {
         response.ifFailure {
             throw new RuntimeException ("Could not retrieve data from '${urlToDownload}'")
         }
+        response.ifSuccess {
+            throw new RuntimeException ("Could retrieve data from '${urlToDownload}':\r${response.getBody()}")
+        }
+
         return !response.getBody().contains('\"items\" : [ ]')
     }
 
