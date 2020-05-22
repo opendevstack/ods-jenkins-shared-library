@@ -228,8 +228,8 @@ class GitService {
                   script.echo ('Clean tree, no changes')
                   return false
               } else {
-                  script.echo ("Found files other than '${fileName}' after commit '${commitOfFile}'\r" +
-                      "Files modified: '${files}'")
+                  script.echo ("Found modified files other than '${fileName}' " +
+                      "after commit '${commitOfFile}'\rFiles modified: '${files}'")
                   return true
               }
             }
