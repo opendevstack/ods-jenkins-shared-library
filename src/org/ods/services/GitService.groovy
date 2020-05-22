@@ -223,10 +223,12 @@ class GitService {
                       returnStdout: true,
                       label: "Get changes after commit ${commitOfFile}"
                   ).trim()
-              def files = filesChanged.normalize().readLines()
+              List files = filesChanged.normalize().readLines()
               boolean cleaned = files.remove ("${openshiftDir}/template.yml")
               script.echo ">>> ${openshiftDir}/template.yml -removed? ${cleaned}"
-
+              files.each { f ->
+                  script.echo "'${f}'"
+              }
               if (files.size() == 0) {
                   script.echo ('Clean tree, no changes')
                   return false
