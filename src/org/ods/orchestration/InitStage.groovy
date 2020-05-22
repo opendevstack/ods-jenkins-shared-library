@@ -274,7 +274,9 @@ class InitStage extends Stage {
                 project.services.nexus.repository.name,
                 "${project.getKey()}-${project.buildParams.version}")
             project.addConfigSetting('nexusRepoExists', nexusRepoExists)
-            steps.echo("Nexus repository for version exists? ${nexusRepoExists}")
+            steps.echo("Nexus repository for project/version" +
+                "'${project.getKey()}-${project.buildParams.version}'" +
+                " exists? ${nexusRepoExists}")
         }]
         script.parallel(reposToCheckout)
 

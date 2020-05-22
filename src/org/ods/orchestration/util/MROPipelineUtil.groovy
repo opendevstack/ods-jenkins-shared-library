@@ -716,7 +716,7 @@ class MROPipelineUtil extends PipelineUtil {
         GitService git = ServiceRegistry.instance.get(GitService)
         steps.dir(openshiftDir) {
             return git.otherFilesChangedAfterCommitOfFile(
-                ODS_DEPLOYMENTS_DESCRIPTOR)
+                ODS_DEPLOYMENTS_DESCRIPTOR, openshiftDir)
         }
     }
 }
