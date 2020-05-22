@@ -106,7 +106,7 @@ class NexusService {
     @NonCPS
     Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        String urlToDownload = "${this.baseURL}/repository/${nexuseRepository}/${nexusDirectory}/${name}"
+        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
         def restCall = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)
 
@@ -132,7 +132,7 @@ class NexusService {
         }
 
         return [
-            uri: this.baseURL.resolve("/repository/${nexuseRepository}/${nexusDirectory}/${name}"),
+            uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
         ]
     }
@@ -145,14 +145,7 @@ class NexusService {
             .basicAuth(this.username, this.password)
             .asString()
 
-        response.ifFailure {
-            return false
-        }
-
-        response.ifSuccess {
-            return true
-        }
-
-        return true
+        return !response.contains('\"items\" : [ ]')
     }
+
 }
