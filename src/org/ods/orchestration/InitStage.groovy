@@ -268,6 +268,7 @@ class InitStage extends Stage {
             steps.echo("Repository: ${repo}\r" +
                 "Environment configuration: ${script.env.getEnvironment()}")
         }
+        steps.echo "repolist: ${reposToCheckout}"
         reposToCheckout << [ 'Project verification', {
             def nexusRepoExists = registry.get(NexusService).groupExists(
                 this.project.getKey(),
