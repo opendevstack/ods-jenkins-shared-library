@@ -145,7 +145,7 @@ class NexusService {
             .basicAuth(this.username, this.password)
             .asString()
 
-        return !response.contains('\"items\" : [ ]')
+        return !response.getBody().contains('\"items\" : [ ]')
     }
 
 }
