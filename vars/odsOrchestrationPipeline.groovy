@@ -66,20 +66,24 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-                def result = new InitStage(this, project, repos).execute()
-                if (result) {
-                    project = result.project
-                    repos = result.repos
-                } else {
-                    echo 'Skip pipeline as no project/repos computed'
-                    return
-                }
-                Thread.start('bootstrap') {
-                    def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
-                    node (podLabel) {
-                        echo "node available ..."
-                    }
-                }
+                def result
+                def executors = ['init mro' : {
+                    result = new InitStage(this, project, repos).execute()
+                    if (result) {
+                        project = result.project
+                        repos = result.repos
+                    } else {
+                        echo 'Skip pipeline as no project/repos computed'
+                        return
+                    }},
+                    'boot mro slave' : {
+                        def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
+                        echo "starting mro slave '${podLabel}'"
+                        node (podLabel)
+                    }]
+                executors.failFast = true
+                parallel (executors)
+
                 new BuildStage(this, project, repos).execute()
 
                 new DeployStage(this, project, repos).execute()
@@ -120,8 +124,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
             )
         ],
         volumes: [],
-        serviceAccount: 'jenkins',
-        idleMinutes: 10,
+        serviceAccount: 'jenkins'
     ) {
         block()
     }
