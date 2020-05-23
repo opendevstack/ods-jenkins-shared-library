@@ -75,7 +75,9 @@ def call(Map config) {
                     return
                 }
                 Thread.start('bootstrap') {
+                    echo 'Bootstrap thread-start'
                     sleep 20
+                    echo 'Bootstrap thread-done'
                 }
                 new BuildStage(this, project, repos).execute()
 
