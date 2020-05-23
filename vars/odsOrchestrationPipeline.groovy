@@ -66,28 +66,26 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-                def execMap = ['main': {
-                    def result = new InitStage(this, project, repos).execute()
-                    if (result) {
-                        project = result.project
-                        repos = result.repos
-                    } else {
-                        echo 'Skip pipeline as no project/repos computed'
-                        return
-                    }
-    
-                    new BuildStage(this, project, repos).execute()
-    
-                    new DeployStage(this, project, repos).execute()
-    
-                    new TestStage(this, project, repos).execute()
-    
-                    new ReleaseStage(this, project, repos).execute()
-    
-                    new FinalizeStage(this, project, repos).execute()
-                },
-                'bootstrap' : {echo "boot"}]
-                parallel (execMap)
+                def result = new InitStage(this, project, repos).execute()
+                if (result) {
+                    project = result.project
+                    repos = result.repos
+                } else {
+                    echo 'Skip pipeline as no project/repos computed'
+                    return
+                }
+                Thread.start('bootstrap') {
+                    sleep 20
+                }
+                new BuildStage(this, project, repos).execute()
+
+                new DeployStage(this, project, repos).execute()
+
+                new TestStage(this, project, repos).execute()
+
+                new ReleaseStage(this, project, repos).execute()
+
+                new FinalizeStage(this, project, repos).execute()
             }
         }
     }
