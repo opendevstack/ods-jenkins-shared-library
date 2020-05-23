@@ -77,7 +77,7 @@ def call(Map config) {
                         return
                     }},
                     'boot mro slave' : {
-                        def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
+                        def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
                         echo "starting mro slave '${podLabel}'"
                         node (podLabel)
                     }]
