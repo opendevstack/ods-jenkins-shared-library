@@ -67,20 +67,25 @@ def call(Map config) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
                 def result
-                def executors = ['init mro' : {
-                    result = new InitStage(this, project, repos).execute()
-                    if (result) {
-                        project = result.project
-                        repos = result.repos
-                    } else {
-                        echo 'Skip pipeline as no project/repos computed'
-                        return
-                    }},
+                def executors = [
+                    'init mro' : {
+                        result = new InitStage(this, project, repos).execute()
+                        if (result) {
+                            project = result.project
+                            repos = result.repos
+                        } else {
+                            echo 'Skip pipeline as no project/repos computed'
+                            return
+                        }
+                     },
                     'boot mro slave' : {
                         def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
                         echo "starting mro slave '${podLabel}'"
-                        node (podLabel)
-                    }]
+                        node (podLabel) {
+                            echo 'mro slave startd ... '
+                        }
+                    }
+                ]
                 executors.failFast = true
                 parallel (executors)
 
