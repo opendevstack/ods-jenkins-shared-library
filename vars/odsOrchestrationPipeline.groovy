@@ -68,7 +68,7 @@ def call(Map config) {
             withEnv (envs) {
                 def result
                 def executors = [
-                    'init mro' : {
+                    'load orchestration repos' : {
                         result = new InitStage(this, project, repos).execute()
                         if (result) {
                             project = result.project
@@ -79,10 +79,11 @@ def call(Map config) {
                         }
                      },
                     'boot mro slave' : {
+                        def nodeStartTime = System.currentTimeMillis();
                         def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
                         echo "starting mro slave '${podLabel}'"
                         node (podLabel) {
-                            echo 'mro slave startd ... '
+                            echo "mro slave started in ${System.currentTimeMillis() - nodeStartTime} ..."
                         }
                     }
                 ]
