@@ -75,9 +75,10 @@ def call(Map config) {
                     return
                 }
                 Thread.start('bootstrap') {
-                    echo 'Bootstrap thread-start'
-                    sleep 20
-                    echo 'Bootstrap thread-done'
+                    def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
+                    node (podLabel) {
+                        echo "node available ..."
+                    }
                 }
                 new BuildStage(this, project, repos).execute()
 
@@ -120,6 +121,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         ],
         volumes: [],
         serviceAccount: 'jenkins',
+        idleMinutes: 10,
     ) {
         block()
     }
