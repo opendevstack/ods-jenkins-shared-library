@@ -90,6 +90,10 @@ def call(Map config) {
                 executors.failFast = true
                 parallel (executors)
 
+                if (repos.find { repo -> 
+                      repo.type == 'ods-test'}) {
+                    echo 'found longrunner - move slave init there'
+                }
                 new BuildStage(this, project, repos).execute()
 
                 new DeployStage(this, project, repos).execute()
@@ -137,7 +141,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         try {
             block()
         } finally {
-            script.echo "**** ENDED orchestration pipeline " +
+            echo "**** ENDED orchestration pipeline " +
                 "(time: ${System.currentTimeMillis() - startTime}ms) ****"
         }
     }
