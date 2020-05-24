@@ -79,13 +79,13 @@ def call(Map config) {
                 }
 
                 executeWithMROSlaveBootstrap(
-                    new BuildStage(this, project, repos))
+                    new BuildStage(this, project, repos), startMROStage)
 
                 executeWithMROSlaveBootstrap(
-                    new DeployStage(this, project, repos))
+                    new DeployStage(this, project, repos), startMROStage)
 
                 executeWithMROSlaveBootstrap(
-                    new TestStage(this, project, repos))
+                    new TestStage(this, project, repos), startMROStage)
 
                 new ReleaseStage(this, project, repos).execute()
 
@@ -134,7 +134,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-private executeWithMROSlaveBootstrap (Stage stage) {
+private executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
     echo "Stage to start mro slave: ${startMROStage} current: ${stage.STAGE_NAME}"
     if (startMROStage != stage.STAGE_NAME) {
         return stage.execute()
