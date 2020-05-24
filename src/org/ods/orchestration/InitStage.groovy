@@ -228,6 +228,7 @@ class InitStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
         steps.echo 'Checkout repositories into the workspace'
+        def repos = project.repositories
         Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
             steps.echo("Repository: ${repo}")
         }
@@ -235,11 +236,10 @@ class InitStage extends Stage {
         reposToCheckout << ["${setupStage}": {
             steps.echo 'Run Project#load'
             project.load(registry.get(GitService), registry.get(JiraUseCase))
-            def repos = project.repositories
-    
+
             bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
                 'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
-    
+
             steps.echo 'Validate that for Q and P we have a valid version'
             if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
                 && buildParams.version == 'WIP') {
