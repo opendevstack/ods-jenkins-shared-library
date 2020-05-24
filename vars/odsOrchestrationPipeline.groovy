@@ -24,7 +24,6 @@ def call(Map config) {
 
     Project project
     def repos = []
-    def startMROStage
 
     def debug = config.get('debug', false)
     def odsImageTag = config.odsImageTag
@@ -33,6 +32,8 @@ def call(Map config) {
     }
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
     def alwaysPullImage = !!config.get('alwaysPullImage', true)
+    boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
+    def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : ''
 
     node {
         // Clean workspace from previous runs
@@ -67,8 +68,10 @@ def call(Map config) {
 
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
+
             withEnv (envs) {
-                def result = new InitStage(this, project, repos).execute()
+                def result = executeWithMROSlaveBootstrap(
+                    new InitStage(this, project, repos), startMROStage)
                 if (result) {
                     project = result.project
                     repos = result.repos
@@ -134,13 +137,16 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-private executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
+private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
     echo "Stage to start mro slave: ${startMROStage} current: ${stage.STAGE_NAME}"
     if (!startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
         return stage.execute()
     }
+    Map result
     Map executors = [
-        "${stage.STAGE_NAME}": {stage.execute()},
+        "${stage.STAGE_NAME}": {
+            result = stage.execute()
+        },
         'boot mro slave' : {
             def nodeStartTime = System.currentTimeMillis();
             def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
@@ -152,6 +158,7 @@ private executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
     ]
     executors.failFast = true
     parallel (executors)
+    return result
 }
 
 return this
