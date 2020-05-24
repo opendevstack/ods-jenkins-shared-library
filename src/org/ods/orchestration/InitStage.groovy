@@ -285,7 +285,7 @@ class InitStage extends Stage {
         // find place for mro slave start
         reposToCheckout.remove(setupStage)
         def stageToStartMRO
-        reposToCheckout.each {repoId, repo -> 
+        reposToCheckout.each {repo ->
             if (!stageToStartMRO) {
                 if (repo.type == 'ods-test') {
                     stageToStartMRO = TestStage.STAGE_NAME
