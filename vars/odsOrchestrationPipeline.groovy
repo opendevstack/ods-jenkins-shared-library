@@ -24,6 +24,7 @@ def call(Map config) {
 
     Project project
     def repos = []
+    def startMROStage
 
     def debug = config.get('debug', false)
     def odsImageTag = config.odsImageTag
@@ -71,17 +72,20 @@ def call(Map config) {
                 if (result) {
                     project = result.project
                     repos = result.repos
+                    startMROStage = result.startMROSlave
                 } else {
                     echo 'Skip pipeline as no project/repos computed'
                     return
                 }
 
                 executeWithMROSlaveBootstrap(
-                    new BuildStage(this, project, repos), true)
+                    new BuildStage(this, project, repos))
 
-                new DeployStage(this, project, repos).execute()
+                executeWithMROSlaveBootstrap(
+                    new DeployStage(this, project, repos))
 
-                new TestStage(this, project, repos).execute()
+                executeWithMROSlaveBootstrap(
+                    new TestStage(this, project, repos))
 
                 new ReleaseStage(this, project, repos).execute()
 
@@ -130,8 +134,9 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-private executeWithMROSlaveBootstrap (Stage stage, boolean startSlave) {
-    if (!startSlave) {
+private executeWithMROSlaveBootstrap (Stage stage) {
+    echo "Stage to start mro slave: ${startMROStage} current: ${stage.STAGE_NAME}"
+    if (startMROStage != stage.STAGE_NAME) {
         return stage.execute()
     }
     Map executors = [

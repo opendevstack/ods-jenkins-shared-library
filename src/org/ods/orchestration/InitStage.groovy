@@ -266,16 +266,15 @@ class InitStage extends Stage {
 
         steps.echo 'Checkout repositories into the workspace'
         Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-            steps.echo("Repository: ${repo}\r" +
-                "Environment configuration: ${script.env.getEnvironment()}")
+            steps.echo("Repository: ${repo}")
         }
-        reposToCheckout << ["${project.getKey()} - setup": {
+        def setupStage = "${project.getKey()} - setup"
+        reposToCheckout << ["${setupStage}": {
+            def projectNexusKey = "${project.getKey()}-${project.buildParams.version}"
             def nexusRepoExists = registry.get(NexusService).groupExists(
-                project.services.nexus.repository.name,
-                "${project.getKey()}-${project.buildParams.version}")
+                project.services.nexus.repository.name, projectNexusKey)
             project.addConfigSetting('nexusRepoExists', nexusRepoExists)
-            steps.echo("Nexus repository for project/version" +
-                " '${project.getKey()}-${project.buildParams.version}'" +
+            steps.echo("Nexus repository for project/version '${projectNexusKey}'" +
                 " exists? ${nexusRepoExists}")
 
             def os = registry.get(OpenShiftService)
@@ -283,6 +282,22 @@ class InitStage extends Stage {
         }]
         script.parallel(reposToCheckout)
 
+        // find place for mro slave start
+        reposToCheckout.remove(setupStage)
+        def stageToStartMRO
+        reposToCheckout.each {repoId, repo -> 
+            if (!stageToStartMRO) {
+                if (repo.type == 'ods-test') {
+                    stageToStartMRO = TestStage.STAGE_NAME
+                } else if (repo.type == 'ods' && 
+                    !repo.data?.odsBuildArtifacts?.resurrected) {
+                    stageToStartMRO = BuildStage.STAGE_NAME
+                }
+            }
+        }
+        if (!stageToStartMRO) {
+          stageToStartMRO = DeployStage.STAGE_NAME
+        }
         def os = registry.get(OpenShiftService)
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
@@ -356,7 +371,7 @@ class InitStage extends Stage {
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
-        return [project: project, repos: repos]
+        return [project: project, repos: repos, startMROSlave: stageToStartMRO]
     }
 
     private checkoutGitRef(String gitRef, def extensions) {
