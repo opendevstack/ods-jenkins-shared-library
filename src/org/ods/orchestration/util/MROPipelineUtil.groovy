@@ -351,7 +351,7 @@ class MROPipelineUtil extends PipelineUtil {
         this.steps.dir(baseDir) {
             OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
             // only in case of a code component (that is deployed) do this check
-            if (repo.odsBuildArtifacts?.resurrected) {
+            if (repo.data?.odsBuildArtifacts?.resurrected) {
                 this.steps.echo("Repository '${repo.id}' is insync with OCP, " +
                     'no need to rebuild')
                 return
