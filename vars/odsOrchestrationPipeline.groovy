@@ -136,7 +136,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
 
 private executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
     echo "Stage to start mro slave: ${startMROStage} current: ${stage.STAGE_NAME}"
-    if (startMROStage != stage.STAGE_NAME) {
+    if (!startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
         return stage.execute()
     }
     Map executors = [
