@@ -78,21 +78,21 @@ def call(Map config) {
                             return
                         }
                      },
-                    'boot mro slave' : {
-                        def nodeStartTime = System.currentTimeMillis();
-                        def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
-                        echo "starting mro slave '${podLabel}'"
-                        node (podLabel) {
-                            echo "mro slave started in ${System.currentTimeMillis() - nodeStartTime} ..."
-                        }
-                    }
+//                    'boot mro slave' : {
+//                        def nodeStartTime = System.currentTimeMillis();
+//                        def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
+//                        echo "starting mro slave '${podLabel}'"
+//                        node (podLabel) {
+//                            echo "mro slave started in ${System.currentTimeMillis() - nodeStartTime} ..."
+//                        }
+//                    }
                 ]
                 executors.failFast = true
                 parallel (executors)
 
                 if (repos.find { repo -> 
                       repo.type == 'ods-test'}) {
-                    echo 'found longrunner - move slave init there'
+                    echo 'found longrunner ... moving slave init to test stage'
                 }
                 new BuildStage(this, project, repos).execute()
 

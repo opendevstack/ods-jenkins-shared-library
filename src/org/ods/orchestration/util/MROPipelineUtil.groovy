@@ -351,10 +351,7 @@ class MROPipelineUtil extends PipelineUtil {
         this.steps.dir(baseDir) {
             OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
             // only in case of a code component (that is deployed) do this check
-            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                !this.project.forceGlobalRebuild() &&
-                !areFilesOtherThanDeploymentDescriptorModified() &&
-                os.isOCPDeploymentBasedOnLatestRepoState(repo)) {
+            if (repo.odsBuildArtifacts?.resurrected) {
                 this.steps.echo("Repository '${repo.id}' is insync with OCP, " +
                     'no need to rebuild')
                 return
@@ -546,6 +543,8 @@ class MROPipelineUtil extends PipelineUtil {
                 ]
                 loadPipelineConfig(
                     "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
+                amendRepoForResurrection(repo)
+
                 if (postExecute) {
                     postExecute(this.steps, repo)
                 }
@@ -719,5 +718,13 @@ class MROPipelineUtil extends PipelineUtil {
             return git.otherFilesChangedAfterCommitOfFile(
                 ODS_DEPLOYMENTS_DESCRIPTOR, openshiftDir)
         }
+    }
+
+    private boolean amendRepoForResurrection (def repo) {
+        def os = ServiceRegistry.instance.get(OpenShiftService)
+        return (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
+            !this.project.forceGlobalRebuild() &&
+            !areFilesOtherThanDeploymentDescriptorModified() &&
+            os.isOCPDeploymentBasedOnLatestRepoState(repo))
     }
 }
