@@ -66,10 +66,9 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-                def result
                 def executors = [
                     'load orchestration repos' : {
-                        result = new InitStage(this, project, repos).execute()
+                        def result = new InitStage(this, project, repos).execute()
                         if (result) {
                             project = result.project
                             repos = result.repos
@@ -77,18 +76,8 @@ def call(Map config) {
                             echo 'Skip pipeline as no project/repos computed'
                             return
                         }
-                     },
-//                    'boot mro slave' : {
-//                        def nodeStartTime = System.currentTimeMillis();
-//                        def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
-//                        echo "starting mro slave '${podLabel}'"
-//                        node (podLabel) {
-//                            echo "mro slave started in ${System.currentTimeMillis() - nodeStartTime} ..."
-//                        }
-//                    }
-                ]
-                executors.failFast = true
-                parallel (executors)
+                     }]
+                executeWithMROSlaveBootstrap(executors)
 
                 if (repos.find { repo -> 
                       repo.type == 'ods-test'}) {
@@ -145,6 +134,20 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
                 "(time: ${System.currentTimeMillis() - startTime}ms) ****"
         }
     }
+}
+
+private executeWithMROSlaveBootstrap (Map executors) {
+    executors << ['boot mro slave' : {
+            def nodeStartTime = System.currentTimeMillis();
+            def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
+            echo "starting mro slave '${podLabel}'"
+            node (podLabel) {
+                echo "mro slave started in ${System.currentTimeMillis() - nodeStartTime} ..."
+            }
+        }
+    ]
+    executors.failFast = true
+    parallel (executors)
 }
 
 return this
