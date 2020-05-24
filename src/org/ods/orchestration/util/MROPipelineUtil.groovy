@@ -541,9 +541,11 @@ class MROPipelineUtil extends PipelineUtil {
                     baseTag: this.project.baseTag,
                     targetTag: this.project.targetTag
                 ]
-                loadPipelineConfig(
-                    "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
-                amendRepoForResurrection(repo)
+                def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+                loadPipelineConfig(repoPath, repo)
+                this.steps.dir(repoPath) {
+                    amendRepoForResurrection(repo)
+                }
 
                 if (postExecute) {
                     postExecute(this.steps, repo)
