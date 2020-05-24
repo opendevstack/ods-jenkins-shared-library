@@ -8,6 +8,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.Stage
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage
@@ -66,24 +67,17 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-                def executors = [
-                    'load orchestration repos' : {
-                        def result = new InitStage(this, project, repos).execute()
-                        if (result) {
-                            project = result.project
-                            repos = result.repos
-                        } else {
-                            echo 'Skip pipeline as no project/repos computed'
-                            return
-                        }
-                     }]
-                executeWithMROSlaveBootstrap(executors)
-
-                if (repos.find { repo -> 
-                      repo.type == 'ods-test'}) {
-                    echo 'found longrunner ... moving slave init to test stage'
+                def result = new InitStage(this, project, repos).execute()
+                if (result) {
+                    project = result.project
+                    repos = result.repos
+                } else {
+                    echo 'Skip pipeline as no project/repos computed'
+                    return
                 }
-                new BuildStage(this, project, repos).execute()
+
+                executeWithMROSlaveBootstrap(
+                    new BuildStage(this, project, repos), true)
 
                 new DeployStage(this, project, repos).execute()
 
@@ -136,8 +130,13 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-private executeWithMROSlaveBootstrap (Map executors) {
-    executors << ['boot mro slave' : {
+private executeWithMROSlaveBootstrap (Stage stage, boolean startSlave) {
+    if (!startSlave) {
+        return stage.execute()
+    }
+    Map executors = [
+        "${stage.STAGE_NAME}": {stage.execute()},
+        'boot mro slave' : {
             def nodeStartTime = System.currentTimeMillis();
             def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
             echo "starting mro slave '${podLabel}'"
