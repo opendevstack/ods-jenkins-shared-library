@@ -11,7 +11,6 @@ import org.ods.orchestration.scheduler.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
-import org.ods.orchestration.*
 import org.ods.util.*
 
 @SuppressWarnings('AbcMetric')
@@ -288,15 +287,15 @@ class InitStage extends Stage {
         repos.each {repo -> 
             if (!stageToStartMRO) {
                 if (repo.type == 'ods-test') {
-                    stageToStartMRO = TestStage.STAGE_NAME
+                    stageToStartMRO = 'TEST'
                 } else if (repo.type == 'ods' && 
                     !repo.data?.odsBuildArtifacts?.resurrected) {
-                    stageToStartMRO = BuildStage.STAGE_NAME
+                    stageToStartMRO = 'BUILD'
                 }
             }
         }
         if (!stageToStartMRO) {
-          stageToStartMRO = DeployStage.STAGE_NAME
+          stageToStartMRO = 'DEPLOY'
         }
         def os = registry.get(OpenShiftService)
 
