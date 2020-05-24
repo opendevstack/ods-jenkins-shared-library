@@ -268,7 +268,7 @@ class InitStage extends Stage {
         Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
             steps.echo("Repository: ${repo}")
         }
-        def setupStage = "${project.getKey()} - setup"
+        def setupStage = project.getKey() + ' setup'
         reposToCheckout << ["${setupStage}": {
             def projectNexusKey = "${project.getKey()}-${project.buildParams.version}"
             def nexusRepoExists = registry.get(NexusService).groupExists(
@@ -285,7 +285,7 @@ class InitStage extends Stage {
         // find place for mro slave start
         reposToCheckout.remove(setupStage)
         def stageToStartMRO
-        reposToCheckout.each {repo ->
+        reposToCheckout.each {repoId, repo -> 
             if (!stageToStartMRO) {
                 if (repo.type == 'ods-test') {
                     stageToStartMRO = TestStage.STAGE_NAME
