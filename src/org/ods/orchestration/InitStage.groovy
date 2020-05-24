@@ -227,49 +227,49 @@ class InitStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
-        steps.echo 'Run Project#load'
-        project.load(registry.get(GitService), registry.get(JiraUseCase))
-        def repos = project.repositories
-
-        bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-            'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
-
-        steps.echo 'Validate that for Q and P we have a valid version'
-        if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
-            && buildParams.version == 'WIP') {
-            throw new RuntimeException(
-                'Error: trying to deploy to Q or P without having defined a correct version. ' +
-                "${buildParams.version} version value is not allowed for those environments. " +
-                'If you are using Jira, please check that all values are set in the release manager issue. ' +
-                "Build parameters obtained: ${buildParams}"
-            )
-        }
-
-        if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
-            if (project.buildParams.targetEnvironmentToken == 'Q') {
-                steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
-            } else {
-                throw new RuntimeException(
-                    "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
-                )
-            }
-        }
-
-        def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
-
-        steps.echo 'Configure current build description'
-        script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
-            "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
-            "Project: ${project.key}, " +
-            "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
-            "Version: ${script.env.VERSION}"
-
         steps.echo 'Checkout repositories into the workspace'
         Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
             steps.echo("Repository: ${repo}")
         }
         def setupStage = project.getKey() + ' setup'
         reposToCheckout << ["${setupStage}": {
+            steps.echo 'Run Project#load'
+            project.load(registry.get(GitService), registry.get(JiraUseCase))
+            def repos = project.repositories
+    
+            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
+    
+            steps.echo 'Validate that for Q and P we have a valid version'
+            if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
+                && buildParams.version == 'WIP') {
+                throw new RuntimeException(
+                    'Error: trying to deploy to Q or P without having defined a correct version. ' +
+                    "${buildParams.version} version value is not allowed for those environments. " +
+                    'If you are using Jira, please check that all values are set in the release manager issue. ' +
+                    "Build parameters obtained: ${buildParams}"
+                )
+            }
+
+            if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
+                if (project.buildParams.targetEnvironmentToken == 'Q') {
+                    steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
+                } else {
+                    throw new RuntimeException(
+                        "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
+                    )
+                }
+            }
+    
+            def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
+    
+            steps.echo 'Configure current build description'
+            script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
+                "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
+                "Project: ${project.key}, " +
+                "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
+                "Version: ${script.env.VERSION}"
+  
             def projectNexusKey = "${project.getKey()}-${project.buildParams.version}"
             def nexusRepoExists = registry.get(NexusService).groupExists(
                 project.services.nexus.repository.name, projectNexusKey)
@@ -286,16 +286,16 @@ class InitStage extends Stage {
         def stageToStartMRO
         repos.each {repo -> 
             if (!stageToStartMRO) {
-                if (repo.type == 'ods-test') {
-                    stageToStartMRO = 'TEST'
-                } else if (repo.type == 'ods' && 
+                if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
+                    stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
+                } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE && 
                     !repo.data?.odsBuildArtifacts?.resurrected) {
-                    stageToStartMRO = 'BUILD'
+                    stageToStartMRO = MROPipelineUtil.PipelinePhases.BUILD
                 }
             }
         }
         if (!stageToStartMRO) {
-          stageToStartMRO = 'DEPLOY'
+          stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)
 

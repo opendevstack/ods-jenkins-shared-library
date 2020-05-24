@@ -144,9 +144,9 @@ private executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
         'boot mro slave' : {
             def nodeStartTime = System.currentTimeMillis();
             def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
-            echo "starting mro slave '${podLabel}'"
+            echo "Starting orchestration slave '${podLabel}'"
             node (podLabel) {
-                echo "mro slave started in ${System.currentTimeMillis() - nodeStartTime} ..."
+                echo "Orchestration slave started in ${System.currentTimeMillis() - nodeStartTime}ms"
             }
         }
     ]
