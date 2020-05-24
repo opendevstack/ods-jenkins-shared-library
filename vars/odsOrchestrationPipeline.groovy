@@ -130,9 +130,16 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
             )
         ],
         volumes: [],
-        serviceAccount: 'jenkins'
+        serviceAccount: 'jenkins',
+        idleMinutes : 10,
     ) {
-        block()
+        def startTime = System.currentTimeMillis()
+        try {
+            block()
+        } finally {
+            script.echo "**** ENDED orchestration pipeline " +
+                "(time: ${System.currentTimeMillis() - startTime}ms) ****"
+        }
     }
 }
 

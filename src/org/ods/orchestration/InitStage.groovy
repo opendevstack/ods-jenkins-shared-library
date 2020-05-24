@@ -283,11 +283,7 @@ class InitStage extends Stage {
         }]
         script.parallel(reposToCheckout)
 
-//        steps.echo "Load configs from each repo's release-manager.yml"
-//        util.loadPipelineConfigs(repos)
-
         def os = registry.get(OpenShiftService)
-//        project.setOpenShiftData(os.apiUrl)
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
         if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
