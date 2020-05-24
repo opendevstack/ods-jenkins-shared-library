@@ -283,11 +283,8 @@ class InitStage extends Stage {
         script.parallel(reposToCheckout)
 
         // find place for mro slave start
-        reposToCheckout.remove(setupStage)
-        steps.echo("List of repositories: ${reposToCheckout}")
-
         def stageToStartMRO
-        reposToCheckout.each {repoId, repo -> 
+        repos.each {repoId, repo -> 
             if (!stageToStartMRO) {
                 if (repo.type == 'ods-test') {
                     stageToStartMRO = TestStage.STAGE_NAME
