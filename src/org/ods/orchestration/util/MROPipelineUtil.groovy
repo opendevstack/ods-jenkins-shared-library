@@ -544,7 +544,8 @@ class MROPipelineUtil extends PipelineUtil {
                     baseTag: this.project.baseTag,
                     targetTag: this.project.targetTag
                 ]
-
+                loadPipelineConfig(
+                    "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
                 if (postExecute) {
                     postExecute(this.steps, repo)
                 }

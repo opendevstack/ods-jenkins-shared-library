@@ -269,7 +269,7 @@ class InitStage extends Stage {
             steps.echo("Repository: ${repo}\r" +
                 "Environment configuration: ${script.env.getEnvironment()}")
         }
-        reposToCheckout << ["${project.getKey()} - nexus": {
+        reposToCheckout << ["${project.getKey()} - setup": {
             def nexusRepoExists = registry.get(NexusService).groupExists(
                 project.services.nexus.repository.name,
                 "${project.getKey()}-${project.buildParams.version}")
@@ -277,15 +277,17 @@ class InitStage extends Stage {
             steps.echo("Nexus repository for project/version" +
                 " '${project.getKey()}-${project.buildParams.version}'" +
                 " exists? ${nexusRepoExists}")
+
+            def os = registry.get(OpenShiftService)
+            project.setOpenShiftData(os.apiUrl)
         }]
         script.parallel(reposToCheckout)
 
-        steps.echo "Load configs from each repo's release-manager.yml"
-        util.loadPipelineConfigs(repos)
+//        steps.echo "Load configs from each repo's release-manager.yml"
+//        util.loadPipelineConfigs(repos)
 
-        def os = registry.get(OpenShiftService)
-
-        project.setOpenShiftData(os.apiUrl)
+//        def os = registry.get(OpenShiftService)
+//        project.setOpenShiftData(os.apiUrl)
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
         if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
