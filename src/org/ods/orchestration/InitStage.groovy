@@ -284,6 +284,8 @@ class InitStage extends Stage {
 
         // find place for mro slave start
         reposToCheckout.remove(setupStage)
+        steps.echo("List of repositories: ${reposToCheckout}")
+
         def stageToStartMRO
         reposToCheckout.each {repoId, repo -> 
             if (!stageToStartMRO) {
