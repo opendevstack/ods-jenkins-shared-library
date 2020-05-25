@@ -20,6 +20,8 @@ class SonarQubeService {
                 "-Dsonar.host.url=${hostUrl}",
                 "-Dsonar.auth.token=${authToken}",
                 '-Dsonar.scm.provider=git',
+                "-Dsonar.projectKey=${properties['sonar.projectKey']}",
+                "-Dsonar.projectName=${properties['sonar.projectName']}",
             ]
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
