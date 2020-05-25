@@ -58,7 +58,7 @@ class BitbucketService {
 
     @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
-        script.echo "Setting Bitbucket build status to '${state}' ..."
+        script.echo "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'"
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
