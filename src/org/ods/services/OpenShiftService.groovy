@@ -212,7 +212,7 @@ class OpenShiftService {
 
     String getBuildStatus(String buildId) {
         def buildStatus = 'unknown'
-        def retries = 3
+        def retries = 5
         for (def i = 0; i < retries; i++) {
             buildStatus = checkForBuildStatus(buildId)
             if (buildStatus == 'complete') {
