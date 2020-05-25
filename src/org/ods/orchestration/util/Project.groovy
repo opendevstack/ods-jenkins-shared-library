@@ -1084,7 +1084,7 @@ class Project {
 
     boolean forceGlobalRebuild () {
         return (this.data.metadata.allowPartialRebuild &&
-            this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? true : false
+            this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
     }
 
     void addConfigSetting (def key, def value) {
