@@ -349,6 +349,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
+            this.steps.echo("'${repo.id}' -> force? ${this.project.forceGlobalRebuild()}")
             if (repo.data?.odsBuildArtifacts?.resurrected &&
                 !this.project.forceGlobalRebuild()) {
                 this.steps.echo("Repository '${repo.id}' is insync with OCP, " +
