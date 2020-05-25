@@ -133,7 +133,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         try {
             block()
         } finally {
-            echo "**** ENDED orchestration pipeline " +
+            echo '**** ENDED orchestration pipeline ' +
                 "(time: ${System.currentTimeMillis() - startTime}ms) ****"
         }
     }
@@ -151,13 +151,13 @@ private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
             result = stage.execute()
         },
         'boot mro slave': {
-            def nodeStartTime = System.currentTimeMillis();
+            def nodeStartTime = System.currentTimeMillis()
             def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
             echo "Starting orchestration slave '${podLabel}'"
             node (podLabel) {
                 echo "Orchestration slave started in ${System.currentTimeMillis() - nodeStartTime}ms"
             }
-        }
+        },
     ]
     executors.failFast = true
     parallel (executors)

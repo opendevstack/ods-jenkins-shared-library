@@ -111,7 +111,7 @@ class DeployStage extends Stage {
             // record release manager repo state
             if (project.isPromotionMode) {
                 if (git.remoteTagExists(project.targetTag)) {
-                    steps.echo("Skipping tag because it already exists.")
+                    steps.echo('Skipping tag because it already exists.')
                 } else {
                     util.tagAndPush(project.targetTag)
                 }

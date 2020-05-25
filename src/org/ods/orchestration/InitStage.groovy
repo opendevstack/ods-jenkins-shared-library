@@ -122,7 +122,7 @@ class InitStage extends Stage {
                     )
                 )
 
-                if (project.hasCapability("Zephyr")) {
+                if (project.hasCapability('Zephyr')) {
                     registry.add(JiraZephyrService,
                         new JiraZephyrService(
                             script.env.JIRA_URL,
@@ -284,7 +284,7 @@ class InitStage extends Stage {
 
         // find place for mro slave start
         def stageToStartMRO
-        repos.each {repo ->
+        repos.each { repo ->
             if (!stageToStartMRO) {
                 if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                     stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
@@ -301,9 +301,7 @@ class InitStage extends Stage {
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
         if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
-
             runOnAgentPod(project, true) {
-
                 def sourceEnv = project.buildParams.targetEnvironment
                 os.createVersionedDevelopmentEnvironment(project.key, sourceEnv)
 
@@ -379,7 +377,7 @@ class InitStage extends Stage {
             branches: [[name: gitRef]],
             doGenerateSubmoduleConfigurations: false,
             extensions: extensions,
-            userRemoteConfigs: script.scm.userRemoteConfigs
+            userRemoteConfigs: script.scm.userRemoteConfigs,
         ])
     }
 
