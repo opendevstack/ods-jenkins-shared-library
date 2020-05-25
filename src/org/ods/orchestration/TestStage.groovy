@@ -121,7 +121,7 @@ class TestStage extends Stage {
 
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
-        steps.echo("Collecting JUnit XML Reports for ${repo.id}")
+        steps.echo("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
         def testReportsStashName = "${type}-test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
