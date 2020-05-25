@@ -349,7 +349,8 @@ class MROPipelineUtil extends PipelineUtil {
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
-            if (repo.data?.odsBuildArtifacts?.resurrected) {
+            if (repo.data?.odsBuildArtifacts?.resurrected &&
+                !this.project.forceGlobalRebuild()) {
                 this.steps.echo("Repository '${repo.id}' is insync with OCP, " +
                     'no need to rebuild')
                 return
@@ -723,7 +724,6 @@ class MROPipelineUtil extends PipelineUtil {
     private boolean amendRepoForResurrection (def repo) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         return (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-            !this.project.forceGlobalRebuild() &&
             !areFilesOtherThanDeploymentDescriptorModified() &&
             os.isOCPDeploymentBasedOnLatestRepoState(repo))
     }
