@@ -142,7 +142,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
 @SuppressWarnings('GStringAsMapKey')
 private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
     echo "Stage to start mro slave: '${startMROStage}' current: '${stage.STAGE_NAME}'"
-    if (!startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
+    if (!startMROStage || !startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
         return stage.execute()
     }
     Map result
