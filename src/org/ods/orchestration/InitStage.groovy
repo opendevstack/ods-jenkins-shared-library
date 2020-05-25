@@ -297,7 +297,7 @@ class InitStage extends Stage {
         if (!stageToStartMRO) {
             steps.echo "No applicable stage found - slave bootstrap will run before 'finalize'.\r" + 
                 "To change this, change 'startOrchestrationSlaveOnInit' to 'true'"
-            tageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
+            stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)
 
