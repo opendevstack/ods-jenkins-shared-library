@@ -22,7 +22,7 @@ class InitStage extends Stage {
         super(script, project, repos)
     }
 
-    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth'])
+    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
     def run() {
         def steps = new PipelineSteps(script)
         def project = new Project(steps)

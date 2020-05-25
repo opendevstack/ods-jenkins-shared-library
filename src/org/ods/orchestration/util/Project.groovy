@@ -1087,6 +1087,6 @@ class Project {
     }
 
     void addConfigSetting (def key, def value) {
-        this.config << [("${key}"): value]
+        this.config << ["${key}": value]
     }
 }
