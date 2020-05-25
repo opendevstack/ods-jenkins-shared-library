@@ -9,6 +9,7 @@ import org.apache.http.client.utils.URIBuilder
 
 class NexusService {
 
+    static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
     final URI baseURL
 
     final String username

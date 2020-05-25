@@ -10,6 +10,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
 import org.ods.services.GitService
+import org.ods.services.NexusService
 import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
@@ -1083,7 +1084,7 @@ class Project {
 
     boolean forceGlobalRebuild () {
         return (this.data.metadata.allowPartialRebuild &&
-            this.config.get('nexusRepoExists', false)) ? true : false
+            this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? true : false
     }
 
     void addConfigSetting (def key, def value) {

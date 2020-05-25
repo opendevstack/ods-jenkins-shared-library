@@ -273,7 +273,7 @@ class InitStage extends Stage {
             def projectNexusKey = "${project.getKey()}-${project.buildParams.version}"
             def nexusRepoExists = registry.get(NexusService).groupExists(
                 project.services.nexus.repository.name, projectNexusKey)
-            project.addConfigSetting('nexusRepoExists', nexusRepoExists)
+            project.addConfigSetting(NexusService.NEXUS_REPO_EXISTS_KEY, nexusRepoExists)
             steps.echo("Nexus repository for project/version '${projectNexusKey}'" +
                 " exists? ${nexusRepoExists}")
 
@@ -295,7 +295,8 @@ class InitStage extends Stage {
             }
         }
         if (!stageToStartMRO) {
-            steps.echo 'No applicable stage found - slave bootstrap will run before finalize'
+            steps.echo "No applicable stage found - slave bootstrap will run before 'finalize'.\r" + 
+                "To change this, change 'startOrchestrationSlaveOnInit' to 'true'"
         }
         def os = registry.get(OpenShiftService)
 
