@@ -282,14 +282,14 @@ class InitStage extends Stage {
         }]
         script.parallel(reposToCheckout)
 
-        // find place for mro slave start
+        // find best place for mro slave start
         def stageToStartMRO
         repos.each { repo ->
-            if (!stageToStartMRO) {
-                if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                    stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
-                } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE &&
-                    !repo.data?.odsBuildArtifacts?.resurrected) {
+            if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
+                stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
+            } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE &&
+                !repo.data?.odsBuildArtifacts?.resurrected) {
+                if (stageToStartMRO != MROPipelineUtil.PipelinePhases.TEST) {
                     stageToStartMRO = MROPipelineUtil.PipelinePhases.BUILD
                 }
             }
