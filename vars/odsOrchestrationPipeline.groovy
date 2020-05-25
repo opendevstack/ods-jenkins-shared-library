@@ -32,7 +32,7 @@ def call(Map config) {
     }
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
     def alwaysPullImage = !!config.get('alwaysPullImage', true)
-    boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
+    boolean startMROSlaveEarly = true //config.get('startOrchestrationSlaveOnInit', true)
     def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
     node {
@@ -75,9 +75,11 @@ def call(Map config) {
                 if (result) {
                     project = result.project
                     repos = result.repos
-                    if (!startMROStage) {
-                        startMROStage = result.startMROSlave
-                    }
+                    /* Jenkins serialization bug!
+                     * if (!startMROStage) {
+                     *     startMROStage = result.startMROSlave
+                     * }
+                     */
                 } else {
                     echo 'Skip pipeline as no project/repos computed'
                     return
