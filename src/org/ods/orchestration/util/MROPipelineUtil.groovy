@@ -349,8 +349,6 @@ class MROPipelineUtil extends PipelineUtil {
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
-            OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
-            // only in case of a code component (that is deployed) do this check
             if (repo.data?.odsBuildArtifacts?.resurrected) {
                 this.steps.echo("Repository '${repo.id}' is insync with OCP, " +
                     'no need to rebuild')
@@ -695,7 +693,7 @@ class MROPipelineUtil extends PipelineUtil {
         def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
         this.warnBuild("Warning: found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
     }
-  
+
     void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
             this.project.setHasFailingTests(true)

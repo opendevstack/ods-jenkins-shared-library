@@ -1082,14 +1082,11 @@ class Project {
     }
 
     boolean forceGlobalRebuild () {
-        if (this.data.metadata.allowPartialRebuild &&
-            this.config.get('nexusRepoExists', false)) {
-            return true
-        }
-        return false
+        return (this.data.metadata.allowPartialRebuild &&
+            this.config.get('nexusRepoExists', false)) ? true : false
     }
 
     void addConfigSetting (def key, def value) {
-        this.config << [key: value]
+        this.config << [("${key}"): value]
     }
 }
