@@ -148,7 +148,11 @@ private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
     Map result
     Map executors = [
         "${stage.STAGE_NAME}": {
-            stage.execute()
+            if (startMROStage == MROPipelineUtil.PipelinePhases.INIT) {
+                result = stage.execute()
+            } else {
+                stage.execute()
+            }
         },
         'boot mro slave': {
             def nodeStartTime = System.currentTimeMillis()
