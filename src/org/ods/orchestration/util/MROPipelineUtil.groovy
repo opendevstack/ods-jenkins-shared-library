@@ -355,6 +355,7 @@ class MROPipelineUtil extends PipelineUtil {
                     'no need to rebuild')
                 return
             }
+            repo.data?.odsBuildArtifacts?.remove('resurrected')
 
             def job
             this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
