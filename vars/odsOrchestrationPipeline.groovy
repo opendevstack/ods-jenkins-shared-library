@@ -33,7 +33,7 @@ def call(Map config) {
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
     def alwaysPullImage = !!config.get('alwaysPullImage', true)
     boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
-    def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : ''
+    def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
     node {
         // Clean workspace from previous runs
@@ -75,7 +75,9 @@ def call(Map config) {
                 if (result) {
                     project = result.project
                     repos = result.repos
-                    startMROStage = result.startMROSlave
+                    if (!startMROStage) {
+                        startMROStage = result.startMROSlave
+                    }
                 } else {
                     echo 'Skip pipeline as no project/repos computed'
                     return
@@ -125,7 +127,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         ],
         volumes: [],
         serviceAccount: 'jenkins',
-        idleMinutes : 10,
+        idleMinutes: 10,
     ) {
         def startTime = System.currentTimeMillis()
         try {
@@ -138,16 +140,16 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
 }
 
 private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
-    echo "Stage to start mro slave: ${startMROStage} current: ${stage.STAGE_NAME}"
+    echo "Stage to start mro slave: '${startMROStage}' current: '${stage.STAGE_NAME}'"
     if (!startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
         return stage.execute()
     }
     Map result
     Map executors = [
-        "${stage.STAGE_NAME}": {
+        ("${stage.STAGE_NAME}"): {
             result = stage.execute()
         },
-        'boot mro slave' : {
+        'boot mro slave': {
             def nodeStartTime = System.currentTimeMillis();
             def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
             echo "Starting orchestration slave '${podLabel}'"

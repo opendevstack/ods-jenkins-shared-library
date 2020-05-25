@@ -233,7 +233,7 @@ class InitStage extends Stage {
             steps.echo("Repository: ${repo}")
         }
         def setupStage = project.getKey() + ' setup'
-        reposToCheckout << ["${setupStage}": {
+        reposToCheckout << [("${setupStage}"): {
             steps.echo 'Run Project#load'
             project.load(registry.get(GitService), registry.get(JiraUseCase))
 
@@ -260,16 +260,16 @@ class InitStage extends Stage {
                     )
                 }
             }
-    
+
             def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
-    
+
             steps.echo 'Configure current build description'
             script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
                 "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
                 "Project: ${project.key}, " +
                 "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
                 "Version: ${script.env.VERSION}"
-  
+
             def projectNexusKey = "${project.getKey()}-${project.buildParams.version}"
             def nexusRepoExists = registry.get(NexusService).groupExists(
                 project.services.nexus.repository.name, projectNexusKey)
@@ -284,18 +284,18 @@ class InitStage extends Stage {
 
         // find place for mro slave start
         def stageToStartMRO
-        repos.each {repo -> 
+        repos.each {repo ->
             if (!stageToStartMRO) {
                 if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                     stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
-                } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE && 
+                } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE &&
                     !repo.data?.odsBuildArtifacts?.resurrected) {
                     stageToStartMRO = MROPipelineUtil.PipelinePhases.BUILD
                 }
             }
         }
         if (!stageToStartMRO) {
-          stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
+            stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)
 

@@ -138,8 +138,7 @@ class NexusService {
     }
 
     boolean groupExists(String nexusRepository, String groupName) {
-        //'http://nexus3-cd.testapps.am.boehringer.com/service/rest/v1/search?repository=leva-documentation&group=/odsst-WIP
-        String urlToDownload = 
+        String urlToDownload =
             "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
         def response = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)
