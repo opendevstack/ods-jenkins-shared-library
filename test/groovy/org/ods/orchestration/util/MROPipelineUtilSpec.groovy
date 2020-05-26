@@ -1,14 +1,10 @@
 package org.ods.orchestration.util
 
-import java.nio.file.Files
+
 import java.nio.file.Paths
 
-import org.ods.orchestration.parser.JUnitParser
 import org.ods.util.IPipelineSteps
-import org.ods.orchestration.util.Project
 import org.ods.services.GitService
-
-import spock.lang.*
 
 import static util.FixtureHelper.*
 
@@ -16,22 +12,22 @@ import util.*
 
 class MROPipelineUtilSpec extends SpecHelper {
 
-    Project project
+    Context context
     IPipelineSteps steps
     MROPipelineUtil util
 
     def setup() {
-        project = createProject()
+        context = createContext()
         steps = Spy(util.PipelineSteps)
         def git = Mock(GitService)
-        util = new MROPipelineUtil(project, steps, git)
+        util = new MROPipelineUtil(context, steps, git)
     }
 
     def "load a repo's pipeline config"() {
         given:
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
-        def repos = createProject().repositories
+        def repos = createContext().repositories
 
         def componentMetadataFile = Paths.get(repoPath, MROPipelineUtil.COMPONENT_METADATA_FILE_NAME)
         def pipelineConfigFile = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
@@ -95,7 +91,7 @@ class MROPipelineUtilSpec extends SpecHelper {
 
     def "load a repo's pipeline config with invalid path"() {
         given:
-        def repos = createProject().repositories
+        def repos = createContext().repositories
 
         when:
         util.loadPipelineConfig(null, repos[0])
@@ -124,7 +120,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         given:
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
-        def repos = createProject().repositories
+        def repos = createContext().repositories
 
         def componentMetadataFile = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.COMPONENT_METADATA_FILE_NAME)
         def pipelineConfigFile = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
@@ -232,7 +228,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         given:
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
-        def repos = createProject().repositories
+        def repos = createContext().repositories
 
         def componentMetadataFile = Paths.get(repoPath, MROPipelineUtil.COMPONENT_METADATA_FILE_NAME)
         def pipelineConfigFile = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
@@ -290,7 +286,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         given:
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
-        def repos = createProject().repositories
+        def repos = createContext().repositories
 
         def pipelineConfigFile = Paths.get(repoPath, MROPipelineUtil.PipelineConfig.FILE_NAMES.first())
         def componentMetadataFile = Paths.get(repoPath, MROPipelineUtil.COMPONENT_METADATA_FILE_NAME)
@@ -348,7 +344,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         given:
         def repoPath = Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "A").toString()
         def repoDir = util.createDirectory(repoPath)
-        def repos = createProject().repositories
+        def repos = createContext().repositories
 
         when:
         util.loadPipelineConfig(repoPath, repos[0])
@@ -364,7 +360,7 @@ class MROPipelineUtilSpec extends SpecHelper {
     def "load multiple repos' pipeline configs"() {
         given:
 
-        def repos = project.repositories
+        def repos = context.repositories
         def repoDirs = []
         def componentMetadataFileMap = [:]
         def pipelineConfigFileMap = [:]
@@ -514,7 +510,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         def repoDirB = util.createDirectory(Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "B").toString())
         def repoDirC = util.createDirectory(Paths.get(steps.env.WORKSPACE, MROPipelineUtil.REPOS_BASE_DIR, "C").toString())
 
-        def repos = createProject().repositories
+        def repos = createContext().repositories
         def visitor = Mock(Closure)
 
         when:
@@ -547,7 +543,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         util.warnBuildIfTestResultsContainFailure(testResults)
 
         then:
-        project.hasFailingTests() == true
+        context.hasFailingTests() == true
 
         then:
         steps.currentBuild.result == "UNSTABLE"
@@ -567,7 +563,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         util.warnBuildAboutUnexecutedJiraTests(unexecutedJiraTests)
 
         then:
-        project.hasUnexecutedJiraTests() == true
+        context.hasUnexecutedJiraTests() == true
 
         then:
         steps.currentBuild.result == "UNSTABLE"

@@ -3,7 +3,6 @@ package org.ods.orchestration
 import org.ods.services.ServiceRegistry
 import org.ods.services.JenkinsService
 import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.PipelineSteps
@@ -12,8 +11,8 @@ class TestStage extends Stage {
 
     public final String STAGE_NAME = 'Test'
 
-    TestStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    TestStage(def script, Context context, List<Set<Map>> repos) {
+        super(script, context, repos)
     }
 
     @SuppressWarnings(['AbcMetric', 'ParameterName'])
@@ -58,17 +57,17 @@ class TestStage extends Stage {
                 ]
 
                 jira.reportTestResultsForProject(
-                    [Project.TestType.INSTALLATION],
+                    [Context.TestType.INSTALLATION],
                     data.tests.installation.testResults
                 )
 
                 jira.reportTestResultsForProject(
-                    [Project.TestType.INTEGRATION],
+                    [Context.TestType.INTEGRATION],
                     data.tests.integration.testResults
                 )
 
                 jira.reportTestResultsForProject(
-                    [Project.TestType.ACCEPTANCE],
+                    [Context.TestType.ACCEPTANCE],
                     data.tests.acceptance.testResults
                 )
 

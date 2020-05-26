@@ -3,12 +3,8 @@ package org.ods.orchestration.util
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import org.apache.pdfbox.pdmodel.PDDocument
 import org.ods.util.IPipelineSteps
-import org.ods.orchestration.util.Project
 import org.ods.services.GitService
-
-import spock.lang.*
 
 import static util.FixtureHelper.*
 
@@ -16,15 +12,15 @@ import util.*
 
 class PipelineUtilSpec extends SpecHelper {
 
-    Project project
+    Context context
     IPipelineSteps steps
     PipelineUtil util
 
     def setup() {
-        project = createProject()
+        context = createContext()
         steps = Spy(util.PipelineSteps)
         def git = Mock(GitService)
-        util = Spy(new PipelineUtil(project, steps, git))
+        util = Spy(new PipelineUtil(context, steps, git))
     }
 
     def "archive artifact"() {

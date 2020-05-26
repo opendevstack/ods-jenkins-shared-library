@@ -4,8 +4,7 @@ package org.ods.orchestration.usecase
 import org.ods.orchestration.service.JiraService
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.Project
-import spock.lang.Ignore
+import org.ods.orchestration.util.Context
 import util.SpecHelper
 
 import static util.FixtureHelper.*
@@ -13,13 +12,13 @@ import static util.FixtureHelper.*
 class JiraUseCaseSpec extends SpecHelper {
 
     JiraService jira
-    Project project
+    Context context
     IPipelineSteps steps
     JiraUseCase usecase
     MROPipelineUtil util
 
     def setup() {
-        project = Spy(createProject())
+        context = Spy(createContext())
         steps = Spy(util.PipelineSteps)
         util = Mock(MROPipelineUtil)
         jira = Mock(JiraService) {
@@ -32,7 +31,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 ]
             }
         }
-        usecase = Spy(new JiraUseCase(project, steps, util, jira))
+        usecase = Spy(new JiraUseCase(context, steps, util, jira))
     }
 
     def "apply test results as test issue labels"() {
@@ -132,7 +131,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.createBugsForFailedTestIssues(testIssues, failures, comment)
 
         then:
-        1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text) >> bug
+        1 * jira.createIssueTypeBug(context.jiraProjectKey, failures.first().type, failures.first().text) >> bug
 
         then:
         1 * jira.createIssueLinkTypeBlocks(bug, {
@@ -145,8 +144,8 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         // verify that bug gets created and registered on the correct test issue
-        project.data.jira.bugs.containsKey("BUG-1")
-        project.data.jiraResolved.bugs.containsKey("BUG-1")
+        context.data.jira.bugs.containsKey("BUG-1")
+        context.data.jiraResolved.bugs.containsKey("BUG-1")
         testIssues.find { it.key == "NET-140" }.bugs.contains("BUG-1")
     }
 
@@ -157,7 +156,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         // Argument Constraints
         def jqlQuery = [
-            jql   : "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = Doc:${documentType}",
+            jql   : "project = ${context.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = Doc:${documentType}",
             expand: ["names", "renderedFields"]
         ]
 
@@ -260,7 +259,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "report test results for component in DEV"() {
         given:
-        project.buildParams.targetEnvironmentToken = "D"
+        context.buildParams.targetEnvironmentToken = "D"
 
         def support = Mock(JiraUseCaseSupport)
         usecase.setSupport(support)
@@ -277,7 +276,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
+        1 * context.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
         1 * support.applyXunitTestResults(testIssues, testResults)
@@ -302,7 +301,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
+        1 * context.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
         1 * util.warnBuildAboutUnexecutedJiraTests(testIssues)
@@ -310,7 +309,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "report test results for component in QA"() {
         given:
-        project.buildParams.targetEnvironmentToken = "Q"
+        context.buildParams.targetEnvironmentToken = "Q"
 
         def support = Mock(JiraUseCaseSupport)
         usecase.setSupport(support)
@@ -331,7 +330,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
+        1 * context.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
         1 * support.applyXunitTestResults(testIssues, testResults)
@@ -344,7 +343,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "report test results for component in PROD"() {
         given:
-        project.buildParams.targetEnvironmentToken = "Q"
+        context.buildParams.targetEnvironmentToken = "Q"
 
         def support = Mock(JiraUseCaseSupport)
         usecase.setSupport(support)
@@ -365,7 +364,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.reportTestResultsForComponent(componentName, testTypes, testResults)
 
         then:
-        1 * project.getAutomatedTests(componentName, testTypes) >> testIssues
+        1 * context.getAutomatedTests(componentName, testTypes) >> testIssues
 
         then:
         1 * support.applyXunitTestResults(testIssues, testResults)
@@ -378,15 +377,15 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "update Jira release status build number"() {
         given:
-        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
-        project.buildParams.version = "1.0"
+        context.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        context.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
 
         when:
         usecase.updateJiraReleaseStatusBuildNumber()
 
         then:
-        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
+        1 * context.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
             "Release Build": [
                 id: "customfield_2"
             ]
@@ -400,8 +399,8 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "update Jira release status result"() {
         given:
-        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
-        project.buildParams.version = "1.0"
+        context.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        context.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
         steps.env.RUN_DISPLAY_URL = "http://jenkins"
 
@@ -411,7 +410,7 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.updateJiraReleaseStatusResult(error.message, true)
 
         then:
-        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
+        1 * context.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [
             "Release Manager Status": [
                 id: "customfield_1"
             ]
@@ -428,15 +427,15 @@ class JiraUseCaseSpec extends SpecHelper {
 
     def "update Jira release status result without error"() {
         given:
-        project.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
-        project.buildParams.version = "1.0"
+        context.buildParams.releaseStatusJiraIssueKey = "JIRA-4711"
+        context.buildParams.version = "1.0"
         steps.env.BUILD_NUMBER = "0815"
 
         when:
         usecase.updateJiraReleaseStatusResult("", false)
 
         then:
-        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> {
+        1 * context.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> {
             return [
                 "Release Manager Status": [
                     id: "customfield_1"

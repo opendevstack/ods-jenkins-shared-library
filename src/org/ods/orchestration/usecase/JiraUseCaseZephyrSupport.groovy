@@ -3,7 +3,7 @@ package org.ods.orchestration.usecase
 import org.ods.orchestration.service.JiraZephyrService
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof'])
 class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
@@ -11,8 +11,8 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
     private JiraZephyrService zephyr
     private MROPipelineUtil util
 
-    JiraUseCaseZephyrSupport(Project project, IPipelineSteps steps, JiraUseCase usecase, JiraZephyrService zephyr, MROPipelineUtil util) {
-        super(project, steps, usecase)
+    JiraUseCaseZephyrSupport(Context context, IPipelineSteps steps, JiraUseCase usecase, JiraZephyrService zephyr, MROPipelineUtil util) {
+        super(context, steps, usecase)
         this.zephyr = zephyr
         this.util = util
     }
@@ -23,10 +23,10 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
 
         def testCycleId = "-1"
         if (!testIssues?.isEmpty()) {
-            def buildParams = this.project.buildParams
+            def buildParams = this.context.buildParams
 
-            def versionId = this.project.version?.id ?: "-1"
-            def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
+            def versionId = this.context.version?.id ?: "-1"
+            def testCycles = this.zephyr.getTestCycles(this.context.id, versionId)
 
             // Zephyr test cycle properties
             def name = buildParams.targetEnvironmentToken + ": Build " + this.steps.env.BUILD_ID
@@ -35,13 +35,13 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
 
             testCycleId = testCycles.find { it.value instanceof Map && it.value.name == name && it.value.build == build && it.value.environment == environment }?.key
             if (!testCycleId) {
-                testCycleId = this.zephyr.createTestCycle(this.project.id, versionId, name, build, environment).id
+                testCycleId = this.zephyr.createTestCycle(this.context.id, versionId, name, build, environment).id
             }
         }
 
         testIssues.each { testIssue ->
             // Create a new execution with status UNEXECUTED
-            def testExecutionId = this.zephyr.createTestExecutionForIssue(testIssue.id, this.project.id, testCycleId).keySet().first()
+            def testExecutionId = this.zephyr.createTestExecutionForIssue(testIssue.id, this.context.id, testCycleId).keySet().first()
 
             testResults.testsuites.each { testSuite ->
                 testSuite.testcases.each { testCase ->

@@ -4,8 +4,6 @@ import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.services.BitbucketService
 import org.ods.util.PipelineSteps
@@ -14,8 +12,8 @@ class FinalizeStage extends Stage {
 
     public final String STAGE_NAME = 'Finalize'
 
-    FinalizeStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    FinalizeStage(def script, Context context, List<Set<Map>> repos) {
+        super(script, context, repos)
     }
 
     @SuppressWarnings(['ParameterName', 'AbcMetric'])
@@ -36,9 +34,9 @@ class FinalizeStage extends Stage {
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
         }
 
-        if (project.isAssembleMode) {
+        if (context.isAssembleMode) {
             // Check if the target environment exists in OpenShift
-            def targetProject = project.targetProject
+            def targetProject = context.targetProject
             if (!os.envExists()) {
                 throw new RuntimeException(
                     "Error: target environment '${targetProject}' does not exist in OpenShift."
@@ -46,8 +44,8 @@ class FinalizeStage extends Stage {
             }
         }
 
-        def agentCondition = project.isAssembleMode && repos.size() > 0
-        runOnAgentPod(project, agentCondition) {
+        def agentCondition = context.isAssembleMode && repos.size() > 0
+        runOnAgentPod(context, agentCondition) {
             // Execute phase for each repository
             util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
                 .each { group ->
@@ -56,51 +54,51 @@ class FinalizeStage extends Stage {
                 }
 
             // record release manager repo state
-            if (project.isAssembleMode && !project.isWorkInProgress) {
-                util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
+            if (context.isAssembleMode && !context.isWorkInProgress) {
+                util.tagAndPushBranch(context.gitReleaseBranch, context.targetTag)
                 // add the tag commit that was created for traceability ..
                 GitService gitUtl = ServiceRegistry.instance.get(GitService)
-                project.gitData.createdExecutionCommit = gitUtl.commitSha
+                context.gitData.createdExecutionCommit = gitUtl.commitSha
             }
         }
 
-        if (project.isAssembleMode && !project.isWorkInProgress) {
-            steps.echo("!!! CAUTION: Any future changes that should affect version '${project.buildParams.version}' " +
-                "need to be committed into branch '${project.gitReleaseBranch}'.")
+        if (context.isAssembleMode && !context.isWorkInProgress) {
+            steps.echo("!!! CAUTION: Any future changes that should affect version '${context.buildParams.version}' " +
+                "need to be committed into branch '${context.gitReleaseBranch}'.")
         }
 
         // Dump a representation of the project
-        steps.echo(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
+        steps.echo(" ---- ODS Project (${context.key}) data ----\r${context.toString()}\r -----")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         // Fail the build in case of failing tests.
-        if (project.hasFailingTests() || project.hasUnexecutedJiraTests()) {
+        if (context.hasFailingTests() || context.hasUnexecutedJiraTests()) {
             def message = 'Error: '
 
-            if (project.hasFailingTests()) {
+            if (context.hasFailingTests()) {
                 message += 'found failing tests'
             }
 
-            if (project.hasFailingTests() && project.hasUnexecutedJiraTests()) {
+            if (context.hasFailingTests() && context.hasUnexecutedJiraTests()) {
                 message += ' and '
             }
 
-            if (project.hasUnexecutedJiraTests()) {
+            if (context.hasUnexecutedJiraTests()) {
                 message += 'found unexecuted Jira tests'
             }
 
             message += "."
 
-            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                "FAILURE", "Release Manager for commit: ${project.gitData.commit}")
+            bitbucket.setBuildStatus (steps.env.BUILD_URL, context.gitData.commit,
+                "FAILURE", "Release Manager for commit: ${context.gitData.commit}")
 
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
-            project.reportPipelineStatus()
-            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
+            context.reportPipelineStatus()
+            bitbucket.setBuildStatus (steps.env.BUILD_URL, context.gitData.commit,
+                "SUCCESSFUL", "Release Manager for commit: ${context.gitData.commit}")
         }
     }
 

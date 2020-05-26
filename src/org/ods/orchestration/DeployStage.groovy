@@ -4,8 +4,6 @@ import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.PipelineSteps
 
@@ -13,8 +11,8 @@ class DeployStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy'
 
-    DeployStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    DeployStage(def script, Context context, List<Set<Map>> repos) {
+        super(script, context, repos)
     }
 
     @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
@@ -28,7 +26,7 @@ class DeployStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 
         def standardWorkspace = script.env.WORKSPACE
-        def agentPodCondition = project.isPromotionMode
+        def agentPodCondition = context.isPromotionMode
 
         def preExecuteRepo = { steps_, repo ->
             // In case we run the phase on an agent node, we need to make sure that
@@ -70,23 +68,23 @@ class DeployStage extends Stage {
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
-        runOnAgentPod(project, agentPodCondition) {
-            if (project.isPromotionMode) {
-                def targetEnvironment = project.buildParams.targetEnvironment
-                def targetProject = project.targetProject
-                steps.echo("Deploying project '${project.key}' into environment '${targetEnvironment}'")
+        runOnAgentPod(context, agentPodCondition) {
+            if (context.isPromotionMode) {
+                def targetEnvironment = context.buildParams.targetEnvironment
+                def targetProject = context.targetProject
+                steps.echo("Deploying project '${context.key}' into environment '${targetEnvironment}'")
 
-                if (project.targetClusterIsExternal) {
+                if (context.targetClusterIsExternal) {
                     script.withCredentials([
                         script.usernamePassword(
-                            credentialsId: project.environmentConfig.credentialsId,
+                            credentialsId: context.environmentConfig.credentialsId,
                             usernameVariable: 'EXTERNAL_OCP_API_SA',
                             passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
                         )
                     ]) {
                         OpenShiftService.loginToExternalCluster(
                             steps,
-                            project.openShiftTargetApiUrl,
+                            context.openShiftTargetApiUrl,
                             script.EXTERNAL_OCP_API_TOKEN
                         )
                     }
@@ -96,7 +94,7 @@ class DeployStage extends Stage {
                 if (!os.envExists()) {
                     throw new RuntimeException(
                         "Error: target environment '${targetProject}' does not exist " +
-                        "in ${project.openShiftTargetApiUrl}."
+                        "in ${context.openShiftTargetApiUrl}."
                     )
                 }
             }
@@ -109,11 +107,11 @@ class DeployStage extends Stage {
                 }
 
             // record release manager repo state
-            if (project.isPromotionMode) {
-                if (git.remoteTagExists(project.targetTag)) {
+            if (context.isPromotionMode) {
+                if (git.remoteTagExists(context.targetTag)) {
                     steps.echo("Skipping tag because it already exists.")
                 } else {
-                    util.tagAndPush(project.targetTag)
+                    util.tagAndPush(context.targetTag)
                 }
             }
         }

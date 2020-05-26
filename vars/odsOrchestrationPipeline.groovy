@@ -7,7 +7,7 @@ import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage
@@ -21,7 +21,7 @@ def call(Map config) {
         .socketTimeout(1200000)
         .connectTimeout(120000)
 
-    Project project
+    Context context
     def repos = []
 
     def debug = config.get('debug', false)
@@ -60,30 +60,30 @@ def call(Map config) {
         ])
 
         def steps = new PipelineSteps(this)
-        def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
+        def envs = Context.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
         def stageStartTime = System.currentTimeMillis()
 
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
             withEnv (envs) {
-                def result = new InitStage(this, project, repos).execute()
+                def result = new InitStage(this, context, repos).execute()
                 if (result) {
-                    project = result.project
+                    context = result.project
                     repos = result.repos
                 } else {
-                    echo 'Skip pipeline as no project/repos computed'
+                    echo 'Skip pipeline as no context/repos computed'
                     return
                 }
 
-                new BuildStage(this, project, repos).execute()
+                new BuildStage(this, context, repos).execute()
 
-                new DeployStage(this, project, repos).execute()
+                new DeployStage(this, context, repos).execute()
 
-                new TestStage(this, project, repos).execute()
+                new TestStage(this, context, repos).execute()
 
-                new ReleaseStage(this, project, repos).execute()
+                new ReleaseStage(this, context, repos).execute()
 
-                new FinalizeStage(this, project, repos).execute()
+                new FinalizeStage(this, context, repos).execute()
             }
         }
     }

@@ -4,8 +4,6 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 
-import spock.lang.*
-
 import static util.FixtureHelper.*
 
 import util.*
@@ -20,17 +18,17 @@ class JiraUseCaseSupportSpec extends SpecHelper {
         return new JiraUseCaseSupport(steps, usecase)
     }
 
-    Project project
+    Context context
     IPipelineSteps steps
     JiraUseCase usecase
     JiraUseCaseSupport support
 
     def setup() {
-        project = createProject()
+        context = createContext()
         steps = Spy(util.PipelineSteps)
         usecase = Mock(JiraUseCase)
 
-        support = new JiraUseCaseSupport(project, steps, usecase)
+        support = new JiraUseCaseSupport(context, steps, usecase)
         usecase.setSupport(support)
     }
 

@@ -7,8 +7,6 @@ import org.ods.services.OpenShiftService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
-import org.ods.util.IPipelineSteps
-
 import spock.lang.*
 
 import static util.FixtureHelper.*
@@ -29,34 +27,34 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     static def REPO_ODS_TEST
 
     def setupSpec() {
-        def project = createProject()
+        def context = createContext()
 
-        REPO_ODS_CODE = project.repositories[0]
+        REPO_ODS_CODE = context.repositories[0]
         REPO_ODS_CODE.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE
 
-        REPO_ODS_SERVICE = project.repositories[1]
+        REPO_ODS_SERVICE = context.repositories[1]
         REPO_ODS_SERVICE.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE
 
-        REPO_ODS_TEST = project.repositories[2]
+        REPO_ODS_TEST = context.repositories[2]
         REPO_ODS_TEST.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
 
-        PROJECT_GAMP_1 = createProject()
+        PROJECT_GAMP_1 = createContext()
         PROJECT_GAMP_1.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "1"]]]
 
-        PROJECT_GAMP_3 = createProject()
+        PROJECT_GAMP_3 = createContext()
         PROJECT_GAMP_3.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "3"]]]
 
-        PROJECT_GAMP_4 = createProject()
+        PROJECT_GAMP_4 = createContext()
         PROJECT_GAMP_4.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "4"]]]
 
-        PROJECT_GAMP_5 = createProject()
+        PROJECT_GAMP_5 = createContext()
         PROJECT_GAMP_5.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
 
-        PROJECT_GAMP_5_WITHOUT_JIRA = createProject()
+        PROJECT_GAMP_5_WITHOUT_JIRA = createContext()
         PROJECT_GAMP_5_WITHOUT_JIRA.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
         PROJECT_GAMP_5_WITHOUT_JIRA.services.jira = null
 
-        PROJECT_GAMP_5_WITHOUT_REPOS = createProject()
+        PROJECT_GAMP_5_WITHOUT_REPOS = createContext()
         PROJECT_GAMP_5_WITHOUT_REPOS.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "5"]]]
         PROJECT_GAMP_5_WITHOUT_REPOS.repositories = []
     }
@@ -64,12 +62,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     @Unroll
     def "is document applicable for GAMP category 1"() {
         given:
-        def project = PROJECT_GAMP_1
+        def context = PROJECT_GAMP_1
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -1466,12 +1464,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     @Unroll
     def "is document applicable for GAMP category 3"() {
         given:
-        def project = PROJECT_GAMP_3
+        def context = PROJECT_GAMP_3
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -2868,12 +2866,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     @Unroll
     def "is document applicable for GAMP category 4"() {
         given:
-        def project = PROJECT_GAMP_4
+        def context = PROJECT_GAMP_4
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -4270,12 +4268,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     @Unroll
     def "is document applicable for GAMP category 5"() {
         given:
-        def project = PROJECT_GAMP_5
+        def context = PROJECT_GAMP_5
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -5671,43 +5669,43 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "is document applicable with invalid GAMP category"() {
         given:
-        def project = createProject()
-        project.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "0" ]]]
+        def context = createContext()
+        context.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "0" ]]]
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def documentType = "myDocumentType"
         def phase = "myPhase"
         def stage = MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
 
         when:
         scheduler.isDocumentApplicable(documentType, phase, stage)
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to assert applicability of document type '${documentType}' for project '${project.key}' in phase '${phase}'. The GAMP category '0' is not supported."
+        e.message == "Error: unable to assert applicability of document type '${documentType}' for project '${context.key}' in phase '${phase}'. The GAMP category '0' is not supported."
 
         when:
         scheduler.isDocumentApplicable(documentType, phase, stage, repo)
 
         then:
         e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to assert applicability of document type '${documentType}' for project '${project.key}' and repo '${repo.id}' in phase '${phase}'. The GAMP category '0' is not supported."
+        e.message == "Error: unable to assert applicability of document type '${documentType}' for project '${context.key}' and repo '${repo.id}' in phase '${phase}'. The GAMP category '0' is not supported."
     }
 
     def "is document applicable in the absence of Jira"() {
         given:
-        def project = PROJECT_GAMP_5_WITHOUT_JIRA
+        def context = PROJECT_GAMP_5_WITHOUT_JIRA
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -5719,12 +5717,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "is document applicable in the absence of repositories"() {
         given:
-        def project = PROJECT_GAMP_5_WITHOUT_REPOS
+        def context = PROJECT_GAMP_5_WITHOUT_REPOS
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -5739,10 +5737,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 1 in DEV with Developer Preview Mode"() {
         given:
-        def project = PROJECT_GAMP_1
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "WIP"
+        def context = PROJECT_GAMP_1
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -5756,14 +5754,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -5774,7 +5772,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -5838,10 +5836,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 1 in DEV"() {
         given:
-        def project = PROJECT_GAMP_1
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "v1.0"
+        def context = PROJECT_GAMP_1
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -5855,14 +5853,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -5873,7 +5871,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -5933,10 +5931,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 3 in DEV with Developer Preview Mode"() {
         given:
-        def project = PROJECT_GAMP_3
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "WIP"
+        def context = PROJECT_GAMP_3
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -5950,14 +5948,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -5968,7 +5966,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6005,10 +6003,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 3 in DEV"() {
         given:
-        def project = PROJECT_GAMP_3
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "v1.0"
+        def context = PROJECT_GAMP_3
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6022,14 +6020,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6040,7 +6038,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6072,10 +6070,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 4 in DEV"() {
         given:
-        def project = PROJECT_GAMP_4
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "v1.0"
+        def context = PROJECT_GAMP_4
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6090,14 +6088,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6114,7 +6112,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6146,10 +6144,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 4 in DEV with Developer Preview Mode"() {
         given:
-        def project = PROJECT_GAMP_4
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "WIP"
+        def context = PROJECT_GAMP_4
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6163,14 +6161,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6187,7 +6185,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6224,10 +6222,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 5 in DEV"() {
         given:
-        def project = PROJECT_GAMP_5
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "v1.0"
+        def context = PROJECT_GAMP_5
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6241,14 +6239,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6259,7 +6257,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6360,10 +6358,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 5 in DEV with Developer Preview Mode"() {
         given:
-        def project = PROJECT_GAMP_5
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
-        project.buildParams.version = "WIP"
+        def context = PROJECT_GAMP_5
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
+        context.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6377,14 +6375,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6395,7 +6393,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6493,9 +6491,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 1 in QA"() {
         given:
-        def project = PROJECT_GAMP_1
-        project.buildParams.targetEnvironment = "qa"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_1
+        context.buildParams.targetEnvironment = "qa"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6509,14 +6507,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6527,7 +6525,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6571,9 +6569,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 3 in QA"() {
         given:
-        def project = PROJECT_GAMP_3
-        project.buildParams.targetEnvironment = "qa"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_3
+        context.buildParams.targetEnvironment = "qa"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6587,14 +6585,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6605,7 +6603,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6630,9 +6628,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 4 in QA"() {
         given:
-        def project = PROJECT_GAMP_4
-        project.buildParams.targetEnvironment = "qa"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_4
+        context.buildParams.targetEnvironment = "qa"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6646,14 +6644,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6664,7 +6662,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6689,9 +6687,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 5 in QA"() {
         given:
-        def project = PROJECT_GAMP_5
-        project.buildParams.targetEnvironment = "qa"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_5
+        context.buildParams.targetEnvironment = "qa"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6705,14 +6703,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6723,7 +6721,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6768,9 +6766,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 1 in PROD"() {
         given:
-        def project = PROJECT_GAMP_1
-        project.buildParams.targetEnvironment = "prod"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_1
+        context.buildParams.targetEnvironment = "prod"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6784,14 +6782,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6802,7 +6800,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6832,9 +6830,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 3 in PROD"() {
         given:
-        def project = PROJECT_GAMP_3
-        project.buildParams.targetEnvironment = "prod"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_3
+        context.buildParams.targetEnvironment = "prod"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6848,14 +6846,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6866,7 +6864,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6880,9 +6878,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 4 in PROD"() {
         given:
-        def project = PROJECT_GAMP_4
-        project.buildParams.targetEnvironment = "prod"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_4
+        context.buildParams.targetEnvironment = "prod"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6896,14 +6894,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6914,7 +6912,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6930,9 +6928,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run for GAMP category 5 in PROD"() {
         given:
-        def project = PROJECT_GAMP_5
-        project.buildParams.targetEnvironment = "prod"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_5
+        context.buildParams.targetEnvironment = "prod"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -6946,14 +6944,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6964,7 +6962,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6994,8 +6992,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "in Developer Preview Mode all documents types are applicable"() {
         given:
-        def project = createProject()
-        project.buildParams.version = "WIP"
+        def context = createContext()
+        context.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
@@ -7009,7 +7007,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7020,7 +7018,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         def result = []
         def expected = []
@@ -7038,7 +7036,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "in QA environment only specific types are applicable"() {
         given:
-        def project = createProject()
+        def context = createContext()
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
@@ -7052,7 +7050,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7063,7 +7061,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def qTypes = [
@@ -7091,7 +7089,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "in PROD environment only specific types are applicable"() {
         given:
-        def project = createProject()
+        def context = createContext()
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
@@ -7105,7 +7103,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7116,7 +7114,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def pTypes = [
@@ -7140,9 +7138,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     def "run with a failure stops the pipeline"() {
         given:
-        def project = PROJECT_GAMP_1
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
+        def context = PROJECT_GAMP_1
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = context.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
         def docGen = Mock(DocGenService)
@@ -7156,14 +7154,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(context, steps, git)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7180,7 +7178,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(context, steps, util, usecase))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -7190,6 +7188,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Error: Creating document of type 'CSD' for project '${project.key}' in phase '${MROPipelineUtil.PipelinePhases.INIT}' and stage '${MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END}' has failed: some error."
+        e.message == "Error: Creating document of type 'CSD' for project '${context.key}' in phase '${MROPipelineUtil.PipelinePhases.INIT}' and stage '${MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END}' has failed: some error."
     }
 }

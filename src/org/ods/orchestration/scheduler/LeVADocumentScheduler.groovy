@@ -3,7 +3,7 @@ package org.ods.orchestration.scheduler
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 
 @SuppressWarnings(['LineLength', 'SpaceAroundMapEntryColon'])
 class LeVADocumentScheduler extends DocGenScheduler {
@@ -171,7 +171,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ]
     ]
 
-    LeVADocumentScheduler(Project project, IPipelineSteps steps, MROPipelineUtil util, LeVADocumentUseCase usecase) {
+    LeVADocumentScheduler(Context project, IPipelineSteps steps, MROPipelineUtil util, LeVADocumentUseCase usecase) {
         super(project, steps, util, usecase)
     }
 
@@ -198,17 +198,17 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     private boolean isDocumentApplicableForProject(String documentType, String gampCategory, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage) {
         if (!this.GAMP_CATEGORIES.keySet().contains(gampCategory)) {
-            throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
+            throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.context.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
         }
 
         def result = isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
         if (isDocumentRequiringRepositories(documentType)) {
-            result = result && !this.project.repositories.isEmpty()
+            result = result && !this.context.repositories.isEmpty()
         }
 
         // Applicable for certain document types only if the Jira service is configured in the release manager configuration
         if ([LeVADocumentUseCase.DocumentType.CSD, LeVADocumentUseCase.DocumentType.SSDS, LeVADocumentUseCase.DocumentType.CFTP, LeVADocumentUseCase.DocumentType.CFTR,LeVADocumentUseCase.DocumentType.IVP,LeVADocumentUseCase.DocumentType.IVR,LeVADocumentUseCase.DocumentType.DIL, LeVADocumentUseCase.DocumentType.TCP, LeVADocumentUseCase.DocumentType.TCR, LeVADocumentUseCase.DocumentType.RA, LeVADocumentUseCase.DocumentType.TRC].contains(documentType as LeVADocumentUseCase.DocumentType)) {
-            result = result && this.project.services?.jira != null
+            result = result && this.context.services?.jira != null
         }
 
         return result
@@ -216,7 +216,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     private boolean isDocumentApplicableForRepo(String documentType, String gampCategory, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo) {
         if (!this.GAMP_CATEGORIES.keySet().contains(gampCategory)) {
-            throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' and repo '${repo.id}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
+            throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.context.key}' and repo '${repo.id}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
         }
 
         return isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isDocumentApplicableForRepoTypeAndPhase(documentType, phase, repo)
@@ -253,7 +253,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
     }
 
     protected boolean isDocumentApplicable(String documentType, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null) {
-        def capability = this.project.getCapability('LeVADocs')
+        def capability = this.context.getCapability('LeVADocs')
         if (!capability) {
             return false
         }
@@ -266,7 +266,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     protected boolean isDocumentApplicableForEnvironment(String documentType, String environment) {
         // in developer preview mode always create
-        if (project.isDeveloperPreviewMode()) {
+        if (context.isDeveloperPreviewMode()) {
             return true
         }
 
@@ -275,14 +275,14 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
         def documents = this.usecase.getSupportedDocuments()
-        def environment = this.project.buildParams.targetEnvironmentToken
+        def environment = this.context.buildParams.targetEnvironmentToken
 
         documents.each { documentType ->
             if (this.isDocumentApplicableForEnvironment(documentType, environment)) {
                 def args = [repo, data]
 
                 if (this.isDocumentApplicable(documentType, phase, stage, repo)) {
-                    def message = "Creating document of type '${documentType}' for project '${this.project.key}'"
+                    def message = "Creating document of type '${documentType}' for project '${this.context.key}'"
                     if (repo) {
                         message += " and repo '${repo.id}'"
                     }

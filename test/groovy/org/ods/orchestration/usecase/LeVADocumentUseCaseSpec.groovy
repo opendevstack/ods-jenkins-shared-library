@@ -1,10 +1,7 @@
 package org.ods.orchestration.usecase
 
-import groovy.json.JsonOutput
 
 import java.nio.file.Files
-
-import static groovy.test.GroovyAssert.shouldFail
 
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
@@ -13,15 +10,13 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 
-import spock.lang.*
-
 import static util.FixtureHelper.*
 
 import util.*
 
 class LeVADocumentUseCaseSpec extends SpecHelper {
 
-    Project project
+    Context context
     IPipelineSteps steps
     MROPipelineUtil util
     DocGenService docGen
@@ -36,30 +31,30 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     LeVADocumentUseCase usecase
 
     def setup() {
-        project = Spy(createProject())
-        project.buildParams.targetEnvironment = "dev"
-        project.buildParams.targetEnvironmentToken = "D"
-        project.buildParams.version = "WIP"
+        context = Spy(createContext())
+        context.buildParams.targetEnvironment = "dev"
+        context.buildParams.targetEnvironmentToken = "D"
+        context.buildParams.version = "WIP"
 
         steps = Spy(util.PipelineSteps)
         util = Mock(MROPipelineUtil)
         docGen = Mock(DocGenService)
         jenkins = Mock(JenkinsService)
         jiraUseCase = Mock(JiraUseCase)
-        junit = Spy(new JUnitTestReportsUseCase(project, steps))
+        junit = Spy(new JUnitTestReportsUseCase(context, steps))
         levaFiles = Mock(LeVADocumentChaptersFileService)
         nexus = Mock(NexusService)
         os = Mock(OpenShiftService)
         pdf = Mock(PDFUtil)
         sq = Mock(SonarQubeUseCase)
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
-        project.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        context.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
     }
 
     def "compute test discrepancies"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def name = "myTests"
 
@@ -332,7 +327,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "get correct templates for GAMP category sensitive documents"() {
         given:
-        project.getCapability("LeVADocs").GAMPCategory = "999"
+        context.getCapability("LeVADocs").GAMPCategory = "999"
 
         expect:
         usecase.getDocumentTemplateName(documentType) == template
@@ -348,8 +343,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create CSD"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CSD as String
@@ -376,7 +371,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getSystemRequirements() >> requirements
+        1 * context.getSystemRequirements() >> requirements
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
@@ -384,15 +379,15 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TRC"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(context, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 acceptance : [
@@ -429,7 +424,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getSystemRequirements()
+        1 * context.getSystemRequirements()
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -438,8 +433,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create DIL"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DIL as String
@@ -455,7 +450,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getBugs()
+        1 * context.getBugs()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
@@ -463,11 +458,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create DTP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
@@ -489,7 +484,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getAutomatedTestsTypeUnit()
+        1 * context.getAutomatedTestsTypeUnit()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
@@ -497,10 +492,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create DTP without Jira"() {
         given:
-        project.services.jira = null
+        context.services.jira = null
 
         // Test Parameters
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.DTP as String
@@ -522,7 +517,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getAutomatedTestsTypeUnit()
+        1 * context.getAutomatedTestsTypeUnit()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
@@ -534,12 +529,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createSockShopJUnitXmlTestResults()
 
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
         repo.id = "demo-app-carts"
 
-        def testIssues = project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
+        def testIssues = context.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(context, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 unit: [
@@ -569,7 +564,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
+        1 * context.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentTemplate, repo, _, files, _, documentType, watermarkText)
@@ -580,18 +575,18 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create DTR without Jira"() {
         given:
-        project.services.jira = null
+        context.services.jira = null
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
         repo.id = "demo-app-carts"
 
-        def testIssues = project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
+        def testIssues = context.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(context, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 unit: [
@@ -606,7 +601,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def files = ["raw/${xmlFile.name}": xmlFile.bytes]
 
         // Stubbed Method Responses
-        def buildParams = createProjectBuildEnvironment(env)
+        def buildParams = createContextBuildEnvironment(env)
         def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
@@ -622,7 +617,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
+        1 * context.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentTemplate, repo, _, files, _, documentType, watermarkText)
@@ -630,8 +625,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create CFTP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.CFTP as String
@@ -653,8 +648,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getAutomatedTestsTypeAcceptance()
-        1 * project.getAutomatedTestsTypeIntegration()
+        1 * context.getAutomatedTestsTypeAcceptance()
+        1 * context.getAutomatedTestsTypeIntegration()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
@@ -662,17 +657,17 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create CFTR"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createJUnitXMLTestResults()
 
-        def acceptanceTestIssues = project.getAutomatedTestsTypeAcceptance()
-        def integrationTestIssues = project.getAutomatedTestsTypeIntegration()
+        def acceptanceTestIssues = context.getAutomatedTestsTypeAcceptance()
+        def integrationTestIssues = context.getAutomatedTestsTypeIntegration()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(context, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 acceptance : [
@@ -706,8 +701,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * project.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
-        1 * project.getAutomatedTestsTypeIntegration() >> integrationTestIssues
+        1 * context.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
+        1 * context.getAutomatedTestsTypeIntegration() >> integrationTestIssues
         1 * usecase.computeTestDiscrepancies("Integration and Acceptance Tests", SortUtil.sortIssuesByProperties(acceptanceTestIssues + integrationTestIssues, ["key"]), junit.combineTestResults([data.tests.acceptance.testResults, data.tests.integration.testResults]))
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
@@ -720,8 +715,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TCP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TCP as String
@@ -742,8 +737,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * project.getAutomatedTestsTypeAcceptance()
-        1 * project.getAutomatedTestsTypeIntegration()
+        1 * context.getAutomatedTestsTypeAcceptance()
+        1 * context.getAutomatedTestsTypeIntegration()
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -752,17 +747,17 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TCR"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0'?>\n" + createSockShopJUnitXmlTestResults()
 
-        def integrationTestIssues = project.getAutomatedTestsTypeIntegration()
-        def acceptanceTestIssues = project.getAutomatedTestsTypeAcceptance()
+        def integrationTestIssues = context.getAutomatedTestsTypeIntegration()
+        def acceptanceTestIssues = context.getAutomatedTestsTypeAcceptance()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(context, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 integration: [
@@ -796,8 +791,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * project.getAutomatedTestsTypeIntegration() >> integrationTestIssues
-        1 * project.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
+        1 * context.getAutomatedTestsTypeIntegration() >> integrationTestIssues
+        1 * context.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], null, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
@@ -811,8 +806,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create IVP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.IVP as String
@@ -833,7 +828,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * project.getAutomatedTestsTypeInstallation()
+        1 * context.getAutomatedTestsTypeInstallation()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -842,17 +837,17 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create IVR"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
         def xmlFile = Files.createTempFile("junit", ".xml").toFile()
         xmlFile << "<?xml version='1.0' ?>\n" + createSockShopJUnitXmlTestResults()
 
-        def repo = project.repositories.first()
-        def testIssues = project.getAutomatedTestsTypeInstallation()
+        def repo = context.repositories.first()
+        def testIssues = context.getAutomatedTestsTypeInstallation()
         def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(project, steps).parseTestReportFiles(testReportFiles)
+        def testResults = new JUnitTestReportsUseCase(context, steps).parseTestReportFiles(testReportFiles)
         def data = [
             tests: [
                 installation: [
@@ -882,7 +877,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * project.getAutomatedTestsTypeInstallation() >> testIssues
+        1 * context.getAutomatedTestsTypeInstallation() >> testIssues
         1 * usecase.computeTestDiscrepancies("Installation Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
@@ -895,13 +890,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create SSDS"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         steps.env.BUILD_ID = "0815"
 
         // Test Parameters
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
@@ -945,7 +940,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.computeComponentMetadata(documentType) >> compMetadata
-        1 * project.getTechnicalSpecifications()
+        1 * context.getTechnicalSpecifications()
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
         sq.loadReportsFromPath(_) >> sqReportFiles
 
@@ -958,8 +953,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create RA"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.RA as String
@@ -980,7 +975,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        2 * project.getRisks()
+        2 * context.getRisks()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -989,8 +984,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TIP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
@@ -1019,7 +1014,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TIP without Jira"() {
         given:
-        project.services.jira = null
+        context.services.jira = null
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIP as String
@@ -1049,7 +1044,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "create TIR"() {
         given:
         // Test Parameters
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
         def data = [
             openshift: [
                 pod: [
@@ -1089,7 +1084,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TIR without Jira"() {
         given:
-        project.services.jira = null
+        context.services.jira = null
         def data = [
             openshift: [
                 pod: [
@@ -1105,7 +1100,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         // Test Parameters
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
 
         // Argument Constraints
         def documentType = LeVADocumentUseCase.DocumentType.TIR as String
@@ -1196,8 +1191,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "update Jira documentation tracking issue in DEV"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myType"
         def message = "myMessage"
@@ -1214,7 +1209,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        project.data.jira.docs << trackingIssues
+        context.data.jira.docs << trackingIssues
 
         when:
         usecase.updateJiraDocumentationTrackingIssue(documentType, message)
@@ -1225,8 +1220,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "update Jira documentation tracking issue when no issues found in project.data.docs"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myTypeNotFound"
         def message = "myMessage"
@@ -1241,8 +1236,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "update Jira documentation tracking issue with 2 chapters issue not DONE yet"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+        jiraUseCase = Spy(new JiraUseCase(context, steps, util, Mock(JiraService)))
+        usecase = Spy(new LeVADocumentUseCase(context, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myTypeNotDone"
         def message = "myMessage"
@@ -1274,14 +1269,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]
         ]
 
-        project.data.jira.docs << trackingIssues
+        context.data.jira.docs << trackingIssues
 
         when:
         def chapterIssuesNotDone = usecase.getSectionsNotDone(chapterData)
         usecase.updateJiraDocumentationTrackingIssue(documentType, message, chapterIssuesNotDone)
 
         then:
-        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        1 * context.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
 
         then:
         1 * jiraUseCase.jira.updateTextFieldsOnIssue("TRK-1", _)
@@ -1294,8 +1289,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "watermark 'work in progress' should be applied to some document type when there are 'work in progress' issues"() {
         given:
-        project.buildParams.version = "1.0"
-        project.buildParams.targetEnvironment = "dev"
+        context.buildParams.version = "1.0"
+        context.buildParams.targetEnvironment = "dev"
 
         when:
         def result = usecase.getWatermarkText("myDocumentType", true)
@@ -1306,8 +1301,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "watermark 'developer preview' should be applied to some document type when in developer preview mode"() {
         given:
-        project.buildParams.version = "WIP"
-        project.buildParams.targetEnvironment = "dev"
+        context.buildParams.version = "WIP"
+        context.buildParams.targetEnvironment = "dev"
 
         when:
         def result = usecase.getWatermarkText("myDocumentType", false)

@@ -7,7 +7,6 @@ import org.ods.services.GitService
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.ods.orchestration.parser.*
-import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
@@ -25,12 +24,12 @@ class FakeGitUtil extends GitService {
 }
 
 @InheritConstructors
-class FakeProject extends Project {
+class FakeContext extends Context {
 
     protected static String METADATA_FILE_NAME = new FixtureHelper().getResource("/project-metadata.yml").getAbsolutePath()
 
     @Override
-    Project init() {
+    Context init() {
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
 
@@ -47,7 +46,7 @@ class FakeProject extends Project {
     }
 
     @Override
-    Project load(GitService git, JiraUseCase jira) {
+    Context load(GitService git, JiraUseCase jira) {
         this.git = git
         this.jiraUseCase = jiraUseCase
 
@@ -72,7 +71,7 @@ class FakeProject extends Project {
 
     static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug) {
         def env = new EnvironmentVariables()
-        return FixtureHelper.createProjectBuildEnvironment(env)
+        return FixtureHelper.createContextBuildEnvironment(env)
     }
 
     protected URI getGitURLFromPath(String path, String remote) {
@@ -81,11 +80,11 @@ class FakeProject extends Project {
     }
 
     static Map loadBuildParams(IPipelineSteps steps) {
-        return FixtureHelper.createProjectBuildParams()
+        return FixtureHelper.createContextBuildParams()
     }
 
     protected Map loadJiraData(String projectKey) {
-        return FixtureHelper.createProjectJiraData()
+        return FixtureHelper.createContextJiraData()
     }
 
     protected Map loadJiraDataProjectVersion() {
@@ -96,7 +95,7 @@ class FakeProject extends Project {
     }
 
     protected Map loadJiraDataBugs(Map tests) {
-        def bugs = FixtureHelper.createProjectJiraDataBugs()
+        def bugs = FixtureHelper.createContextJiraDataBugs()
 
         // Add relations from tests to bug
         bugs.each { key, bug ->
@@ -113,11 +112,11 @@ class FakeProject extends Project {
     }
 
     protected Map loadJiraDataDocs() {
-        return FixtureHelper.createProjectJiraDataDocs()
+        return FixtureHelper.createContextJiraDataDocs()
     }
 
     protected Map loadJiraDataIssueTypes() {
-        return FixtureHelper.createProjectJiraDataIssueTypes()
+        return FixtureHelper.createContextJiraDataIssueTypes()
     }
 
     void setRepositories(List repos) {
@@ -126,17 +125,17 @@ class FakeProject extends Project {
 }
 
 class FixtureHelper {
-    static Project createProject() {
+    static Context createContext() {
         def steps = new PipelineSteps()
         steps.env.WORKSPACE = ""
 
-        return new FakeProject(steps)
+        return new FakeContext(steps)
             .init()
             .load(new FakeGitUtil(steps), null)
     }
 
-    static Map createProjectBuildEnvironment(def env) {
-        def params = createProjectBuildParams()
+    static Map createContextBuildEnvironment(def env) {
+        def params = createContextBuildParams()
         params.each { key, value ->
             env.set(key, value)
         }
@@ -144,7 +143,7 @@ class FixtureHelper {
         return params
     }
 
-    static Map createProjectBuildParams() {
+    static Map createContextBuildParams() {
         return [
             changeDescription            : "The change I've wanted.",
             changeId                     : "0815",
@@ -155,12 +154,12 @@ class FixtureHelper {
         ]
     }
 
-    static Map createProjectJiraData() {
+    static Map createContextJiraData() {
         def file = new FixtureHelper().getResource("project-jira-data.json")
         return new JsonSlurperClassic().parse(file)
     }
 
-    static Map createProjectJiraDataBugs() {
+    static Map createContextJiraDataBugs() {
         return [:]
         /*
         return [
@@ -176,7 +175,7 @@ class FixtureHelper {
         */
     }
 
-    static Map createProjectJiraDataDocs() {
+    static Map createContextJiraDataDocs() {
         return [
             "NET-1072": [
                 "key"        : "NET-1072",
@@ -487,7 +486,7 @@ class FixtureHelper {
         ]
     }
 
-    static Map createProjectJiraDataIssueTypes() {
+    static Map createContextJiraDataIssueTypes() {
         return [
             "Epic": [
                 id: "1",
@@ -566,7 +565,7 @@ class FixtureHelper {
         ]
     }
 
-    static Map createProjectMetadata() {
+    static Map createContextMetadata() {
         def file = new FixtureHelper().getResource("project-metadata.yml")
         return new Yaml().load(file.text)
     }

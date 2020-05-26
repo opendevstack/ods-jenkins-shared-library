@@ -1,7 +1,6 @@
 package org.ods.orchestration
 
 import org.ods.PipelineScript
-import org.ods.orchestration.TestStage
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
@@ -10,13 +9,13 @@ import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.PipelineSteps
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 import util.SpecHelper
 
-import static util.FixtureHelper.createProject
+import static util.FixtureHelper.createContext
 
 class TestStageSpec extends SpecHelper {
-    Project project
+    Context context
     TestStage testStage
     IPipelineSteps steps
     PipelineScript script
@@ -32,13 +31,13 @@ class TestStageSpec extends SpecHelper {
         script = new PipelineScript()
         steps = Mock(PipelineSteps)
         levaDocScheduler = Mock(LeVADocumentScheduler)
-        project = Spy(createProject())
+        context = Spy(createContext())
         util = Mock(MROPipelineUtil)
         jira = Mock(JiraUseCase)
         junit = Mock(JUnitTestReportsUseCase)
         jenkins = Mock(JenkinsService)
         createService()
-        testStage = Spy(new TestStage(script, project, project.repositories))
+        testStage = Spy(new TestStage(script, context, context.repositories))
     }
 
     ServiceRegistry createService() {
@@ -78,13 +77,13 @@ class TestStageSpec extends SpecHelper {
         testStage.run()
 
         then:
-        1 * util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.TEST, project.repositories, _, _) >> { phase_, repos_, preExecuteRepo_, postExecuteRepo_ ->
+        1 * util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.TEST, context.repositories, _, _) >> { phase_, repos_, preExecuteRepo_, postExecuteRepo_ ->
             postExecuteRepo_.call(steps, [type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST] as Map)
             return []
         }
-        1 * jira.reportTestResultsForProject([Project.TestType.INSTALLATION], _)
-        1 * jira.reportTestResultsForProject([Project.TestType.INTEGRATION], _)
-        1 * jira.reportTestResultsForProject([Project.TestType.ACCEPTANCE], _)
+        1 * jira.reportTestResultsForProject([Context.TestType.INSTALLATION], _)
+        1 * jira.reportTestResultsForProject([Context.TestType.INTEGRATION], _)
+        1 * jira.reportTestResultsForProject([Context.TestType.ACCEPTANCE], _)
     }
 
     def "get test results from file"() {
@@ -95,7 +94,7 @@ class TestStageSpec extends SpecHelper {
         junit.parseTestReportFiles(_) >> [:]
 
         when:
-        testStage.getTestResults(steps, project.repositories.first(), "acceptance")
+        testStage.getTestResults(steps, context.repositories.first(), "acceptance")
 
         then:
         1 * junit.loadTestReportsFromPath(_)

@@ -18,26 +18,26 @@ class InitStage extends Stage {
 
     public final String STAGE_NAME = 'Init'
 
-    InitStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    InitStage(def script, Context context, List<Set<Map>> repos) {
+        super(script, context, repos)
     }
 
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth'])
     def run() {
         def steps = new PipelineSteps(script)
-        def project = new Project(steps)
+        def project = new Context(steps)
 
         def git = new GitService(steps)
         git.configureUser()
 
         // load build params
-        def buildParams = Project.loadBuildParams(steps)
+        def buildParams = Context.loadBuildParams(steps)
         steps.echo("Release Manager Build Parameters: ${buildParams}")
 
         // git checkout
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-        if (!Project.isWorkInProgress(buildParams.version)) {
-            if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
+        if (!Context.isWorkInProgress(buildParams.version)) {
+            if (Context.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
                     buildParams.version,
                     buildParams.changeId,
@@ -83,7 +83,7 @@ class InitStage extends Stage {
         registry.add(PipelineSteps, steps)
         def util = new MROPipelineUtil(project, steps, git)
         registry.add(MROPipelineUtil, util)
-        registry.add(Project, project)
+        registry.add(Context, project)
 
         def docGenUrl = script.env.DOCGEN_URL ?: "http://docgen.${project.key}-cd.svc:8080"
         registry.add(DocGenService,
@@ -150,7 +150,7 @@ class InitStage extends Stage {
         )
 
         def jiraUseCase = new JiraUseCase(
-            registry.get(Project),
+            registry.get(Context),
             registry.get(PipelineSteps),
             registry.get(MROPipelineUtil),
             registry.get(JiraService)
@@ -176,14 +176,14 @@ class InitStage extends Stage {
 
         registry.add(JUnitTestReportsUseCase,
             new JUnitTestReportsUseCase(
-                registry.get(Project),
+                registry.get(Context),
                 registry.get(PipelineSteps)
             )
         )
 
         registry.add(SonarQubeUseCase,
             new SonarQubeUseCase(
-                registry.get(Project),
+                registry.get(Context),
                 registry.get(PipelineSteps),
                 registry.get(NexusService)
             )
@@ -191,7 +191,7 @@ class InitStage extends Stage {
 
         registry.add(LeVADocumentUseCase,
             new LeVADocumentUseCase(
-                registry.get(Project),
+                registry.get(Context),
                 registry.get(PipelineSteps),
                 registry.get(MROPipelineUtil),
                 registry.get(DocGenService),
@@ -208,7 +208,7 @@ class InitStage extends Stage {
 
         registry.add(LeVADocumentScheduler,
             new LeVADocumentScheduler(
-                registry.get(Project),
+                registry.get(Context),
                 registry.get(PipelineSteps),
                 registry.get(MROPipelineUtil),
                 registry.get(LeVADocumentUseCase)

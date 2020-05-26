@@ -12,7 +12,6 @@ import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
-import org.ods.orchestration.util.Project
 import org.yaml.snakeyaml.Yaml
 
 import groovy.json.JsonOutput
@@ -93,10 +92,10 @@ class MROPipelineUtil extends PipelineUtil {
     private void finalizeODSComponent(Map repo, String baseDir) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
-        def targetProject = this.project.targetProject
-        def envParamsFile = this.project.environmentParamsFile
-        def envParams = this.project.getEnvironmentParams(envParamsFile)
-        def componentSelector = "app=${this.project.key}-${repo.id}"
+        def targetProject = this.context.targetProject
+        def envParamsFile = this.context.environmentParamsFile
+        def envParams = this.context.getEnvironmentParams(envParamsFile)
+        def componentSelector = "app=${this.context.key}-${repo.id}"
 
         steps.dir(baseDir) {
             def openshiftDir = 'openshift-exported'
@@ -147,7 +146,7 @@ class MROPipelineUtil extends PipelineUtil {
                     def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
                         "'${ocpBasedDeployments}'!\r" +
                         "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"
-                    if (this.project.isWorkInProgress) {
+                    if (this.context.isWorkInProgress) {
                         warnBuild(message)
                     } else {
                         throw new RuntimeException (message)
@@ -173,7 +172,7 @@ class MROPipelineUtil extends PipelineUtil {
                     def message = "Containers (component: '${repo.id}') found " +
                         "that will NOT be transferred to other environments - please fix!! " +
                         "\rOffending: ${imagesFromOtherProjectsFail}"
-                    if (this.project.isWorkInProgress) {
+                    if (this.context.isWorkInProgress) {
                         warnBuild(message)
                     } else {
                         throw new RuntimeException("ERROR: ${message}")
@@ -185,7 +184,7 @@ class MROPipelineUtil extends PipelineUtil {
                     text: JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments)
                 )
                 filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
-                if (this.project.isWorkInProgress) {
+                if (this.context.isWorkInProgress) {
                     steps.sh(
                         script: """
                         git add ${filesToStage.join(' ')}
@@ -202,7 +201,7 @@ class MROPipelineUtil extends PipelineUtil {
                         """,
                         label: 'commit new state'
                     )
-                    tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                    tagAndPushBranch(this.context.gitReleaseBranch, this.context.targetTag)
                 }
             }
         }
@@ -211,10 +210,10 @@ class MROPipelineUtil extends PipelineUtil {
     private void deployODSComponent(Map repo, String baseDir) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
 
-        def envParamsFile = this.project.environmentParamsFile
-        def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
+        def envParamsFile = this.context.environmentParamsFile
+        def openshiftRolloutTimeoutMinutes = this.context.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
 
-        def componentSelector = "app=${this.project.key}-${repo.id}"
+        def componentSelector = "app=${this.context.key}-${repo.id}"
 
         steps.dir(baseDir) {
             def openshiftDir = 'openshift-exported'
@@ -238,7 +237,7 @@ class MROPipelineUtil extends PipelineUtil {
                         repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
                     }
                 }
-                tagAndPush(this.project.targetTag)
+                tagAndPush(this.context.targetTag)
                 return
             }
 
@@ -251,7 +250,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
 
             steps.dir(openshiftDir) {
-                steps.echo("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
+                steps.echo("Applying desired OpenShift state defined in ${openshiftDir}@${this.context.baseTag} to ${this.context.targetProject}.")
                 def params = []
                 def preserve = []
                 def applyFunc = { pkeyFile ->
@@ -265,17 +264,17 @@ class MROPipelineUtil extends PipelineUtil {
                         )
                 }
                 def jenkins = ServiceRegistry.instance.get(JenkinsService)
-                jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                jenkins.maybeWithPrivateKeyCredentials(context.tailorPrivateKeyCredentialsId) { pkeyFile ->
                     applyFunc(pkeyFile)
                 }
             }
 
-            def sourceEnv = Project.getConcreteEnvironment(
-                this.project.sourceEnv,
-                this.project.buildParams.version,
-                this.project.versionedDevEnvsEnabled
+            def sourceEnv = Context.getConcreteEnvironment(
+                this.context.sourceEnv,
+                this.context.buildParams.version,
+                this.context.versionedDevEnvsEnabled
             )
-            def sourceProject = "${this.project.key}-${sourceEnv}"
+            def sourceProject = "${this.context.key}-${sourceEnv}"
             def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
             deployments.each { deploymentName, deployment ->
                 deployment.containers?.each {containerName, imageRaw ->
@@ -291,23 +290,23 @@ class MROPipelineUtil extends PipelineUtil {
                             "because it is defined as excluded: ${EXCLUDE_NAMESPACES_FROM_IMPORT}"
                         )
                     } else {
-                        if (this.project.targetClusterIsExternal) {
+                        if (this.context.targetClusterIsExternal) {
                             os.importImageFromSourceRegistry(
                                 imageInfo.name,
                                 sourceProject,
                                 imageInfo.sha,
-                                this.project.targetTag
+                                this.context.targetTag
                             )
                         } else {
                             os.importImageFromProject(
                                 imageInfo.name,
                                 sourceProject,
                                 imageInfo.sha,
-                                this.project.targetTag
+                                this.context.targetTag
                             )
                         }
                         // tag with latest, which triggers rollout
-                        os.setImageTag(imageInfo.name, this.project.targetTag, 'latest')
+                        os.setImageTag(imageInfo.name, this.context.targetTag, 'latest')
                     }
                 }
 
@@ -343,7 +342,7 @@ class MROPipelineUtil extends PipelineUtil {
             if (createdByJob) {
                 repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
             }
-            tagAndPush(this.project.targetTag)
+            tagAndPush(this.context.targetTag)
         }
     }
 
@@ -352,14 +351,14 @@ class MROPipelineUtil extends PipelineUtil {
             OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
             // only in case of a code component (that is deployed) do this check
             if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                this.project.isWorkInProgress &&
+                this.context.isWorkInProgress &&
                 os.checkForExistingValidDeploymentBasedOnStoredConfig(
-                    repo, this.project.forceGlobalRebuild())) {
+                    repo, this.context.forceGlobalRebuild())) {
                 return
             }
 
             def job
-            this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
+            this.steps.withEnv (this.context.getMainReleaseManagerEnv()) {
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
             // Collect ODS build artifacts for repo
@@ -495,20 +494,20 @@ class MROPipelineUtil extends PipelineUtil {
 
                 def scm = null
                 def scmBranch = repo.branch
-                if (this.project.isPromotionMode) {
-                    scm = checkoutTagInRepoDir(repo, this.project.baseTag)
-                    scmBranch = this.project.gitReleaseBranch
+                if (this.context.isPromotionMode) {
+                    scm = checkoutTagInRepoDir(repo, this.context.baseTag)
+                    scmBranch = this.context.gitReleaseBranch
                 } else {
-                    if (this.project.isWorkInProgress) {
+                    if (this.context.isWorkInProgress) {
                         scm = checkoutBranchInRepoDir(repo, repo.branch)
                     } else {
                         // check if release manager repo already has a release branch
-                        if (git.remoteBranchExists(this.project.gitReleaseBranch)) {
+                        if (git.remoteBranchExists(this.context.gitReleaseBranch)) {
                             try {
-                                scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
+                                scm = checkoutBranchInRepoDir(repo, this.context.gitReleaseBranch)
                             } catch (ex) {
                                 steps.echo """
-                                WARNING! Checkout of '${this.project.gitReleaseBranch}' for repo '${repo.id}' failed.
+                                WARNING! Checkout of '${this.context.gitReleaseBranch}' for repo '${repo.id}' failed.
                                 Attempting to checkout '${repo.branch}' and create the release branch from it.
                                 """
                                 // Possible reasons why this might happen:
@@ -517,16 +516,16 @@ class MROPipelineUtil extends PipelineUtil {
                                 // * Release branch has been deleted in repo
                                 scm = checkoutBranchInRepoDir(repo, repo.branch)
                                 steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                                    git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
+                                    git.checkoutNewLocalBranch(this.context.gitReleaseBranch)
                                 }
                             }
                         } else {
                             scm = checkoutBranchInRepoDir(repo, repo.branch)
                             steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                                git.checkoutNewLocalBranch(this.project.gitReleaseBranch)
+                                git.checkoutNewLocalBranch(this.context.gitReleaseBranch)
                             }
                         }
-                        scmBranch = this.project.gitReleaseBranch
+                        scmBranch = this.context.gitReleaseBranch
                     }
                 }
 
@@ -536,8 +535,8 @@ class MROPipelineUtil extends PipelineUtil {
                     previousCommit: scm.GIT_PREVIOUS_COMMIT,
                     previousSucessfulCommit: scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT,
                     url: scm.GIT_URL,
-                    baseTag: this.project.baseTag,
-                    targetTag: this.project.targetTag
+                    baseTag: this.context.baseTag,
+                    targetTag: this.context.targetTag
                 ]
 
                 if (postExecute) {
@@ -549,7 +548,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     def checkoutTagInRepoDir(Map repo, String tag) {
         steps.echo("Checkout tag ${repo.id}@${tag}")
-        def credentialsId = this.project.services.bitbucket.credentials.id
+        def credentialsId = this.context.services.bitbucket.credentials.id
         git.checkout(
             "refs/tags/${tag}",
             [[ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ]],
@@ -559,7 +558,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     def checkoutBranchInRepoDir(Map repo, String branch) {
         steps.echo("Checkout branch ${repo.id}@${branch}")
-        def credentialsId = this.project.services.bitbucket.credentials.id
+        def credentialsId = this.context.services.bitbucket.credentials.id
         git.checkout(
             "*/${branch}",
             [
@@ -582,7 +581,7 @@ class MROPipelineUtil extends PipelineUtil {
             {
                 this.executeBlockAndFailBuild {
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
-                    def targetEnvToken = this.project.buildParams.targetEnvironmentToken
+                    def targetEnvToken = this.context.buildParams.targetEnvironmentToken
 
                     if (preExecute) {
                         preExecute(this.steps, repo)
@@ -590,11 +589,11 @@ class MROPipelineUtil extends PipelineUtil {
 
                     if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
                         this.steps.stage('ODS Code Component') {
-                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                            if (this.context.isAssembleMode && name == PipelinePhases.BUILD) {
                                 executeODSComponent(repo, baseDir)
-                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                            } else if (this.context.isPromotionMode && name == PipelinePhases.DEPLOY) {
                                 deployODSComponent(repo, baseDir)
-                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                            } else if (this.context.isAssembleMode && name == PipelinePhases.FINALIZE) {
                                 finalizeODSComponent(repo, baseDir)
                             } else {
                                 this.steps.echo("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
@@ -602,11 +601,11 @@ class MROPipelineUtil extends PipelineUtil {
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
                         this.steps.stage('ODS Service Component') {
-                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                            if (this.context.isAssembleMode && name == PipelinePhases.BUILD) {
                                 executeODSComponent(repo, baseDir)
-                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                            } else if (this.context.isPromotionMode && name == PipelinePhases.DEPLOY) {
                                 deployODSComponent(repo, baseDir)
-                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                            } else if (this.context.isAssembleMode && name == PipelinePhases.FINALIZE) {
                                 finalizeODSComponent(repo, baseDir)
                             } else {
                                 this.steps.echo("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
@@ -616,13 +615,13 @@ class MROPipelineUtil extends PipelineUtil {
                         this.steps.stage('ODS Test Component') {
                             if (name == PipelinePhases.TEST) {
                                 executeODSComponent(repo, baseDir)
-                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                            } else if (this.context.isPromotionMode && name == PipelinePhases.DEPLOY) {
                                 this.steps.dir(baseDir) {
-                                    tagAndPush(this.project.targetTag)
+                                    tagAndPush(this.context.targetTag)
                                 }
-                            } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
+                            } else if (this.context.isAssembleMode && !this.context.isWorkInProgress && name == PipelinePhases.FINALIZE) {
                                 this.steps.dir(baseDir) {
-                                    tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                    tagAndPushBranch(this.context.gitReleaseBranch, this.context.targetTag)
                                 }
                             } else {
                                 this.steps.echo("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
@@ -648,13 +647,13 @@ class MROPipelineUtil extends PipelineUtil {
                             // Ignore undefined phases
                         }
 
-                        if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                        if (this.context.isPromotionMode && name == PipelinePhases.DEPLOY) {
                             this.steps.dir(baseDir) {
-                                tagAndPush(this.project.targetTag)
+                                tagAndPush(this.context.targetTag)
                             }
-                        } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
+                        } else if (this.context.isAssembleMode && !this.context.isWorkInProgress && name == PipelinePhases.FINALIZE) {
                             this.steps.dir(baseDir) {
-                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                tagAndPushBranch(this.context.gitReleaseBranch, this.context.targetTag)
                             }
                         }
                     }
@@ -691,14 +690,14 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {
-        this.project.setHasUnexecutedJiraTests(true)
+        this.context.setHasUnexecutedJiraTests(true)
         def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
         this.warnBuild("Warning: found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
     }
 
     void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
-            this.project.setHasFailingTests(true)
+            this.context.setHasFailingTests(true)
             this.warnBuild('Warning: found failing tests in test reports.')
         }
     }

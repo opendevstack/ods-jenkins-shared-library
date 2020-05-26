@@ -2,11 +2,8 @@ package org.ods.orchestration.usecase
 
 import java.nio.file.Files
 
-import org.ods.orchestration.parser.*
-import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.services.NexusService
-import spock.lang.*
 import org.ods.util.IPipelineSteps
 
 import static util.FixtureHelper.*
@@ -16,15 +13,15 @@ import util.*
 class SonarQubeUseCaseSpec extends SpecHelper {
 
     NexusService nexus
-    Project project
+    Context context
     IPipelineSteps steps
     SonarQubeUseCase usecase
 
     def setup() {
-        project = createProject()
+        context = createContext()
         steps = Spy(util.PipelineSteps)
         nexus = Mock(NexusService)
-        usecase = new SonarQubeUseCase(project, steps, nexus)
+        usecase = new SonarQubeUseCase(context, steps, nexus)
     }
 
     def "load reports from path"() {
@@ -61,7 +58,7 @@ class SonarQubeUseCaseSpec extends SpecHelper {
     def "upload SQ reports to Nexus"() {
         given:
         def version = "0.1"
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
         def type = "myType"
         def artifact = Files.createTempFile("sq", ".md").toFile()
 
@@ -70,8 +67,8 @@ class SonarQubeUseCaseSpec extends SpecHelper {
 
         then:
         1 * nexus.storeArtifactFromFile(
-            project.services.nexus.repository.name,
-            { "${project.key.toLowerCase()}-${version}" },
+            context.services.nexus.repository.name,
+            { "${context.key.toLowerCase()}-${version}" },
             { "${type}-${repo.id}-${version}.md" },
             artifact,
             "application/text"

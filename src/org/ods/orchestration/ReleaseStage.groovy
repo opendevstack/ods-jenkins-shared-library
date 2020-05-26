@@ -2,15 +2,14 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 
 class ReleaseStage extends Stage {
 
     public final String STAGE_NAME = 'Release'
 
-    ReleaseStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    ReleaseStage(def script, Context context, List<Set<Map>> repos) {
+        super(script, context, repos)
     }
 
     @SuppressWarnings('ParameterName')

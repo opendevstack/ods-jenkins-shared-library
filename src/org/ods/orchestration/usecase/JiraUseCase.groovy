@@ -4,8 +4,8 @@ import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.Project.JiraDataItem
+import org.ods.orchestration.util.Context
+import org.ods.orchestration.util.Context.JiraDataItem
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
@@ -29,14 +29,14 @@ class JiraUseCase {
         Succeeded
     }
 
-    private Project project
+    private Context context
     private JiraService jira
     private IPipelineSteps steps
     private AbstractJiraUseCaseSupport support
     private MROPipelineUtil util
 
-    JiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, JiraService jira) {
-        this.project = project
+    JiraUseCase(Context context, IPipelineSteps steps, MROPipelineUtil util, JiraService jira) {
+        this.context = context
         this.steps = steps
         this.util = util
         this.jira = jira
@@ -105,7 +105,7 @@ class JiraUseCase {
         if (!this.jira) return
 
         testFailures.each { failure ->
-            def bug = this.jira.createIssueTypeBug(this.project.jiraProjectKey, failure.type, failure.text)
+            def bug = this.jira.createIssueTypeBug(this.context.jiraProjectKey, failure.type, failure.text)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -123,21 +123,21 @@ class JiraUseCase {
             }
 
             // Create a JiraDataItem from the newly created bug
-            def bugJiraDataItem = new JiraDataItem(project, [ // add project reference for access to Project.JiraDataItem
+            def bugJiraDataItem = new JiraDataItem(context, [ // add project reference for access to Project.JiraDataItem
               key: bug.key,
               name: failure.type,
               assignee: "Unassigned",
               dueDate: "",
               status: "TO DO",
               tests: bugAffectedTestIssues.keySet() as List
-            ], Project.JiraDataItem.TYPE_BUGS)
+            ], Context.JiraDataItem.TYPE_BUGS)
 
             // Add JiraDataItem into the Jira data structure
-            this.project.data.jira.bugs[bug.key] = bugJiraDataItem
+            this.context.data.jira.bugs[bug.key] = bugJiraDataItem
 
             // Add the resolved JiraDataItem into the Jira data structure
-            this.project.data.jiraResolved.bugs[bug.key] = bugJiraDataItem.cloneIt()
-            this.project.data.jiraResolved.bugs[bug.key].tests = bugAffectedTestIssues.values() as List
+            this.context.data.jiraResolved.bugs[bug.key] = bugJiraDataItem.cloneIt()
+            this.context.data.jiraResolved.bugs[bug.key].tests = bugAffectedTestIssues.values() as List
 
             this.jira.appendCommentToIssue(bug.key, comment)
         }
@@ -149,7 +149,7 @@ class JiraUseCase {
         def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
 
         def jqlQuery = [
-            jql: "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
+            jql: "project = ${this.context.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
             expand: ["names", "renderedFields"]
         ]
 
@@ -232,7 +232,7 @@ class JiraUseCase {
         steps.echo('Reporting unit test results to corresponding test cases in Jira for' +
             " ${componentName}/type: ${testTypes}\rresults: ${testResults}")
 
-        def testIssues = this.project.getAutomatedTests(componentName, testTypes)
+        def testIssues = this.context.getAutomatedTests(componentName, testTypes)
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
         this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
@@ -242,7 +242,7 @@ class JiraUseCase {
         }
 
         this.support.applyXunitTestResults(testIssues, testResults)
-        if (["Q", "P"].contains(this.project.buildParams.targetEnvironmentToken)) {
+        if (["Q", "P"].contains(this.context.buildParams.targetEnvironmentToken)) {
             // Create bugs for erroneous test issues
             def errors = JUnitParser.Helper.getErrors(testResults)
             this.createBugsForFailedTestIssues(testIssues, errors, this.steps.env.RUN_DISPLAY_URL)
@@ -256,17 +256,17 @@ class JiraUseCase {
     void reportTestResultsForProject(List<String> testTypes, Map testResults) {
         // No componentName passed to method to get all automated issues from project
         this.reportTestResultsForComponent(
-            this.project.key, testTypes, testResults)
+            this.context.key, testTypes, testResults)
     }
 
     void updateJiraReleaseStatusBuildNumber() {
         if (!this.jira) return
 
-        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
-        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
+        def releaseStatusIssueKey = this.context.buildParams.releaseStatusJiraIssueKey
+        def releaseStatusIssueFields = this.context.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
         def releaseStatusIssueBuildNumberField = releaseStatusIssueFields["Release Build"]
-        this.jira.updateTextFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueBuildNumberField.id): "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"])
+        this.jira.updateTextFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueBuildNumberField.id): "${this.context.buildParams.version}-${this.steps.env.BUILD_NUMBER}"])
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
@@ -274,8 +274,8 @@ class JiraUseCase {
 
         def status = isError ? "Failed" : "Successful"
 
-        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
-        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
+        def releaseStatusIssueKey = this.context.buildParams.releaseStatusJiraIssueKey
+        def releaseStatusIssueFields = this.context.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
         def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields["Release Manager Status"]
         this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])
@@ -284,7 +284,7 @@ class JiraUseCase {
     }
 
     void addCommentInReleaseStatus(String message) {
-        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
+        def releaseStatusIssueKey = this.context.buildParams.releaseStatusJiraIssueKey
         if (message) {
             this.jira.appendCommentToIssue(releaseStatusIssueKey, "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}")
         }

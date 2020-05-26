@@ -7,8 +7,6 @@ import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 
-import spock.lang.*
-
 import static util.FixtureHelper.*
 
 import util.*
@@ -16,7 +14,7 @@ import util.*
 class DocGenSchedulerSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends DocGenUseCase {
-        DocGenUseCaseImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
+        DocGenUseCaseImpl(Context project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
             super(project, steps, util, docGen, nexus, pdf, jenkins)
         }
 
@@ -31,7 +29,7 @@ class DocGenSchedulerSpec extends SpecHelper {
         String getDocumentTemplatesVersion() {
             return "0.1"
         }
-        
+
         boolean isArchivalRelevant (String documentType) {
             return true
         }
@@ -41,7 +39,7 @@ class DocGenSchedulerSpec extends SpecHelper {
     }
 
     class DocGenSchedulerImpl extends DocGenScheduler {
-        DocGenSchedulerImpl(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenUseCase docGen) {
+        DocGenSchedulerImpl(Context project, IPipelineSteps steps, MROPipelineUtil util, DocGenUseCase docGen) {
             super(project, steps, util, docGen)
         }
 
@@ -52,16 +50,16 @@ class DocGenSchedulerSpec extends SpecHelper {
 
     def "run"() {
         given:
-        def project = createProject()
+        def context = createContext()
 
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
-        def usecase = Spy(new DocGenUseCaseImpl(project, steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil), Mock (JenkinsService)))
-        def scheduler = Spy(new DocGenSchedulerImpl(project, steps, util, usecase))
+        def usecase = Spy(new DocGenUseCaseImpl(context, steps, Mock(MROPipelineUtil), Mock(DocGenService), Mock(NexusService), Mock(PDFUtil), Mock (JenkinsService)))
+        def scheduler = Spy(new DocGenSchedulerImpl(context, steps, util, usecase))
 
         // Test Parameters
         def phase = "myPhase"
-        def repo = project.repositories.first()
+        def repo = context.repositories.first()
         def data = [ a: 1, b: 2, c: 3 ]
 
         when:

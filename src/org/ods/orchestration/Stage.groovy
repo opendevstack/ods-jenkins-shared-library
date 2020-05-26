@@ -1,21 +1,21 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 import org.ods.services.GitService
 import org.ods.util.PipelineSteps
 
 class Stage {
 
     protected def script
-    protected Project project
+    protected Context context
     protected List<Set<Map>> repos
 
     public final String STAGE_NAME = 'NOT SET'
 
-    Stage(def script, Project project, List<Set<Map>> repos) {
+    Stage(def script, Context context, List<Set<Map>> repos) {
         this.script = script
-        this.project = project
+        this.context = context
         this.repos = repos
     }
 
@@ -37,7 +37,7 @@ class Stage {
                 script.echo(e.message)
 
                 try {
-                    project.reportPipelineStatus(e.message, true)
+                    context.reportPipelineStatus(e.message, true)
                 } catch (reportError) {
                     script.echo("Error: unable to report pipeline status because of: ${reportError.message}.")
                     reportError.initCause(e)
@@ -52,7 +52,7 @@ class Stage {
         }
     }
 
-    protected def runOnAgentPod(Project project, boolean condition, Closure block) {
+    protected def runOnAgentPod(Context project, boolean condition, Closure block) {
         if (condition) {
             def git = ServiceRegistry.instance.get(GitService)
             script.dir(script.env.WORKSPACE) {

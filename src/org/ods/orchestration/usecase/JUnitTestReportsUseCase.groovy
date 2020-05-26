@@ -4,16 +4,16 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.util.IPipelineSteps
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 
 @SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])
 class JUnitTestReportsUseCase {
 
-    private Project project
+    private Context context
     private IPipelineSteps steps
 
-    JUnitTestReportsUseCase(Project project, IPipelineSteps steps) {
-        this.project = project
+    JUnitTestReportsUseCase(Context context, IPipelineSteps steps) {
+        this.context = context
         this.steps = steps
     }
 

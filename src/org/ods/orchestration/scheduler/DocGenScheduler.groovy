@@ -5,19 +5,19 @@ import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.usecase.DocGenUseCase
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 
 // TODO: fix me!
 @SuppressWarnings('AbstractClassWithPublicConstructor')
 abstract class DocGenScheduler {
 
-    protected Project project
+    protected Context context
     protected IPipelineSteps steps
     protected MROPipelineUtil util
     protected DocGenUseCase usecase
 
-    DocGenScheduler(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenUseCase usecase) {
-        this.project = project
+    DocGenScheduler(Context context, IPipelineSteps steps, MROPipelineUtil util, DocGenUseCase usecase) {
+        this.context = context
         this.steps = steps
         this.util = util
         this.usecase = usecase
@@ -59,7 +59,7 @@ abstract class DocGenScheduler {
             def paramsToApply = paramsSize > 0 ? args[0..(Math.min(args.size(), paramsSize) - 1)] : []
 
             if (this.isDocumentApplicable(documentType, phase, stage, repo)) {
-                def message = "Creating document of type '${documentType}' for project '${this.project.key}'"
+                def message = "Creating document of type '${documentType}' for project '${this.context.key}'"
                 if (repo) {
                     message += " and repo '${repo.id}'"
                 }

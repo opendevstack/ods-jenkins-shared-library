@@ -1,7 +1,6 @@
 package org.ods.orchestration
 
 import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.PipelineSteps
@@ -12,8 +11,8 @@ class BuildStage extends Stage {
 
     public final String STAGE_NAME = 'Build'
 
-    BuildStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    BuildStage(def script, Context context, List<Set<Map>> repos) {
+        super(script, context, repos)
     }
 
     @SuppressWarnings('ParameterName')
@@ -34,7 +33,7 @@ class BuildStage extends Stage {
             // dependency and an explicit repository constraint.
             // We should turn the last argument 'data' of the scheduler into a
             // closure that return data.
-            if (project.isAssembleMode
+            if (context.isAssembleMode
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
                 def data = [ : ]
                 def resultsResurrected = !!repo.data?.odsBuildArtifacts?.resurrected
@@ -52,7 +51,7 @@ class BuildStage extends Stage {
                 if (!resultsResurrected) {
                     jira.reportTestResultsForComponent(
                         "Technology-${repo.id}",
-                        [Project.TestType.UNIT],
+                        [Context.TestType.UNIT],
                         data.tests.unit.testResults
                     )
                 } else {

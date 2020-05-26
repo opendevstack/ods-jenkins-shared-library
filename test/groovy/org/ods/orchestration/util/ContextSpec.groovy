@@ -13,48 +13,48 @@ import static util.FixtureHelper.*
 
 import util.*
 
-class ProjectSpec extends SpecHelper {
+class ContextSpec extends SpecHelper {
 
     GitService git
     IPipelineSteps steps
     JiraUseCase jiraUseCase
-    Project project
+    Context context
     File metadataFile
 
-    def createProject(Map<String, Closure> mixins = [:]) {
-        Project project = Spy(constructorArgs: [steps])
+    def createContext(Map<String, Closure> mixins = [:]) {
+        Context context = Spy(constructorArgs: [steps])
 
         if (mixins.containsKey("getGitURLFromPath")) {
-            project.getGitURLFromPath(*_) >> { mixins["getGitURLFromPath"]() }
+            context.getGitURLFromPath(*_) >> { mixins["getGitURLFromPath"]() }
         } else {
-            project.getGitURLFromPath(*_) >> { return new URIBuilder("https://github.com/my-org/my-pipeline-repo.git").build() }
+            context.getGitURLFromPath(*_) >> { return new URIBuilder("https://github.com/my-org/my-pipeline-repo.git").build() }
         }
 
         if (mixins.containsKey("loadJiraData")) {
-            project.loadJiraData(*_) >> { mixins["loadJiraData"]() }
+            context.loadJiraData(*_) >> { mixins["loadJiraData"]() }
         } else {
-            project.loadJiraData(*_) >> { return createProjectJiraData() }
+            context.loadJiraData(*_) >> { return createContextJiraData() }
         }
 
         if (mixins.containsKey("loadJiraDataBugs")) {
-            project.loadJiraDataBugs(*_) >> { mixins["loadJiraDataBugs"]() }
+            context.loadJiraDataBugs(*_) >> { mixins["loadJiraDataBugs"]() }
         } else {
-            project.loadJiraDataBugs(*_) >> { return createProjectJiraDataBugs() }
+            context.loadJiraDataBugs(*_) >> { return createContextJiraDataBugs() }
         }
 
         if (mixins.containsKey("loadJiraDataDocs")) {
-            project.loadJiraDataDocs(*_) >> { mixins["loadJiraDataDocs"]() }
+            context.loadJiraDataDocs(*_) >> { mixins["loadJiraDataDocs"]() }
         } else {
-            project.loadJiraDataDocs(*_) >> { return createProjectJiraDataDocs() }
+            context.loadJiraDataDocs(*_) >> { return createContextJiraDataDocs() }
         }
 
         if (mixins.containsKey("loadJiraDataIssueTypes")) {
-            project.loadJiraDataIssueTypes(*_) >> { mixins["loadJiraDataIssueTypes"]() }
+            context.loadJiraDataIssueTypes(*_) >> { mixins["loadJiraDataIssueTypes"]() }
         } else {
-            project.loadJiraDataIssueTypes(*_) >> { return createProjectJiraDataIssueTypes() }
+            context.loadJiraDataIssueTypes(*_) >> { return createContextJiraDataIssueTypes() }
         }
 
-        return project
+        return context
     }
 
     def setup() {
@@ -64,26 +64,26 @@ class ProjectSpec extends SpecHelper {
         steps.env.WORKSPACE = ""
 
         metadataFile = new FixtureHelper().getResource("/project-metadata.yml")
-        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+        Context.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
-        project = createProject().init().load(git, jiraUseCase)
+        context = createContext().init().load(git, jiraUseCase)
     }
 
     def "get build environment for DEBUG"() {
         when:
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "DEBUG=false" }
 
         when:
-        result = Project.getBuildEnvironment(steps, true)
+        result = Context.getBuildEnvironment(steps, true)
 
         then:
         result.find { it == "DEBUG=true" }
 
         when:
-        result = Project.getBuildEnvironment(steps, false)
+        result = Context.getBuildEnvironment(steps, false)
 
         then:
         result.find { it == "DEBUG=false" }
@@ -91,7 +91,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get build environment for MULTI_REPO_BUILD"() {
         when:
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_BUILD=true" }
@@ -100,21 +100,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for MULTI_REPO_ENV"() {
         when:
         steps.env.environment = null
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV=dev" }
 
         when:
         steps.env.environment = ""
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV=dev" }
 
         when:
         steps.env.environment = "qa"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV=test" }
@@ -123,21 +123,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for MULTI_REPO_ENV_TOKEN"() {
         when:
         steps.env.environment = "dev"
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV_TOKEN=D" }
 
         when:
         steps.env.environment = "qa"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV_TOKEN=Q" }
 
         when:
         steps.env.environment = "prod"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "MULTI_REPO_ENV_TOKEN=P" }
@@ -147,7 +147,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.environment = "dev"
         steps.env.version = "0.1"
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=UNDEFINED" }
@@ -156,7 +156,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = ""
         steps.env.environment = "dev"
         steps.env.version = "0.1"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=UNDEFINED" }
@@ -165,7 +165,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = "myId"
         steps.env.environment = "dev"
         steps.env.version = "0.1"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_ID=myId" }
@@ -174,21 +174,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CHANGE_DESC"() {
         when:
         steps.env.changeDescription = null
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=UNDEFINED" }
 
         when:
         steps.env.changeDescription = ""
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=UNDEFINED" }
 
         when:
         steps.env.changeDescription = "myDescription"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CHANGE_DESC=myDescription" }
@@ -197,21 +197,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_CONFIG_ITEM"() {
         when:
         steps.env.configItem = null
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=UNDEFINED" }
 
         when:
         steps.env.configItem = ""
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=UNDEFINED" }
 
         when:
         steps.env.configItem = "myItem"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_CONFIG_ITEM=myItem" }
@@ -220,21 +220,21 @@ class ProjectSpec extends SpecHelper {
     def "get build environment for RELEASE_PARAM_VERSION"() {
         when:
         steps.env.version = null
-        def result = Project.getBuildEnvironment(steps)
+        def result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=WIP" }
 
         when:
         steps.env.version = ""
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=WIP" }
 
         when:
         steps.env.version = "0.1"
-        result = Project.getBuildEnvironment(steps)
+        result = Context.getBuildEnvironment(steps)
 
         then:
         result.find { it == "RELEASE_PARAM_VERSION=0.1" }
@@ -242,19 +242,19 @@ class ProjectSpec extends SpecHelper {
 
     def "get versioned dev ens"() {
         when:
-        def result = new Project(steps).getVersionedDevEnvsEnabled()
+        def result = new Context(steps).getVersionedDevEnvsEnabled()
 
         then:
         result == false
 
         when:
-        result = new Project(steps, [versionedDevEnvs: false]).getVersionedDevEnvsEnabled()
+        result = new Context(steps, [versionedDevEnvs: false]).getVersionedDevEnvsEnabled()
 
         then:
         result == false
 
         when:
-        result = new Project(steps, [versionedDevEnvs: true]).getVersionedDevEnvsEnabled()
+        result = new Context(steps, [versionedDevEnvs: true]).getVersionedDevEnvsEnabled()
 
         then:
         result == true
@@ -262,7 +262,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get concrete environments"() {
         expect:
-        Project.getConcreteEnvironment(environment, version, versionedDevEnvsEnabled) == result
+        Context.getConcreteEnvironment(environment, version, versionedDevEnvsEnabled) == result
 
         where:
         environment | version | versionedDevEnvsEnabled || result
@@ -283,7 +283,7 @@ class ProjectSpec extends SpecHelper {
         steps.readFile(file: '/path/to/dev.env') >> content
 
         expect:
-        project.getEnvironmentParams('/path/to/dev.env') == result
+        context.getEnvironmentParams('/path/to/dev.env') == result
 
         where:
         content                               || result
@@ -299,7 +299,7 @@ class ProjectSpec extends SpecHelper {
         steps.fileExists('/path/to/workspace/dev.env') >> exists
 
         expect:
-        project.getEnvironmentParamsFile() == result
+        context.getEnvironmentParamsFile() == result
 
         where:
         exists  || result
@@ -308,17 +308,17 @@ class ProjectSpec extends SpecHelper {
     }
 
     def "target cluster is not external when no API URL is configured"() {
-        project.setOpenShiftData('https://api.example.openshift.com:443')
+        context.setOpenShiftData('https://api.example.openshift.com:443')
 
         expect:
-        project.getTargetClusterIsExternal() == false
+        context.getTargetClusterIsExternal() == false
     }
 
     def "target cluster can be external when an API URL is configured"() {
         given:
         steps.env.environment = environment
         def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
-        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+        Context.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         metadataFile.text = """
             id: myId
@@ -333,11 +333,11 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
-        project.setOpenShiftData('https://api.example.openshift.com:443')
+        context.init()
+        context.setOpenShiftData('https://api.example.openshift.com:443')
 
         then:
-        project.getTargetClusterIsExternal() == result
+        context.getTargetClusterIsExternal() == result
 
         where:
         environment | configuredProdApiUrl || result
@@ -349,7 +349,7 @@ class ProjectSpec extends SpecHelper {
     def "get capabilities"() {
         given:
         def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
-        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+        Context.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         metadataFile.text = """
             id: myId
@@ -365,10 +365,10 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
+        context.init()
 
         then:
-        project.getCapabilities() == [
+        context.getCapabilities() == [
             "Zephyr",
             [
                 "LeVADocs": [
@@ -385,7 +385,7 @@ class ProjectSpec extends SpecHelper {
     def "get capability"() {
         given:
         def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
-        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+        Context.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         metadataFile.text = """
             id: myId
@@ -401,22 +401,22 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
+        context.init()
 
         then:
-        project.getCapability("Zephyr")
+        context.getCapability("Zephyr")
 
         then:
-        project.getCapability("LeVADocs") == [
+        context.getCapability("LeVADocs") == [
             GAMPCategory: 5,
             templatesVersion: "1.0"
         ]
 
         when:
-        project.getCapability("LeVADocs").GAMPCategory = 3
+        context.getCapability("LeVADocs").GAMPCategory = 3
 
         then:
-        project.getCapability("LeVADocs").GAMPCategory == 3
+        context.getCapability("LeVADocs").GAMPCategory == 3
 
         cleanup:
         metadataFile.delete()
@@ -425,7 +425,7 @@ class ProjectSpec extends SpecHelper {
     def "has capability"() {
         given:
         def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
-        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+        Context.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         metadataFile.text = """
             id: myId
@@ -441,16 +441,16 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
+        context.init()
 
         then:
-        project.hasCapability("Zephyr")
+        context.hasCapability("Zephyr")
 
         then:
-        project.hasCapability("LeVADocs")
+        context.hasCapability("LeVADocs")
 
         then:
-        !project.hasCapability("other")
+        !context.hasCapability("other")
 
         cleanup:
         metadataFile.delete()
@@ -458,7 +458,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get document tracking issue"() {
         when:
-        def result = project.getDocumentTrackingIssues(["Doc:TIP"])
+        def result = context.getDocumentTrackingIssues(["Doc:TIP"])
 
         then:
         result == [
@@ -466,7 +466,7 @@ class ProjectSpec extends SpecHelper {
         ]
 
         when:
-        result = project.getDocumentTrackingIssues(["Doc:TIP", "Doc:TIP_Q", "Doc:TIP_P"])
+        result = context.getDocumentTrackingIssues(["Doc:TIP", "Doc:TIP_Q", "Doc:TIP_P"])
 
         then:
         result == [
@@ -478,7 +478,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path"() {
         given:
-        def project = new Project(steps)
+        def project = new Context(steps)
 
         def path = "${steps.env.WORKSPACE}/a/b/c"
         def origin = "upstream"
@@ -498,7 +498,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path without origin"() {
         given:
-        def project = new Project(steps)
+        def project = new Context(steps)
 
         def path = "${steps.env.WORKSPACE}/a/b/c"
 
@@ -517,7 +517,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path with invalid path"() {
         given:
-        def project = new Project(steps)
+        def project = new Context(steps)
 
         when:
         project.getGitURLFromPath(null)
@@ -545,7 +545,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path with invalid remote"() {
         given:
-        def project = new Project(steps)
+        def project = new Context(steps)
 
         def path = "${steps.env.WORKSPACE}/a/b/c"
 
@@ -568,7 +568,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.changeId = "0815"
         steps.env.configItem = "myItem"
-        def result = Project.isTriggeredByChangeManagementProcess(steps)
+        def result = Context.isTriggeredByChangeManagementProcess(steps)
 
         then:
         result
@@ -576,7 +576,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.changeId = "0815"
         steps.env.configItem = null
-        result = Project.isTriggeredByChangeManagementProcess(steps)
+        result = Context.isTriggeredByChangeManagementProcess(steps)
 
         then:
         !result
@@ -584,7 +584,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.changeId = null
         steps.env.configItem = "myItem"
-        result = Project.isTriggeredByChangeManagementProcess(steps)
+        result = Context.isTriggeredByChangeManagementProcess(steps)
 
         then:
         !result
@@ -592,7 +592,7 @@ class ProjectSpec extends SpecHelper {
         when:
         steps.env.changeId = null
         steps.env.configItem = null
-        result = Project.isTriggeredByChangeManagementProcess(steps)
+        result = Context.isTriggeredByChangeManagementProcess(steps)
 
         then:
         !result
@@ -601,7 +601,7 @@ class ProjectSpec extends SpecHelper {
     def "compute wip jira issues"() {
         given:
         def data = [:]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             data[type] = [
                 "${type}-1": [
                     status: "TODO"
@@ -616,12 +616,12 @@ class ProjectSpec extends SpecHelper {
         }
 
         def expected = [:]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = [ "${type}-1", "${type}-2" ]
         }
 
         when:
-        def result = project.computeWipJiraIssues(data)
+        def result = context.computeWipJiraIssues(data)
 
         then:
         result == expected
@@ -630,16 +630,16 @@ class ProjectSpec extends SpecHelper {
     def "get wip Jira issues for an empty collection"() {
         setup:
         def data = [project: [:], components: [:]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             data[type] = [:]
         }
 
         def expected = [docChapters: [:]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = []
         }
 
-        project = createProject([
+        context = createContext([
             "loadJiraData": {
                 return data
             },
@@ -649,20 +649,20 @@ class ProjectSpec extends SpecHelper {
         ]).init()
 
         when:
-        project.load(git, jiraUseCase)
+        context.load(git, jiraUseCase)
 
         then:
-        !project.hasWipJiraIssues()
-        0 * project.reportPipelineStatus(*_)
+        !context.hasWipJiraIssues()
+        0 * context.reportPipelineStatus(*_)
 
         then:
-        project.getWipJiraIssues() == expected
+        context.getWipJiraIssues() == expected
     }
 
     def "get wip Jira issues for a collection of DONE issues"() {
         setup:
         def data = [project: [:], components: [:]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             data[type] = [
                 "${type}-1": [
                     status: "DONE"
@@ -677,11 +677,11 @@ class ProjectSpec extends SpecHelper {
         }
 
         def expected = [docChapters: [:]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = []
         }
 
-        project = createProject([
+        context = createContext([
             "loadJiraData": {
                 return data
             },
@@ -701,20 +701,20 @@ class ProjectSpec extends SpecHelper {
         ]).init()
 
         when:
-        project.load(git, jiraUseCase)
+        context.load(git, jiraUseCase)
 
         then:
-        !project.hasWipJiraIssues()
-        0 * project.reportPipelineStatus(*_)
+        !context.hasWipJiraIssues()
+        0 * context.reportPipelineStatus(*_)
 
         then:
-        project.getWipJiraIssues() == expected
+        context.getWipJiraIssues() == expected
     }
 
     def "get wip Jira issues for a mixed collection of DONE and other issues"() {
         setup:
         def data = [project: [:], components: [:]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             data[type] = [
                 "${type}-1": [
                     status: "TODO"
@@ -729,16 +729,16 @@ class ProjectSpec extends SpecHelper {
         }
 
         def expected = [docChapters: [:]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = [ "${type}-1", "${type}-2" ]
         }
 
         def expectedMessage = "Pipeline-generated documents are watermarked '${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' since the following issues are work in progress:"
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
         }
 
-        project = createProject([
+        context = createContext([
             "loadJiraData": {
                 return data
             },
@@ -758,29 +758,29 @@ class ProjectSpec extends SpecHelper {
         ]).init()
 
         when:
-        project.load(git, jiraUseCase)
+        context.load(git, jiraUseCase)
 
         then:
-        project.hasWipJiraIssues()
-        1 * project.addCommentInReleaseStatus(expectedMessage)
+        context.hasWipJiraIssues()
+        1 * context.addCommentInReleaseStatus(expectedMessage)
 
         then:
-        project.getWipJiraIssues() == expected
+        context.getWipJiraIssues() == expected
     }
 
     def "get wip Jira issues for a collection of document chapters"() {
         setup:
         def data = [project: [:], components: [:]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             data[type] = [:]
         }
 
         def expected = [docChapters: ["myDocumentType": ["docChapters-1", "docChapters-2"]]]
-        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+        Context.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = []
         }
 
-        project = createProject([
+        context = createContext([
             "loadJiraData": {
                 return data
             },
@@ -790,15 +790,15 @@ class ProjectSpec extends SpecHelper {
         ]).init()
 
         when:
-        project.load(git, jiraUseCase)
+        context.load(git, jiraUseCase)
 
-        project.data.jira.undone.docChapters["myDocumentType"] = ["docChapters-1", "docChapters-2"]
-
-        then:
-        project.hasWipJiraIssues()
+        context.data.jira.undone.docChapters["myDocumentType"] = ["docChapters-1", "docChapters-2"]
 
         then:
-        project.getWipJiraIssues() == expected
+        context.hasWipJiraIssues()
+
+        then:
+        context.getWipJiraIssues() == expected
     }
 
     def "load"() {
@@ -849,10 +849,10 @@ class ProjectSpec extends SpecHelper {
         test2.risks = [risk1.key]
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        context.load(this.git, this.jiraUseCase)
 
         then:
-        1 * project.loadJiraData(_) >> [
+        1 * context.loadJiraData(_) >> [
             project     : [name: "my-project"],
             bugs        : [],
             components  : [(component1.key): component1],
@@ -865,15 +865,15 @@ class ProjectSpec extends SpecHelper {
             docs        : [(doc1.key): doc1]
         ]
 
-        1 * project.convertJiraDataToJiraDataItems(_)
-        1 * project.resolveJiraDataItemReferences(_)
-        1 * project.loadJiraDataBugs(_) >> createProjectJiraDataBugs()
-        1 * project.loadJiraDataDocs() >> createProjectJiraDataDocs()
-        1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
+        1 * context.convertJiraDataToJiraDataItems(_)
+        1 * context.resolveJiraDataItemReferences(_)
+        1 * context.loadJiraDataBugs(_) >> createContextJiraDataBugs()
+        1 * context.loadJiraDataDocs() >> createContextJiraDataDocs()
+        1 * context.loadJiraDataIssueTypes() >> createContextJiraDataIssueTypes()
         1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
         then:
-        def components = project.components
+        def components = context.components
         components.first() == component1
 
         // Unresolved references
@@ -903,21 +903,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param changeDescription"() {
         when:
         steps.env.changeDescription = null
-        def result = Project.loadBuildParams(steps)
+        def result = Context.loadBuildParams(steps)
 
         then:
         result.changeDescription == "UNDEFINED"
 
         when:
         steps.env.changeDescription = ""
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.changeDescription == "UNDEFINED"
 
         when:
         steps.env.changeDescription = "myDescription"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.changeDescription == "myDescription"
@@ -928,7 +928,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = null
         steps.env.environment = "dev"
         steps.env.version = "0.1"
-        def result = Project.loadBuildParams(steps)
+        def result = Context.loadBuildParams(steps)
 
         then:
         result.changeId == "UNDEFINED"
@@ -937,7 +937,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = ""
         steps.env.environment = "dev"
         steps.env.version = "0.1"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.changeId == "UNDEFINED"
@@ -946,7 +946,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = "myId"
         steps.env.environment = "dev"
         steps.env.version = "0.1"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.changeId == "myId"
@@ -955,21 +955,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param configItem"() {
         when:
         steps.env.configItem = null
-        def result = Project.loadBuildParams(steps)
+        def result = Context.loadBuildParams(steps)
 
         then:
         result.configItem == "UNDEFINED"
 
         when:
         steps.env.configItem = ""
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.configItem == "UNDEFINED"
 
         when:
         steps.env.configItem = "myItem"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.configItem == "myItem"
@@ -978,14 +978,14 @@ class ProjectSpec extends SpecHelper {
     def "load build param releaseStatusJiraIssueKey"() {
         when:
         steps.env.releaseStatusJiraIssueKey = "JIRA-1"
-        def result = Project.loadBuildParams(steps)
+        def result = Context.loadBuildParams(steps)
 
         then:
         result.releaseStatusJiraIssueKey == "JIRA-1"
 
         when:
         steps.env.releaseStatusJiraIssueKey = " JIRA-1 "
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.releaseStatusJiraIssueKey == "JIRA-1"
@@ -994,7 +994,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = "1"
         steps.env.configItem = "my-config-item"
         steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1004,7 +1004,7 @@ class ProjectSpec extends SpecHelper {
         steps.env.changeId = null
         steps.env.configItem = null
         steps.env.releaseStatusJiraIssueKey = null
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.releaseStatusJiraIssueKey == null
@@ -1013,21 +1013,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param targetEnvironment"() {
         when:
         steps.env.environment = null
-        def result = Project.loadBuildParams(steps)
+        def result = Context.loadBuildParams(steps)
 
         then:
         result.targetEnvironment == "dev"
 
         when:
         steps.env.environment = ""
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.targetEnvironment == "dev"
 
         when:
         steps.env.environment = "qa"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.targetEnvironment == "qa"
@@ -1036,21 +1036,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param targetEnvironmentToken"() {
         when:
         steps.env.environment = "dev"
-        def result = Project.loadBuildParams(steps)
+        def result = Context.loadBuildParams(steps)
 
         then:
         result.targetEnvironmentToken == "D"
 
         when:
         steps.env.environment = "qa"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.targetEnvironmentToken == "Q"
 
         when:
         steps.env.environment = "prod"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.targetEnvironmentToken == "P"
@@ -1059,21 +1059,21 @@ class ProjectSpec extends SpecHelper {
     def "load build param version"() {
         when:
         steps.env.version = null
-        def result = Project.loadBuildParams(steps)
+        def result = Context.loadBuildParams(steps)
 
         then:
         result.version == "WIP"
 
         when:
         steps.env.version = ""
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.version == "WIP"
 
         when:
         steps.env.version = "0.1"
-        result = Project.loadBuildParams(steps)
+        result = Context.loadBuildParams(steps)
 
         then:
         result.version == "0.1"
@@ -1089,13 +1089,13 @@ class ProjectSpec extends SpecHelper {
             }
         }
 
-        def projectObj = new Project(steps)
+        def projectObj = new Context(steps)
         projectObj.git = git
         projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira)
 
         def projectKey = "DEMO"
 
-        project = createProject([
+        context = createContext([
             "loadJiraData": {
                 return projectObj.loadJiraData(projectKey)
             }
@@ -1103,7 +1103,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         docGenData = null
-        project.loadJiraData(projectKey)
+        context.loadJiraData(projectKey)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1111,7 +1111,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         docGenData = [:]
-        project.loadJiraData(projectKey)
+        context.loadJiraData(projectKey)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -1119,7 +1119,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         docGenData = [project: [:]]
-        project.loadJiraData(projectKey)
+        context.loadJiraData(projectKey)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -1127,7 +1127,7 @@ class ProjectSpec extends SpecHelper {
 
         when:
         docGenData = [project: [id: null]]
-        project.loadJiraData(projectKey)
+        context.loadJiraData(projectKey)
 
         then:
         e = thrown(IllegalArgumentException)
@@ -1135,14 +1135,14 @@ class ProjectSpec extends SpecHelper {
 
         when:
         docGenData = [project: [id: "4711"]]
-        def result = project.loadJiraData(projectKey)
+        def result = context.loadJiraData(projectKey)
 
         then:
         result.project.id == "4711"
 
         when:
         docGenData = [project: [id: 4711]]
-        result = project.loadJiraData(projectKey)
+        result = context.loadJiraData(projectKey)
 
         then:
         result.project.id == "4711"
@@ -1150,10 +1150,10 @@ class ProjectSpec extends SpecHelper {
 
     def "load metadata"() {
         when:
-        def result = project.loadMetadata()
+        def result = context.loadMetadata()
 
         // Verify annotations to the metadata.yml file are made
-        def expected = new Yaml().load(new File(Project.METADATA_FILE_NAME).text)
+        def expected = new Yaml().load(new File(Context.METADATA_FILE_NAME).text)
         expected.repositories.each { repo ->
             repo.branch = "master"
             repo.data = [ documents: [:] ]
@@ -1170,7 +1170,7 @@ class ProjectSpec extends SpecHelper {
 
     def "load metadata with invalid file"() {
         when:
-        project.loadMetadata(null)
+        context.loadMetadata(null)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1180,7 +1180,7 @@ class ProjectSpec extends SpecHelper {
     def "load project metadata with non-existent file"() {
         when:
         def filename = "non-existent"
-        project.loadMetadata(filename)
+        context.loadMetadata(filename)
 
         then:
         def e = thrown(RuntimeException)
@@ -1196,7 +1196,7 @@ class ProjectSpec extends SpecHelper {
             name: myName
         """
 
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1215,7 +1215,7 @@ class ProjectSpec extends SpecHelper {
             id: myId
         """
 
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1237,7 +1237,7 @@ class ProjectSpec extends SpecHelper {
               - id: A
         """
 
-        def result = project.loadMetadata(metadataFile.getAbsolutePath())
+        def result = context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         result.description == ""
@@ -1256,7 +1256,7 @@ class ProjectSpec extends SpecHelper {
             name: myName
         """
 
-        def result = project.loadMetadata(metadataFile.getAbsolutePath())
+        def result = context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         result.repositories == []
@@ -1277,7 +1277,7 @@ class ProjectSpec extends SpecHelper {
               - name: A
         """
 
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1292,7 +1292,7 @@ class ProjectSpec extends SpecHelper {
               - name: B
         """
 
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         e = thrown(IllegalArgumentException)
@@ -1314,7 +1314,7 @@ class ProjectSpec extends SpecHelper {
               - name: A
         """
 
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1329,7 +1329,7 @@ class ProjectSpec extends SpecHelper {
               - name: B
         """
 
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         e = thrown(IllegalArgumentException)
@@ -1342,7 +1342,7 @@ class ProjectSpec extends SpecHelper {
     def "load project metadata with LeVADocs"() {
         given:
         def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
-        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+        Context.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         metadataFile.text = """
             id: myId
@@ -1358,7 +1358,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        def result = project.init()
+        def result = context.init()
 
         then:
         result.getCapability("LeVADocs").GAMPCategory == 5
@@ -1371,7 +1371,7 @@ class ProjectSpec extends SpecHelper {
     def "load project metadata with LeVADocs capabilities but without templatesVersion"() {
         given:
         def metadataFile = Files.createTempFile("metadata", ".yml").toFile()
-        Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
+        Context.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         metadataFile.text = """
             id: myId
@@ -1386,7 +1386,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        def result = project.init()
+        def result = context.init()
 
         then:
         result.getCapability("LeVADocs").templatesVersion == "1.0"
@@ -1413,7 +1413,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1438,7 +1438,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.loadMetadata(metadataFile.getAbsolutePath())
+        context.loadMetadata(metadataFile.getAbsolutePath())
 
         then:
         def e = thrown(IllegalArgumentException)

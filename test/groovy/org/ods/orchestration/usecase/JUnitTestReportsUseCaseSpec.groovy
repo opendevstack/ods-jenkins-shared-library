@@ -6,22 +6,20 @@ import org.ods.orchestration.parser.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 
-import spock.lang.*
-
 import static util.FixtureHelper.*
 
 import util.*
 
 class JUnitTestReportsUseCaseSpec extends SpecHelper {
 
-    Project project
+    Context context
     IPipelineSteps steps
     JUnitTestReportsUseCase usecase
 
     def setup() {
-        project = createProject()
+        context = createContext()
         steps = Spy(util.PipelineSteps)
-        usecase = new JUnitTestReportsUseCase(project, steps)
+        usecase = new JUnitTestReportsUseCase(context, steps)
     }
 
     def "combine test results"() {
@@ -62,7 +60,7 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
         then:
         result == [
             testsuites: [
-                [ 
+                [
                     testcases: [
                         [ a: 1 ]
                     ]
@@ -143,7 +141,7 @@ class JUnitTestReportsUseCaseSpec extends SpecHelper {
         then:
         def expected = [
             testsuites: JUnitParser.parseJUnitXML(xmlFile.text).testsuites
-        ] 
+        ]
 
         result == expected
 

@@ -13,7 +13,7 @@ import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
-class Project {
+class Context {
 
     class JiraDataItem implements Map, Serializable {
         static final String TYPE_BUGS = "bugs"
@@ -153,7 +153,7 @@ class Project {
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
         private List<JiraDataItem> getResolvedReferences(String type) {
             // Reference this within jiraResolved (contains readily resolved references to other entities)
-            def item = Project.this.data.jiraResolved[this.type][this.key]
+            def item = Context.this.data.jiraResolved[this.type][this.key]
             return item[type] ?: []
         }
 
@@ -215,7 +215,7 @@ class Project {
 
     protected Map data = [:]
 
-    Project(IPipelineSteps steps, Map config = [:]) {
+    Context(IPipelineSteps steps, Map config = [:]) {
         this.steps = steps
         this.config = config
 
@@ -225,7 +225,7 @@ class Project {
         ]
     }
 
-    Project init() {
+    Context init() {
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
         return this
@@ -233,7 +233,7 @@ class Project {
 
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
-    Project load(GitService git, JiraUseCase jiraUseCase) {
+    Context load(GitService git, JiraUseCase jiraUseCase) {
         this.git = git
         this.jiraUseCase = jiraUseCase
 

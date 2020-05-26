@@ -8,13 +8,13 @@ import org.ods.services.NexusService
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 
 @SuppressWarnings(['AbstractClassWithPublicConstructor', 'LineLength', 'ParameterCount', 'GStringAsMapKey'])
 abstract class DocGenUseCase {
 
     static final String RESURRECTED = "resurrected"
-    protected Project project
+    protected Context context
     protected IPipelineSteps steps
     protected MROPipelineUtil util
     protected DocGenService docGen
@@ -22,8 +22,8 @@ abstract class DocGenUseCase {
     protected PDFUtil pdf
     protected JenkinsService jenkins
 
-    DocGenUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
-        this.project = project
+    DocGenUseCase(Context context, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, NexusService nexus, PDFUtil pdf, JenkinsService jenkins) {
+        this.context = context
         this.steps = steps
         this.util = util
         this.docGen = docGen
@@ -46,7 +46,7 @@ abstract class DocGenUseCase {
             document = this.pdf.addWatermarkText(document, watermarkText)
         }
 
-        def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
+        def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, this.context.buildParams.version, this.steps.env.BUILD_ID, repo)
 
         def pdfName = "${basename}.pdf"
         // Create an archive with the document and raw data
@@ -74,8 +74,8 @@ abstract class DocGenUseCase {
 
         // Store the archive as an artifact in Nexus
         def uri = this.nexus.storeArtifact(
-            this.project.services.nexus.repository.name,
-            "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
+            this.context.services.nexus.repository.name,
+            "${this.context.key.toLowerCase()}-${this.context.buildParams.version}",
             "${basename}.zip",
             archive,
             "application/zip"
@@ -95,7 +95,7 @@ abstract class DocGenUseCase {
         def documents = []
         def sections = []
 
-        this.project.repositories.each { repo ->
+        this.context.repositories.each { repo ->
             def documentName = repo.data.documents[documentType]
 
             if (documentName) {
@@ -131,7 +131,7 @@ abstract class DocGenUseCase {
         def result = this.createDocument(coverType, null, data, [:], modifier, documentType, watermarkText)
 
         // Clean up previously stored documents
-        this.project.repositories.each { repo ->
+        this.context.repositories.each { repo ->
             repo.data.documents.remove(documentType)
         }
 
@@ -139,7 +139,7 @@ abstract class DocGenUseCase {
     }
 
     String getDocumentBasename(String documentType, String version, String build, Map repo = null) {
-        def result = this.project.key
+        def result = this.context.key
         if (repo) {
             result += "-${repo.id}"
         }
@@ -159,7 +159,7 @@ abstract class DocGenUseCase {
         } else {
             return [found: false]
         }
-        def buildVersion = this.project.buildParams.version
+        def buildVersion = this.context.buildParams.version
         def basename = getDocumentBasename(
             documentType, buildVersion, resurrectedBuild, repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
@@ -174,8 +174,8 @@ abstract class DocGenUseCase {
         String storedFileName = "${basename}.${storageType}"
         Map documentFromNexus =
             this.nexus.retrieveArtifact(
-                this.project.services.nexus.repository.name,
-                "${this.project.key.toLowerCase()}-${buildVersion}",
+                this.context.services.nexus.repository.name,
+                "${this.context.key.toLowerCase()}-${buildVersion}",
                 storedFileName, path)
 
         this.steps.echo "Document found: ${storedFileName} \r ${documentFromNexus}"
@@ -205,8 +205,8 @@ abstract class DocGenUseCase {
 
     URI storeDocument (String documentName, byte [] documentAsBytes, String contentType) {
         return this.nexus.storeArtifact(
-            this.project.services.nexus.repository.name,
-            "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
+            this.context.services.nexus.repository.name,
+            "${this.context.key.toLowerCase()}-${this.context.buildParams.version}",
             "${documentName}",
             documentAsBytes,
             contentType

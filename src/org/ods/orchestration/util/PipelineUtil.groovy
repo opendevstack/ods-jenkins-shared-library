@@ -18,12 +18,12 @@ class PipelineUtil {
     static final String SONARQUBE_BASE_DIR = 'sonarqube'
     static final String XUNIT_DOCUMENTS_BASE_DIR = 'xunit'
 
-    protected Project project
+    protected Context context
     protected IPipelineSteps steps
     protected GitService git
 
-    PipelineUtil(Project project, IPipelineSteps steps, GitService git) {
-        this.project = project
+    PipelineUtil(Context context, IPipelineSteps steps, GitService git) {
+        this.context = context
         this.steps = steps
         this.git = git
     }

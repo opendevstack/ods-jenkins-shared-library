@@ -78,8 +78,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private OpenShiftService os
     private SonarQubeUseCase sq
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
-        super(project, steps, util, docGen, nexus, pdf, jenkins)
+    LeVADocumentUseCase(Context context, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
+        super(context, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
         this.levaFiles = levaFiles
@@ -93,20 +93,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * @return
      */
     protected Map computeComponentMetadata(String documentType) {
-        return this.project.components.collectEntries { component ->
+        return this.context.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll("Technology-", "")
 
             def gitUrl = new GitService(this.steps).getOriginUrl()
             def isReleaseManagerComponent =
-                gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
+                gitUrl.endsWith("${this.context.key}-${normComponentName}.git".toLowerCase())
             if (isReleaseManagerComponent) {
                 return [ : ]
             }
 
-            def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
+            def repo_ = this.context.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
             if (!repo_) {
-                def repoNamesAndIds = this.project.repositories.collect{ [id: it.id, name: it.name] }
-                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'. Please check the metatada.yml file. In this file there are the following repositories configured: ${repoNamesAndIds}")
+                def repoNamesAndIds = this.context.repositories.collect{ [id: it.id, name: it.name] }
+                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.context.key}'. Please check the metatada.yml file. In this file there are the following repositories configured: ${repoNamesAndIds}")
             }
 
             def metadata = repo_.metadata
@@ -124,7 +124,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     references        : metadata.references ?: "N/A",
                     supplier          : metadata.supplier,
                     version           : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ?
-                                        this.project.buildParams.version :
+                                        this.context.buildParams.version :
                                         metadata.version,
                     requirements      : component.getResolvedSystemRequirements(),
                     softwareDesignSpec: component.getResolvedTechnicalSpecifications().findAll {
@@ -161,7 +161,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 throw new RuntimeException("Error: unable to load SonarQube reports for repo '${r.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
             }
 
-            def name = this.getDocumentBasename("SCRR-MD", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
+            def name = this.getDocumentBasename("SCRR-MD", this.context.buildParams.version, this.steps.env.BUILD_ID, r)
             def sqReportFile = sqReportFiles.first()
 
             def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
@@ -267,11 +267,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def requirements = this.project.getSystemRequirements()
+        def requirements = this.context.getSystemRequirements()
         def reqsWithNoGampTopic = requirements.findAll{ it.gampTopic == null }
         def reqsGroupedByGampTopic = requirements.findAll{ it.gampTopic != null }.groupBy { it.gampTopic.toLowerCase() }
         reqsGroupedByGampTopic << ["uncategorized": reqsWithNoGampTopic ]
@@ -309,21 +309,21 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createDIL(Map repo = null, Map data = null) {
         def documentType = DocumentType.DIL as String
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def bugs = this.project.getBugs().each { bug ->
+        def bugs = this.context.getBugs().each { bug ->
             bug.tests = bug.getResolvedTests()
         }
 
         def acceptanceTestBugs = bugs.findAll { bug ->
             bug.tests.findAll { test ->
-                test.testType == Project.TestType.ACCEPTANCE
+                test.testType == Context.TestType.ACCEPTANCE
             }
         }
 
         def integrationTestBugs = bugs.findAll { bug ->
             bug.tests.findAll { test ->
-                test.testType == Project.TestType.INTEGRATION
+                test.testType == Context.TestType.INTEGRATION
             }
         }
 
@@ -400,11 +400,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def unitTests = this.project.getAutomatedTestsTypeUnit()
+        def unitTests = this.context.getAutomatedTestsTypeUnit()
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -422,7 +422,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected List<Map> computeTestsWithRequirementsAndSpecs(List<Map> tests) {
         def obtainEnum = { category, value ->
-            return this.project.getEnumDictionary(category)[value as String]
+            return this.context.getEnumDictionary(category)[value as String]
         }
 
         tests.collect { testIssue ->
@@ -446,7 +446,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected List<Map> getReposWithUnitTestsInfo(List<Map> unitTests) {
         def componentTestMapping = computeComponentsUnitTests(unitTests)
-        this.project.repositories.collect{
+        this.context.repositories.collect{
             [
                 id: it.id,
                 description: it.metadata.description,
@@ -483,15 +483,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
+        def testIssues = this.context.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
 
         def obtainEnum = { category, value ->
-            return this.project.getEnumDictionary(category)[value as String]
+            return this.context.getEnumDictionary(category)[value as String]
         }
 
         def data_ = [
@@ -550,12 +550,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
-        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
+        def acceptanceTestIssues = this.context.getAutomatedTestsTypeAcceptance()
+        def integrationTestIssues = this.context.getAutomatedTestsTypeIntegration()
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
@@ -596,15 +596,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
         def obtainEnum = { category, value ->
-            return this.project.getEnumDictionary(category)[value as String]
+            return this.context.getEnumDictionary(category)[value as String]
         }
 
-        def risks = this.project.getRisks().collect { r ->
+        def risks = this.context.getRisks().collect { r ->
             def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
             def testsText = r.tests ? r.tests.join(", ") : "None"
             r.proposedMeasures = "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}"
@@ -635,7 +635,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return r
         }
 
-        def proposedMeasuresDesription = this.project.getRisks().collect { r ->
+        def proposedMeasuresDesription = this.context.getRisks().collect { r ->
             (r.getResolvedTests().collect {
                 if (!it) throw new IllegalArgumentException("Error: test for requirement ${r.key} could not be obtained. Check if all of ${r.tests.join(", ")} exist in JIRA")
                 [key: it.key, name: it.name, description: it.description, type: "test", referencesRisk: r.key]
@@ -644,12 +644,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
 
-        if (this.project.getProjectProperties()."PROJECT.USES_POO" == "true") {
+        if (this.context.getProjectProperties()."PROJECT.USES_POO" == "true") {
             sections."sec4s2s2" = [
                 usesPoo          : "true",
-                lowDescription   : this.project.getProjectProperties()."PROJECT.POO_CAT.LOW",
-                mediumDescription: this.project.getProjectProperties()."PROJECT.POO_CAT.MEDIUM",
-                highDescription  : this.project.getProjectProperties()."PROJECT.POO_CAT.HIGH"
+                lowDescription   : this.context.getProjectProperties()."PROJECT.POO_CAT.LOW",
+                mediumDescription: this.context.getProjectProperties()."PROJECT.POO_CAT.MEDIUM",
+                highDescription  : this.context.getProjectProperties()."PROJECT.POO_CAT.HIGH"
             ]
         }
 
@@ -686,12 +686,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def acceptanceTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeAcceptance(), ["key"])
-        def integrationTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeIntegration(), ["key"])
+        def acceptanceTestIssues = SortUtil.sortIssuesByProperties(this.context.getAutomatedTestsTypeAcceptance(), ["key"])
+        def integrationTestIssues = SortUtil.sortIssuesByProperties(this.context.getAutomatedTestsTypeIntegration(), ["key"])
         def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
 
         def data_ = [
@@ -755,11 +755,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
+        def installationTestIssues = this.context.getAutomatedTestsTypeInstallation()
 
         def testsGroupedByRepoType = groupTestsByRepoType(installationTestIssues)
 
@@ -778,7 +778,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories   : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories   : this.context.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections       : sections,
                 tests          : SortUtil.sortIssuesByProperties(installationTestIssues.collect { testIssue ->
                     [
@@ -809,15 +809,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
         def integrationTestData = data.tests.integration
-        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
+        def integrationTestIssues = this.context.getAutomatedTestsTypeIntegration()
 
         def acceptanceTestData = data.tests.acceptance
-        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
+        def acceptanceTestIssues = this.context.getAutomatedTestsTypeAcceptance()
 
         def matchedHandler = { result ->
             result.each { testIssue, testCase ->
@@ -899,12 +899,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
-        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
+        def integrationTestIssues = this.context.getAutomatedTestsTypeIntegration()
+        def acceptanceTestIssues = this.context.getAutomatedTestsTypeAcceptance()
 
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
@@ -949,11 +949,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
-        def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
+        def installationTestIssues = this.context.getAutomatedTestsTypeInstallation()
         def discrepancies = this.computeTestDiscrepancies("Installation Tests", installationTestIssues, installationTestData.testResults)
 
         def testsOfRepoTypeOdsCode = []
@@ -972,7 +972,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories      : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories      : this.context.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections          : sections,
                 tests             : SortUtil.sortIssuesByProperties(installationTestIssues.collect { testIssue ->
                     [
@@ -1018,12 +1018,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
         def componentsMetadata = SortUtil.sortIssuesByProperties(this.computeComponentMetadata(documentType).collect { it.value }, ["key"])
-        def systemDesignSpecifications = this.project.getTechnicalSpecifications()
+        def systemDesignSpecifications = this.context.getTechnicalSpecifications()
             .findAll { it.systemDesignSpec }
             .collect { techSpec ->
                 [
@@ -1064,7 +1064,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         sections."sec10".modules = modules
 
         // Code review report
-        def codeRepos = this.project.repositories.findAll{ it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+        def codeRepos = this.context.repositories.findAll{ it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
         def codeReviewReports = obtainCodeReviewReport(codeRepos)
 
         def modifier = { document ->
@@ -1087,7 +1087,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String getDocumentTemplateName(String documentType) {
-        def capability = this.project.getCapability("LeVADocs")
+        def capability = this.context.getCapability("LeVADocs")
         if (!capability) {
             return documentType
         }
@@ -1106,15 +1106,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                project_key : this.project.key,
-                repositories: this.project.repositories,
+                project_key : this.context.key,
+                repositories: this.context.repositories,
                 sections    : sections
             ]
         ]
@@ -1136,9 +1136,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
         if (!repo.data.openshift && repo.data.odsBuildArtifacts) {
             repo.data['openshift'] = [:]
@@ -1169,7 +1169,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Code review report - in the special case of NO jira ..
         def codeReviewReport
-        if (this.project.isAssembleMode && !this.jiraUseCase.jira &&
+        if (this.context.isAssembleMode && !this.jiraUseCase.jira &&
             repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase()) {
             def currentRepoAsList = [ repo ]
             codeReviewReport = obtainCodeReviewReport(currentRepoAsList)
@@ -1203,13 +1203,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
         def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+        this.context.data.jira.undone.docChapters[documentType] = sectionsNotDone
 
-        def systemRequirements = this.project.getSystemRequirements()
+        def systemRequirements = this.context.getSystemRequirements()
 
         // Compute the test issues we do not consider done (not successful)
         def testIssues = systemRequirements.collect { it.getResolvedTests() }.flatten().unique().findAll {
-            [Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION].contains(it.testType)
+            [Context.TestType.ACCEPTANCE, Context.TestType.INSTALLATION, Context.TestType.INTEGRATION].contains(it.testType)
         }
 
         this.computeTestDiscrepancies(null, testIssues, junit.combineTestResults([acceptanceTestData.testResults, installationTestData.testResults, integrationTestData.testResults]))
@@ -1218,7 +1218,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def hasFailingTestIssues = !testIssuesWip.isEmpty()
 
-        def watermarkText = this.getWatermarkText(documentType, hasFailingTestIssues || this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, hasFailingTestIssues || this.context.hasWipJiraIssues())
 
         systemRequirements = systemRequirements.collect { r ->
             [
@@ -1253,9 +1253,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
+        def sectionsNotDone = this.context.data.jira.undone.docChapters[documentType] ?: []
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
         def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
@@ -1270,9 +1270,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
         // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
+        def sectionsNotDone = this.context.data.jira.undone.docChapters[documentType] ?: []
 
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.context.hasWipJiraIssues())
 
         def visitor = { data_ ->
             // Prepend a section for the Jenkins build log
@@ -1296,12 +1296,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def components = test.getResolvedComponents()
             test.repoTypes = components.collect { component ->
                 def normalizedComponentName = component.name.replaceAll("Technology-", "")
-                def repository = project.repositories.find { repository ->
+                def repository = context.repositories.find { repository ->
                     [repository.id, repository.name].contains(normalizedComponentName)
                 }
 
                 if (!repository) {
-                    throw new IllegalArgumentException("Error: unable to find a repository definition with id or name equal to '${normalizedComponentName}' for Jira component '${component.name}' in project '${this.project.id}'.")
+                    throw new IllegalArgumentException("Error: unable to find a repository definition with id or name equal to '${normalizedComponentName}' for Jira component '${component.name}' in project '${this.context.id}'.")
                 }
 
                 return repository.type
@@ -1312,7 +1312,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     Map getDocumentMetadata(String documentTypeName, Map repo = null) {
-        def name = this.project.name
+        def name = this.context.name
         if (repo) {
             name += ": ${repo.id}"
         }
@@ -1320,13 +1320,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = [
             id            : null, // unused
             name          : name,
-            description   : this.project.description,
+            description   : this.context.description,
             type          : documentTypeName,
             version       : this.steps.env.RELEASE_PARAM_VERSION,
             date_created  : LocalDateTime.now().toString(),
-            buildParameter: this.project.buildParams,
-            git           : repo ? repo.data.git : this.project.gitData,
-            openShift     : [apiUrl: this.project.getOpenShiftApiUrl()],
+            buildParameter: this.context.buildParams,
+            git           : repo ? repo.data.git : this.context.gitData,
+            openShift     : [apiUrl: this.context.getOpenShiftApiUrl()],
             jenkins       : [
                 buildNumber: this.steps.env.BUILD_NUMBER,
                 buildUrl   : this.steps.env.BUILD_URL,
@@ -1342,12 +1342,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<String> getJiraTrackingIssueLabelsForDocumentType(String documentType) {
         def labels = []
 
-        def environment = this.project.buildParams.targetEnvironmentToken
+        def environment = this.context.buildParams.targetEnvironmentToken
         LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].get(documentType).each { label ->
             labels.add("Doc:${label}")
         }
 
-        if (this.project.isDeveloperPreviewMode()) {
+        if (this.context.isDeveloperPreviewMode()) {
             // Assumes that every document we generate along the pipeline has a tracking issue in Jira
             labels.add("Doc:${documentType}")
         }
@@ -1362,7 +1362,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String getWatermarkText(String documentType, boolean hasWipJiraIssues) {
         def result = null
 
-        if (this.project.isDeveloperPreviewMode()){
+        if (this.context.isDeveloperPreviewMode()){
             result = this.DEVELOPER_PREVIEW_WATERMARK
         }
 
@@ -1378,7 +1378,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return
 
         def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
-        def jiraIssues = this.project.getDocumentTrackingIssues(jiraDocumentLabels)
+        def jiraIssues = this.context.getDocumentTrackingIssues(jiraDocumentLabels)
 
         if (jiraIssues.isEmpty()) {
             throw new RuntimeException("Error: no Jira tracking issue associated with document type '${documentType}'.")
@@ -1390,7 +1390,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def metadata = this.getDocumentMetadata(documentType)
-        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        def documentationTrackingIssueFields = this.context.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields["Document Version"]
 
         jiraIssues.each { jiraIssue ->
@@ -1405,7 +1405,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String getDocumentTemplatesVersion() {
-        def capability = this.project.getCapability("LeVADocs")
+        def capability = this.context.getCapability("LeVADocs")
         return capability.templatesVersion
     }
 

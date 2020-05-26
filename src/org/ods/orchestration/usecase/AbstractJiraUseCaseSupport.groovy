@@ -1,17 +1,17 @@
 package org.ods.orchestration.usecase
 
 import org.ods.util.IPipelineSteps
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.Context
 
 @SuppressWarnings('AbstractClassWithPublicConstructor')
 abstract class AbstractJiraUseCaseSupport {
 
-    protected Project project
+    protected Context context
     protected IPipelineSteps steps
     protected JiraUseCase usecase
 
-    AbstractJiraUseCaseSupport(Project project, IPipelineSteps steps, JiraUseCase usecase) {
-        this.project = project
+    AbstractJiraUseCaseSupport(Context context, IPipelineSteps steps, JiraUseCase usecase) {
+        this.context = context
         this.steps = steps
         this.usecase = usecase
     }
