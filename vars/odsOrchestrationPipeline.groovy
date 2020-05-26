@@ -107,6 +107,7 @@ def call(Map config) {
     }
 }
 
+@SuppressWarnings('GStringExpressionWithinString')
 private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"

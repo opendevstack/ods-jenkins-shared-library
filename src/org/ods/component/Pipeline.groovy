@@ -4,12 +4,14 @@ import org.ods.services.GitService
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import groovy.json.JsonOutput
+import org.ods.util.AuthUtil
 
 class Pipeline implements Serializable {
 
@@ -23,10 +25,10 @@ class Pipeline implements Serializable {
     private final IPipelineSteps steps
     private IContext context
     private boolean notifyNotGreen = true
-    private boolean ciSkipEnabled  = true
+    private boolean ciSkipEnabled = true
     private boolean displayNameUpdateEnabled = true
     private boolean localCheckoutEnabled = true
-    private boolean bitbucketNotificationEnabled  = true
+    private boolean bitbucketNotificationEnabled = true
 
     Pipeline(def script, ILogger logger) {
         this.script = script
@@ -35,7 +37,8 @@ class Pipeline implements Serializable {
     }
 
     // Main entry point.
-    @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
+    @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity',
+        'MethodSize', 'GStringExpressionWithinString'])
     def execute(Map config, Closure stages) {
         logger.debug "-> ODS Component pipeline setup, debug mode? ${logger.debugMode}"
         if (!!script.env.MULTI_REPO_BUILD) {
@@ -85,7 +88,7 @@ class Pipeline implements Serializable {
                         // in VERY rare (> 7 parallel slaves, sometimes the env.X returns null)
                         def wtfEnvBug = 'null/'
                         if (config.image?.startsWith(wtfEnvBug)) {
-                            script.node ('master') {
+                            script.node('master') {
                                 config.image = config.image.
                                     replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}/")
                                 logger.warn ("Patched image via master env to: ${config.image}")
@@ -272,7 +275,7 @@ class Pipeline implements Serializable {
     def setupForMultiRepoBuild(def config) {
         logger.info '-> Detected multirepo orchestration pipeline build'
         config.localCheckoutEnabled = false
-        config.displayNameUpdateEnabled  = false
+        config.displayNameUpdateEnabled = false
         config.ciSkipEnabled = false
         config.notifyNotGreen = false
         config.sonarQubeBranch = '*'
@@ -331,16 +334,15 @@ class Pipeline implements Serializable {
                 def envExists = context.environmentExists(context.targetProject)
                 logger.debug(
                     "context.environment: ${context.environment}, " +
-                    "context.cloneSourceEnv: ${context.cloneSourceEnv}, " +
-                    "context.targetProject: ${context.targetProject}, " +
-                    "envExists: ${envExists}"
+                        "context.cloneSourceEnv: ${context.cloneSourceEnv}, " +
+                        "context.targetProject: ${context.targetProject}, " +
+                        "envExists: ${envExists}"
                 )
                 if (assumedEnvironments.contains(context.environment) && (envExists)) {
                     logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
                     return
                 }
             }
-
             if (context.environmentExists(context.targetProject)) {
                 logger.info "Target environment $context.targetProject exists already ..."
                 return
@@ -359,26 +361,25 @@ class Pipeline implements Serializable {
 
             logger.info 'Environment does not exist yet. Creating now ...'
             script.withCredentials(
-                [script.usernameColonPassword(credentialsId: context.credentialsId, variable: 'USERPASS')]
+                [script.usernamePassword(
+                    credentialsId: context.credentialsId,
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'PASSWORD')
+                ]
             ) {
-                def userPass = script.USERPASS.replace('$', '\'$\'')
-                def branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
+                String branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
                 logger.info "Calculated branch name: ${branchName}"
-                def scriptToUrls = context.getCloneProjectScriptUrls()
-                // NOTE: a for loop did not work here due to https://issues.jenkins-ci.org/browse/JENKINS-49732
-                scriptToUrls.each { scriptName, url ->
-                    script.sh(script: "curl --fail -s --user ${userPass} -G '${url}' -d raw -o '${scriptName}'")
-                }
+                downloadCloneScripts(context)
+                GitCredentialStore.configureAndStore(script, "${context.bitbucketUrl}",
+                    "${script.env.USERNAME}", "${script.env.PASSWORD}")
                 def debugMode = ''
                 if (context.getDebug()) {
                     debugMode = '--debug'
                 }
-                userPass = userPass.replace('@', '\\@')
                 script.sh(
                     script: """sh clone-project.sh \
                         -o ${context.openshiftHost} \
                         -b ${context.bitbucketHostWithoutScheme} \
-                        -c ${userPass} \
                         -p ${context.projectId} \
                         -s ${context.cloneSourceEnv} \
                         -gb ${branchName} \
@@ -387,6 +388,21 @@ class Pipeline implements Serializable {
                 )
                 logger.info 'Environment created!'
             }
+        }
+    }
+
+    private void downloadCloneScripts(def context) {
+        def scriptToUrls = context.getCloneProjectScriptUrls()
+        // NOTE: a for loop did not work here due to https://issues.jenkins-ci.org/browse/JENKINS-49732
+        scriptToUrls.each { scriptName, url ->
+            script.echo "curl --fail -s -G '${url}' -d raw -o '${scriptName}'"
+            String authHeader = AuthUtil.header(AuthUtil.SCHEME_BASIC,
+                script.env.USERNAME, script.env.PASSWORD)
+            script.sh(script: """set +x
+                        curl --fail -s \\
+                        --header \"${authHeader}\" \\
+                        -G '${url}' \\
+                        -d raw -o '${scriptName}'""")
         }
     }
 

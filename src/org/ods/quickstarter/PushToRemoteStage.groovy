@@ -1,5 +1,7 @@
 package org.ods.quickstarter
 
+import org.ods.util.GitCredentialStore
+
 class PushToRemoteStage extends Stage {
 
     protected String STAGE_NAME = 'Push to remote'
@@ -19,9 +21,11 @@ class PushToRemoteStage extends Stage {
                 usernameVariable: 'user'
             )]
         ) {
-            script.writeFile(
-                file: '/home/jenkins/.netrc',
-                text: "machine ${config.gitHost} login ${script.user} password ${script.pass}"
+            GitCredentialStore.configureAndStore(
+                script,
+                context.bitbucketUrl as String,
+                script.env.user as String,
+                script.env.pass as String
             )
         }
 

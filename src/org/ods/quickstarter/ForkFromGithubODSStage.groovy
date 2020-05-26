@@ -1,5 +1,7 @@
 package org.ods.quickstarter
 
+import org.ods.util.GitCredentialStore
+
 class ForkFromGithubODSStage extends Stage {
 
     protected String STAGE_NAME = 'Fork from ODS Github'
@@ -23,10 +25,10 @@ class ForkFromGithubODSStage extends Stage {
                 usernameVariable: 'user'
             )]
         ) {
-            script.writeFile(
-                file: '/home/jenkins/.netrc',
-                text: "machine ${config.gitHost} login ${script.user} password ${script.pass}"
-            )
+            GitCredentialStore.configureAndStore(script,
+                context.bitbucketUrl as String,
+                script.env.user as String,
+                script.env.pass as String)
         }
 
         def githubRepoUrl = "https://github.com/opendevstack/${config.odsComponent}.git"

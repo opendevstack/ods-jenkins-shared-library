@@ -8,6 +8,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 
+import org.ods.util.GitCredentialStore
 import org.ods.util.PipelineSteps
 
 import org.ods.util.Logger
@@ -147,17 +148,10 @@ class Stage {
                         passwordVariable: 'BITBUCKET_PW'
                     )]
                 ) {
-                    def bbUser = URLEncoder.encode(script.env.BITBUCKET_USER, 'UTF-8')
-                    def bbPwd = URLEncoder.encode(script.env.BITBUCKET_PW, 'UTF-8')
-                    def urlWithCredentials = bitbucket.url.replace('://', "://${bbUser}:${bbPwd}@")
-                    script.writeFile(
-                        file: "${script.env.HOME}/.git-credentials",
-                        text: urlWithCredentials
-                    )
-                    script.sh(
-                        script: 'git config --global credential.helper store',
-                        label: 'setup credential helper'
-                    )
+                    GitCredentialStore.configureAndStore(
+                        script, bitbucket.url as String,
+                        script.env.BITBUCKET_USER as String,
+                        script.env.BITBUCKET_PW as String)
                 }
                 block()
             }

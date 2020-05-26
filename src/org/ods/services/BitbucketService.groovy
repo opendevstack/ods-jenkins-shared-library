@@ -1,8 +1,14 @@
 package org.ods.services
 
 import org.ods.util.ILogger
+import com.cloudbees.groovy.cps.NonCPS
+import org.ods.util.AuthUtil
 
+@SuppressWarnings('PublicMethodsBeforeNonPublicMethods')
 class BitbucketService {
+
+    // file name used to write token secret yaml
+    static final String BB_TOKEN_SECRET = '.bb-token-secret.yml'
 
     private final def script
 
@@ -65,6 +71,22 @@ class BitbucketService {
             throw new IllegalArgumentException("Environment variable 'BITBUCKET_URL' is required")
         }
         config
+    }
+
+    @NonCPS
+    static String userTokenSecretYml(String tokenSecretName, String username, String password) {
+        """\
+          apiVersion: v1
+          data:
+            username: ${AuthUtil.base64(username)}
+            password: ${AuthUtil.base64(password)}
+          kind: Secret
+          type: kubernetes.io/basic-auth
+          metadata:
+            name: ${tokenSecretName}
+            labels:
+              credential.sync.jenkins.openshift.io: 'true'
+        """.stripIndent()
     }
 
     String getUrl() {
@@ -227,8 +249,8 @@ class BitbucketService {
     }
 
     @SuppressWarnings('LineLength')
-    private Map<String, String> createUserToken() {
-        def tokenMap = [username: '', password: '']
+    Map<String, String> createUserToken() {
+        Map<String, String> tokenMap = [username: '', password: '']
         def res = ''
         def payload = """{"name": "ods-jenkins-shared-library-${openShiftCdProject}", "permissions": ["PROJECT_WRITE", "REPO_WRITE"]}"""
         script.withCredentials(
@@ -238,24 +260,29 @@ class BitbucketService {
                 passwordVariable: 'PASSWORD'
             )]
         ) {
-            tokenMap['username'] = script.USERNAME
+            String username = script.env.USERNAME
+            tokenMap['username'] = username
+            String password = script.env.PASSWORD
+            String url = "${bitbucketUrl}/rest/access-tokens/1.0/users/${username.replace('@', '_')}"
+            script.echo "Requesting token via PUT ${url} with payload=${payload}"
             res = script.sh(
                 returnStdout: true,
-                script: """curl \\
+                script: """set +x; curl \\
                   --fail \\
                   --silent \\
-                  --user ${script.USERNAME.replace('$', '\'$\'')}:${script.PASSWORD.replace('$', '\'$\'')} \\
                   --request PUT \\
                   --header \"Content-Type: application/json\" \\
+                  --header \"${AuthUtil.header(AuthUtil.SCHEME_BASIC, username, password)}\" \\
                   --data '${payload}' \\
-                  ${bitbucketUrl}/rest/access-tokens/1.0/users/${script.USERNAME.replace('@', '_')}
+                  ${url}
                 """
             ).trim()
             try {
                 // call readJSON inside of withCredentials block,
                 // otherwise token will be displayed in output
                 def js = script.readJSON(text: res)
-                tokenMap['password'] = js['token']
+                String token = js['token']
+                tokenMap['password'] = token
             } catch (Exception ex) {
                 logger.warn "Could not understand API response. Error was: ${ex}"
             }
@@ -264,14 +291,15 @@ class BitbucketService {
     }
 
     private void createUserTokenSecret(String username, String password) {
+        String secretYml = userTokenSecretYml(tokenSecretName, username, password)
+        script.writeFile(
+            file: BB_TOKEN_SECRET,
+            text: secretYml
+        )
         script.sh """
-        set +x
-        oc -n ${openShiftCdProject} create secret generic ${tokenSecretName} \
-            --from-literal=password=${password} \
-            --from-literal=username=${username} \
-            --type=\"kubernetes.io/basic-auth\"
-        oc -n ${openShiftCdProject} label secret ${tokenSecretName} credential.sync.jenkins.openshift.io=true
-        """
+            oc -n ${openShiftCdProject} create -f ${BB_TOKEN_SECRET};
+            rm ${BB_TOKEN_SECRET}
+            """
     }
 
     private boolean basicAuthCredentialsIdExists(String credentialsId) {
