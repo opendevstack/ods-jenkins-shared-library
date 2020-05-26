@@ -82,6 +82,12 @@ class Pipeline implements Serializable {
                         if (!config.containsKey('podContainers') && !config.image) {
                             config.image = "${script.env.DOCKER_REGISTRY}/${config.imageStreamTag}"
                         }
+                        def wtfEnvBug = 'null/'
+                        if (config.image?.startsWith(wtfEnvBug)) {
+                            script.node ('master') {
+                                config.image?.replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}")
+                            }
+                        }
                         context.assemble()
                         // register services after context was assembled
                         logger.debug('-> Registering & loading global services')
