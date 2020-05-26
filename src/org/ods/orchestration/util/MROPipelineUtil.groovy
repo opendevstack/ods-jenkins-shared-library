@@ -359,7 +359,7 @@ class MROPipelineUtil extends PipelineUtil {
             repo.data?.odsBuildArtifacts?.remove('resurrected')
 
             def job
-            this.steps.node ('Master') {
+            this.steps.node('master') {
                 this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
                     job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
                 }
