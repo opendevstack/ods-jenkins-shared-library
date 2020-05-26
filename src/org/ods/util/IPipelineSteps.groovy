@@ -1,5 +1,6 @@
 package org.ods.util
 
+@SuppressWarnings('MethodCount')
 interface IPipelineSteps {
 
     void archiveArtifacts(String artifacts)
