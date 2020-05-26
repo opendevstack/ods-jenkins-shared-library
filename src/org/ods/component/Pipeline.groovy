@@ -85,12 +85,14 @@ class Pipeline implements Serializable {
                         def wtfEnvBug = 'null/'
                         if (config.image?.startsWith(wtfEnvBug)) {
                             script.node ('master') {
-                                config.image?.replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}/")
+                                config.image = config.image.
+                                    replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}/")
                             }
-                            script.echo ("Patched image via env to: ${config.image}")
+                            script.echo ("Patched image via master env to: ${config.image}")
                             // still?!
                             if (config.image.startsWith(wtfEnvBug)) {
-                                config.image?.replace(wtfEnvBug, "docker-registry.default.svc:5000/")
+                                config.image = config.image.
+                                    replace(wtfEnvBug, "docker-registry.default.svc:5000/")
                             }
                             script.echo ("Patched image via hardcode to: ${config.image}")
                         }
