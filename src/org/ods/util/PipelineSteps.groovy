@@ -51,6 +51,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         return this.context.load(path)
     }
 
+    def node(String name, def block) {
+        this.context.node (name, block)
+    }
+
     def sh(def args) {
         this.context.sh(args)
     }

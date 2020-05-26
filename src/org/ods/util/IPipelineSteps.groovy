@@ -20,6 +20,8 @@ interface IPipelineSteps {
 
     def load(String path)
 
+    def node(String name, Closure block)
+
     def sh(def args)
 
     void stage(String name, Closure block)

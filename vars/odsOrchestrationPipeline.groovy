@@ -35,7 +35,7 @@ def call(Map config) {
     boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
     def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
-    node {
+    node ('master'){
         // Clean workspace from previous runs
         [
             PipelineUtil.ARTIFACTS_BASE_DIR,
