@@ -92,7 +92,7 @@ class Pipeline implements Serializable {
                             // still?!
                             if (config.image.startsWith(wtfEnvBug)) {
                                 config.image = config.image.
-                                    replace(wtfEnvBug, "docker-registry.default.svc:5000/")
+                                    replace(wtfEnvBug, 'docker-registry.default.svc:5000/')
                             }
                             script.echo ("Patched image via hardcode to: ${config.image}")
                         }
