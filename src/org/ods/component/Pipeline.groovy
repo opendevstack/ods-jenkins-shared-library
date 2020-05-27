@@ -88,14 +88,14 @@ class Pipeline implements Serializable {
                             script.node ('master') {
                                 config.image = config.image.
                                     replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}/")
+                                script.echo ("Patched image via master env to: ${config.image}")
                             }
-                            script.echo ("Patched image via master env to: ${config.image}")
                             // still?!
                             if (config.image.startsWith(wtfEnvBug)) {
                                 config.image = config.image.
                                     replace(wtfEnvBug, 'docker-registry.default.svc:5000/')
+                                script.echo ("Patched image via hardcode to: ${config.image}")
                             }
-                            script.echo ("Patched image via hardcode to: ${config.image}")
                         }
                         context.assemble()
                         // register services after context was assembled
