@@ -33,6 +33,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
+    openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(_, _) >> 'bar-123'
     openShiftService.getLastBuildVersion(_) >> 123
     openShiftService.getBuildStatus(_) >> 'complete'
@@ -84,6 +85,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev', projectId: 'foo']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
+    openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(*_) >> 'bar-123'
     openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
@@ -125,6 +127,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev', "globalExtensionImageLabels" : [ "globalext": "extG" ]]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
+    openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(*_) >> 'overwrite-123'
     openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
