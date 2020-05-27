@@ -1276,10 +1276,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def visitor = { data_ ->
             // Prepend a section for the Jenkins build log
-            data_.sections.add(1, [
+            data_.sections.add(0, [
                 heading: "Installed Component Summary"
             ])
-            data_.sections.add(2, [
+            data_.sections.add(1, [
                 heading: "Jenkins Build Log"
             ])
 
