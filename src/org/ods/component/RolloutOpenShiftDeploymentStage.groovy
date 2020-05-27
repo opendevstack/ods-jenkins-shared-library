@@ -79,7 +79,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         if (!dcExists) {
-            script.error "DeploymentConfig '${config.resourceName}' does not exist."
+            script.error "DeploymentConfig '${config.resourceName}' does not exist. " +
+                'Verify that you have setup the OpenShift resource correctly ' +
+                'and/or set the "resourceName" option of the pipeline stage appropriately.'
         }
 
         def ownedImageStreams = openShift
@@ -88,7 +90,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def missingStreams = missingImageStreams(ownedImageStreams)
         if (missingStreams) {
             script.error "The following ImageStream resources  for DeploymentConfig '${config.resourceName}' " +
-                """do not exist: '${missingStreams.collect { "${it.repository}/${it.name}" }}'."""
+                """do not exist: '${missingStreams.collect { "${it.repository}/${it.name}" }}'. """ +
+                'Verify that you have setup the OpenShift resources correctly ' +
+                'and/or set the "resourceName" option of the pipeline stage appropriately.'
         }
 
         setImageTagLatest(ownedImageStreams)
