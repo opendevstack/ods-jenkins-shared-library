@@ -18,6 +18,7 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
     }
 
     void applyXunitTestResultsAsTestExecutionStatii(List testIssues, Map testResults) {
+        this.steps.echo ("usecases: ${this.zephyr} / ${this.usecase.jira}")
         if (!this.usecase.jira) return
         if (!this.zephyr) return
 
