@@ -9,6 +9,9 @@ class CreateOutputDirectoryStage extends Stage {
     }
 
     def run() {
+        if (script.fileExists(context.targetDir)) {
+            script.error "Target directory '${context.targetDir}' must not exist yet"
+        }
         script.sh(
             script: "mkdir -p ${context.targetDir}",
             label: "Create directory '${context.targetDir}'"

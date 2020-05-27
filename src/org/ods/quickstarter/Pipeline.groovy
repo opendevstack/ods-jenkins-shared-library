@@ -42,6 +42,8 @@ class Pipeline implements Serializable {
             config.cdUserCredentialsId = "${config.openShiftProject}-cd-user-with-password"
         }
         if (!config.targetDir) {
+            // Use componentId as some build tools (e.g. sbt) need to work in a directory
+            // having the same name as the application they target.
             config.targetDir = config.componentId
         }
         if (!config.podVolumes) {

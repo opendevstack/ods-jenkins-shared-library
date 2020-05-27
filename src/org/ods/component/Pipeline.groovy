@@ -157,8 +157,6 @@ class Pipeline implements Serializable {
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
                         }
-                        // in case autocloning is enabled the above will create the env
-                        // so we have to do this afterwards
                         context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
                     }
                 }
@@ -447,6 +445,7 @@ class Pipeline implements Serializable {
     }
 
     private void amendProjectAndComponentFromOrigin(Map config) {
+        logger.debug("Amending project / component based on Git origin URL")
         def block = {
             def origin
             try {
@@ -458,6 +457,7 @@ class Pipeline implements Serializable {
                 origin = (new OpenShiftService(steps, logger, projectName))
                     .getOriginUrlFromBuildConfig(bcName)
             }
+            logger.debug("Retrieved Git origin URL: ${origin}")
 
             def splittedOrigin = origin.split('/')
             def project = splittedOrigin[splittedOrigin.size() - 2]
