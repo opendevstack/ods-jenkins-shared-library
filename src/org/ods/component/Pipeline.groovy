@@ -82,6 +82,7 @@ class Pipeline implements Serializable {
                         if (!config.containsKey('podContainers') && !config.image) {
                             config.image = "${script.env.DOCKER_REGISTRY}/${config.imageStreamTag}"
                         }
+                        // in VERY rare (> 7 parallel slaves, sometimes the env.X returns null)
                         def wtfEnvBug = 'null/'
                         if (config.image?.startsWith(wtfEnvBug)) {
                             script.node ('master') {
@@ -152,12 +153,13 @@ class Pipeline implements Serializable {
                     }
 
                     if (context.environment) {
-                        context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
-
                         def autoCloneEnabled = !!context.cloneSourceEnv
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
                         }
+                        // in case autocloning is enabled the above will create the env
+                        // so we have to do this afterwards
+                        context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
                     }
                 }
             } catch (err) {
