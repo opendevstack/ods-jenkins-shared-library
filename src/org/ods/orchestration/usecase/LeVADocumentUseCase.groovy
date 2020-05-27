@@ -1276,7 +1276,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def visitor = { data_ ->
             // Prepend a section for the Jenkins build log
-            data_.sections.add(0, [
+            data_.sections.add(1, [
+                heading: "Installed Component Summary"
+            ])
+            data_.sections.add(2, [
                 heading: "Jenkins Build Log"
             ])
 
@@ -1284,6 +1287,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data_.jenkinsData = [
                 log: this.jenkins.getCurrentBuildLogAsText()
             ]
+
+            data_.repositories = this.project.repositories
         }
 
         def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, visitor, watermarkText)
