@@ -85,6 +85,12 @@ class BuildOpenShiftImageStage extends Stage {
 
         def imageLabels = assembleImageLabels()
         writeReleaseFile(imageLabels, config)
+
+        if (!buildConfigExists()) {
+            script.error "BuildConfig '${config.resourceName}' does not exist. " +
+                'Verify that you have setup the OpenShift resource correctly ' +
+                'and/or set the "resourceName" option of the pipeline stage appropriately.'
+        }
         patchBuildConfig(imageLabels)
 
         // Start and follow build of container image.
@@ -121,6 +127,10 @@ class BuildOpenShiftImageStage extends Stage {
             return "${STAGE_NAME} (${config.resourceName})"
         }
         STAGE_NAME
+    }
+
+    private boolean buildConfigExists() {
+        openShift.resourceExists('BuildConfig', config.resourceName)
     }
 
     private String getImageReference() {
