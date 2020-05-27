@@ -103,7 +103,7 @@ class NexusService {
         return this.baseURL.resolve("/repository/${repository}")
     }
 
-    @SuppressWarnings(['LineLength','JavaIoPackageAccess'])
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
     @NonCPS
     Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip

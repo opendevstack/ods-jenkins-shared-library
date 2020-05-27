@@ -2,10 +2,11 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.services.JenkinsService
-import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.usecase.JUnitTestReportsUseCase
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.util.PipelineSteps
 
 class TestStage extends Stage {
@@ -104,15 +105,15 @@ class TestStage extends Stage {
     }
 
     private Map getAcceptanceTestResults(def steps, Map repo) {
-        return this.getTestResults(steps, repo, "acceptance")
+        return this.getTestResults(steps, repo, 'acceptance')
     }
 
     private Map getInstallationTestResults(def steps, Map repo) {
-        return this.getTestResults(steps, repo, "installation")
+        return this.getTestResults(steps, repo, 'installation')
     }
 
     private Map getIntegrationTestResults(def steps, Map repo) {
-        return this.getTestResults(steps, repo, "integration")
+        return this.getTestResults(steps, repo, 'integration')
     }
 
     private Map getTestResults(def steps, Map repo, String type) {
@@ -127,7 +128,7 @@ class TestStage extends Stage {
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
             testReportsStashName,
             testReportsUnstashPath,
-            "JUnit XML Report"
+            'JUnit XML Report'
         )
         if (!hasStashedTestReports) {
             throw new RuntimeException(
@@ -142,7 +143,7 @@ class TestStage extends Stage {
             // Load JUnit test report files from path
             testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
-            testResults: junit.parseTestReportFiles(testReportFiles)
+            testResults: junit.parseTestReportFiles(testReportFiles),
         ]
     }
 

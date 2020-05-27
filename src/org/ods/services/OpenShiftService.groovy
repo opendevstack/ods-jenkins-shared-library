@@ -4,6 +4,7 @@ import groovy.json.JsonSlurperClassic
 
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+import java.security.SecureRandom
 
 @SuppressWarnings('MethodCount')
 class OpenShiftService {
@@ -62,7 +63,8 @@ class OpenShiftService {
     }
 
     static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
-        def routeName = 'test-route-' + (System.currentTimeMillis() + new Random().nextInt(1000))
+        def routeName = 'test-route-' + (System.currentTimeMillis() +
+            new SecureRandom().nextInt(1000))
         steps.sh (
             script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
             label: "create dummy route for extraction (${routeName})"
