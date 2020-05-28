@@ -63,7 +63,6 @@ def call(Map config) {
             userRemoteConfigs: scm.userRemoteConfigs,
         ])
 
-        //def steps = new PipelineSteps(this)
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
         def stageStartTime = System.currentTimeMillis()
 

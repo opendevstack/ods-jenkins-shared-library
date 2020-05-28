@@ -63,15 +63,19 @@ class BuildStage extends Stage {
             }
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        Closure generateDocuments = {
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        }
 
         // Execute phase for each repository
-        util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-            .each { group ->
-                group.failFast = true
-                script.parallel(group)
-            }
-
+        Closure executeRepos = {
+            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
+                .each { group ->
+                    group.failFast = true
+                    script.parallel(group)
+                }
+        }
+        executeInParallel(executeRepos, generateDocuments)
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
 
