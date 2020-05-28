@@ -55,10 +55,11 @@ class Stage {
     protected def runOnAgentPod(Project project, boolean condition, Closure block) {
         if (condition) {
             def git = ServiceRegistry.instance.get(GitService)
+            def stashStartTime = System.currentTimeMillis();
             script.dir(script.env.WORKSPACE) {
                 script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }
-
+            script.echo "stashing took ${System.currentTimeMillis() - stashStartTime}"
             def bitbucketHost = script.env.BITBUCKET_HOST
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
             script.echo "Starting orchestration pipeline slave pod '${podLabel}'"
@@ -67,7 +68,9 @@ class Stage {
                 def slaveStartTime = System.currentTimeMillis() - nodeStartTime
                 script.echo "Orchestration pipeline pod '${podLabel}' starttime: ${slaveStartTime}ms"
                 git.configureUser()
+                def unstashStartTime = System.currentTimeMillis();
                 script.unstash("wholeWorkspace")
+                script.echo "unstashing took ${System.currentTimeMillis() - unstashStartTime}"
                 script.withCredentials(
                     [script.usernamePassword(
                         credentialsId: project.services.bitbucket.credentials.id,
