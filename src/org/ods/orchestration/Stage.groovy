@@ -97,9 +97,11 @@ class Stage {
     def executeInParallel (Closure block1, Closure block2) {
         Map executors = [
             "${STAGE_NAME}": {
+                script.echo "starting block ${STAGE_NAME}"
                 block1()
             },
             'mro work': {
+                script.echo "starting block ${STAGE_NAME} -m"
                 block2()
             },
         ]
