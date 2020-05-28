@@ -45,11 +45,11 @@ class Logger implements ILogger, Serializable {
         def startTime = clockStore.get("${component}")
         if (!startTime) {
             clockStore << ["${component}" : System.currentTimeMillis()]
-            return "[${component}] ${message ? ': ' + message : ''}"
+            return "[${component}] ${message ?: message} "
         } else {
             def timeDuration = System.currentTimeMillis() - startTime
-            return "[${component}] ${message ? ': ' + message : ''}" +
-                "(${timeDuration} ms)"
+            return "[${component}] ${message ?: message} " +
+                "(took ${timeDuration} ms)"
         }
     }
 
