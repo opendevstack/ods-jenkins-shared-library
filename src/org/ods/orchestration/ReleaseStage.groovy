@@ -28,13 +28,19 @@ class ReleaseStage extends Stage {
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        Closure generateDocuments = {
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        }
 
-        util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-            .each { group ->
-                group.failFast = true
-                script.parallel(group)
-            }
+        // Execute phase for each repository
+        Closure executeRepos = {
+            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
+                .each { group ->
+                    group.failFast = true
+                    script.parallel(group)
+                }
+        }
+        executeInParallel(executeRepos, generateDocuments)
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
