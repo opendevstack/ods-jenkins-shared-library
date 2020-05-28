@@ -59,7 +59,7 @@ class Stage {
             script.dir(script.env.WORKSPACE) {
                 script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }
-            script.echo "stashing took ${System.currentTimeMillis() - stashStartTime}"
+            script.echo "Stashing workspace took ${System.currentTimeMillis() - stashStartTime}ms"
             def bitbucketHost = script.env.BITBUCKET_HOST
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
             script.echo "Starting orchestration pipeline slave pod '${podLabel}'"
@@ -70,7 +70,7 @@ class Stage {
                 git.configureUser()
                 def unstashStartTime = System.currentTimeMillis();
                 script.unstash("wholeWorkspace")
-                script.echo "unstashing took ${System.currentTimeMillis() - unstashStartTime}"
+                script.echo "Unstashing workspace took ${System.currentTimeMillis() - unstashStartTime}ms"
                 script.withCredentials(
                     [script.usernamePassword(
                         credentialsId: project.services.bitbucket.credentials.id,
