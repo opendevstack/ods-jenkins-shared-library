@@ -6,6 +6,7 @@ import org.yaml.snakeyaml.Yaml
 
 import java.nio.file.Paths
 
+@SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
 class Project {
 
     protected IPipelineSteps steps
