@@ -61,10 +61,10 @@ class FinalizeStage extends Stage {
             // record release manager repo state
             if (project.isAssembleMode && !project.isWorkInProgress) {
                 util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
-                // add the tag commit that was created for traceability ..
-                GitService gitUtl = ServiceRegistry.instance.get(GitService)
-                project.gitData.createdExecutionCommit = gitUtl.commitSha
             }
+            // add the tag commit that was created for traceability ..
+            GitService gitUtl = ServiceRegistry.instance.get(GitService)
+            project.gitData.createdExecutionCommit = gitUtl.commitSha
         }
 
         if (project.isAssembleMode && !project.isWorkInProgress) {
