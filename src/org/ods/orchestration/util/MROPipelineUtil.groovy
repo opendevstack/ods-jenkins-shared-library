@@ -226,7 +226,7 @@ class MROPipelineUtil extends PipelineUtil {
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             repo.data['openshift'] = [deployments: [:]]
             if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
+                repo.data?.odsBuildArtifacts?.resurrected) {
                 steps.echo("Current deployment for '${repo.id}' is based on" +
                     ' latest deployment information, leaving ...')
                 def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
