@@ -22,7 +22,8 @@ def call(Map config) {
         .socketTimeout(1200000)
         .connectTimeout(120000)
 
-    Project project
+    def steps = new PipelineSteps(this)
+    Project project = new Project(steps)
     def repos = []
 
     def debug = config.get('debug', false)
@@ -62,7 +63,7 @@ def call(Map config) {
             userRemoteConfigs: scm.userRemoteConfigs,
         ])
 
-        def steps = new PipelineSteps(this)
+        //def steps = new PipelineSteps(this)
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
         def stageStartTime = System.currentTimeMillis()
 
