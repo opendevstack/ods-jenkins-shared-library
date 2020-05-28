@@ -47,7 +47,7 @@ class Logger implements ILogger, Serializable {
         def dumpMessage
         def startTime = clockStore[component]
         if (!startTime) {
-            clockStore << [component, System.currentTimeMillis()]
+            clockStore << [component : System.currentTimeMillis()]
             return dumpMessage = "[${component} - started]: ${message}"
         } else {
             def timeDuration = System.currentTimeMillis() - startTime
