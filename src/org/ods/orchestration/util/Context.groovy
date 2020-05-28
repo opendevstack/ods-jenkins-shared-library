@@ -4,11 +4,7 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
 
-import java.nio.file.Paths
-
-import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.usecase.*
-import org.yaml.snakeyaml.Yaml
 import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 
