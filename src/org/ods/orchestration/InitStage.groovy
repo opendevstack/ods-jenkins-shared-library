@@ -25,8 +25,6 @@ class InitStage extends Stage {
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
     def run() {
         def steps = new PipelineSteps(script)
-//        def project = new Project(steps)
-
         def git = new GitService(steps)
         git.configureUser()
 
