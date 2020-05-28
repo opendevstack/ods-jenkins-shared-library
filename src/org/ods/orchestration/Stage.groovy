@@ -97,6 +97,7 @@ class Stage {
         }
     }
 
+    @SuppressWarnings('GStringAsMapKey')
     def executeInParallel (Closure block1, Closure block2) {
         Map executors = [
             "${STAGE_NAME}": {

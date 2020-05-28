@@ -219,7 +219,7 @@ class GitService {
                 ).trim()
             if (!commitOfFile) {
                 return true
-            } 
+            }
             def filesChanged = script.sh(
                 script: """git diff ${commitOfFile} HEAD --name-only""",
                     returnStdout: true,
