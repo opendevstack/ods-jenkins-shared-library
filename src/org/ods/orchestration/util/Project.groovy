@@ -234,10 +234,7 @@ class Project {
 
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
-    Project load(GitService git, JiraUseCase jiraUseCase) {
-        this.git = git
-        this.jiraUseCase = jiraUseCase
-
+    Project initGitData (GitService git) {
         def version = this.data.buildParams.version
         def changeId = this.data.buildParams.changeId
         def targetEnvironmentToken = this.data.buildParams.targetEnvironmentToken
@@ -246,7 +243,7 @@ class Project {
         if (!getIsWorkInProgress()) {
             def tagList = git.readBaseTagList(version, changeId, targetEnvironmentToken)
             baseTag = GitTag.readLatestBaseTag(tagList, version, changeId, targetEnvironmentToken)
-
+  
             if (getIsAssembleMode()) {
                 if (baseTag) {
                     targetTag = baseTag.withNextBuildNumber()
@@ -261,7 +258,7 @@ class Project {
                 }
             }
         }
-
+  
         this.data.git = [
             commit: git.getCommitSha(),
             url: git.getOriginUrl(),
@@ -271,6 +268,11 @@ class Project {
             message: git.getCommitMessage(),
             time: git.getCommitTime()
         ]
+    }
+
+    Project load(GitService git, JiraUseCase jiraUseCase) {
+        this.git = git
+        this.jiraUseCase = jiraUseCase
 
         this.data.jira = [:]
         this.data.jira = this.loadJiraData(this.jiraProjectKey)

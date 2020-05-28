@@ -228,6 +228,7 @@ class InitStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
         steps.echo 'Checkout repositories into the workspace'
+        project.initGitData(registry.get(GitService))
         def repos = project.repositories
         Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
             steps.echo("Repository: ${repo}")
