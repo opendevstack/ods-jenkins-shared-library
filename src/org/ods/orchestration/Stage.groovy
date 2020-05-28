@@ -34,7 +34,7 @@ class Stage {
                     ).initCause(e)
                 }
 
-                script.echo(e.message)
+                script.echo("Error occured in the orchestration pipeline: ${e.message}")
 
                 try {
                     project.reportPipelineStatus(e.message, true)
