@@ -46,7 +46,7 @@ class Logger implements ILogger, Serializable {
     private def timedCall (String component, String message = null) {
         def startTime = clockStore[component]
         if (!startTime) {
-            clockStore << [component : System.currentTimeMillis()]
+            clockStore << ["${component}" : System.currentTimeMillis()]
             return "[${component} - started]: ${message}"
         } else {
             def timeDuration = System.currentTimeMillis() - startTime
