@@ -243,7 +243,7 @@ class Project {
         if (!getIsWorkInProgress()) {
             def tagList = git.readBaseTagList(version, changeId, targetEnvironmentToken)
             baseTag = GitTag.readLatestBaseTag(tagList, version, changeId, targetEnvironmentToken)
-  
+
             if (getIsAssembleMode()) {
                 if (baseTag) {
                     targetTag = baseTag.withNextBuildNumber()
@@ -258,7 +258,7 @@ class Project {
                 }
             }
         }
-  
+
         this.data.git = [
             commit: git.getCommitSha(),
             url: git.getOriginUrl(),
@@ -268,6 +268,7 @@ class Project {
             message: git.getCommitMessage(),
             time: git.getCommitTime()
         ]
+        this.steps.echo "Using release manager commit: ${this.data.git.commit}"
     }
 
     Project load(GitService git, JiraUseCase jiraUseCase) {

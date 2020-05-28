@@ -225,22 +225,6 @@ class MROPipelineUtil extends PipelineUtil {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             repo.data['openshift'] = [deployments: [:]]
-            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                repo.data?.odsBuildArtifacts?.resurrected) {
-                steps.echo("Current deployment for '${repo.id}' is based on" +
-                    ' latest deployment information, leaving ...')
-                def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
-                deployments.each { deploymentName, deployment ->
-                    def latestVersion = os.getLatestVersion(deploymentName)
-                    def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
-                    repo.data.openshift.deployments << ["${deploymentName}": pod]
-                    if (createdByJob) {
-                        repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
-                    }
-                }
-                tagAndPush(this.project.targetTag)
-                return
-            }
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->

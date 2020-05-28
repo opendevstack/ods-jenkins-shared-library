@@ -64,6 +64,7 @@ class FinalizeStage extends Stage {
             }
             // add the tag commit that was created for traceability ..
             GitService gitUtl = ServiceRegistry.instance.get(GitService)
+            script.echjo "Current release manager commit: ${project.gitData.commit}"
             project.gitData.createdExecutionCommit = gitUtl.commitSha
         }
 

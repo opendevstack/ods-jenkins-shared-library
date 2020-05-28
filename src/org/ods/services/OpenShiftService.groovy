@@ -316,6 +316,7 @@ class OpenShiftService {
             if (podStatus && podStatus == 'Running') {
                 break
             } else {
+                steps.echo("Could not find 'running' pod for deployment=${rc} - sleeping")
                 steps.sleep(60)
                 index--
             }
