@@ -148,7 +148,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
 @SuppressWarnings('GStringAsMapKey')
 private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    logger.debug("Stage to start mro slave: '${startMROStage ?: calculated}'" +
+    logger.debug("Stage to start mro slave: '${startMROStage}'" +
         " current: '${stage.STAGE_NAME}'")
     if (!startMROStage || !startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
         return stage.execute()
