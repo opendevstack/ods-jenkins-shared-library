@@ -712,6 +712,6 @@ class MROPipelineUtil extends PipelineUtil {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         return (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
             !areFilesOtherThanDeploymentDescriptorModified() &&
-            os.isOCPDeploymentBasedOnLatestRepoState(repo))
+            os.checkAndAmendRepoBasedOnDeploymentState(repo))
     }
 }

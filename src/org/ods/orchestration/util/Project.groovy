@@ -234,7 +234,11 @@ class Project {
 
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
-    Project initGitData (GitService git) {
+    Project initGitDataAndJiraUsecase(GitService git, JiraUseCase usecase) {
+        if (usecase) {
+            // add to notify jira back, even in this super early case
+            this.jiraUseCase = usecase
+        }
         def version = this.data.buildParams.version
         def changeId = this.data.buildParams.changeId
         def targetEnvironmentToken = this.data.buildParams.targetEnvironmentToken
