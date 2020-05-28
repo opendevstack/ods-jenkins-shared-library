@@ -37,24 +37,24 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
-        (DocumentType.CSD as String)        : "Combined Specification Document",
-        (DocumentType.DIL as String)        : "Discrepancy Log",
-        (DocumentType.DTP as String)        : "Software Development Testing Plan",
-        (DocumentType.DTR as String)        : "Software Development Testing Report",
-        (DocumentType.CFTP as String)       : "Combined Functional and Requirements Testing Plan",
-        (DocumentType.CFTR as String)       : "Combined Functional and Requirements Testing Report",
-        (DocumentType.IVP as String)        : "Configuration and Installation Testing Plan",
-        (DocumentType.IVR as String)        : "Configuration and Installation Testing Report",
-        (DocumentType.RA as String)         : "Risk Assessment",
-        (DocumentType.TRC as String)        : "Traceability Matrix",
-        (DocumentType.SSDS as String)       : "System and Software Design Specification",
-        (DocumentType.TCP as String)        : "Test Case Plan",
-        (DocumentType.TCR as String)        : "Test Case Report",
-        (DocumentType.TIP as String)        : "Technical Installation Plan",
-        (DocumentType.TIR as String)        : "Technical Installation Report",
-        (DocumentType.OVERALL_DTR as String): "Overall Software Development Testing Report",
-        (DocumentType.OVERALL_IVR as String): "Overall Configuration and Installation Testing Report",
-        (DocumentType.OVERALL_TIR as String): "Overall Technical Installation Report"
+        (DocumentType.CSD as String)        : 'Combined Specification Document',
+        (DocumentType.DIL as String)        : 'Discrepancy Log',
+        (DocumentType.DTP as String)        : 'Software Development Testing Plan',
+        (DocumentType.DTR as String)        : 'Software Development Testing Report',
+        (DocumentType.CFTP as String)       : 'Combined Functional and Requirements Testing Plan',
+        (DocumentType.CFTR as String)       : 'Combined Functional and Requirements Testing Report',
+        (DocumentType.IVP as String)        : 'Configuration and Installation Testing Plan',
+        (DocumentType.IVR as String)        : 'Configuration and Installation Testing Report',
+        (DocumentType.RA as String)         : 'Risk Assessment',
+        (DocumentType.TRC as String)        : 'Traceability Matrix',
+        (DocumentType.SSDS as String)       : 'System and Software Design Specification',
+        (DocumentType.TCP as String)        : 'Test Case Plan',
+        (DocumentType.TCR as String)        : 'Test Case Report',
+        (DocumentType.TIP as String)        : 'Technical Installation Plan',
+        (DocumentType.TIR as String)        : 'Technical Installation Report',
+        (DocumentType.OVERALL_DTR as String): 'Overall Software Development Testing Report',
+        (DocumentType.OVERALL_IVR as String): 'Overall Configuration and Installation Testing Report',
+        (DocumentType.OVERALL_TIR as String): 'Overall Technical Installation Report',
     ]
 
     static GAMP_CATEGORY_SENSITIVE_DOCS = [
@@ -68,9 +68,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
     ]
 
-    public static String DEVELOPER_PREVIEW_WATERMARK = "Developer Preview"
-    public static String WORK_IN_PROGRESS_WATERMARK = "Work in Progress"
-    public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = "Attention: this document is work in progress!"
+    public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
+    public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
+    public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
 
     private JiraUseCase jiraUseCase
     private JUnitTestReportsUseCase junit
@@ -94,7 +94,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
      */
     protected Map computeComponentMetadata(String documentType) {
         return this.project.components.collectEntries { component ->
-            def normComponentName = component.name.replaceAll("Technology-", "")
+            def normComponentName = component.name.replaceAll('Technology-', '')
 
             def gitUrl = new GitService(this.steps).getOriginUrl()
             def isReleaseManagerComponent =
@@ -116,12 +116,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 [
                     key               : component.key,
                     componentName     : component.name,
-                    componentId       : metadata.id ?: "N/A - part of this application",
-                    componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? "ODS Component" : "Software",
+                    componentId       : metadata.id ?: 'N/A - part of this application',
+                    componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
                     odsRepoType       : repo_.type?.toLowerCase(),
                     description       : metadata.description,
                     nameOfSoftware    : metadata.name,
-                    references        : metadata.references ?: "N/A",
+                    references        : metadata.references ?: 'N/A',
                     supplier          : metadata.supplier,
                     version           : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ?
                                         this.project.buildParams.version :
@@ -161,14 +161,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 throw new RuntimeException("Error: unable to load SonarQube reports for repo '${r.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
             }
 
-            def name = this.getDocumentBasename("SCRR-MD", this.project.buildParams.version, this.steps.env.BUILD_ID, r)
+            def name = this.getDocumentBasename('SCRR-MD', this.project.buildParams.version, this.steps.env.BUILD_ID, r)
             def sqReportFile = sqReportFiles.first()
 
             def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
 
             // store doc - we may need it later for partial deployments
             if (!resurrectedDocument.found) {
-                def result = this.storeDocument("${name}.pdf", generatedSCRR, "application/pdf")
+                def result = this.storeDocument("${name}.pdf", generatedSCRR, 'application/pdf')
                 this.steps.echo "Stored 'SCRR' for later consumption -> ${result}"
             }
             return generatedSCRR
@@ -179,10 +179,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
         def result = [
-            discrepancies: "No discrepancies found.",
+            discrepancies: 'No discrepancies found.',
             conclusion   : [
-                summary  : "Complete success, no discrepancies",
-                statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred."
+                summary  : 'Complete success, no discrepancies',
+                statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred.",
             ]
         ]
 
@@ -224,12 +224,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Compute test discrepancies
         def isMajorDiscrepancy = failedTestIssues || unexecutedTestIssues || extraneousFailedTestCases
         if (isMajorDiscrepancy) {
-            result.discrepancies = "The following major discrepancies were found during testing."
-            result.conclusion.summary = "No success - major discrepancies found"
-            result.conclusion.statement = "Some discrepancies found as"
+            result.discrepancies = 'The following major discrepancies were found during testing.'
+            result.conclusion.summary = 'No success - major discrepancies found'
+            result.conclusion.statement = 'Some discrepancies found as'
 
             if (failedTestIssues || extraneousFailedTestCases) {
-                result.conclusion.statement += " tests did fail"
+                result.conclusion.statement += ' tests did fail'
             }
 
             if (failedTestIssues) {
@@ -244,13 +244,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 result.discrepancies += " Unexecuted tests: ${unexecutedTestIssues.collect { it.key }.join(', ')}."
 
                 if (failedTestIssues || extraneousFailedTestCases) {
-                    result.conclusion.statement += " and others were not executed"
+                    result.conclusion.statement += ' and others were not executed'
                 } else {
-                    result.conclusion.statement += " tests were not executed"
+                    result.conclusion.statement += ' tests were not executed'
                 }
             }
 
-            result.conclusion.statement += "."
+            result.conclusion.statement += '.'
         }
 
         return result
@@ -274,20 +274,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def requirements = this.project.getSystemRequirements()
         def reqsWithNoGampTopic = requirements.findAll{ it.gampTopic == null }
         def reqsGroupedByGampTopic = requirements.findAll{ it.gampTopic != null }.groupBy { it.gampTopic.toLowerCase() }
-        reqsGroupedByGampTopic << ["uncategorized": reqsWithNoGampTopic ]
+        reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic ]
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             [
-                gampTopic.replaceAll(" ", "").toLowerCase(),
+                gampTopic.replaceAll(' ', '').toLowerCase(),
                 SortUtil.sortIssuesByProperties(reqs.collect { req ->
                     [
                         key           : req.key,
-                        applicability : "Mandatory",
+                        applicability : 'Mandatory',
                         ursName       : req.name,
-                        ursDescription: req.description?: "",
-                        csName        : req.configSpec.name?: "N/A",
-                        csDescription : req.configSpec.description?: "",
-                        fsName        : req.funcSpec.name?: "N/A",
-                        fsDescription : req.funcSpec.description?: "",
+                        ursDescription: req.description?: '',
+                        csName        : req.configSpec.name?: 'N/A',
+                        csDescription : req.configSpec.description?: '',
+                        fsName        : req.funcSpec.name?: 'N/A',
+                        fsDescription : req.funcSpec.description?: '',
                     ]
                 }, ["key"])
             ]
@@ -1257,7 +1257,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        def uri = this.createOverallDocument("Overall-Cover", documentType, metadata, null, watermarkText)
+        def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -1277,10 +1277,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def visitor = { data_ ->
             // Prepend a section for the Jenkins build log
             data_.sections.add(0, [
-                heading: "Installed Component Summary"
+                heading: 'Installed Component Summary'
             ])
             data_.sections.add(1, [
-                heading: "Jenkins Build Log"
+                heading: 'Jenkins Build Log'
             ])
 
             // Add Jenkins build log data
@@ -1291,7 +1291,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data_.repositories = this.project.repositories
         }
 
-        def uri = this.createOverallDocument("Overall-TIR-Cover", documentType, metadata, visitor, watermarkText)
+        def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -1300,7 +1300,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return jiraTestIssues.collect { test ->
             def components = test.getResolvedComponents()
             test.repoTypes = components.collect { component ->
-                def normalizedComponentName = component.name.replaceAll("Technology-", "")
+                def normalizedComponentName = component.name.replaceAll('Technology-', '')
                 def repository = project.repositories.find { repository ->
                     [repository.id, repository.name].contains(normalizedComponentName)
                 }
@@ -1396,7 +1396,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def metadata = this.getDocumentMetadata(documentType)
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
-        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields["Document Version"]
+        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields['Document Version']
 
         jiraIssues.each { jiraIssue ->
             this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssue.key, [(documentationTrackingIssueDocumentVersionField.id): "${metadata.version}-${metadata.jenkins.buildNumber}"])
@@ -1406,11 +1406,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected List<Map> getSectionsNotDone (Map issues = [:]) {
         if (!issues) return []
-        return issues.values().findAll { !it.status?.equalsIgnoreCase("done") }
+        return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }
     }
 
     String getDocumentTemplatesVersion() {
-        def capability = this.project.getCapability("LeVADocs")
+        def capability = this.project.getCapability('LeVADocs')
         return capability.templatesVersion
     }
 
@@ -1424,7 +1424,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     Map getFiletypeForDocumentType (String documentType) {
         if (!documentType) {
-            throw new RuntimeException ("Cannot lookup Null docType for storage!")
+            throw new RuntimeException ('Cannot lookup Null docType for storage!')
         }
         Map defaultTypes = [storage: 'zip', content: 'pdf' ]
 
