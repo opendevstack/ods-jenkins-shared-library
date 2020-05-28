@@ -1,13 +1,12 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
-import org.ods.services.OpenShiftService
-import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
+import org.ods.services.OpenShiftService
+import org.ods.services.GitService
 import org.ods.util.PipelineSteps
 
 class FinalizeStage extends Stage {
@@ -64,7 +63,7 @@ class FinalizeStage extends Stage {
             }
             // add the tag commit that was created for traceability ..
             GitService gitUtl = ServiceRegistry.instance.get(GitService)
-            script.echjo "Current release manager commit: ${project.gitData.commit}"
+            script.echo "Current release manager commit: ${project.gitData.commit}"
             project.gitData.createdExecutionCommit = gitUtl.commitSha
         }
 
