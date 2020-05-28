@@ -68,8 +68,6 @@ class DeployStage extends Stage {
             }
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
-
         runOnAgentPod(project, agentPodCondition) {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
@@ -101,17 +99,24 @@ class DeployStage extends Stage {
                 }
             }
 
+            Closure generateDocuments = {
+                levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+            }
+
             // Execute phase for each repository
-            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-                .each { group ->
-                    group.failFast = true
-                    script.parallel(group)
-                }
+            Closure executeRepos = {
+                util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
+                    .each { group ->
+                        group.failFast = true
+                        script.parallel(group)
+                    }
+            }
+            executeInParallel(executeRepos, generateDocuments)
 
             // record release manager repo state
             if (project.isPromotionMode) {
                 if (git.remoteTagExists(project.targetTag)) {
-                    steps.echo("Skipping tag because it already exists.")
+                    steps.echo('Skipping tag because it already exists.')
                 } else {
                     util.tagAndPush(project.targetTag)
                 }

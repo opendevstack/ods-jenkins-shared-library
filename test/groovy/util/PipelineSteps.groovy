@@ -139,4 +139,8 @@ class PipelineSteps implements IPipelineSteps {
     def unwrap() {
       return [:]
     }
+
+    def node (String name, Closure block) {
+      block ()
+    }
 }

@@ -207,6 +207,41 @@ class GitService {
         return branchCheckStatus == 0
     }
 
+    boolean otherFilesChangedAfterCommitOfFile(String fileName, String openshiftDir) {
+        if (!script.fileExists(fileName)) {
+            return true
+        }
+        try {
+            def commitOfFile = script.sh(
+                script: """git log -1 --format=%H ${fileName}""",
+                    returnStdout: true,
+                    label: "Get commit of ${fileName}"
+                ).trim()
+            if (!commitOfFile) {
+                return true
+            }
+            def filesChanged = script.sh(
+                script: """git diff ${commitOfFile} HEAD --name-only""",
+                    returnStdout: true,
+                    label: "Get changes after commit ${commitOfFile}"
+                ).trim()
+            List files = filesChanged.normalize().readLines()
+            // remove with ${} does not work .. wtf..
+            def templateYml = openshiftDir + '/template.yml'
+            files.remove(templateYml)
+            if (files.size() == 0) {
+                script.echo ('Clean tree, no changes')
+                return false
+            } else {
+                script.echo ("Found modified files other than '${fileName}' " +
+                    "after commit '${commitOfFile}'\rFiles modified: '${files}'")
+                return true
+            }
+        } catch (err) {
+            return true
+        }
+    }
+
     def checkoutNewLocalBranch(String name) {
         // Local state might have a branch from previous, failed pipeline runs.
         // If so, we'd rather start from a clean state.

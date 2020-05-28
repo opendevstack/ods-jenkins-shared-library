@@ -230,9 +230,11 @@ class JiraUseCase {
         if (!this.jira) return
 
         steps.echo('Reporting unit test results to corresponding test cases in Jira for' +
-            " ${componentName}/type: ${testTypes}\rresults: ${testResults}")
+            " ${(componentName ?: 'project')}/type: '${testTypes}'\rresults: ${testResults}")
 
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
+        steps.echo("Found automated tests for ${(componentName ?: 'project')}/type: ${testTypes}:" +
+            "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
         this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
@@ -256,7 +258,7 @@ class JiraUseCase {
     void reportTestResultsForProject(List<String> testTypes, Map testResults) {
         // No componentName passed to method to get all automated issues from project
         this.reportTestResultsForComponent(
-            this.project.key, testTypes, testResults)
+            null, testTypes, testResults)
     }
 
     void updateJiraReleaseStatusBuildNumber() {

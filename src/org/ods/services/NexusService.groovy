@@ -9,6 +9,7 @@ import org.apache.http.client.utils.URIBuilder
 
 class NexusService {
 
+    static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
     final URI baseURL
 
     final String username
@@ -102,11 +103,11 @@ class NexusService {
         return this.baseURL.resolve("/repository/${repository}")
     }
 
-    @SuppressWarnings(['LineLength','JavaIoPackageAccess'])
+    @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
     @NonCPS
-    Map<URI, File> retrieveArtifact(String nexuseRepository, String nexusDirectory, String name, String extractionPath) {
+    Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
         // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
-        String urlToDownload = "${this.baseURL}/repository/${nexuseRepository}/${nexusDirectory}/${name}"
+        String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
         def restCall = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)
 
@@ -132,9 +133,22 @@ class NexusService {
         }
 
         return [
-            uri: this.baseURL.resolve("/repository/${nexuseRepository}/${nexusDirectory}/${name}"),
+            uri: this.baseURL.resolve("/repository/${nexusRepository}/${nexusDirectory}/${name}"),
             content: response.getBody(),
         ]
+    }
+
+    boolean groupExists(String nexusRepository, String groupName) {
+        String urlToDownload =
+            "${this.baseURL}/service/rest/v1/search?repository=${nexusRepository}&group=/${groupName}"
+        def response = Unirest.get("${urlToDownload}")
+            .basicAuth(this.username, this.password)
+            .asString()
+
+        response.ifFailure {
+            throw new RuntimeException ("Could not retrieve data from '${urlToDownload}'")
+        }
+        return !response.getBody().contains('\"items\" : [ ]')
     }
 
 }

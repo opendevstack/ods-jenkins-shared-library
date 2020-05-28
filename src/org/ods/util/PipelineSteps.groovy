@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+@SuppressWarnings('MethodCount')
 class PipelineSteps implements IPipelineSteps, Serializable {
 
     private final def context
@@ -49,6 +50,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
 
     def load(String path) {
         return this.context.load(path)
+    }
+
+    def node(String name, Closure block) {
+        this.context.node (name, block)
     }
 
     def sh(def args) {

@@ -225,22 +225,6 @@ class MROPipelineUtil extends PipelineUtil {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
             repo.data['openshift'] = [deployments: [:]]
-            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                os.checkForExistingValidDeploymentBasedOnStoredConfig(repo)) {
-                steps.echo("Current deployment for '${repo.id}' is based on" +
-                    ' latest deployment information, leaving ...')
-                def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
-                deployments.each { deploymentName, deployment ->
-                    def latestVersion = os.getLatestVersion(deploymentName)
-                    def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
-                    repo.data.openshift.deployments << ["${deploymentName}": pod]
-                    if (createdByJob) {
-                        repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
-                    }
-                }
-                tagAndPush(this.project.targetTag)
-                return
-            }
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->
@@ -349,14 +333,14 @@ class MROPipelineUtil extends PipelineUtil {
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
-            OpenShiftService os = ServiceRegistry.instance.get(OpenShiftService)
-            // only in case of a code component (that is deployed) do this check
-            if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-                this.project.isWorkInProgress &&
-                os.checkForExistingValidDeploymentBasedOnStoredConfig(
-                    repo, this.project.forceGlobalRebuild())) {
+            this.steps.echo("'${repo.id}' -> force? ${this.project.forceGlobalRebuild()}")
+            if (repo.data?.odsBuildArtifacts?.resurrected &&
+                !this.project.forceGlobalRebuild()) {
+                this.steps.echo("Repository '${repo.id}' is insync with OCP, " +
+                    'no need to rebuild')
                 return
             }
+            repo.data?.odsBuildArtifacts?.remove('resurrected')
 
             def job
             this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
@@ -364,8 +348,11 @@ class MROPipelineUtil extends PipelineUtil {
             }
             // Collect ODS build artifacts for repo
             repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
+            def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
             repo.data.odsBuildArtifacts.deployments <<
-                ["${JenkinsService.CREATED_BY_BUILD_STR}": this.steps.env.BUILD_URL]
+                [
+                    "${JenkinsService.CREATED_BY_BUILD_STR}": versionAndBuild
+                ]
             this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
 
             if (repo.data.odsBuildArtifacts?.failedStage) {
@@ -539,6 +526,11 @@ class MROPipelineUtil extends PipelineUtil {
                     baseTag: this.project.baseTag,
                     targetTag: this.project.targetTag
                 ]
+                def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+                loadPipelineConfig(repoPath, repo)
+                this.steps.dir(repoPath) {
+                    amendRepoForResurrection(repo)
+                }
 
                 if (postExecute) {
                     postExecute(this.steps, repo)
@@ -570,7 +562,7 @@ class MROPipelineUtil extends PipelineUtil {
         )
     }
 
-    void prepareCheckoutReposNamedJob(List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
+    Map prepareCheckoutReposNamedJob(List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
         repos.collectEntries { repo ->
             this.prepareCheckoutRepoNamedJob(repo, preExecute, postExecute)
         }
@@ -660,8 +652,9 @@ class MROPipelineUtil extends PipelineUtil {
                     }
                     // add the tag commit that was created for traceability ..
                     GitService gitUtl = ServiceRegistry.instance.get(GitService)
-                    repo.data.git.createdExecutionCommit = gitUtl.commitSha
-
+                    this.steps.dir(baseDir) {
+                        repo.data.git.createdExecutionCommit = gitUtl.commitSha
+                    }
                     if (postExecute) {
                         postExecute(this.steps, repo)
                     }
@@ -683,13 +676,6 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private void walkRepoDirectories(List<Map> repos, Closure visitor) {
-        repos.each { repo ->
-            // Apply the visitor to the repo at the repo's base dir
-            visitor("${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
-        }
-    }
-
     void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {
         this.project.setHasUnexecutedJiraTests(true)
         def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
@@ -703,4 +689,29 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
+    private void walkRepoDirectories(List<Map> repos, Closure visitor) {
+        repos.each { repo ->
+            // Apply the visitor to the repo at the repo's base dir
+            visitor("${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}", repo)
+        }
+    }
+
+    private boolean areFilesOtherThanDeploymentDescriptorModified () {
+        def openshiftDir = 'openshift-exported'
+        if (steps.fileExists('openshift')) {
+            openshiftDir = 'openshift'
+        }
+        GitService git = ServiceRegistry.instance.get(GitService)
+        steps.dir(openshiftDir) {
+            return git.otherFilesChangedAfterCommitOfFile(
+                ODS_DEPLOYMENTS_DESCRIPTOR, openshiftDir)
+        }
+    }
+
+    private boolean amendRepoForResurrection (def repo) {
+        def os = ServiceRegistry.instance.get(OpenShiftService)
+        return (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
+            !areFilesOtherThanDeploymentDescriptorModified() &&
+            os.checkAndAmendRepoBasedOnDeploymentState(repo))
+    }
 }

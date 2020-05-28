@@ -1,5 +1,6 @@
 package org.ods.util
 
+@SuppressWarnings('MethodCount')
 interface IPipelineSteps {
 
     void archiveArtifacts(String artifacts)
@@ -19,6 +20,8 @@ interface IPipelineSteps {
     void junit(Map config)
 
     def load(String path)
+
+    def node(String name, Closure block)
 
     def sh(def args)
 

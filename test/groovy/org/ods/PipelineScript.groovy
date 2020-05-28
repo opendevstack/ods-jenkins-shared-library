@@ -73,4 +73,14 @@ class PipelineScript {
     def zip (Map cfg) {
       
     }
+    
+    def parallel (Map executors) {
+        if (executors) {
+            executors.remove ('failFast')
+            executors.each { key, block -> 
+                println key
+                block ()
+            }
+        }
+    }
 }

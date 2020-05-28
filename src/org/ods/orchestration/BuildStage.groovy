@@ -1,12 +1,14 @@
 package org.ods.orchestration
 
-import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
-import org.ods.util.PipelineSteps
-import org.ods.services.ServiceRegistry
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.usecase.JUnitTestReportsUseCase
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.PipelineUtil
 import org.ods.services.JenkinsService
+import org.ods.services.ServiceRegistry
+import org.ods.util.PipelineSteps
 
 class BuildStage extends Stage {
 
@@ -56,20 +58,24 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
                 } else {
-                    steps.echo("Resurrected tests - no tests results will be reported to JIRA")
+                    steps.echo('Resurrected tests - no tests results will be reported to JIRA')
                 }
             }
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        Closure generateDocuments = {
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        }
 
         // Execute phase for each repository
-        util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-            .each { group ->
-                group.failFast = true
-                script.parallel(group)
-            }
-
+        Closure executeRepos = {
+            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
+                .each { group ->
+                    group.failFast = true
+                    script.parallel(group)
+                }
+        }
+        executeInParallel(executeRepos, generateDocuments)
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
 

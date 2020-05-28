@@ -4,6 +4,7 @@ import groovy.json.JsonSlurperClassic
 
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+import java.security.SecureRandom
 
 @SuppressWarnings('MethodCount')
 class OpenShiftService {
@@ -62,7 +63,8 @@ class OpenShiftService {
     }
 
     static String getApplicationDomainOfProject(IPipelineSteps steps, String project) {
-        def routeName = 'test-route-' + System.currentTimeMillis()
+        def routeName = 'test-route-' + (System.currentTimeMillis() +
+            new SecureRandom().nextInt(1000))
         steps.sh (
             script: "oc -n ${project} create route edge ${routeName} --service=dummy --port=80 | true",
             label: "create dummy route for extraction (${routeName})"
@@ -212,7 +214,7 @@ class OpenShiftService {
 
     String getBuildStatus(String buildId) {
         def buildStatus = 'unknown'
-        def retries = 3
+        def retries = 5
         for (def i = 0; i < retries; i++) {
             buildStatus = checkForBuildStatus(buildId)
             if (buildStatus == 'complete') {
@@ -314,6 +316,7 @@ class OpenShiftService {
             if (podStatus && podStatus == 'Running') {
                 break
             } else {
+                steps.echo("Could not find 'running' pod for deployment=${rc} - sleeping")
                 steps.sleep(60)
                 index--
             }
@@ -431,20 +434,16 @@ class OpenShiftService {
         ).trim()
     }
 
-    boolean checkForExistingValidDeploymentBasedOnStoredConfig (Map repo, boolean forceOverride = false) {
+    boolean checkAndAmendRepoBasedOnDeploymentState (Map repo) {
         def openshiftDir = 'openshift-exported'
         if (steps.fileExists('openshift')) {
             openshiftDir = 'openshift'
         }
 
         boolean forceRedo = !!repo.forceRebuild
-        if (forceOverride) {
-            steps.echo '> Global override to redeploy all components'
-            forceRedo = true
-        }
 
         this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
-            "'${project}' - force rebuild? ${forceRedo}")
+            "'${project}' - force local rebuild? ${forceRedo}")
         if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !forceRedo) {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
@@ -453,11 +452,14 @@ class OpenShiftService {
                     repo.data.odsBuildArtifacts = [ : ]
                 }
                 def build = deployments.get(JenkinsService.CREATED_BY_BUILD_STR)
-                if (build && build.contains('/')) {
-                    def resurrectedBuild = build.split('/').last()
-                    repo.data.odsBuildArtifacts.resurrected = resurrectedBuild
+                if (build) {
+                    def buildVersionKey = build.split('/')
+                    if (buildVersionKey.size() != 2) {
+                        return false
+                    }
+                    repo.data.odsBuildArtifacts.resurrected = build
                     repo.data.odsBuildArtifacts.deployments = deployments
-                    this.steps.echo "Using data from previous jenkins build: ${resurrectedBuild} " +
+                    this.steps.echo "Using data from previous jenkins build: ${build} " +
                         "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
                     return true
                 } else {

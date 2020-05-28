@@ -4,7 +4,7 @@ import org.ods.util.ILogger
 
 class JenkinsService {
 
-    public static final String CREATED_BY_BUILD_STR = "CREATED_BY_BUILD"
+    public static final String CREATED_BY_BUILD_STR = 'CREATED_BY_BUILD'
     private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
 
     private final def script

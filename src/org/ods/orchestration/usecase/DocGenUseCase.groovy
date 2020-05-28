@@ -155,13 +155,19 @@ abstract class DocGenUseCase {
         String resurrectedBuild
         if (!!repo.data.odsBuildArtifacts.resurrected) {
             resurrectedBuild = repo.data.odsBuildArtifacts.resurrected
-            this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild} for repo: ${repo.id}"
+            this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild}" +
+                " for repo: ${repo.id}"
         } else {
             return [found: false]
         }
-        def buildVersion = this.project.buildParams.version
+        def buildVersionKey = resurrectedBuild.split('/')
+        if (buildVersionKey.size() != 2) {
+            return [found: false]
+        }
+
+        def oldBuildVersion = buildVersionKey[0]
         def basename = getDocumentBasename(
-            documentType, buildVersion, resurrectedBuild, repo)
+            documentType, oldBuildVersion, buildVersionKey[1], repo)
         def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
 
         def fileExtensions = getFiletypeForDocumentType(documentType)
@@ -175,7 +181,7 @@ abstract class DocGenUseCase {
         Map documentFromNexus =
             this.nexus.retrieveArtifact(
                 this.project.services.nexus.repository.name,
-                "${this.project.key.toLowerCase()}-${buildVersion}",
+                "${this.project.key.toLowerCase()}-${oldBuildVersion}",
                 storedFileName, path)
 
         this.steps.echo "Document found: ${storedFileName} \r ${documentFromNexus}"

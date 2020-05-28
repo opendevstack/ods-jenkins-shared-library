@@ -2,10 +2,12 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.services.JenkinsService
-import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.usecase.JUnitTestReportsUseCase
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.util.PipelineSteps
 
 class TestStage extends Stage {
@@ -80,14 +82,19 @@ class TestStage extends Stage {
             }
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        Closure generateDocuments = {
+            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+        }
 
         // Execute phase for each repository
-        util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-            .each { group ->
-                group.failFast = true
-                script.parallel(group)
-            }
+        Closure executeRepos = {
+            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
+                .each { group ->
+                    group.failFast = true
+                    script.parallel(group)
+                }
+        }
+        executeInParallel(executeRepos, generateDocuments)
 
         // Parse all test report files into a single data structure
         globalData.tests.acceptance.testResults = junit.parseTestReportFiles(
@@ -104,15 +111,15 @@ class TestStage extends Stage {
     }
 
     private Map getAcceptanceTestResults(def steps, Map repo) {
-        return this.getTestResults(steps, repo, "acceptance")
+        return this.getTestResults(steps, repo, 'acceptance')
     }
 
     private Map getInstallationTestResults(def steps, Map repo) {
-        return this.getTestResults(steps, repo, "installation")
+        return this.getTestResults(steps, repo, 'installation')
     }
 
     private Map getIntegrationTestResults(def steps, Map repo) {
-        return this.getTestResults(steps, repo, "integration")
+        return this.getTestResults(steps, repo, 'integration')
     }
 
     private Map getTestResults(def steps, Map repo, String type) {
@@ -121,13 +128,13 @@ class TestStage extends Stage {
 
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
-        steps.echo("Collecting JUnit XML Reports for ${repo.id}")
+        steps.echo("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
         def testReportsStashName = "${type}-test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
             testReportsStashName,
             testReportsUnstashPath,
-            "JUnit XML Report"
+            'JUnit XML Report'
         )
         if (!hasStashedTestReports) {
             throw new RuntimeException(
@@ -142,7 +149,7 @@ class TestStage extends Stage {
             // Load JUnit test report files from path
             testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
-            testResults: junit.parseTestReportFiles(testReportFiles)
+            testResults: junit.parseTestReportFiles(testReportFiles),
         ]
     }
 

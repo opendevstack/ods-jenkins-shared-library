@@ -1,13 +1,12 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
-import org.ods.services.OpenShiftService
-import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
+import org.ods.services.OpenShiftService
+import org.ods.services.GitService
 import org.ods.util.PipelineSteps
 
 class FinalizeStage extends Stage {
@@ -48,20 +47,24 @@ class FinalizeStage extends Stage {
 
         def agentCondition = project.isAssembleMode && repos.size() > 0
         runOnAgentPod(project, agentCondition) {
-            // Execute phase for each repository
-            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-                .each { group ->
-                    group.failFast = true
-                    script.parallel(group)
-                }
+            // Execute phase for each repository - here in parallel, all repos
+            Map allRepos = [ : ]
+            util.prepareExecutePhaseForReposNamedJob(
+                phase, repos, preExecuteRepo, postExecuteRepo).each { group ->
+                allRepos << group
+            }
+
+            allRepos.failFast = true
+            script.parallel(allRepos)
 
             // record release manager repo state
             if (project.isAssembleMode && !project.isWorkInProgress) {
                 util.tagAndPushBranch(project.gitReleaseBranch, project.targetTag)
-                // add the tag commit that was created for traceability ..
-                GitService gitUtl = ServiceRegistry.instance.get(GitService)
-                project.gitData.createdExecutionCommit = gitUtl.commitSha
             }
+            // add the tag commit that was created for traceability ..
+            GitService gitUtl = ServiceRegistry.instance.get(GitService)
+            script.echo "Current release manager commit: ${project.gitData.commit}"
+            project.gitData.createdExecutionCommit = gitUtl.commitSha
         }
 
         if (project.isAssembleMode && !project.isWorkInProgress) {

@@ -22,15 +22,14 @@ class InitStage extends Stage {
         super(script, project, repos)
     }
 
-    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth'])
+    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
     def run() {
         def steps = new PipelineSteps(script)
-        def project = new Project(steps)
-
         def git = new GitService(steps)
         git.configureUser()
 
         // load build params
+        steps.echo('Loading orchestration build params ...')
         def buildParams = Project.loadBuildParams(steps)
         steps.echo("Release Manager Build Parameters: ${buildParams}")
 
@@ -121,7 +120,7 @@ class InitStage extends Stage {
                     )
                 )
 
-                if (project.hasCapability("Zephyr")) {
+                if (project.hasCapability('Zephyr')) {
                     registry.add(JiraZephyrService,
                         new JiraZephyrService(
                             script.env.JIRA_URL,
@@ -226,61 +225,85 @@ class InitStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
-        steps.echo 'Run Project#load'
-        project.load(registry.get(GitService), registry.get(JiraUseCase))
+        steps.echo 'Checkout repositories into the workspace'
+        project.initGitDataAndJiraUsecase(
+            registry.get(GitService), registry.get(JiraUseCase))
         def repos = project.repositories
-
-        bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-            'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
-
-        steps.echo 'Validate that for Q and P we have a valid version'
-        if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
-            && buildParams.version == 'WIP') {
-            throw new RuntimeException(
-                'Error: trying to deploy to Q or P without having defined a correct version. ' +
-                "${buildParams.version} version value is not allowed for those environments. " +
-                'If you are using Jira, please check that all values are set in the release manager issue. ' +
-                "Build parameters obtained: ${buildParams}"
-            )
+        Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
+            steps.echo("Repository: ${repo}")
         }
+        def setupStage = project.getKey() + ' setup'
+        reposToCheckout << [("${setupStage}"): {
+            steps.echo 'Run Project#load'
+            project.load(registry.get(GitService), registry.get(JiraUseCase))
 
-        if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
-            if (project.buildParams.targetEnvironmentToken == 'Q') {
-                steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
-            } else {
+            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
+
+            steps.echo 'Validate that for Q and P we have a valid version'
+            if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
+                && buildParams.version == 'WIP') {
                 throw new RuntimeException(
-                    "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
+                    'Error: trying to deploy to Q or P without having defined a correct version. ' +
+                    "${buildParams.version} version value is not allowed for those environments. " +
+                    'If you are using Jira, please check that all values are set in the release manager issue. ' +
+                    "Build parameters obtained: ${buildParams}"
                 )
             }
+
+            if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
+                if (project.buildParams.targetEnvironmentToken == 'Q') {
+                    steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
+                } else {
+                    throw new RuntimeException(
+                        "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
+                    )
+                }
+            }
+
+            def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
+
+            steps.echo 'Configure current build description'
+            script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
+                "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
+                "Project: ${project.key}, " +
+                "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
+                "Version: ${script.env.VERSION}"
+
+            def projectNexusKey = "${project.getKey()}-${project.buildParams.version}"
+            def nexusRepoExists = registry.get(NexusService).groupExists(
+                project.services.nexus.repository.name, projectNexusKey)
+            project.addConfigSetting(NexusService.NEXUS_REPO_EXISTS_KEY, nexusRepoExists)
+            steps.echo("Nexus repository for project/version '${projectNexusKey}'" +
+                " exists? ${nexusRepoExists}")
+
+            def os = registry.get(OpenShiftService)
+            project.setOpenShiftData(os.apiUrl)
+        }]
+        script.parallel(reposToCheckout)
+
+        // find best place for mro slave start
+        def stageToStartMRO
+        repos.each { repo ->
+            if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
+                stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
+            } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE &&
+                !repo.data?.odsBuildArtifacts?.resurrected) {
+                if (stageToStartMRO != MROPipelineUtil.PipelinePhases.TEST) {
+                    stageToStartMRO = MROPipelineUtil.PipelinePhases.BUILD
+                }
+            }
         }
-
-        def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
-
-        steps.echo 'Configure current build description'
-        script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
-            "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
-            "Project: ${project.key}, " +
-            "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
-            "Version: ${script.env.VERSION}"
-
-        steps.echo 'Checkout repositories into the workspace'
-        script.parallel(util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-            steps.echo("Repository: ${repo}")
-            steps.echo("Environment configuration: ${script.env.getEnvironment()}")
-        })
-
-        steps.echo "Load configs from each repo's release-manager.yml"
-        util.loadPipelineConfigs(repos)
-
+        if (!stageToStartMRO) {
+            steps.echo "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
+                "To change this, change 'startOrchestrationSlaveOnInit' to 'true'"
+            stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
+        }
         def os = registry.get(OpenShiftService)
-
-        project.setOpenShiftData(os.apiUrl)
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
         if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
-
             runOnAgentPod(project, true) {
-
                 def sourceEnv = project.buildParams.targetEnvironment
                 os.createVersionedDevelopmentEnvironment(project.key, sourceEnv)
 
@@ -347,7 +370,7 @@ class InitStage extends Stage {
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
-        return [project: project, repos: repos]
+        return [project: project, repos: repos, startMROSlave: stageToStartMRO]
     }
 
     private checkoutGitRef(String gitRef, def extensions) {
@@ -356,7 +379,7 @@ class InitStage extends Stage {
             branches: [[name: gitRef]],
             doGenerateSubmoduleConfigurations: false,
             extensions: extensions,
-            userRemoteConfigs: script.scm.userRemoteConfigs
+            userRemoteConfigs: script.scm.userRemoteConfigs,
         ])
     }
 

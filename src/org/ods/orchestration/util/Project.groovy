@@ -10,6 +10,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.usecase.*
 import org.yaml.snakeyaml.Yaml
 import org.ods.services.GitService
+import org.ods.services.NexusService
 import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
@@ -233,10 +234,11 @@ class Project {
 
     // CAUTION! This needs to be called from the root of the release manager repo.
     // Otherwise the Git information cannot be retrieved correctly.
-    Project load(GitService git, JiraUseCase jiraUseCase) {
-        this.git = git
-        this.jiraUseCase = jiraUseCase
-
+    Project initGitDataAndJiraUsecase(GitService git, JiraUseCase usecase) {
+        if (usecase) {
+            // add to notify jira back, even in this super early case
+            this.jiraUseCase = usecase
+        }
         def version = this.data.buildParams.version
         def changeId = this.data.buildParams.changeId
         def targetEnvironmentToken = this.data.buildParams.targetEnvironmentToken
@@ -270,6 +272,12 @@ class Project {
             message: git.getCommitMessage(),
             time: git.getCommitTime()
         ]
+        this.steps.echo "Using release manager commit: ${this.data.git.commit}"
+    }
+
+    Project load(GitService git, JiraUseCase jiraUseCase) {
+        this.git = git
+        this.jiraUseCase = jiraUseCase
 
         this.data.jira = [:]
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
@@ -1082,7 +1090,12 @@ class Project {
     }
 
     boolean forceGlobalRebuild () {
-        return !this.data.metadata.allowPartialRebuild
+        this.steps.echo("${config}")
+        return (this.data.metadata.allowPartialRebuild &&
+            this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
     }
 
+    void addConfigSetting (def key, def value) {
+        this.config.put(key, value)
+    }
 }
