@@ -22,16 +22,10 @@ class Logger implements ILogger, Serializable {
     }
 
     void debugClocked(String component, String message = null) {
-        if (!component) {
-            throw IllegalArgumentException ("Component can't be null!")
-        }
         debug(timedCall(component, message))
     }
 
     void infoClocked(String component, String message = null) {
-        if (!component) {
-            throw IllegalArgumentException ("Component can't be null!")
-        }
         info(timedCall(component, message))
     }
 
@@ -43,23 +37,19 @@ class Logger implements ILogger, Serializable {
         timedCall (component)
     }
 
+    @SuppressWarnings('GStringAsMapKey')
     private def timedCall (String component, String message = null) {
+        if (!component) {
+            throw IllegalArgumentException ("Component can't be null!")
+        }
         def startTime = clockStore.get("${component}")
         if (!startTime) {
             clockStore << ["${component}" : System.currentTimeMillis()]
-            if (message) {
-                return "[${component} - started]: ${message}"
-            } else {
-                return "[${component} - started]"
-            }
+            return "[${component}] ${message ? ': ' + message : ''}"
         } else {
             def timeDuration = System.currentTimeMillis() - startTime
-            if (message) {
-                return "[${component} - stopped]: ${message} " +
-                    "took ${timeDuration}ms"
-            } else {
-                return "[${component} - stopped] took ${timeDuration}ms"
-            }
+            return "[${component}] ${message ? ': ' + message : ''}" +
+                "(${timeDuration} ms)"
         }
     }
 

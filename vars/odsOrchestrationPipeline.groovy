@@ -140,7 +140,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         try {
             block()
         } finally {
-            logger.infoClocked('**** ENDED orchestration pipeline ****')
+            logger.infoClocked('ods-mro-pipeline', '**** ENDED orchestration pipeline ****')
         }
     }
 }
