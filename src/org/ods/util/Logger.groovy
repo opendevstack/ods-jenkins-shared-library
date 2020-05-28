@@ -39,11 +39,11 @@ class Logger implements ILogger, Serializable {
         debugOn
     }
 
-    void startClock(String component) {
-        timedCall
+    void startClocked(String component) {
+        timedCall (component)
     }
-    
-    private def timedCall (String component, String message) {
+
+    private def timedCall (String component, String message = null) {
         def dumpMessage
         def startTime = clockStore[component]
         if (!startTime) {
