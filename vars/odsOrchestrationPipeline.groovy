@@ -30,7 +30,7 @@ def call(Map config) {
     def repos = []
 
     def debug = config.get('debug', false)
-    ServiceRegistry.instance.add(new Logger(this, debug))
+    ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
 
     def odsImageTag = config.odsImageTag
