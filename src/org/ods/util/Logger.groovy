@@ -44,11 +44,15 @@ class Logger implements ILogger, Serializable {
     }
 
     private def timedCall (String component, String message = null) {
-        script.echo ("${component} > ${clockStore}")
         def startTime = clockStore.get(component)
+        script.echo ("${component} > ${clockStore} : ${clockStore.get(component)}")
         if (!startTime) {
             clockStore << ["${component}" : System.currentTimeMillis()]
-            return "[${component} - started]: ${message}"
+            if (message) {
+                return "[${component} - started]: ${message}"
+            } else {
+                return "[${component} - started]"
+            }
         } else {
             def timeDuration = System.currentTimeMillis() - startTime
             if (message) {
