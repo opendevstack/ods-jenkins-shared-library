@@ -226,7 +226,7 @@ class InitStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
-        steps.echo 'Run Project#load'
+        steps.echo 'Run Context#load'
         context.load(registry.get(GitService), registry.get(JiraUseCase))
         def repos = context.repositories
 

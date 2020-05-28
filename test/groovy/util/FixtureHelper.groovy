@@ -69,14 +69,13 @@ class FakeContext extends Context {
         return this
     }
 
+    protected Map loadMetadata(String filename = METADATA_FILE_NAME) {
+        return new FakeProject(this.steps).loadMetadata(filename)
+    }
+
     static List<String> getBuildEnvironment(IPipelineSteps steps, boolean debug) {
         def env = new EnvironmentVariables()
         return FixtureHelper.createContextBuildEnvironment(env)
-    }
-
-    protected URI getGitURLFromPath(String path, String remote) {
-        def url = "https://github.com/my-org/my-repo-A.git"
-        return new URIBuilder(url).build()
     }
 
     static Map loadBuildParams(IPipelineSteps steps) {
@@ -121,6 +120,14 @@ class FakeContext extends Context {
 
     void setRepositories(List repos) {
         this.data.metadata.repositories = repos
+    }
+}
+
+@InheritConstructors
+class FakeProject extends Project {
+    protected URI getGitURLFromPath(String path, String remote) {
+        def url = "https://github.com/my-org/my-repo-A.git"
+        return new URIBuilder(url).build()
     }
 }
 
