@@ -104,6 +104,6 @@ class Stage {
             },
         ]
         executors.failFast = true
-        parallel (executors)
+        script.parallel (executors)
     }
 }
