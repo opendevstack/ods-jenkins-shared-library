@@ -68,7 +68,7 @@ def call(Map config) {
             withEnv (envs) {
                 def result = new InitStage(this, context, repos).execute()
                 if (result) {
-                    context = result.project
+                    context = result.context
                     repos = result.repos
                 } else {
                     echo 'Skip pipeline as no context/repos computed'

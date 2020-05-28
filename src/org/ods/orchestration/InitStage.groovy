@@ -25,7 +25,7 @@ class InitStage extends Stage {
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth'])
     def run() {
         def steps = new PipelineSteps(script)
-        def project = new Context(steps)
+        def context = new Context(steps)
 
         def git = new GitService(steps)
         git.configureUser()
@@ -73,7 +73,7 @@ class InitStage extends Stage {
         }
 
         steps.echo 'Load build params and metadata file information'
-        project.init()
+        context.init()
 
         steps.echo 'Register global services'
         def logger = new Logger(steps, steps.env.DEBUG)
@@ -81,11 +81,11 @@ class InitStage extends Stage {
         registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
         registry.add(PipelineSteps, steps)
-        def util = new MROPipelineUtil(project, steps, git)
+        def util = new MROPipelineUtil(context, steps, git)
         registry.add(MROPipelineUtil, util)
-        registry.add(Context, project)
+        registry.add(Context, context)
 
-        def docGenUrl = script.env.DOCGEN_URL ?: "http://docgen.${project.key}-cd.svc:8080"
+        def docGenUrl = script.env.DOCGEN_URL ?: "http://docgen.${context.key}-cd.svc:8080"
         registry.add(DocGenService,
             new DocGenService(docGenUrl)
         )
@@ -105,10 +105,10 @@ class InitStage extends Stage {
             new LeVADocumentChaptersFileService(steps)
         )
 
-        if (project.services?.jira) {
+        if (context.services?.jira) {
             script.withCredentials(
                 [script.usernamePassword(
-                    credentialsId: project.services.jira.credentials.id,
+                    credentialsId: context.services.jira.credentials.id,
                     usernameVariable: 'JIRA_USERNAME',
                     passwordVariable: 'JIRA_PASSWORD'
                 )]
@@ -121,7 +121,7 @@ class InitStage extends Stage {
                     )
                 )
 
-                if (project.hasCapability("Zephyr")) {
+                if (context.hasCapability("Zephyr")) {
                     registry.add(JiraZephyrService,
                         new JiraZephyrService(
                             script.env.JIRA_URL,
@@ -145,7 +145,7 @@ class InitStage extends Stage {
             new OpenShiftService(
                 registry.get(PipelineSteps),
                 logger,
-                project.targetProject
+                context.targetProject
             )
         )
 
@@ -156,10 +156,10 @@ class InitStage extends Stage {
             registry.get(JiraService)
         )
 
-        if (project.hasCapability('Zephyr')) {
+        if (context.hasCapability('Zephyr')) {
             jiraUseCase.setSupport(
                 new JiraUseCaseZephyrSupport(
-                    project,
+                    context,
                     steps,
                     jiraUseCase,
                     registry.get(JiraZephyrService),
@@ -168,7 +168,7 @@ class InitStage extends Stage {
             )
         } else {
             jiraUseCase.setSupport(
-                new JiraUseCaseSupport(project, steps, jiraUseCase)
+                new JiraUseCaseSupport(context, steps, jiraUseCase)
             )
         }
 
@@ -217,9 +217,9 @@ class InitStage extends Stage {
 
         registry.add(BitbucketService, new BitbucketService(
             registry.get(PipelineSteps).unwrap(),
-            project.releaseManagerBitbucketHostUrl,
-            project.key,
-            project.services.bitbucket.credentials.id
+            context.releaseManagerBitbucketHostUrl,
+            context.key,
+            context.services.bitbucket.credentials.id
         ))
 
         BitbucketService bitbucket = registry.get(BitbucketService)
@@ -227,14 +227,14 @@ class InitStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
         steps.echo 'Run Project#load'
-        project.load(registry.get(GitService), registry.get(JiraUseCase))
-        def repos = project.repositories
+        context.load(registry.get(GitService), registry.get(JiraUseCase))
+        def repos = context.repositories
 
-        bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-            'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
+        bitbucket.setBuildStatus (steps.env.BUILD_URL, context.gitData.commit,
+            'INPROGRESS', "Release Manager for commit: ${context.gitData.commit}")
 
         steps.echo 'Validate that for Q and P we have a valid version'
-        if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
+        if (context.isPromotionMode && ['Q', 'P'].contains(context.buildParams.targetEnvironmentToken)
             && buildParams.version == 'WIP') {
             throw new RuntimeException(
                 'Error: trying to deploy to Q or P without having defined a correct version. ' +
@@ -244,23 +244,23 @@ class InitStage extends Stage {
             )
         }
 
-        if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
-            if (project.buildParams.targetEnvironmentToken == 'Q') {
-                steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
+        if (context.isPromotionMode && git.localTagExists(context.targetTag)) {
+            if (context.buildParams.targetEnvironmentToken == 'Q') {
+                steps.echo("WARNING: Deploying tag ${context.targetTag} again!")
             } else {
                 throw new RuntimeException(
-                    "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
+                    "Error: tag ${context.targetTag} already exists - it cannot be deployed again to P."
                 )
             }
         }
 
-        def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
+        def jobMode = context.isPromotionMode ? '(promote)' : '(assemble)'
 
         steps.echo 'Configure current build description'
         script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
             "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
-            "Project: ${project.key}, " +
-            "Target Environment: ${project.key}-${script.env.MULTI_REPO_ENV}, " +
+            "Project: ${context.key}, " +
+            "Target Environment: ${context.key}-${script.env.MULTI_REPO_ENV}, " +
             "Version: ${script.env.VERSION}"
 
         steps.echo 'Checkout repositories into the workspace'
@@ -274,18 +274,18 @@ class InitStage extends Stage {
 
         def os = registry.get(OpenShiftService)
 
-        project.setOpenShiftData(os.apiUrl)
+        context.setOpenShiftData(os.apiUrl)
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
-        if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
+        if (context.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
 
-            runOnAgentPod(project, true) {
+            runOnAgentPod(context, true) {
 
-                def sourceEnv = project.buildParams.targetEnvironment
-                os.createVersionedDevelopmentEnvironment(project.key, sourceEnv)
+                def sourceEnv = context.buildParams.targetEnvironment
+                os.createVersionedDevelopmentEnvironment(context.key, sourceEnv)
 
-                def envParamsFile = project.environmentParamsFile
-                def envParams = project.getEnvironmentParams(envParamsFile)
+                def envParamsFile = context.environmentParamsFile
+                def envParams = context.getEnvironmentParams(envParamsFile)
 
                 repos.each { repo ->
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
@@ -304,12 +304,12 @@ class InitStage extends Stage {
                                 label: "Ensure ${openshiftDir} exists"
                             )
                         }
-                        def componentSelector = "app=${project.key}-${repo.id}"
+                        def componentSelector = "app=${context.key}-${repo.id}"
                         steps.dir(openshiftDir) {
                             if (exportRequired) {
                                 steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
-                                (new OpenShiftService(steps, logger, "${project.key}-${sourceEnv}")).tailorExport(
+                                (new OpenShiftService(steps, logger, "${context.key}-${sourceEnv}")).tailorExport(
                                     componentSelector,
                                     envParams,
                                     targetFile
@@ -318,7 +318,7 @@ class InitStage extends Stage {
 
                             steps.echo(
                                 "Applying desired OpenShift state defined in ${openshiftDir} " +
-                                "to ${project.targetProject}."
+                                "to ${context.targetProject}."
                             )
                             def params = []
                             def preserve = []
@@ -333,7 +333,7 @@ class InitStage extends Stage {
                                     )
                             }
                             def jenkins = registry.get(JenkinsService)
-                            jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                            jenkins.maybeWithPrivateKeyCredentials(context.tailorPrivateKeyCredentialsId) { pkeyFile ->
                                 applyFunc(pkeyFile)
                             }
                         }
@@ -347,7 +347,7 @@ class InitStage extends Stage {
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
-        return [project: project, repos: repos]
+        return [context: context, repos: repos]
     }
 
     private checkoutGitRef(String gitRef, def extensions) {
