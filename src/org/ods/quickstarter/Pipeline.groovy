@@ -60,7 +60,16 @@ class Pipeline implements Serializable {
             config.buildTime = new Date()
             config.dockerRegistry = script.env.DOCKER_REGISTRY
 
-            // get nexus params
+            // Get Bitbucket params
+            if (script.env.BITBUCKET_URL) {
+                config.bitbucketUrl = script.env.BITBUCKET_URL
+                config.bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
+            } else if (script.env.BITBUCKET_HOST) {
+                config.bitbucketHost = script.env.BITBUCKET_HOST
+                config.bitbucketUrl = "https://${config.bitbucketHost}"
+            }
+
+            // Get Nexus params
             config.nexusHost = script.env.NEXUS_HOST
             config.nexusUsername = script.env.NEXUS_USERNAME
             config.nexusPassword = script.env.NEXUS_PASSWORD

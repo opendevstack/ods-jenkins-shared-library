@@ -91,6 +91,16 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getBitbucketUrl() {
+        config.bitbucketUrl
+    }
+
+    @NonCPS
+    String getBitbucketHost() {
+        config.bitbucketHost
+    }
+
+    @NonCPS
     String getNexusHost() {
         config.nexusHost
     }
