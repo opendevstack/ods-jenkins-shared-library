@@ -22,7 +22,7 @@ class Logger implements ILogger, Serializable {
     }
 
     void warn(String message) {
-        ansiColor('xterm') {
+        script.ansiColor('xterm') {
             info (message)
         }
     }
@@ -33,6 +33,10 @@ class Logger implements ILogger, Serializable {
 
     void infoClocked(String component, String message = null) {
         info(timedCall(component, message))
+    }
+
+    void warnClocked(String component, String message = null) {
+        warn(timedCall(component, message))
     }
 
     boolean getDebugMode () {
