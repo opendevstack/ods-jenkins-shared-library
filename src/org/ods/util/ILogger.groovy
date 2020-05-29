@@ -9,6 +9,8 @@ interface ILogger {
     void debugClocked(String component, String message)
     void infoClocked(String component, String message)
 
+    void warn(String message)
+
     boolean getDebugMode ()
 
 }

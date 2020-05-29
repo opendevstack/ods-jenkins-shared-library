@@ -21,6 +21,12 @@ class Logger implements ILogger, Serializable {
         script.echo message
     }
 
+    void warn(String message) {
+        ansiColor('xterm') {
+            info (message)
+        }
+    }
+
     void debugClocked(String component, String message = null) {
         debug(timedCall(component, message))
     }

@@ -58,11 +58,11 @@ class Stage {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         if (condition) {
             def git = ServiceRegistry.instance.get(GitService)
-            logger.startClocked("${project.id}-${STAGE_NAME}-stash")
+            logger.startClocked("${project.key}-${STAGE_NAME}-stash")
             script.dir(script.env.WORKSPACE) {
                 script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }
-            logger.debugClocked("${project.id}-${STAGE_NAME}-stash")
+            logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
             def bitbucketHost = script.env.BITBUCKET_HOST
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
             logger.debugClocked(podLabel, 'Starting orchestration pipeline slave pod')
@@ -71,9 +71,9 @@ class Stage {
                 def slaveStartTime = System.currentTimeMillis() - nodeStartTime
                 logger.debugClocked(podLabel)
                 git.configureUser()
-                logger.startClocked("${project.id}-${STAGE_NAME}-unstash")
+                logger.startClocked("${project.key}-${STAGE_NAME}-unstash")
                 script.unstash("wholeWorkspace")
-                logger.debugClocked("${project.id}-${STAGE_NAME}-unstash")
+                logger.debugClocked("${project.key}-${STAGE_NAME}-unstash")
                 script.withCredentials(
                     [script.usernamePassword(
                         credentialsId: project.services.bitbucket.credentials.id,

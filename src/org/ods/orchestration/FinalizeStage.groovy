@@ -71,12 +71,13 @@ class FinalizeStage extends Stage {
         }
 
         if (project.isAssembleMode && !project.isWorkInProgress) {
-            steps.echo("!!! CAUTION: Any future changes that should affect version '${project.buildParams.version}' " +
+            logger.warn("!!! CAUTION: Any future changes that should affect version " +
+                "'${project.buildParams.version}' " +
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
         // Dump a representation of the project
-        logger.debug(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
+        logger.debug("---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
