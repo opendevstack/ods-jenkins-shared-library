@@ -26,6 +26,8 @@ interface IContext {
 
     String getGitUrlHttp()
 
+    String getDockerRegistry()
+
     String getOdsNamespace()
 
     String getOdsImageTag()
