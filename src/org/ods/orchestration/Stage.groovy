@@ -4,6 +4,8 @@ import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 import org.ods.util.PipelineSteps
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 class Stage {
 
@@ -20,8 +22,9 @@ class Stage {
     }
 
     def execute() {
+        ILogger logger = ServiceRegistry.instance.get(Logger)
         script.stage(STAGE_NAME) {
-            script.echo "**** STARTING orchestration stage ${STAGE_NAME} ****"
+            logger.infoClocked ("${STAGE_NAME}", "**** STARTING orchestration stage ****")
             def stageStartTime = System.currentTimeMillis()
             try {
                 return this.run()
@@ -46,31 +49,31 @@ class Stage {
 
                 throw e
             } finally {
-                script.echo "**** ENDED orchestration stage ${STAGE_NAME} " +
-                    "(time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
+                logger.infoClocked ("${STAGE_NAME}", "**** ENDED orchestration stage ****")
             }
         }
     }
 
     protected def runOnAgentPod(Project project, boolean condition, Closure block) {
+        ILogger logger = ServiceRegistry.instance.get(Logger)
         if (condition) {
             def git = ServiceRegistry.instance.get(GitService)
-            def stashStartTime = System.currentTimeMillis();
+            logger.startClocked("${project.id}-${STAGE_NAME}-stash")
             script.dir(script.env.WORKSPACE) {
                 script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }
-            script.echo "Stashing workspace took ${System.currentTimeMillis() - stashStartTime}ms"
+            logger.debugClocked("${project.id}-${STAGE_NAME}-stash")
             def bitbucketHost = script.env.BITBUCKET_HOST
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
-            script.echo "Starting orchestration pipeline slave pod '${podLabel}'"
+            logger.debugClocked(podLabel, 'Starting orchestration pipeline slave pod')
             def nodeStartTime = System.currentTimeMillis();
             script.node(podLabel) {
                 def slaveStartTime = System.currentTimeMillis() - nodeStartTime
-                script.echo "Orchestration pipeline pod '${podLabel}' starttime: ${slaveStartTime}ms"
+                logger.debugClocked(podLabel)
                 git.configureUser()
-                def unstashStartTime = System.currentTimeMillis();
+                logger.startClocked("${project.id}-${STAGE_NAME}-unstash")
                 script.unstash("wholeWorkspace")
-                script.echo "Unstashing workspace took ${System.currentTimeMillis() - unstashStartTime}ms"
+                logger.debugClocked("${project.id}-${STAGE_NAME}-unstash")
                 script.withCredentials(
                     [script.usernamePassword(
                         credentialsId: project.services.bitbucket.credentials.id,

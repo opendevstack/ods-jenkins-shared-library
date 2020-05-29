@@ -7,11 +7,17 @@ import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 
-import org.ods.orchestration.scheduler.*
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
-import org.ods.util.*
+import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.PDFUtil
+import org.ods.orchestration.util.GitTag
+import org.ods.orchestration.util.MROPipelineUtil
+
+import org.ods.util.PipelineSteps
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 @SuppressWarnings('AbcMetric')
 class InitStage extends Stage {
@@ -24,12 +30,13 @@ class InitStage extends Stage {
 
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
     def run() {
+        ILogger logger = ServiceRegistry.instance.get(Logger)
         def steps = new PipelineSteps(script)
         def git = new GitService(steps)
         git.configureUser()
 
         // load build params
-        steps.echo('Loading orchestration build params ...')
+        logger.debug('Loading orchestration build params ...')
         def buildParams = Project.loadBuildParams(steps)
         steps.echo("Release Manager Build Parameters: ${buildParams}")
 
@@ -53,14 +60,14 @@ class InitStage extends Stage {
                         "Error: unable to find latest tag for version ${buildParams.version}/${buildParams.changeId}."
                     )
                 }
-                steps.echo("Checkout release manager repository @ ${baseTag}")
+                logger.info("Checkout release manager repository @ ${baseTag}")
                 checkoutGitRef(
                     "refs/tags/${baseTag}",
                     []
                 )
             } else {
                 if (git.remoteBranchExists(gitReleaseBranch)) {
-                    steps.echo("Checkout release manager repository @ ${gitReleaseBranch}")
+                    logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
                     checkoutGitRef(
                         "*/${gitReleaseBranch}",
                         [[$class: 'LocalBranch', localBranch: '**']]
@@ -71,11 +78,10 @@ class InitStage extends Stage {
             }
         }
 
-        steps.echo 'Load build params and metadata file information'
+        logger.debug 'Load build params and metadata file information'
         project.init()
 
-        steps.echo 'Register global services'
-        def logger = new Logger(steps, steps.env.DEBUG)
+        logger.debug'Register global services'
         def registry = ServiceRegistry.instance
         registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
@@ -225,22 +231,22 @@ class InitStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
-        steps.echo 'Checkout repositories into the workspace'
+        logger.debug 'Checkout repositories into the workspace'
         project.initGitDataAndJiraUsecase(
             registry.get(GitService), registry.get(JiraUseCase))
         def repos = project.repositories
         Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-            steps.echo("Repository: ${repo}")
+            logger.debug("Repository: ${repo}")
         }
         def setupStage = project.getKey() + ' setup'
         reposToCheckout << [("${setupStage}"): {
-            steps.echo 'Run Project#load'
+            logger.debugClocked("Project#load")
             project.load(registry.get(GitService), registry.get(JiraUseCase))
-
+            logger.debugClocked("Project#load")
             bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
                 'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
 
-            steps.echo 'Validate that for Q and P we have a valid version'
+            logger.debug 'Validate that for Q and P we have a valid version'
             if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
                 && buildParams.version == 'WIP') {
                 throw new RuntimeException(
@@ -263,7 +269,7 @@ class InitStage extends Stage {
 
             def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
 
-            steps.echo 'Configure current build description'
+            logger.debug 'Configure current build description'
             script.currentBuild.description = "Build ${jobMode} #${script.BUILD_NUMBER} - " +
                 "Change: ${script.env.RELEASE_PARAM_CHANGE_ID}, " +
                 "Project: ${project.key}, " +
@@ -274,7 +280,7 @@ class InitStage extends Stage {
             def nexusRepoExists = registry.get(NexusService).groupExists(
                 project.services.nexus.repository.name, projectNexusKey)
             project.addConfigSetting(NexusService.NEXUS_REPO_EXISTS_KEY, nexusRepoExists)
-            steps.echo("Nexus repository for project/version '${projectNexusKey}'" +
+            logger.debug("Nexus repository for project/version '${projectNexusKey}'" +
                 " exists? ${nexusRepoExists}")
 
             def os = registry.get(OpenShiftService)
@@ -295,7 +301,7 @@ class InitStage extends Stage {
             }
         }
         if (!stageToStartMRO) {
-            steps.echo "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
+            logger.info "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
                 "To change this, change 'startOrchestrationSlaveOnInit' to 'true'"
             stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
         }
@@ -315,7 +321,7 @@ class InitStage extends Stage {
                         def openshiftDir = 'openshift-exported'
                         def exportRequired = true
                         if (script.fileExists('openshift')) {
-                            steps.echo(
+                            logger.debug(
                                 "Found 'openshift' folder, current OpenShift state " +
                                     "will not be exported into 'openshift-exported'."
                             )
@@ -330,7 +336,7 @@ class InitStage extends Stage {
                         def componentSelector = "app=${project.key}-${repo.id}"
                         steps.dir(openshiftDir) {
                             if (exportRequired) {
-                                steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
+                                logger.info("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
                                 (new OpenShiftService(steps, logger, "${project.key}-${sourceEnv}")).tailorExport(
                                     componentSelector,
@@ -339,7 +345,7 @@ class InitStage extends Stage {
                                 )
                             }
 
-                            steps.echo(
+                            logger.info(
                                 "Applying desired OpenShift state defined in ${openshiftDir} " +
                                 "to ${project.targetProject}."
                             )
@@ -365,7 +371,7 @@ class InitStage extends Stage {
             }
         }
 
-        steps.echo 'Compute groups of repository configs for convenient parallelization'
+        logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)

@@ -9,6 +9,8 @@ import org.ods.orchestration.util.PipelineUtil
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.PipelineSteps
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 class BuildStage extends Stage {
 
@@ -24,6 +26,7 @@ class BuildStage extends Stage {
         def jira = ServiceRegistry.instance.get(JiraUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
@@ -58,7 +61,8 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
                 } else {
-                    steps.echo('Resurrected tests - no tests results will be reported to JIRA')
+                    logger.info("[${repo.id}] Resurrected tests from run ${resultsResurrected}" +
+                        "- no unit tests results will be reported")
                 }
             }
         }
@@ -82,10 +86,11 @@ class BuildStage extends Stage {
     private List getUnitTestResults(def steps, Map repo) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/unit"
 
-        steps.echo("Collecting JUnit XML Reports for ${repo.id}")
+        logger.debug("Collecting JUnit XML Reports for ${repo.id}")
         def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(

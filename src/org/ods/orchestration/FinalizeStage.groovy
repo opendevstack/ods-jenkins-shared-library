@@ -8,6 +8,8 @@ import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
 import org.ods.util.PipelineSteps
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 class FinalizeStage extends Stage {
 
@@ -24,6 +26,7 @@ class FinalizeStage extends Stage {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def bitbucket = ServiceRegistry.instance.get(BitbucketService)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
@@ -63,7 +66,7 @@ class FinalizeStage extends Stage {
             }
             // add the tag commit that was created for traceability ..
             GitService gitUtl = ServiceRegistry.instance.get(GitService)
-            script.echo "Current release manager commit: ${project.gitData.commit}"
+            logger.debug "Current release manager commit: ${project.gitData.commit}"
             project.gitData.createdExecutionCommit = gitUtl.commitSha
         }
 
@@ -73,7 +76,7 @@ class FinalizeStage extends Stage {
         }
 
         // Dump a representation of the project
-        steps.echo(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
+        logger.debug(" ---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 

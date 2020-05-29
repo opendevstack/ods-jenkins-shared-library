@@ -3,11 +3,12 @@ package org.ods.orchestration
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
-import org.ods.orchestration.scheduler.*
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
 import org.ods.util.PipelineSteps
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 class DeployStage extends Stage {
 
@@ -24,6 +25,7 @@ class DeployStage extends Stage {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def git = ServiceRegistry.instance.get(GitService)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 
@@ -72,7 +74,7 @@ class DeployStage extends Stage {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject
-                steps.echo("Deploying project '${project.key}' into environment '${targetEnvironment}'")
+                logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'")
 
                 if (project.targetClusterIsExternal) {
                     script.withCredentials([
@@ -116,7 +118,7 @@ class DeployStage extends Stage {
             // record release manager repo state
             if (project.isPromotionMode) {
                 if (git.remoteTagExists(project.targetTag)) {
-                    steps.echo('Skipping tag because it already exists.')
+                    logger.debug('Skipping tag because it already exists.')
                 } else {
                     util.tagAndPush(project.targetTag)
                 }

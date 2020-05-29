@@ -9,6 +9,8 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.util.PipelineSteps
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 class TestStage extends Stage {
 
@@ -125,10 +127,11 @@ class TestStage extends Stage {
     private Map getTestResults(def steps, Map repo, String type) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
-        steps.echo("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
+        logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
         def testReportsStashName = "${type}-test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
