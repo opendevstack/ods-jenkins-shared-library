@@ -259,10 +259,11 @@ class InitStage extends Stage {
 
             if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
                 if (project.buildParams.targetEnvironmentToken == 'Q') {
-                    logger.warn("WARNING: Deploying tag ${project.targetTag} again!")
+                    logger.warn("Deploying tag ${project.targetTag} again!")
                 } else {
                     throw new RuntimeException(
-                        "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
+                        "Error: Git Tag '${project.targetTag}' already exists - " +
+                        'it cannot be deployed again to P.'
                     )
                 }
             }
@@ -302,7 +303,7 @@ class InitStage extends Stage {
         }
         if (!stageToStartMRO) {
             logger.info "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
-                "To change this, change 'startOrchestrationSlaveOnInit' to 'true'"
+                "To change this, change 'startOrchestrationSlaveOnInit' in JenkinsFile to 'true'"
             stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)

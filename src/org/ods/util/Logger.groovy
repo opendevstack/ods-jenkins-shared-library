@@ -13,7 +13,7 @@ class Logger implements ILogger, Serializable {
 
     void debug(String message) {
         if (debugOn) {
-            script.echo message
+            script.echo ("DEBUG: ${message}")
         }
     }
 
@@ -23,7 +23,7 @@ class Logger implements ILogger, Serializable {
 
     void warn(String message) {
         script.ansiColor('xterm') {
-            info (message)
+            info ("WARN: ${message}")
         }
     }
 
@@ -55,7 +55,7 @@ class Logger implements ILogger, Serializable {
         def startTime = clockStore.get("${component}")
         if (!startTime) {
             clockStore << ["${component}" : System.currentTimeMillis()]
-            return "[${component}] ${message ?: ''} "
+            return "[${component}] ${message ?: ''}"
         } else {
             def timeDuration = System.currentTimeMillis() - startTime
             return "[${component}] ${message ?: ''} " +
