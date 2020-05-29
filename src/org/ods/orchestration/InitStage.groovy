@@ -38,7 +38,7 @@ class InitStage extends Stage {
         // load build params
         logger.debug('Loading orchestration build params ...')
         def buildParams = Project.loadBuildParams(steps)
-        steps.echo("Release Manager Build Parameters: ${buildParams}")
+        logger.debug("Release Manager Build Parameters: ${buildParams}")
 
         // git checkout
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
@@ -259,7 +259,7 @@ class InitStage extends Stage {
 
             if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
                 if (project.buildParams.targetEnvironmentToken == 'Q') {
-                    steps.echo("WARNING: Deploying tag ${project.targetTag} again!")
+                    logger.warn("WARNING: Deploying tag ${project.targetTag} again!")
                 } else {
                     throw new RuntimeException(
                         "Error: tag ${project.targetTag} already exists - it cannot be deployed again to P."
@@ -336,7 +336,7 @@ class InitStage extends Stage {
                         def componentSelector = "app=${project.key}-${repo.id}"
                         steps.dir(openshiftDir) {
                             if (exportRequired) {
-                                logger.info("Exporting current OpenShift state to folder '${openshiftDir}'.")
+                                logger.debug("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
                                 (new OpenShiftService(steps, logger, "${project.key}-${sourceEnv}")).tailorExport(
                                     componentSelector,
