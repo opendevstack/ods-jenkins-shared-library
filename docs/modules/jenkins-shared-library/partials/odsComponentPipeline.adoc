@@ -1,6 +1,8 @@
 == Pipeline Options
 
 `odsComponentPipeline` can be customized by passing configuration options like this:
+
+[source,groovy]
 ----
 odsComponentPipeline(
   imageStreamTag: 'ods/jenkins-slave-golang:2.x',
@@ -153,6 +155,9 @@ The `context` object contains the following properties:
 
 | gitCommitTime
 | Git commit time in RFC 3399.
+
+| issueId
+| Jira issue ID if any present in the branch name (e.g. `123` from branch `feature/FOO-123-bar-baz`).
 
 | openshiftHost
 | OpenShift host - value taken from `OPENSHIFT_API_URL`.
