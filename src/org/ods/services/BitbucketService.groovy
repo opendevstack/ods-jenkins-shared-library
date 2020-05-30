@@ -1,5 +1,8 @@
 package org.ods.services
 
+import org.ods.util.Logger
+import org.ods.util.ILogger
+
 class BitbucketService {
 
     private final def script
@@ -30,6 +33,8 @@ class BitbucketService {
     // automatically (by syncing the "tokenSecretName").
     private String tokenCredentialsId
 
+    private final ILogger logger
+
     BitbucketService(def script, String bitbucketUrl, String project, String passwordCredentialsId) {
         this.script = script
         this.bitbucketUrl = bitbucketUrl
@@ -37,6 +42,7 @@ class BitbucketService {
         this.openShiftCdProject = "${project}-cd"
         this.passwordCredentialsId = passwordCredentialsId
         this.tokenSecretName = 'cd-user-bitbucket-token'
+        this.logger = new Logger (script, !!script.env.DEBUG)
     }
 
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).
@@ -58,7 +64,8 @@ class BitbucketService {
 
     @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
-        script.echo "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'"
+        logger.debugClocked("${buildName}-${state}",
+            "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
@@ -78,10 +85,11 @@ class BitbucketService {
                     )
                     return
                 } catch (err) {
-                    script.echo "WARN: Could not set Bitbucket build status to '${state}' due to: ${err}"
+                    logger.warn("Could not set Bitbucket build status to '${state}' due to: ${err}")
                 }
             }
         }
+        logger.debugClocked("${buildName}-${state}")
     }
 
     def withTokenCredentials(Closure block) {
@@ -103,13 +111,13 @@ class BitbucketService {
         def credentialsId = "${openShiftCdProject}-${tokenSecretName}"
 
         if (basicAuthCredentialsIdExists(credentialsId)) {
-            script.echo "Secret ${tokenSecretName} exists and is synced."
+            logger.debug "Secret ${tokenSecretName} exists and is synced."
             this.tokenCredentialsId = credentialsId
             return
         }
 
         def credentialsAvailable = false
-        script.echo "Secret ${tokenSecretName} does not exist yet, it will be created now."
+        logger.info "Secret ${tokenSecretName} does not exist yet, it will be created now."
         def token = createUserToken()
         if (token['password']) {
             createUserTokenSecret(token['username'], token['password'])
@@ -123,7 +131,7 @@ class BitbucketService {
                 credentialsAvailable = true
                 break
             } else {
-                script.echo "Waiting ${waitTime} for credentials '${credentialsId}' to become available."
+                logger.debug "Waiting ${waitTime} for credentials '${credentialsId}' to become available."
                 script.sleep(waitTime)
                 waitTime = waitTime * 2
             }
@@ -170,7 +178,7 @@ class BitbucketService {
                 def js = script.readJSON(text: res)
                 tokenMap['password'] = js['token']
             } catch (Exception ex) {
-                script.echo "WARN: Could not understand API response. Error was: ${ex}"
+                logger.warn "Could not understand API response. Error was: ${ex}"
             }
         }
         return tokenMap

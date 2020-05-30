@@ -2,6 +2,7 @@ package org.ods.component
 
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
+import org.ods.util.ILogger
 
 class RolloutOpenShiftDeploymentStage extends Stage {
 
@@ -14,8 +15,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         IContext context,
         Map config,
         OpenShiftService openShift,
-        JenkinsService jenkins) {
-        super(script, context, config)
+        JenkinsService jenkins,
+        ILogger logger) {
+        super(script, context, config, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
@@ -52,7 +54,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     protected run() {
         if (!context.environment) {
-            script.echo 'Skipping for empty environment ...'
+            logger.warn 'Skipping because of empty (target) environment ...'
             return
         }
 
@@ -98,12 +100,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         setImageTagLatest(ownedImageStreams)
 
         if (getLatestVersion() > originalDeploymentVersion) {
-            script.echo "Rollout of deployment for '${config.resourceName}' has been triggered automatically."
+            logger.info "Rollout of deployment for '${config.resourceName}' has been triggered automatically."
         } else {
             startRollout()
         }
         script.timeout(time: config.deployTimeoutMinutes) {
+            logger.startClocked("${config.resourceName}-deploy")
             watchRollout()
+            logger.debugClocked("${config.resourceName}-deploy")
         }
 
         def latestVersion = getLatestVersion()
@@ -113,7 +117,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             script.error "Deployment #${latestVersion} failed with status '${rolloutStatus}', " +
                 'please check the error in the OpenShift web console.'
         } else {
-            script.echo "Deployment #${latestVersion} of '${config.resourceName}' successfully rolled out."
+            logger.info "Deployment #${latestVersion} of '${config.resourceName}' successfully rolled out."
         }
         def pod = getPodDataForRollout(replicationController)
         context.addDeploymentToArtifactURIs(config.resourceName, pod)

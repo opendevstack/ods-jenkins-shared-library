@@ -149,7 +149,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
     then:
     printCallStack()
-    assertCallStackContains("Skipping for empty environment ...")
+    assertCallStackContains("WARN: Skipping because of empty (target) environment ...")
     assertJobStatusSuccess()
   }
 

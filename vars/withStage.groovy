@@ -1,12 +1,16 @@
-def call(String stageLabel, def context, Closure stageClosure) {
-    echo "**** STARTING stage '${stageLabel}' for component '${context.componentId}' " +
-        "branch '${context.gitBranch}' ****"
+import org.ods.util.ILogger
+
+def call(String stageLabel, def context, ILogger logger, Closure stageClosure) {
+    logger.infoClocked("${stageLabel}-${context.componentId}",
+        "**** STARTING stage '${stageLabel}' for component '${context.componentId}' " +
+        "branch '${context.gitBranch}' ****")
     def stageStartTime = System.currentTimeMillis()
     try {
         return result = stage(stageLabel) { stageClosure() }
     } finally {
-        echo "**** ENDED stage '${stageLabel}' for component '${context.componentId}' " +
-            "branch '${context.gitBranch}' (time: ${System.currentTimeMillis() - stageStartTime}ms) ****"
+        logger.infoClocked("${stageLabel}-${context.componentId}",
+            "**** ENDED stage '${stageLabel}' for component '${context.componentId}' " +
+            "branch '${context.gitBranch}' ****")
     }
 }
 

@@ -3,7 +3,9 @@ package vars.test_helper
 import groovy.json.JsonSlurper
 import com.lesfurets.jenkins.unit.BasePipelineTest
 import org.ods.component.IContext
+import org.ods.util.ILogger
 import spock.lang.Specification
+import org.ods.services.ServiceRegistry
 
 /**
  * A base class for Spock testing using the Jenkins Pipeline Unit testing framework (https://github.com/jenkinsci/JenkinsPipelineUnit)
@@ -22,12 +24,16 @@ class PipelineSpockTestBase extends Specification {
         helper.registerAllowedMethod('readJSON', [ Map ]) { Map args -> new JsonSlurper().parseText(args.text) }
         // we register our custom groovy method withStage so that is is available
         // in every script executed by the Jenkins Pipeline Unit testing framework
-        helper.registerAllowedMethod("withStage", [String, IContext, Closure], { String stageLabel, IContext context, Closure closure ->
-          return loadScript('vars/withStage.groovy').call(stageLabel, context, closure)
+        helper.registerAllowedMethod("withStage", [String, IContext, ILogger, Closure], { String stageLabel, IContext context, ILogger logger, Closure closure ->
+          return loadScript('vars/withStage.groovy').call(stageLabel, context, logger, closure)
+        })
+        helper.registerAllowedMethod("ansiColor", [String, Closure], { String color, Closure block -> 
+          block ()
         })
       }
     }
     basePipelineTest.setUp()
+    ServiceRegistry.instance.clear()
   }
 
   protected String readResource(String name) {

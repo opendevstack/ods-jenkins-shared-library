@@ -1,21 +1,25 @@
 package org.ods.component
 
+import org.ods.util.ILogger
+
 abstract class Stage {
 
     protected def script
     protected def context
     protected Map config
+    protected ILogger logger
 
     public final String STAGE_NAME = 'NOT SET'
 
-    protected Stage(def script, IContext context, Map config) {
+    protected Stage(def script, IContext context, Map config, ILogger logger) {
         this.script = script
         this.context = context
         this.config = config
+        this.logger = logger
     }
 
     def execute() {
-        script.withStage(stageLabel(), context) {
+        script.withStage(stageLabel(), context, logger) {
             this.run()
         }
     }

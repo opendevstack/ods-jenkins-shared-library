@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.services.NexusService
+import org.ods.util.ILogger
 
 class UploadToNexusStage extends Stage {
 
@@ -11,8 +12,9 @@ class UploadToNexusStage extends Stage {
     final String distFile
     final NexusService nexus
 
-    UploadToNexusStage(def script, IContext context, Map config, NexusService nexus) {
-        super(script, context, config)
+    UploadToNexusStage(def script, IContext context, Map config, NexusService nexus,
+        ILogger logger) {
+        super(script, context, config, logger)
         this.repository = config.repository ?: 'candidates'
         this.repositoryType = config.repositoryType ?: 'maven2'
         this.distFile = config.distributionFile ?: "${context.componentId}-${context.tagversion}.tar.gz"
@@ -39,7 +41,7 @@ class UploadToNexusStage extends Stage {
         }
 
         def data = script.readFile(file: distFile, encoding: 'Base64').getBytes()
-        script.echo("Nexus upload params: ${nexusParams}, " +
+        logger.debug("Nexus upload params: ${nexusParams}, " +
             "file: ${distFile} to repo ${nexus.baseURL}/${repository}")
         def uploadUri = nexus.storeComplextArtifact(
             repository,
@@ -48,7 +50,7 @@ class UploadToNexusStage extends Stage {
             repositoryType,
             nexusParams
         )
-        script.echo("Uploaded '${distFile}' to '${uploadUri}'")
+        logger.info("Uploaded '${distFile}' to '${uploadUri}'")
         uploadUri
     }
 

@@ -7,11 +7,12 @@ import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
+import util.PipelineSteps
 import spock.lang.*
 
 class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
-  private Logger logger = Mock(Logger)
+  private Logger logger = new Logger (new PipelineSteps(), true)
 
   @Shared
   def config = [
@@ -38,6 +39,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     openShiftService.getLastBuildVersion(_) >> 123
     openShiftService.getBuildStatus(_) >> 'complete'
     openShiftService.getImageReference(_, _) >> '0daecc05'
+    
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
@@ -47,6 +49,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       false
     }
+    helper.registerAllowedMethod('echo', [ String ]) {String args -> }
     def buildInfo = script.call(context)
 
     then:
@@ -219,7 +222,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
     then:
     printCallStack()
-    assertCallStackContains("Skipping for empty environment ...")
+    assertCallStackContains("WARN: Skipping because of empty (target) environment ...")
     assertJobStatusSuccess()
   }
 
