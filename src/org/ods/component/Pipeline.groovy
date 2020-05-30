@@ -37,7 +37,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
-        logger.info "-> ODS Component pipeline setup, debug mode? ${logger.debugMode}"
+        logger.debug "-> ODS Component pipeline setup, debug mode? ${logger.debugMode}"
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
@@ -277,11 +277,12 @@ class Pipeline implements Serializable {
         def buildEnv = script.env.MULTI_REPO_ENV
         if (buildEnv) {
             config.environment = buildEnv
-            logger.debug("Setting target env ${config.environment}")
+            logger.debug("Setting target environment: '${config.environment}'")
         } else {
             logger.warn 'Variable MULTI_REPO_ENV (target environment!) must not be null!'
             // Using exception because error step would skip post steps
-            throw new RuntimeException('Variable MULTI_REPO_ENV (target environment!) must not be null!')
+            throw new RuntimeException("Variable 'MULTI_REPO_ENV' (target environment!)" +
+                " must not be null!")
         }
     }
 
@@ -445,7 +446,7 @@ class Pipeline implements Serializable {
     }
 
     private void amendProjectAndComponentFromOrigin(Map config) {
-        logger.debug("Amending project / component based on Git origin URL")
+        logger.debug("Amending project / component name based on Git origin URL")
         def block = {
             def origin
             try {

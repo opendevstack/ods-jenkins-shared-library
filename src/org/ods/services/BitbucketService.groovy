@@ -65,7 +65,7 @@ class BitbucketService {
 
     @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
-        logger.debugClocked("${buildName}-${state}",
+        logger.debugClocked("buildstatus-${buildName}-${state}",
             "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
@@ -90,7 +90,7 @@ class BitbucketService {
                 }
             }
         }
-        logger.debugClocked("${buildName}-${state}")
+        logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
     def withTokenCredentials(Closure block) {
