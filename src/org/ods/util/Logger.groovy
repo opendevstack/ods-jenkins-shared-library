@@ -22,9 +22,7 @@ class Logger implements ILogger, Serializable {
     }
 
     void warn(String message) {
-        script.ansiColor('xterm') {
-            info ("WARN: ${message}")
-        }
+        info ("WARN: ${message}")
     }
 
     void debugClocked(String component, String message = null) {
