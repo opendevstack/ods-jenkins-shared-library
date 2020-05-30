@@ -11,9 +11,9 @@ class GitService {
     private final def script
     private final ILogger logger
 
-    GitService(script) {
+    GitService(script, logger) {
         this.script = script
-        this.logger = new Logger (script, !!script.env.DEBUG)
+        this.logger = logger
     }
 
     static String mergedIssueId(String project, String repository, String commitMessage) {

@@ -35,14 +35,15 @@ class BitbucketService {
 
     private final ILogger logger
 
-    BitbucketService(def script, String bitbucketUrl, String project, String passwordCredentialsId) {
+    BitbucketService(def script, String bitbucketUrl, String project, 
+        String passwordCredentialsId, ILogger logger) {
         this.script = script
         this.bitbucketUrl = bitbucketUrl
         this.project = project
         this.openShiftCdProject = "${project}-cd"
         this.passwordCredentialsId = passwordCredentialsId
         this.tokenSecretName = 'cd-user-bitbucket-token'
-        this.logger = new Logger (script, !!script.env.DEBUG)
+        this.logger = logger
     }
 
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).

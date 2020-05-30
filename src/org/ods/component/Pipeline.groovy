@@ -106,7 +106,7 @@ class Pipeline implements Serializable {
                         // services have been already registered
                         if (!registry.get(GitService)) {
                             logger.debug 'Registering GitService'
-                            registry.add(GitService, new GitService(script))
+                            registry.add(GitService, new GitService(script, logger))
                         }
                         this.gitService = registry.get(GitService)
 
@@ -116,7 +116,8 @@ class Pipeline implements Serializable {
                                 script,
                                 context.bitbucketUrl,
                                 context.projectId,
-                                context.credentialsId
+                                context.credentialsId,
+                                logger
                             ))
                         }
                         this.bitbucketService = registry.get(BitbucketService)

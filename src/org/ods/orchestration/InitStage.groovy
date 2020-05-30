@@ -32,7 +32,7 @@ class InitStage extends Stage {
     def run() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         def steps = new PipelineSteps(script)
-        def git = new GitService(steps)
+        def git = new GitService(steps, logger)
         git.configureUser()
 
         // load build params
@@ -224,7 +224,8 @@ class InitStage extends Stage {
             registry.get(PipelineSteps).unwrap(),
             project.releaseManagerBitbucketHostUrl,
             project.key,
-            project.services.bitbucket.credentials.id
+            project.services.bitbucket.credentials.id,
+            logger
         ))
 
         BitbucketService bitbucket = registry.get(BitbucketService)
