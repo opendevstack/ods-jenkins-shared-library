@@ -450,15 +450,17 @@ class Pipeline implements Serializable {
         def block = {
             def origin
             try {
-                origin = new GitService(script).getOriginUrl()
+                origin = new GitService(script, this.logger).getOriginUrl()
+                logger.debug("Retrieved Git origin URL from filesystem: ${origin}")
             } catch (err) {
+                logger.debug("Could not retrieve git origin from filesystem: ${err}")
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
                 origin = (new OpenShiftService(steps, logger, projectName))
                     .getOriginUrlFromBuildConfig(bcName)
+                logger.debug("Retrieved Git origin URL from build config: ${origin}")
             }
-            logger.debug("Retrieved Git origin URL: ${origin}")
 
             def splittedOrigin = origin.split('/')
             def project = splittedOrigin[splittedOrigin.size() - 2]
@@ -470,7 +472,7 @@ class Pipeline implements Serializable {
                 config.componentId = repoName - ~/^${project}-/
             }
             logger.debug(
-                "Project / component config: ${config.projectId} / ${config.componentId}"
+                "Project- / component-name config: ${config.projectId} / ${config.componentId}"
             )
         }
         if (this.localCheckoutEnabled) {
