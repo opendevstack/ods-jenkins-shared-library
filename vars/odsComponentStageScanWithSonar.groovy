@@ -8,13 +8,19 @@ import org.ods.util.Logger
 import org.ods.util.ILogger
 
 def call(IContext context, Map config = [:]) {
+    ILogger logger = ServiceRegistry.instance.get(Logger)
+    // this is only for testing, because we need access to the script context :(
+    if (!logger) {
+        logger = new Logger (this, !!env.DEBUG)
+    }
     def bitbucketService = ServiceRegistry.instance.get(BitbucketService)
     if (!bitbucketService) {
         bitbucketService = new BitbucketService(
             this,
             context.bitbucketUrl,
             context.projectId,
-            context.credentialsId
+            context.credentialsId,
+            logger
         )
     }
     def sonarQubeService = ServiceRegistry.instance.get(SonarQubeService)
@@ -23,11 +29,6 @@ def call(IContext context, Map config = [:]) {
             this,
             'SonarServerConfig'
         )
-    }
-    ILogger logger = ServiceRegistry.instance.get(Logger)
-    // this is only for testing, because we need access to the script context :(
-    if (!logger) {
-        logger = new Logger (this, !!env.DEBUG)
     }
     def stage = new ScanWithSonarStage(
         this,

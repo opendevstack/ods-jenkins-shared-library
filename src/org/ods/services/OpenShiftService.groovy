@@ -442,12 +442,12 @@ class OpenShiftService {
 
         boolean forceRedo = !!repo.forceRebuild
 
-        this.steps.echo("Verifying deployed state of repo: '${repo.id}' against env: " +
-            "'${project}' - force local rebuild? ${forceRedo}")
+        this.logger.debug("Verifying deployed state of repo: '${repo.id}' against env: " +
+            "'${project}' - 'repository' rebuild configured? ${forceRedo}")
         if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !forceRedo) {
             def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
             def deployments = new JsonSlurperClassic().parseText(storedDeployments)
-            if (this.isLatestDeploymentBasedOnLatestImageDefs(deployments)) {
+            if (this.isLatestDeploymentBasedOnLatestImageDefs(repo.id, deployments)) {
                 if (!repo.data.odsBuildArtifacts) {
                     repo.data.odsBuildArtifacts = [ : ]
                 }
@@ -459,14 +459,14 @@ class OpenShiftService {
                     }
                     repo.data.odsBuildArtifacts.resurrected = build
                     repo.data.odsBuildArtifacts.deployments = deployments
-                    this.steps.echo "Using data from previous jenkins build: ${build} " +
+                    logger.debug "Using data from previous jenkins build: ${build} " +
                         "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
                     return true
                 } else {
                     return false
                 }
             } else {
-                this.steps.echo("Current deployments for repo: '${repo.id}'" +
+                logger.debug("Current deployments for repo: '${repo.id}'" +
                     " do not match last latest committed state (force? ${forceRedo}), rebuilding..")
             }
         }
@@ -599,14 +599,15 @@ class OpenShiftService {
         imageInfo
     }
 
-    private boolean isLatestDeploymentBasedOnLatestImageDefs(def deployments) {
+    private boolean isLatestDeploymentBasedOnLatestImageDefs(String repoId, def deployments) {
         List nonExistentDeployments = []
         List notThisVersionDeployments = []
         List notThisImages = []
-        steps.echo "Verifying deployments: '${deployments.keySet()}' against env: '${project}'"
+        logger.infoClocked ("${repoId}-deploymentCheck",
+            "Verifying deployments: '${deployments.keySet()}' against env: '${project}'")
         deployments.each { deploymentName, deployment ->
             if (JenkinsService.CREATED_BY_BUILD_STR != deploymentName) {
-                steps.echo "Verifying deployment: '${deploymentName}'"
+                logger.debug "Verifying deployment: '${deploymentName}'"
                 def dcExists = resourceExists('DeploymentConfig', deploymentName)
                 if (!dcExists) {
                     steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
@@ -615,7 +616,7 @@ class OpenShiftService {
                 int latestDeployedVersion = getLatestVersion (deploymentName)
                 if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
                     notThisVersionDeployments << latestDeployedVersion
-                    steps.echo "Deployment '${deploymentName}/${deployment.deploymentId}'" +
+                    logger.debug "Deployment '${deploymentName}/${deployment.deploymentId}'" +
                         " is not latest version! (${latestDeployedVersion})"
                 }
                 def pod = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
@@ -623,13 +624,15 @@ class OpenShiftService {
                     def runningImageSha = imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
                     def definedImageSha = imageInfoWithShaForImageStreamUrl(imageRaw).sha
                     if (runningImageSha != definedImageSha) {
-                        steps.echo "Error: in container '${containerName}' running image '${runningImageSha}' " +
+                        logger.warn "In container '${containerName}' of deployment '${deploymentName}'" +
+                            " running image '${runningImageSha}' " +
                             "is not the same as the defined image '${definedImageSha}'."
                         notThisImages << runningImageSha
                     }
                 }
             }
         }
+        logger.infoClocked ("${repoId}-deploymentCheck")
         return (nonExistentDeployments.empty && notThisVersionDeployments.empty &&
             notThisImages.empty)
     }

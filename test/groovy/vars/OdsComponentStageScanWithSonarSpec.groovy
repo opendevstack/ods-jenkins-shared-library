@@ -45,7 +45,6 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
     sonarQubeService.scan(*_) >> null
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
-    println ("-<> logger: ${ServiceRegistry.instance.get(Logger)}")
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')

@@ -40,6 +40,7 @@ class InitStage extends Stage {
         def buildParams = Project.loadBuildParams(steps)
         logger.debug("Release Manager Build Parameters: ${buildParams}")
 
+        logger.startClocked("git-releasemanager-${STAGE_NAME}")
         // git checkout
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
         if (!Project.isWorkInProgress(buildParams.version)) {
@@ -77,6 +78,7 @@ class InitStage extends Stage {
                 }
             }
         }
+        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
 
         logger.debug 'Load build params and metadata file information'
         project.init()
@@ -235,12 +237,15 @@ class InitStage extends Stage {
         logger.debug 'Checkout repositories into the workspace'
         project.initGitDataAndJiraUsecase(
             registry.get(GitService), registry.get(JiraUseCase))
+
         def repos = project.repositories
-        Map reposToCheckout = util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-            logger.debug("Repository: ${repo}")
-        }
+        Map checkoutComponentReposClosures = 
+            util.prepareCheckoutReposNamedJob(repos) { s, repo ->
+                logger.debug("Repository: ${repo}")
+            }
+
         def setupStage = project.getKey() + ' setup'
-        reposToCheckout << [("${setupStage}"): {
+        checkoutComponentReposClosures << [("${setupStage}"): {
             logger.debugClocked("Project#load")
             project.load(registry.get(GitService), registry.get(JiraUseCase))
             logger.debugClocked("Project#load")
@@ -288,7 +293,7 @@ class InitStage extends Stage {
             def os = registry.get(OpenShiftService)
             project.setOpenShiftData(os.apiUrl)
         }]
-        script.parallel(reposToCheckout)
+        script.parallel(checkoutComponentReposClosures)
 
         // find best place for mro slave start
         def stageToStartMRO
@@ -304,7 +309,7 @@ class InitStage extends Stage {
         }
         if (!stageToStartMRO) {
             logger.info "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
-                "To change this, change 'startOrchestrationSlaveOnInit' in JenkinsFile to 'true'"
+                "To change this, change 'startOrchestrationSlaveOnInit' in JenkinsFile to 'false'"
             stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)

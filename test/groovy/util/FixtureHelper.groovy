@@ -132,7 +132,7 @@ class FixtureHelper {
 
         return new FakeProject(steps)
             .init()
-            .load(new FakeGitUtil(steps), null)
+            .load(new FakeGitUtil(steps, null), null)
     }
 
     static Map createProjectBuildEnvironment(def env) {

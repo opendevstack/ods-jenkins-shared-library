@@ -20,6 +20,8 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 
+final String STAGE_NAME = 'ods-orchestration'
+
 def call(Map config) {
     Unirest.config()
         .socketTimeout(1200000)
@@ -54,6 +56,7 @@ def call(Map config) {
             Paths.get(env.WORKSPACE, name).toFile().deleteDir()
         }
 
+        logger.startClocked("git-releasemanager-${STAGE_NAME}")
         def scmBranches = scm.branches
         def branch = scmBranches[0]?.name
         if (branch && !branch.startsWith('*/')) {
@@ -68,6 +71,7 @@ def call(Map config) {
             extensions: [[$class: 'LocalBranch', localBranch: '**']],
             userRemoteConfigs: scm.userRemoteConfigs,
         ])
+        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
 
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
 
@@ -84,7 +88,7 @@ def call(Map config) {
                         startMROStage = result.startMROSlave
                     }
                 } else {
-                    logger.info('Skip pipeline as no project/repos computed')
+                    logger.warn('Skip pipeline as no project/repos computed')
                     return
                 }
 
@@ -110,7 +114,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
-        logger.info("Could not find ods namespace '${odsNamespace}' - defaulting to legacy namespace: 'cd'!\r" +
+        logger.warn("Could not find ods namespace '${odsNamespace}' - defaulting to legacy namespace: 'cd'!\r" +
             "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace")
         odsNamespace = 'cd'
     }
