@@ -28,7 +28,7 @@ class Stage {
             try {
                 return this.run()
             } catch (e) {
-                IllegalStateException eThrow = e
+                def eThrow = e
                 // Check for random null references which occur after a Jenkins restart
                 if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
                     eThrow = new IllegalStateException(
