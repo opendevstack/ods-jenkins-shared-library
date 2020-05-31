@@ -158,7 +158,9 @@ class Pipeline implements Serializable {
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
                         }
+                        logger.startClocked("${context.componentId}-get-domain")
                         context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
+                        logger.debugClocked("${context.componentId}-get-domain")
                     }
                 }
             } catch (err) {
