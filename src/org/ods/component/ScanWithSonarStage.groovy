@@ -6,6 +6,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
 
+@SuppressWarnings('ParameterCount')
 class ScanWithSonarStage extends Stage {
 
     public final String STAGE_NAME = 'SonarQube Analysis'

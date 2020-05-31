@@ -9,6 +9,7 @@ import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
 import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
 import org.ods.services.GitService
 
 @SuppressWarnings('JavaIoPackageAccess')
@@ -21,11 +22,14 @@ class PipelineUtil {
     protected Project project
     protected IPipelineSteps steps
     protected GitService git
+    protected ILogger logger
 
-    PipelineUtil(Project project, IPipelineSteps steps, GitService git) {
+    PipelineUtil(Project project, IPipelineSteps steps, GitService git,
+        ILogger logger) {
         this.project = project
         this.steps = steps
         this.git = git
+        this.logger = logger
     }
 
     void archiveArtifact(String path, byte[] data) {
@@ -156,12 +160,12 @@ class PipelineUtil {
 
     void failBuild(String message) {
         this.steps.currentBuild.result = 'FAILURE'
-        this.steps.echo(message)
+        this.logger.warn(message)
     }
 
     void warnBuild(String message) {
         this.steps.currentBuild.result = 'UNSTABLE'
-        this.steps.echo(message)
+        this.logger.warn(message)
     }
 
     def loadGroovySourceFile(String path) {

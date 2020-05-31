@@ -88,7 +88,7 @@ class InitStage extends Stage {
         registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
         registry.add(PipelineSteps, steps)
-        def util = new MROPipelineUtil(project, steps, git)
+        def util = new MROPipelineUtil(project, steps, git, logger)
         registry.add(MROPipelineUtil, util)
         registry.add(Project, project)
 
@@ -239,16 +239,17 @@ class InitStage extends Stage {
             registry.get(GitService), registry.get(JiraUseCase))
 
         def repos = project.repositories
-        Map checkoutComponentReposClosures = 
+        @SuppressWarnings('Indentation')
+        Map checkoutComponentReposClosures =
             util.prepareCheckoutReposNamedJob(repos) { s, repo ->
                 logger.debug("Repository: ${repo}")
             }
 
         def setupStage = project.getKey() + ' setup'
         checkoutComponentReposClosures << [("${setupStage}"): {
-            logger.debugClocked("Project#load")
+            logger.debugClocked('Project#load')
             project.load(registry.get(GitService), registry.get(JiraUseCase))
-            logger.debugClocked("Project#load")
+            logger.debugClocked('Project#load')
             bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
                 'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
 

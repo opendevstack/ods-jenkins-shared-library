@@ -4,6 +4,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.util.ILogger
 
+@SuppressWarnings('ParameterCount')
 class BuildOpenShiftImageStage extends Stage {
 
     public final String STAGE_NAME = 'Build OpenShift Image'

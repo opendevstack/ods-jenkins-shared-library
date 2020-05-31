@@ -4,6 +4,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.util.ILogger
 
+@SuppressWarnings('ParameterCount')
 class RolloutOpenShiftDeploymentStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy to OpenShift'

@@ -8,6 +8,7 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 
 import spock.lang.*
 
@@ -5755,8 +5756,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5854,8 +5856,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5949,8 +5952,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6021,8 +6025,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6089,8 +6094,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6162,8 +6168,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6240,8 +6247,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6376,8 +6384,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6508,8 +6517,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6586,8 +6596,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6645,8 +6656,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6704,8 +6716,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6783,8 +6796,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6847,8 +6861,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6895,8 +6910,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6945,8 +6961,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -7155,8 +7172,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)

@@ -24,79 +24,33 @@ class Stage {
     def execute() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         script.stage(STAGE_NAME) {
-            logger.infoClocked ("${STAGE_NAME}", "**** STARTING orchestration stage ****")
-            def stageStartTime = System.currentTimeMillis()
+            logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
             try {
                 return this.run()
             } catch (e) {
+                IllegalStateException eThrow = e
                 // Check for random null references which occur after a Jenkins restart
                 if (ServiceRegistry.instance == null || ServiceRegistry.instance.get(PipelineSteps) == null) {
-                    e = new IllegalStateException(
-                        "Error: invalid references have been detected for critical pipeline services. " +
-                        "Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!"
+                    eThrow = new IllegalStateException(
+                        'Error: invalid references have been detected for critical pipeline services. ' +
+                        'Most likely, your Jenkins instance has been recycled. Please re-run the pipeline!'
                     ).initCause(e)
                 }
 
-                script.echo("Error occured in the orchestration pipeline: ${e.message}")
+                logger.warn("Error occured within the orchestration pipeline: ${e.message}")
 
                 try {
-                    project.reportPipelineStatus(e.message, true)
+                    project.reportPipelineStatus(eThrow.message, true)
                 } catch (reportError) {
-                    script.echo("Error: unable to report pipeline status because of: ${reportError.message}.")
+                    logger.warn("Error: unable to report pipeline status because of: ${reportError.message}.")
                     reportError.initCause(e)
                     throw reportError
                 }
 
-                throw e
+                throw eThrow
             } finally {
-                logger.infoClocked ("${STAGE_NAME}", "**** ENDED orchestration stage ****")
+                logger.infoClocked ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
             }
-        }
-    }
-
-    protected def runOnAgentPod(Project project, boolean condition, Closure block) {
-        ILogger logger = ServiceRegistry.instance.get(Logger)
-        if (condition) {
-            def git = ServiceRegistry.instance.get(GitService)
-            logger.startClocked("${project.key}-${STAGE_NAME}-stash")
-            script.dir(script.env.WORKSPACE) {
-                script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
-            }
-            logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
-            def bitbucketHost = script.env.BITBUCKET_HOST
-            def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
-            logger.debugClocked(podLabel, 'Starting orchestration pipeline slave pod')
-            def nodeStartTime = System.currentTimeMillis();
-            script.node(podLabel) {
-                def slaveStartTime = System.currentTimeMillis() - nodeStartTime
-                logger.debugClocked(podLabel)
-                git.configureUser()
-                logger.startClocked("${project.key}-${STAGE_NAME}-unstash")
-                script.unstash("wholeWorkspace")
-                logger.debugClocked("${project.key}-${STAGE_NAME}-unstash")
-                script.withCredentials(
-                    [script.usernamePassword(
-                        credentialsId: project.services.bitbucket.credentials.id,
-                        usernameVariable: 'BITBUCKET_USER',
-                        passwordVariable: 'BITBUCKET_PW'
-                    )]
-                ) {
-                    def bbUser = URLEncoder.encode(script.env.BITBUCKET_USER, 'UTF-8')
-                    def bbPwd = URLEncoder.encode(script.env.BITBUCKET_PW, 'UTF-8')
-                    def urlWithCredentials = "https://${bbUser}:${bbPwd}@${bitbucketHost}"
-                    script.writeFile(
-                        file: "${script.env.HOME}/.git-credentials",
-                        text: urlWithCredentials
-                    )
-                    script.sh(
-                        script: "git config --global credential.helper store",
-                        label: "setup credential helper"
-                    )
-                }
-                block()
-            }
-        } else {
-            block()
         }
     }
 
@@ -113,4 +67,49 @@ class Stage {
         executors.failFast = true
         script.parallel (executors)
     }
+
+    protected def runOnAgentPod(Project project, boolean condition, Closure block) {
+        ILogger logger = ServiceRegistry.instance.get(Logger)
+        if (condition) {
+            def git = ServiceRegistry.instance.get(GitService)
+            logger.startClocked("${project.key}-${STAGE_NAME}-stash")
+            script.dir(script.env.WORKSPACE) {
+                script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
+            }
+            logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
+            def bitbucketHost = script.env.BITBUCKET_HOST
+            def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
+            logger.debugClocked(podLabel, 'Starting orchestration pipeline slave pod')
+            script.node(podLabel) {
+                logger.debugClocked(podLabel)
+                git.configureUser()
+                logger.startClocked("${project.key}-${STAGE_NAME}-unstash")
+                script.unstash('wholeWorkspace')
+                logger.debugClocked("${project.key}-${STAGE_NAME}-unstash")
+                script.withCredentials(
+                    [script.usernamePassword(
+                        credentialsId: project.services.bitbucket.credentials.id,
+                        usernameVariable: 'BITBUCKET_USER',
+                        passwordVariable: 'BITBUCKET_PW'
+                    )]
+                ) {
+                    def bbUser = URLEncoder.encode(script.env.BITBUCKET_USER, 'UTF-8')
+                    def bbPwd = URLEncoder.encode(script.env.BITBUCKET_PW, 'UTF-8')
+                    def urlWithCredentials = "https://${bbUser}:${bbPwd}@${bitbucketHost}"
+                    script.writeFile(
+                        file: "${script.env.HOME}/.git-credentials",
+                        text: urlWithCredentials
+                    )
+                    script.sh(
+                        script: 'git config --global credential.helper store',
+                        label: 'setup credential helper'
+                    )
+                }
+                block()
+            }
+        } else {
+            block()
+        }
+    }
+
 }

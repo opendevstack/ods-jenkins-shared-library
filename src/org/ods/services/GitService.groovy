@@ -1,6 +1,5 @@
 package org.ods.services
 
-import org.ods.util.Logger
 import org.ods.util.ILogger
 
 class GitService {

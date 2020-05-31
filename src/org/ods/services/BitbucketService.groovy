@@ -1,6 +1,5 @@
 package org.ods.services
 
-import org.ods.util.Logger
 import org.ods.util.ILogger
 
 class BitbucketService {
@@ -35,7 +34,7 @@ class BitbucketService {
 
     private final ILogger logger
 
-    BitbucketService(def script, String bitbucketUrl, String project, 
+    BitbucketService(def script, String bitbucketUrl, String project,
         String passwordCredentialsId, ILogger logger) {
         this.script = script
         this.bitbucketUrl = bitbucketUrl

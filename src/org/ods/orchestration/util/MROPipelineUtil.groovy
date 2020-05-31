@@ -102,7 +102,7 @@ class MROPipelineUtil extends PipelineUtil {
             def openshiftDir = 'openshift-exported'
             def exportRequired = true
             if (steps.fileExists('openshift')) {
-                steps.echo("Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'.")
+                logger.info("Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'.")
                 openshiftDir = 'openshift'
                 exportRequired = false
             } else {
@@ -116,7 +116,7 @@ class MROPipelineUtil extends PipelineUtil {
                 def commitMessage = ''
                 if (exportRequired) {
                     commitMessage = "ODS: Export OpenShift configuration \r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
-                    steps.echo("Exporting current OpenShift state to folder '${openshiftDir}'.")
+                    logger.debug("Exporting current OpenShift state to folder '${openshiftDir}'.")
                     def targetFile = 'template.yml'
                     os.tailorExport(
                         componentSelector,
@@ -134,7 +134,7 @@ class MROPipelineUtil extends PipelineUtil {
                 def odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [:]
                 def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
                 def ocpBasedDeployments = os.getDeploymentConfigsForComponent(componentSelector)
-                steps.echo(
+                logger.debug(
                     "ODS created deployments for ${repo.id}: " +
                     "${odsBuiltDeployments}, OCP Deployments: ${ocpBasedDeployments}"
                 )
@@ -162,7 +162,7 @@ class MROPipelineUtil extends PipelineUtil {
                             if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
                                 def msg = "Deployment: ${odsBuildDeployment} / " +
                                     "Container: ${containerName} / Owner: ${owningProject}"
-                                steps.echo "! Image out of scope! ${msg}"
+                                logger.warn "! Image out of scope! ${msg}"
                                 imagesFromOtherProjectsFail << msg
                             }
                         }
@@ -235,7 +235,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
 
             steps.dir(openshiftDir) {
-                steps.echo("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
+                logger.info("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
                 def params = []
                 def preserve = []
                 def applyFunc = { pkeyFile ->
@@ -265,12 +265,12 @@ class MROPipelineUtil extends PipelineUtil {
                 deployment.containers?.each {containerName, imageRaw ->
                     // skip excluded images from defined image streams!
                     def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
-                    steps.echo(
+                    logger.info(
                         "Importing images - deployment: ${deploymentName}, " +
                         "container: ${containerName}, imageInfo: ${imageInfo}, source: ${sourceProject}"
                     )
                     if (EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageInfo.repository)) {
-                        steps.echo(
+                        logger.dbeug(
                             "Skipping import of '${imageInfo.name}', " +
                             "because it is defined as excluded: ${EXCLUDE_NAMESPACES_FROM_IMPORT}"
                         )
@@ -297,7 +297,7 @@ class MROPipelineUtil extends PipelineUtil {
 
                 // Verify that deployment is being rolled out and that the defined image sha is running
                 if (os.getLatestVersion(deploymentName) > originalDeploymentVersions[deploymentName]) {
-                    steps.echo "Rollout of '${deploymentName}' has been triggered automatically."
+                    logger.info "Rollout of '${deploymentName}' has been triggered automatically."
                 } else {
                     os.startRollout(deploymentName)
                 }
@@ -317,7 +317,7 @@ class MROPipelineUtil extends PipelineUtil {
                             "is not the same as the defined image '${definedImageSha}'."
                         )
                     } else {
-                        steps.echo(
+                        logger.debug(
                             "Running container '${containerName}' is using defined image '${definedImageSha}'."
                         )
                     }
@@ -333,10 +333,11 @@ class MROPipelineUtil extends PipelineUtil {
 
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
-            this.steps.echo("'${repo.id}' -> force? ${this.project.forceGlobalRebuild()}")
+            this.logger.debug("'${repo.id}' -> force global rebuild? " +
+                "${this.project.forceGlobalRebuild()}")
             if (repo.data?.odsBuildArtifacts?.resurrected &&
                 !this.project.forceGlobalRebuild()) {
-                this.steps.echo("Repository '${repo.id}' is insync with OCP, " +
+                this.logger.debug("Repository '${repo.id}' is insync with OCP, " +
                     'no need to rebuild')
                 return
             }
@@ -353,7 +354,7 @@ class MROPipelineUtil extends PipelineUtil {
                 [
                     "${JenkinsService.CREATED_BY_BUILD_STR}": versionAndBuild
                 ]
-            this.steps.echo("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+            this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
 
             if (repo.data.odsBuildArtifacts?.failedStage) {
                 throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
@@ -436,7 +437,7 @@ class MROPipelineUtil extends PipelineUtil {
 
         // for those repos (= quickstarters) we supply we want to own the type
         if (metadata.type?.toString()?.trim()) {
-            this.steps.echo("Repository type '${metadata.type}' configured on '${repo.id}' thru component's metadata.yml")
+            this.logger.debug ("Repository type '${metadata.type}' configured on '${repo.id}' thru component's metadata.yml")
             repo.type = metadata.type
         }
 
@@ -456,7 +457,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     def tagAndPushBranch(String branch, String tag) {
         if (this.git.remoteTagExists(tag)) {
-            this.steps.echo("Skipping tag because it already exists.")
+            this.logger.info("Skipping tag '${tag}' because it already exists.")
         } else {
             this.git.createTag(tag)
             this.git.pushBranchWithTags(branch)
@@ -465,7 +466,7 @@ class MROPipelineUtil extends PipelineUtil {
 
     def tagAndPush(String tag) {
         if (this.git.remoteTagExists(tag)) {
-            this.steps.echo("Skipping tag because it already exists.")
+            this.logger.info("Skipping tag '${tag}' because it already exists.")
         } else {
             this.git.createTag(tag)
             this.git.pushTag(tag)
@@ -479,7 +480,7 @@ class MROPipelineUtil extends PipelineUtil {
                 if (preExecute) {
                     preExecute(this.steps, repo)
                 }
-
+                this.logger.startClocked("${repo.id}-scm-checkout")
                 def scm = null
                 def scmBranch = repo.branch
                 if (this.project.isPromotionMode) {
@@ -494,7 +495,7 @@ class MROPipelineUtil extends PipelineUtil {
                             try {
                                 scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
                             } catch (ex) {
-                                steps.echo """
+                                this.logger.warn """
                                 WARNING! Checkout of '${this.project.gitReleaseBranch}' for repo '${repo.id}' failed.
                                 Attempting to checkout '${repo.branch}' and create the release branch from it.
                                 """
@@ -516,6 +517,7 @@ class MROPipelineUtil extends PipelineUtil {
                         scmBranch = this.project.gitReleaseBranch
                     }
                 }
+                this.logger.debugClocked("${repo.id}-scm-checkout")
 
                 repo.data.git = [
                     branch: scmBranch,
@@ -529,7 +531,9 @@ class MROPipelineUtil extends PipelineUtil {
                 def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                 loadPipelineConfig(repoPath, repo)
                 this.steps.dir(repoPath) {
+                    this.logger.startClocked("${repo.id}-resurrect")
                     amendRepoForResurrection(repo)
+                    this.logger.debugClocked("${repo.id}-resurrect")
                 }
 
                 if (postExecute) {
@@ -540,7 +544,7 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def checkoutTagInRepoDir(Map repo, String tag) {
-        steps.echo("Checkout tag ${repo.id}@${tag}")
+        this.logger.info("Checkout tag ${repo.id}@${tag}")
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
             "refs/tags/${tag}",
@@ -550,7 +554,7 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     def checkoutBranchInRepoDir(Map repo, String branch) {
-        steps.echo("Checkout branch ${repo.id}@${branch}")
+        this.logger.info("Checkout branch ${repo.id}@${branch}")
         def credentialsId = this.project.services.bitbucket.credentials.id
         git.checkout(
             "*/${branch}",
@@ -589,7 +593,7 @@ class MROPipelineUtil extends PipelineUtil {
                             } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
                                 finalizeODSComponent(repo, baseDir)
                             } else {
-                                this.steps.echo("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                             }
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
@@ -601,7 +605,7 @@ class MROPipelineUtil extends PipelineUtil {
                             } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
                                 finalizeODSComponent(repo, baseDir)
                             } else {
-                                this.steps.echo("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                             }
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
@@ -617,7 +621,7 @@ class MROPipelineUtil extends PipelineUtil {
                                     tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                                 }
                             } else {
-                                this.steps.echo("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                                this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                             }
                         }
                     } else {

@@ -5,6 +5,7 @@ import java.nio.file.Paths
 
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 
@@ -24,7 +25,8 @@ class PipelineUtilSpec extends SpecHelper {
         project = createProject()
         steps = Spy(util.PipelineSteps)
         def git = Mock(GitService)
-        util = Spy(new PipelineUtil(project, steps, git))
+        util = Spy(new PipelineUtil(project, steps, git,
+            new Logger (steps, true)))
     }
 
     def "archive artifact"() {

@@ -5,6 +5,7 @@ import java.nio.file.Paths
 
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 
@@ -24,7 +25,8 @@ class MROPipelineUtilSpec extends SpecHelper {
         project = createProject()
         steps = Spy(util.PipelineSteps)
         def git = Mock(GitService)
-        util = new MROPipelineUtil(project, steps, git)
+        def logger = Mock(Logger)
+        util = new MROPipelineUtil(project, steps, git, logger)
     }
 
     def "load a repo's pipeline config"() {
