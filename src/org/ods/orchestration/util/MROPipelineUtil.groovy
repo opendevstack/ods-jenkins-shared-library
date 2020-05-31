@@ -683,13 +683,13 @@ class MROPipelineUtil extends PipelineUtil {
     void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {
         this.project.setHasUnexecutedJiraTests(true)
         def unexecutedJiraTestKeys = unexecutedJiraTests.collect { it.key }.join(", ")
-        this.warnBuild("Warning: found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
+        this.warnBuild("Found unexecuted Jira tests: ${unexecutedJiraTestKeys}.")
     }
 
     void warnBuildIfTestResultsContainFailure(Map testResults) {
         if (testResults.testsuites.find { (it.errors && it.errors.toInteger() > 0) || (it.failures && it.failures.toInteger() > 0) }) {
             this.project.setHasFailingTests(true)
-            this.warnBuild('Warning: found failing tests in test reports.')
+            this.warnBuild('Found failing tests in test reports.')
         }
     }
 

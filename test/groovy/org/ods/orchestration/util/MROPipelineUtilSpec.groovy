@@ -20,12 +20,13 @@ class MROPipelineUtilSpec extends SpecHelper {
     Project project
     IPipelineSteps steps
     MROPipelineUtil util
+    def logger
 
     def setup() {
         project = createProject()
         steps = Spy(util.PipelineSteps)
         def git = Mock(GitService)
-        def logger = Mock(Logger)
+        logger = Mock(Logger)
         util = new MROPipelineUtil(project, steps, git, logger)
     }
 
@@ -553,7 +554,7 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         then:
         steps.currentBuild.result == "UNSTABLE"
-        1 * steps.echo("Warning: found failing tests in test reports.")
+        1 * logger.warn("Found failing tests in test reports.")
 
         then:
         noExceptionThrown() // pipeline does not stop here
@@ -573,7 +574,7 @@ class MROPipelineUtilSpec extends SpecHelper {
 
         then:
         steps.currentBuild.result == "UNSTABLE"
-        1 * steps.echo("Warning: found unexecuted Jira tests: KEY-1, KEY-2, KEY-3.")
+        1 * logger.warn("Found unexecuted Jira tests: KEY-1, KEY-2, KEY-3.")
 
         then:
         noExceptionThrown() // pipeline does not stop here

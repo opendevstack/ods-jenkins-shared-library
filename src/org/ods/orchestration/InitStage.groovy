@@ -32,9 +32,11 @@ class InitStage extends Stage {
     def run() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         def steps = new PipelineSteps(script)
+        logger.startClocked("boot-git-${STAGE_NAME}")
         def git = new GitService(steps, logger)
         git.configureUser()
-
+        logger.debugClocked("boot-git-${STAGE_NAME}")
+        
         // load build params
         logger.debug('Loading orchestration build params ...')
         def buildParams = Project.loadBuildParams(steps)
@@ -310,7 +312,7 @@ class InitStage extends Stage {
         }
         if (!stageToStartMRO) {
             logger.info "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
-                "To change this, change 'startOrchestrationSlaveOnInit' in JenkinsFile to 'false'"
+                "To change this to 'init', change 'startOrchestrationSlaveOnInit' in JenkinsFile to 'true'"
             stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)
