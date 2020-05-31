@@ -20,8 +20,6 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 
-final String STAGE_NAME = 'ods-orchestration'
-
 def call(Map config) {
     Unirest.config()
         .socketTimeout(1200000)
@@ -44,7 +42,9 @@ def call(Map config) {
     boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
     def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
+    logger.startClocked("orchestration-master-node")
     node ('master') {
+        logger.debugClocked("orchestration-master-node")
         // Clean workspace from previous runs
         [
             PipelineUtil.ARTIFACTS_BASE_DIR,
@@ -56,7 +56,7 @@ def call(Map config) {
             Paths.get(env.WORKSPACE, name).toFile().deleteDir()
         }
 
-        logger.startClocked("git-releasemanager-${STAGE_NAME}")
+        logger.startClocked("pipeline-git-releasemanager")
         def scmBranches = scm.branches
         def branch = scmBranches[0]?.name
         if (branch && !branch.startsWith('*/')) {
@@ -71,7 +71,7 @@ def call(Map config) {
             extensions: [[$class: 'LocalBranch', localBranch: '**']],
             userRemoteConfigs: scm.userRemoteConfigs,
         ])
-        logger.debugClocked("git-releasemanager-${STAGE_NAME}")
+        logger.debugClocked("pipeline-git-releasemanager")
 
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
 
