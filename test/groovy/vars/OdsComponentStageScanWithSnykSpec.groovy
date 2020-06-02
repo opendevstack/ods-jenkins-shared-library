@@ -16,7 +16,7 @@ import org.ods.services.ServiceRegistry
    def config = [
        projectId: 'foo',
        componentId: 'bar',
-       nexusHost: 'https;//nexus.example.com',
+       nexusUrl: 'https://nexus.example.com',
        nexusUsername: 'developer',
        nexusPassword: 's3cr3t',
        buildNumber: '42'

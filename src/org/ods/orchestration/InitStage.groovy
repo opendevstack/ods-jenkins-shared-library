@@ -141,13 +141,9 @@ class InitStage extends Stage {
             }
         }
 
-        registry.add(NexusService,
-            new NexusService(
-                script.env.NEXUS_URL,
-                script.env.NEXUS_USERNAME,
-                script.env.NEXUS_PASSWORD
-            )
-        )
+
+
+        registry.add(NexusService, NexusService.newFromEnv(script.env, logger))
 
         registry.add(OpenShiftService,
             new OpenShiftService(
@@ -225,15 +221,14 @@ class InitStage extends Stage {
             )
         )
 
-        registry.add(BitbucketService, new BitbucketService(
-            registry.get(PipelineSteps).unwrap(),
-            project.releaseManagerBitbucketHostUrl,
+        def bitbucket = BitbucketService.newFromEnv(
+            steps.unwrap(),
+            steps.env,
             project.key,
             project.services.bitbucket.credentials.id,
             logger
-        ))
-
-        BitbucketService bitbucket = registry.get(BitbucketService)
+        )
+        registry.add(BitbucketService, bitbucket)
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
@@ -320,7 +315,7 @@ class InitStage extends Stage {
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
         if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
-            runOnAgentPod(project, true) {
+            runOnAgentPod(true) {
                 def sourceEnv = project.buildParams.targetEnvironment
                 os.createVersionedDevelopmentEnvironment(project.key, sourceEnv)
 

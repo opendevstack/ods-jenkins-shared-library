@@ -45,6 +45,38 @@ class BitbucketService {
         this.logger = logger
     }
 
+    static BitbucketService newFromEnv(
+        def script,
+        def env,
+        String project,
+        String passwordCredentialsId,
+        ILogger logger) {
+        def c = readConfigFromEnv(env)
+        new BitbucketService(script, c.bitbucketUrl, project, passwordCredentialsId, logger)
+    }
+
+    static Map readConfigFromEnv(def env) {
+        def config = [:]
+        if (env.BITBUCKET_URL?.trim()) {
+            config.bitbucketUrl = env.BITBUCKET_URL.trim()
+            config.bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
+        } else if (env.BITBUCKET_HOST?.trim()) {
+            config.bitbucketHost = env.BITBUCKET_HOST.trim()
+            config.bitbucketUrl = "https://${config.bitbucketHost}"
+        } else {
+            throw new IllegalArgumentException("Environment variable 'BITBUCKET_URL' is required")
+        }
+        config
+    }
+
+    String getUrl() {
+        bitbucketUrl
+    }
+
+    String getPasswordCredentialsId() {
+        passwordCredentialsId
+    }
+
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).
     String getPullRequests(String repo, String state = 'OPEN') {
         String res

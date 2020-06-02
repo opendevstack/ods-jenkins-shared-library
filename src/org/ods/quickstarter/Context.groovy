@@ -101,6 +101,11 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getNexusUrl() {
+        config.nexusUrl
+    }
+
+    @NonCPS
     String getNexusHost() {
         config.nexusHost
     }

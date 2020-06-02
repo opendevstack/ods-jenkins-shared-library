@@ -1,7 +1,9 @@
 package org.ods.component
 
 import org.ods.util.Logger
+import org.ods.services.BitbucketService
 import org.ods.services.GitService
+import org.ods.services.NexusService
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
@@ -44,18 +46,9 @@ class Context implements IContext {
         config.buildUrl = script.env.BUILD_URL
         config.buildTag = script.env.BUILD_TAG
         config.buildTime = new Date()
-        config.nexusHost = script.env.NEXUS_HOST
-        config.nexusUsername = script.env.NEXUS_USERNAME
-        config.nexusPassword = script.env.NEXUS_PASSWORD
         config.openshiftHost = script.env.OPENSHIFT_API_URL
-
-        if (script.env.BITBUCKET_URL) {
-            config.bitbucketUrl = script.env.BITBUCKET_URL
-            config.bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
-        } else if (script.env.BITBUCKET_HOST) {
-            config.bitbucketHost = script.env.BITBUCKET_HOST
-            config.bitbucketUrl = "https://${config.bitbucketHost}"
-        }
+        config << BitbucketService.readConfigFromEnv(script.env)
+        config << NexusService.readConfigFromEnv(script.env, logger)
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 
@@ -79,20 +72,8 @@ class Context implements IContext {
         if (!config.buildTag) {
             throw new IllegalArgumentException('BUILD_TAG is required, but not set (usually provided by Jenkins)')
         }
-        if (!config.nexusHost) {
-            throw new IllegalArgumentException('NEXUS_HOST is required, but not set')
-        }
-        if (!config.nexusUsername) {
-            throw new IllegalArgumentException('NEXUS_USERNAME is required, but not set')
-        }
-        if (!config.nexusPassword) {
-            throw new IllegalArgumentException('NEXUS_PASSWORD is required, but not set')
-        }
         if (!config.openshiftHost) {
             throw new IllegalArgumentException('OPENSHIFT_API_URL is required, but not set')
-        }
-        if (!config.bitbucketUrl) {
-            throw new IllegalArgumentException('BITBUCKET_URL is required, but not set')
         }
         if (!config.buildUrl) {
             logger.info 'BUILD_URL is required to set a proper build status in ' +
@@ -224,6 +205,11 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getNexusUrl() {
+        config.nexusUrl
+    }
+
+    @NonCPS
     String getNexusHost() {
         config.nexusHost
     }
@@ -238,8 +224,16 @@ class Context implements IContext {
         config.nexusPassword
     }
 
+    @NonCPS
+    String getNexusUrlWithBasicAuth() {
+        config.nexusUrl.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
+    }
+
+    // To support legacy systems, also uses nexusUrl value.
+    // To be removed in ODS 4+.
+    @NonCPS
     String getNexusHostWithBasicAuth() {
-        config.nexusHost.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
+        config.nexusUrl.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
     }
 
     @NonCPS

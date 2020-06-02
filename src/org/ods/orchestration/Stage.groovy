@@ -4,6 +4,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
+import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 
@@ -109,16 +110,16 @@ class Stage {
         ]
     }
 
-    protected def runOnAgentPod(Project project, boolean condition, Closure block) {
+    protected def runOnAgentPod(boolean condition, Closure block) {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         if (condition) {
+            def bitbucket = ServiceRegistry.instance.get(BitbucketService)
             def git = ServiceRegistry.instance.get(GitService)
             logger.startClocked("${project.key}-${STAGE_NAME}-stash")
             script.dir(script.env.WORKSPACE) {
                 script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }
             logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
-            def bitbucketHost = script.env.BITBUCKET_HOST
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
             logger.debugClocked(podLabel, 'Starting orchestration pipeline slave pod')
             script.node(podLabel) {
@@ -129,14 +130,14 @@ class Stage {
                 logger.debugClocked("${project.key}-${STAGE_NAME}-unstash")
                 script.withCredentials(
                     [script.usernamePassword(
-                        credentialsId: project.services.bitbucket.credentials.id,
+                        credentialsId: bitbucket.passwordCredentialsId,
                         usernameVariable: 'BITBUCKET_USER',
                         passwordVariable: 'BITBUCKET_PW'
                     )]
                 ) {
                     def bbUser = URLEncoder.encode(script.env.BITBUCKET_USER, 'UTF-8')
                     def bbPwd = URLEncoder.encode(script.env.BITBUCKET_PW, 'UTF-8')
-                    def urlWithCredentials = "https://${bbUser}:${bbPwd}@${bitbucketHost}"
+                    def urlWithCredentials = bitbucket.url.replace('://', "://${bbUser}:${bbPwd}@")
                     script.writeFile(
                         file: "${script.env.HOME}/.git-credentials",
                         text: urlWithCredentials

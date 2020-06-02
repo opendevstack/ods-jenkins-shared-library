@@ -16,4 +16,5 @@ class ServiceRegistry {
     def clear() {
         registry.clear()
     }
+
 }

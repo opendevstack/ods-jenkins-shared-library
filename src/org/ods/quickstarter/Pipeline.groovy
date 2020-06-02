@@ -1,5 +1,8 @@
 package org.ods.quickstarter
 
+import org.ods.services.BitbucketService
+import org.ods.services.NexusService
+
 class Pipeline implements Serializable {
 
     private final def script
@@ -53,26 +56,14 @@ class Pipeline implements Serializable {
         // vars from jenkins master
         def gitHost
         script.node {
-            gitHost =  script.env.BITBUCKET_HOST.split(':')[0]
             config.jobName = script.env.JOB_NAME
             config.buildNumber = script.env.BUILD_NUMBER
             config.buildUrl = script.env.BUILD_URL
             config.buildTime = new Date()
             config.dockerRegistry = script.env.DOCKER_REGISTRY
-
-            // Get Bitbucket params
-            if (script.env.BITBUCKET_URL) {
-                config.bitbucketUrl = script.env.BITBUCKET_URL
-                config.bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
-            } else if (script.env.BITBUCKET_HOST) {
-                config.bitbucketHost = script.env.BITBUCKET_HOST
-                config.bitbucketUrl = "https://${config.bitbucketHost}"
-            }
-
-            // Get Nexus params
-            config.nexusHost = script.env.NEXUS_HOST
-            config.nexusUsername = script.env.NEXUS_USERNAME
-            config.nexusPassword = script.env.NEXUS_PASSWORD
+            config << BitbucketService.readConfigFromEnv(script.env)
+            gitHost =  config.bitbucketHost.split(':').first()
+            config << NexusService.readConfigFromEnv(script.env, logger)
         }
 
         onAgentNode(config) { context ->

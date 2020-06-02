@@ -70,7 +70,7 @@ class DeployStage extends Stage {
             }
         }
 
-        runOnAgentPod(project, agentPodCondition) {
+        runOnAgentPod(agentPodCondition) {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject

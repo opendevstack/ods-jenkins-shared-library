@@ -211,6 +211,7 @@ class GitService {
         return branchCheckStatus == 0
     }
 
+    @SuppressWarnings('UnnecessaryElseStatement')
     boolean otherFilesChangedAfterCommitOfFile(String fileName, String openshiftDir) {
         if (!script.fileExists(fileName)) {
             return true

@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 ext {
-    nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
+    nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_URL') ?: System.getenv('NEXUS_HOST')
     nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
     nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
     no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
@@ -114,7 +114,7 @@ codenarc {
     configFile = file('codenarc.groovy')
     maxPriority1Violations = 0
     maxPriority2Violations = 0
-    maxPriority3Violations = 766
+    maxPriority3Violations = 738
     reportFormat = 'html'
 }
 
