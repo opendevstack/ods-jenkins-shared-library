@@ -217,11 +217,11 @@ class OpenShiftService {
         def retries = 5
         for (def i = 0; i < retries; i++) {
             buildStatus = checkForBuildStatus(buildId)
+            logger.debug ("Build: '${buildId}' - status: '${buildStatus}'")
             if (buildStatus == 'complete') {
                 return buildStatus
-            }
-            logger.debug ("Build: '${buildId}' - status: '${buildStatus}'")
-            if (buildStatus == 'running') {
+            } else if (buildStatus == 'running') {
+                // reset retries
                 retries = 5
             }
             // Wait 5 seconds before asking again. Sometimes the build finishes but the
