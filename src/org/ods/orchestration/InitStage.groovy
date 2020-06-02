@@ -161,7 +161,8 @@ class InitStage extends Stage {
             registry.get(Project),
             registry.get(PipelineSteps),
             registry.get(MROPipelineUtil),
-            registry.get(JiraService)
+            registry.get(JiraService),
+            logger
         )
 
         if (project.hasCapability('Zephyr')) {

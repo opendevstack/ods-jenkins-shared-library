@@ -1094,7 +1094,7 @@ class ProjectSpec extends SpecHelper {
 
         def projectObj = new Project(steps, logger)
         projectObj.git = git
-        projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira)
+        projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira, logger)
 
         def projectKey = "DEMO"
 

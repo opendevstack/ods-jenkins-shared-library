@@ -3,6 +3,8 @@ package org.ods.orchestration.usecase
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
+import org.ods.util.Logger
 
 import spock.lang.*
 
@@ -12,8 +14,8 @@ import util.*
 
 class JiraUseCaseSupportSpec extends SpecHelper {
 
-    JiraUseCase createUseCase(PipelineSteps steps, MROPipelineUtil util, JiraService jira) {
-        return new JiraUseCase(steps, util, jira)
+    JiraUseCase createUseCase(PipelineSteps steps, MROPipelineUtil util, JiraService jira, ILogger logger) {
+        return new JiraUseCase(steps, util, jira, logger)
     }
 
     JiraUseCaseSupport createUseCaseSupport(PipelineSteps steps, JiraUseCase usecase) {

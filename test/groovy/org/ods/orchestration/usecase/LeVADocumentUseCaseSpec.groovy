@@ -12,6 +12,7 @@ import org.ods.services.OpenShiftService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 
 import spock.lang.*
 
@@ -34,6 +35,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     PDFUtil pdf
     SonarQubeUseCase sq
     LeVADocumentUseCase usecase
+    Logger logger
 
     def setup() {
         project = Spy(createProject())
@@ -52,13 +54,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         os = Mock(OpenShiftService)
         pdf = Mock(PDFUtil)
         sq = Mock(SonarQubeUseCase)
+        logger = Mock(Logger)
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
         project.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
     }
 
     def "compute test discrepancies"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def name = "myTests"
@@ -348,7 +351,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create CSD"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -384,7 +387,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TRC"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
@@ -438,7 +441,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create DIL"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -463,7 +466,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create DTP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
@@ -630,7 +633,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create CFTP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -662,7 +665,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create CFTR"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
@@ -720,7 +723,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TCP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -752,7 +755,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TCR"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
@@ -811,7 +814,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create IVP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -842,7 +845,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create IVR"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Test Parameters
@@ -895,7 +898,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create SSDS"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         steps.env.BUILD_ID = "0815"
@@ -958,7 +961,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create RA"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -989,7 +992,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "create TIP"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         // Argument Constraints
@@ -1196,7 +1199,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "update Jira documentation tracking issue in DEV"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myType"
@@ -1225,7 +1228,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "update Jira documentation tracking issue when no issues found in project.data.docs"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myTypeNotFound"
@@ -1241,7 +1244,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "update Jira documentation tracking issue with 2 chapters issue not DONE yet"() {
         given:
-        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService)))
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
 
         def documentType = "myTypeNotDone"
