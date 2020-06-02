@@ -322,7 +322,7 @@ class InitStage extends Stage {
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
         if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
-            runOnAgentPod(project, true) {
+            runOnAgentPod(true) {
                 def sourceEnv = project.buildParams.targetEnvironment
                 os.createVersionedDevelopmentEnvironment(project.key, sourceEnv)
 

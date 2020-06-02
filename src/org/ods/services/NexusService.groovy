@@ -73,12 +73,11 @@ class NexusService {
         config
     }
 
-    @SuppressWarnings('SpaceAroundMapEntryColon')
     @NonCPS
     URI storeArtifact(String repository, String directory, String name, byte[] artifact, String contentType) {
         Map nexusParams = [
-            'raw.directory':directory,
-            'raw.asset1.filename':name,
+            'raw.directory': directory,
+            'raw.asset1.filename': name,
         ]
 
         return storeComplextArtifact(repository, artifact, contentType, 'raw', nexusParams)
@@ -139,7 +138,7 @@ class NexusService {
     @SuppressWarnings(['LineLength', 'JavaIoPackageAccess'])
     @NonCPS
     Map<URI, File> retrieveArtifact(String nexusRepository, String nexusDirectory, String name, String extractionPath) {
-        // https://nexus3-cd....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
+        // https://nexus3-ods....../repository/leva-documentation/odsst-WIP/DTP-odsst-WIP-108.zip
         String urlToDownload = "${this.baseURL}/repository/${nexusRepository}/${nexusDirectory}/${name}"
         def restCall = Unirest.get("${urlToDownload}")
             .basicAuth(this.username, this.password)

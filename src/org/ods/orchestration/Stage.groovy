@@ -110,7 +110,7 @@ class Stage {
         ]
     }
 
-    protected def runOnAgentPod(Project project, boolean condition, Closure block) {
+    protected def runOnAgentPod(boolean condition, Closure block) {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         if (condition) {
             def bitbucket = ServiceRegistry.instance.get(BitbucketService)

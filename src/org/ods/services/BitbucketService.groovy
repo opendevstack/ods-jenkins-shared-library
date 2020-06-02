@@ -68,7 +68,7 @@ class BitbucketService {
         bitbucketUrl
     }
 
-    String passwordCredentialsId() {
+    String getPasswordCredentialsId() {
         passwordCredentialsId
     }
 
