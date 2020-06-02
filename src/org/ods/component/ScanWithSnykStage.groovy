@@ -1,14 +1,16 @@
 package org.ods.component
 
 import org.ods.services.SnykService
+import org.ods.util.ILogger
 
 class ScanWithSnykStage extends Stage {
 
     public final String STAGE_NAME = 'Snyk Security Scan'
     private final SnykService snyk
 
-    ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk) {
-        super(script, context, config)
+    ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk,
+        ILogger logger) {
+        super(script, context, config, logger)
         if (!config.containsKey('failOnVulnerabilities')) {
             config.failOnVulnerabilities = context.failOnSnykScanVulnerabilities
         }
@@ -37,7 +39,7 @@ class ScanWithSnykStage extends Stage {
 
     protected run() {
         if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
-            script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
+            logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
 
@@ -58,7 +60,7 @@ class ScanWithSnykStage extends Stage {
             script.error 'Snyk auth failed'
         }
 
-        script.echo 'Scanning for vulnerabilities with ' +
+        logger.info 'Scanning for vulnerabilities with ' +
             "organisation=${config.organisation}, " +
             "projectName=${config.projectName}, " +
             "buildFile=${config.buildFile}, " +
@@ -73,14 +75,16 @@ class ScanWithSnykStage extends Stage {
             "NEXUS_PASSWORD=${context.nexusPassword}",
         ]
         // nexus credentials are provided here because snyk runs build.gradle who needs them
+        logger.startClocked("${config.projectName}-snyk-scan")
         script.withEnv(envVariables) {
             noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
             if (noVulnerabilitiesFound) {
-                script.echo 'No vulnerabilities detected.'
+                logger.info 'No vulnerabilities detected.'
             } else {
-                script.echo 'Snyk test detected vulnerabilities.'
+                logger.warn 'Snyk test detected vulnerabilities.'
             }
         }
+        logger.debugClocked("${config.projectName}-snyk-scan")
 
         if (!snyk.monitor(config.organisation, config.buildFile)) {
             script.error 'Snyk monitor failed'

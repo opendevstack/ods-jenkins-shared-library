@@ -19,10 +19,11 @@ class JenkinsService {
         def contextresultMap = [:]
         def xUnitResultDir = XUNIT_SYSTEM_RESULT_DIR
         if (customXunitResultsDir?.trim()?.length() > 0) {
+            logger.debug "overwritten testresult location: ${customXunitResultsDir}"
             xUnitResultDir = customXunitResultsDir.trim()
         }
 
-        logger.info "Stashing testResults from location: '${xUnitResultDir}'"
+        logger.info "Attempting to stash testresults from location: '${xUnitResultDir}'"
         script.sh(
             script: """
             mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${xUnitResultDir} &&
@@ -37,7 +38,7 @@ class JenkinsService {
             label: "Counting test results in ${XUNIT_SYSTEM_RESULT_DIR}"
         ).trim()
 
-        logger.debug "Found ${foundTests} tests in '${XUNIT_SYSTEM_RESULT_DIR}'"
+        logger.debug "Found ${foundTests} test files in '${XUNIT_SYSTEM_RESULT_DIR}'"
 
         contextresultMap.testResultsFolder = XUNIT_SYSTEM_RESULT_DIR
         contextresultMap.testResults = foundTests

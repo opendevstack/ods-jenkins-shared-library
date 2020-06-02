@@ -13,4 +13,7 @@ class ServiceRegistry {
         return registry[type.name] as T
     }
 
+    def clear() {
+        registry.clear()
+    }
 }

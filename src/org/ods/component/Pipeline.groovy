@@ -37,7 +37,7 @@ class Pipeline implements Serializable {
     // Main entry point.
     @SuppressWarnings(['NestedBlockDepth', 'AbcMetric', 'CyclomaticComplexity', 'MethodSize'])
     def execute(Map config, Closure stages) {
-        logger.info "-> ODS Component pipeline setup, debug mode? ${logger.debugMode}"
+        logger.debug "-> ODS Component pipeline setup, debug mode? ${logger.debugMode}"
         if (!!script.env.MULTI_REPO_BUILD) {
             setupForMultiRepoBuild(config)
         }
@@ -68,7 +68,7 @@ class Pipeline implements Serializable {
         config.repoName = "${config.projectId}-${config.componentId}"
 
         prepareAgentPodConfig(config)
-        logger.info "***** Starting ODS Component Pipeline (${config.componentId}) *****"
+        logger.infoClocked("${config.componentId}", "***** Starting ODS Component Pipeline *****")
         context = new Context(script, config, logger, this.localCheckoutEnabled)
 
         boolean skipCi = false
@@ -88,13 +88,13 @@ class Pipeline implements Serializable {
                             script.node ('master') {
                                 config.image = config.image.
                                     replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}/")
-                                script.echo ("Patched image via master env to: ${config.image}")
+                                logger.warn ("Patched image via master env to: ${config.image}")
                             }
                             // still?!
                             if (config.image.startsWith(wtfEnvBug)) {
                                 config.image = config.image.
                                     replace(wtfEnvBug, 'docker-registry.default.svc:5000/')
-                                script.echo ("Patched image via hardcode to: ${config.image}")
+                                logger.warn ("Patched image via hardcode to: ${config.image}")
                             }
                         }
                         context.assemble()
@@ -106,7 +106,7 @@ class Pipeline implements Serializable {
                         // services have been already registered
                         if (!registry.get(GitService)) {
                             logger.debug 'Registering GitService'
-                            registry.add(GitService, new GitService(script))
+                            registry.add(GitService, new GitService(script, logger))
                         }
                         this.gitService = registry.get(GitService)
 
@@ -116,7 +116,8 @@ class Pipeline implements Serializable {
                                 script,
                                 context.bitbucketUrl,
                                 context.projectId,
-                                context.credentialsId
+                                context.credentialsId,
+                                logger
                             ))
                         }
                         this.bitbucketService = registry.get(BitbucketService)
@@ -157,11 +158,13 @@ class Pipeline implements Serializable {
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
                         }
+                        logger.startClocked("${context.componentId}-get-oc-app-domain")
                         context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
+                        logger.debugClocked("${context.componentId}-get-oc-app-domain")
                     }
                 }
             } catch (err) {
-                script.echo("Error during ODS component pipeline setup: ${err}")
+                logger.warn("Error during ODS component pipeline setup: ${err}")
                 updateBuildStatus('FAILURE')
                 setBitbucketBuildStatus('FAILED')
                 if (notifyNotGreen) {
@@ -198,7 +201,7 @@ class Pipeline implements Serializable {
                 msgBasedOn = " based on image '${config.image}'"
             }
             logger.info "***** Continuing on node '${config.podLabel}'${msgBasedOn} *****"
-            def podStartTime = System.currentTimeMillis()
+            logger.startClocked("${config.podLabel}")
             script.podTemplate(
                 label: config.podLabel,
                 cloud: 'openshift',
@@ -208,8 +211,7 @@ class Pipeline implements Serializable {
             ) {
                 script.node(config.podLabel) {
                     try {
-                        script.echo("Build pod '${config.podLabel}' start time:" +
-                            "${System.currentTimeMillis() - podStartTime}ms")
+                        logger.debugClocked("${config.podLabel}")
                         setBitbucketBuildStatus('INPROGRESS')
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
@@ -225,13 +227,14 @@ class Pipeline implements Serializable {
                         script.stage('odsPipeline finished') {
                             updateBuildStatus('SUCCESS')
                             setBitbucketBuildStatus('SUCCESSFUL')
-                            logger.info "***** Finished ODS Pipeline for ${context.componentId} *****"
+                            logger.infoClocked("${context.componentId}", '***** Finished ODS Pipeline *****')
                         }
                         return this
                     } catch (err) {
                         script.stage('odsPipeline error') {
-                            logger.info "***** Finished ODS Pipeline for ${context.componentId} (with error) *****"
-                            script.echo("Error: ${err}")
+                            logger.warnClocked("${context.componentId}",
+                                "***** Finished ODS Pipeline for ${context.componentId} (with error) *****")
+                            logger.warn "Error: ${err}"
                             updateBuildStatus('FAILURE')
                             setBitbucketBuildStatus('FAILED')
                             if (notifyNotGreen) {
@@ -255,9 +258,8 @@ class Pipeline implements Serializable {
                         ).each { resultKey, resultValue ->
                             context.addArtifactURI(resultKey, resultValue)
                         }
-                        logger.debug(
-                            "ODS Component Pipeline '${context.componentId}-${context.buildNumber}'" +
-                            " took ${System.currentTimeMillis() - podStartTime}ms\r\r" +
+                        logger.debugClocked("${config.componentId}",
+                            "ODS Component Pipeline '${context.componentId}-${context.buildNumber}'\r" +
                             "ODS Build Artifacts '${context.componentId}': " +
                             "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
                         )
@@ -277,11 +279,12 @@ class Pipeline implements Serializable {
         def buildEnv = script.env.MULTI_REPO_ENV
         if (buildEnv) {
             config.environment = buildEnv
-            logger.debug("Setting target env ${config.environment}")
+            logger.debug("Setting target environment: '${config.environment}'")
         } else {
-            logger.echo 'Variable MULTI_REPO_ENV (target environment!) must not be null!'
+            logger.warn 'Variable MULTI_REPO_ENV (target environment!) must not be null!'
             // Using exception because error step would skip post steps
-            throw new RuntimeException('Variable MULTI_REPO_ENV (target environment!) must not be null!')
+            throw new RuntimeException("Variable 'MULTI_REPO_ENV' (target environment!)" +
+                ' must not be null!')
         }
     }
 
@@ -445,19 +448,21 @@ class Pipeline implements Serializable {
     }
 
     private void amendProjectAndComponentFromOrigin(Map config) {
-        logger.debug("Amending project / component based on Git origin URL")
+        logger.debug("Amending project / component name based on Git origin URL")
         def block = {
             def origin
             try {
-                origin = new GitService(script).getOriginUrl()
+                origin = new GitService(script, this.logger).getOriginUrl()
+                logger.debug("Retrieved Git origin URL from filesystem: ${origin}")
             } catch (err) {
+                logger.debug("Could not retrieve git origin from filesystem: ${err}")
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
                 origin = (new OpenShiftService(steps, logger, projectName))
                     .getOriginUrlFromBuildConfig(bcName)
+                logger.debug("Retrieved Git origin URL from build config: ${origin}")
             }
-            logger.debug("Retrieved Git origin URL: ${origin}")
 
             def splittedOrigin = origin.split('/')
             def project = splittedOrigin[splittedOrigin.size() - 2]
@@ -469,7 +474,7 @@ class Pipeline implements Serializable {
                 config.componentId = repoName - ~/^${project}-/
             }
             logger.debug(
-                "Project / component config: ${config.projectId} / ${config.componentId}"
+                "Project- / component-name config: ${config.projectId} / ${config.componentId}"
             )
         }
         if (this.localCheckoutEnabled) {

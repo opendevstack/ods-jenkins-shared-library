@@ -12,6 +12,8 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
 import util.SpecHelper
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 import static util.FixtureHelper.createProject
 
@@ -25,6 +27,7 @@ class TestStageSpec extends SpecHelper {
     JUnitTestReportsUseCase junit
     JenkinsService jenkins
     LeVADocumentScheduler levaDocScheduler
+    ILogger logger
 
     def phase = MROPipelineUtil.PipelinePhases.TEST
 
@@ -37,6 +40,7 @@ class TestStageSpec extends SpecHelper {
         jira = Mock(JiraUseCase)
         junit = Mock(JUnitTestReportsUseCase)
         jenkins = Mock(JenkinsService)
+        logger = new Logger(script, !!script.env.DEBUG)
         createService()
         testStage = Spy(new TestStage(script, project, project.repositories))
     }
@@ -50,7 +54,8 @@ class TestStageSpec extends SpecHelper {
         registry.add(JiraUseCase, jira)
         registry.add(JUnitTestReportsUseCase, junit)
         registry.add(JenkinsService, jenkins)
-
+        registry.add(Logger, logger)
+        
         return registry
     }
 

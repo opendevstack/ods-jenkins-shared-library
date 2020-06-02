@@ -8,6 +8,7 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 
 import spock.lang.*
 
@@ -69,7 +70,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def logger = Mock(Logger)
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -1471,7 +1473,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def logger = Mock(Logger)
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -2873,7 +2876,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def logger = Mock(Logger)
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -4275,7 +4279,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def logger = Mock(Logger)
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -5677,7 +5683,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def logger = Mock(Logger)
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def documentType = "myDocumentType"
@@ -5707,7 +5714,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def logger = Mock(Logger)
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
@@ -5724,14 +5732,15 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def logger = Mock(Logger)
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
         scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
 
         where:
         documentType                                 | repo | phase                                   | stage                                               || result
-        LeVADocumentUseCase.DocumentType.CFTR         | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
+        LeVADocumentUseCase.DocumentType.CFTR        | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
         LeVADocumentUseCase.DocumentType.IVR         | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
         LeVADocumentUseCase.DocumentType.OVERALL_DTR | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
         LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END || false
@@ -5755,8 +5764,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5774,7 +5784,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -5854,8 +5864,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5873,7 +5884,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -5949,8 +5960,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -5968,7 +5980,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6021,8 +6033,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6040,7 +6053,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6089,8 +6102,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6114,7 +6128,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6162,8 +6176,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6187,7 +6202,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6240,8 +6255,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6259,7 +6275,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6376,8 +6392,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6395,7 +6412,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6508,8 +6525,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6527,7 +6545,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6586,8 +6604,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6605,7 +6624,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6645,8 +6664,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6664,7 +6684,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6704,8 +6724,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6723,7 +6744,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6783,8 +6804,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6802,7 +6824,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6847,8 +6869,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6866,7 +6889,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6895,8 +6918,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6914,7 +6938,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6945,8 +6969,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -6964,7 +6989,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -7008,6 +7033,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def logger = Mock(Logger)
 
         def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
@@ -7020,7 +7046,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         def result = []
         def expected = []
@@ -7051,6 +7077,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def logger = Mock(Logger)
 
         def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
@@ -7063,7 +7090,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def qTypes = [
@@ -7104,6 +7131,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
+        def logger = Mock(Logger)
 
         def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
         def usecase = Mock(LeVADocumentUseCase) {
@@ -7116,7 +7144,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def pTypes = [
@@ -7155,8 +7183,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
+        def logger = Mock(Logger)
 
-        def utilObj = new MROPipelineUtil(project, steps, git)
+        def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
             executeBlockAndFailBuild(_) >> { block ->
                 utilObj.executeBlockAndFailBuild(block)
@@ -7180,7 +7209,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]

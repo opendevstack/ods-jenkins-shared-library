@@ -5,6 +5,7 @@ import java.nio.file.Paths
 
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 
@@ -19,12 +20,14 @@ class PipelineUtilSpec extends SpecHelper {
     Project project
     IPipelineSteps steps
     PipelineUtil util
+    Logger logger
 
     def setup() {
         project = createProject()
         steps = Spy(util.PipelineSteps)
         def git = Mock(GitService)
-        util = Spy(new PipelineUtil(project, steps, git))
+        logger = Mock(Logger)
+        util = Spy(new PipelineUtil(project, steps, git, logger))
     }
 
     def "archive artifact"() {
@@ -204,7 +207,7 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         steps.currentBuild.result == "FAILURE"
-        1 * steps.echo("some error")
+        1 * logger.warn("some error")
     }
 
     def "warnBuild"() {
@@ -213,7 +216,7 @@ class PipelineUtilSpec extends SpecHelper {
 
         then:
         steps.currentBuild.result == "UNSTABLE"
-        1 * steps.echo("some warning")
+        1 * logger.warn("some warning")
     }
 
     def "load Groovy source file"() {

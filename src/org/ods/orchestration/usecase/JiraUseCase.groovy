@@ -3,6 +3,7 @@ package org.ods.orchestration.usecase
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
@@ -11,14 +12,14 @@ import org.ods.orchestration.util.Project.JiraDataItem
 class JiraUseCase {
 
     class IssueTypes {
-        static final String DOCUMENTATION_TRACKING = "Documentation"
-        static final String DOCUMENTATION_CHAPTER = "Documentation Chapter"
-        static final String RELEASE_STATUS = "Release Status"
+        static final String DOCUMENTATION_TRACKING = 'Documentation'
+        static final String DOCUMENTATION_CHAPTER = 'Documentation Chapter'
+        static final String RELEASE_STATUS = 'Release Status'
     }
 
     class CustomIssueFields {
-        static final String CONTENT = "EDP Content"
-        static final String HEADING_NUMBER = "EDP Heading Number"
+        static final String CONTENT = 'EDP Content'
+        static final String HEADING_NUMBER = 'EDP Heading Number'
     }
 
     enum TestIssueLabels {
@@ -34,12 +35,14 @@ class JiraUseCase {
     private IPipelineSteps steps
     private AbstractJiraUseCaseSupport support
     private MROPipelineUtil util
+    private ILogger logger
 
-    JiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, JiraService jira) {
+    JiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, JiraService jira, ILogger logger) {
         this.project = project
         this.steps = steps
         this.util = util
         this.jira = jira
+        this.logger = logger
     }
 
     void setSupport(AbstractJiraUseCaseSupport support) {
@@ -84,8 +87,10 @@ class JiraUseCase {
     }
 
     boolean checkTestsIssueMatchesTestCase(Map testIssue, Map testCase) {
-        def issueKeyClean = testIssue.key.replaceAll("-", "")
-        return testCase.name.startsWith("${issueKeyClean} ") || testCase.name.startsWith("${issueKeyClean}-") || testCase.name.startsWith("${issueKeyClean}_")
+        def issueKeyClean = testIssue.key.replaceAll('-', '')
+        return testCase.name.startsWith("${issueKeyClean} ") ||
+            testCase.name.startsWith("${issueKeyClean}-") ||
+            testCase.name.startsWith("${issueKeyClean}_")
     }
 
     private String convertHTMLImageSrcIntoBase64Data(String html) {
@@ -150,7 +155,7 @@ class JiraUseCase {
 
         def jqlQuery = [
             jql: "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
-            expand: ["names", "renderedFields"]
+            expand: ['names', 'renderedFields']
         ]
 
         def result = this.jira.searchByJQLQuery(jqlQuery)
@@ -229,11 +234,16 @@ class JiraUseCase {
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
-        steps.echo('Reporting unit test results to corresponding test cases in Jira for' +
-            " ${(componentName ?: 'project')}/type: '${testTypes}'\rresults: ${testResults}")
+        def testLevel = "${componentName ?: 'project'}"
+        if (logger.debugMode) {
+            logger.debug('Reporting unit test results to corresponding test cases in Jira for' +
+              " '${testLevel}' type: '${testTypes}'\rresults: ${testResults}")
+        }
 
+        logger.startClocked("${testLevel}-jira-fetch-tests")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
-        steps.echo("Found automated tests for ${(componentName ?: 'project')}/type: ${testTypes}:" +
+        logger.debugClocked("${testLevel}-jira-fetch-tests",
+            "Found automated tests for ${(componentName ?: 'project')} type: ${testTypes}: " +
             "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
@@ -243,8 +253,11 @@ class JiraUseCase {
             }
         }
 
+        logger.startClocked("${testLevel}-jira-report-tests")
         this.support.applyXunitTestResults(testIssues, testResults)
-        if (["Q", "P"].contains(this.project.buildParams.targetEnvironmentToken)) {
+        logger.debugClocked("${testLevel}-jira-report-tests")
+        if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
+            logger.startClocked("${testLevel}-jira-report-bugs")
             // Create bugs for erroneous test issues
             def errors = JUnitParser.Helper.getErrors(testResults)
             this.createBugsForFailedTestIssues(testIssues, errors, this.steps.env.RUN_DISPLAY_URL)
@@ -252,6 +265,7 @@ class JiraUseCase {
             // Create bugs for failed test issues
             def failures = JUnitParser.Helper.getFailures(testResults)
             this.createBugsForFailedTestIssues(testIssues, failures, this.steps.env.RUN_DISPLAY_URL)
+            logger.debugClocked("${testLevel}-jira-report-bugs")
         }
     }
 
@@ -267,22 +281,24 @@ class JiraUseCase {
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
-        def releaseStatusIssueBuildNumberField = releaseStatusIssueFields["Release Build"]
+        def releaseStatusIssueBuildNumberField = releaseStatusIssueFields['Release Build']
         this.jira.updateTextFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueBuildNumberField.id): "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"])
     }
 
     void updateJiraReleaseStatusResult(String message, boolean isError) {
         if (!this.jira) return
 
-        def status = isError ? "Failed" : "Successful"
+        def status = isError ? 'Failed' : 'Successful'
 
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
-        def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields["Release Manager Status"]
+        def releaseStatusIssueReleaseManagerStatusField = releaseStatusIssueFields['Release Manager Status']
         this.jira.updateSelectListFieldsOnIssue(releaseStatusIssueKey, [(releaseStatusIssueReleaseManagerStatusField.id): status])
 
+        logger.startClocked("jira-update-release-${releaseStatusIssueKey}")
         addCommentInReleaseStatus(message)
+        logger.debugClocked("jira-update-release-${releaseStatusIssueKey}")
     }
 
     void addCommentInReleaseStatus(String message) {

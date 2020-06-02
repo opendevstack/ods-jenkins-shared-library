@@ -1,14 +1,18 @@
 package org.ods.services
 
+import org.ods.util.ILogger
+
 class GitService {
 
     @SuppressWarnings('NonFinalPublicField')
     public static String ODS_GIT_TAG_BRANCH_PREFIX = 'ods-generated-'
 
     private final def script
+    private final ILogger logger
 
-    GitService(script) {
+    GitService(script, logger) {
         this.script = script
+        this.logger = logger
     }
 
     static String mergedIssueId(String project, String repository, String commitMessage) {
@@ -230,10 +234,10 @@ class GitService {
             def templateYml = openshiftDir + '/template.yml'
             files.remove(templateYml)
             if (files.size() == 0) {
-                script.echo ('Clean tree, no changes')
+                logger.debug ('Clean tree, no changes')
                 return false
             } else {
-                script.echo ("Found modified files other than '${fileName}' " +
+                logger.info ("Found modified files other than '${fileName}' " +
                     "after commit '${commitOfFile}'\rFiles modified: '${files}'")
                 return true
             }

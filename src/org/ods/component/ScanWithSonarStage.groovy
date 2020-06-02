@@ -4,7 +4,9 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
+import org.ods.util.ILogger
 
+@SuppressWarnings('ParameterCount')
 class ScanWithSonarStage extends Stage {
 
     public final String STAGE_NAME = 'SonarQube Analysis'
@@ -16,8 +18,9 @@ class ScanWithSonarStage extends Stage {
         IContext context,
         Map config,
         BitbucketService bitbucket,
-        SonarQubeService sonarQube) {
-        super(script, context, config)
+        SonarQubeService sonarQube,
+        ILogger logger) {
+        super(script, context, config, logger)
         if (config.branch) {
             config.eligibleBranches = config.branch.split(',')
         } else {
@@ -39,7 +42,7 @@ class ScanWithSonarStage extends Stage {
 
     protected run() {
         if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
-            script.echo "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
+            logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
 
@@ -49,7 +52,9 @@ class ScanWithSonarStage extends Stage {
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
 
+        logger.startClocked("${sonarProjectKey}-sq-scan")
         scan(sonarProperties)
+        logger.debugClocked("${sonarProjectKey}-sq-scan")
 
         generateAndArchiveReports(sonarProjectKey, context.buildTag, context.localCheckoutEnabled)
 
@@ -89,11 +94,11 @@ class ScanWithSonarStage extends Stage {
 
     private assemblePullRequestInfo() {
         if (!config.analyzePullRequests) {
-            script.echo 'PR analysis is disabled.'
+            logger.info 'PR analysis is disabled.'
             return [:]
         }
         if (config.longLivedBranches.contains(context.gitBranch)) {
-            script.echo "Branch '${context.gitBranch}' is considered to be long-lived. " +
+            logger.info "Branch '${context.gitBranch}' is considered to be long-lived. " +
                 'PR analysis will not be performed.'
             return [:]
         }
@@ -113,7 +118,7 @@ class ScanWithSonarStage extends Stage {
         }
 
         def longLivedList = config.longLivedBranches.join(', ')
-        script.echo "No open PR found for ${context.gitBranch} " +
+        logger.info "No open PR found for ${context.gitBranch} " +
             "even though it is not one of the long-lived branches (${longLivedList})."
         return [:]
     }
@@ -127,7 +132,7 @@ class ScanWithSonarStage extends Stage {
                 throw new RuntimeException('Field "values" of JSON response must not be empty!')
             }
         } catch (Exception ex) {
-            script.echo "WARN: Could not understand API response. Error was: ${ex}"
+            logger.warn "Could not understand API response. Error was: ${ex}"
             return [:]
         }
         for (def i = 0; i < prCandidates.size(); i++) {
@@ -141,7 +146,7 @@ class ScanWithSonarStage extends Stage {
                     ]
                 }
             } catch (Exception ex) {
-                script.echo "WARN: Unexpected API response. Error was: ${ex}"
+                logger.warn "Unexpected API response. Error was: ${ex}"
                 return [:]
             }
         }

@@ -5,8 +5,6 @@ import kong.unirest.Unirest
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.util.IPipelineSteps
-import org.ods.util.PipelineSteps
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.Stage
 import org.ods.orchestration.InitStage
@@ -16,17 +14,24 @@ import org.ods.orchestration.TestStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
 import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
+import org.ods.util.Logger
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
 
+@SuppressWarnings('AbcMetric')
 def call(Map config) {
     Unirest.config()
         .socketTimeout(1200000)
         .connectTimeout(120000)
 
     def steps = new PipelineSteps(this)
-    Project project = new Project(steps)
-    def repos = []
 
     def debug = config.get('debug', false)
+    ServiceRegistry.instance.add(Logger, new Logger(this, debug))
+    ILogger logger = ServiceRegistry.instance.get(Logger)
+
     def odsImageTag = config.odsImageTag
     if (!odsImageTag) {
         error "You must set 'odsImageTag' in the config map"
@@ -36,7 +41,12 @@ def call(Map config) {
     boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
     def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
+    Project project = new Project(steps, logger)
+    def repos = []
+
+    logger.startClocked('orchestration-master-node')
     node ('master') {
+        logger.debugClocked('orchestration-master-node')
         // Clean workspace from previous runs
         [
             PipelineUtil.ARTIFACTS_BASE_DIR,
@@ -44,10 +54,11 @@ def call(Map config) {
             PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
             MROPipelineUtil.REPOS_BASE_DIR,
         ].each { name ->
-            steps.echo("Cleaning workspace directory '${name}' from previous runs")
+            logger.debug("Cleaning workspace directory '${name}' from previous runs")
             Paths.get(env.WORKSPACE, name).toFile().deleteDir()
         }
 
+        logger.startClocked('pipeline-git-releasemanager')
         def scmBranches = scm.branches
         def branch = scmBranches[0]?.name
         if (branch && !branch.startsWith('*/')) {
@@ -62,13 +73,13 @@ def call(Map config) {
             extensions: [[$class: 'LocalBranch', localBranch: '**']],
             userRemoteConfigs: scm.userRemoteConfigs,
         ])
+        logger.debugClocked('pipeline-git-releasemanager')
 
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
-        def stageStartTime = System.currentTimeMillis()
 
+        logger.startClocked('pod-template')
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
-            echo "Main pod starttime: ${System.currentTimeMillis() - stageStartTime}ms"
-
+            logger.debugClocked('pod-template')
             withEnv (envs) {
                 def result = executeWithMROSlaveBootstrap(
                     new InitStage(this, project, repos), startMROStage)
@@ -79,7 +90,7 @@ def call(Map config) {
                         startMROStage = result.startMROSlave
                     }
                 } else {
-                    echo 'Skip pipeline as no project/repos computed'
+                    logger.warn('Skip pipeline as no project/repos computed')
                     return
                 }
 
@@ -101,11 +112,12 @@ def call(Map config) {
 }
 
 private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, Closure block) {
+    ILogger logger = ServiceRegistry.instance.get(Logger)
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
-        echo "Could not find ods namespace '${odsNamespace}' - defaulting to legacy namespace: 'cd'!\r" +
-            "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace"
+        logger.warn("Could not find ods namespace '${odsNamespace}' - defaulting to legacy namespace: 'cd'!\r" +
+            "Please configure 'env.ODS_NAMESPACE' to point to the ODS Openshift namespace")
         odsNamespace = 'cd'
     }
     podTemplate(
@@ -129,19 +141,20 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         serviceAccount: 'jenkins',
         idleMinutes: 10,
     ) {
-        def startTime = System.currentTimeMillis()
+        logger.startClocked('ods-mro-pipeline')
         try {
             block()
         } finally {
-            echo '**** ENDED orchestration pipeline ' +
-                "(time: ${System.currentTimeMillis() - startTime}ms) ****"
+            logger.infoClocked('ods-mro-pipeline', '**** ENDED orchestration pipeline ****')
         }
     }
 }
 
 @SuppressWarnings('GStringAsMapKey')
 private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
-    echo "Stage to start mro slave: '${startMROStage}' current: '${stage.STAGE_NAME}'"
+    ILogger logger = ServiceRegistry.instance.get(Logger)
+    logger.debug("Stage to start mro slave: '${startMROStage}'" +
+        " current: '${stage.STAGE_NAME}'")
     if (!startMROStage || !startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
         return stage.execute()
     }
@@ -155,11 +168,10 @@ private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
             }
         },
         'boot mro slave': {
-            def nodeStartTime = System.currentTimeMillis()
             def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
-            echo "Starting orchestration slave '${podLabel}'"
+            logger.debugClocked(podLabel)
             node (podLabel) {
-                echo "Orchestration slave started in ${System.currentTimeMillis() - nodeStartTime}ms"
+                logger.debugClocked(podLabel)
             }
         },
     ]

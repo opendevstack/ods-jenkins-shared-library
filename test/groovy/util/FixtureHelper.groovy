@@ -11,6 +11,7 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
 
 @InheritConstructors
@@ -130,9 +131,9 @@ class FixtureHelper {
         def steps = new PipelineSteps()
         steps.env.WORKSPACE = ""
 
-        return new FakeProject(steps)
+        return new FakeProject(steps, new Logger(steps, true))
             .init()
-            .load(new FakeGitUtil(steps), null)
+            .load(new FakeGitUtil(steps, null), null)
     }
 
     static Map createProjectBuildEnvironment(def env) {

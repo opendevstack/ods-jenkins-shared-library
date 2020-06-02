@@ -2,20 +2,24 @@ package org.ods.component
 
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
+import org.ods.util.ILogger
 
+@SuppressWarnings('ParameterCount')
 class BuildOpenShiftImageStage extends Stage {
 
     public final String STAGE_NAME = 'Build OpenShift Image'
     private final OpenShiftService openShift
     private final JenkinsService jenkins
+    private final ILogger logger
 
     BuildOpenShiftImageStage(
         def script,
         IContext context,
         Map config,
         OpenShiftService openShift,
-        JenkinsService jenkins) {
-        super(script, context, config)
+        JenkinsService jenkins,
+        ILogger logger) {
+        super(script, context, config, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
@@ -60,11 +64,12 @@ class BuildOpenShiftImageStage extends Stage {
         }
         this.openShift = openShift
         this.jenkins = jenkins
+        this.logger = logger
     }
 
     protected run() {
         if (!context.environment) {
-            script.echo 'Skipping for empty environment ...'
+            logger.warn 'Skipping because of empty (target) environment ...'
             return [:]
         }
 
@@ -95,7 +100,9 @@ class BuildOpenShiftImageStage extends Stage {
 
         // Start and follow build of container image.
         script.timeout(time: config.buildTimeoutMinutes) {
-            script.echo startAndFollowBuild()
+            logger.startClocked("${config.resourceName}-build")
+            logger.info startAndFollowBuild()
+            logger.debugClocked("${config.resourceName}-build")
         }
 
         // Retrieve build status.
@@ -106,7 +113,7 @@ class BuildOpenShiftImageStage extends Stage {
             script.error "OpenShift Build #${lastVersion} was not successful - status is '${buildStatus}'."
         }
         def imageReference = getImageReference()
-        script.echo "Build #${lastVersion} of '${config.resourceName}' has produced image: ${imageReference}."
+        logger.info "Build #${lastVersion} of '${config.resourceName}' has produced image: ${imageReference}."
 
         context.addBuildToArtifactURIs(
             config.resourceName,

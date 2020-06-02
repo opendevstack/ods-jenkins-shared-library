@@ -12,20 +12,30 @@ import org.yaml.snakeyaml.Yaml
 import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
 
-@SuppressWarnings(['LineLength', 'AbcMetric', 'IfStatementBraces', 'Instanceof', 'CyclomaticComplexity', 'GStringAsMapKey', 'ImplementationAsType', 'UseCollectMany', 'MethodCount'])
+@SuppressWarnings(['LineLength',
+    'AbcMetric',
+    'IfStatementBraces',
+    'Instanceof',
+    'CyclomaticComplexity',
+    'GStringAsMapKey',
+    'ImplementationAsType',
+    'UseCollectMany',
+    'MethodCount',
+    'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
     class JiraDataItem implements Map, Serializable {
-        static final String TYPE_BUGS = "bugs"
-        static final String TYPE_COMPONENTS = "components"
-        static final String TYPE_EPICS = "epics"
-        static final String TYPE_MITIGATIONS = "mitigations"
-        static final String TYPE_REQUIREMENTS = "requirements"
-        static final String TYPE_RISKS = "risks"
-        static final String TYPE_TECHSPECS = "techSpecs"
-        static final String TYPE_TESTS = "tests"
-        static final String TYPE_DOCS = "docs"
+        static final String TYPE_BUGS = 'bugs'
+        static final String TYPE_COMPONENTS = 'components'
+        static final String TYPE_EPICS = 'epics'
+        static final String TYPE_MITIGATIONS = 'mitigations'
+        static final String TYPE_REQUIREMENTS = 'requirements'
+        static final String TYPE_RISKS = 'risks'
+        static final String TYPE_TECHSPECS = 'techSpecs'
+        static final String TYPE_TESTS = 'tests'
+        static final String TYPE_DOCS = 'docs'
 
         static final List TYPES = [
             TYPE_BUGS,
@@ -35,7 +45,7 @@ class Project {
             TYPE_REQUIREMENTS,
             TYPE_RISKS,
             TYPE_TECHSPECS,
-            TYPE_TESTS
+            TYPE_TESTS,
         ]
 
         static final List TYPES_WITH_STATUS = [
@@ -45,8 +55,13 @@ class Project {
             TYPE_REQUIREMENTS,
             TYPE_RISKS,
             TYPE_TECHSPECS,
-            TYPE_TESTS
+            TYPE_TESTS,
         ]
+
+        static final String ISSUE_STATUS_DONE = 'done'
+        static final String ISSUE_STATUS_CANCELLED = 'cancelled'
+
+        static final String ISSUE_TEST_EXECUTION_TYPE_AUTOMATED = 'automated'
 
         private final String type
         private HashMap delegate
@@ -159,66 +174,68 @@ class Project {
         }
 
         List<JiraDataItem> getResolvedBugs() {
-            return this.getResolvedReferences("bugs")
+            return this.getResolvedReferences(TYPE_BUGS)
         }
 
         List<JiraDataItem> getResolvedComponents() {
-            return this.getResolvedReferences("components")
+            return this.getResolvedReferences(TYPE_COMPONENTS)
         }
 
         List<JiraDataItem> getResolvedEpics() {
-            return this.getResolvedReferences("epics")
+            return this.getResolvedReferences(TYPE_EPICS)
         }
 
         List<JiraDataItem> getResolvedMitigations() {
-            return this.getResolvedReferences("mitigations")
+            return this.getResolvedReferences(TYPE_MITIGATIONS)
         }
 
         List<JiraDataItem> getResolvedSystemRequirements() {
-            return this.getResolvedReferences("requirements")
+            return this.getResolvedReferences(TYPE_REQUIREMENTS)
         }
 
         List<JiraDataItem> getResolvedRisks() {
-            return this.getResolvedReferences("risks")
+            return this.getResolvedReferences(TYPE_RISKS)
         }
 
         List<JiraDataItem> getResolvedTechnicalSpecifications() {
-            return this.getResolvedReferences("techSpecs")
+            return this.getResolvedReferences(TYPE_TECHSPECS)
         }
 
         List<JiraDataItem> getResolvedTests() {
-            return this.getResolvedReferences("tests")
+            return this.getResolvedReferences(TYPE_TESTS)
         }
     }
 
     class TestType {
-        static final String ACCEPTANCE = "Acceptance"
-        static final String INSTALLATION = "Installation"
-        static final String INTEGRATION = "Integration"
-        static final String UNIT = "Unit"
+        static final String ACCEPTANCE = 'Acceptance'
+        static final String INSTALLATION = 'Installation'
+        static final String INTEGRATION = 'Integration'
+        static final String UNIT = 'Unit'
     }
 
     class GampTopic {
-        static final String AVAILABILITY_REQUIREMENT = "Availability Requirement"
-        static final String CONSTRAINT = "Constraint"
-        static final String FUNCTIONAL_REQUIREMENT = "Functional Requirement"
-        static final String INTERFACE_REQUIREMENT = "Interface Requirement"
+        static final String AVAILABILITY_REQUIREMENT = 'Availability Requirement'
+        static final String CONSTRAINT = 'Constraint'
+        static final String FUNCTIONAL_REQUIREMENT = 'Functional Requirement'
+        static final String INTERFACE_REQUIREMENT = 'Interface Requirement'
     }
 
-    protected static final String BUILD_PARAM_VERSION_DEFAULT = "WIP"
+    protected static final String BUILD_PARAM_VERSION_DEFAULT = 'WIP'
 
-    protected static String METADATA_FILE_NAME = "metadata.yml"
+    protected static String METADATA_FILE_NAME = 'metadata.yml'
 
     protected IPipelineSteps steps
     protected GitService git
     protected JiraUseCase jiraUseCase
+    protected ILogger logger
     protected Map config
 
     protected Map data = [:]
 
-    Project(IPipelineSteps steps, Map config = [:]) {
+    Project(IPipelineSteps steps, ILogger logger, Map config = [:]) {
         this.steps = steps
         this.config = config
+        this.logger = logger
 
         this.data.build = [
             hasFailingTests: false,
@@ -272,7 +289,7 @@ class Project {
             message: git.getCommitMessage(),
             time: git.getCommitTime()
         ]
-        this.steps.echo "Using release manager commit: ${this.data.git.commit}"
+        this.logger.debug "Using release manager commit: ${this.data.git.commit}"
     }
 
     Project load(GitService git, JiraUseCase jiraUseCase) {
@@ -293,11 +310,13 @@ class Project {
         this.data.jira.undone.docChapters = [:]
 
         if (this.hasWipJiraIssues()) {
-            def message = "Pipeline-generated documents are watermarked '${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' since the following issues are work in progress:"
+            def message = 'Pipeline-generated documents are watermarked ' +
+                "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
+                'since the following issues are work in progress: '
             this.getWipJiraIssues().each { type, keys ->
                 def values = keys instanceof Map ? keys.values().flatten() : keys
                 if (!values.isEmpty()) {
-                    message += "\n\n" + type.capitalize() + ": " + values.join(", ")
+                    message += '\n\n' + type.capitalize() + ': ' + values.join(', ')
                 }
             }
 
@@ -329,7 +348,9 @@ class Project {
             if (data.containsKey(type)) {
                 result[type] = data[type]
                     .findAll { key, issue ->
-                        issue.status != null && !issue.status.equalsIgnoreCase("done") && !issue.status.equalsIgnoreCase("cancelled")
+                        issue.status != null &&
+                        !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
+                        !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
                     }
                     .collect { key, issue ->
                         return key
@@ -343,7 +364,8 @@ class Project {
     protected Map convertJiraDataToJiraDataItems(Map data) {
         JiraDataItem.TYPES.each { type ->
             if (data[type] == null) {
-                throw new IllegalArgumentException("Error: Jira data does not include references to items of type '${type}'.")
+                throw new IllegalArgumentException(
+                    "Error: Jira data does not include references to items of type '${type}'.")
             }
 
             data[type] = data[type].collectEntries { key, item ->
@@ -356,7 +378,8 @@ class Project {
 
     List<JiraDataItem> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { key, testIssue ->
-            def result = testIssue.status.toLowerCase() == "done" && testIssue.executionType?.toLowerCase() == "automated"
+            def result = testIssue.status.toLowerCase() == JiraDataItem.ISSUE_STATUS_DONE &&
+                testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
 
             if (result && componentName) {
                 result = testIssue.getResolvedComponents()
@@ -405,7 +428,7 @@ class Project {
     }
 
     static boolean isPromotionMode(String targetEnvironmentToken) {
-        ["Q", "P"].contains(targetEnvironmentToken)
+        ['Q', 'P'].contains(targetEnvironmentToken)
     }
 
     boolean getIsWorkInProgress() {
@@ -413,7 +436,7 @@ class Project {
     }
 
     boolean isDeveloperPreviewMode() {
-        return "wip".equalsIgnoreCase(this.data.buildParams.version) &&
+        return BUILD_PARAM_VERSION_DEFAULT.equalsIgnoreCase(this.data.buildParams.version) &&
             this.data.buildParams.targetEnvironmentToken == "D"
     }
 
@@ -437,7 +460,7 @@ class Project {
         def envParams = [:]
         if (envParamsFile) {
             def paramsFileContent = steps.readFile(file: envParamsFile)
-            def params = paramsFileContent.split("\n")
+            def params = paramsFileContent.split('\n')
             envParams = params.collectEntries {
                 if (it.trim().size() > 0 && !it.trim().startsWith('#')) {
                     def vals = it.split('=')
@@ -472,7 +495,7 @@ class Project {
             def sessionApiUrlWithoutPort = sessionApiUrl.split(':').dropRight(1).join(':')
             isExternal = sessionApiUrlWithoutPort != targetApiUrl
         }
-        this.steps.echo("Cluster ${targetApiUrl} is external=${isExternal}")
+        this.logger.info("Cluster ${targetApiUrl} is external=${isExternal}")
         isExternal
     }
 
@@ -514,7 +537,7 @@ class Project {
 
         return [
             "DEBUG=${debug}",
-            "MULTI_REPO_BUILD=true",
+            'MULTI_REPO_BUILD=true',
             "MULTI_REPO_ENV=${concreteEnv}",
             "MULTI_REPO_ENV_TOKEN=${params.targetEnvironmentToken}",
             "RELEASE_PARAM_CHANGE_ID=${params.changeId}",
@@ -570,14 +593,16 @@ class Project {
     }
 
     List<Map> getDocumentTrackingIssuesNotDone(List<String> labels) {
-        return this.getDocumentTrackingIssues(labels).findAll { !it.status.equalsIgnoreCase("done") }
+        return this.getDocumentTrackingIssues(labels).findAll {
+            !it.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
+        }
     }
 
     Map getGitData() {
         return this.data.git
     }
 
-    protected URI getGitURLFromPath(String path, String remote = "origin") {
+    protected URI getGitURLFromPath(String path, String remote = 'origin') {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to get Git URL. 'path' is undefined.")
         }
@@ -661,7 +686,8 @@ class Project {
             def result = true
 
             if (result && componentName) {
-                result = req.getResolvedComponents().collect { it.name.toLowerCase() }.contains(componentName.toLowerCase())
+                result = req.getResolvedComponents().collect { it.name.toLowerCase() }.
+                    contains(componentName.toLowerCase())
             }
 
             if (result && gampTopics) {
@@ -693,7 +719,8 @@ class Project {
             def result = true
 
             if (result && componentName) {
-                result = techSpec.getResolvedComponents().collect { it.name.toLowerCase() }.contains(componentName.toLowerCase())
+                result = techSpec.getResolvedComponents().collect { it.name.toLowerCase() }.
+                    contains(componentName.toLowerCase())
             }
 
             return result
@@ -751,19 +778,20 @@ class Project {
     static Map loadBuildParams(IPipelineSteps steps) {
         def releaseStatusJiraIssueKey = steps.env.releaseStatusJiraIssueKey?.trim()
         if (isTriggeredByChangeManagementProcess(steps) && !releaseStatusJiraIssueKey) {
-            throw new IllegalArgumentException("Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
+            throw new IllegalArgumentException(
+                "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
         }
 
         def version = steps.env.version?.trim() ?: BUILD_PARAM_VERSION_DEFAULT
-        def targetEnvironment = (steps.env.environment?.trim() ?: "dev").toLowerCase()
+        def targetEnvironment = (steps.env.environment?.trim() ?: 'dev').toLowerCase()
         if (!['dev', 'qa', 'prod'].contains(targetEnvironment)) {
             throw new IllegalArgumentException("Error: 'environment' build param must be one of 'DEV', 'QA' or 'PROD'.")
         }
         def targetEnvironmentToken = targetEnvironment[0].toUpperCase()
 
-        def changeId = steps.env.changeId?.trim() ?: "UNDEFINED"
-        def configItem = steps.env.configItem?.trim() ?: "UNDEFINED"
-        def changeDescription = steps.env.changeDescription?.trim() ?: "UNDEFINED"
+        def changeId = steps.env.changeId?.trim() ?: 'UNDEFINED'
+        def configItem = steps.env.configItem?.trim() ?: 'UNDEFINED'
+        def changeDescription = steps.env.changeDescription?.trim() ?: 'UNDEFINED'
 
         return [
             changeDescription: changeDescription,
@@ -785,7 +813,7 @@ class Project {
             requirements: [:],
             risks: [:],
             techSpecs: [:],
-            tests: [:]
+            tests: [:],
         ]
 
         if (!this.jiraUseCase) return result
@@ -793,7 +821,8 @@ class Project {
 
         result = this.jiraUseCase.jira.getDocGenData(projectKey)
         if (result?.project?.id == null) {
-            throw new IllegalArgumentException("Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
+            throw new IllegalArgumentException(
+                "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
 
         // FIXME: fix data types that should be sent correctly by the REST endpoint
@@ -814,7 +843,7 @@ class Project {
         def jqlQuery = [
             jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
             expand: [],
-            fields: ["assignee", "duedate", "issuelinks", "status", "summary"]
+            fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
         ]
 
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
@@ -823,13 +852,15 @@ class Project {
                 key: jiraBug.key,
                 name: jiraBug.fields.summary,
                 assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
-                dueDate: "", // TODO: currently unsupported for not being enabled on a Bug issue
+                dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
                 status: jiraBug.fields.status.name
             ]
 
             def testKeys = []
             if (jiraBug.fields.issuelinks) {
-                testKeys = jiraBug.fields.issuelinks.findAll { it.type.name == "Blocks" && it.outwardIssue && it.outwardIssue.fields.issuetype.name == "Test" }.collect { it.outwardIssue.key }
+                testKeys = jiraBug.fields.issuelinks.findAll {
+                    it.type.name == 'Blocks' && it.outwardIssue &&
+                    it.outwardIssue.fields.issuetype.name == 'Test' }.collect { it.outwardIssue.key }
             }
 
             // Add relations from bug to tests
@@ -865,7 +896,8 @@ class Project {
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
-            throw new IllegalArgumentException("Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCS}'.")
+            throw new IllegalArgumentException(
+                "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCS}'.")
         }
 
         return jiraIssues.collectEntries { jiraIssue ->
@@ -876,7 +908,7 @@ class Project {
                     name: jiraIssue.fields.summary,
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
-                    labels: jiraIssue.fields.labels
+                    labels: jiraIssue.fields.labels,
                 ]
             ]
         }
@@ -898,7 +930,7 @@ class Project {
                             value.name,
                             [
                                 id:   value.fieldId,
-                                name: value.name
+                                name: value.name,
                             ]
                         ]
                     }
@@ -930,7 +962,7 @@ class Project {
         }
 
         if (result.description == null) {
-            result.description = ""
+            result.description = ''
         }
 
         if (result.repositories == null) {
@@ -940,7 +972,8 @@ class Project {
         result.repositories.eachWithIndex { repo, index ->
             // Check for existence of required attribute 'repositories[i].id'
             if (!repo.id?.trim()) {
-                throw new IllegalArgumentException("Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
+                throw new IllegalArgumentException(
+                    "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
 
             repo.data = [:]
@@ -953,23 +986,25 @@ class Project {
 
             // Resolve repo URL, if not provided
             if (!repo.url?.trim()) {
-                this.steps.echo("Could not determine Git URL for repo '${repo.id}' from project meta data. Attempting to resolve automatically...")
+                this.logger.debug("Could not determine Git URL for repo '${repo.id}' " +
+                    'from project meta data. Attempting to resolve automatically...')
 
-                def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, "origin")
+                def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
                 if (repo.name?.trim()) {
                     repo.url = gitURL.resolve("${repo.name}.git").toString()
-                    repo.remove("name")
+                    repo.remove('name')
                 } else {
                     repo.url = gitURL.resolve("${result.id.toLowerCase()}-${repo.id}.git").toString()
                 }
 
-                this.steps.echo("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
+                this.logger.debug("Resolved Git URL for repo '${repo.id}' to '${repo.url}'")
             }
 
             // Resolve repo branch, if not provided
             if (!repo.branch?.trim()) {
-                this.steps.echo("Could not determine Git branch for repo '${repo.id}' from project meta data. Assuming 'master'.")
-                repo.branch = "master"
+                this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
+                    "from project meta data. Assuming 'master'.")
+                repo.branch = 'master'
             }
         }
 
@@ -978,22 +1013,24 @@ class Project {
         }
 
         // TODO move me to the LeVA documents plugin
-        def levaDocsCapabilities = result.capabilities.findAll { it instanceof Map && it.containsKey("LeVADocs") }
+        def levaDocsCapabilities = result.capabilities.findAll { it instanceof Map && it.containsKey('LeVADocs') }
         if (levaDocsCapabilities) {
             if (levaDocsCapabilities.size() > 1) {
-                throw new IllegalArgumentException("Error: unable to parse project metadata. More than one LeVADoc capability has been defined.")
+                throw new IllegalArgumentException(
+                    "Error: unable to parse project metadata. More than one 'LeVADoc' capability has been defined.")
             }
 
             def levaDocsCapability = levaDocsCapabilities.first()
 
             def gampCategory = levaDocsCapability.LeVADocs?.GAMPCategory
             if (!gampCategory) {
-                throw new IllegalArgumentException("Error: LeVADocs capability has been defined but contains no GAMPCategory.")
+                throw new IllegalArgumentException(
+                    "Error: 'LeVADocs' capability has been defined but contains no 'GAMPCategory'.")
             }
 
             def templatesVersion = levaDocsCapability.LeVADocs?.templatesVersion
             if (!templatesVersion) {
-                levaDocsCapability.LeVADocs.templatesVersion = "1.0"
+                levaDocsCapability.LeVADocs.templatesVersion = '1.0'
             }
         }
 
@@ -1004,7 +1041,7 @@ class Project {
         return result
     }
 
-    public void reportPipelineStatus(String message = "", boolean isError = false) {
+    public void reportPipelineStatus(String message = '', boolean isError = false) {
         if (!this.jiraUseCase) return
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
@@ -1019,7 +1056,7 @@ class Project {
         def result = [:]
 
         data.each { type, values ->
-            if (type == "project") {
+            if (type == 'project') {
                 return
             }
 
@@ -1053,10 +1090,10 @@ class Project {
 
     String toString() {
         // Don't serialize resolved Jira data items
-        def result = this.data.subMap(["build", "buildParams", "metadata", "git", "jira"])
+        def result = this.data.subMap(['build', 'buildParams', 'metadata', 'git', 'jira'])
 
         if (!services?.jira && capabilities?.empty) {
-            result.remove("jira")
+            result.remove('jira')
         }
 
         return JsonOutput.prettyPrint(JsonOutput.toJson(result))
@@ -1076,7 +1113,7 @@ class Project {
             "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
             "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
             "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
-            "ods.build.mro.lib.version=${mroSharedLibVersion}"
+            "ods.build.orchestration.lib.version=${mroSharedLibVersion}",
         ]
     }
 
@@ -1098,4 +1135,5 @@ class Project {
     void addConfigSetting (def key, def value) {
         this.config.put(key, value)
     }
+
 }

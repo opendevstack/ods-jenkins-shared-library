@@ -2,13 +2,12 @@ package org.ods.orchestration
 
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
-import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.PipelineUtil
-import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.PipelineSteps
+import org.ods.util.Logger
+import org.ods.util.ILogger
 
 class BuildStage extends Stage {
 
@@ -24,6 +23,7 @@ class BuildStage extends Stage {
         def jira = ServiceRegistry.instance.get(JiraUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
@@ -41,7 +41,15 @@ class BuildStage extends Stage {
                 def data = [ : ]
                 def resultsResurrected = !!repo.data?.odsBuildArtifacts?.resurrected
                 if (!resultsResurrected) {
-                    data << [tests: [unit: getUnitTestResults(steps, repo) ]]
+                    data << [tests: [unit: getTestResults(steps, repo) ]]
+                    jira.reportTestResultsForComponent(
+                        "Technology-${repo.id}",
+                        [Project.TestType.UNIT],
+                        data.tests.unit.testResults
+                    )
+                } else {
+                    logger.info("[${repo.id}] Resurrected tests from run ${resultsResurrected}" +
+                        "- no unit tests results will be reported")
                 }
 
                 levaDocScheduler.run(
@@ -50,16 +58,6 @@ class BuildStage extends Stage {
                     repo,
                     data
                 )
-
-                if (!resultsResurrected) {
-                    jira.reportTestResultsForComponent(
-                        "Technology-${repo.id}",
-                        [Project.TestType.UNIT],
-                        data.tests.unit.testResults
-                    )
-                } else {
-                    steps.echo('Resurrected tests - no tests results will be reported to JIRA')
-                }
             }
         }
 
@@ -77,37 +75,6 @@ class BuildStage extends Stage {
         }
         executeInParallel(executeRepos, generateDocuments)
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
-    }
-
-    private List getUnitTestResults(def steps, Map repo) {
-        def jenkins = ServiceRegistry.instance.get(JenkinsService)
-        def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
-
-        def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/unit"
-
-        steps.echo("Collecting JUnit XML Reports for ${repo.id}")
-        def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
-        def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
-        def hasStashedTestReports = jenkins.unstashFilesIntoPath(
-            testReportsStashName,
-            testReportsUnstashPath,
-            'JUnit XML Report'
-        )
-        if (!hasStashedTestReports) {
-            throw new RuntimeException(
-                "Error: unable to unstash JUnit XML reports for repo '${repo.id}' " +
-                    "from stash '${testReportsStashName}'."
-            )
-        }
-
-        def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
-
-        return [
-            // Load JUnit test report files from path
-            testReportFiles: testReportFiles,
-            // Parse JUnit test report files into a report
-            testResults: junit.parseTestReportFiles(testReportFiles),
-        ]
     }
 
 }

@@ -3,6 +3,8 @@ package org.ods.orchestration.usecase
 
 import org.ods.orchestration.service.JiraService
 import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
+import org.ods.util.Logger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import spock.lang.Ignore
@@ -17,6 +19,7 @@ class JiraUseCaseSpec extends SpecHelper {
     IPipelineSteps steps
     JiraUseCase usecase
     MROPipelineUtil util
+    ILogger logger
 
     def setup() {
         project = Spy(createProject())
@@ -32,7 +35,8 @@ class JiraUseCaseSpec extends SpecHelper {
                 ]
             }
         }
-        usecase = Spy(new JiraUseCase(project, steps, util, jira))
+        logger = Mock(Logger)
+        usecase = Spy(new JiraUseCase(project, steps, util, jira, logger))
     }
 
     def "apply test results as test issue labels"() {

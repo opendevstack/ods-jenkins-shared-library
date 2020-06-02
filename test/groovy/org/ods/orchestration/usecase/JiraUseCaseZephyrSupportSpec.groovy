@@ -4,6 +4,7 @@ import org.ods.orchestration.parser.*
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 
 import spock.lang.*
 
@@ -20,13 +21,15 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
     MROPipelineUtil util
     JiraZephyrService zephyr
     JiraUseCaseZephyrSupport support
+    Logger logger
 
     def setup() {
         project = Spy(createProject())
         steps = Spy(util.PipelineSteps)
         util = Mock(MROPipelineUtil)
         jira = Mock(JiraService)
-        usecase = Spy(new JiraUseCase(project, steps, util, jira))
+        logger = Mock(Logger)
+        usecase = Spy(new JiraUseCase(project, steps, util, jira, logger))
 
         zephyr = Mock(JiraZephyrService)
         support = Spy(new JiraUseCaseZephyrSupport(project, steps, usecase, zephyr, util))
