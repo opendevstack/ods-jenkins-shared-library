@@ -205,6 +205,11 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getNexusUrl() {
+        config.nexusUrl
+    }
+
+    @NonCPS
     String getNexusHost() {
         config.nexusHost
     }
@@ -219,8 +224,16 @@ class Context implements IContext {
         config.nexusPassword
     }
 
+    @NonCPS
+    String getNexusUrlWithBasicAuth() {
+        config.nexusUrl.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
+    }
+
+    // To support legacy systems, also uses nexusUrl value.
+    // To be removed in ODS 4+.
+    @NonCPS
     String getNexusHostWithBasicAuth() {
-        config.nexusHost.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
+        config.nexusUrl.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
     }
 
     @NonCPS

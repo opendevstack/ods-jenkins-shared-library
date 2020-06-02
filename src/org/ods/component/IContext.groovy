@@ -45,7 +45,10 @@ interface IContext {
     // Nexus password.
     String getNexusPassword()
 
-    // Nexus host (with scheme), including username and password as BasicAuth.
+    // Nexus URL (with scheme), including username and password as BasicAuth.
+    String getNexusUrlWithBasicAuth()
+
+    // DEPRECATED. Nexus host (with scheme), including username and password as BasicAuth.
     String getNexusHostWithBasicAuth()
 
     // Define which branches are deployed to which environments.

@@ -108,8 +108,11 @@ The `context` object contains the following properties:
 | tagversion
 | The tagversion is made up of the build number and the first 8 chars of the commit SHA.
 
+| nexusUrl
+| Nexus URL - value taken from `NEXUS_URL`. If `NEXUS_URL` is not present, it will default to `NEXUS_HOST` (which also includes the scheme).
+
 | nexusHost
-| Nexus host (with scheme).
+| Nexus host - value derived from `nexusUrl`. It does not include the scheme if `nexusUrl` was read from `NEXUS_URL`.
 
 | nexusUsername
 | Nexus username.
@@ -117,8 +120,11 @@ The `context` object contains the following properties:
 | nexusPassword
 | Nexus password.
 
+| nexusUrlWithBasicAuth
+| Nexus URL, including username and password as BasicAuth.
+
 | nexusHostWithBasicAuth
-| Nexus host (with scheme), including username and password as BasicAuth.
+| DEPRECATED. Nexus host (with scheme), including username and password as BasicAuth.
 
 | cloneSourceEnv
 | The environment which was chosen as the clone source.
@@ -166,10 +172,10 @@ The `context` object contains the following properties:
 | ODS Jenkins shared library version, taken from reference in `Jenkinsfile`.
 
 | bitbucketUrl
-| BitBucket URL - value taken from `BITBUCKET_URL`. If BITBUCKET_URL is not present, it will default to `https://<BITBUCKET_HOST>``.
+| Bitbucket URL - value taken from `BITBUCKET_URL`. If BITBUCKET_URL is not present, it will default to `https://<BITBUCKET_HOST>``.
 
 | bitbucketHost
-| BitBucket host - value derived from `bitbucketUrl`.
+| Bitbucket host - value derived from `bitbucketUrl`.
 
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
@@ -282,7 +288,7 @@ you can follow the following steps:
 
 * Check this HOWTO about https://www.atlassian.com/git/tutorials/git-lfs[Git LFS]
 * Track your large files in your local clone, as explained in previous step
-* Enable Git LFS in your repository (if BitBucket: under repository's settings main page you can enable it)
+* Enable Git LFS in your repository (if Bitbucket: under repository's settings main page you can enable it)
 
 *NOTE*: if already having a repository with large files and you want to migrate it to using git LFS:
 
