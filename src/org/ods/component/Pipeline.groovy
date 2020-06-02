@@ -158,9 +158,9 @@ class Pipeline implements Serializable {
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
                         }
-                        logger.startClocked("${context.componentId}-get-domain")
+                        logger.startClocked("${context.componentId}-get-oc-app-domain")
                         context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
-                        logger.debugClocked("${context.componentId}-get-domain")
+                        logger.debugClocked("${context.componentId}-get-oc-app-domain")
                     }
                 }
             } catch (err) {
@@ -227,7 +227,7 @@ class Pipeline implements Serializable {
                         script.stage('odsPipeline finished') {
                             updateBuildStatus('SUCCESS')
                             setBitbucketBuildStatus('SUCCESSFUL')
-                            logger.infoClocked("${context.componentId}", "***** Finished ODS Pipeline *****")
+                            logger.infoClocked("${context.componentId}", '***** Finished ODS Pipeline *****')
                         }
                         return this
                     } catch (err) {
@@ -284,7 +284,7 @@ class Pipeline implements Serializable {
             logger.warn 'Variable MULTI_REPO_ENV (target environment!) must not be null!'
             // Using exception because error step would skip post steps
             throw new RuntimeException("Variable 'MULTI_REPO_ENV' (target environment!)" +
-                " must not be null!")
+                ' must not be null!')
         }
     }
 
