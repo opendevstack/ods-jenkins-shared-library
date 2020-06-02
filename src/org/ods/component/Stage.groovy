@@ -20,7 +20,7 @@ abstract class Stage {
 
     def execute() {
         script.withStage(stageLabel(), context, logger) {
-            this.run()
+            return this.run()
         }
     }
 
