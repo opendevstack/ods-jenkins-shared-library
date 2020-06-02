@@ -118,7 +118,6 @@ class Stage {
                 script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }
             logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
-            def bitbucketHost = script.env.BITBUCKET_HOST
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
             logger.debugClocked(podLabel, 'Starting orchestration pipeline slave pod')
             script.node(podLabel) {
@@ -136,7 +135,8 @@ class Stage {
                 ) {
                     def bbUser = URLEncoder.encode(script.env.BITBUCKET_USER, 'UTF-8')
                     def bbPwd = URLEncoder.encode(script.env.BITBUCKET_PW, 'UTF-8')
-                    def urlWithCredentials = "https://${bbUser}:${bbPwd}@${bitbucketHost}"
+                    def urlWithCredentials = project.releaseManagerBitbucketHostUrl
+                        .replace('://', "://${bbUser}:${bbPwd}@")
                     script.writeFile(
                         file: "${script.env.HOME}/.git-credentials",
                         text: urlWithCredentials
