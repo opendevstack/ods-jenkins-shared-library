@@ -2,8 +2,13 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.PipelineUtil
+import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.services.GitService
+import org.ods.services.JenkinsService
+
 import org.ods.util.PipelineSteps
+
 import org.ods.util.Logger
 import org.ods.util.ILogger
 
@@ -66,6 +71,42 @@ class Stage {
         ]
         executors.failFast = true
         script.parallel (executors)
+    }
+
+    Map getTestResults(def steps, Map repo, String type = 'unit') {
+        def jenkins = ServiceRegistry.instance.get(JenkinsService)
+        def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
+
+        type = type.toLowerCase()
+        def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
+
+        logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
+        def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
+        if (type != 'unit') {
+            testReportsStashName = "${type}-${testReportsStashName}"
+        }
+        def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
+        def hasStashedTestReports = jenkins.unstashFilesIntoPath(
+            testReportsStashName,
+            testReportsUnstashPath,
+            'JUnit XML Report'
+        )
+        if (!hasStashedTestReports) {
+            throw new RuntimeException(
+                "Error: unable to unstash JUnit XML reports, type '${type}' for repo '${repo.id}' " +
+                "from stash '${testReportsStashName}'."
+            )
+        }
+
+        def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
+
+        return [
+            // Load JUnit test report files from path
+            testReportFiles: testReportFiles,
+            // Parse JUnit test report files into a report
+            testResults: junit.parseTestReportFiles(testReportFiles),
+        ]
     }
 
     protected def runOnAgentPod(Project project, boolean condition, Closure block) {

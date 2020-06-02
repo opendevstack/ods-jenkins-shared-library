@@ -27,7 +27,7 @@ def call(Map config) {
         .connectTimeout(120000)
 
     def steps = new PipelineSteps(this)
-    Project project = new Project(steps)
+    Project project = new Project(steps, logger)
     def repos = []
 
     def debug = config.get('debug', false)
@@ -53,7 +53,7 @@ def call(Map config) {
             PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
             MROPipelineUtil.REPOS_BASE_DIR,
         ].each { name ->
-            logger.info("Cleaning workspace directory '${name}' from previous runs")
+            logger.debug("Cleaning workspace directory '${name}' from previous runs")
             Paths.get(env.WORKSPACE, name).toFile().deleteDir()
         }
 

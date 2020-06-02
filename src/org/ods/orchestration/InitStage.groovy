@@ -36,9 +36,8 @@ class InitStage extends Stage {
         def git = new GitService(steps, logger)
         git.configureUser()
         logger.debugClocked("boot-git-${STAGE_NAME}")
-        
+
         // load build params
-        logger.debug('Loading orchestration build params ...')
         def buildParams = Project.loadBuildParams(steps)
         logger.debug("Release Manager Build Parameters: ${buildParams}")
 
@@ -245,7 +244,7 @@ class InitStage extends Stage {
         @SuppressWarnings('Indentation')
         Map checkoutComponentReposClosures =
             util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-                logger.debug("Repository: ${repo}")
+                logger.info("Repository: ${repo}")
             }
 
         def setupStage = project.getKey() + ' setup'

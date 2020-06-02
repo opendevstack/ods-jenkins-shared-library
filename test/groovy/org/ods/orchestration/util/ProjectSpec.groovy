@@ -7,6 +7,7 @@ import org.ods.services.GitService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
 
 import static util.FixtureHelper.*
@@ -18,11 +19,12 @@ class ProjectSpec extends SpecHelper {
     GitService git
     IPipelineSteps steps
     JiraUseCase jiraUseCase
+    Logger logger
     Project project
     File metadataFile
 
     def createProject(Map<String, Closure> mixins = [:]) {
-        Project project = Spy(constructorArgs: [steps])
+        Project project = Spy(constructorArgs: [steps, logger])
 
         if (mixins.containsKey("getGitURLFromPath")) {
             project.getGitURLFromPath(*_) >> { mixins["getGitURLFromPath"]() }
@@ -61,6 +63,7 @@ class ProjectSpec extends SpecHelper {
         git = Mock(GitService)
         jiraUseCase = Mock(JiraUseCase)
         steps = Spy(util.PipelineSteps)
+        logger = Mock(Logger)
         steps.env.WORKSPACE = ""
 
         metadataFile = new FixtureHelper().getResource("/project-metadata.yml")
@@ -242,19 +245,19 @@ class ProjectSpec extends SpecHelper {
 
     def "get versioned dev ens"() {
         when:
-        def result = new Project(steps).getVersionedDevEnvsEnabled()
+        def result = new Project(steps, logger).getVersionedDevEnvsEnabled()
 
         then:
         result == false
 
         when:
-        result = new Project(steps, [versionedDevEnvs: false]).getVersionedDevEnvsEnabled()
+        result = new Project(steps, logger, [versionedDevEnvs: false]).getVersionedDevEnvsEnabled()
 
         then:
         result == false
 
         when:
-        result = new Project(steps, [versionedDevEnvs: true]).getVersionedDevEnvsEnabled()
+        result = new Project(steps, logger, [versionedDevEnvs: true]).getVersionedDevEnvsEnabled()
 
         then:
         result == true
@@ -478,7 +481,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path"() {
         given:
-        def project = new Project(steps)
+        def project = new Project(steps, logger)
 
         def path = "${steps.env.WORKSPACE}/a/b/c"
         def origin = "upstream"
@@ -498,7 +501,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path without origin"() {
         given:
-        def project = new Project(steps)
+        def project = new Project(steps, logger)
 
         def path = "${steps.env.WORKSPACE}/a/b/c"
 
@@ -517,7 +520,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path with invalid path"() {
         given:
-        def project = new Project(steps)
+        def project = new Project(steps, logger)
 
         when:
         project.getGitURLFromPath(null)
@@ -545,7 +548,7 @@ class ProjectSpec extends SpecHelper {
 
     def "get Git URL from path with invalid remote"() {
         given:
-        def project = new Project(steps)
+        def project = new Project(steps, logger)
 
         def path = "${steps.env.WORKSPACE}/a/b/c"
 
@@ -733,7 +736,7 @@ class ProjectSpec extends SpecHelper {
             expected[type] = [ "${type}-1", "${type}-2" ]
         }
 
-        def expectedMessage = "Pipeline-generated documents are watermarked '${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' since the following issues are work in progress:"
+        def expectedMessage = "Pipeline-generated documents are watermarked '${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' since the following issues are work in progress: "
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
         }
@@ -1089,7 +1092,7 @@ class ProjectSpec extends SpecHelper {
             }
         }
 
-        def projectObj = new Project(steps)
+        def projectObj = new Project(steps, logger)
         projectObj.git = git
         projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira)
 
@@ -1417,7 +1420,7 @@ class ProjectSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to parse project metadata. More than one LeVADoc capability has been defined."
+        e.message == "Error: unable to parse project metadata. More than one 'LeVADoc' capability has been defined."
 
         cleanup:
         metadataFile.delete()
@@ -1442,7 +1445,7 @@ class ProjectSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: LeVADocs capability has been defined but contains no GAMPCategory."
+        e.message == "Error: 'LeVADocs' capability has been defined but contains no 'GAMPCategory'."
 
         cleanup:
         metadataFile.delete()

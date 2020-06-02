@@ -12,7 +12,7 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.services.GitService
 
-@SuppressWarnings('JavaIoPackageAccess')
+@SuppressWarnings(['JavaIoPackageAccess', 'PublicMethodsBeforeNonPublicMethods'])
 class PipelineUtil {
 
     static final String ARTIFACTS_BASE_DIR = 'artifacts'

@@ -285,9 +285,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         documents.each { documentType ->
             if (this.isDocumentApplicableForEnvironment(documentType, environment)) {
                 def args = [repo, data]
-                logger.debug("${documentType} is applicable to environment ${environment}")
                 if (this.isDocumentApplicable(documentType, phase, stage, repo)) {
-                    logger.debug("${documentType} is applicable to phase ${phase} / stage ${stage}")
                     def message = "Creating document of type '${documentType}' for project '${this.project.key}'"
                     def debugKey = "${this.project.key}-${documentType}"
                     if (repo) {
