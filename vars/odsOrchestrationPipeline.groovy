@@ -27,8 +27,6 @@ def call(Map config) {
         .connectTimeout(120000)
 
     def steps = new PipelineSteps(this)
-    Project project = new Project(steps, logger)
-    def repos = []
 
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
@@ -42,6 +40,9 @@ def call(Map config) {
     def alwaysPullImage = !!config.get('alwaysPullImage', true)
     boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
     def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
+
+    Project project = new Project(steps, logger)
+    def repos = []
 
     logger.startClocked('orchestration-master-node')
     node ('master') {
