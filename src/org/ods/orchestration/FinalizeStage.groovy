@@ -71,7 +71,7 @@ class FinalizeStage extends Stage {
         }
 
         if (project.isAssembleMode && !project.isWorkInProgress) {
-            logger.warn("!!! CAUTION: Any future changes that should affect version " +
+            logger.warn('!!! CAUTION: Any future changes that should affect version ' +
                 "'${project.buildParams.version}' " +
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
@@ -97,10 +97,10 @@ class FinalizeStage extends Stage {
                 message += 'found unexecuted Jira tests'
             }
 
-            message += "."
+            message += '.'
 
             bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                "FAILURE", "Release Manager for commit: ${project.gitData.commit}")
+                'FAILURE', "Release Manager for commit: ${project.gitData.commit}")
 
             util.failBuild(message)
             throw new IllegalStateException(message)

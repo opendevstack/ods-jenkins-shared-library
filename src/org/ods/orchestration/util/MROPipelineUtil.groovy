@@ -182,7 +182,7 @@ class MROPipelineUtil extends PipelineUtil {
 
                 steps.writeFile(
                     file: ODS_DEPLOYMENTS_DESCRIPTOR,
-                    text: JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments)
+                    text: JsonOutput.prettyPrint(JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments))
                 )
                 filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
                 if (this.project.isWorkInProgress) {
