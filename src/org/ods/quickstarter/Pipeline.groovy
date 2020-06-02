@@ -53,7 +53,6 @@ class Pipeline implements Serializable {
         // vars from jenkins master
         def gitHost
         script.node {
-            gitHost =  script.env.BITBUCKET_HOST.split(':')[0]
             config.jobName = script.env.JOB_NAME
             config.buildNumber = script.env.BUILD_NUMBER
             config.buildUrl = script.env.BUILD_URL
@@ -68,6 +67,7 @@ class Pipeline implements Serializable {
                 config.bitbucketHost = script.env.BITBUCKET_HOST
                 config.bitbucketUrl = "https://${config.bitbucketHost}"
             }
+            gitHost =  config.bitbucketHost.split(':').first()
 
             // Get Nexus params
             config.nexusHost = script.env.NEXUS_HOST
