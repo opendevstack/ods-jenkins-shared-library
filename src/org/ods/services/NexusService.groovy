@@ -4,8 +4,9 @@ package org.ods.services
 
 import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
-
 import org.apache.http.client.utils.URIBuilder
+
+import org.ods.util.ILogger
 
 class NexusService {
 
@@ -38,6 +39,38 @@ class NexusService {
 
         this.username = username
         this.password = password
+    }
+
+    static NexusService newFromEnv(def env, ILogger logger) {
+        def c = readConfigFromEnv(env, logger)
+        new NexusService(c.nexusUrl, c.nexusUsername, c.nexusPassword)
+    }
+
+    static Map readConfigFromEnv(def env, ILogger logger) {
+        def config = [:]
+        if (env.NEXUS_URL?.trim()) {
+            config.nexusUrl = env.NEXUS_URL.trim()
+            config.nexusHost = config.nexusUrl.minus(~/^https?:\/\//)
+        } else if (env.NEXUS_HOST?.trim()) {
+            config.nexusUrl = env.NEXUS_HOST.trim()
+            config.nexusHost = env.NEXUS_HOST.trim()
+            logger.info '''WARNING: 'NEXUS_URL' is not present. Nexus URL is read from 'NEXUS_HOST'. ''' +
+                '''Therefore, 'context.nexusUrl' and 'context.nexusHost' both include the scheme. ''' +
+                '''To avoid this, expose 'NEXUS_URL' on the Jenkins instance and adjust build code as necessary.'''
+        } else {
+            throw new IllegalArgumentException("Environment variable 'NEXUS_URL' is required")
+        }
+        if (env.NEXUS_USERNAME?.trim()) {
+            config.nexusUsername = env.NEXUS_USERNAME.trim()
+        } else {
+            throw new IllegalArgumentException('NEXUS_USERNAME is required, but not set')
+        }
+        if (env.NEXUS_PASSWORD?.trim()) {
+            config.nexusPassword = env.NEXUS_PASSWORD.trim()
+        } else {
+            throw new IllegalArgumentException('NEXUS_PASSWORD is required, but not set')
+        }
+        config
     }
 
     @SuppressWarnings('SpaceAroundMapEntryColon')

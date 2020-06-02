@@ -33,7 +33,10 @@ interface IContext {
     // The tagversion is made up of the build number and the first 8 chars of the commit SHA.
     String getTagversion()
 
-    // Nexus host (with scheme).
+    // Nexus URL - value taken from NEXUS_URL.
+    String getNexusUrl()
+
+    // Nexus host - value derived from getNexusUrl.
     String getNexusHost()
 
     // Nexus username.
@@ -127,10 +130,10 @@ interface IContext {
     // ODS Jenkins shared library version, taken from reference in Jenkinsfile.
     String getOdsSharedLibVersion()
 
-    // BitBucket URL - value taken from BITBUCKET_URL.
+    // Bitbucket URL - value taken from BITBUCKET_URL.
     String getBitbucketUrl()
 
-    // BitBucket host - value derived from getBitbucketUrl.
+    // Bitbucket host - value derived from getBitbucketUrl.
     String getBitbucketHost()
 
     // Timeout for the OpenShift build of the container image in minutes.

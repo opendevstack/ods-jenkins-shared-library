@@ -42,12 +42,16 @@ interface IContext {
 
     String getCdUserCredentialsId()
 
-    // BitBucket URL - value taken from BITBUCKET_URL.
+    // Bitbucket URL - value taken from BITBUCKET_URL.
     String getBitbucketUrl()
 
-    // BitBucket host - value derived from getBitbucketUrl.
+    // Bitbucket host - value derived from getBitbucketUrl.
     String getBitbucketHost()
 
+    // Nexus URL - value taken from NEXUS_URL.
+    String getNexusUrl()
+
+    // Nexus host - value derived from getNexusUrl.
     String getNexusHost()
 
     String getNexusUsername()
