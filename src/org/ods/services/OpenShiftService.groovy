@@ -221,7 +221,7 @@ class OpenShiftService {
                 return buildStatus
             }
             logger.debug ("Build: '${buildId}' - status: '${buildStatus}'")
-            if (status == 'running') {
+            if (buildStatus == 'running') {
                 retries = 5
             }
             // Wait 5 seconds before asking again. Sometimes the build finishes but the
