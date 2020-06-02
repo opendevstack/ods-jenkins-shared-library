@@ -438,6 +438,7 @@ class OpenShiftService {
         ).trim()
     }
 
+    @SuppressWarnings('UnnecessaryElseStatement')
     boolean checkAndAmendRepoBasedOnDeploymentState (Map repo) {
         def openshiftDir = 'openshift-exported'
         if (steps.fileExists('openshift')) {

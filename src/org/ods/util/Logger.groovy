@@ -45,19 +45,19 @@ class Logger implements ILogger, Serializable {
         timedCall (component)
     }
 
-    @SuppressWarnings('GStringAsMapKey')
+    @SuppressWarnings(['GStringAsMapKey', 'UnnecessaryElseStatement'])
     private def timedCall (String component, String message = null) {
         if (!component) {
             throw new IllegalArgumentException ("Component can't be null!")
         }
         def startTime = clockStore.get("${component}")
-        if (!startTime) {
-            clockStore << ["${component}": System.currentTimeMillis()]
-            return "[${component}] ${message ?: ''}"
-        } else {
+        if (startTime) {
             def timeDuration = System.currentTimeMillis() - startTime
             return "[${component}] ${message ?: ''} " +
                 "(took ${timeDuration} ms)"
+        } else {
+            clockStore << ["${component}": System.currentTimeMillis()]
+            return "[${component}] ${message ?: ''}"
         }
     }
 
