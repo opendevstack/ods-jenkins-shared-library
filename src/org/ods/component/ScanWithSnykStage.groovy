@@ -79,9 +79,9 @@ class ScanWithSnykStage extends Stage {
         script.withEnv(envVariables) {
             noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
             if (noVulnerabilitiesFound) {
-                script.echo 'No vulnerabilities detected.'
+                logger.info 'No vulnerabilities detected.'
             } else {
-                script.echo 'Snyk test detected vulnerabilities.'
+                logger.warn 'Snyk test detected vulnerabilities.'
             }
         }
         logger.debugClocked("${config.projectName}-snyk-scan")

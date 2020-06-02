@@ -52,9 +52,9 @@ class ScanWithSonarStage extends Stage {
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
 
-        logger.startClocked("${config.projectName}-sq-scan")
+        logger.startClocked("${sonarProjectKey}-sq-scan")
         scan(sonarProperties)
-        logger.debugClocked("${config.projectName}-sq-scan")
+        logger.debugClocked("${sonarProjectKey}-sq-scan")
 
         generateAndArchiveReports(sonarProjectKey, context.buildTag, context.localCheckoutEnabled)
 
