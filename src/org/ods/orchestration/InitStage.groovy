@@ -225,17 +225,10 @@ class InitStage extends Stage {
             steps.unwrap(),
             steps.env,
             project.key,
-<<<<<<< HEAD
             project.services.bitbucket.credentials.id,
             logger
-        ))
-
-        BitbucketService bitbucket = registry.get(BitbucketService)
-=======
-            project.services.bitbucket.credentials.id
         )
         registry.add(BitbucketService, bitbucket)
->>>>>>> Extract reading URL/HOST to NexusService / BitbucketService
 
         def phase = MROPipelineUtil.PipelinePhases.INIT
 

@@ -45,9 +45,14 @@ class BitbucketService {
         this.logger = logger
     }
 
-    static BitbucketService newFromEnv(def script, def env, String project, String passwordCredentialsId) {
+    static BitbucketService newFromEnv(
+        def script,
+        def env,
+        String project,
+        String passwordCredentialsId,
+        ILogger logger) {
         def c = readConfigFromEnv(env)
-        new BitbucketService(script, c.bitbucketUrl, project, passwordCredentialsId)
+        new BitbucketService(script, c.bitbucketUrl, project, passwordCredentialsId, logger)
     }
 
     static Map readConfigFromEnv(def env) {
