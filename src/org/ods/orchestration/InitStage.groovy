@@ -239,11 +239,11 @@ class InitStage extends Stage {
         @SuppressWarnings('Indentation')
         Closure checkoutClosure = 
         {
-            script.parallel {
+            script.parallel (
                 util.prepareCheckoutReposNamedJob(repos) { s, repo ->
                     logger.info("Repository: ${repo}")
                 }
-            }
+            )
         }
 
         Closure loadClosure = {
