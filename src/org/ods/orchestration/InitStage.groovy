@@ -6,7 +6,7 @@ import org.ods.services.NexusService
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
-
+import org.apache.bcel.generic.LoadClass
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
@@ -238,13 +238,18 @@ class InitStage extends Stage {
 
         def repos = project.repositories
         @SuppressWarnings('Indentation')
-        Map checkoutComponentReposClosures =
-            util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-                logger.info("Repository: ${repo}")
+        Closure checkoutClosure = 
+        {
+            script.parallel {
+                checkoutComponentReposClosures = {
+                    util.prepareCheckoutReposNamedJob(repos) { s, repo ->
+                        logger.info("Repository: ${repo}")
+                    }
+                }
             }
+        }
 
-        def setupStage = project.getKey() + ' setup'
-        checkoutComponentReposClosures << [("${setupStage}"): {
+        Closure loadClosure = {
             logger.debugClocked('Project#load')
             project.load(registry.get(GitService), registry.get(JiraUseCase))
             logger.debugClocked('Project#load')
@@ -291,8 +296,9 @@ class InitStage extends Stage {
 
             def os = registry.get(OpenShiftService)
             project.setOpenShiftData(os.apiUrl)
-        }]
-        script.parallel(checkoutComponentReposClosures)
+        }
+
+        executeInParallel(checkoutClosure, loadClosure)
 
         // find best place for mro slave start
         def stageToStartMRO
