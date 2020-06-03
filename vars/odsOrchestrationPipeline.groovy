@@ -81,8 +81,7 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             logger.debugClocked('pod-template')
             withEnv (envs) {
-                def result = executeWithMROSlaveBootstrap(
-                    new InitStage(this, project, repos), startMROStage)
+                def result = new InitStage(this, project, repos, startMROStage).execute()
                 if (result) {
                     project = result.project
                     repos = result.repos
@@ -94,14 +93,11 @@ def call(Map config) {
                     return
                 }
 
-                executeWithMROSlaveBootstrap(
-                    new BuildStage(this, project, repos), startMROStage)
+                new BuildStage(this, project, repos, startMROStage).execute()
 
-                executeWithMROSlaveBootstrap(
-                    new DeployStage(this, project, repos), startMROStage)
+                new DeployStage(this, project, repos, startMROStage).execute()
 
-                executeWithMROSlaveBootstrap(
-                    new TestStage(this, project, repos), startMROStage)
+                new TestStage(this, project, repos, startMROStage).execute()
 
                 new ReleaseStage(this, project, repos).execute()
 
@@ -148,36 +144,6 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
             logger.infoClocked('ods-mro-pipeline', '**** ENDED orchestration pipeline ****')
         }
     }
-}
-
-@SuppressWarnings('GStringAsMapKey')
-private Map executeWithMROSlaveBootstrap (Stage stage, String startMROStage) {
-    ILogger logger = ServiceRegistry.instance.get(Logger)
-    logger.debug("Stage to start mro slave: '${startMROStage}'" +
-        " current: '${stage.STAGE_NAME}'")
-    if (!startMROStage || !startMROStage.equalsIgnoreCase(stage.STAGE_NAME)) {
-        return stage.execute()
-    }
-    Map result
-    Map executors = [
-        "${stage.STAGE_NAME}": {
-            if (startMROStage == MROPipelineUtil.PipelinePhases.INIT) {
-                result = stage.execute()
-            } else {
-                stage.execute()
-            }
-        },
-        'boot mro slave': {
-            def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
-            logger.debugClocked(podLabel)
-            node (podLabel) {
-                logger.debugClocked(podLabel)
-            }
-        },
-    ]
-    executors.failFast = true
-    parallel (executors)
-    return result
 }
 
 return this

@@ -18,13 +18,15 @@ class Stage {
     protected def script
     protected Project project
     protected List<Set<Map>> repos
+    protected String startMROSlaveStageName
 
     public final String STAGE_NAME = 'NOT SET'
 
-    Stage(def script, Project project, List<Set<Map>> repos) {
+    Stage(def script, Project project, List<Set<Map>> repos, String startMROSlaveStageName = 'Init') {
         this.script = script
         this.project = project
         this.repos = repos
+        this.startMROSlaveStageName = startMROSlaveStageName
     }
 
     def execute() {
@@ -62,12 +64,22 @@ class Stage {
 
     @SuppressWarnings('GStringAsMapKey')
     def executeInParallel (Closure block1, Closure block2) {
+        ILogger logger = ServiceRegistry.instance.get(Logger)
         Map executors = [
             "${STAGE_NAME}": {
                 block1()
             },
             'orchestration': {
                 block2()
+                logger.debug("Current stage: '${STAGE_NAME}' -> " +
+                    "start mro stage: '${startMROSlaveStageName}'")
+                if (startMROSlaveStageName.equalsIgnoreCase(STAGE_NAME)) {
+                    def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
+                    logger.debugClocked(podLabel)
+                    script.node (podLabel) {
+                        logger.debugClocked(podLabel)
+                    }
+                }
             },
         ]
         executors.failFast = true
