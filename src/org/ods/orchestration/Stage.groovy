@@ -18,7 +18,7 @@ class Stage {
     protected def script
     protected Project project
     protected List<Set<Map>> repos
-    protected String startMROSlaveStageName
+    String startMROSlaveStageName
 
     public final String STAGE_NAME = 'NOT SET'
 
