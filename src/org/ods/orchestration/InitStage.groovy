@@ -240,10 +240,8 @@ class InitStage extends Stage {
         Closure checkoutClosure = 
         {
             script.parallel {
-                checkoutComponentReposClosures = {
-                    util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-                        logger.info("Repository: ${repo}")
-                    }
+                util.prepareCheckoutReposNamedJob(repos) { s, repo ->
+                    logger.info("Repository: ${repo}")
                 }
             }
         }
