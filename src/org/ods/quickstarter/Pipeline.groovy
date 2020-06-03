@@ -3,14 +3,19 @@ package org.ods.quickstarter
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 
+import org.ods.util.Logger
+import org.ods.util.ILogger
+
 class Pipeline implements Serializable {
 
     private final def script
     private final Map config
+    private final ILogger logger
 
     Pipeline(def script, Map config) {
         this.script = script
         this.config = config
+        this.logger = new Logger(script, false)
     }
 
     @SuppressWarnings(['AbcMetric', 'UnnecessaryObjectReferences'])
