@@ -9,6 +9,7 @@ import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
 
 import groovy.xml.XmlUtil
 
@@ -96,7 +97,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll('Technology-', '')
 
-            def gitUrl = new GitService(this.steps).getOriginUrl()
+            def gitUrl = new GitService(
+                this.steps, new Logger(this.steps, false)).getOriginUrl()
             def isReleaseManagerComponent =
                 gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
             if (isReleaseManagerComponent) {
