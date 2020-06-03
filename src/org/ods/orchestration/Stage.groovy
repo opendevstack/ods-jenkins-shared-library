@@ -74,7 +74,7 @@ class Stage {
                 logger.debug("Current stage: '${STAGE_NAME}' -> " +
                     "start mro stage: '${startMROSlaveStageName}'")
                 if (startMROSlaveStageName.equalsIgnoreCase(STAGE_NAME)) {
-                    def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
+                    def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
                     logger.debugClocked(podLabel)
                     script.node (podLabel) {
                         logger.debugClocked(podLabel)
