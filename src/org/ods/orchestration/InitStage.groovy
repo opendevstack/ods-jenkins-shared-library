@@ -24,8 +24,8 @@ class InitStage extends Stage {
 
     public final String STAGE_NAME = 'Init'
 
-    InitStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    InitStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
+        super(script, project, repos, startMROStageName)
     }
 
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
