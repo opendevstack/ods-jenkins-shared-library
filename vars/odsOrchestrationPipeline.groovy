@@ -41,6 +41,7 @@ def call(Map config) {
     boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
     def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
+    logger.debug ("Start MRO slave stage: ${startMROStage}")
     Project project = new Project(steps, logger)
     def repos = []
 
