@@ -6,7 +6,6 @@ import org.ods.services.NexusService
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
-import org.apache.bcel.generic.LoadClass
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
