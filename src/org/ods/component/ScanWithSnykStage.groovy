@@ -70,10 +70,7 @@ class ScanWithSnykStage extends Stage {
         boolean noVulnerabilitiesFound
 
         def envVariables = [
-            "NEXUS_URL=${context.nexusUrl}",
-            // To support legacy systems, also expose NEXUS_HOST with the URL value.
-            // To be removed in ODS 4+.
-            "NEXUS_HOST=${context.nexusUrl}",
+            "NEXUS_HOST=${context.nexusHost}",
             "NEXUS_USERNAME=${context.nexusUsername}",
             "NEXUS_PASSWORD=${context.nexusPassword}",
         ]

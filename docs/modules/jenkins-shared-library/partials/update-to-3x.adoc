@@ -89,5 +89,12 @@ constraints of the Jenkins agent pod). Please review
 xref:jenkins-shared-library:component-pipeline.adoc#_pipeline_context[the documentation]
 in case your authored stages make heavy use of the `context` object.
 
-A notable addition to the `context` object is a new property `issueId`, which
+CAUTION: One notable change to the `context` object is that `bitbucketHost` did
+not include the scheme previously. Now, `bitbucketHost` is an alias for
+`bitbucketUrl` which does include the scheme. This change was made to align the
+property with `nexusHost` and `nexusUrl`, which both include the scheme as well.
+If you used `context.bitbucketHost` in one of your `Jenkinsfile`s, you may now
+use `context.bitbucketHostWithoutScheme`.
+
+TIP: A notable addition to the `context` object is a new property `issueId`, which
 exposes the Jira issue ID (such as `123` from branch `feature/FOO-123-bar-baz`).

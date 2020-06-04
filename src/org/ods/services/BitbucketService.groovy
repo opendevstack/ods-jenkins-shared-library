@@ -59,10 +59,8 @@ class BitbucketService {
         def config = [:]
         if (env.BITBUCKET_URL?.trim()) {
             config.bitbucketUrl = env.BITBUCKET_URL.trim()
-            config.bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
         } else if (env.BITBUCKET_HOST?.trim()) {
-            config.bitbucketHost = env.BITBUCKET_HOST.trim()
-            config.bitbucketUrl = "https://${config.bitbucketHost}"
+            config.bitbucketUrl = "https://${env.BITBUCKET_HOST.trim()}"
         } else {
             throw new IllegalArgumentException("Environment variable 'BITBUCKET_URL' is required")
         }

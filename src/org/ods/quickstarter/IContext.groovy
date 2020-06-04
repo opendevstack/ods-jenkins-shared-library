@@ -45,14 +45,20 @@ interface IContext {
     // Bitbucket URL - value taken from BITBUCKET_URL.
     String getBitbucketUrl()
 
-    // Bitbucket host - value derived from getBitbucketUrl.
+    // Bitbucket host - alias for getBitbucketUrl.
     String getBitbucketHost()
+
+    // Bitbucket host without scheme/protocol.
+    String getBitbucketHostWithoutScheme()
 
     // Nexus URL - value taken from NEXUS_URL.
     String getNexusUrl()
 
-    // Nexus host - value derived from getNexusUrl.
+    // Nexus host - alias for getNexusUrl.
     String getNexusHost()
+
+    // Nexus host without scheme/protocol.
+    String getNexusHostWithoutScheme()
 
     String getNexusUsername()
 

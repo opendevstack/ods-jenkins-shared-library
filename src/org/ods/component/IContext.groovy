@@ -36,8 +36,11 @@ interface IContext {
     // Nexus URL - value taken from NEXUS_URL.
     String getNexusUrl()
 
-    // Nexus host - value derived from getNexusUrl.
+    // Nexus host - alias for getNexusUrl.
     String getNexusHost()
+
+    // Nexus host without scheme/protocol.
+    String getNexusHostWithoutScheme()
 
     // Nexus username.
     String getNexusUsername()
@@ -48,7 +51,7 @@ interface IContext {
     // Nexus URL (with scheme), including username and password as BasicAuth.
     String getNexusUrlWithBasicAuth()
 
-    // DEPRECATED. Nexus host (with scheme), including username and password as BasicAuth.
+    // Nexus host (with scheme), including username and password as BasicAuth. Alias for getNexusUrlWithBasicAuth.
     String getNexusHostWithBasicAuth()
 
     // Define which branches are deployed to which environments.
@@ -136,8 +139,11 @@ interface IContext {
     // Bitbucket URL - value taken from BITBUCKET_URL.
     String getBitbucketUrl()
 
-    // Bitbucket host - value derived from getBitbucketUrl.
+    // Bitbucket host - alias for getBitbucketUrl.
     String getBitbucketHost()
+
+    // Bitbucket host without scheme/protocol.
+    String getBitbucketHostWithoutScheme()
 
     // Timeout for the OpenShift build of the container image in minutes.
     Integer getOpenshiftBuildTimeout()

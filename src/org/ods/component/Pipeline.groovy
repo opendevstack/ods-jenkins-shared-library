@@ -141,7 +141,7 @@ class Pipeline implements Serializable {
                         if (!registry.get(NexusService)) {
                             logger.debug 'Registering NexusService'
                             registry.add(NexusService, new NexusService(
-                                context.nexusHost, context.nexusUsername, context.nexusPassword))
+                                context.nexusUrl, context.nexusUsername, context.nexusPassword))
                         }
                     }
 
@@ -377,7 +377,7 @@ class Pipeline implements Serializable {
                 script.sh(
                     script: """sh clone-project.sh \
                         -o ${context.openshiftHost} \
-                        -b ${context.bitbucketHost} \
+                        -b ${context.bitbucketHostWithoutScheme} \
                         -c ${userPass} \
                         -p ${context.projectId} \
                         -s ${context.cloneSourceEnv} \
