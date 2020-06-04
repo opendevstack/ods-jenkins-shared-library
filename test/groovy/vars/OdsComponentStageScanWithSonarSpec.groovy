@@ -37,9 +37,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev']
     IContext context = new Context(null, c, logger)
     BitbucketService bitbucketService = Stub(BitbucketService.class)
-
-    def res = readResource('no-pull-requests.json');
-    bitbucketService.getPullRequests(*_) >> res
+    bitbucketService.findPullRequest(*_) >> [:]
     ServiceRegistry.instance.add(BitbucketService, bitbucketService)
     SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
@@ -63,9 +61,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     IContext context = new Context(null, c, logger)
     BitbucketService bitbucketService = Stub(BitbucketService.class)
     bitbucketService.withTokenCredentials(*_) >> { Closure block -> block('user', 's3cr3t') }
-
-    def res = readResource('pull-requests.json');
-    bitbucketService.getPullRequests(*_) >> res
+    bitbucketService.findPullRequest(*_) >> [key: 1, base: 'master']
     ServiceRegistry.instance.add(BitbucketService, bitbucketService)
     SonarQubeService sonarQubeService = Mock(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']

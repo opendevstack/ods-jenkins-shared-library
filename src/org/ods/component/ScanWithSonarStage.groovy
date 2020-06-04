@@ -103,8 +103,7 @@ class ScanWithSonarStage extends Stage {
             return [:]
         }
 
-        def apiResponse = bitbucket.getPullRequests(context.repoName)
-        def pullRequest = findPullRequest(apiResponse, context.gitBranch)
+        def pullRequest = bitbucket.findPullRequest(context.repoName, context.gitBranch)
 
         if (pullRequest) {
             return [
@@ -120,36 +119,6 @@ class ScanWithSonarStage extends Stage {
         def longLivedList = config.longLivedBranches.join(', ')
         logger.info "No open PR found for ${context.gitBranch} " +
             "even though it is not one of the long-lived branches (${longLivedList})."
-        return [:]
-    }
-
-    private Map findPullRequest(String apiResponse, String branch) {
-        def prCandidates = []
-        try {
-            def js = script.readJSON(text: apiResponse)
-            prCandidates = js['values']
-            if (prCandidates == null) {
-                throw new RuntimeException('Field "values" of JSON response must not be empty!')
-            }
-        } catch (Exception ex) {
-            logger.warn "Could not understand API response. Error was: ${ex}"
-            return [:]
-        }
-        for (def i = 0; i < prCandidates.size(); i++) {
-            def prCandidate = prCandidates[i]
-            try {
-                def prFromBranch = prCandidate['fromRef']['displayId']
-                if (prFromBranch == branch) {
-                    return [
-                        key: prCandidate['id'],
-                        base: prCandidate['toRef']['displayId'],
-                    ]
-                }
-            } catch (Exception ex) {
-                logger.warn "Unexpected API response. Error was: ${ex}"
-                return [:]
-            }
-        }
         return [:]
     }
 

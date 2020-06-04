@@ -2,6 +2,8 @@ package util
 
 import org.ods.util.IPipelineSteps
 
+import groovy.json.JsonSlurper
+
 class PipelineSteps implements IPipelineSteps {
 
     private Map currentBuild = [:]
@@ -87,7 +89,7 @@ class PipelineSteps implements IPipelineSteps {
 
     @Override
     def readJSON(Map args) {
-        return null
+        new JsonSlurper().parseText(args.text)
     }
 
     @Override

@@ -94,6 +94,37 @@ class BitbucketService {
         res
     }
 
+    Map findPullRequest(String repo, String branch, String state = 'OPEN') {
+        def apiResponse = getPullRequests(repo, state)
+        def prCandidates = []
+        try {
+            def js = script.readJSON(text: apiResponse)
+            prCandidates = js['values']
+            if (prCandidates == null) {
+                throw new RuntimeException('Field "values" of JSON response must not be empty!')
+            }
+        } catch (Exception ex) {
+            logger.warn "Could not understand API response. Error was: ${ex}"
+            return [:]
+        }
+        for (def i = 0; i < prCandidates.size(); i++) {
+            def prCandidate = prCandidates[i]
+            try {
+                def prFromBranch = prCandidate['fromRef']['displayId']
+                if (prFromBranch == branch) {
+                    return [
+                        key: prCandidate['id'],
+                        base: prCandidate['toRef']['displayId'],
+                    ]
+                }
+            } catch (Exception ex) {
+                logger.warn "Unexpected API response. Error was: ${ex}"
+                return [:]
+            }
+        }
+        return [:]
+    }
+
     @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
         logger.debugClocked("buildstatus-${buildName}-${state}",
@@ -135,7 +166,7 @@ class BitbucketService {
                 passwordVariable: 'TOKEN'
             )
         ]) {
-            block(script.USERNAME, script.TOKEN)
+            block(script.env.USERNAME, script.env.TOKEN)
         }
     }
 
