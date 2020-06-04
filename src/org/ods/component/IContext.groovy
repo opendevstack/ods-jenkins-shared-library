@@ -136,8 +136,11 @@ interface IContext {
     // Bitbucket URL - value taken from BITBUCKET_URL.
     String getBitbucketUrl()
 
-    // Bitbucket host - value derived from getBitbucketUrl.
+    // Bitbucket host - alias for getBitbucketUrl.
     String getBitbucketHost()
+
+    // Bitbucket host without scheme/protocol.
+    String getBitbucketHostWithoutScheme()
 
     // Timeout for the OpenShift build of the container image in minutes.
     Integer getOpenshiftBuildTimeout()

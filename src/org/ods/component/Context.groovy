@@ -336,7 +336,12 @@ class Context implements IContext {
     }
 
     String getBitbucketHost() {
-        config.bitbucketHost
+        getBitbucketUrl()
+    }
+
+    @NonCPS
+    String getBitbucketHostWithoutScheme() {
+        getBitbucketUrl().minus(~/^https?:\/\//)
     }
 
     @NonCPS

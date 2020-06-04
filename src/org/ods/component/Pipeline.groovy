@@ -376,7 +376,7 @@ class Pipeline implements Serializable {
                 script.sh(
                     script: """sh clone-project.sh \
                         -o ${context.openshiftHost} \
-                        -b ${context.bitbucketHost} \
+                        -b ${context.bitbucketHostWithoutScheme} \
                         -c ${userPass} \
                         -p ${context.projectId} \
                         -s ${context.cloneSourceEnv} \

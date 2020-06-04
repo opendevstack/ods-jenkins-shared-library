@@ -105,6 +105,9 @@ The `context` object contains the following properties:
 | odsGitRef
 | Git ref, retrieved from `ODS_GIT_REF` build parameter.
 
+| bitbucketUrl
+| Bitbucket URL - value taken from `BITBUCKET_URL`. If BITBUCKET_URL is not present, it will default to `https://<BITBUCKET_HOST>``. `bitbucketHost` is an alias for `bitbucketUrl`.
+
 | gitUrlHttp
 | URL of the Git repository to push to.
 |===

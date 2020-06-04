@@ -62,7 +62,8 @@ class Pipeline implements Serializable {
             config.buildTime = new Date()
             config.dockerRegistry = script.env.DOCKER_REGISTRY
             config << BitbucketService.readConfigFromEnv(script.env)
-            gitHost =  config.bitbucketHost.split(':').first()
+            def bitbucketHost = context.bitbucketUrl.minus(~/^https?:\/\//)
+            gitHost =  bitbucketHost.split(':').first()
             config << NexusService.readConfigFromEnv(script.env, logger)
         }
 
