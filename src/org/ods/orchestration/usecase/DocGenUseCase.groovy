@@ -184,7 +184,7 @@ abstract class DocGenUseCase {
                 "${this.project.key.toLowerCase()}-${oldBuildVersion}",
                 storedFileName, path)
 
-        this.steps.echo "Document found: ${storedFileName} \r ${documentFromNexus}"
+        this.steps.echo "Document found: ${storedFileName} \r${documentFromNexus}"
         byte [] resurrectedDocAsBytes
         if (storageType == 'zip') {
             resurrectedDocAsBytes = this.util.extractFromZipFile(
