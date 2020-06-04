@@ -126,6 +126,24 @@ class BitbucketService {
     }
 
     @SuppressWarnings('LineLength')
+    void postComment(String repo, int pullRequestId, String comment) {
+        withTokenCredentials { username, token ->
+            def payload = """{"text":"${comment}"}"""
+            script.sh(
+                label: "Post comment to PR#${pullRequestId}",
+                script: """curl \\
+                  --fail \\
+                  --silent \\
+                  --request POST \\
+                  --header \"Authorization: Bearer ${token}\" \\
+                  --header \"Content-Type: application/json\" \\
+                  --data '${payload}' \\
+                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests/${pullRequestId}/comments"""
+            )
+        }
+    }
+
+    @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
         logger.debugClocked("buildstatus-${buildName}-${state}",
             "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'")
