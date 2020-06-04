@@ -12,4 +12,5 @@ class JiraUseCaseSupport extends AbstractJiraUseCaseSupport {
     void applyXunitTestResults(List testIssues, Map testResults) {
         this.usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
     }
+
 }

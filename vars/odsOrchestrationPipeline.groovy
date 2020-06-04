@@ -6,7 +6,6 @@ import kong.unirest.Unirest
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.Stage
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage

@@ -13,7 +13,7 @@ import org.ods.util.Logger
 
 import groovy.xml.XmlUtil
 
-@SuppressWarnings(['IfStatementBraces', 
+@SuppressWarnings(['IfStatementBraces',
     'LineLength',
     'AbcMetric',
     'Instanceof',

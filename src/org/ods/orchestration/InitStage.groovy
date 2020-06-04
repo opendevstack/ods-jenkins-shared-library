@@ -237,7 +237,7 @@ class InitStage extends Stage {
 
         def repos = project.repositories
         @SuppressWarnings('Indentation')
-        Closure checkoutClosure = 
+        Closure checkoutClosure =
         {
             script.parallel (
                 util.prepareCheckoutReposNamedJob(repos) { s, repo ->
