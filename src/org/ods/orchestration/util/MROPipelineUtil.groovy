@@ -349,7 +349,9 @@ class MROPipelineUtil extends PipelineUtil {
             repo.data?.odsBuildArtifacts?.remove('resurrected')
 
             def job
-            this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
+            List<String> mainEnv = this.project.getMainReleaseManagerEnv()
+            mainEnv << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
+            this.steps.withEnv (mainEnv) {
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
             // Collect ODS build artifacts for repo
