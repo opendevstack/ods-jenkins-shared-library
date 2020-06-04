@@ -608,14 +608,14 @@ class OpenShiftService {
         List nonExistentDeployments = []
         List notThisVersionDeployments = []
         List notThisImages = []
-        logger.infoClocked ("${repoId}-deploymentCheck",
+        logger.debugClocked ("${repoId}-deploymentCheck",
             "Verifying deployments: '${deployments.keySet()}' against env: '${project}'")
         deployments.each { deploymentName, deployment ->
             if (JenkinsService.CREATED_BY_BUILD_STR != deploymentName) {
                 logger.debug "Verifying deployment: '${deploymentName}'"
                 def dcExists = resourceExists('DeploymentConfig', deploymentName)
                 if (!dcExists) {
-                    steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
+                    logger.debug "DeploymentConfig '${deploymentName}' does not exist!"
                     nonExistentDeployments << deploymentName
                 }
                 int latestDeployedVersion = getLatestVersion (deploymentName)

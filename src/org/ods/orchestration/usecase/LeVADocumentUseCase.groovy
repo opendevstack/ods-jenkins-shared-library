@@ -13,7 +13,20 @@ import org.ods.util.Logger
 
 import groovy.xml.XmlUtil
 
-@SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof', 'VariableName', 'UnusedMethodParameter', 'UnusedVariable', 'ParameterCount', 'NonFinalPublicField', 'PropertyName', 'MethodCount', 'UseCollectMany', 'ParameterName', 'SpaceAroundMapEntryColon'])
+@SuppressWarnings(['IfStatementBraces', 
+    'LineLength',
+    'AbcMetric',
+    'Instanceof',
+    'VariableName',
+    'UnusedMethodParameter',
+    'UnusedVariable',
+    'ParameterCount',
+    'NonFinalPublicField',
+    'PropertyName',
+    'MethodCount',
+    'UseCollectMany',
+    'ParameterName',
+    'SpaceAroundMapEntryColon'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {

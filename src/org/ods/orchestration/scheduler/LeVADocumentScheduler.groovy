@@ -287,14 +287,13 @@ class LeVADocumentScheduler extends DocGenScheduler {
                 def args = [repo, data]
                 if (this.isDocumentApplicable(documentType, phase, stage, repo)) {
                     def message = "Creating document of type '${documentType}' for project '${this.project.key}'"
-                    def debugKey = "${this.project.key}-${documentType}"
+                    def debugKey = "docgen-${this.project.key}-${documentType}"
                     if (repo) {
                         message += " and repo '${repo.id}'"
-                        debugKey += "${repo.id}"
+                        debugKey += "-${repo.id}"
                     }
                     message += " in phase '${phase}' and stage '${stage}'"
-                    logger.info(message)
-                    logger.startClocked("${debugKey}")
+                    logger.infoClocked("${debugKey}", message)
                     this.util.executeBlockAndFailBuild {
                         try {
                             // Apply args according to the method's parameters length
