@@ -250,8 +250,6 @@ class InitStage extends Stage {
             logger.debugClocked('Project#load')
             project.load(registry.get(GitService), registry.get(JiraUseCase))
             logger.debugClocked('Project#load')
-            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
 
             logger.debug 'Validate that for Q and P we have a valid version'
             if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
@@ -266,7 +264,7 @@ class InitStage extends Stage {
 
             if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
                 if (project.buildParams.targetEnvironmentToken == 'Q') {
-                    logger.warn("Deploying tag ${project.targetTag} again!")
+                    logger.warn("Deploying tag '${project.targetTag}' to Q again!")
                 } else {
                     throw new RuntimeException(
                         "Error: Git Tag '${project.targetTag}' already exists - " +
@@ -274,7 +272,10 @@ class InitStage extends Stage {
                     )
                 }
             }
-
+            if (!project.isWorkInProgress) {
+                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                    'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
+            }
             def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
 
             logger.debug 'Configure current build description'

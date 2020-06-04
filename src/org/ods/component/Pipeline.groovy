@@ -286,6 +286,7 @@ class Pipeline implements Serializable {
             throw new RuntimeException("Variable 'MULTI_REPO_ENV' (target environment!)" +
                 ' must not be null!')
         }
+        config.bitbucketNotificationEnabled = !!script.env.NOTIFY_BB_BUILD
     }
 
     private void setBitbucketBuildStatus(String state) {
