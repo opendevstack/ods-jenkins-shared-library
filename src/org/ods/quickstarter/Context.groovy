@@ -112,7 +112,12 @@ class Context implements IContext {
 
     @NonCPS
     String getNexusHost() {
-        config.nexusHost
+        getNexusUrl()
+    }
+
+    @NonCPS
+    String getNexusHostWithoutScheme() {
+        getNexusUrl().minus(~/^https?:\/\//)
     }
 
     @NonCPS

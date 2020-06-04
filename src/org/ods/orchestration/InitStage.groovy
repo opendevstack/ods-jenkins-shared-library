@@ -143,7 +143,7 @@ class InitStage extends Stage {
 
 
 
-        registry.add(NexusService, NexusService.newFromEnv(script.env, logger))
+        registry.add(NexusService, NexusService.newFromEnv(script.env))
 
         registry.add(OpenShiftService,
             new OpenShiftService(

@@ -109,10 +109,7 @@ The `context` object contains the following properties:
 | The tagversion is made up of the build number and the first 8 chars of the commit SHA.
 
 | nexusUrl
-| Nexus URL - value taken from `NEXUS_URL`. If `NEXUS_URL` is not present, it will default to `NEXUS_HOST` (which also includes the scheme).
-
-| nexusHost
-| Nexus host - value derived from `nexusUrl`. It does not include the scheme if `nexusUrl` was read from `NEXUS_URL`.
+| Nexus URL - value taken from `NEXUS_URL`. If `NEXUS_URL` is not present, it will default to `NEXUS_HOST` (which also includes the scheme). `nexusHost` is an alias for `nexusUrl`.
 
 | nexusUsername
 | Nexus username.
@@ -121,10 +118,7 @@ The `context` object contains the following properties:
 | Nexus password.
 
 | nexusUrlWithBasicAuth
-| Nexus URL, including username and password as BasicAuth.
-
-| nexusHostWithBasicAuth
-| DEPRECATED. Nexus host (with scheme), including username and password as BasicAuth.
+| Nexus URL, including username and password as BasicAuth. `nexusHostWithBasicAuth` is an alias for `nexusUrlWithBasicAuth`.
 
 | cloneSourceEnv
 | The environment which was chosen as the clone source.

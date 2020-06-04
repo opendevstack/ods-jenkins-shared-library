@@ -36,8 +36,11 @@ interface IContext {
     // Nexus URL - value taken from NEXUS_URL.
     String getNexusUrl()
 
-    // Nexus host - value derived from getNexusUrl.
+    // Nexus host - alias for getNexusUrl.
     String getNexusHost()
+
+    // Nexus host without scheme/protocol.
+    String getNexusHostWithoutScheme()
 
     // Nexus username.
     String getNexusUsername()
@@ -48,7 +51,7 @@ interface IContext {
     // Nexus URL (with scheme), including username and password as BasicAuth.
     String getNexusUrlWithBasicAuth()
 
-    // DEPRECATED. Nexus host (with scheme), including username and password as BasicAuth.
+    // Nexus host (with scheme), including username and password as BasicAuth. Alias for getNexusUrlWithBasicAuth.
     String getNexusHostWithBasicAuth()
 
     // Define which branches are deployed to which environments.

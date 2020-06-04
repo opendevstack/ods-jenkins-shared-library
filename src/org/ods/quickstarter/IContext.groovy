@@ -54,8 +54,11 @@ interface IContext {
     // Nexus URL - value taken from NEXUS_URL.
     String getNexusUrl()
 
-    // Nexus host - value derived from getNexusUrl.
+    // Nexus host - alias for getNexusUrl.
     String getNexusHost()
+
+    // Nexus host without scheme/protocol.
+    String getNexusHostWithoutScheme()
 
     String getNexusUsername()
 

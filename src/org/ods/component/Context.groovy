@@ -48,7 +48,7 @@ class Context implements IContext {
         config.buildTime = new Date()
         config.openshiftHost = script.env.OPENSHIFT_API_URL
         config << BitbucketService.readConfigFromEnv(script.env)
-        config << NexusService.readConfigFromEnv(script.env, logger)
+        config << NexusService.readConfigFromEnv(script.env)
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 
@@ -211,7 +211,12 @@ class Context implements IContext {
 
     @NonCPS
     String getNexusHost() {
-        config.nexusHost
+        getNexusUrl()
+    }
+
+    @NonCPS
+    String getNexusHostWithoutScheme() {
+        getNexusUrl().minus(~/^https?:\/\//)
     }
 
     @NonCPS
@@ -229,11 +234,9 @@ class Context implements IContext {
         config.nexusUrl.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
     }
 
-    // To support legacy systems, also uses nexusUrl value.
-    // To be removed in ODS 4+.
     @NonCPS
     String getNexusHostWithBasicAuth() {
-        config.nexusUrl.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
+        getNexusUrlWithBasicAuth()
     }
 
     @NonCPS

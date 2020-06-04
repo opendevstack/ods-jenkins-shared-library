@@ -6,8 +6,6 @@ import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
 
-import org.ods.util.ILogger
-
 class NexusService {
 
     static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
@@ -41,22 +39,18 @@ class NexusService {
         this.password = password
     }
 
-    static NexusService newFromEnv(def env, ILogger logger) {
-        def c = readConfigFromEnv(env, logger)
+    static NexusService newFromEnv(def env) {
+        def c = readConfigFromEnv(env)
         new NexusService(c.nexusUrl, c.nexusUsername, c.nexusPassword)
     }
 
-    static Map readConfigFromEnv(def env, ILogger logger) {
+    static Map readConfigFromEnv(def env) {
         def config = [:]
         if (env.NEXUS_URL?.trim()) {
             config.nexusUrl = env.NEXUS_URL.trim()
-            config.nexusHost = config.nexusUrl.minus(~/^https?:\/\//)
         } else if (env.NEXUS_HOST?.trim()) {
+            // Historically, the NEXUS_HOST variable contains the scheme.
             config.nexusUrl = env.NEXUS_HOST.trim()
-            config.nexusHost = env.NEXUS_HOST.trim()
-            logger.info '''WARNING: 'NEXUS_URL' is not present. Nexus URL is read from 'NEXUS_HOST'. ''' +
-                '''Therefore, 'context.nexusUrl' and 'context.nexusHost' both include the scheme. ''' +
-                '''To avoid this, expose 'NEXUS_URL' on the Jenkins instance and adjust build code as necessary.'''
         } else {
             throw new IllegalArgumentException("Environment variable 'NEXUS_URL' is required")
         }
