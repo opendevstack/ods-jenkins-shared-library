@@ -26,7 +26,7 @@ class Stage {
         this.script = script
         this.project = project
         this.repos = repos
-        this.startMROSlaveStageName = startMROSlaveStageName
+        this.startMROSlaveStageName = startMROSlaveStageName ?: ''
     }
 
     def execute() {

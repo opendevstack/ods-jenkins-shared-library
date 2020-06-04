@@ -11,7 +11,7 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
     private JiraZephyrService zephyr
     private MROPipelineUtil util
 
-    JiraUseCaseZephyrSupport(Project project, IPipelineSteps steps, JiraUseCase usecase, 
+    JiraUseCaseZephyrSupport(Project project, IPipelineSteps steps, JiraUseCase usecase,
         JiraZephyrService zephyr, MROPipelineUtil util) {
         super(project, steps, usecase)
         this.zephyr = zephyr

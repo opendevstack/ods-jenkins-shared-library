@@ -42,7 +42,7 @@ class TestStageSpec extends SpecHelper {
         jenkins = Mock(JenkinsService)
         logger = new Logger(script, !!script.env.DEBUG)
         createService()
-        testStage = Spy(new TestStage(script, project, project.repositories))
+        testStage = Spy(new TestStage(script, project, project.repositories, null))
     }
 
     ServiceRegistry createService() {
