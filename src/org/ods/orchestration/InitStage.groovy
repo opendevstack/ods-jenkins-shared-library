@@ -293,7 +293,7 @@ class InitStage extends Stage {
 
             def os = registry.get(OpenShiftService)
             project.setOpenShiftData(os.apiUrl)
-            logger.debug("MRO Start stage: ${this.startMROSlaveStageName}")
+            logger.debug("MRO slave start stage: ${this.startMROSlaveStageName}")
         }
 
         executeInParallel(checkoutClosure, loadClosure)

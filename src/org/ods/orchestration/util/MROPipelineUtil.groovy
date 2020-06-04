@@ -536,9 +536,9 @@ class MROPipelineUtil extends PipelineUtil {
                 def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                 loadPipelineConfig(repoPath, repo)
                 this.steps.dir(repoPath) {
-                    this.logger.startClocked("${repo.id}-resurrect")
+                    this.logger.startClocked("${repo.id}-resurrect-data")
                     amendRepoForResurrection(repo)
-                    this.logger.debugClocked("${repo.id}-resurrect")
+                    this.logger.debugClocked("${repo.id}-resurrect-data")
                 }
 
                 if (postExecute) {

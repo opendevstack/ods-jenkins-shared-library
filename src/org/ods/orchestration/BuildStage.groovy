@@ -48,7 +48,8 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
                 } else {
-                    logger.info("[${repo.id}] Resurrected tests from run ${resultsResurrected}" +
+                    logger.info("[${repo.id}] Resurrected tests from run " +
+                        "${repo.data?.odsBuildArtifacts?.resurrected} " +
                         "- no unit tests results will be reported")
                 }
 

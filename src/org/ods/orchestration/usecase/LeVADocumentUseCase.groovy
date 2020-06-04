@@ -1158,7 +1158,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!repo.data.openshift && repo.data.odsBuildArtifacts) {
             repo.data['openshift'] = [:]
             repo.data.openshift << repo.data.odsBuildArtifacts.subMap (['builds','deployments'])
-            this.steps.echo("fetched openshift data from build for repo: ${repo.id} \r${repo.data.openshift}")
+            this.steps.echo("Fetched openshift data from build for repo: ${repo.id} \r${repo.data.openshift}")
         }
 
         def deploynoteData = 'Components were built & deployed during installation.'
