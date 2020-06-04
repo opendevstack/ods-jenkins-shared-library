@@ -608,36 +608,39 @@ class OpenShiftService {
         List nonExistentDeployments = []
         List notThisVersionDeployments = []
         List notThisImages = []
-        logger.infoClocked ("${repoId}-deploymentCheck",
+        logger.debugClocked ("${repoId}-ocp-deployment-check",
             "Verifying deployments: '${deployments.keySet()}' against env: '${project}'")
         deployments.each { deploymentName, deployment ->
             if (JenkinsService.CREATED_BY_BUILD_STR != deploymentName) {
-                logger.debug "Verifying deployment: '${deploymentName}'"
-                def dcExists = resourceExists('DeploymentConfig', deploymentName)
-                if (!dcExists) {
-                    steps.echo "DeploymentConfig '${deploymentName}' does not exist!"
+                logger.debug "Verifying ocp deployment ('${repoId}'): '${deploymentName}'"
+                int latestDeployedVersion = -1
+                try {
+                    latestDeployedVersion = getLatestVersion (deploymentName)
+                } catch (err) {
+                    logger.debug "DeploymentConfig '${deploymentName}' does not exist!"
                     nonExistentDeployments << deploymentName
                 }
-                int latestDeployedVersion = getLatestVersion (deploymentName)
-                if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
-                    notThisVersionDeployments << latestDeployedVersion
-                    logger.debug "Deployment '${deploymentName}/${deployment.deploymentId}'" +
-                        " is not latest version! (${latestDeployedVersion})"
-                }
-                def pod = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
-                deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
-                    def runningImageSha = imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
-                    def definedImageSha = imageInfoWithShaForImageStreamUrl(imageRaw).sha
-                    if (runningImageSha != definedImageSha) {
-                        logger.warn "In container '${containerName}' of deployment '${deploymentName}'" +
-                            " running image '${runningImageSha}' " +
-                            "is not the same as the defined image '${definedImageSha}'."
-                        notThisImages << runningImageSha
+                if (latestDeployedVersion > -1) {
+                    if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
+                        notThisVersionDeployments << latestDeployedVersion
+                        logger.debug "Deployment '${deploymentName}/${deployment.deploymentId}'" +
+                            " is not latest version! (${latestDeployedVersion})"
+                    }
+                    def pod = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
+                    deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
+                        def runningImageSha = imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
+                        def definedImageSha = imageInfoWithShaForImageStreamUrl(imageRaw).sha
+                        if (runningImageSha != definedImageSha) {
+                            logger.warn "In container '${containerName}' of deployment '${deploymentName}'" +
+                                " running image '${runningImageSha}' " +
+                                "is not the same as the defined image '${definedImageSha}'."
+                            notThisImages << runningImageSha
+                        }
                     }
                 }
             }
         }
-        logger.infoClocked ("${repoId}-deploymentCheck")
+        logger.infoClocked ("${repoId}-ocp-deployment-check")
         return (nonExistentDeployments.empty && notThisVersionDeployments.empty &&
             notThisImages.empty)
     }

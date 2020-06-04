@@ -99,15 +99,19 @@ class FinalizeStage extends Stage {
 
             message += '.'
 
-            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                'FAILURE', "Release Manager for commit: ${project.gitData.commit}")
+            if (!project.isWorkInProgress) {
+                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                    'FAILED', "Release Manager for commit: ${project.gitData.commit}")
+            }
 
             util.failBuild(message)
             throw new IllegalStateException(message)
         } else {
             project.reportPipelineStatus()
-            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
+            if (!project.isWorkInProgress) {
+                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                    "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
+            }
         }
     }
 

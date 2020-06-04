@@ -105,7 +105,7 @@ class BitbucketService {
             while (retries++ < maxAttempts) {
                 try {
                     script.sh(
-                        label: 'Set build status via API',
+                        label: 'Set bitbucket build status via API',
                         script: """curl \\
                             --fail \\
                             --silent \\

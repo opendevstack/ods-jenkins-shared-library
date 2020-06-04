@@ -116,7 +116,7 @@ class MROPipelineUtil extends PipelineUtil {
                 def commitMessage = ''
                 if (exportRequired) {
                     commitMessage = "ODS: Export OpenShift configuration \r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
-                    logger.debug("Exporting current OpenShift state to folder '${openshiftDir}'.")
+                    logger.debugClocked("export-ocp-${repo.id}", "Exporting current OpenShift state to folder '${openshiftDir}'.")
                     def targetFile = 'template.yml'
                     os.tailorExport(
                         componentSelector,
@@ -124,12 +124,14 @@ class MROPipelineUtil extends PipelineUtil {
                         targetFile
                     )
                     filesToStage << targetFile
+                    logger.debugClocked("export-ocp-${repo.id}")
                 } else {
                     commitMessage = "ODS: Export Openshift deployment state " +
                         "\r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
                     // TODO: Display drift?
                 }
 
+                logger.debugClocked("export-ocp-verify-${repo.id}")
                 // Verify that all DCs are managed by ODS
                 def odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [:]
                 def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
@@ -179,11 +181,13 @@ class MROPipelineUtil extends PipelineUtil {
                         throw new RuntimeException("ERROR: ${message}")
                     }
                 }
+                logger.debugClocked("export-ocp-verify-${repo.id}")
 
                 steps.writeFile(
                     file: ODS_DEPLOYMENTS_DESCRIPTOR,
                     text: JsonOutput.prettyPrint(JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments))
                 )
+                logger.debugClocked("export-ocp-git-${repo.id}")
                 filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
                 if (this.project.isWorkInProgress) {
                     steps.sh(
@@ -204,6 +208,7 @@ class MROPipelineUtil extends PipelineUtil {
                     )
                     tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                 }
+                logger.debugClocked("export-ocp-git-${repo.id}")
             }
         }
     }
@@ -344,7 +349,9 @@ class MROPipelineUtil extends PipelineUtil {
             repo.data?.odsBuildArtifacts?.remove('resurrected')
 
             def job
-            this.steps.withEnv (this.project.getMainReleaseManagerEnv()) {
+            List<String> mainEnv = this.project.getMainReleaseManagerEnv()
+            mainEnv << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
+            this.steps.withEnv (mainEnv) {
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
             // Collect ODS build artifacts for repo
@@ -531,9 +538,9 @@ class MROPipelineUtil extends PipelineUtil {
                 def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                 loadPipelineConfig(repoPath, repo)
                 this.steps.dir(repoPath) {
-                    this.logger.startClocked("${repo.id}-resurrect")
+                    this.logger.startClocked("${repo.id}-resurrect-data")
                     amendRepoForResurrection(repo)
-                    this.logger.debugClocked("${repo.id}-resurrect")
+                    this.logger.debugClocked("${repo.id}-resurrect-data")
                 }
 
                 if (postExecute) {

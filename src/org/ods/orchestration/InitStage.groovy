@@ -6,7 +6,6 @@ import org.ods.services.NexusService
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
-
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
@@ -24,8 +23,8 @@ class InitStage extends Stage {
 
     public final String STAGE_NAME = 'Init'
 
-    InitStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    InitStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
+        super(script, project, repos, startMROStageName)
     }
 
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
@@ -238,18 +237,19 @@ class InitStage extends Stage {
 
         def repos = project.repositories
         @SuppressWarnings('Indentation')
-        Map checkoutComponentReposClosures =
-            util.prepareCheckoutReposNamedJob(repos) { s, repo ->
-                logger.info("Repository: ${repo}")
-            }
+        Closure checkoutClosure =
+        {
+            script.parallel (
+                util.prepareCheckoutReposNamedJob(repos) { s, repo ->
+                    logger.info("Repository: ${repo}")
+                }
+            )
+        }
 
-        def setupStage = project.getKey() + ' setup'
-        checkoutComponentReposClosures << [("${setupStage}"): {
+        Closure loadClosure = {
             logger.debugClocked('Project#load')
             project.load(registry.get(GitService), registry.get(JiraUseCase))
             logger.debugClocked('Project#load')
-            bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
 
             logger.debug 'Validate that for Q and P we have a valid version'
             if (project.isPromotionMode && ['Q', 'P'].contains(project.buildParams.targetEnvironmentToken)
@@ -264,7 +264,7 @@ class InitStage extends Stage {
 
             if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
                 if (project.buildParams.targetEnvironmentToken == 'Q') {
-                    logger.warn("Deploying tag ${project.targetTag} again!")
+                    logger.warn("Deploying tag '${project.targetTag}' to Q again!")
                 } else {
                     throw new RuntimeException(
                         "Error: Git Tag '${project.targetTag}' already exists - " +
@@ -272,7 +272,10 @@ class InitStage extends Stage {
                     )
                 }
             }
-
+            if (!project.isWorkInProgress) {
+                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
+                    'INPROGRESS', "Release Manager for commit: ${project.gitData.commit}")
+            }
             def jobMode = project.isPromotionMode ? '(promote)' : '(assemble)'
 
             logger.debug 'Configure current build description'
@@ -291,8 +294,10 @@ class InitStage extends Stage {
 
             def os = registry.get(OpenShiftService)
             project.setOpenShiftData(os.apiUrl)
-        }]
-        script.parallel(checkoutComponentReposClosures)
+            logger.debug("MRO slave start stage: ${this.startMROSlaveStageName}")
+        }
+
+        executeInParallel(checkoutClosure, loadClosure)
 
         // find best place for mro slave start
         def stageToStartMRO

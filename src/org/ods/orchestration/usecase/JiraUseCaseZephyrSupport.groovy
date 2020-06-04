@@ -11,7 +11,8 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
     private JiraZephyrService zephyr
     private MROPipelineUtil util
 
-    JiraUseCaseZephyrSupport(Project project, IPipelineSteps steps, JiraUseCase usecase, JiraZephyrService zephyr, MROPipelineUtil util) {
+    JiraUseCaseZephyrSupport(Project project, IPipelineSteps steps, JiraUseCase usecase,
+        JiraZephyrService zephyr, MROPipelineUtil util) {
         super(project, steps, usecase)
         this.zephyr = zephyr
         this.util = util
@@ -21,15 +22,15 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         if (!this.usecase.jira) return
         if (!this.zephyr) return
 
-        def testCycleId = "-1"
+        def testCycleId = '-1'
         if (!testIssues?.isEmpty()) {
             def buildParams = this.project.buildParams
 
-            def versionId = this.project.version?.id ?: "-1"
+            def versionId = this.project.version?.id ?: '-1'
             def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
 
             // Zephyr test cycle properties
-            def name = buildParams.targetEnvironmentToken + ": Build " + this.steps.env.BUILD_ID
+            def name = buildParams.targetEnvironmentToken + ': Build ' + this.steps.env.BUILD_ID
             def build = this.steps.env.BUILD_URL
             def environment = buildParams.targetEnvironment
 
@@ -68,4 +69,5 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         this.usecase.applyXunitTestResultsAsTestIssueLabels(testIssues, testResults)
         this.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
     }
+
 }

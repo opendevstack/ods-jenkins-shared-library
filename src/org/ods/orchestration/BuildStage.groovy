@@ -13,8 +13,8 @@ class BuildStage extends Stage {
 
     public final String STAGE_NAME = 'Build'
 
-    BuildStage(def script, Project project, List<Set<Map>> repos) {
-        super(script, project, repos)
+    BuildStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
+        super(script, project, repos, startMROStageName)
     }
 
     @SuppressWarnings('ParameterName')
@@ -48,7 +48,8 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
                 } else {
-                    logger.info("[${repo.id}] Resurrected tests from run ${resultsResurrected}" +
+                    logger.info("[${repo.id}] Resurrected tests from run " +
+                        "${repo.data?.odsBuildArtifacts?.resurrected} " +
                         "- no unit tests results will be reported")
                 }
 

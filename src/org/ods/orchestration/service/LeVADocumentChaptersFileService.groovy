@@ -9,7 +9,7 @@ import org.yaml.snakeyaml.Yaml
 
 class LeVADocumentChaptersFileService {
 
-    static final String DOCUMENT_CHAPTERS_BASE_DIR = "docs"
+    static final String DOCUMENT_CHAPTERS_BASE_DIR = 'docs'
 
     private IPipelineSteps steps
 
@@ -25,7 +25,8 @@ class LeVADocumentChaptersFileService {
         }
 
         def String yamlText
-        def file = Paths.get(this.steps.env.WORKSPACE, DOCUMENT_CHAPTERS_BASE_DIR, "${documentType}.yaml").toFile()
+        def file = Paths.get(this.steps.env.WORKSPACE, DOCUMENT_CHAPTERS_BASE_DIR,
+            "${documentType}.yaml").toFile()
         if (!file.exists()) {
             yamlText = this.steps.readFile(file: "docs/${documentType}.yaml")
         } else {
@@ -44,9 +45,10 @@ class LeVADocumentChaptersFileService {
         return data.collectEntries { chapter ->
             def number = chapter.number.toString()
             chapter.number = number
-            chapter.content = chapter.content ?: ""
-            chapter["status"] = "done"
-            [ "sec${number.replaceAll(/\./, "s")}".toString(), chapter ]
+            chapter.content = chapter.content ?: ''
+            chapter['status'] = 'done'
+            [ "sec${number.replaceAll(/\./, 's')}".toString(), chapter ]
         }
     }
+
 }
