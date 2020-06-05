@@ -354,6 +354,36 @@ stage('Cleanup preview resources') {
 ----
 
 
+=== Interacting with Bitbucket
+
+The shared library already sets the build status of the built commit. It also
+provides three convenience methods on `BitbucketService` to interact with pull
+requests:
+
+- `String getPullRequests(String repo, String state = 'OPEN')` returns
+  all open pull requests, which can be parsed using `readJSON`.
+- `Map findPullRequest(String repo, String branch, String state = 'OPEN')`
+  tries to find a pull request for the given `branch`, and returns a map with
+  its ID and target branch.
+- `void postComment(String repo, int pullRequestId, String comment)`
+  allows to add `comment` to the PR identified by `pullRequestId`.
+
+To make use of these methods, you need to get an instance of the `BitbucketService`
+in your `Jenkinsfile` like this:
+[source,groovy]
+.Jenkinsfile
+----
+import org.ods.services.ServiceRegistry
+import org.ods.services.BitbucketService
+
+def sayHello(def context) {
+  stage('Say Hello') {
+    def bitbucketService = ServiceRegistry.instance.get(BitbucketService)
+    bitbucketService.postComment(context.repoName, 1, "Hello world")
+  }
+}
+----
+
 === Automatically cloning environments on the fly
 
 Caution! Cloning environments on-the-fly is an advanced feature and should only be used if you understand OpenShift well, as there are many moving parts and things can go wrong in multiple places.
