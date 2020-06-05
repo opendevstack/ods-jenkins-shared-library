@@ -59,7 +59,6 @@ class Pipeline implements Serializable {
         }
 
         // vars from jenkins master
-        def gitHost
         script.node {
             config.jobName = script.env.JOB_NAME
             config.buildNumber = script.env.BUILD_NUMBER
@@ -67,8 +66,6 @@ class Pipeline implements Serializable {
             config.buildTime = new Date()
             config.dockerRegistry = script.env.DOCKER_REGISTRY
             config << BitbucketService.readConfigFromEnv(script.env)
-            def bitbucketHost = config.bitbucketUrl.minus(~/^https?:\/\//)
-            gitHost =  bitbucketHost.split(':').first()
             config << NexusService.readConfigFromEnv(script.env)
         }
 
@@ -79,7 +76,7 @@ class Pipeline implements Serializable {
             // Execute user-defined stages.
             block(context)
 
-            new PushToRemoteStage(script, context, [gitHost: gitHost]).execute()
+            new PushToRemoteStage(script, context).execute()
         }
     }
 

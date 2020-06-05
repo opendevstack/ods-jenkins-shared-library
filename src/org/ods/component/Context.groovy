@@ -231,7 +231,9 @@ class Context implements IContext {
 
     @NonCPS
     String getNexusUrlWithBasicAuth() {
-        config.nexusUrl.replace('://', "://${config.nexusUsername}:${config.nexusPassword}@")
+        String un = URLEncoder.encode(config.nexusUsername as String, 'UTF-8')
+        String pw = URLEncoder.encode(config.nexusPassword as String, 'UTF-8')
+        config.nexusUrl.replace('://', "://${un}:${pw}@")
     }
 
     @NonCPS

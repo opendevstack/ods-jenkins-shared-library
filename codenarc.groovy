@@ -268,7 +268,7 @@ ruleset {
     ExplicitStackInstantiation
     ExplicitTreeSetInstantiation
     GStringAsMapKey
-    GStringExpressionWithinString(enabled: false) // TODO: Could this be enabled without triggering false positives?
+    GStringExpressionWithinString
     GetterMethodCouldBeProperty
     GroovyLangImmutable
     UseCollectMany

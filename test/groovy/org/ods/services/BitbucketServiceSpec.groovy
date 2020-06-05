@@ -1,10 +1,7 @@
 package org.ods.services
 
-import spock.lang.*
-import vars.test_helper.PipelineSpockTestBase
-
-import util.*
 import org.ods.util.Logger
+import vars.test_helper.PipelineSpockTestBase
 
 class BitbucketServiceSpec extends PipelineSpockTestBase {
 
@@ -32,5 +29,20 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         jsonFixture             | branch        || expected
         'pull-requests.json'    | 'feature/foo' || [key: 1, base: 'master']
         'no-pull-requests.json' | 'feature/foo' || [:]
+    }
+
+    def "check user token secret yml"() {
+        expect:
+        BitbucketService.userTokenSecretYml("my-secret", username, password) == expected
+        where:
+        username | password | expected
+        "test@example.com" | "\$1 2 3\u00a3" | readResource('user-token-secret-1.yml')
+
+    }
+
+    protected String readResource(String name) {
+        def classLoader = getClass().getClassLoader();
+        def file = new File(classLoader.getResource(name).getFile());
+        file.text
     }
 }
