@@ -48,10 +48,16 @@ class AuthUtil {
             ).initCause(e)
         }
         String host = baseURL.host
-
+        if (!port) {
+            if (proto == "http") {
+                port = "80"
+            } else {
+                port = "443"
+            }
+        }
         [
             "protocol=${proto}",
-            "host=${host}",
+            "host=${host}:${port}",
             "username=${username}",
             "password=${password}",
             '',
