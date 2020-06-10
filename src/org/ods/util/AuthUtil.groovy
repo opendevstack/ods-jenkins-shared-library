@@ -48,6 +48,7 @@ class AuthUtil {
             ).initCause(e)
         }
         String host = baseURL.host
+        String port = baseURL.port
         if (!port) {
             if (proto == "http") {
                 port = "80"
