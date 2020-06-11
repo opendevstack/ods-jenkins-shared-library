@@ -24,7 +24,7 @@ class PipelineSpockTestBase extends Specification {
         helper.registerAllowedMethod('readJSON', [ Map ]) { Map args -> new JsonSlurper().parseText(args.text) }
         // we register our custom groovy method withStage so that is is available
         // in every script executed by the Jenkins Pipeline Unit testing framework
-        helper.registerAllowedMethod("withStage", [String, IContext, ILogger, Closure], { String stageLabel, IContext context, ILogger logger, Closure closure ->
+        helper.registerAllowedMethod("withStage", [String, Object, ILogger, Closure], { String stageLabel, Object context, ILogger logger, Closure closure ->
           return loadScript('vars/withStage.groovy').call(stageLabel, context, logger, closure)
         })
         helper.registerAllowedMethod("ansiColor", [String, Closure], { String color, Closure block -> 
