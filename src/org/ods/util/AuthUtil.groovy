@@ -48,10 +48,11 @@ class AuthUtil {
             ).initCause(e)
         }
         String host = baseURL.host
+        String port = baseURL.port > -1 ? ":${baseURL.port}" : ''
 
         [
             "protocol=${proto}",
-            "host=${host}",
+            "host=${host}${port}",
             "username=${username}",
             "password=${password}",
             '',

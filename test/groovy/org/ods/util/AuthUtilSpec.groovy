@@ -12,7 +12,7 @@ class AuthUtilSpec extends Specification {
         where:
         url | username | password | expected
         "https://hi:pw@git.com" | "one@example.com" | "123 \u00a3" | ["protocol=https", "host=git.com", "username=one@example.com", "password=123 £", ""]
-
+        "https://hi:pw@git.com:8842" | "one@example.com" | "123 \u00a3" | ["protocol=https", "host=git.com:8842", "username=one@example.com", "password=123 £", ""]
     }
 
     @Unroll
