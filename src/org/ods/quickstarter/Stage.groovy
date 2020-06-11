@@ -12,7 +12,7 @@ abstract class Stage {
 
     protected String STAGE_NAME = 'NOT SET'
 
-    Stage(def script, IContext context, Map config) {
+    protected Stage(def script, IContext context, Map config) {
         this.script = script
         this.context = context
         this.config = config
