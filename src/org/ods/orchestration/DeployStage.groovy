@@ -77,6 +77,7 @@ class DeployStage extends Stage {
                 logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'")
 
                 if (project.targetClusterIsExternal) {
+                    logger.info("Target cluster is external, logging into ${project.openShiftTargetApiUrl}")
                     script.withCredentials([
                         script.usernamePassword(
                             credentialsId: project.environmentConfig.credentialsId,
