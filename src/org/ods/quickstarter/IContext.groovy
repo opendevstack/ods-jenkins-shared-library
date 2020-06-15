@@ -64,4 +64,6 @@ interface IContext {
 
     String getNexusPassword()
 
+    // alias for odsGitRef
+    String getGitBranch()
 }
