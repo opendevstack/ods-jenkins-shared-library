@@ -495,7 +495,6 @@ class Project {
             def sessionApiUrlWithoutPort = sessionApiUrl.split(':').dropRight(1).join(':')
             isExternal = sessionApiUrlWithoutPort != targetApiUrl
         }
-        this.logger.info("Cluster ${targetApiUrl} is external=${isExternal}")
         isExternal
     }
 
