@@ -275,7 +275,7 @@ class MROPipelineUtil extends PipelineUtil {
                         "container: ${containerName}, imageInfo: ${imageInfo}, source: ${sourceProject}"
                     )
                     if (EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageInfo.repository)) {
-                        logger.dbeug(
+                        logger.debug(
                             "Skipping import of '${imageInfo.name}', " +
                             "because it is defined as excluded: ${EXCLUDE_NAMESPACES_FROM_IMPORT}"
                         )
