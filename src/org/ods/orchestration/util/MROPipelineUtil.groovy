@@ -9,14 +9,11 @@ import java.nio.file.Paths
 import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
-import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
-import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.DeploymentDescriptor
+import org.ods.orchestration.phases.DeployOdsComponent
+import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.yaml.snakeyaml.Yaml
-
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurperClassic
 
 @InheritConstructors
 @SuppressWarnings(['LineLength', 'AbcMetric', 'NestedBlockDepth', 'EmptyElseBlock', 'CyclomaticComplexity', 'GStringAsMapKey', 'UseCollectNested'])
@@ -63,11 +60,10 @@ class MROPipelineUtil extends PipelineUtil {
         PRE_END
     }
 
-    static final String COMPONENT_METADATA_FILE_NAME = "metadata.yml"
-    static final String REPOS_BASE_DIR = "repositories"
-
-    static final String ODS_DEPLOYMENTS_DESCRIPTOR = "ods-deployments.json"
-    static final List EXCLUDE_NAMESPACES_FROM_IMPORT = ["openshift"]
+    static final String COMPONENT_METADATA_FILE_NAME = 'metadata.yml'
+    static final String REPOS_BASE_DIR = 'repositories'
+    static final List EXCLUDE_NAMESPACES_FROM_IMPORT = ['openshift']
+    static final String ODS_STATE_DIR = 'ods-state'
 
     List<Set<Map>> computeRepoGroups(List<Map> repos) {
         // Transform the list of repository configs into a list of graph nodes
@@ -89,259 +85,12 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    @SuppressWarnings(['Instanceof'])
-    private void finalizeODSComponent(Map repo, String baseDir) {
-        def os = ServiceRegistry.instance.get(OpenShiftService)
-
-        def targetProject = this.project.targetProject
-        def envParamsFile = this.project.environmentParamsFile
-        def envParams = this.project.getEnvironmentParams(envParamsFile)
-        def componentSelector = "app=${this.project.key}-${repo.id}"
-
-        steps.dir(baseDir) {
-            def openshiftDir = 'openshift-exported'
-            def exportRequired = true
-            if (steps.fileExists('openshift')) {
-                logger.info("Found 'openshift' folder, current OpenShift state will not be exported into 'openshift-exported'.")
-                openshiftDir = 'openshift'
-                exportRequired = false
-            } else {
-                steps.sh(
-                    script: "mkdir -p ${openshiftDir}",
-                    label: "Ensure ${openshiftDir} exists"
-                )
-            }
-            steps.dir(openshiftDir) {
-                def filesToStage = []
-                def commitMessage = ''
-                if (exportRequired) {
-                    commitMessage = "ODS: Export OpenShift configuration \r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
-                    logger.debugClocked("export-ocp-${repo.id}", "Exporting current OpenShift state to folder '${openshiftDir}'.")
-                    def targetFile = 'template.yml'
-                    os.tailorExport(
-                        componentSelector,
-                        envParams,
-                        targetFile
-                    )
-                    filesToStage << targetFile
-                    logger.debugClocked("export-ocp-${repo.id}")
-                } else {
-                    commitMessage = "ODS: Export Openshift deployment state " +
-                        "\r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
-                    // TODO: Display drift?
-                }
-
-                logger.debugClocked("export-ocp-verify-${repo.id}")
-                // Verify that all DCs are managed by ODS
-                def odsBuiltDeploymentInformation = repo?.data.odsBuildArtifacts?.deployments ?: [:]
-                def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
-                def ocpBasedDeployments = os.getDeploymentConfigsForComponent(componentSelector)
-                logger.debug(
-                    "ODS created deployments for ${repo.id}: " +
-                    "${odsBuiltDeployments}, OCP Deployments: ${ocpBasedDeployments}"
-                )
-
-                odsBuiltDeployments.each {odsBuildDeployment ->
-                    ocpBasedDeployments.remove(odsBuildDeployment)
-                }
-
-                if (ocpBasedDeployments.size() > 0 ) {
-                    def message = "DeploymentConfigs (component: '${repo.id}') found that are not ODS managed: " +
-                        "'${ocpBasedDeployments}'!\r" +
-                        "Please fix by rolling them out through 'odsComponentStageRolloutOpenShiftDeployment()'!"
-                    if (this.project.isWorkInProgress) {
-                        warnBuild(message)
-                    } else {
-                        throw new RuntimeException (message)
-                    }
-                }
-
-                def imagesFromOtherProjectsFail = []
-                odsBuiltDeploymentInformation.each {odsBuildDeployment, odsBuildDeploymentInfo ->
-                    if (!odsBuildDeploymentInfo instanceof String) {
-                        odsBuildDeploymentInfo.containers?.each {containerName, containerImage ->
-                            def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
-                            if (targetProject != owningProject && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
-                                def msg = "Deployment: ${odsBuildDeployment} / " +
-                                    "Container: ${containerName} / Owner: ${owningProject}"
-                                logger.warn "! Image out of scope! ${msg}"
-                                imagesFromOtherProjectsFail << msg
-                            }
-                        }
-                    }
-                }
-
-                if (imagesFromOtherProjectsFail.size() > 0 ) {
-                    def message = "Containers (component: '${repo.id}') found " +
-                        "that will NOT be transferred to other environments - please fix!! " +
-                        "\rOffending: ${imagesFromOtherProjectsFail}"
-                    if (this.project.isWorkInProgress) {
-                        warnBuild(message)
-                    } else {
-                        throw new RuntimeException("ERROR: ${message}")
-                    }
-                }
-                logger.debugClocked("export-ocp-verify-${repo.id}")
-
-                steps.writeFile(
-                    file: ODS_DEPLOYMENTS_DESCRIPTOR,
-                    text: JsonOutput.prettyPrint(JsonOutput.toJson(repo?.data.odsBuildArtifacts?.deployments))
-                )
-                logger.debugClocked("export-ocp-git-${repo.id}")
-                filesToStage << ODS_DEPLOYMENTS_DESCRIPTOR
-                if (this.project.isWorkInProgress) {
-                    steps.sh(
-                        script: """
-                        git add ${filesToStage.join(' ')}
-                        git commit -m "${commitMessage} [ci skip]" --allow-empty
-                        git push origin ${repo.branch}
-                        """,
-                        label: 'commit and push new state'
-                    )
-                } else {
-                    steps.sh(
-                        script: """
-                        git add ${filesToStage.join(' ')}
-                        git commit -m "${commitMessage} [ci skip]" --allow-empty
-                        """,
-                        label: 'commit new state'
-                    )
-                    tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
-                }
-                logger.debugClocked("export-ocp-git-${repo.id}")
-            }
-        }
-    }
-
-    private void deployODSComponent(Map repo, String baseDir) {
-        def os = ServiceRegistry.instance.get(OpenShiftService)
-
-        def envParamsFile = this.project.environmentParamsFile
-        def openshiftRolloutTimeoutMinutes = this.project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
-
-        def componentSelector = "app=${this.project.key}-${repo.id}"
-
-        steps.dir(baseDir) {
-            def openshiftDir = 'openshift-exported'
-            if (steps.fileExists('openshift')) {
-                openshiftDir = 'openshift'
-            }
-
-            def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
-            def deployments = new JsonSlurperClassic().parseText(storedDeployments)
-            repo.data['openshift'] = [deployments: [:]]
-
-            def originalDeploymentVersions = [:]
-            deployments.each { deploymentName, deployment ->
-                if (deploymentName != JenkinsService.CREATED_BY_BUILD_STR) {
-                    def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
-                    originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
-                }
-            }
-
-            steps.dir(openshiftDir) {
-                logger.info("Applying desired OpenShift state defined in ${openshiftDir}@${this.project.baseTag} to ${this.project.targetProject}.")
-                def params = []
-                def preserve = []
-                def applyFunc = { pkeyFile ->
-                    os.tailorApply(
-                            [selector: componentSelector, exclude: 'bc'],
-                            envParamsFile,
-                            params,
-                            preserve,
-                            pkeyFile,
-                            true
-                        )
-                }
-                def jenkins = ServiceRegistry.instance.get(JenkinsService)
-                jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { pkeyFile ->
-                    applyFunc(pkeyFile)
-                }
-            }
-
-            def sourceEnv = Project.getConcreteEnvironment(
-                this.project.sourceEnv,
-                this.project.buildParams.version,
-                this.project.versionedDevEnvsEnabled
-            )
-            def sourceProject = "${this.project.key}-${sourceEnv}"
-            def createdByJob = deployments.remove(JenkinsService.CREATED_BY_BUILD_STR)
-            deployments.each { deploymentName, deployment ->
-                deployment.containers?.each {containerName, imageRaw ->
-                    // skip excluded images from defined image streams!
-                    def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
-                    logger.info(
-                        "Importing images - deployment: ${deploymentName}, " +
-                        "container: ${containerName}, imageInfo: ${imageInfo}, source: ${sourceProject}"
-                    )
-                    if (EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageInfo.repository)) {
-                        logger.debug(
-                            "Skipping import of '${imageInfo.name}', " +
-                            "because it is defined as excluded: ${EXCLUDE_NAMESPACES_FROM_IMPORT}"
-                        )
-                    } else {
-                        if (this.project.targetClusterIsExternal) {
-                            os.importImageFromSourceRegistry(
-                                imageInfo.name,
-                                sourceProject,
-                                imageInfo.sha,
-                                this.project.targetTag
-                            )
-                        } else {
-                            os.importImageFromProject(
-                                imageInfo.name,
-                                sourceProject,
-                                imageInfo.sha,
-                                this.project.targetTag
-                            )
-                        }
-                        // tag with latest, which triggers rollout
-                        os.setImageTag(imageInfo.name, this.project.targetTag, 'latest')
-                    }
-                }
-
-                // Verify that deployment is being rolled out and that the defined image sha is running
-                def replicationController = os.rollout(
-                    deploymentName,
-                    originalDeploymentVersions[deploymentName],
-                    openshiftRolloutTimeoutMinutes
-                )
-
-                def pod = os.getPodDataForDeployment(replicationController)
-                deployment.containers?.each { containerName, imageRaw ->
-                    def runningImageSha = os.imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
-                    def definedImageSha = os.imageInfoWithShaForImageStreamUrl(imageRaw).sha
-                    if (runningImageSha != definedImageSha) {
-                        throw new RuntimeException(
-                            "Error: in container '${containerName}' running image '${runningImageSha}' " +
-                            "is not the same as the defined image '${definedImageSha}'."
-                        )
-                    } else {
-                        logger.debug(
-                            "Running container '${containerName}' is using defined image '${definedImageSha}'."
-                        )
-                    }
-                }
-                repo.data.openshift.deployments << ["${deploymentName}": pod]
-            }
-            if (createdByJob) {
-                repo.data.openshift.deployments << ["${JenkinsService.CREATED_BY_BUILD_STR}": createdByJob]
-            }
-            tagAndPush(this.project.targetTag)
-        }
-    }
-
     private void executeODSComponent(Map repo, String baseDir) {
         this.steps.dir(baseDir) {
-            this.logger.debug("'${repo.id}' -> force global rebuild? " +
-                "${this.project.forceGlobalRebuild()}")
-            if (repo.data?.odsBuildArtifacts?.resurrected &&
-                !this.project.forceGlobalRebuild()) {
-                this.logger.debug("Repository '${repo.id}' is insync with OCP, " +
-                    'no need to rebuild')
+            if (repo.data.openshift.resurrectedBuild) {
+                logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
                 return
             }
-            repo.data?.odsBuildArtifacts?.remove('resurrected')
 
             def job
             List<String> mainEnv = this.project.getMainReleaseManagerEnv()
@@ -349,16 +98,19 @@ class MROPipelineUtil extends PipelineUtil {
             this.steps.withEnv (mainEnv) {
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
-            // Collect ODS build artifacts for repo
-            repo.data.odsBuildArtifacts = job.getBuildArtifactURIs()
+            // Collect ODS build artifacts for repo.
+            // We get a map with at least two keys ("build" and "deployments").
+            def buildArtifacts = job.getBuildArtifactURIs()
+            buildArtifacts.each { k, v ->
+                if (k != 'failedStage') {
+                    repo.data.openshift[k] = v
+                }
+            }
             def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
-            repo.data.odsBuildArtifacts.deployments <<
-                [
-                    "${JenkinsService.CREATED_BY_BUILD_STR}": versionAndBuild
-                ]
-            this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.odsBuildArtifacts}")
+            repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR] = versionAndBuild
+            this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
 
-            if (repo.data.odsBuildArtifacts?.failedStage) {
+            if (buildArtifacts.failedStage) {
                 throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
             }
         }
@@ -457,31 +209,10 @@ class MROPipelineUtil extends PipelineUtil {
         return repos
     }
 
-    def tagAndPushBranch(String branch, String tag) {
-        if (this.git.remoteTagExists(tag)) {
-            this.logger.info("Skipping tag '${tag}' because it already exists.")
-        } else {
-            this.git.createTag(tag)
-            this.git.pushBranchWithTags(branch)
-        }
-    }
-
-    def tagAndPush(String tag) {
-        if (this.git.remoteTagExists(tag)) {
-            this.logger.info("Skipping tag '${tag}' because it already exists.")
-        } else {
-            this.git.createTag(tag)
-            this.git.pushTag(tag)
-        }
-    }
-
-    Closure prepareCheckoutRepoNamedJob(Map repo, Closure preExecute = null, Closure postExecute = null) {
+    Map<String, Closure> prepareCheckoutRepoNamedJob(Map repo) {
         return [
             repo.id,
             {
-                if (preExecute) {
-                    preExecute(this.steps, repo)
-                }
                 this.logger.startClocked("${repo.id}-scm-checkout")
                 def scm = null
                 def scmBranch = repo.branch
@@ -498,7 +229,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 scm = checkoutBranchInRepoDir(repo, this.project.gitReleaseBranch)
                             } catch (ex) {
                                 this.logger.warn """
-                                WARNING! Checkout of '${this.project.gitReleaseBranch}' for repo '${repo.id}' failed.
+                                Checkout of '${this.project.gitReleaseBranch}' for repo '${repo.id}' failed.
                                 Attempting to checkout '${repo.branch}' and create the release branch from it.
                                 """
                                 // Possible reasons why this might happen:
@@ -532,14 +263,17 @@ class MROPipelineUtil extends PipelineUtil {
                 ]
                 def repoPath = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                 loadPipelineConfig(repoPath, repo)
-                this.steps.dir(repoPath) {
-                    this.logger.startClocked("${repo.id}-resurrect-data")
-                    amendRepoForResurrection(repo)
-                    this.logger.debugClocked("${repo.id}-resurrect-data")
-                }
-
-                if (postExecute) {
-                    postExecute(this.steps, repo)
+                if (this.project.isAssembleMode) {
+                    if (this.project.forceGlobalRebuild) {
+                        this.logger.debug('Project forces global rebuild ...')
+                    } else {
+                        this.steps.dir(repoPath) {
+                            this.logger.startClocked("${repo.id}-resurrect-data")
+                            this.logger.debug('Checking if repo can be resurrected from previous build ...')
+                            amendRepoForResurrectionIfEligible(repo)
+                            this.logger.debugClocked("${repo.id}-resurrect-data")
+                        }
+                    }
                 }
             }
         ]
@@ -568,12 +302,6 @@ class MROPipelineUtil extends PipelineUtil {
         )
     }
 
-    Map prepareCheckoutReposNamedJob(List<Map> repos, Closure preExecute = null, Closure postExecute = null) {
-        repos.collectEntries { repo ->
-            this.prepareCheckoutRepoNamedJob(repo, preExecute, postExecute)
-        }
-    }
-
     Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
         return [
             repo.id,
@@ -587,44 +315,40 @@ class MROPipelineUtil extends PipelineUtil {
                     }
 
                     if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
-                        this.steps.stage('ODS Code Component') {
-                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                                executeODSComponent(repo, baseDir)
-                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
-                                deployODSComponent(repo, baseDir)
-                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                                finalizeODSComponent(repo, baseDir)
-                            } else {
-                                this.logger.debug("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                            }
+                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                            executeODSComponent(repo, baseDir)
+                        } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                            new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                            new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                        } else {
+                            this.logger.debug("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
-                        this.steps.stage('ODS Service Component') {
-                            if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                                executeODSComponent(repo, baseDir)
-                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
-                                deployODSComponent(repo, baseDir)
-                            } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                                finalizeODSComponent(repo, baseDir)
-                            } else {
-                                this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                            }
+                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
+                            executeODSComponent(repo, baseDir)
+                        } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                            new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                        } else if (this.project.isAssembleMode && PipelinePhases.FINALIZE) {
+                            new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
+                        } else {
+                            this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
-                        this.steps.stage('ODS Test Component') {
-                            if (name == PipelinePhases.TEST) {
-                                executeODSComponent(repo, baseDir)
-                            } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                        if (name == PipelinePhases.TEST) {
+                            executeODSComponent(repo, baseDir)
+                        } else if (this.project.isPromotionMode && name == PipelinePhases.FINALIZE) {
+                            if (!this.project.buildParams.rePromote) {
                                 this.steps.dir(baseDir) {
-                                    tagAndPush(this.project.targetTag)
+                                    git.tagAndPush(this.project.targetTag)
                                 }
-                            } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
-                                this.steps.dir(baseDir) {
-                                    tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
-                                }
-                            } else {
-                                this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                             }
+                        } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
+                            this.steps.dir(baseDir) {
+                                git.tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                            }
+                        } else {
+                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
                     } else {
                         def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
@@ -646,21 +370,17 @@ class MROPipelineUtil extends PipelineUtil {
                             // Ignore undefined phases
                         }
 
-                        if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                        if (this.project.isPromotionMode && !this.project.buildParams.rePromote && name == PipelinePhases.FINALIZE) {
                             this.steps.dir(baseDir) {
-                                tagAndPush(this.project.targetTag)
+                                git.tagAndPush(this.project.targetTag)
                             }
                         } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
                             this.steps.dir(baseDir) {
-                                tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
+                                git.tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
                             }
                         }
                     }
-                    // add the tag commit that was created for traceability ..
-                    GitService gitUtl = ServiceRegistry.instance.get(GitService)
-                    this.steps.dir(baseDir) {
-                        repo.data.git.createdExecutionCommit = gitUtl.commitSha
-                    }
+
                     if (postExecute) {
                         postExecute(this.steps, repo)
                     }
@@ -702,22 +422,116 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private boolean areFilesOtherThanDeploymentDescriptorModified () {
+    private boolean isRepoModified(Map repo) {
+        if (!repo.data.envStateCommit) {
+            logger.debug("Last recorded commit of '${repo.id}' cannot be retrieved.")
+            return true // Treat no recorded commit as being modified
+        }
+        def currentCommit = git.commitSha
+        logger.debug(
+            "Last recorded commit of '${repo.id}' in '${project.targetProject}': " +
+            "${repo.data.envStateCommit}, current commit: ${currentCommit}"
+        )
+        currentCommit != repo.data.envStateCommit
+    }
+
+    private void amendRepoForResurrectionIfEligible(Map repo) {
+        def os = ServiceRegistry.instance.get(OpenShiftService)
+
+        if (repo.type?.toLowerCase() != PipelineConfig.REPO_TYPE_ODS_CODE) {
+            logger.info(
+                "Resurrection of previous build for '${repo.id}' not possible as " +
+                "type '${repo.type}' is not eligible."
+            )
+            return
+        }
+
+        if (repo.forceRebuild) {
+            logger.info(
+                "Resurrection of previous build for '${repo.id}' not possible as " +
+                "repo '${repo.id}' is forced to rebuild."
+            )
+            return
+        }
+
         def openshiftDir = 'openshift-exported'
         if (steps.fileExists('openshift')) {
             openshiftDir = 'openshift'
         }
-        GitService git = ServiceRegistry.instance.get(GitService)
-        steps.dir(openshiftDir) {
-            return git.otherFilesChangedAfterCommitOfFile(
-                ODS_DEPLOYMENTS_DESCRIPTOR, openshiftDir)
+        if (!steps.fileExists("${openshiftDir}/${DeploymentDescriptor.FILE_NAME}")) {
+            logger.info(
+                "Resurrection of previous build for '${repo.id}' not possible as file " +
+                "${openshiftDir}/${DeploymentDescriptor.FILE_NAME} does not exist."
+            )
+            return
         }
-    }
 
-    private boolean amendRepoForResurrection (def repo) {
-        def os = ServiceRegistry.instance.get(OpenShiftService)
-        return (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE &&
-            !areFilesOtherThanDeploymentDescriptorModified() &&
-            os.checkAndAmendRepoBasedOnDeploymentState(repo))
+        if (isRepoModified(repo)) {
+            logger.info(
+                "Resurrection of previous build for '${repo.id}' not possible as " +
+                "files have been modified."
+            )
+            return
+        }
+
+        DeploymentDescriptor deploymentDescriptor
+        steps.dir(openshiftDir) {
+            deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
+        }
+
+        if (!deploymentDescriptor.buildValidForVersion(project.buildParams.version)) {
+            logger.info(
+                "Resurrection of previous build for '${repo.id}' not possible as file " +
+                "${openshiftDir}/${DeploymentDescriptor.FILE_NAME} contains invalid build information " +
+                "for version ${project.buildParams.version}."
+            )
+            return
+        }
+
+        // TODO: If templates are exported, then we could check if a fresh export
+        // has the same hash as the one in the repository. This would prevent
+        // resurrecting a component which has changed in the OpenShift UI.
+        // However, doing that is tricky as it would need to be executed from
+        // an agent node with Tailor pre-installed. We should do this
+        // once the whole orchestration pipeline runs on an agent node.
+        // For now, we're not doing the check and simply re-export in the
+        // finalize stage.
+
+        def numDeployments = deploymentDescriptor.deployments.size()
+        logger.info(
+            "Checking if image SHAs for '${repo.id}' of ${numDeployments} deployment(s) are up-to-date ..."
+        )
+        Map deployments
+        try {
+            deployments = os.getPodDataForDeployments(deploymentDescriptor.deploymentNames)
+        } catch(ex) {
+            logger.info(
+                "Resurrection of previous build for '${repo.id}' not possible as " +
+                "not all deployments could be retrieved: ${ex.message}"
+            )
+            return
+        }
+
+        for (def deploymentName in deploymentDescriptor.deployments.keySet()) {
+            if (!deployments[deploymentName]) {
+                logger.info(
+                    "Resurrection of previous build for '${repo.id}' not possible as " +
+                    "deployment '${deploymentName}' was not found in OpenShift."
+                )
+                return
+            }
+            if (!os.areImageShasUpToDate(deploymentDescriptor.deployments[deploymentName], deployments[deploymentName])) {
+                logger.info(
+                    "Resurrection of previous build for '${repo.id}' not possible as " +
+                    "current image SHAs of '${deploymentName}' do not match latest committed state."
+                )
+                return
+            }
+        }
+
+        logger.info("Resurrection of previous build for '${repo.id}' possible.")
+        repo.data.openshift.resurrectedBuild = deploymentDescriptor.createdByBuild
+        repo.data.openshift.deployments = deployments
+        logger.debug("Data from previous Jenkins build:\r${repo.data.openshift}")
     }
 }

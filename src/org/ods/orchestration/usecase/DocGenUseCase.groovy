@@ -149,12 +149,12 @@ abstract class DocGenUseCase {
 
     @SuppressWarnings(['AbcMetric'])
     Map resurrectAndStashDocument(String documentType, Map repo, boolean stash = true) {
-        if (!repo.data?.odsBuildArtifacts || !repo.data.odsBuildArtifacts?.deployments) {
+        if (!repo.data.openshift.deployments) {
             return [found: false]
         }
         String resurrectedBuild
-        if (!!repo.data.odsBuildArtifacts.resurrected) {
-            resurrectedBuild = repo.data.odsBuildArtifacts.resurrected
+        if (!!repo.data.openshift.resurrectedBuild) {
+            resurrectedBuild = repo.data.openshift.resurrectedBuild
             this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild}" +
                 " for repo: ${repo.id}"
         } else {

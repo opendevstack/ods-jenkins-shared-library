@@ -433,7 +433,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         def build = "0815"
         def repo = project.repositories.first()
   
-        repo.data.odsBuildArtifacts = [ : ]
+        repo.data.openshift = [:]
         when:
         def result = usecase.resurrectAndStashDocument(documentType, repo)
   

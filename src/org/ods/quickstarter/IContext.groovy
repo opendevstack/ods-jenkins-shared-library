@@ -66,4 +66,5 @@ interface IContext {
 
     // alias for odsGitRef
     String getGitBranch()
+
 }

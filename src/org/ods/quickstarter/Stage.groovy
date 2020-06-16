@@ -30,4 +30,5 @@ abstract class Stage {
     protected String stageLabel() {
         STAGE_NAME
     }
+
 }

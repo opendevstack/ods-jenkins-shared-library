@@ -39,7 +39,7 @@ class BuildStage extends Stage {
             if (project.isAssembleMode
                 && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
                 def data = [ : ]
-                def resultsResurrected = !!repo.data?.odsBuildArtifacts?.resurrected
+                def resultsResurrected = !!repo.data.openshift.resurrectedBuild
                 if (!resultsResurrected) {
                     data << [tests: [unit: getTestResults(steps, repo) ]]
                     jira.reportTestResultsForComponent(
@@ -49,7 +49,7 @@ class BuildStage extends Stage {
                     )
                 } else {
                     logger.info("[${repo.id}] Resurrected tests from run " +
-                        "${repo.data?.odsBuildArtifacts?.resurrected} " +
+                        "${repo.data.openshift.resurrectedBuild} " +
                         "- no unit tests results will be reported")
                 }
 
