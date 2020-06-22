@@ -233,7 +233,7 @@ class MROPipelineUtil extends PipelineUtil {
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->
-                if (!deploymentName == JenkinsService.CREATED_BY_BUILD_STR) {
+                if (deploymentName != JenkinsService.CREATED_BY_BUILD_STR) {
                     def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
                     originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
                 }
