@@ -301,18 +301,13 @@ class MROPipelineUtil extends PipelineUtil {
                 }
 
                 // Verify that deployment is being rolled out and that the defined image sha is running
-                def latestVersion = os.getLatestVersion(deploymentName)
-                if (latestVersion > originalDeploymentVersions[deploymentName]) {
-                    logger.info "Rollout of '${deploymentName}' has been triggered automatically."
-                } else {
-                    os.startRollout(deploymentName, latestVersion)
-                }
-                steps.timeout(time: openshiftRolloutTimeoutMinutes) {
-                    os.watchRollout(deploymentName)
-                }
-                latestVersion = os.getLatestVersion(deploymentName)
+                def replicationController = os.rollout(
+                    deploymentName,
+                    originalDeploymentVersions[deploymentName],
+                    openshiftRolloutTimeoutMinutes
+                )
 
-                def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
+                def pod = os.getPodDataForDeployment(replicationController)
                 deployment.containers?.each { containerName, imageRaw ->
                     def runningImageSha = os.imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
                     def definedImageSha = os.imageInfoWithShaForImageStreamUrl(imageRaw).sha
