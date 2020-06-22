@@ -138,11 +138,23 @@ class OpenShiftService {
         doTailorExport(project, "-l ${selector}", envParams, targetFile)
     }
 
-    void startRollout(String name) {
-        steps.sh(
-            script: "oc -n ${project} rollout latest dc/${name}",
-            label: "Rollout latest version of dc/${name}"
-        )
+    void startRollout(String name, int version) {
+        try {
+            steps.sh(
+                script: "oc -n ${project} rollout latest dc/${name}",
+                label: "Rollout latest version of dc/${name}"
+            )
+        } catch (ex) {
+            // It could be that some other process (e.g. image trigger) started
+            // a rollout just before we wanted to start it. In that case, we
+            // do not need to fail.
+            def newVersion = getLatestVersion(name)
+            if (newVersion > version) {
+                logger.debug("Deployment #${newVersion} has been started by another process")
+            } else {
+                throw ex
+            }
+        }
     }
 
     void watchRollout(String name) {

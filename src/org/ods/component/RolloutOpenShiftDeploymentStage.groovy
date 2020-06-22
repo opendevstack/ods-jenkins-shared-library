@@ -100,18 +100,19 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
         setImageTagLatest(ownedImageStreams)
 
-        if (getLatestVersion() > originalDeploymentVersion) {
+        def latestVersion = getLatestVersion()
+        if (latestVersion > originalDeploymentVersion) {
             logger.info "Rollout of deployment for '${config.resourceName}' has been triggered automatically."
         } else {
-            startRollout()
+            startRollout(latestVersion)
         }
         script.timeout(time: config.deployTimeoutMinutes) {
             logger.startClocked("${config.resourceName}-deploy")
             watchRollout()
             logger.debugClocked("${config.resourceName}-deploy")
         }
+        latestVersion = getLatestVersion()
 
-        def latestVersion = getLatestVersion()
         def replicationController = "${config.resourceName}-${latestVersion}"
         def rolloutStatus = getRolloutStatus(replicationController)
         if (rolloutStatus != 'complete') {
@@ -145,8 +146,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         imageStreams.each { openShift.setImageTag(it.name, context.tagversion, 'latest') }
     }
 
-    private void startRollout() {
-        openShift.startRollout(config.resourceName)
+    private void startRollout(int version) {
+        openShift.startRollout(config.resourceName, version)
     }
 
     private void watchRollout() {
