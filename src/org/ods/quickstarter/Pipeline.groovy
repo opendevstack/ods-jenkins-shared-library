@@ -64,7 +64,7 @@ class Pipeline implements Serializable {
             config.buildNumber = script.env.BUILD_NUMBER
             config.buildUrl = script.env.BUILD_URL
             config.buildTime = new Date()
-            config.dockerRegistry = script.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc'
+            config.dockerRegistry = script.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc:5000'
             config << BitbucketService.readConfigFromEnv(script.env)
             config << NexusService.readConfigFromEnv(script.env)
         }

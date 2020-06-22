@@ -82,17 +82,18 @@ class Pipeline implements Serializable {
                         script.checkout script.scm
                     }
                     script.stage('odsPipeline start') {
+                        def defaultDockerRegistry = 'docker-registry.default.svc:5000'
                         // we leave the check here for the registry
                         // to bring this close to the real bootstrap of the agent.
                         if (!config.containsKey('podContainers') && !config.image) {
-                            def dockerRegistry = script.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc'
+                            def dockerRegistry = script.env.DOCKER_REGISTRY ?: defaultDockerRegistry
                             config.image = "${dockerRegistry}/${config.imageStreamTag}"
                         }
                         // in VERY rare (> 7 parallel slaves, sometimes the env.X returns null)
                         def wtfEnvBug = 'null/'
                         if (config.image?.startsWith(wtfEnvBug)) {
                             config.image = config.image.
-                                replace(wtfEnvBug, "docker-registry.default.svc/")
+                                replace(wtfEnvBug, "${defaultDockerRegistry}/")
                             logger.warn ("Patched image via master env to: ${config.image}")
                         }
                         context.assemble()

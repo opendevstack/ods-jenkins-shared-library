@@ -110,7 +110,7 @@ def call(Map config) {
 @SuppressWarnings('GStringExpressionWithinString')
 private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc'
+    def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc:5000'
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
