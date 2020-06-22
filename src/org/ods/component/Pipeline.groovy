@@ -82,23 +82,19 @@ class Pipeline implements Serializable {
                         script.checkout script.scm
                     }
                     script.stage('odsPipeline start') {
+                        def defaultDockerRegistry = 'docker-registry.default.svc:5000'
+                        // we leave the check here for the registry
+                        // to bring this close to the real bootstrap of the agent.
                         if (!config.containsKey('podContainers') && !config.image) {
-                            config.image = "${script.env.DOCKER_REGISTRY}/${config.imageStreamTag}"
+                            def dockerRegistry = script.env.DOCKER_REGISTRY ?: defaultDockerRegistry
+                            config.image = "${dockerRegistry}/${config.imageStreamTag}"
                         }
                         // in VERY rare (> 7 parallel slaves, sometimes the env.X returns null)
                         def wtfEnvBug = 'null/'
                         if (config.image?.startsWith(wtfEnvBug)) {
-                            script.node('master') {
-                                config.image = config.image.
-                                    replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}/")
-                                logger.warn ("Patched image via master env to: ${config.image}")
-                            }
-                            // still?!
-                            if (config.image.startsWith(wtfEnvBug)) {
-                                config.image = config.image.
-                                    replace(wtfEnvBug, 'docker-registry.default.svc:5000/')
-                                logger.warn ("Patched image via hardcode to: ${config.image}")
-                            }
+                            config.image = config.image.
+                                replace(wtfEnvBug, "${defaultDockerRegistry}/")
+                            logger.warn ("Patched image via master env to: ${config.image}")
                         }
                         context.assemble()
                         // register services after context was assembled
