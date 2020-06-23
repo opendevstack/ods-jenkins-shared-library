@@ -233,7 +233,7 @@ class MROPipelineUtil extends PipelineUtil {
 
             def originalDeploymentVersions = [:]
             deployments.each { deploymentName, deployment ->
-                if (!deploymentName == JenkinsService.CREATED_BY_BUILD_STR) {
+                if (deploymentName != JenkinsService.CREATED_BY_BUILD_STR) {
                     def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
                     originalDeploymentVersions[deploymentName] = dcExists ? os.getLatestVersion(deploymentName) : 0
                 }
@@ -301,18 +301,13 @@ class MROPipelineUtil extends PipelineUtil {
                 }
 
                 // Verify that deployment is being rolled out and that the defined image sha is running
-                if (os.getLatestVersion(deploymentName) > originalDeploymentVersions[deploymentName]) {
-                    logger.info "Rollout of '${deploymentName}' has been triggered automatically."
-                } else {
-                    os.startRollout(deploymentName)
-                }
-                steps.timeout(time: openshiftRolloutTimeoutMinutes) {
-                    os.watchRollout(deploymentName)
-                }
+                def replicationController = os.rollout(
+                    deploymentName,
+                    originalDeploymentVersions[deploymentName],
+                    openshiftRolloutTimeoutMinutes
+                )
 
-                def latestVersion = os.getLatestVersion(deploymentName)
-
-                def pod = os.getPodDataForDeployment("${deploymentName}-${latestVersion}")
+                def pod = os.getPodDataForDeployment(replicationController)
                 deployment.containers?.each { containerName, imageRaw ->
                     def runningImageSha = os.imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
                     def definedImageSha = os.imageInfoWithShaForImageStreamUrl(imageRaw).sha

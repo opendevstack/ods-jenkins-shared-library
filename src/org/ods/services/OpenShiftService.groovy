@@ -138,11 +138,59 @@ class OpenShiftService {
         doTailorExport(project, "-l ${selector}", envParams, targetFile)
     }
 
-    void startRollout(String name) {
-        steps.sh(
-            script: "oc -n ${project} rollout latest dc/${name}",
-            label: "Rollout latest version of dc/${name}"
-        )
+    String rollout(String name, int priorVersion, int timeoutMinutes) {
+        def latestVersion = getLatestVersion(name)
+        if (latestVersion > priorVersion) {
+            logger.info "Rollout of deployment for '${name}' has been triggered automatically."
+        } else {
+            startRollout(name, latestVersion)
+        }
+        try {
+            steps.timeout(time: timeoutMinutes) {
+                logger.startClocked("${name}-watch-rollout")
+                watchRollout(name)
+                logger.debugClocked("${name}-watch-rollout")
+            }
+        } catch(org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+            latestVersion = getLatestVersion(name)
+            def replicationController = "${name}-${latestVersion}"
+            throw new RuntimeException(
+                "Deployment timed out. " +
+                "Observed related event messages:\n${getEventMessages(replicationController)}"
+            )
+        }
+
+        latestVersion = getLatestVersion(name)
+        def replicationController = "${name}-${latestVersion}"
+        def rolloutStatus = getRolloutStatus(replicationController)
+        if (rolloutStatus != 'complete') {
+            throw new RuntimeException(
+                "Deployment #${latestVersion} failed with status '${rolloutStatus}'. " +
+                "Observed related event messages:\n${getEventMessages(replicationController)}"
+            )
+        } else {
+            logger.info "Deployment #${latestVersion} of '${name}' successfully rolled out."
+        }
+        replicationController
+    }
+
+    void startRollout(String name, int version) {
+        try {
+            steps.sh(
+                script: "oc -n ${project} rollout latest dc/${name}",
+                label: "Rollout latest version of dc/${name}"
+            )
+        } catch (ex) {
+            // It could be that some other process (e.g. image trigger) started
+            // a rollout just before we wanted to start it. In that case, we
+            // do not need to fail.
+            def newVersion = getLatestVersion(name)
+            if (newVersion > version) {
+                logger.debug("Deployment #${newVersion} has been started by another process")
+            } else {
+                throw ex
+            }
+        }
     }
 
     void watchRollout(String name) {
@@ -306,6 +354,62 @@ class OpenShiftService {
             """,
             label: "Import image ${sourceImage} into ${project}/${name}:${imageTag}"
         )
+    }
+
+    String getEventMessages(String rc) {
+        String rcEventMessages
+        try {
+            rcEventMessages = steps.sh(
+                script: """
+                    oc -n ${project} get events \
+                        --field-selector involvedObject.kind=ReplicationController,involvedObject.name=${rc} \
+                        -o custom-columns=MESSAGE:.message --no-headers
+                """,
+                returnStdout: true,
+                label: "Get event messages for replication controller ${rc}"
+            ).trim()
+        } catch (ex) {
+            logger.debug("Error when retrieving events for replication controller ${rc}:\n${ex}")
+        }
+        if (!rcEventMessages) {
+            return "Could not find any events for replication controller ${rc}."
+        }
+        rcEventMessages = "=== Events from ReplicationController '${rc}' ===\n${rcEventMessages}"
+        String pod
+        try {
+            pod = steps.sh(
+                script: """
+                    oc -n ${project} get pod \
+                        -l deployment=${rc} \
+                        -o custom-columns=NAME:.metadata.name --no-headers | head -1
+                """,
+                returnStdout: true,
+                label: "Get first pod name of replication controller ${rc}"
+            ).trim()
+        } catch (ex) {
+            logger.debug("Error when retrieving pod for replication controller ${rc}:\n${ex}")
+        }
+        if (!pod) {
+            return "${rcEventMessages}\nCould not find any pod for replication controller ${rc}."
+        }
+        String podEventMessages
+        try {
+            podEventMessages = steps.sh(
+                script: """
+                    oc -n ${project} get events \
+                        --field-selector involvedObject.kind=Pod,involvedObject.name=${pod} \
+                        -o custom-columns=MESSAGE:.message --no-headers
+                """,
+                returnStdout: true,
+                label: "Get event messages for pod ${pod}"
+            ).trim()
+        } catch (ex) {
+            logger.debug("Error when retrieving events for pod ${pod}:\n${ex}")
+        }
+        if (!podEventMessages) {
+            return "${rcEventMessages}\nCould not find any events for pod for ${pod}."
+        }
+        "${rcEventMessages}\n=== Events from Pod '${pod}' ===\n${podEventMessages}"
     }
 
     // Gets pod of deployment

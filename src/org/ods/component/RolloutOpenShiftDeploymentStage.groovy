@@ -23,7 +23,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.resourceName = context.componentId
         }
         if (!config.deployTimeoutMinutes) {
-            config.deployTimeoutMinutes = context.openshiftRolloutTimeout
+            config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 5
         }
         if (!config.openshiftDir) {
             config.openshiftDir = 'openshift'
@@ -60,7 +60,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         def dcExists = deploymentConfigExists()
-        def originalDeploymentVersion = dcExists ? getLatestVersion() : 0
+        def originalDeploymentVersion = dcExists ? openShift.getLatestVersion(config.resourceName) : 0
 
         if (script.fileExists(config.openshiftDir)) {
             script.dir(config.openshiftDir) {
@@ -100,27 +100,18 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
         setImageTagLatest(ownedImageStreams)
 
-        if (getLatestVersion() > originalDeploymentVersion) {
-            logger.info "Rollout of deployment for '${config.resourceName}' has been triggered automatically."
-        } else {
-            startRollout()
-        }
-        script.timeout(time: config.deployTimeoutMinutes) {
-            logger.startClocked("${config.resourceName}-deploy")
-            watchRollout()
-            logger.debugClocked("${config.resourceName}-deploy")
+        String replicationController
+        try {
+            replicationController = openShift.rollout(
+                config.resourceName,
+                originalDeploymentVersion,
+                config.deployTimeoutMinutes
+            )
+        } catch (ex) {
+            script.error ex.message
         }
 
-        def latestVersion = getLatestVersion()
-        def replicationController = "${config.resourceName}-${latestVersion}"
-        def rolloutStatus = getRolloutStatus(replicationController)
-        if (rolloutStatus != 'complete') {
-            script.error "Deployment #${latestVersion} failed with status '${rolloutStatus}', " +
-                'please check the error in the OpenShift web console.'
-        } else {
-            logger.info "Deployment #${latestVersion} of '${config.resourceName}' successfully rolled out."
-        }
-        def pod = getPodDataForRollout(replicationController)
+        def pod = openShift.getPodDataForDeployment(replicationController)
         context.addDeploymentToArtifactURIs(config.resourceName, pod)
 
         return pod
@@ -143,26 +134,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     private void setImageTagLatest(List<Map<String, String>> imageStreams) {
         imageStreams.each { openShift.setImageTag(it.name, context.tagversion, 'latest') }
-    }
-
-    private void startRollout() {
-        openShift.startRollout(config.resourceName)
-    }
-
-    private void watchRollout() {
-        openShift.watchRollout(config.resourceName)
-    }
-
-    private int getLatestVersion() {
-        openShift.getLatestVersion(config.resourceName)
-    }
-
-    private String getRolloutStatus(String replicationController) {
-        openShift.getRolloutStatus(replicationController)
-    }
-
-    private Map getPodDataForRollout(String replicationController) {
-        openShift.getPodDataForDeployment(replicationController)
     }
 
 }
