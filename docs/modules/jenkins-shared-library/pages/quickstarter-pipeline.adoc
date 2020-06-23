@@ -16,7 +16,7 @@ def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
 library("ods-jenkins-shared-library@${odsGitRef}")
 
 odsQuickstarterPipeline(
-  imageStreamTag: "${odsNamespace}/jenkins-slave-golang:${odsImageTag}",
+  imageStreamTag: "${odsNamespace}/jenkins-agent-golang:${odsImageTag}",
 ) { context ->
 
   odsQuickstarterStageCopyFiles(context)

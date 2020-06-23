@@ -89,7 +89,7 @@ class Pipeline implements Serializable {
                             def dockerRegistry = script.env.DOCKER_REGISTRY ?: defaultDockerRegistry
                             config.image = "${dockerRegistry}/${config.imageStreamTag}"
                         }
-                        // in VERY rare (> 7 parallel slaves, sometimes the env.X returns null)
+                        // in VERY rare (> 7 parallel agents, sometimes the env.X returns null)
                         def wtfEnvBug = 'null/'
                         if (config.image?.startsWith(wtfEnvBug)) {
                             config.image = config.image.
@@ -440,7 +440,7 @@ class Pipeline implements Serializable {
             config.resourceRequestMemory = '1Gi'
         }
         if (!config.containsKey('resourceLimitMemory')) {
-            // 2Gi is required for e.g. jenkins-slave-maven, which selects the Java
+            // 2Gi is required for e.g. jenkins-agent-maven, which selects the Java
             // version based on available memory.
             // Also, e.g. Angular is known to use a lot of memory during production
             // builds.

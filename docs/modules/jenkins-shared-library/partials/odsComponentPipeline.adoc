@@ -5,7 +5,7 @@
 [source,groovy]
 ----
 odsComponentPipeline(
-  imageStreamTag: 'ods/jenkins-slave-golang:2.x',
+  imageStreamTag: 'ods/jenkins-agent-golang:3.x',
   dockerDir: 'foo'
 )
 ----
@@ -41,7 +41,7 @@ Available options are:
 | Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds.
 
 | podContainers
-| Custom pod containers to use if the default, automatically configured container is not suitable for your use case (e.g. if you need multiple containers such as app and database). See <<_slave_customization,Slave customization>>.
+| Custom pod containers to use if the default, automatically configured container is not suitable for your use case (e.g. if you need multiple containers such as app and database). See <<_agent_customization,Agent customization>>.
 
 | podVolumes
 | Volumes to make available to the pod.
@@ -231,9 +231,9 @@ branchToEnvironmentMapping: [
 
 == Advanced
 
-=== Slave customization
+=== Agent customization
 
-The slave used in the pipeline can be customized by adjusting the `image` (or `imageStreamTag` to
+The agent used in the pipeline can be customized by adjusting the `image` (or `imageStreamTag` to
 use. Further, `alwaysPullImage` (defaulting to `true`) can be used to
 determine whether this image should be refreshed on each build.
 
@@ -246,14 +246,14 @@ The setting `podVolumes` allows to mount persistent volume claims to the pod
 To completely control the container(s) within the pod, set `podContainers`
 (which is passed to the `podTemplate` call as `containers`).
 
-Configuring of a customized slave container in a `Jenkinsfile`:
+Configuring of a customized agent container in a `Jenkinsfile`:
 ----
 odsComponentPipeline(
   branchToEnvironmentMapping: [:],
   podContainers: [
     containerTemplate(
       name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
-      image: "${env.DOCKER_REGISTRY}/foo-cd/jenkins-slave-custom",
+      image: "${env.DOCKER_REGISTRY}/foo-cd/jenkins-agent-custom",
       workingDir: '/tmp',
       resourceRequestCpu: '100m',
       resourceLimitCpu: '500m',
