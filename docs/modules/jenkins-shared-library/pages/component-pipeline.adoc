@@ -8,10 +8,10 @@ Load the shared library in your `Jenkinsfile` like this:
 
 [source,groovy]
 ----
-@Library('ods-jenkins-shared-library@2.x') _
+@Library('ods-jenkins-shared-library@3.x') _
 
 odsComponentPipeline(
-  imageStreamTag: 'ods/jenkins-slave-golang:2.x',
+  imageStreamTag: 'ods/jenkins-agent-golang:3.x',
   projectId: 'foo',
   componentId: 'bar',
   branchToEnvironmentMapping: [

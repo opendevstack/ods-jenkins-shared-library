@@ -23,8 +23,8 @@ class InitStage extends Stage {
 
     public final String STAGE_NAME = 'Init'
 
-    InitStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
-        super(script, project, repos, startMROStageName)
+    InitStage(def script, Project project, List<Set<Map>> repos, String startAgentStageName) {
+        super(script, project, repos, startAgentStageName)
     }
 
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
@@ -294,27 +294,27 @@ class InitStage extends Stage {
 
             def os = registry.get(OpenShiftService)
             project.setOpenShiftData(os.apiUrl)
-            logger.debug("MRO slave start stage: ${this.startMROSlaveStageName}")
+            logger.debug("Agent start stage: ${this.startAgentStageName}")
         }
 
         executeInParallel(checkoutClosure, loadClosure)
 
-        // find best place for mro slave start
-        def stageToStartMRO
+        // find best place for agent start
+        def stageToStartAgent
         repos.each { repo ->
             if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
+                stageToStartAgent = MROPipelineUtil.PipelinePhases.TEST
             } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE &&
                 !repo.data?.odsBuildArtifacts?.resurrected) {
-                if (stageToStartMRO != MROPipelineUtil.PipelinePhases.TEST) {
-                    stageToStartMRO = MROPipelineUtil.PipelinePhases.BUILD
+                if (stageToStartAgent != MROPipelineUtil.PipelinePhases.TEST) {
+                    stageToStartAgent = MROPipelineUtil.PipelinePhases.BUILD
                 }
             }
         }
-        if (!stageToStartMRO) {
-            logger.info "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
-                "To change this to 'init', change 'startOrchestrationSlaveOnInit' in JenkinsFile to 'true'"
-            stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
+        if (!stageToStartAgent) {
+            logger.info "No applicable stage found - agent bootstrap will run during 'deploy'.\r" +
+                "To change this to 'init', change 'startOrchestrationAgentOnInit' in JenkinsFile to 'true'"
+            stageToStartAgent = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)
 
@@ -387,7 +387,7 @@ class InitStage extends Stage {
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
-        return [project: project, repos: repos, startMROSlave: stageToStartMRO]
+        return [project: project, repos: repos, startAgent: stageToStartAgent]
     }
 
     private checkoutGitRef(String gitRef, def extensions) {

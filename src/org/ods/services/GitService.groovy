@@ -123,7 +123,7 @@ class GitService {
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs,
         ]
-        if (isSlaveNodeGitLfsEnabled()) {
+        if (isAgentNodeGitLfsEnabled()) {
             gitParams.extensions = [
                 [$class: 'GitLFSPull']
             ]
@@ -275,7 +275,7 @@ class GitService {
         ).trim()
     }
 
-    private boolean isSlaveNodeGitLfsEnabled() {
+    private boolean isAgentNodeGitLfsEnabled() {
         def statusCode = script.sh(
             script: 'git lfs &> /dev/null',
             label: 'Check if Git LFS is enabled',
