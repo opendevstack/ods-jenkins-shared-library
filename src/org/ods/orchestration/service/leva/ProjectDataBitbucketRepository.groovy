@@ -2,7 +2,6 @@ package org.ods.orchestration.service.leva
 
 import groovy.json.JsonSlurperClassic
 import org.ods.util.IPipelineSteps
-import org.yaml.snakeyaml.Yaml
 
 import java.nio.file.Paths
 
@@ -17,7 +16,8 @@ class ProjectDataBitbucketRepository {
     }
 
     void save(Map jiraData, String version) {
-        this.steps.writeJSON(file: "${BASE_DIR}/${version}.json", json: jiraData)
+        def jsonOut = this.steps.readJSON( text: groovy.json.JsonOutput.toJson(jiraData))
+        this.steps.writeJSON(file: "${BASE_DIR}/${version}.json", json: jsonOut, pretty: 2)
         println("Saved data to ${BASE_DIR}/${version}.json")
     }
 
