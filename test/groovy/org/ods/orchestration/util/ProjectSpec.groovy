@@ -1451,6 +1451,133 @@ class ProjectSpec extends SpecHelper {
         metadataFile.delete()
     }
 
+    def "load saved data from the previousVersion"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+        def newVersionData = [
+            project     : [name: "my-project"],
+            version: secondVersion,
+            predecessors: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = createProject([
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        1 * project.loadSavedJiraData(firstVersion)
+
+    }
+
+    def "load only new data for initial release"() {
+        given:
+        def firstVersion = '1'
+        def newVersionData = [
+            project     : [name: "my-project"],
+            version: firstVersion,
+            predecessors: [],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = createProject([
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        0 * project.loadSavedJiraData(_)
+    }
+
+    def "do initial load if no previousVersion information is listed"() {
+        given:
+        def firstVersion = '1'
+        def noPreviousReleases1 = [
+            project     : [name: "my-project"],
+            version: firstVersion,
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = createProject([
+            "loadJiraData": { return noPreviousReleases1 }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadJiraData(_)
+
+        then:
+        0 * project.loadSavedJiraData(_)
+
+    }
+    def "do initial load if no previousVersions information is empty"() {
+        given:
+        def firstVersion = '1'
+
+        def noPreviousReleases1 = [
+            project     : [name: "my-project"],
+            version: firstVersion,
+            predecessors: [],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = createProject([
+            "loadJiraData": { return noPreviousReleases1 }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadJiraData(_)
+
+        then:
+        0 * project.loadSavedJiraData(_)
+
+    }
+
     def "merge new test added"() {
         given:
         def firstVersion = '1'
@@ -1488,6 +1615,8 @@ class ProjectSpec extends SpecHelper {
         ]
         def newVersionData = [
             project     : [name: "my-project"],
+            version: secondVersion,
+            predecessors: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1587,6 +1716,8 @@ class ProjectSpec extends SpecHelper {
         ]
         def newVersionData = [
             project     : [name: "my-project"],
+            version: secondVersion,
+            predecessors: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1679,6 +1810,8 @@ class ProjectSpec extends SpecHelper {
         ]
         def newVersionData = [
             project     : [name: "my-project"],
+            version: secondVersion,
+            predecessors: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1771,6 +1904,8 @@ class ProjectSpec extends SpecHelper {
         ]
         def newVersionData = [
             project     : [name: "my-project"],
+            version: secondVersion,
+            predecessors: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1858,7 +1993,7 @@ class ProjectSpec extends SpecHelper {
         def mit1 = mit('1', firstVersion)
         def ts1 = ts('1', firstVersion)
 
-        cmp1 << []
+        //cmp1 << []
 
     }
 

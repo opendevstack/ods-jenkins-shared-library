@@ -298,11 +298,19 @@ class Project {
         this.jiraUseCase = jiraUseCase
 
         this.data.jira = [:]
-        // TODO change me
 
-        def savedDataFromOldVersion = this.loadSavedJiraData("previous version here") //TODO changeme
         def newData = this.loadJiraData(this.jiraProjectKey)
-        this.data.jira = this.mergeJiraData(savedDataFromOldVersion, newData)
+        // NOTE we support for now only one direct preceeding release
+        def previousVersion = null
+        if (newData.predecessors && !newData.predecessors?.isEmpty()) {
+            previousVersion = newData.predecessors.first()
+        }
+        if (previousVersion) {
+            def savedDataFromOldVersion = this.loadSavedJiraData(previousVersion)
+            this.data.jira = this.mergeJiraData(savedDataFromOldVersion, newData)
+        } else {
+            this.data.jira = newData
+        }
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
@@ -1062,7 +1070,7 @@ class Project {
         def result = [:]
 
         data.each { type, values ->
-            if (type == 'project') {
+            if (['project', 'version', 'predecessors' ].contains (type)) {
                 return
             }
 
