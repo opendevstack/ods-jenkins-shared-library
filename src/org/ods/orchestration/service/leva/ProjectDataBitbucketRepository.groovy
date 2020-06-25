@@ -21,12 +21,12 @@ class ProjectDataBitbucketRepository {
         println("Saved data to ${BASE_DIR}/${version}.json")
     }
 
-    Map loadVersionSnapshot(String productVersion) {
+    Map loadVersionSnapshot(String savedVersion) {
         def savedData
         def file = Paths.get(this.steps.env.WORKSPACE, BASE_DIR,
-            "${version}.json").toFile()
+            "${savedVersion}.json").toFile()
         if (!file.exists()) {
-            savedData = this.steps.readFile(file: "${BASE_DIR}/${version}.json")
+            savedData = this.steps.readFile(file: "${BASE_DIR}/${savedVersion}.json")
         } else {
             savedData = file.text
         }

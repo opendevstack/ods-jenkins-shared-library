@@ -301,6 +301,7 @@ class Project {
 
         def newData = this.loadJiraData(this.jiraProjectKey)
         // NOTE we support for now only one direct preceeding release
+        // TODO clean-up this
         def previousVersion = null
         if (newData.predecessors && !newData.predecessors?.isEmpty()) {
             previousVersion = newData.predecessors.first()
@@ -312,6 +313,12 @@ class Project {
             this.data.jira = newData
         }
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
+
+
+        // TODO change me
+        this.saveVersionData()
+
+
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
 
@@ -1150,13 +1157,12 @@ class Project {
         this.config.put(key, value)
     }
 
-    // TODO implement me
     Map loadSavedJiraData(String savedVersion) {
-        //new ProjectDataBitbucketRepository(steps).save(this.data.jira as Map)
-        return [:]
+        new ProjectDataBitbucketRepository(steps).loadVersionSnapshot(savedVersion)
     }
 
     void saveVersionData() {
+        def savedEntities = ['requirements', 'risks', 'tests', 'techSpecs', 'version'. 'predecessors']
         new ProjectDataBitbucketRepository(steps).save(this.data.jira as Map)
     }
 
