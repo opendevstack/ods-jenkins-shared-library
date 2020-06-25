@@ -3,6 +3,7 @@ package org.ods.orchestration.util
 import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
+import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 
 import java.nio.file.Paths
 
@@ -297,10 +298,15 @@ class Project {
         this.jiraUseCase = jiraUseCase
 
         this.data.jira = [:]
-        this.data.jira = this.loadJiraData(this.jiraProjectKey)
+        // TODO change me
+
+        def savedDataFromOldVersion = this.loadSavedJiraData("previous version here") //TODO changeme
+        def newData = this.loadJiraData(this.jiraProjectKey)
+        this.data.jira = this.mergeJiraData(savedDataFromOldVersion, newData)
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
+
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
         this.data.jira.docs = this.loadJiraDataDocs()
@@ -1070,6 +1076,7 @@ class Project {
                         result[type][key][referenceType] = []
 
                         item[referenceType].eachWithIndex { referenceKey, index ->
+                            // TODO if it does not find the referenced key, mark it as deleted?
                             result[type][key][referenceType][index] = data[referenceType][referenceKey]
                         }
                     }
@@ -1133,6 +1140,106 @@ class Project {
 
     void addConfigSetting (def key, def value) {
         this.config.put(key, value)
+    }
+
+    // TODO implement me
+    Map loadSavedJiraData(String savedVersion) {
+        //new ProjectDataBitbucketRepository(steps).save(this.data.jira as Map)
+        return [:]
+    }
+
+    void saveVersionData() {
+        new ProjectDataBitbucketRepository(steps).save(this.data.jira as Map)
+    }
+
+    Map mergeJiraData(Map oldData, Map newData) {
+        def mergeMaps = { Map left, Map right ->
+            def keys = (left.keySet() + right.keySet()).toSet()
+
+            keys.collectEntries{ key ->
+                if (!left[key] || left[key].isEmpty) {
+                    [(key): right[key]]
+                }else if (!right[key] || right[key].isEmpty) {
+                    [(key): left[key]]
+                } else {
+                    [(key): left[key]+right[key]]
+                }
+            }
+        }
+        // TODO put exception when we can't find the data
+        def addLinkedIssue = { Map jiraData, Map newIssue, String newIssueType, String type ->
+            if (newIssue.containsKey(jiraData)) {
+                newIssue[type].each{ String keyToUpdate ->
+                    println(jiraData[type]) // TODO deleteme
+                    jiraData[type][keyToUpdate][newIssueType] << [newIssue.key]
+                }
+            }
+        }
+
+        def issueTypesToUpdate = ["requirements", "techSpecs","tests","mitigations","risks"]
+
+        def buildChangesInLinks = {Map updates ->
+            updates.findAll{issueTypesToUpdate.contains(it.key)}.collect{ issueType, issues ->
+                issues.collect{issueKey, issue ->
+                    def issueLinks = issue.findAll{lt -> issueTypesToUpdate.contains(lt.key)}
+                    issueLinks.collect{ String linkType, List linkedIssues ->
+                        linkedIssues.collect{ targetKey ->
+                            // TODO add here logic for removal and changes
+                            [origin: issue.key, target: targetKey, linkType: issueType]
+                        }
+                    }
+                }
+            }.
+            flatten().groupBy {it.target}
+        }
+
+        // TODO We could use a reverse index algorithm. Might be faster and easier (and safer)
+        // We have 3 types of "updates"
+        def updateLinks = {Map<String,Map> left, Map<String,Map> right ->
+            def reverseLinkIndex = buildChangesInLinks(right)
+            println("reverse index " + reverseLinkIndex)
+            println(" old data to be updated with new links " + left)
+            left.findAll{issueTypesToUpdate.contains(it.key)}.each {issueType, issues ->
+                println("iterating through historic issue " + issues)
+                issues.values().each{ issueToUpdate ->
+                    println("issue to update " + issueToUpdate)
+                    def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key,[])
+                    linksToUpdate.each { Map link ->
+                        println("updating link " + link)
+                        if (issueToUpdate[link.linkType]) {
+                            println(issueToUpdate[link.linkType])
+                            left[issueType][issueToUpdate.key]."${link.linkType}" << link.origin
+                        } else {
+                            left[issueType][issueToUpdate.key]."${link.linkType}" = [link.origin]
+                        }
+                    }
+
+                }
+            }
+
+            /*right.findAll{["requirements", "techSpecs","tests","mitigations","risks"].contains(it)}.
+                each { String issueType, Map<String, Map> issueMaps ->
+                    issueMaps.each { key, Map content ->
+                        addLinkedIssue(left, content, issueType, "requirements")
+                        addLinkedIssue(left, content, issueType, "techSpecs")
+                        addLinkedIssue(left, content, issueType, "tests")
+                        addLinkedIssue(left, content, issueType, "mitigations")
+                        addLinkedIssue(left, content, issueType, "risks")
+
+                    }
+            }
+            */left
+            return left
+        }
+
+        println("old data " + oldData)
+        if (!oldData || oldData.isEmpty()) {
+            return newData
+        } else {
+            def oldDataWithUpdatedLinks = updateLinks(oldData, newData)
+            println(" oldDataWithUpdatedLinks " + oldDataWithUpdatedLinks)
+            mergeMaps(oldDataWithUpdatedLinks, newData)
+        }
     }
 
 }

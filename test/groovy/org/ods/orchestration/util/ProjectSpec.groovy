@@ -804,7 +804,7 @@ class ProjectSpec extends SpecHelper {
         project.getWipJiraIssues() == expected
     }
 
-    def "load"() {
+    def "load initial version"() {
         given:
         def component1 = [key: "CMP-1", name: "Component 1"]
         def epic1 = [key: "EPC-1", name: "Epic 1", status: "OPEN"]
@@ -1449,5 +1449,435 @@ class ProjectSpec extends SpecHelper {
 
         cleanup:
         metadataFile.delete()
+    }
+
+    def "merge new test added"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def tst2 = tst('2', secondVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        tst2 << [requirements: [req1.key], risks: [rsk1.key]]
+        def req1Updated = req1.clone() + [tests: [tst1.key, tst2.key]]
+        def rsk1Updated = rsk1.clone() + [tests: [tst1.key, tst2.key]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project"],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [(tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+            ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated ],
+            risks       : [(rsk1Updated.key): rsk1Updated],
+            tests       : [(tst1.key): tst1,
+                (tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = createProject([
+            //"loadSavedJiraData": { return storedData },
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+        1 * project.convertJiraDataToJiraDataItems(_)
+        1 * project.resolveJiraDataItemReferences(_)
+
+        then:
+        issueListIsEquals(project.components , mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        reqResult.tests == req1Updated.tests
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk1Updated])
+        issueListIsEquals(reqResult.getResolvedTests(), [tst1, tst2])
+
+        def rskResult = project.getRisks().first()
+        rskResult.requirements == rsk1Updated.requirements
+        rskResult.tests == rsk1Updated.tests
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [rsk1Updated])
+        issueListIsEquals(rskResult.getResolvedTests(), [tst1, tst2])
+    }
+
+    def "merge new risk and test added"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def rsk2 = rsk('addedRisk', secondVersion)
+        def tst2 = tst('addedTest', secondVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        rsk2 << [requirements: [req1.key], tests: [tst2.key]]
+        tst2 << [requirements: [req1.key], risks: [rsk2.key]]
+        def req1Updated = req1.clone() + [risks: [rsk1.key, rsk2.key], tests: [tst1.key, tst2.key]]
+
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project"],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [(rsk2.key): rsk2],
+            tests       : [(tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated ],
+            risks       : [(rsk1.key): rsk1,
+                           (rsk2.key): rsk2],
+            tests       : [(tst1.key): tst1,
+                           (tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = createProject([
+            //"loadSavedJiraData": { return storedData },
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+        1 * project.convertJiraDataToJiraDataItems(_)
+        1 * project.resolveJiraDataItemReferences(_)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        reqResult.tests == req1Updated.tests
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk1, rsk2])
+        issueListIsEquals(reqResult.getResolvedTests(), [tst1, tst2])
+    }
+
+    def "merge modification of a risk"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('toModify', firstVersion)
+        def tst1 = tst('1', secondVersion)
+        def rsk2 = rsk('modification', secondVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        rsk2 << [requirements: [req1.key], tests: [tst1.key], predecessors: [rsk1.key]]
+        def req1Updated = req1.clone() + [risks: [rsk2.key]]
+        def tst1Updated = tst1.clone() + [risks: [rsk2.key]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project"],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [(rsk2.key): rsk2],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated ],
+            risks       : [(rsk2.key): rsk2],
+            tests       : [(tst1Updated.key): tst1Updated],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = createProject([
+            //"loadSavedJiraData": { return storedData },
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+        1 * project.convertJiraDataToJiraDataItems(_)
+        1 * project.resolveJiraDataItemReferences(_)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk2])
+
+        def tstResult = project.tests.first()
+        tstResult.risks == tst1Updated.risks
+        issueListIsEquals(tstResult.getResolvedRisks(), [rsk2])
+    }
+
+    def "merge deletion of a test"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def tst2 = tst('toDelete', firstVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key, tst2.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key, tst2.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+        tst2 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        def req1Updated = req1.clone() + [tests: [tst1.key]]
+        def rsk1Updated = rsk1.clone() + [tests: [tst1.key]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1, (tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project"],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: [tst2.key]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated ],
+            risks       : [(rsk1Updated.key): rsk1Updated],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: [tst2.key]
+        ]
+        project = createProject([
+            //"loadSavedJiraData": { return storedData },
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+        1 * project.convertJiraDataToJiraDataItems(_)
+        1 * project.resolveJiraDataItemReferences(_)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        reqResult.tests == req1Updated.tests
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk1Updated])
+        issueListIsEquals(reqResult.getResolvedTests(), [tst1])
+
+        def rskResult = project.getRisks().first()
+        rskResult.requirements == rsk1Updated.requirements
+        rskResult.tests == rsk1Updated.tests
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [rsk1Updated])
+        issueListIsEquals(rskResult.getResolvedTests(), [tst1])
+    }
+
+    def "load jira data with pre-existing version information stored"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+
+
+
+        def cmp1 = cmp("1")
+        def req1 = req(1, firstVersion)
+        def req2 = req('toDelete', firstVersion)
+        def req3 = req('toChange', firstVersion)
+        def req4 = req('changed', secondVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def tst2 = tst('2', firstVersion)
+        def tst3 = tst('3', secondVersion)
+        def mit1 = mit('1', firstVersion)
+        def ts1 = ts('1', firstVersion)
+
+        cmp1 << []
+
+    }
+
+    Boolean issueIsEquals(Map issueA, Map issueB) {
+        issueA.forEach{mapKey, value ->
+            if (!issueB[mapKey]) return false
+            if (issueB[mapKey] != value ) return false
+        }
+        true
+    }
+
+    Boolean issueListIsEquals(List issuesA, List issuesB) {
+        if (issuesA.size() != issuesB.size()) return false
+        def issuesBKeys = issuesB.collect{it.key}
+        issuesA.forEach{ issueA ->
+            if (! issuesBKeys.contains(issueA.key)) return false
+            def correspondentIssueB = issuesB.find{it.key = issueA.key}
+            if (! issueIsEquals(issueA, correspondentIssueB)) return false
+        }
+        true
     }
 }
