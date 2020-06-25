@@ -3,6 +3,7 @@ package org.ods.orchestration.util
 import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurperClassic
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 
 import java.nio.file.Paths
@@ -300,6 +301,10 @@ class Project {
         this.data.jira = [:]
 
         def newData = this.loadJiraData(this.jiraProjectKey)
+        // TODO removeme when jrra plugin is updated
+        newData.version = '1.1'
+        //newData.predecessors = '1.0'
+
         // NOTE we support for now only one direct preceeding release
         // TODO clean-up this
         def previousVersion = null
@@ -312,6 +317,9 @@ class Project {
         } else {
             this.data.jira = newData
         }
+
+        // TODO remove me from there... I get this param from jira data directly
+
         this.data.jira.project.version = this.loadJiraDataProjectVersion()
 
 
@@ -658,7 +666,7 @@ class Project {
     }
 
     Map getVersion() {
-        return this.data.jira.project.version
+        return this.data.jira.version
     }
 
     Map getJiraFieldsForIssueType(String issueTypeName) {
@@ -1162,8 +1170,11 @@ class Project {
     }
 
     void saveVersionData() {
-        def savedEntities = ['requirements', 'risks', 'tests', 'techSpecs', 'version'. 'predecessors']
-        new ProjectDataBitbucketRepository(steps).save(this.data.jira as Map)
+        def savedEntities = ['requirements', 'risks', 'tests', 'techSpecs', 'version', 'predecessors']
+        def dataToSave = this.data.jira.findAll{savedEntities.contains(it)}
+        new ProjectDataBitbucketRepository(steps).save(dataToSave, this.getVersion())
+
+        this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave))
     }
 
     Map mergeJiraData(Map oldData, Map newData) {
