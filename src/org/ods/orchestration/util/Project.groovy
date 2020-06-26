@@ -1171,10 +1171,11 @@ class Project {
 
     void saveVersionData() {
         def savedEntities = ['requirements', 'risks', 'tests', 'techSpecs', 'version', 'predecessors']
-        def dataToSave = this.data.jira.findAll{savedEntities.contains(it)}
+        def dataToSave = this.data.jira.findAll{savedEntities.contains(it.key)}
+        logger.debug("??? Jira data " + JsonOutput.toJson(this.data.jira))
         new ProjectDataBitbucketRepository(steps).save(dataToSave, this.getVersion())
 
-        this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave))
+        this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
     }
 
     Map mergeJiraData(Map oldData, Map newData) {
