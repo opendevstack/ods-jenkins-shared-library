@@ -665,7 +665,7 @@ class Project {
         return this.data.jira.project.id
     }
 
-    Map getVersion() {
+    String getVersion() {
         return this.data.jira.version
     }
 
@@ -1085,7 +1085,7 @@ class Project {
         def result = [:]
 
         data.each { type, values ->
-            if (['project', 'version', 'predecessors' ].contains (type)) {
+            if (['project', 'version', 'predecessors', 'continuations', 'discontinuations' ].contains (type)) {
                 return
             }
 
@@ -1205,66 +1205,184 @@ class Project {
         def issueTypesToUpdate = ["requirements", "techSpecs","tests","mitigations","risks"]
 
         def buildChangesInLinks = {Map updates ->
+
             updates.findAll{issueTypesToUpdate.contains(it.key)}.collect{ issueType, issues ->
                 issues.collect{issueKey, issue ->
+                    println("Issue to propagate links " + issue)
+                    def isDiscontinued = issue.status == "DISCONTINUED"
+                    def isAnUpdate = ! issue.getOrDefault("predecessors", []).isEmpty()
+                    println("\tisDiscontinued " + isDiscontinued + "\t isAnUpdate: " + isAnUpdate)
+
                     def issueLinks = issue.findAll{lt -> issueTypesToUpdate.contains(lt.key)}
                     issueLinks.collect{ String linkType, List linkedIssues ->
                         linkedIssues.collect{ targetKey ->
                             // TODO add here logic for removal and changes
-                            [origin: issue.key, target: targetKey, linkType: issueType]
-                        }
+                            if (isDiscontinued) {
+                                [origin: issue.key, target: targetKey, linkType: issueType, action:"delete"]
+                            } else if (isAnUpdate) {
+                                issue.predecessors.collect{
+                                [origin: issue.key, target: targetKey, linkType: issueType, action:"change", replaces: it.key]
+                                }
+                            } else {
+                                [origin: issue.key, target: targetKey, linkType: issueType, action:"add"]
+
+                            }
+
+                        }.flatten()
                     }
                 }
             }.
             flatten().groupBy {it.target}
         }
 
-        // TODO We could use a reverse index algorithm. Might be faster and easier (and safer)
+        // TODO we must apply this to OLD data and not new one...
+        def updateIfDiscontinued = { Map issue, List<String> discontinuations, String currentVersion ->
+            if (discontinuations.contains(issue.key)) {
+                issue.status = "DISCONTINUED"
+                issue.discontinuedIn = currentVersion
+            }
+        }
+
+        def getDiscontinuedIssues = { Map targetData, List<String> discontinuations, String currentVersion ->
+            targetData.findAll { issueTypesToUpdate.contains(it.key) }.collectEntries { issueType, Map issues ->
+                def discontinuedIssues = issues.findAll{discontinuations.contains(it.key)}.
+                    collectEntries { key, issue ->
+                        issue.status = "DISCONTINUED"
+                        issue.discontinuedIn = currentVersion
+                        [(key): issue]
+                    }
+                [(issueType): discontinuedIssues]
+            }
+        }
+
+
         // We have 3 types of "updates"
-        def updateLinks = {Map<String,Map> left, Map<String,Map> right ->
+        def updateIssues = {Map<String,Map> left, Map<String,Map> right ->
+
+            //left.findAll{issueTypesToUpdate.contains(it.key)}.each { issueType, issues ->
+            //    println("iterating through historic issue " + issues)
+            //}
+
             def reverseLinkIndex = buildChangesInLinks(right)
             println("reverse index " + reverseLinkIndex)
-            println(" old data to be updated with new links " + left)
+            //println(" old data to be updated with new links " + left)
             left.findAll{issueTypesToUpdate.contains(it.key)}.each {issueType, issues ->
-                println("iterating through historic issue " + issues)
-                issues.values().each{ issueToUpdate ->
-                    println("issue to update " + issueToUpdate)
+                //println("iterating through historic issue " + issues)
+                issues.values().each{ Map issueToUpdate ->
+                    //println("issue to update " + issueToUpdate)
+
+                    updateIfDiscontinued(issueToUpdate, left.getOrDefault("discontinuations",[]), left.version)
+                    // Remove disctontinued
+
                     def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key,[])
                     linksToUpdate.each { Map link ->
                         println("updating link " + link)
-                        if (issueToUpdate[link.linkType]) {
-                            println(issueToUpdate[link.linkType])
+                        //def existingLinks = issueToUpdate.getOrDefault(link.linkType,[])
+                        if (link.action == "add") {
                             left[issueType][issueToUpdate.key]."${link.linkType}" << link.origin
-                        } else {
-                            left[issueType][issueToUpdate.key]."${link.linkType}" = [link.origin]
+                        } else if (link.action == "delete") {
+                            left[issueType][issueToUpdate.key]."${link.linkType}".removeAll{ it == link.origin }
+                        } else if (link.action == "change") {
+                            left[issueType][issueToUpdate.key]."${link.linkType}" << link.origin
+                            left[issueType][issueToUpdate.key]."${link.linkType}".removeAll{ it == link."replaces" }
                         }
                     }
 
                 }
             }
-
-            /*right.findAll{["requirements", "techSpecs","tests","mitigations","risks"].contains(it)}.
-                each { String issueType, Map<String, Map> issueMaps ->
-                    issueMaps.each { key, Map content ->
-                        addLinkedIssue(left, content, issueType, "requirements")
-                        addLinkedIssue(left, content, issueType, "techSpecs")
-                        addLinkedIssue(left, content, issueType, "tests")
-                        addLinkedIssue(left, content, issueType, "mitigations")
-                        addLinkedIssue(left, content, issueType, "risks")
-
-                    }
-            }
-            */left
             return left
         }
+
+
 
         println("old data " + oldData)
         if (!oldData || oldData.isEmpty()) {
             return newData
         } else {
-            def oldDataWithUpdatedLinks = updateLinks(oldData, newData)
+            // Get all predecessor information from saved data
+            def newDataWithAllPredecessors = addPredecessorInformation (oldData, newData)
+            println("Predecessors extra info added " + newDataWithAllPredecessors)
+
+            def oldDataWithUpdatedLinks = updateIssues(oldData, newDataWithAllPredecessors)
             println(" oldDataWithUpdatedLinks " + oldDataWithUpdatedLinks)
-            mergeMaps(oldDataWithUpdatedLinks, newData)
+
+            def obsoleteKeys = newData.getOrDefault("discontinuations",[]) + getPreceededKeys(newDataWithAllPredecessors)
+            println("obsolete keys " + obsoleteKeys)
+
+            def oldDataWithoutObsoletes = removeObsoleteIssues(oldDataWithUpdatedLinks, obsoleteKeys)
+
+
+            mergeMaps(oldDataWithoutObsoletes, newDataWithAllPredecessors)
+        }
+    }
+
+    private Map removeObsoleteIssues(Map jiraData, List<String> keysToRemove) {
+        println("I am going to remove following keys " + keysToRemove)
+        println("I have the following input data " + jiraData)
+        def result = jiraData.collectEntries {issueType, content ->
+            if (JiraDataItem.TYPES.contains(issueType)) {
+                [(issueType): content.findAll{
+                    //println("Checking ${it.key}. Is going to be removed? ${keysToRemove.contains(it.key)}")
+                    ! keysToRemove.contains(it.key)}]
+            } else {
+                [(issueType): content]
+            }
+        }
+        println("result after removing issues: " + result)
+        return result
+    }
+
+    /**
+     * Expected format is:
+     *   issueType.issue."predecessors" -> [key:"", version:""]
+     * @param jiraData
+     * @return
+     */
+    private List<String> getPreceededKeys(Map jiraData) {
+        jiraData.findAll{JiraDataItem.TYPES.contains(it.key)}.values().collect{issueGroup ->
+            issueGroup.values().collect{issue ->
+                [issue.getOrDefault("predecessors",[])].collect{it.key}
+            }
+        }.flatten().unique()
+    }
+
+    private Map addPredecessorInformation(Map savedData, Map newData) {
+        newData.collectEntries {issueType, content ->
+            if (JiraDataItem.TYPES.contains(issueType)) {
+                def updatedIssues = content.collectEntries {String issueKey, Map issue ->
+                    def predecessors = issue.getOrDefault("predecessors", [])
+                    println ( "Predecessors for issue ${issueKey}: " + predecessors)
+                    if (predecessors.isEmpty()) {
+                        [(issueKey):issue]
+                    } else {
+                        def expandedPredecessors = predecessors.collect{ predecessor ->
+                            def predecessorIssue = savedData.getOrDefault(issueType,[:]).getOrDefault(predecessor, null)
+                            println("preceding issue types: " + savedData.getOrDefault(issueType,[:]))
+                            println("preceding issue ${predecessor} with content " + predecessorIssue)
+                            if (!predecessorIssue) {
+                                throw new RuntimeException("Error: new issue '${issueKey}' references key '${predecessor}' " +
+                                    "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
+                                    "Existing issue list is '[${savedData.getOrDefault(issueType,[:]).keySet().join(', ')}]'")
+                            }
+
+                            def existingPredecessors = predecessorIssue.getOrDefault("predecessors", [:])
+                            def result = [[key: predecessorIssue.key, version: predecessorIssue.version]]
+
+                            if (existingPredecessors) {
+                                result << existingPredecessors
+                            }
+                            result.flatten()
+                        }.flatten()
+
+                        [(issueKey): issue + [predecessors: expandedPredecessors]]
+                    }
+                }
+                [(issueType): updatedIssues]
+            } else {
+                [(issueType): content]
+            }
+
+
         }
     }
 

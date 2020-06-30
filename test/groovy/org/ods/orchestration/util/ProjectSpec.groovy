@@ -1775,6 +1775,7 @@ class ProjectSpec extends SpecHelper {
 
     def "merge modification of a risk"() {
         given:
+        def betaVersion = '0.1'
         def firstVersion = '1'
         def secondVersion = '2'
 
@@ -1785,24 +1786,34 @@ class ProjectSpec extends SpecHelper {
         def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
         def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
 
+        def req0 = req('betaReq', betaVersion)
         def req1 = req('1', firstVersion)
+        def req2 = req('midReq', firstVersion)
+        def req3 = req('newerReq', secondVersion)
         def rsk1 = rsk('toModify', firstVersion)
         def tst1 = tst('1', secondVersion)
         def rsk2 = rsk('modification', secondVersion)
 
+
         req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        req2 << [predecessors: [[key: req0.key, version: req0.version]]]
         rsk1 << [requirements: [req1.key], tests: [tst1.key]]
         tst1 << [requirements: [req1.key], risks: [rsk1.key]]
 
         rsk2 << [requirements: [req1.key], tests: [tst1.key], predecessors: [rsk1.key]]
+        req3 << [predecessors: [req2.key]]
         def req1Updated = req1.clone() + [risks: [rsk2.key]]
         def tst1Updated = tst1.clone() + [risks: [rsk2.key]]
+        def rsk2WithDetails = rsk2.clone()
+        rsk2WithDetails << [predecessors: [key: rsk1.key, version: rsk1.version]]
+        def req3withDetails = req3.clone()
+        req3withDetails << [predecessors: [[key: req2.key, version: req2.version],[key: req0.key, version: req0.version]]]
 
         def storedData = [
             components  : [:],
             epics       : [:],
             mitigations : [:],
-            requirements: [(req1.key): req1],
+            requirements: [(req1.key): req1, (req2.key): req2],
             risks       : [(rsk1.key): rsk1],
             tests       : [(tst1.key): tst1],
             techSpecs   : [:],
@@ -1816,7 +1827,7 @@ class ProjectSpec extends SpecHelper {
             components  : [:],
             epics       : [:],
             mitigations : [:],
-            requirements: [:],
+            requirements: [(req3.key):req3],
             risks       : [(rsk2.key): rsk2],
             tests       : [:],
             techSpecs   : [:],
@@ -1827,8 +1838,8 @@ class ProjectSpec extends SpecHelper {
             components  : [:],
             epics       : [:],
             mitigations : [:],
-            requirements: [(req1Updated.key): req1Updated ],
-            risks       : [(rsk2.key): rsk2],
+            requirements: [(req1Updated.key): req1Updated, (req3withDetails.key): req3withDetails],
+            risks       : [(rsk2WithDetails.key): rsk2WithDetails],
             tests       : [(tst1Updated.key): tst1Updated],
             techSpecs   : [:],
             docs        : [:]

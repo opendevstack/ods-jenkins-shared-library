@@ -7,7 +7,7 @@ import java.nio.file.Paths
 
 class ProjectDataBitbucketRepository {
 
-    static final String BASE_DIR = 'projectIssues'
+    static final String BASE_DIR = 'projectData'
 
     private IPipelineSteps steps
 
