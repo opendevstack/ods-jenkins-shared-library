@@ -1480,7 +1480,7 @@ class ProjectSpec extends SpecHelper {
         1 * project.loadJiraData(_) >> newVersionData
 
         then:
-        1 * project.loadSavedJiraData(firstVersion)
+        1 * project.loadSavedJiraData(firstVersion) >> [:]
 
     }
 
