@@ -1204,37 +1204,6 @@ class Project {
 
         def issueTypesToUpdate = ["requirements", "techSpecs","tests","mitigations","risks"]
 
-        def buildChangesInLinks = {Map updates ->
-
-            updates.findAll{issueTypesToUpdate.contains(it.key)}.collect{ issueType, issues ->
-                issues.collect{issueKey, issue ->
-                    println("Issue to propagate links " + issue)
-                    def isDiscontinued = issue.status == "DISCONTINUED"
-                    def isAnUpdate = ! issue.getOrDefault("predecessors", []).isEmpty()
-                    println("\tisDiscontinued " + isDiscontinued + "\t isAnUpdate: " + isAnUpdate)
-
-                    def issueLinks = issue.findAll{lt -> issueTypesToUpdate.contains(lt.key)}
-                    issueLinks.collect{ String linkType, List linkedIssues ->
-                        linkedIssues.collect{ targetKey ->
-                            // TODO add here logic for removal and changes
-                            if (isDiscontinued) {
-                                [origin: issue.key, target: targetKey, linkType: issueType, action:"delete"]
-                            } else if (isAnUpdate) {
-                                issue.predecessors.collect{
-                                [origin: issue.key, target: targetKey, linkType: issueType, action:"change", replaces: it.key]
-                                }
-                            } else {
-                                [origin: issue.key, target: targetKey, linkType: issueType, action:"add"]
-
-                            }
-
-                        }.flatten()
-                    }
-                }
-            }.
-            flatten().groupBy {it.target}
-        }
-
         // TODO we must apply this to OLD data and not new one...
         def updateIfDiscontinued = { Map issue, List<String> discontinuations, String currentVersion ->
             if (discontinuations.contains(issue.key)) {
@@ -1243,27 +1212,18 @@ class Project {
             }
         }
 
-        def getDiscontinuedIssues = { Map targetData, List<String> discontinuations, String currentVersion ->
-            targetData.findAll { issueTypesToUpdate.contains(it.key) }.collectEntries { issueType, Map issues ->
-                def discontinuedIssues = issues.findAll{discontinuations.contains(it.key)}.
-                    collectEntries { key, issue ->
-                        issue.status = "DISCONTINUED"
-                        issue.discontinuedIn = currentVersion
-                        [(key): issue]
-                    }
-                [(issueType): discontinuedIssues]
-            }
-        }
-
 
         // We have 3 types of "updates"
         def updateIssues = {Map<String,Map> left, Map<String,Map> right ->
 
-            //left.findAll{issueTypesToUpdate.contains(it.key)}.each { issueType, issues ->
-            //    println("iterating through historic issue " + issues)
-            //}
+//            left.findAll{issueTypesToUpdate.contains(it.key)}.each { issueType, issues ->
+//                println("iterating through historic issue " + issues)
+//                issues.values().each {issue ->
+//                    issue.findAll{JiraDataItem.TYPES.contains(it.key)}.each{ linkType}
+//                }
+//            }
 
-            def reverseLinkIndex = buildChangesInLinks(right)
+            def reverseLinkIndex = buildChangesInLinks(left, right)
             println("reverse index " + reverseLinkIndex)
             //println(" old data to be updated with new links " + left)
             left.findAll{issueTypesToUpdate.contains(it.key)}.each {issueType, issues ->
@@ -1310,15 +1270,57 @@ class Project {
             println("obsolete keys " + obsoleteKeys)
 
             def oldDataWithoutObsoletes = removeObsoleteIssues(oldDataWithUpdatedLinks, obsoleteKeys)
-
+            println("oldDataWithoutObsoletes " + oldDataWithoutObsoletes)
 
             mergeMaps(oldDataWithoutObsoletes, newDataWithAllPredecessors)
         }
     }
 
+    private List getDiscontinuedLinks(Map savedData, List<String> discontinuations) {
+        savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect{ issueType, Map issues ->
+            def discontinuedLinks = issues.findAll{discontinuations.contains(it.key)}.
+                collect{ key, issue ->
+                    def issueLinks = issue.findAll{JiraDataItem.TYPES.contains(it.key)}
+                    issueLinks.collect { String linkType, List linkedIssues ->
+                        linkedIssues.collect { targetKey ->
+                            [origin: issue.key, target: targetKey, linkType: issueType, action: "delete"]
+                        }
+                    }.flatten()
+                }.flatten()
+            return discontinuedLinks
+        }.flatten()
+    }
+
+    private Map<String, List> buildChangesInLinks(Map oldData, Map updates) {
+        def discontinuedLinks = getDiscontinuedLinks(oldData, updates.getOrDefault("discontinuations", []))
+        def additionsAndChanges = getAdditionsAndChangesInLinks(updates)
+
+        return (discontinuedLinks + additionsAndChanges).groupBy{it.target}
+    }
+
+    private List getAdditionsAndChangesInLinks(Map newData) {
+        newData.findAll{JiraDataItem.TYPES.contains(it.key)}.collect{ issueType, issues ->
+            issues.collect{issueKey, issue ->
+                println("Issue to propagate links " + issue)
+                def isAnUpdate = ! issue.getOrDefault("predecessors", []).isEmpty()
+
+                def issueLinks = issue.findAll{JiraDataItem.TYPES.contains(it.key)}
+                issueLinks.collect{ String linkType, List linkedIssues ->
+                    linkedIssues.collect{ targetKey ->
+                        if (isAnUpdate) {
+                            issue.predecessors.collect{
+                                [origin: issue.key, target: targetKey, linkType: issueType, action:"change", replaces: it.key]
+                            }
+                        } else {
+                            [origin: issue.key, target: targetKey, linkType: issueType, action:"add"]
+                        }
+                    }.flatten()
+                }
+            }
+        }.flatten()
+    }
+
     private Map removeObsoleteIssues(Map jiraData, List<String> keysToRemove) {
-        println("I am going to remove following keys " + keysToRemove)
-        println("I have the following input data " + jiraData)
         def result = jiraData.collectEntries {issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
                 [(issueType): content.findAll{
