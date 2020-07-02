@@ -96,10 +96,7 @@ class Context implements IContext {
         if (!config.containsKey('cloneProjectScriptBranch')) {
             config.cloneProjectScriptBranch = 'master'
         }
-        if (config.containsKey('sonarQubeBranch')) {
-            script.echo "Setting option 'sonarQubeBranch' of the pipeline is deprecated, " +
-                "please use option 'branch' of the stage."
-        } else {
+        if (!config.containsKey('sonarQubeBranch')) {
             config.sonarQubeBranch = 'master'
         }
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
