@@ -1,9 +1,11 @@
 package org.ods.component
 
 import org.ods.util.Logger
+import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
@@ -22,6 +24,8 @@ class Context implements IContext {
 
     // is the library checking out the code again, or relying on check'd out source?
     private final boolean localCheckoutEnabled
+
+    private String appDomain
 
     Context(def script, Map config, Logger logger, boolean localCheckoutEnabled = true) {
         this.script = script
@@ -488,14 +492,16 @@ class Context implements IContext {
         }
     }
 
-    // set the application domain
-    void setOpenshiftApplicationDomain (String domain) {
-        config.domain = domain
-    }
-
-    // get the application domain
     String getOpenshiftApplicationDomain () {
-        return config.domain
+        if (!config.environment) {
+            return ''
+        }
+        if (!this.appDomain) {
+            logger.startClocked("${config.componentId}-get-oc-app-domain")
+            this.appDomain = ServiceRegistry.instance.get(OpenShiftService).applicationDomain
+            logger.debugClocked("${config.componentId}-get-oc-app-domain")
+        }
+        this.appDomain
     }
 
     private String retrieveGitUrl() {
