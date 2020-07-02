@@ -31,7 +31,6 @@ class ScanWithSonarStage extends Stage {
         }
         if (!config.longLivedBranches) {
             config.longLivedBranches = extractLongLivedBranches(context.branchToEnvironmentMapping)
-            script.echo "Long-lived branches: ${config.longLivedBranches.join(', ')}."
         }
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
@@ -45,6 +44,8 @@ class ScanWithSonarStage extends Stage {
             logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
+
+        script.echo "Long-lived branches: ${config.longLivedBranches.join(', ')}."
 
         def sonarProperties = sonarQube.readProperties()
 
