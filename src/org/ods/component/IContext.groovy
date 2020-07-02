@@ -119,6 +119,9 @@ interface IContext {
     // Branch on which to run SonarQube analysis.
     String getSonarQubeBranch()
 
+    // Edition of the SonarQube server
+    String getSonarQubeEdition()
+
     // set branch on which to run SonarQube analysis.
     void setSonarQubeBranch(String sonarQubeBranch)
 

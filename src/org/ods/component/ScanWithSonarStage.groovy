@@ -23,8 +23,12 @@ class ScanWithSonarStage extends Stage {
         super(script, context, config, logger)
         if (config.branch) {
             config.eligibleBranches = config.branch.split(',')
-        } else {
+        } else if (context.sonarQubeBranch) {
             config.eligibleBranches = context.sonarQubeBranch.split(',')
+        } else if (context.sonarQubeEdition != 'community') {
+            config.eligibleBranches = ['*']
+        } else {
+            config.eligibleBranches = ['master']
         }
         if (!config.containsKey('analyzePullRequests')) {
             config.analyzePullRequests = true

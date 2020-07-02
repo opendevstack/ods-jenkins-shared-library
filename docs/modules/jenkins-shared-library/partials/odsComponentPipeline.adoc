@@ -120,6 +120,9 @@ The `context` object contains the following properties:
 | nexusUrlWithBasicAuth
 | Nexus URL, including username and password as BasicAuth. `nexusHostWithBasicAuth` is an alias for `nexusUrlWithBasicAuth`.
 
+| sonarQubeEdition
+| Edition of SonarQube in use, determined by `SONARQUBE_EDITION` (defaults to `community`).
+
 | cloneSourceEnv
 | The environment which was chosen as the clone source.
 
