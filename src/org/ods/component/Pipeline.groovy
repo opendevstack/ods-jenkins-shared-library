@@ -207,6 +207,7 @@ class Pipeline implements Serializable {
                 containers: config.podContainers,
                 volumes: config.podVolumes,
                 serviceAccount: config.podServiceAccount,
+                slaveConnectTimeout: 240 // in seconds
             ) {
                 script.node(config.podLabel) {
                     try {
