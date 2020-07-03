@@ -69,25 +69,28 @@ class ScanWithSnykStage extends Stage {
 
         boolean noVulnerabilitiesFound
 
+        // Nexus credentials are provided as env variables because Snyk may need to
+        // execute the build file (e.g. build.gradle) to figure out dependencies.
         def envVariables = [
             "NEXUS_HOST=${context.nexusHost}",
             "NEXUS_USERNAME=${context.nexusUsername}",
             "NEXUS_PASSWORD=${context.nexusPassword}",
         ]
-        // nexus credentials are provided here because snyk runs build.gradle who needs them
-        logger.startClocked("${config.projectName}-snyk-scan")
         script.withEnv(envVariables) {
+            logger.startClocked("${config.projectName}-snyk-scan")
             noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
             if (noVulnerabilitiesFound) {
                 logger.info 'No vulnerabilities detected.'
             } else {
                 logger.warn 'Snyk test detected vulnerabilities.'
             }
-        }
-        logger.debugClocked("${config.projectName}-snyk-scan")
+            logger.debugClocked("${config.projectName}-snyk-scan")
 
-        if (!snyk.monitor(config.organisation, config.buildFile)) {
-            script.error 'Snyk monitor failed'
+            logger.startClocked("${config.projectName}-snyk-monitor")
+            if (!snyk.monitor(config.organisation, config.buildFile)) {
+                script.error 'Snyk monitor failed'
+            }
+            logger.debugClocked("${config.projectName}-snyk-monitor")
         }
 
         generateAndArchiveReport(context.localCheckoutEnabled)
