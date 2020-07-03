@@ -65,13 +65,16 @@ Available options are:
 | Component ID, e.g. `be-auth-service`.
 
 | environmentLimit
-| Number of environments to allow.
+| Number of environments to allow when auto-cloning environments.
 
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
 
+| imagePromotionSequences
+| Sequence of environments between which images can be promoted in `odsComponentStageImportOpenShiftImageOrElse`. Defaults to `['dev->test', 'test->prod']`.
+
 | sonarQubeBranch
-| Deprecated in 3.x! Please use option `branch` on `odsComponentStageScanWithSonar`.
+| Please use option `branch` on `odsComponentStageScanWithSonar`.
 
 | failOnSnykScanVulnerabilities
 | Deprecated in 3.x! Please use option `failOnVulnerabilities` on `odsComponentStageScanWithSnyk`.
@@ -147,6 +150,9 @@ The `context` object contains the following properties:
 | gitCommit
 | Git commit SHA to build.
 
+| shortGitCommit
+| Short Git commit SHA (first 8 chars) to build.
+
 | gitCommitAuthor
 | Git commit author.
 
@@ -170,6 +176,9 @@ The `context` object contains the following properties:
 
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
+
+| imagePromotionSequences
+| Sequence of environments between which images can be promoted. Used e.g. in `odsComponentStageImportOpenShiftImageOrElse`. Defaults to `['dev->test', 'test->prod']`.
 |===
 
 == Git Workflow / Branch to Environment Mapping

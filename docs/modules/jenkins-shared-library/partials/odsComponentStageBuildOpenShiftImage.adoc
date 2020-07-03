@@ -1,7 +1,7 @@
 Triggers (and follows) a build in the `BuildConfig` related to the repository
 being built.
 
-The resulting image is tagged with `context.tagversion` (`<JOB_NUMBER>-<GIT_SHA>`).
+The resulting image is tagged with `context.shortGitCommit`.
 
 If the directory referenced by `openshiftDir` exists, the templates in there will be applied using https://github.com/opendevstack/tailor[Tailor]. In addition to the configuration options below, one can use e.g. a `Tailorfile` to adjust the behaviour of Tailor as needed.
 
@@ -13,6 +13,9 @@ Available options:
 
 | resourceName
 | Name of `BuildConfig`/`ImageStream` to use (defaults to `context.componentId`).
+
+| imageTag
+| Image tag to apply (defaults to `context.shortGitCommit`).
 
 | buildArgs
 | Pass build arguments to the image build process.

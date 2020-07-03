@@ -112,3 +112,14 @@ use `context.bitbucketHostWithoutScheme`.
 
 TIP: A notable addition to the `context` object is a new property `issueId`, which
 exposes the Jira issue ID (such as `123` from branch `feature/FOO-123-bar-baz`).
+
+=== Different image tags
+
+Previously, images produced by `odsComponentStageBuildOpenShiftImage` where
+tagged with `context.tagversion`, which consisted of the Jenkins build number
+and the (shortened) Git commit (e.g. `7-cd3e9082`). This made it difficult
+for other processes (unaware of the Jenkins build number) to find those images.
+
+The images are now tagged with just the (shortened) Git commit (e.g. `cd3e9082`).
+This change also has the huge benefit that it allows to promote images between
+environments (avoiding to rebuild them) using the new stage xref:jenkins-shared-library:component-pipeline.adoc#_odscomponentstageimportopenshiftimageorelse[odsComponentStageImportOpenShiftImageOrElse].

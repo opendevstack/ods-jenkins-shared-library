@@ -23,6 +23,9 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
+        if (!config.imageTag) {
+            config.imageTag = context.shortGitCommit
+        }
         if (!config.imageLabels) {
             config.imageLabels = [:]
         }
@@ -141,7 +144,7 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     private String getImageReference() {
-        openShift.getImageReference(config.resourceName, context.tagversion)
+        openShift.getImageReference(config.resourceName, config.imageTag)
     }
 
     private String startAndFollowBuild() {
@@ -159,7 +162,7 @@ class BuildOpenShiftImageStage extends Stage {
     private String patchBuildConfig(Map imageLabels) {
         openShift.patchBuildConfig(
             config.resourceName,
-            context.tagversion,
+            config.imageTag,
             config.buildArgs,
             imageLabels
         )
