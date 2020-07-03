@@ -3,7 +3,6 @@ package org.ods.orchestration.service.leva
 import groovy.json.JsonSlurperClassic
 import org.ods.util.IPipelineSteps
 
-import java.nio.file.Paths
 
 class ProjectDataBitbucketRepository {
 
@@ -23,14 +22,15 @@ class ProjectDataBitbucketRepository {
     Map loadVersionSnapshot(String savedVersion) {
         def savedData =  this.steps.readFile(file: "${BASE_DIR}/${savedVersion}.json")
         def data = [:]
-        if (!savedData) {
+        if (savedData) {
+            data = new JsonSlurperClassic().parseText(savedData) ?: [:]
+        } else {
             throw new RuntimeException(
-                "Error: unable to load saved information prom the previous version. " +
+                'Error: unable to load saved information prom the previous version. ' +
                     "File '${BASE_DIR}/${savedVersion}.json' could not be read."
             )
-        } else {
-            data = new JsonSlurperClassic().parseText(savedData) ?: [:]
         }
         return data
     }
+
 }

@@ -667,6 +667,10 @@ class Project {
         return this.data.jira.project.version
     }
 
+    Map getVersionName(){
+        return this.data.jira.project.version?.name
+    }
+
     String getPreviousVersionId() {
         return this.data.jira.project.previousVersion?.id
     }
@@ -1175,14 +1179,15 @@ class Project {
     }
 
     void saveVersionData() {
-        def savedEntities = ['requirements', 'risks', 'tests', 'techSpecs', 'version', 'predecessors']
+        def savedEntities = ['mitigations', 'requirements', 'risks', 'tests', 'techSpecs', 'version', 'predecessors']
         def dataToSave = this.data.jira.findAll{savedEntities.contains(it.key)}
-        logger.debug("Saving Jira data for the version " + JsonOutput.toJson(this.data.jira))
-        new ProjectDataBitbucketRepository(steps).save(dataToSave, this.getVersion().id)
+        logger.debug('Saving Jira data for the version ' + JsonOutput.toJson(this.getVersionName()))
+        new ProjectDataBitbucketRepository(steps).save(dataToSave, this.getVersionName())
 
         this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
     }
 
+    @SuppressWarnings(['NestedBlockDepth'])
     Map mergeJiraData(Map oldData, Map newData) {
         def mergeMaps = { Map left, Map right ->
             def keys = (left.keySet() + right.keySet()).toSet()
@@ -1208,11 +1213,11 @@ class Project {
                 issues.values().each{ Map issueToUpdate ->
                     def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key,[])
                     linksToUpdate.each { Map link ->
-                        if (link.action == "add") {
+                        if (link.action == 'add') {
                             left[issueType][issueToUpdate.key]."${link.linkType}" << link.origin
-                        } else if (link.action == "delete") {
+                        } else if (link.action == 'delete') {
                             left[issueType][issueToUpdate.key]."${link.linkType}".removeAll{ it == link.origin }
-                        } else if (link.action == "change") {
+                        } else if (link.action == 'change') {
                             left[issueType][issueToUpdate.key]."${link.linkType}" << link.origin
                             left[issueType][issueToUpdate.key]."${link.linkType}".removeAll{ it == link."replaces" }
                         }
@@ -1229,7 +1234,7 @@ class Project {
             def newDataWithAllPredecessors = addPredecessorInformation (oldData, newData)
             def oldDataWithUpdatedLinks = updateIssues(oldData, newDataWithAllPredecessors)
 
-            def obsoleteKeys = newData.getOrDefault("discontinuations",[]) + getPreceededKeys(newDataWithAllPredecessors)
+            def obsoleteKeys = newData.getOrDefault('discontinuations',[]) + getPreceededKeys(newDataWithAllPredecessors)
             def oldDataWithoutObsoletes = removeObsoleteIssues(oldDataWithUpdatedLinks, obsoleteKeys)
 
             mergeMaps(oldDataWithoutObsoletes, newDataWithAllPredecessors)
@@ -1238,12 +1243,12 @@ class Project {
 
     private List getDiscontinuedLinks(Map savedData, List<String> discontinuations) {
         savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect{ issueType, Map issues ->
-            def discontinuedLinks = issues.findAll{discontinuations.contains(it.key)}.
-                collect{ key, issue ->
+            def discontinuedLinks = issues.findAll{discontinuations.contains(it.key)}
+                .collect{ key, issue ->
                     def issueLinks = issue.findAll{JiraDataItem.TYPES.contains(it.key)}
                     issueLinks.collect { String linkType, List linkedIssues ->
                         linkedIssues.collect { targetKey ->
-                            [origin: issue.key, target: targetKey, linkType: issueType, action: "delete"]
+                            [origin: issue.key, target: targetKey, linkType: issueType, action: 'delete']
                         }
                     }.flatten()
                 }.flatten()
@@ -1252,26 +1257,27 @@ class Project {
     }
 
     private Map<String, List> buildChangesInLinks(Map oldData, Map updates) {
-        def discontinuedLinks = getDiscontinuedLinks(oldData, updates.getOrDefault("discontinuations", []))
+        def discontinuedLinks = getDiscontinuedLinks(oldData, updates.getOrDefault('discontinuations', []))
         def additionsAndChanges = getAdditionsAndChangesInLinks(updates)
 
         return (discontinuedLinks + additionsAndChanges).groupBy{it.target}
     }
 
+    @SuppressWarnings(['NestedBlockDepth', 'Indentation'])
     private List getAdditionsAndChangesInLinks(Map newData) {
         newData.findAll{JiraDataItem.TYPES.contains(it.key)}.collect{ issueType, issues ->
             issues.collect{issueKey, issue ->
-                def isAnUpdate = ! issue.getOrDefault("predecessors", []).isEmpty()
+                def isAnUpdate = ! issue.getOrDefault('predecessors', []).isEmpty()
 
                 def issueLinks = issue.findAll{JiraDataItem.TYPES.contains(it.key)}
                 issueLinks.collect{ String linkType, List linkedIssues ->
                     linkedIssues.collect{ targetKey ->
                         if (isAnUpdate) {
                             issue.predecessors.collect{
-                                [origin: issue.key, target: targetKey, linkType: issueType, action:"change", replaces: it.key]
+                                [origin: issue.key, target: targetKey, linkType: issueType, action: 'change', replaces: it.key]
                             }
                         } else {
-                            [origin: issue.key, target: targetKey, linkType: issueType, action:"add"]
+                            [origin: issue.key, target: targetKey, linkType: issueType, action: 'add']
                         }
                     }.flatten()
                 }
@@ -1300,7 +1306,7 @@ class Project {
     private List getPreceededKeys(Map jiraData) {
         jiraData.findAll{JiraDataItem.TYPES.contains(it.key)}.values().collect{issueGroup ->
             issueGroup.values().collect{issue ->
-                [issue.getOrDefault("predecessors",[])].collect{it.key}
+                [issue.getOrDefault('predecessors',[])].collect{it.key}
             }
         }.flatten().unique()
     }
@@ -1312,13 +1318,14 @@ class Project {
      * @param newData
      * @return Map containing
      */
+    @SuppressWarnings(['NestedBlockDepth'])
     private Map addPredecessorInformation(Map savedData, Map newData) {
         newData.collectEntries {issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
                 def updatedIssues = content.collectEntries {String issueKey, Map issue ->
-                    def predecessors = issue.getOrDefault("predecessors", [])
+                    def predecessors = issue.getOrDefault('predecessors', [])
                     if (predecessors.isEmpty()) {
-                        [(issueKey):issue]
+                        [(issueKey): issue]
                     } else {
                         def expandedPredecessors = predecessors.collect{ predecessor ->
                             def predecessorIssue = savedData.getOrDefault(issueType,[:]).getOrDefault(predecessor, null)
@@ -1327,7 +1334,7 @@ class Project {
                                     "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
                                     "Existing issue list is '[${savedData.getOrDefault(issueType,[:]).keySet().join(', ')}]'")
                             }
-                            def existingPredecessors = predecessorIssue.getOrDefault("predecessors", [:])
+                            def existingPredecessors = predecessorIssue.getOrDefault('predecessors', [:])
                             def result = [[key: predecessorIssue.key, version: predecessorIssue.version]]
 
                             if (existingPredecessors) {
