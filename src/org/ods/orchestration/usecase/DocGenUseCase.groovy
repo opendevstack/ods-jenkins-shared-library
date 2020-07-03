@@ -138,13 +138,25 @@ abstract class DocGenUseCase {
         return result
     }
 
-    String getDocumentBasename(String documentType, String version, String build, Map repo = null) {
+    String getDocumentBasename(String documentType, String version, String build = null, Map repo = null) {
+        getDocumentBasenameWithDocVersion(documentType, getDocumentVersion(version, build), repo)
+    }
+
+    String getDocumentBasenameWithDocVersion(String documentType, String docVersion, Map repo = null) {
         def result = this.project.key
         if (repo) {
             result += "-${repo.id}"
         }
 
-        return "${documentType}-${result}-${version}-${build}".toString()
+        return "${documentType}-${result}-${docVersion}".toString()
+    }
+
+    String getDocumentVersion(String projectVersion, String build = null) {
+        if (build) {
+            "${projectVersion}-${build}"
+        } else {
+            "${projectVersion}-${steps.env.BUILD_ID}"
+        }
     }
 
     @SuppressWarnings(['AbcMetric'])

@@ -3,7 +3,7 @@ package org.ods.orchestration.service
 import com.github.tomakehurst.wiremock.client.*
 
 import groovy.json.JsonOutput
-
+import groovy.json.JsonSlurperClassic
 import org.apache.http.client.utils.URIBuilder
 
 import spock.lang.*
@@ -1981,6 +1981,58 @@ class JiraServiceSpec extends SpecHelper {
         ]
 
         return result << mixins
+    }
+
+    Map getLabelsRequestData(Map mixins = [:]) {
+        def result = [
+            data: [
+                issueIdOrKey: "TEST-34"
+            ],
+            headers: [
+                "Accept": "application/json"
+            ],
+            password: "password",
+            username: "username",
+            queryParams: [
+                "fields":"labels"
+            ]
+        ]
+
+        result.path = "/rest/api/2/issue/${result.data.issueIdOrKey}"
+
+        return result << mixins
+    }
+
+    Map getLabelsResponseData(Map mixins = [:]) {
+        def result = [
+            body: JsonOutput.toJson([
+                key: "TEST-34",
+                fields: [
+                    labels: ["Label1", "Label2"]
+                ]
+            ])
+        ]
+
+        return result << mixins
+    }
+
+    def "list issue labels"() {
+        given:
+        def request = getLabelsRequestData()
+        def response = getLabelsResponseData([status: 200])
+
+        def server = createServer(WireMock.&get, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.getLabelsFromIssue(request.data.issueIdOrKey)
+
+        then:
+        noExceptionThrown()
+        assert result.containsAll(new JsonSlurperClassic().parseText(response.body).fields.labels)
+
+        cleanup:
+        stopServer(server)
     }
 
     def "update select list fields on issue with invalid issueIdOrKey"() {

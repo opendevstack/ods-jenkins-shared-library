@@ -1364,12 +1364,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = this.project.buildParams.targetEnvironmentToken
         LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].get(documentType).each { label ->
-            labels.add("Doc:${label}")
+            labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
         }
 
         if (this.project.isDeveloperPreviewMode()) {
             // Assumes that every document we generate along the pipeline has a tracking issue in Jira
-            labels.add("Doc:${documentType}")
+            labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${documentType}")
         }
 
         return labels
@@ -1416,6 +1416,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         jiraIssues.each { jiraIssue ->
             this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssue.key, [(documentationTrackingIssueDocumentVersionField.id): "${metadata.version}-${metadata.jenkins.buildNumber}"])
             this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
+
+            // In case of generating a final document, we add the label for the version that should be released
+            if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
+                def labelsToRemove = this.jiraUseCase.jira.getLabelsFromIssue(jiraIssue.key as String)
+                    .findAll{ String label -> label.startsWith(JiraUseCase.LabelPrefix.DOCUMENT_VERSION)}
+                this.jiraUseCase.jira.removeLabelsFromIssue(jiraIssue.key as String, labelsToRemove)
+                def labelName = JiraUseCase.LabelPrefix.DOCUMENT_VERSION + getDocumentVersion(this.project.version.id)
+                this.jiraUseCase.jira.addLabelsToIssue(jiraIssue.key as String, [labelName])
+            }
         }
     }
 

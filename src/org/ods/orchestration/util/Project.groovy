@@ -3,7 +3,6 @@ package org.ods.orchestration.util
 import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurperClassic
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 
 import java.nio.file.Paths
@@ -299,41 +298,40 @@ class Project {
         this.jiraUseCase = jiraUseCase
 
         this.data.jira = [:]
+        this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
 
         def newData = this.loadJiraData(this.jiraProjectKey)
         // TODO removeme when jrra plugin is updated
         newData.version = '1.1'
-        //newData.predecessors = '1.0'
+        //newData.predecessors = ['1.0']
 
-        // NOTE we support for now only one direct preceeding release
-        // TODO clean-up this
-        def previousVersion = null
-        if (newData.predecessors && !newData.predecessors?.isEmpty()) {
-            previousVersion = newData.predecessors.first()
+        // Get more info of the versions from Jira
+        def predecessors = newData.getOrDefault("predecessors", [])
+        def previousVersionId = null
+        if (! predecessors.isEmpty()) {
+            previousVersionId = predecessors.first()
         }
-        if (previousVersion) {
-            def savedDataFromOldVersion = this.loadSavedJiraData(previousVersion)
+
+        if (previousVersionId) {
+            def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
             this.data.jira = this.mergeJiraData(savedDataFromOldVersion, newData)
         } else {
             this.data.jira = newData
         }
 
-        // TODO remove me from there... I get this param from jira data directly
-
-        this.data.jira.project.version = this.loadJiraDataProjectVersion()
-
+        // Get more info of the versions from Jira
+        this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
+        this.data.jira.project.previousVersion = this.loadVersionDataFromJira(previousVersionId)
 
         // TODO change me
         this.saveVersionData()
 
-
-        this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
+        this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests) // TODO removeme when endpoint is updated
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
 
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
         this.data.jira.docs = this.loadJiraDataDocs()
-        this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
 
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undone.docChapters = [:]
@@ -669,6 +667,10 @@ class Project {
         return this.data.jira.project.version
     }
 
+    String getPreviousVersionId() {
+        return this.data.jira.project.previousVersion?.id
+    }
+
     Map getJiraFieldsForIssueType(String issueTypeName) {
         return this.data.jira.issueTypes[issueTypeName]?.fields ?: [:]
     }
@@ -908,12 +910,16 @@ class Project {
         }
     }
 
-    protected Map loadJiraDataProjectVersion() {
+    protected Map loadCurrentVersionDataFromJira() {
+        loadVersionDataFromJira(this.buildParams.version)
+    }
+
+    protected Map loadVersionDataFromJira(String versionId) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
         return this.jiraUseCase.jira.getVersionsForProject(this.jiraProjectKey).find { version ->
-            this.buildParams.version == version.value
+            versionId == version.value
         }
     }
 
@@ -1164,7 +1170,7 @@ class Project {
         this.config.put(key, value)
     }
 
-    Map loadSavedJiraData(String savedVersion) {
+    protected Map loadSavedJiraData(String savedVersion) {
         new ProjectDataBitbucketRepository(steps).loadVersionSnapshot(savedVersion)
     }
 

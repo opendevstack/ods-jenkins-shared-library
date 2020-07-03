@@ -7,7 +7,6 @@ import org.ods.services.GitService
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.ods.orchestration.parser.*
-import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
@@ -54,7 +53,7 @@ class FakeProject extends Project {
 
         this.data.git = [ commit: git.getCommitSha(), url: git.getOriginUrl() ]
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
-        this.data.jira.project.version = this.loadJiraDataProjectVersion()
+        this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
@@ -89,7 +88,7 @@ class FakeProject extends Project {
         return FixtureHelper.createProjectJiraData()
     }
 
-    protected Map loadJiraDataProjectVersion() {
+    protected Map loadCurrentVersionDataFromJira() {
         return [
             "id"  : "11100",
             "name": "0.3"

@@ -22,6 +22,11 @@ class JiraUseCase {
         static final String HEADING_NUMBER = 'EDP Heading Number'
     }
 
+    class LabelPrefix {
+        static final String DOCUMENT_VERSION = 'ReleasedDocVersion:'
+        static final String DOCUMENT = 'Doc:'
+    }
+
     enum TestIssueLabels {
         Error,
         Failed,
@@ -199,7 +204,7 @@ class JiraUseCase {
     }
 
     private String getDocumentChapterIssueLabelForDocumentType(String documentType) {
-        return "Doc:${documentType}"
+        return "${LabelPrefix.DOCUMENT}${documentType}"
     }
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {

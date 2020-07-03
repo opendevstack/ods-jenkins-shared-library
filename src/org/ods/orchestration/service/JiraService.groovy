@@ -417,6 +417,29 @@ class JiraService {
     }
 
     @NonCPS
+    List<String> getLabelsFromIssue(String issueIdOrKey) {
+        if (!issueIdOrKey?.trim()) {
+            throw new IllegalArgumentException("Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined.")
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
+            .routeParam("issueIdOrKey", issueIdOrKey)
+            .queryString("fields", "labels")
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get labels from Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get labels from Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+            throw new RuntimeException(message)
+        }
+        new JsonSlurperClassic().parseText(response.getBody()).getOrDefault("fields", [:]).getOrDefault("labels", [])
+    }
+
+    @NonCPS
     void removeLabelsFromIssue(String issueIdOrKey, List names) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException("Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined.")
