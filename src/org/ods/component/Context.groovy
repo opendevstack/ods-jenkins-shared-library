@@ -56,6 +56,8 @@ class Context implements IContext {
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 
+        config.sonarQubeEdition = script.env.SONARQUBE_EDITION ?: 'community'
+
         config.globalExtensionImageLabels = getExtensionBuildParams()
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
@@ -95,12 +97,6 @@ class Context implements IContext {
         }
         if (!config.containsKey('cloneProjectScriptBranch')) {
             config.cloneProjectScriptBranch = 'master'
-        }
-        if (config.containsKey('sonarQubeBranch')) {
-            script.echo "Setting option 'sonarQubeBranch' of the pipeline is deprecated, " +
-                "please use option 'branch' of the stage."
-        } else {
-            config.sonarQubeBranch = 'master'
         }
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
             config.failOnSnykScanVulnerabilities = true
@@ -312,6 +308,11 @@ class Context implements IContext {
 
     String getTargetProject() {
         config.targetProject
+    }
+
+    @NonCPS
+    String getSonarQubeEdition() {
+        config.sonarQubeEdition
     }
 
     @NonCPS
