@@ -1,7 +1,5 @@
 package org.ods.component
 
-import com.cloudbees.groovy.cps.NonCPS
-
 import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
@@ -30,11 +28,14 @@ class ScanWithSonarStage extends Stage {
         } else {
             config.eligibleBranches = ['master']
         }
+        if (!config.containsKey('longLivedBranches')) {
+            config.longLivedBranches = context.branchToEnvironmentMapping
+                .keySet()
+                .findAll { it != '*' && !it.endsWith('/') }
+                .toList()
+        }
         if (!config.containsKey('analyzePullRequests')) {
             config.analyzePullRequests = true
-        }
-        if (!config.longLivedBranches) {
-            config.longLivedBranches = extractLongLivedBranches(context.branchToEnvironmentMapping)
         }
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
@@ -44,12 +45,23 @@ class ScanWithSonarStage extends Stage {
     }
 
     protected run() {
+        if (config.eligibleBranches) {
+            logger.info "Scanned branches: ${config.eligibleBranches.join(', ')}"
+        } else {
+            logger.info 'No branches to scan configured.'
+            return
+        }
+
         if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
             logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
 
-        script.echo "Long-lived branches: ${config.longLivedBranches.join(', ')}."
+        if (config.longLivedBranches) {
+            logger.info "Long-lived branches: ${config.longLivedBranches.join(', ')}"
+        } else {
+            logger.info 'No long-lived branches configured.'
+        }
 
         def sonarProperties = sonarQube.readProperties()
 
@@ -73,14 +85,6 @@ class ScanWithSonarStage extends Stage {
                 script.echo 'Quality gate passed.'
             }
         }
-    }
-
-    @NonCPS
-    private List<String> extractLongLivedBranches(Map branchMapping) {
-        def branches = branchMapping.keySet()
-        branches.removeAll { it.toLowerCase().endsWith('/') }
-        branches.removeAll { it == '*' }
-        branches.toList()
     }
 
     private void scan(Map sonarProperties) {
