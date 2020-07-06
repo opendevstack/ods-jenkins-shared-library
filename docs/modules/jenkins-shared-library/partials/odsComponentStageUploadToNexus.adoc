@@ -12,7 +12,7 @@ Available options:
 | default is the `maven2`
 
 | distributionFile
-| default is `${projectId}-${componentId}.tar.gz`
+| default is `${componentId}-${tagversion}.tar.gz`
 
 | repository
 | the nexus repository name, default is `candidates`
