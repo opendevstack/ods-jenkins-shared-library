@@ -267,9 +267,9 @@ class Project {
 
             if (getIsAssembleMode()) {
                 if (baseTag) {
-                    targetTag = baseTag.withNextBuildNumber()
+                    targetTag = baseTag.nextIterationWithBuildNumber(steps.env.BUILD_NUMBER)
                 } else {
-                    targetTag = new GitTag(version, changeId, 0, targetEnvironmentToken)
+                    targetTag = new GitTag(version, changeId, 0, steps.env.BUILD_NUMBER, targetEnvironmentToken)
                 }
             } else {
                 if (baseTag) {
@@ -442,6 +442,14 @@ class Project {
 
     static boolean isWorkInProgress(String version) {
         version == BUILD_PARAM_VERSION_DEFAULT
+    }
+
+    static String envStateFileName(String targetEnvironment) {
+        "${MROPipelineUtil.ODS_STATE_DIR}/${targetEnvironment}.json"
+    }
+
+    String getEnvStateFileName() {
+        envStateFileName(buildParams.targetEnvironment)
     }
 
     Map getBuildParams() {
@@ -791,6 +799,8 @@ class Project {
         def changeId = steps.env.changeId?.trim() ?: 'UNDEFINED'
         def configItem = steps.env.configItem?.trim() ?: 'UNDEFINED'
         def changeDescription = steps.env.changeDescription?.trim() ?: 'UNDEFINED'
+        // Set rePromote=true if an existing tag should be deployed again
+        def rePromote = steps.env.rePromote?.trim() == 'true'
 
         return [
             changeDescription: changeDescription,
@@ -799,7 +809,8 @@ class Project {
             releaseStatusJiraIssueKey: releaseStatusJiraIssueKey,
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
-            version: version
+            version: version,
+            rePromote: rePromote
         ]
     }
 
@@ -975,8 +986,10 @@ class Project {
                     "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
 
-            repo.data = [:]
-            repo.data.documents = [:]
+            repo.data = [
+                openshift: [:],
+                documents: [:]
+            ]
 
             // Set repo type, if not provided
             if (!repo.type?.trim()) {
@@ -1125,7 +1138,11 @@ class Project {
         "${getKey()}-cd-${secretName}"
     }
 
-    boolean forceGlobalRebuild () {
+    String getSourceRegistrySecretName() {
+        'mro-image-pull'
+    }
+
+    boolean getForceGlobalRebuild() {
         return (this.data.metadata.allowPartialRebuild &&
             this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
     }

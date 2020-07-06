@@ -1159,7 +1159,7 @@ class ProjectSpec extends SpecHelper {
         def expected = new Yaml().load(new File(Project.METADATA_FILE_NAME).text)
         expected.repositories.each { repo ->
             repo.branch = "master"
-            repo.data = [ documents: [:] ]
+            repo.data = [ documents: [:], openshift: [:] ]
             repo.url = "https://github.com/my-org/net-${repo.id}.git"
         }
 

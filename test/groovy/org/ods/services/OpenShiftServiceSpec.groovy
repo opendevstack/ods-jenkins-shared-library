@@ -1,5 +1,7 @@
 package org.ods.services
 
+import groovy.json.JsonSlurperClassic
+
 import spock.lang.*
 
 import util.*
@@ -59,7 +61,7 @@ class OpenShiftServiceSpec extends SpecHelper {
         def file = new FixtureHelper().getResource("pod.json")
 
         when:
-        def result = service.extractPodData(file.text, "deployment 'bar'")
+        def result = service.extractPodData(new JsonSlurperClassic().parseText(file.text))
 
         then:
         result == [

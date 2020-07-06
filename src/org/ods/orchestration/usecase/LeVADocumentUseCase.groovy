@@ -1155,17 +1155,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        if (!repo.data.openshift && repo.data.odsBuildArtifacts) {
-            repo.data['openshift'] = [:]
-            repo.data.openshift << repo.data.odsBuildArtifacts.subMap (['builds','deployments'])
-            this.steps.echo("Fetched openshift data from build for repo: ${repo.id} \r${repo.data.openshift}")
-        }
-
         def deploynoteData = 'Components were built & deployed during installation.'
-        if (!!repo.data.odsBuildArtifacts?.resurrected) {
+        if (repo.data.openshift.resurrectedBuild) {
             deploynoteData = "Components were found, and are 'up to date' with version control -no deployments happend!\r" +
-                " SCRR was restored from the corresponding creation build (${repo.data.odsBuildArtifacts?.resurrected})"
-        } else if (!repo.data.openshift?.builds) {
+                " SCRR was restored from the corresponding creation build (${repo.data.openshift.resurrectedBuild})"
+        } else if (!repo.data.openshift.builds) {
             deploynoteData = 'NO Components were built during installation, existing components (created in Dev) were deployed.'
         }
 
@@ -1173,10 +1167,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
             openShiftData: [
-                builds      : repo.data.openshift?.builds ?: '',
-                deployments : repo.data.openshift?.deployments ?: ''
+                builds     : repo.data.openshift.builds ?: '',
+                deployments: repo.data.openshift.deployments ?: ''
             ],
-            data         : [
+            data: [
                 repo    : repo,
                 sections: sections
             ]
