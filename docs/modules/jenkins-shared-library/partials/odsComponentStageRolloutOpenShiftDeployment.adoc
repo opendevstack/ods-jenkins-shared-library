@@ -15,7 +15,7 @@ Available options:
 | Name of `DeploymentConfig` to use (defaults to `context.componentId`).
 
 | deployTimeoutMinutes
-| Adjust timeout of rollout (defaults to 5 minutes).
+| Adjust timeout of rollout (defaults to 5 minutes). Needs to be kept in sync with the OpenShift rollout timeouts and summarized health-check timeouts.
 
 | openshiftDir
 | Directory with OpenShift templates (defaults to `openshift`).
