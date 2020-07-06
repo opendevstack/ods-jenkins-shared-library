@@ -1796,7 +1796,7 @@ class ProjectSpec extends SpecHelper {
 
 
         req1 << [risks: [rsk1.key], tests: [tst1.key]]
-        req2 << [predecessors: [[key: req0.key, version: req0.version]]]
+        req2 << [predecessors: [req0.key], expandedPredecessors: [[key: req0.key, version: req0.version]]]
         rsk1 << [requirements: [req1.key], tests: [tst1.key]]
         tst1 << [requirements: [req1.key], risks: [rsk1.key]]
 
@@ -1805,9 +1805,10 @@ class ProjectSpec extends SpecHelper {
         def req1Updated = req1.clone() + [risks: [rsk2.key]]
         def tst1Updated = tst1.clone() + [risks: [rsk2.key]]
         def rsk2WithDetails = rsk2.clone()
-        rsk2WithDetails << [predecessors: [key: rsk1.key, version: rsk1.version]]
+        rsk2WithDetails << [expandedPredecessors: [[key: rsk1.key, version: rsk1.version]]]
         def req3withDetails = req3.clone()
-        req3withDetails << [predecessors: [[key: req2.key, version: req2.version],[key: req0.key, version: req0.version]]]
+        req3withDetails << [expandedPredecessors: [[key: req2.key, version: req2.version],
+                                                   [key: req0.key, version: req0.version]]]
 
         def storedData = [
             components  : [:],

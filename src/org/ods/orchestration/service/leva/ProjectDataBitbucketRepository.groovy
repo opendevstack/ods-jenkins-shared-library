@@ -14,20 +14,20 @@ class ProjectDataBitbucketRepository {
         this.steps = steps
     }
 
-    void save(Map jiraData, String version) {
+    void save(Object jiraData, String version) {
         def jsonOut = this.steps.readJSON( text: groovy.json.JsonOutput.toJson(jiraData))
         this.steps.writeJSON(file: "${BASE_DIR}/${version}.json", json: jsonOut, pretty: 2)
     }
 
-    Map loadVersionSnapshot(String savedVersion) {
-        def savedData =  this.steps.readFile(file: "${BASE_DIR}/${savedVersion}.json")
+    Object loadFile(String fileName) {
+        def savedData =  this.steps.readFile(file: "${BASE_DIR}/${fileName}.json")
         def data = [:]
         if (savedData) {
             data = new JsonSlurperClassic().parseText(savedData) ?: [:]
         } else {
             throw new RuntimeException(
                 'Error: unable to load saved information prom the previous version. ' +
-                    "File '${BASE_DIR}/${savedVersion}.json' could not be read."
+                    "File '${BASE_DIR}/${fileName}.json' could not be read."
             )
         }
         return data
