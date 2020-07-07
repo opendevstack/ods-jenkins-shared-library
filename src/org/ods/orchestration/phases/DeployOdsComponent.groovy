@@ -141,7 +141,7 @@ class DeployOdsComponent {
             def imageName = imageInfo.first()
             def imageSha = imageInfo.last()
             if (project.targetClusterIsExternal) {
-                os.importImageFromSourceRegistry(
+                os.importImageShaFromSourceRegistry(
                     imageName,
                     project.sourceRegistrySecretName,
                     sourceProject,
@@ -149,7 +149,7 @@ class DeployOdsComponent {
                     project.targetTag
                 )
             } else {
-                os.importImageFromProject(
+                os.importImageShaFromProject(
                     imageName,
                     sourceProject,
                     imageSha,

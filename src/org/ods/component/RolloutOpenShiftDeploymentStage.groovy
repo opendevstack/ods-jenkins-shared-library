@@ -22,6 +22,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
+        if (!config.imageTag) {
+            config.imageTag = context.shortGitCommit
+        }
         if (!config.deployTimeoutMinutes) {
             config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 5
         }
@@ -133,7 +136,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     }
 
     private void setImageTagLatest(List<Map<String, String>> imageStreams) {
-        imageStreams.each { openShift.setImageTag(it.name, context.tagversion, 'latest') }
+        imageStreams.each { openShift.setImageTag(it.name, config.imageTag, 'latest') }
     }
 
 }

@@ -138,7 +138,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "skip when no environment given"() {
     given:
-    def config = [environment: null]
+    def config = [environment: null, gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e']
     def context = new Context(null, config, logger)
 
     when:

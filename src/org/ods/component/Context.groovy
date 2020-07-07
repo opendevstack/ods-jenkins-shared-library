@@ -110,6 +110,9 @@ class Context implements IContext {
         if (!config.containsKey('openshiftRolloutTimeout')) {
             config.openshiftRolloutTimeout = 5 // minutes
         }
+        if (!config.containsKey('imagePromotionSequences')) {
+            config.imagePromotionSequences = ['dev->test', 'test->prod']
+        }
         if (!config.groupId) {
             config.groupId = "org.opendevstack.${config.projectId}"
         }
@@ -121,7 +124,7 @@ class Context implements IContext {
         config.gitCommitAuthor = retrieveGitCommitAuthor()
         config.gitCommitMessage = retrieveGitCommitMessage()
         config.gitCommitTime = retrieveGitCommitTime()
-        config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
+        config.tagversion = "${config.buildNumber}-${getShortGitCommit()}"
 
         if (!config.containsKey('testResults')) {
             config.testResults = ''
@@ -246,6 +249,11 @@ class Context implements IContext {
         config.branchToEnvironmentMapping
     }
 
+    @NonCPS
+    List<String> getImagePromotionSequences() {
+        config.imagePromotionSequences
+    }
+
     String getAutoCloneEnvironmentsFromSourceMapping() {
         config.autoCloneEnvironmentsFromSourceMapping
     }
@@ -290,8 +298,14 @@ class Context implements IContext {
         config.repoName
     }
 
+    @NonCPS
     String getGitCommit() {
         config.gitCommit
+    }
+
+    @NonCPS
+    String getShortGitCommit() {
+        config.gitCommit.take(8)
     }
 
     String getGitCommitAuthor() {

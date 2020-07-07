@@ -60,6 +60,8 @@ interface IContext {
     // Define which environments are cloned from which source environments.
     String getAutoCloneEnvironmentsFromSourceMapping()
 
+    List<String> getImagePromotionSequences()
+
     // The environment which was chosen as the clone source.
     String getCloneSourceEnv()
 
@@ -100,6 +102,9 @@ interface IContext {
 
     // Git commit SHA to build.
     String getGitCommit()
+
+    // Shortened Git commit SHA to build.
+    String getShortGitCommit()
 
     // Git commit author.
     String getGitCommitAuthor()

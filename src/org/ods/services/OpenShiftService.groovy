@@ -91,6 +91,14 @@ class OpenShiftService {
         ).trim()
     }
 
+    static String imageExists(IPipelineSteps steps, String project, String name, String tag) {
+        steps.sh(
+            returnStatus: true,
+            script: "oc -n ${project} get istag ${name}:${tag} &> /dev/null",
+            label: "Check existance of image ${name}:${tag}"
+        ) == 0
+    }
+
     boolean envExists() {
         envExists(steps, project)
     }
@@ -336,28 +344,33 @@ class OpenShiftService {
         )
     }
 
-    void importImageFromProject(String name, String sourceProject, String imageSha, String imageTag) {
-        steps.sh(
-            script: """oc -n ${project} tag ${sourceProject}/${name}@${imageSha} ${name}:${imageTag}""",
-            label: "Tag image ${name} into ${project}"
+    void importImageTagFromProject(String name, String sourceProject, String sourceTag, String targetTag) {
+        importImageFromProject(sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}")
+    }
+
+    void importImageTagFromSourceRegistry(
+        String name,
+        String sourceRegistrySecret,
+        String sourceProject,
+        String sourceTag,
+        String targetTag) {
+        importImageFromSourceRegistry(
+            sourceRegistrySecret, sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}"
         )
     }
 
-    void importImageFromSourceRegistry(
+    void importImageShaFromProject(String name, String sourceProject, String imageSha, String imageTag) {
+        importImageFromProject(sourceProject, "${name}@${imageSha}", "${name}:${imageTag}")
+    }
+
+    void importImageShaFromSourceRegistry(
         String name,
         String sourceRegistrySecret,
         String sourceProject,
         String imageSha,
         String imageTag) {
-        def sourceClusterRegistryHost = getSourceClusterRegistryHost(sourceRegistrySecret)
-        def sourceImage = "${sourceClusterRegistryHost}/${sourceProject}/${name}@${imageSha}"
-        steps.sh(
-            script: """
-              oc -n ${project} import-image ${name}:${imageTag} \
-                --from=${sourceImage} \
-                --confirm
-            """,
-            label: "Import image ${sourceImage} into ${project}/${name}:${imageTag}"
+        importImageFromSourceRegistry(
+            sourceRegistrySecret, sourceProject, "${name}@${imageSha}", "${name}:${imageTag}"
         )
     }
 
@@ -588,6 +601,30 @@ class OpenShiftService {
         }
         logger.debug("Container '${containerName}' is using defined image '${definedImageSha}'.")
         true
+    }
+
+    private void importImageFromProject(String sourceProject, String sourceImageRef, String targetImageRef) {
+        steps.sh(
+            script: """oc -n ${project} tag ${sourceProject}/${sourceImageRef} ${targetImageRef}""",
+            label: "Import image ${sourceImageRef} to ${project}/${targetImageRef}"
+        )
+    }
+
+    private void importImageFromSourceRegistry(
+        String sourceRegistrySecret,
+        String sourceProject,
+        String sourceImageRef,
+        String targetImageRef) {
+        def sourceClusterRegistryHost = getSourceClusterRegistryHost(sourceRegistrySecret)
+        def sourceImageFull = "${sourceClusterRegistryHost}/${sourceProject}/${sourceImageRef}"
+        steps.sh(
+            script: """
+              oc -n ${project} import-image ${targetImageRef} \
+                --from=${sourceImageFull} \
+                --confirm
+            """,
+            label: "Import image ${sourceImageFull} into ${project}/${targetImageRef}"
+        )
     }
 
     @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
