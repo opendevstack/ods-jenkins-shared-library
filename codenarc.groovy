@@ -393,7 +393,7 @@ ruleset {
     UnnecessaryElseStatement
     UnnecessaryFinalOnPrivateMethod
     UnnecessaryFloatInstantiation
-    UnnecessaryGString
+    UnnecessaryGString(enabled: false) // disabled as to not distract by thinking about the differences to String
     UnnecessaryGetter(enabled: false) // disabled to make grepping through files easier
     UnnecessaryIfStatement
     UnnecessaryInstanceOfCheck
