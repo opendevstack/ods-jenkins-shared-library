@@ -101,6 +101,13 @@ class Pipeline implements Serializable {
                         logger.debug('-> Registering & loading global services')
                         def registry = ServiceRegistry.instance
 
+                        // In non-MRO case, reset the ServiceRegistry.
+                        // This allows users to have two pipelines in one
+                        // Jenkinsfile with e.g. differing OpenShift target projects.
+                        if (this.localCheckoutEnabled) {
+                            registry.clear()
+                        }
+
                         // if we run in another context there is a good chance
                         // services have been already registered
                         if (!registry.get(GitService)) {
