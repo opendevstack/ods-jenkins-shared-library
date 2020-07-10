@@ -487,9 +487,10 @@ class OpenShiftService {
         def urlParts = url.split('/').toList()
 
         if (urlParts.size() < 2) {
-            throw new RuntimeException(
-                "ERROR: Image URL ${url} must have at least two parts (repository/reference)"
-            )
+            logger.debug "Image URL ${url} does not define the repository explicitly."
+            imageInfo.repository = ''
+        } else {
+            imageInfo.repository = urlParts[-2]
         }
 
         if (urlParts.size() > 2) {
@@ -498,8 +499,6 @@ class OpenShiftService {
             logger.debug "Image URL ${url} does not define the registry explicitly."
             imageInfo.registry = ''
         }
-
-        imageInfo.repository = urlParts[-2]
 
         if (urlParts[-1].contains('@')) {
             def shaParts = urlParts[-1].split('@').toList()
