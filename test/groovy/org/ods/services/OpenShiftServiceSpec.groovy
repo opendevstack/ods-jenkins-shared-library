@@ -26,6 +26,8 @@ class OpenShiftServiceSpec extends SpecHelper {
         '172.30.21.196:5000/baz/qux@sha256:abc' || '172.30.21.196:5000' | 'baz'      | 'qux'
         'baz/qux@sha256:abc'                    || ''                   | 'baz'      | 'qux'
         'foo/bar:2-3ec425bc'                    || ''                   | 'foo'      | 'bar'
+        'qux@sha256:abc'                        || ''                   | ''         | 'qux'
+        'bar:2-3ec425bc'                        || ''                   | ''         | 'bar'
     }
 
     def "image info with SHA for image stream URL"() {
