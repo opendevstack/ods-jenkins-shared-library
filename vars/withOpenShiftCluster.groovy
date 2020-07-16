@@ -2,6 +2,33 @@ import org.ods.component.IContext
 import org.ods.services.OpenShiftService
 import org.ods.util.PipelineSteps
 
+// You may use withOpenShiftCluster to execute code against another OpenShift cluster.
+// It is required to pass the API url (can be retrieved via "oc whoami --show-server")
+// of the external cluster via config.apiUrl, and provide the credentials of a
+// serviceaccount with appropriate access there. The credentials need to be stored in an
+// OpenShift Secret resource which is synced as a Jenkins credential.
+//
+// To create the serviceaccount in the external cluster, run e.g.:
+//   oc create sa <SA-NAME>
+//   oc policy add-role-to-user admin system:serviceaccount:<PROJECT-NAME>:<SA-NAME> -n <PROJECT-NAME>
+//
+// Then, create a secret in the cluster where the Jenkins instance runs, e.g.:
+//   oc -n <PROJECT-NAME> create secret generic <SECRET-NAME> \
+//     --from-literal=password=$<SA-TOKEN> \
+//     --from-literal=username=<SA-NAME> \
+//     --type="kubernetes.io/basic-auth"
+//   oc -n <PROJECT-NAME> label secret <SECRET-NAME> credential.sync.jenkins.openshift.io=true
+//
+// The synced Jenkins credential is then named "<PROJECT_KEY>-cd-<SECRET-NAME>", and needs to
+// be passed as config.credentialsId.
+//
+// Example usage:
+//
+//   withOpenShiftCluster(context, [apiUrl: "https://api.example.com", credentialsId: "foo-cd-sa-example"]) {
+//     // Your code here, e.g.
+//     // sh "oc whoami --show-server" // prints https://api.example.com
+//   }
+//
 def call(IContext context, Map config = [:], Closure block) {
     if (!!env.MULTI_REPO_BUILD) {
         error('withOpenShiftCluster is not supported within an orchestration pipeline context.')
