@@ -1,6 +1,17 @@
 Imports an image from another namespace if possible,
 otherwise execute the given closure.
 
+Example:
+[source,groovy]
+----
+odsComponentStageImportOpenShiftImageOrElse(context) {
+  stage('Build') {
+    // custom stage to build your application package
+  }
+  odsComponentStageBuildOpenShiftImage(context)
+}
+----
+
 The stage takes the exact same options as `odsComponentStageImportOpenShiftImage`.
 
 Before running the image import, it checks whether the image (identified by the
