@@ -1068,7 +1068,7 @@ class Project {
         def result = [:]
 
         data.each { type, values ->
-            if (type == 'project') {
+            if (!JiraDataItem.TYPES.contains(type)) {
                 return
             }
 
