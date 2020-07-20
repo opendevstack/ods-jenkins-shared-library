@@ -409,7 +409,7 @@ class Context implements IContext {
             return
         }
         // Fixed name
-        def env = config.branchToEnvironmentMapping[config.gitBranch]
+        def env = config.branchToEnvironmentMapping.get("${config.gitBranch}")
         if (env) {
             config.environment = env
             config.cloneSourceEnv = environmentExists(env)
