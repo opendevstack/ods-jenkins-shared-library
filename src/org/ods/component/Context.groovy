@@ -409,12 +409,17 @@ class Context implements IContext {
             return
         }
         // Fixed name
-        def env = config.branchToEnvironmentMapping.get("${config.gitBranch}")
+        def env = config.branchToEnvironmentMapping[config.gitBranch]
+        // this is for cases where we set a $key into the map - e.g. prov app / doc gen
+        if (!env) {
+            env = config.branchToEnvironmentMapping.get("${config.gitBranch}")
+        }
         if (env) {
             config.environment = env
             config.cloneSourceEnv = environmentExists(env)
                 ? false
                 : config.autoCloneEnvironmentsFromSourceMapping[env]
+            logger.debug("Target env: ${env}, clone src: ${cloneSourceEnv}")
             return
         }
 
