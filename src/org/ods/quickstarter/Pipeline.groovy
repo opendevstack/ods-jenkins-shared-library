@@ -128,7 +128,7 @@ class Pipeline implements Serializable {
             ]
         }
 
-        def podLabel = "quickstarter-${config.sourceDir}-${config.projectId}-${config.componentId}"
+        def podLabel = "qs-${UUID.randomUUID().toString()}"
 
         script.podTemplate(
             label: podLabel,
