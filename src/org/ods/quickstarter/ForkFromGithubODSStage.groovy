@@ -11,11 +11,14 @@ class ForkFromGithubODSStage extends Stage {
         if (!config.branch) {
             config.branch = 'master'
         }
+        if (!config.sourceRepository && config.odsComponent) {
+            config.sourceRepository = "https://github.com/opendevstack/${config.odsComponent}.git"
+        }
     }
 
     def run() {
-        if (!config.odsComponent) {
-            script.error("Cannot fork from github with null component name! please provide valid param 'odsComponent'")
+        if (!config.sourceRepository) {
+            script.error("Cannot fork without param 'sourceRepository' or 'odsComponent'")
         }
 
         script.withCredentials(
@@ -31,23 +34,22 @@ class ForkFromGithubODSStage extends Stage {
                 script.env.pass as String)
         }
 
-        def githubRepoUrl = "https://github.com/opendevstack/${config.odsComponent}.git"
-        script.echo ("Forking ${githubRepoUrl}, branch: ${config.branch}")
+        script.echo("Forking ${config.sourceRepository}, branch: ${config.branch}")
         script.dir(context.targetDir) {
             def status = script.sh(
                 script: """
                   git init
                   git remote add origin ${context.gitUrlHttp}
-                  git remote add github ${githubRepoUrl}
-                  git fetch github
-                  git checkout --no-track -b ${config.branch} github/${config.branch}
+                  git remote add source ${config.sourceRepository}
+                  git fetch source
+                  git checkout --no-track -b ${config.branch} source/${config.branch}
                 """,
-                label: "Fork '${config.odsComponent}' from github @${githubRepoUrl}",
+                label: "Fork from ${config.sourceRepository}",
                 returnStatus: true
             )
 
             if (status != 0) {
-                script.error ("Could not fork ${githubRepoUrl}, status ${status}")
+                script.error("Could not fork ${config.sourceRepository}, status ${status}")
             }
         }
     }
