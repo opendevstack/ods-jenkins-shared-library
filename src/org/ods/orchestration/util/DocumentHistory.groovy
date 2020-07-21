@@ -1,6 +1,6 @@
 package org.ods.orchestration.util
 
-import com.cloudbees.groovy.cps.NonCPS
+
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -9,159 +9,41 @@ import org.ods.util.IPipelineSteps
  * This class contains the logic for keeping a consistent document version.
  */
 class DocumentHistory {
-
-    class VersionEntry implements Map, Serializable {
-
-        private final Long id
-        private HashMap delegate
-        private final String projectVersion
-        private final String previousProjectVersion
-        String rationaleConcurrentVersions = ""
-
-        VersionEntry(Map map, Long id, String projectVersion, String previousProjectVersion) {
-            this.delegate = new HashMap(map)
-            this.id = id
-            this.projectVersion = projectVersion
-            this.previousProjectVersion = previousProjectVersion
-        }
-
-        @NonCPS
-        @Override
-        int size() {
-            return delegate.size()
-        }
-
-        @NonCPS
-        @Override
-        boolean isEmpty() {
-            return delegate.isEmpty()
-        }
-
-        @NonCPS
-        @Override
-        boolean containsKey(Object key) {
-            return delegate.containsKey(key)
-        }
-
-        @NonCPS
-        @Override
-        boolean containsValue(Object value) {
-            return delegate.containsValue(value)
-        }
-
-        @NonCPS
-        @Override
-        Object get(Object key) {
-            return delegate.get(key)
-        }
-
-        @NonCPS
-        @Override
-        Object put(Object key, Object value) {
-            return delegate.put(key, value)
-        }
-
-        @NonCPS
-        @Override
-        Object remove(Object key) {
-            return delegate.remove(key)
-        }
-
-        @NonCPS
-        @Override
-        void putAll(Map m) {
-            delegate.putAll(m)
-        }
-
-        @NonCPS
-        @Override
-        void clear() {
-            delegate.clear()
-        }
-
-        @NonCPS
-        @Override
-        Set keySet() {
-            return delegate.keySet()
-        }
-
-        @NonCPS
-        @Override
-        Collection values() {
-            return delegate.values()
-        }
-
-        @NonCPS
-        @Override
-        Set<Entry> entrySet() {
-            return delegate.entrySet()
-        }
-
-        @NonCPS
-        Long getId() {
-            return id
-        }
-
-        @NonCPS
-        String getProjectVersion() {
-            return projectVersion
-        }
-
-        @NonCPS
-        String getPreviousProjectVersion() {
-            return previousProjectVersion
-        }
-
-        @NonCPS
-        Map getDelegate() {
-            return delegate
-        }
-
-        @NonCPS
-        VersionEntry cloneIt() {
-            def bos = new ByteArrayOutputStream()
-            def os = new ObjectOutputStream(bos)
-            os.writeObject(this.delegate)
-            def ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))
-
-            def newDelegate = ois.readObject()
-            VersionEntry result = new VersionEntry(newDelegate, id, projectVersion, previousProjectVersion)
-            result.rationaleConcurrentVersions = this.rationaleConcurrentVersions
-            return result
-        }
-
-    }
+    
 
     protected IPipelineSteps steps
     protected ILogger logger
-    protected List<VersionEntry> data = []
+    protected List<DocumentHistoryEntry> data = []
     protected String targetEnvironment
     /**
      * Autoincremental number containing the internal version Id of the document
      */
     protected Long latestVersionId
 
-    DocumentHistory(IPipelineSteps steps, ILogger logger, Map jiraData, String targetEnvironment,
-                    Long savedVersionId = null) {
+    DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment) {
         this.steps = steps
         this.logger = logger
 
         if (!targetEnvironment)
             throw new RuntimeException('Variable \'targetEnvironment\' cannot be empty for computing Document History')
         this.latestVersionId = 1L
-
-        def newDocVersionEntry = parseJiraDataToVersionEntry(jiraData)
-        if (savedVersionId) {
-            this.latestVersionId = savedVersionId + 1L
-            this.data = this.loadSavedDocHistoryData(targetEnvironment, savedVersionId)
-            newDocVersionEntry.rationaleConcurrentVersions = rationaleIfConcurrentVersionsAreFound(newDocVersionEntry)
-
-        }
-        this.data.add(newDocVersionEntry)
+        this.targetEnvironment = targetEnvironment
     }
 
-    private VersionEntry rationaleIfConcurrentVersionsAreFound(VersionEntry currentEntry) {
-        def oldVersionsSimplified = (this.data.clone() as List<VersionEntry>).collect{
+    DocumentHistory load(Map jiraData, Long savedVersionId) {
+        if (savedVersionId) {
+            this.latestVersionId = savedVersionId + 1L
+            this.data = this.loadSavedDocHistoryData(savedVersionId)
+        }
+        def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData)
+        newDocDocumentHistoryEntry.rational = rationaleIfConcurrentVersionsAreFound(newDocDocumentHistoryEntry)
+        this.data.add(newDocDocumentHistoryEntry)
+        this.data.sort{a, b-> b.getEntryId()<=>a.getEntryId()}
+        this
+    }
+
+    private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
+        def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect{
             [id: it.id, previousProjectVersion: it.previousProjectVersion]
         }.findAll { it.id != currentEntry.id}
         def concurrentVersions = oldVersionsSimplified.reverse()
@@ -184,15 +66,13 @@ class DocumentHistory {
 
     }
 
-    VersionEntry getVersionEntry(Long id) {
-        return this.data.find {it.id == id }
-    }
-
-    private VersionEntry parseJiraDataToVersionEntry(Map<String, Map> jiraData) {
+    private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {
         def projectVersion = jiraData.version
-        def previousProjectVersion = jiraData.previousVersion
+        def previousProjectVersion = jiraData.previousVersion?:''
         def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }.collectEntries {
-            issueType, Map<String, Project.JiraDataItem> issues ->
+            issueType, Map<String, Map> issues ->
+                this.failIfThereAreIssuesWithoutVersions(issues.values())
+
                 def issuesOfThisVersion = issues.findAll {it.value.version == projectVersion}.collect{
                     issueKey, issue ->
                     def isAnUpdate = ! issue.getOrDefault('predecessors', []).isEmpty()
@@ -209,14 +89,38 @@ class DocumentHistory {
                 [(issueType): issueKeys.collect{ [key: it, action: 'discontinue']}]
         }
         def versionMap = Project.JiraDataItem.TYPES.collectEntries{ String issueType ->
-            additionsAndUpdates.getOrDefault(issueType, []) + discontinuations.getOrDefault(issueType, [])
-        }
-
-        return new VersionEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion)
+            [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
+                + discontinuations.getOrDefault(issueType, [])]
+        } as Map
+        return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
-    protected List<VersionEntry> loadSavedDocHistoryData(Long versionIdToRetrieve) {
-        new ProjectDataBitbucketRepository(steps).loadFile(getSavedDocumentName(versionIdToRetrieve)) as List<VersionEntry>
+    private static void failIfThereAreIssuesWithoutVersions(Collection<Map> jiraIssues) {
+        if (!jiraIssues) return
+        def issuesWithNoVersion = jiraIssues.findAll { Map i ->
+            if (i.version) {
+                return false
+            } else {
+                return true
+            }
+        }
+        if (! issuesWithNoVersion.isEmpty()) {
+            throw new RuntimeException('In order to build a coherent document history we need to have a' +
+                ' version for all the elements. In this case, the following items have this state: ' +
+                "'${issuesWithNoVersion.collect{it.key}.join(', ')}'")
+        }
+    }
+
+    List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve) {
+        //println("retrieving " +this.getSavedDocumentName(versionIdToRetrieve) )
+        //new ProjectDataBitbucketRepository(steps)
+        //    .loadFile(this.getSavedDocumentName(versionIdToRetrieve)) as List<DocumentHistoryEntry>
+        []
+    }
+
+    void saveDocHistoryData() {
+        new ProjectDataBitbucketRepository(steps)
+            .save(this.data, this.getSavedDocumentName(this.latestVersionId))
     }
 
     protected String getSavedDocumentName(Long versionId) {

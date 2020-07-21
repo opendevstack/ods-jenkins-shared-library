@@ -59,7 +59,7 @@ class ProjectDataBitbucketRepositorySpec extends SpecHelper {
         def jsonObject = new JsonSlurperClassic().parseText(textfile)
 
         when:
-        def result = repo.loadVersionSnapshot(version)
+        def result = repo.loadFile(version)
 
         then:
         1 * steps.readFile(file: "${ProjectDataBitbucketRepository.BASE_DIR}/${version}.json") >> textfile

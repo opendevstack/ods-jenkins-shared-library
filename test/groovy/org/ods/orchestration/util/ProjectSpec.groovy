@@ -1673,7 +1673,7 @@ class ProjectSpec extends SpecHelper {
         def rskResult = project.getRisks().first()
         rskResult.requirements == rsk1Updated.requirements
         rskResult.tests == rsk1Updated.tests
-        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [rsk1Updated])
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req1Updated])
         issueListIsEquals(rskResult.getResolvedTests(), [tst1, tst2])
     }
 
@@ -1800,7 +1800,8 @@ class ProjectSpec extends SpecHelper {
         rsk1 << [requirements: [req1.key], tests: [tst1.key]]
         tst1 << [requirements: [req1.key], risks: [rsk1.key]]
 
-        rsk2 << [requirements: [req1.key], tests: [tst1.key], predecessors: [rsk1.key]]
+        rsk2 << [requirements: [req1.key], tests: [tst1.key], predecessors: [rsk1.key],
+                 expandedPredecessors: [[key: rsk1.key, version: rsk1.version]]]
         req3 << [predecessors: [req2.key]]
         def req1Updated = req1.clone() + [risks: [rsk2.key]]
         def tst1Updated = tst1.clone() + [risks: [rsk2.key]]
@@ -1975,56 +1976,28 @@ class ProjectSpec extends SpecHelper {
         def rskResult = project.getRisks().first()
         rskResult.requirements == rsk1Updated.requirements
         rskResult.tests == rsk1Updated.tests
-        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [rsk1Updated])
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req1Updated])
         issueListIsEquals(rskResult.getResolvedTests(), [tst1])
     }
 
-    def "load jira data with pre-existing version information stored"() {
-        given:
-        def firstVersion = '1'
-        def secondVersion = '2'
-
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
-        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
-        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
-        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
-        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
-        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
-
-
-
-        def cmp1 = cmp("1")
-        def req1 = req(1, firstVersion)
-        def req2 = req('toDelete', firstVersion)
-        def req3 = req('toChange', firstVersion)
-        def req4 = req('changed', secondVersion)
-        def rsk1 = rsk('1', firstVersion)
-        def tst1 = tst('1', firstVersion)
-        def tst2 = tst('2', firstVersion)
-        def tst3 = tst('3', secondVersion)
-        def mit1 = mit('1', firstVersion)
-        def ts1 = ts('1', firstVersion)
-
-        //cmp1 << []
-
-    }
-
     Boolean issueIsEquals(Map issueA, Map issueB) {
-        issueA.forEach{mapKey, value ->
+        issueA == issueB
+
+        /*issueA.forEach{mapKey, value ->
             if (!issueB[mapKey]) return false
             if (issueB[mapKey] != value ) return false
         }
-        true
+        true*/
     }
 
     Boolean issueListIsEquals(List issuesA, List issuesB) {
         if (issuesA.size() != issuesB.size()) return false
         def issuesBKeys = issuesB.collect{it.key}
-        issuesA.forEach{ issueA ->
+        def areEquals = issuesA.collect{ issueA ->
             if (! issuesBKeys.contains(issueA.key)) return false
-            def correspondentIssueB = issuesB.find{it.key = issueA.key}
-            if (! issueIsEquals(issueA, correspondentIssueB)) return false
+            def correspondentIssueB = issuesB.find{it.key == issueA.key}
+            issueIsEquals(issueA, correspondentIssueB)
         }
-        true
+        return areEquals.isEmpty() || areEquals.contains(true)
     }
 }

@@ -302,7 +302,7 @@ class Project {
 
         def newData = this.loadJiraData(this.jiraProjectKey)
         // TODO removeme when jrra plugin is updated
-        newData.version = '1.1'
+        //newData.version = '1.1'
         //newData.predecessors = ['1.0']
 
         // Get more info of the versions from Jira
@@ -314,10 +314,11 @@ class Project {
 
         if (previousVersionId) {
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
-            this.data.jira = this.mergeJiraData(savedDataFromOldVersion, newData)
+            def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
+            this.data.jira << mergedData
             this.data.jira.previousVersion = previousVersionId
         } else {
-            this.data.jira = newData
+            this.data.jira << newData
         }
 
         // Get more info of the versions from Jira
@@ -1096,7 +1097,7 @@ class Project {
         def result = [:]
 
         data.each { type, values ->
-            if (['project', 'version', 'predecessors', 'continuations', 'discontinuations' ].contains (type)) {
+            if (! JiraDataItem.TYPES.contains (type)) {
                 return
             }
 
@@ -1189,7 +1190,7 @@ class Project {
     }
 
     @SuppressWarnings(['NestedBlockDepth'])
-    static Map mergeJiraData(Map oldData, Map newData) {
+    Map mergeJiraData(Map oldData, Map newData) {
         def mergeMaps = { Map left, Map right ->
             def keys = (left.keySet() + right.keySet()).toSet()
 
@@ -1286,7 +1287,7 @@ class Project {
                     linkedIssues.collect{ targetKey ->
                         if (isAnUpdate) {
                             issue.predecessors.collect{
-                                [origin: issue.key, target: targetKey, linkType: issueType, action: 'change', replaces: it.key]
+                                [origin: issue.key, target: targetKey, linkType: issueType, action: 'change', replaces: it]
                             }
                         } else {
                             [origin: issue.key, target: targetKey, linkType: issueType, action: 'add']
@@ -1318,7 +1319,7 @@ class Project {
     private static List getPreceededKeys(Map jiraData) {
         jiraData.findAll{JiraDataItem.TYPES.contains(it.key)}.values().collect{issueGroup ->
             issueGroup.values().collect{issue ->
-                [issue.getOrDefault('expandedPredecessors',[])].collect{it.key}
+                [issue.getOrDefault('expandedPredecessors',[]).collect{it.key}]
             }
         }.flatten().unique()
     }
@@ -1346,7 +1347,7 @@ class Project {
                                     "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
                                     "Existing issue list is '[${savedData.getOrDefault(issueType,[:]).keySet().join(', ')}]'")
                             }
-                            def existingPredecessors = predecessorIssue.getOrDefault('predecessors', [:])
+                            def existingPredecessors = predecessorIssue.getOrDefault('expandedPredecessors', [:])
                             def result = [[key: predecessorIssue.key, version: predecessorIssue.version]]
 
                             if (existingPredecessors) {
@@ -1354,7 +1355,7 @@ class Project {
                             }
                             result.flatten()
                         }.flatten()
-                        [(issueKey): issue + [expandedPredecessors: expandedPredecessors]]
+                        [(issueKey): (issue + [expandedPredecessors: expandedPredecessors])]
                     }
                 }
                 [(issueType): updatedIssues]
