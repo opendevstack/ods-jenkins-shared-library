@@ -324,6 +324,13 @@ When using this approach, you need to keep a few things in mind:
 - You can always preview the changes that will happen by running `tailor diff` from your local machine.
 - `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes. When you remove the image trigger, it is crucial to configure `imagePullPolicy: Always` for the container, otherwise you might roll out old images.
 
+If you want to use https://github.com/opendevstack/tailor#working-with-secrets[encrypted secrets with Tailor], you have to create a keypair for Jenkins so that the pipeline can use it to decrypt the parameters. The easiest way to do this is to create an OpenShift secret named `tailor-private-key` and sync it with Jenkins as a credential. Example:
+```
+tailor secrets generate-key jenkins@example.com
+oc -n foo-cd create secret generic tailor-private-key --from-file=ssh-privatekey=private.key
+oc -n foo-cd label secret tailor-private-key credential.sync.jenkins.openshift.io=true
+```
+
 Controlling your OpenShift resources in source code enables a lot of other use cases as well. For example, you might want to preview changes to a component before merging the source code. By using Tailor to deploy your templates, you can create multiple running components from one repository, e.g. one per feature branch. Following are some steps how to achieve this:
 
 First, add `'feature/': 'dev'` to the `branchToEnvironmentMapping`. Then, create new variables in the pipeline block:
