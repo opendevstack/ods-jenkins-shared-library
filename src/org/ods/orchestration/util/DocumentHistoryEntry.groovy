@@ -5,7 +5,7 @@ import com.cloudbees.groovy.cps.NonCPS
 class DocumentHistoryEntry implements Map, Serializable {
 
     private Long entryId
-    private HashMap delegate
+    private Map delegate
     private String projectVersion
     private String previousProjectVersion
     String rational
@@ -134,7 +134,8 @@ class DocumentHistoryEntry implements Map, Serializable {
         def ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))
 
         def newDelegate = ois.readObject()
-        DocumentHistoryEntry result = new DocumentHistoryEntry(newDelegate, entryId, projectVersion, previousProjectVersion)
+        DocumentHistoryEntry result = new DocumentHistoryEntry(newDelegate,
+            entryId, projectVersion, previousProjectVersion)
         result.rational = this.rational
         return result
     }
