@@ -64,7 +64,7 @@ class Pipeline implements Serializable {
             config.buildNumber = script.env.BUILD_NUMBER
             config.buildUrl = script.env.BUILD_URL
             config.buildTime = new Date()
-            config.dockerRegistry = script.env.DOCKER_REGISTRY
+            config.dockerRegistry = script.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc:5000'
             config << BitbucketService.readConfigFromEnv(script.env)
             config << NexusService.readConfigFromEnv(script.env)
         }
@@ -128,7 +128,7 @@ class Pipeline implements Serializable {
             ]
         }
 
-        def podLabel = "quickstarter-${config.sourceDir}-${config.projectId}-${config.componentId}"
+        def podLabel = "qs-${UUID.randomUUID().toString()}"
 
         script.podTemplate(
             label: podLabel,

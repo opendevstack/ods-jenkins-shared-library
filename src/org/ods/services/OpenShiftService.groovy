@@ -9,7 +9,7 @@ import java.security.SecureRandom
 @SuppressWarnings('MethodCount')
 class OpenShiftService {
 
-    static final String ODS_DEPLOYMENTS_DESCRIPTOR = 'ods-deployments.json'
+    static final String EXPORTED_TEMPLATE_FILE = 'template.yml'
 
     private final IPipelineSteps steps
     private final ILogger logger
@@ -91,6 +91,14 @@ class OpenShiftService {
         ).trim()
     }
 
+    static String imageExists(IPipelineSteps steps, String project, String name, String tag) {
+        steps.sh(
+            returnStatus: true,
+            script: "oc -n ${project} get istag ${name}:${tag} &> /dev/null",
+            label: "Check existance of image ${name}:${tag}"
+        ) == 0
+    }
+
     boolean envExists() {
         envExists(steps, project)
     }
@@ -138,11 +146,59 @@ class OpenShiftService {
         doTailorExport(project, "-l ${selector}", envParams, targetFile)
     }
 
-    void startRollout(String name) {
-        steps.sh(
-            script: "oc -n ${project} rollout latest dc/${name}",
-            label: "Rollout latest version of dc/${name}"
-        )
+    String rollout(String name, int priorVersion, int timeoutMinutes) {
+        def latestVersion = getLatestVersion(name)
+        if (latestVersion > priorVersion) {
+            logger.info "Rollout of deployment for '${name}' has been triggered automatically."
+        } else {
+            startRollout(name, latestVersion)
+        }
+        try {
+            steps.timeout(time: timeoutMinutes) {
+                logger.startClocked("${name}-watch-rollout")
+                watchRollout(name)
+                logger.debugClocked("${name}-watch-rollout")
+            }
+        } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+            latestVersion = getLatestVersion(name)
+            def replicationController = "${name}-${latestVersion}"
+            throw new RuntimeException(
+                'Deployment timed out. ' +
+                "Observed related event messages:\n${getEventMessages(replicationController)}"
+            )
+        }
+
+        latestVersion = getLatestVersion(name)
+        def replicationController = "${name}-${latestVersion}"
+        def rolloutStatus = getRolloutStatus(replicationController)
+        if (rolloutStatus != 'complete') {
+            throw new RuntimeException(
+                "Deployment #${latestVersion} failed with status '${rolloutStatus}'. " +
+                "Observed related event messages:\n${getEventMessages(replicationController)}"
+            )
+        } else {
+            logger.info "Deployment #${latestVersion} of '${name}' successfully rolled out."
+        }
+        replicationController
+    }
+
+    void startRollout(String name, int version) {
+        try {
+            steps.sh(
+                script: "oc -n ${project} rollout latest dc/${name}",
+                label: "Rollout latest version of dc/${name}"
+            )
+        } catch (ex) {
+            // It could be that some other process (e.g. image trigger) started
+            // a rollout just before we wanted to start it. In that case, we
+            // do not need to fail.
+            def newVersion = getLatestVersion(name)
+            if (newVersion > version) {
+                logger.debug("Deployment #${newVersion} has been started by another process")
+            } else {
+                throw ex
+            }
+        }
     }
 
     void watchRollout(String name) {
@@ -224,7 +280,7 @@ class OpenShiftService {
                 // reset retries
                 retries = 5
             }
-            // Wait 5 seconds before asking again. Sometimes the build finishes but the
+            // Wait 12 seconds before asking again. Sometimes the build finishes but the
             // status is not set to "complete" immediately ...
             steps.sleep(12)
         }
@@ -288,51 +344,118 @@ class OpenShiftService {
         )
     }
 
-    void importImageFromProject(String name, String sourceProject, String imageSha, String imageTag) {
-        steps.sh(
-            script: """oc -n ${project} tag ${sourceProject}/${name}@${imageSha} ${name}:${imageTag}""",
-            label: "Tag image ${name} into ${project}"
+    void importImageTagFromProject(String name, String sourceProject, String sourceTag, String targetTag) {
+        importImageFromProject(sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}")
+    }
+
+    void importImageTagFromSourceRegistry(
+        String name,
+        String sourceRegistrySecret,
+        String sourceProject,
+        String sourceTag,
+        String targetTag) {
+        importImageFromSourceRegistry(
+            sourceRegistrySecret, sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}"
         )
     }
 
-    void importImageFromSourceRegistry(String name, String sourceProject, String imageSha, String imageTag) {
-        def sourceClusterRegistryHost = getSourceClusterRegistryHost()
-        def sourceImage = "${sourceClusterRegistryHost}/${sourceProject}/${name}@${imageSha}"
-        steps.sh(
-            script: """
-              oc -n ${project} import-image ${name}:${imageTag} \
-                --from=${sourceImage} \
-                --confirm
-            """,
-            label: "Import image ${sourceImage} into ${project}/${name}:${imageTag}"
+    void importImageShaFromProject(String name, String sourceProject, String imageSha, String imageTag) {
+        importImageFromProject(sourceProject, "${name}@${imageSha}", "${name}:${imageTag}")
+    }
+
+    void importImageShaFromSourceRegistry(
+        String name,
+        String sourceRegistrySecret,
+        String sourceProject,
+        String imageSha,
+        String imageTag) {
+        importImageFromSourceRegistry(
+            sourceRegistrySecret, sourceProject, "${name}@${imageSha}", "${name}:${imageTag}"
         )
     }
 
-    // Gets pod of deployment
-    Map getPodDataForDeployment(String rc) {
-        def index = 5
-        while (index > 0) {
-            def podStatus = steps.sh(
-                script: "oc -n ${project} get pod -l deployment=${rc} -o jsonpath='{.items[*].status.phase}'",
+    String getEventMessages(String rc) {
+        String rcEventMessages
+        try {
+            rcEventMessages = steps.sh(
+                script: """
+                    oc -n ${project} get events \
+                        --field-selector involvedObject.kind=ReplicationController,involvedObject.name=${rc} \
+                        -o custom-columns=MESSAGE:.message --no-headers
+                """,
                 returnStdout: true,
-                label: "Getting OpenShift pod data for deployment ${rc}"
-            )
-            if (podStatus && podStatus == 'Running') {
-                break
-            } else {
-                steps.echo("Could not find 'running' pod for deployment=${rc} - sleeping")
-                steps.sleep(60)
-                index--
-            }
+                label: "Get event messages for replication controller ${rc}"
+            ).trim()
+        } catch (ex) {
+            logger.debug("Error when retrieving events for replication controller ${rc}:\n${ex}")
         }
+        if (!rcEventMessages) {
+            return "Could not find any events for replication controller ${rc}."
+        }
+        rcEventMessages = "=== Events from ReplicationController '${rc}' ===\n${rcEventMessages}"
+        String pod
+        try {
+            pod = steps.sh(
+                script: """
+                    oc -n ${project} get pod \
+                        -l deployment=${rc} \
+                        -o custom-columns=NAME:.metadata.name --no-headers | head -1
+                """,
+                returnStdout: true,
+                label: "Get first pod name of replication controller ${rc}"
+            ).trim()
+        } catch (ex) {
+            logger.debug("Error when retrieving pod for replication controller ${rc}:\n${ex}")
+        }
+        if (!pod) {
+            return "${rcEventMessages}\nCould not find any pod for replication controller ${rc}."
+        }
+        String podEventMessages
+        try {
+            podEventMessages = steps.sh(
+                script: """
+                    oc -n ${project} get events \
+                        --field-selector involvedObject.kind=Pod,involvedObject.name=${pod} \
+                        -o custom-columns=MESSAGE:.message --no-headers
+                """,
+                returnStdout: true,
+                label: "Get event messages for pod ${pod}"
+            ).trim()
+        } catch (ex) {
+            logger.debug("Error when retrieving events for pod ${pod}:\n${ex}")
+        }
+        if (!podEventMessages) {
+            return "${rcEventMessages}\nCould not find any events for pod for ${pod}."
+        }
+        "${rcEventMessages}\n=== Events from Pod '${pod}' ===\n${podEventMessages}"
+    }
 
+    Map getPodDataForDeployment(String rc) {
+        def retries = 5
+        for (def i = 0; i < retries; i++) {
+            def podData = checkForPodData(rc)
+            if (podData) {
+                return podData
+            }
+            // Wait 12 seconds before asking again. Sometimes the deployment finishes but the
+            // status is not set to "running" immediately ...
+            steps.echo("Could not find 'running' pod for deployment=${rc} - waiting")
+            steps.sleep(12)
+        }
+        throw new RuntimeException("Could not find 'running' pod for deployment=${rc}")
+    }
+
+    Map checkForPodData(String rc) {
         def stdout = steps.sh(
             script: "oc -n ${project} get pod -l deployment=${rc} -o json",
             returnStdout: true,
             label: "Getting OpenShift pod data for deployment ${rc}"
         ).trim()
-
-        extractPodData(stdout, "deployment '${rc}'")
+        def podJson = new JsonSlurperClassic().parseText(stdout)
+        if (podJson?.items[0]?.status?.phase?.toLowerCase() != 'running') {
+            return [:]
+        }
+        extractPodData(podJson)
     }
 
     List getDeploymentConfigsForComponent(String componentSelector) {
@@ -364,9 +487,10 @@ class OpenShiftService {
         def urlParts = url.split('/').toList()
 
         if (urlParts.size() < 2) {
-            throw new RuntimeException(
-                "ERROR: Image URL ${url} must have at least two parts (repository/reference)"
-            )
+            logger.debug "Image URL ${url} does not define the repository explicitly."
+            imageInfo.repository = ''
+        } else {
+            imageInfo.repository = urlParts[-2]
         }
 
         if (urlParts.size() > 2) {
@@ -375,8 +499,6 @@ class OpenShiftService {
             logger.debug "Image URL ${url} does not define the registry explicitly."
             imageInfo.registry = ''
         }
-
-        imageInfo.repository = urlParts[-2]
 
         if (urlParts[-1].contains('@')) {
             def shaParts = urlParts[-1].split('@').toList()
@@ -434,58 +556,79 @@ class OpenShiftService {
         return steps.sh(
             script: "oc -n ${project} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
             returnStdout: true,
-            label: "get origin from openshift bc ${bcName}"
+            label: "Get origin from BuildConfig ${bcName}"
         ).trim()
     }
 
-    @SuppressWarnings('UnnecessaryElseStatement')
-    boolean checkAndAmendRepoBasedOnDeploymentState (Map repo) {
-        def openshiftDir = 'openshift-exported'
-        if (steps.fileExists('openshift')) {
-            openshiftDir = 'openshift'
-        }
-
-        boolean forceRedo = !!repo.forceRebuild
-
-        this.logger.debug("Verifying deployed state of repo: '${repo.id}' against env: " +
-            "'${project}' - 'repository' rebuild configured? ${forceRedo}")
-        if (steps.fileExists("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}") && !forceRedo) {
-            def storedDeployments = steps.readFile("${openshiftDir}/${ODS_DEPLOYMENTS_DESCRIPTOR}")
-            def deployments = new JsonSlurperClassic().parseText(storedDeployments)
-            if (this.isLatestDeploymentBasedOnLatestImageDefs(repo.id, deployments)) {
-                if (!repo.data.odsBuildArtifacts) {
-                    repo.data.odsBuildArtifacts = [ : ]
-                }
-                def build = deployments.get(JenkinsService.CREATED_BY_BUILD_STR)
-                if (build) {
-                    def buildVersionKey = build.split('/')
-                    if (buildVersionKey.size() != 2) {
-                        return false
-                    }
-                    repo.data.odsBuildArtifacts.resurrected = build
-                    repo.data.odsBuildArtifacts.deployments = deployments
-                    logger.debug "Using data from previous jenkins build: ${build} " +
-                        "for repo: ${repo.id}\r${repo.data.odsBuildArtifacts}"
-                    return true
-                } else {
-                    return false
-                }
-            } else {
-                logger.debug("Current deployments for repo: '${repo.id}'" +
-                    " do not match last latest committed state (force? ${forceRedo}), rebuilding..")
+    Map getPodDataForDeployments(List<String> deploymentNames) {
+        Map pods = [:]
+        deploymentNames.each { deploymentName ->
+            Map podData = [:]
+            logger.debug("Verifying images of deployment '${deploymentName}'")
+            int latestDeployedVersion = 0
+            try {
+                latestDeployedVersion = getLatestVersion(deploymentName)
+            } catch (err) {
+                logger.debug("DeploymentConfig '${deploymentName}' does not exist!")
             }
+            if (latestDeployedVersion < 1) {
+                logger.debug("Image SHAs of '${deploymentName}' could not be compared")
+            } else {
+                podData = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
+            }
+            pods[deploymentName] = podData
         }
-        return false
+        pods
+    }
+
+    boolean areImageShasUpToDate(Map defData, Map podData) {
+        defData.containers.every { containerName, definedImage ->
+            verifyImageSha(containerName, definedImage, podData.containers[containerName])
+        }
+    }
+
+    boolean verifyImageSha(String containerName, String definedImage, String actualImageRaw) {
+        logger.debug("Verifiying image of container '${containerName}' ...")
+        def runningImageSha = imageInfoWithShaForImageStreamUrl(actualImageRaw).sha
+        def definedImageSha = definedImage.split('@').last()
+        if (runningImageSha != definedImageSha) {
+            logger.debug(
+                "Container '${containerName}' is using image '${runningImageSha}' " +
+                "which differs from defined image '${definedImageSha}'."
+            )
+            return false
+        }
+        logger.debug("Container '${containerName}' is using defined image '${definedImageSha}'.")
+        true
+    }
+
+    private void importImageFromProject(String sourceProject, String sourceImageRef, String targetImageRef) {
+        steps.sh(
+            script: """oc -n ${project} tag ${sourceProject}/${sourceImageRef} ${targetImageRef}""",
+            label: "Import image ${sourceImageRef} to ${project}/${targetImageRef}"
+        )
+    }
+
+    private void importImageFromSourceRegistry(
+        String sourceRegistrySecret,
+        String sourceProject,
+        String sourceImageRef,
+        String targetImageRef) {
+        def sourceClusterRegistryHost = getSourceClusterRegistryHost(sourceRegistrySecret)
+        def sourceImageFull = "${sourceClusterRegistryHost}/${sourceProject}/${sourceImageRef}"
+        steps.sh(
+            script: """
+              oc -n ${project} import-image ${targetImageRef} \
+                --from=${sourceImageFull} \
+                --confirm
+            """,
+            label: "Import image ${sourceImageFull} into ${project}/${targetImageRef}"
+        )
     }
 
     @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
-    private Map extractPodData(String ocOutput, String description) {
-        def j = new JsonSlurperClassic().parseText(ocOutput)
-        if (j?.items[0]?.status?.phase?.toLowerCase() != 'running') {
-            throw new RuntimeException("Error: no pod for ${description} running / found.")
-        }
-
-        def podOCData = j.items[0] ?: [:]
+    private Map extractPodData(Map podJson) {
+        def podOCData = podJson.items[0] ?: [:]
 
         def pod = [:]
         // Only set needed data on "pod"
@@ -532,7 +675,30 @@ class OpenShiftService {
         Map<String,
         String> envParams,
         String targetFile) {
-        envParams['TAILOR_NAMESPACE'] = exportProject
+        // Export
+        steps.sh(
+            script: "tailor ${tailorVerboseFlag()} -n ${exportProject} export ${tailorParams} > ${targetFile}",
+            label: "Tailor export of ${exportProject} (${tailorParams}) into ${targetFile}"
+        )
+
+        // Tailor prior to 1.0.0 did not handle TAILOR_NAMESPACE automatically.
+        // For backwards compatibility, fill it in if it is missing from the
+        // template. This should not be necessary even in ODS 3, but can
+        // definitely be removed in ODS 4.
+        def templateContainsTailorNamespace = steps.sh(
+            script: """grep "name: TAILOR_NAMESPACE" ${targetFile}""",
+            label: 'Check if template contains TAILOR_NAMESPACE',
+            returnStatus: true
+        ) == 0
+        if (!templateContainsTailorNamespace) {
+            envParams['TAILOR_NAMESPACE'] = exportProject
+            steps.sh(
+                script: """echo "parameters:" >> ${targetFile}""",
+                label: "Add parameters section into ${targetFile}"
+            )
+        }
+
+        // Replace values from envParams with parameters, and add parameters into template.
         envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomainOfProject(steps, exportProject)
         def templateParams = ''
         def sedReplacements = ''
@@ -542,20 +708,14 @@ class OpenShiftService {
         }
         steps.sh(
             script: """
-                tailor \
-                    ${tailorVerboseFlag()} \
-                    -n ${exportProject} \
-                    export ${tailorParams} > ${targetFile}
-                    sed -i -e "${sedReplacements}" ${targetFile}
-                    echo "parameters:" >> ${targetFile}
-                    echo "${templateParams}" >> ${targetFile}
+                sed -i -e "${sedReplacements}" ${targetFile}
+                echo "${templateParams}" >> ${targetFile}
             """,
-            label: "tailor export of ${exportProject} (${tailorParams}) into ${targetFile}"
+            label: "Add parameters into ${targetFile}"
         )
     }
 
-    private String getSourceClusterRegistryHost() {
-        def secretName = 'mro-image-pull'
+    private String getSourceClusterRegistryHost(String secretName) {
         def dockerConfig = steps.sh(
             script: """
             oc -n ${project} get secret ${secretName} --output="jsonpath={.data.\\.dockerconfigjson}" | base64 --decode
@@ -602,47 +762,6 @@ class OpenShiftService {
         imageInfo.sha = nameParts[1]
         imageInfo.shaStripped = nameParts[1].replace('sha256:', '')
         imageInfo
-    }
-
-    private boolean isLatestDeploymentBasedOnLatestImageDefs(String repoId, def deployments) {
-        List nonExistentDeployments = []
-        List notThisVersionDeployments = []
-        List notThisImages = []
-        logger.debugClocked ("${repoId}-ocp-deployment-check",
-            "Verifying deployments: '${deployments.keySet()}' against env: '${project}'")
-        deployments.each { deploymentName, deployment ->
-            if (JenkinsService.CREATED_BY_BUILD_STR != deploymentName) {
-                logger.debug "Verifying ocp deployment ('${repoId}'): '${deploymentName}'"
-                int latestDeployedVersion = -1
-                try {
-                    latestDeployedVersion = getLatestVersion (deploymentName)
-                } catch (err) {
-                    logger.debug "DeploymentConfig '${deploymentName}' does not exist!"
-                    nonExistentDeployments << deploymentName
-                }
-                if (latestDeployedVersion > -1) {
-                    if (!deployment.deploymentId?.endsWith("${latestDeployedVersion}")) {
-                        notThisVersionDeployments << latestDeployedVersion
-                        logger.debug "Deployment '${deploymentName}/${deployment.deploymentId}'" +
-                            " is not latest version! (${latestDeployedVersion})"
-                    }
-                    def pod = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
-                    deployment.containers?.eachWithIndex { containerName, imageRaw, index ->
-                        def runningImageSha = imageInfoWithShaForImageStreamUrl(pod.containers[containerName]).sha
-                        def definedImageSha = imageInfoWithShaForImageStreamUrl(imageRaw).sha
-                        if (runningImageSha != definedImageSha) {
-                            logger.warn "In container '${containerName}' of deployment '${deploymentName}'" +
-                                " running image '${runningImageSha}' " +
-                                "is not the same as the defined image '${definedImageSha}'."
-                            notThisImages << runningImageSha
-                        }
-                    }
-                }
-            }
-        }
-        logger.infoClocked ("${repoId}-ocp-deployment-check")
-        return (nonExistentDeployments.empty && notThisVersionDeployments.empty &&
-            notThisImages.empty)
     }
 
 }

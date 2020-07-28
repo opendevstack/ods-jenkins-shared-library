@@ -37,10 +37,10 @@ def call(Map config) {
     }
     def versionedDevEnvsEnabled = config.get('versionedDevEnvs', false)
     def alwaysPullImage = !!config.get('alwaysPullImage', true)
-    boolean startMROSlaveEarly = config.get('startOrchestrationSlaveOnInit', true)
-    def startMROStage = startMROSlaveEarly ? MROPipelineUtil.PipelinePhases.INIT : null
+    boolean startAgentEarly = config.get('startOrchestrationAgentOnInit', true)
+    def startAgentStage = startAgentEarly ? MROPipelineUtil.PipelinePhases.INIT : null
 
-    logger.debug ("Start MRO slave stage: ${startMROStage}")
+    logger.debug ("Start agent stage: ${startAgentStage}")
     Project project = new Project(steps, logger)
     def repos = []
 
@@ -81,23 +81,23 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             logger.debugClocked('pod-template')
             withEnv (envs) {
-                def result = new InitStage(this, project, repos, startMROStage).execute()
+                def result = new InitStage(this, project, repos, startAgentStage).execute()
                 if (result) {
                     project = result.project
                     repos = result.repos
-                    if (!startMROStage) {
-                        startMROStage = result.startMROSlave
+                    if (!startAgentStage) {
+                        startAgentStage = result.startAgent
                     }
                 } else {
                     logger.warn('Skip pipeline as no project/repos computed')
                     return
                 }
 
-                new BuildStage(this, project, repos, startMROStage).execute()
+                new BuildStage(this, project, repos, startAgentStage).execute()
 
-                new DeployStage(this, project, repos, startMROStage).execute()
+                new DeployStage(this, project, repos, startAgentStage).execute()
 
-                new TestStage(this, project, repos, startMROStage).execute()
+                new TestStage(this, project, repos, startAgentStage).execute()
 
                 new ReleaseStage(this, project, repos).execute()
 
@@ -110,6 +110,7 @@ def call(Map config) {
 @SuppressWarnings('GStringExpressionWithinString')
 private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean alwaysPullImage, Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
+    def dockerRegistry = steps.env.DOCKER_REGISTRY ?: 'docker-registry.default.svc:5000'
     def podLabel = "mro-jenkins-agent-${env.BUILD_NUMBER}"
     def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
     if (!OpenShiftService.envExists(steps, odsNamespace)) {
@@ -123,7 +124,7 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
         containers: [
             containerTemplate(
                 name: 'jnlp',
-                image: "${env.DOCKER_REGISTRY}/${odsNamespace}/jenkins-slave-base:${odsImageTag}",
+                image: "${dockerRegistry}/${odsNamespace}/jenkins-agent-base:${odsImageTag}",
                 workingDir: '/tmp',
                 resourceRequestMemory: '512Mi',
                 resourceLimitMemory: '1Gi',

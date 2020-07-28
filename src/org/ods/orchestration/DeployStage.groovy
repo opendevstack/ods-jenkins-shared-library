@@ -1,7 +1,6 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
@@ -24,7 +23,6 @@ class DeployStage extends Stage {
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        def git = ServiceRegistry.instance.get(GitService)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.DEPLOY
@@ -77,6 +75,7 @@ class DeployStage extends Stage {
                 logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'")
 
                 if (project.targetClusterIsExternal) {
+                    logger.info("Target cluster is external, logging into ${project.openShiftTargetApiUrl}")
                     script.withCredentials([
                         script.usernamePassword(
                             credentialsId: project.environmentConfig.credentialsId,
@@ -114,15 +113,6 @@ class DeployStage extends Stage {
                     }
             }
             executeInParallel(executeRepos, generateDocuments)
-
-            // record release manager repo state
-            if (project.isPromotionMode) {
-                if (git.remoteTagExists(project.targetTag)) {
-                    logger.debug('Skipping tag because it already exists.')
-                } else {
-                    util.tagAndPush(project.targetTag)
-                }
-            }
         }
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)

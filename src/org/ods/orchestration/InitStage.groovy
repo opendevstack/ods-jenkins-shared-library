@@ -14,6 +14,7 @@ import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.GitTag
 import org.ods.orchestration.util.MROPipelineUtil
 
+import org.ods.util.GitCredentialStore
 import org.ods.util.PipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -23,22 +24,24 @@ class InitStage extends Stage {
 
     public final String STAGE_NAME = 'Init'
 
-    InitStage(def script, Project project, List<Set<Map>> repos, String startMROStageName) {
-        super(script, project, repos, startMROStageName)
+    InitStage(def script, Project project, List<Set<Map>> repos, String startAgentStageName) {
+        super(script, project, repos, startAgentStageName)
     }
 
-    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey'])
+    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey', 'LineLength'])
     def run() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         def steps = new PipelineSteps(script)
-        logger.startClocked("boot-git-${STAGE_NAME}")
         def git = new GitService(steps, logger)
-        git.configureUser()
-        logger.debugClocked("boot-git-${STAGE_NAME}")
 
         // load build params
         def buildParams = Project.loadBuildParams(steps)
         logger.debug("Release Manager Build Parameters: ${buildParams}")
+
+        // Read the environment state on main branch. We do not want to read
+        // the state file on a release branch, as that might be stale (e.g. due
+        // to concurrent releases).
+        def envState = loadEnvState(logger, buildParams.targetEnvironment)
 
         logger.startClocked("git-releasemanager-${STAGE_NAME}")
         // git checkout
@@ -64,14 +67,14 @@ class InitStage extends Stage {
                 logger.info("Checkout release manager repository @ ${baseTag}")
                 checkoutGitRef(
                     "refs/tags/${baseTag}",
-                    []
+                    [[$class: 'LocalBranch', localBranch: gitReleaseBranch]]
                 )
             } else {
                 if (git.remoteBranchExists(gitReleaseBranch)) {
                     logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
                     checkoutGitRef(
                         "*/${gitReleaseBranch}",
-                        [[$class: 'LocalBranch', localBranch: '**']]
+                        [[$class: 'LocalBranch', localBranch: gitReleaseBranch]]
                     )
                 } else {
                     git.checkoutNewLocalBranch(gitReleaseBranch)
@@ -139,8 +142,6 @@ class InitStage extends Stage {
                 }
             }
         }
-
-
 
         registry.add(NexusService, NexusService.newFromEnv(script.env))
 
@@ -229,6 +230,21 @@ class InitStage extends Stage {
         )
         registry.add(BitbucketService, bitbucket)
 
+        git.configureUser()
+        steps.withCredentials(
+            [steps.usernamePassword(
+                credentialsId: bitbucket.passwordCredentialsId,
+                usernameVariable: 'BITBUCKET_USER',
+                passwordVariable: 'BITBUCKET_PW'
+            )]
+        ) {
+            GitCredentialStore.configureAndStore(
+                steps,
+                bitbucket.url as String,
+                steps.env.BITBUCKET_USER as String,
+                steps.env.BITBUCKET_PW as String)
+        }
+
         def phase = MROPipelineUtil.PipelinePhases.INIT
 
         logger.debug 'Checkout repositories into the workspace'
@@ -240,8 +256,12 @@ class InitStage extends Stage {
         Closure checkoutClosure =
         {
             script.parallel (
-                util.prepareCheckoutReposNamedJob(repos) { s, repo ->
+                repos.collectEntries { repo ->
                     logger.info("Repository: ${repo}")
+                    if (envState?.repositories) {
+                        repo.data.envStateCommit = envState.repositories[repo.id] ?: ''
+                    }
+                    util.prepareCheckoutRepoNamedJob(repo)
                 }
             )
         }
@@ -262,13 +282,18 @@ class InitStage extends Stage {
                 )
             }
 
-            if (project.isPromotionMode && git.localTagExists(project.targetTag)) {
-                if (project.buildParams.targetEnvironmentToken == 'Q') {
+            if (project.isPromotionMode && git.remoteTagExists(project.targetTag)) {
+                if (project.buildParams.targetEnvironmentToken == 'Q' && project.buildParams.rePromote) {
                     logger.warn("Deploying tag '${project.targetTag}' to Q again!")
+                } else if (project.buildParams.targetEnvironmentToken == 'Q') {
+                    throw new RuntimeException(
+                        "Git Tag '${project.targetTag}' already exists. " +
+                        "It can only be deployed again to 'Q' if build param 'rePromote' is set to 'true'."
+                    )
                 } else {
                     throw new RuntimeException(
-                        "Error: Git Tag '${project.targetTag}' already exists - " +
-                        'it cannot be deployed again to P.'
+                        "Git Tag '${project.targetTag}' already exists. " +
+                        "It cannot be deployed again to 'P'."
                     )
                 }
             }
@@ -294,27 +319,59 @@ class InitStage extends Stage {
 
             def os = registry.get(OpenShiftService)
             project.setOpenShiftData(os.apiUrl)
-            logger.debug("MRO slave start stage: ${this.startMROSlaveStageName}")
+            logger.debug("Agent start stage: ${this.startAgentStageName}")
         }
 
         executeInParallel(checkoutClosure, loadClosure)
 
-        // find best place for mro slave start
-        def stageToStartMRO
-        repos.each { repo ->
-            if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                stageToStartMRO = MROPipelineUtil.PipelinePhases.TEST
-            } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE &&
-                !repo.data?.odsBuildArtifacts?.resurrected) {
-                if (stageToStartMRO != MROPipelineUtil.PipelinePhases.TEST) {
-                    stageToStartMRO = MROPipelineUtil.PipelinePhases.BUILD
+        // In promotion mode, we need to check if the checked out repos are on commits
+        // which "contain" the commits defined in the env state.
+        if (project.isPromotionMode && !project.buildParams.rePromote) {
+            repos.each { repo ->
+                steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                    if (repo.data.envStateCommit) {
+                        if (git.isAncestor(repo.data.envStateCommit, repo.data.git.commit)) {
+                            logger.info(
+                                "Verified that ${repo.id}@${repo.data.git.commit} is a descendant of ${repo.data.envStateCommit}."
+                            )
+                        } else if (project.buildParams.targetEnvironmentToken == 'Q') {
+                            util.warnBuild(
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
+                                "which has previously been promoted to 'Q'. If ${repo.data.envStateCommit} has been " +
+                                "promoted to 'P' as well, promotion to 'P' will fail. Proceed with caution."
+                            )
+                        } else {
+                            throw new RuntimeException(
+                                "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
+                                "which has previously been promoted to 'P'. Ensure to merge everything that has been " +
+                                "promoted to 'P' into ${project.gitReleaseBranch}."
+                            )
+                        }
+                    } else {
+                        logger.info(
+                            "Repo ${repo.id} is not recorded in env state, skipping commit ancestor verification."
+                        )
+                    }
                 }
             }
         }
-        if (!stageToStartMRO) {
-            logger.info "No applicable stage found - slave bootstrap will run during 'deploy'.\r" +
-                "To change this to 'init', change 'startOrchestrationSlaveOnInit' in JenkinsFile to 'true'"
-            stageToStartMRO = MROPipelineUtil.PipelinePhases.DEPLOY
+
+        // find best place for agent start
+        def stageToStartAgent
+        repos.each { repo ->
+            if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
+                stageToStartAgent = MROPipelineUtil.PipelinePhases.TEST
+            } else if (repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE &&
+                !repo.data.openshift.resurrectedBuild) {
+                if (stageToStartAgent != MROPipelineUtil.PipelinePhases.TEST) {
+                    stageToStartAgent = MROPipelineUtil.PipelinePhases.BUILD
+                }
+            }
+        }
+        if (!stageToStartAgent) {
+            logger.info "No applicable stage found - agent bootstrap will run during 'deploy'.\r" +
+                "To change this to 'init', change 'startOrchestrationAgentOnInit' in JenkinsFile to 'true'"
+            stageToStartAgent = MROPipelineUtil.PipelinePhases.DEPLOY
         }
         def os = registry.get(OpenShiftService)
 
@@ -387,7 +444,7 @@ class InitStage extends Stage {
 
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
-        return [project: project, repos: repos, startMROSlave: stageToStartMRO]
+        return [project: project, repos: repos, startAgent: stageToStartAgent]
     }
 
     private checkoutGitRef(String gitRef, def extensions) {
@@ -398,6 +455,18 @@ class InitStage extends Stage {
             extensions: extensions,
             userRemoteConfigs: script.scm.userRemoteConfigs,
         ])
+    }
+
+    private Map loadEnvState(ILogger logger, String targetEnvironment) {
+        def envStateFile = "${Project.envStateFileName(targetEnvironment)}"
+        logger.info "Load env state from ${envStateFile}"
+        script.sh("mkdir -p ${MROPipelineUtil.ODS_STATE_DIR}")
+        if (!script.fileExists(envStateFile)) {
+            logger.debug "No env state ${envStateFile} found, initializing ..."
+            return [:]
+        }
+        logger.debug "Env state ${envStateFile} found"
+        script.readJSON(file: envStateFile)
     }
 
 }

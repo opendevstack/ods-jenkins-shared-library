@@ -8,22 +8,22 @@ Load the shared library in your `Jenkinsfile` like this:
 
 [source,groovy]
 ----
-@Library('ods-jenkins-shared-library@2.x') _
+@Library('ods-jenkins-shared-library@3.x') _
 
 odsComponentPipeline(
-  imageStreamTag: 'ods/jenkins-slave-golang:2.x',
-  projectId: 'foo',
-  componentId: 'bar',
+  imageStreamTag: 'ods/jenkins-agent-golang:3.x',
   branchToEnvironmentMapping: [
     'master': 'dev',
     // 'release/*': 'test'
   ]
 ) { context ->
-  stage('Build') {
+  odsComponentStageImportOpenShiftImageOrElse(context) {
+    stage('Build') {
       // custom stage
+    }
+    odsComponentStageScanWithSonar(context)
+    odsComponentStageBuildOpenShiftImage(context)
   }
-  odsComponentStageScanWithSonar(context)
-  odsComponentStageBuildOpenShiftImage(context)
   odsComponentStageRolloutOpenShiftDeployment(context)
 }
 ----
@@ -57,6 +57,14 @@ include::partial$odsComponentStageScanWithSnyk.adoc[leveloffset=+2]
 === odsComponentStageBuildOpenShiftImage
 
 include::partial$odsComponentStageBuildOpenShiftImage.adoc[leveloffset=+2]
+
+=== odsComponentStageImportOpenShiftImage
+
+include::partial$odsComponentStageImportOpenShiftImage.adoc[leveloffset=+2]
+
+=== odsComponentStageImportOpenShiftImageOrElse
+
+include::partial$odsComponentStageImportOpenShiftImageOrElse.adoc[leveloffset=+2]
 
 === odsComponentStageRolloutOpenShiftDeployment
 

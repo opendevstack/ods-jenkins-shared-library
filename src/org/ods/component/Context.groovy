@@ -1,9 +1,11 @@
 package org.ods.component
 
 import org.ods.util.Logger
+import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
@@ -22,6 +24,8 @@ class Context implements IContext {
 
     // is the library checking out the code again, or relying on check'd out source?
     private final boolean localCheckoutEnabled
+
+    private String appDomain
 
     Context(def script, Map config, Logger logger, boolean localCheckoutEnabled = true) {
         this.script = script
@@ -51,6 +55,8 @@ class Context implements IContext {
         config << NexusService.readConfigFromEnv(script.env)
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
+
+        config.sonarQubeEdition = script.env.SONARQUBE_EDITION ?: 'community'
 
         config.globalExtensionImageLabels = getExtensionBuildParams()
 
@@ -92,12 +98,6 @@ class Context implements IContext {
         if (!config.containsKey('cloneProjectScriptBranch')) {
             config.cloneProjectScriptBranch = 'master'
         }
-        if (config.containsKey('sonarQubeBranch')) {
-            script.echo "Setting option 'sonarQubeBranch' of the pipeline is deprecated, " +
-                "please use option 'branch' of the stage."
-        } else {
-            config.sonarQubeBranch = 'master'
-        }
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
             config.failOnSnykScanVulnerabilities = true
         }
@@ -110,6 +110,9 @@ class Context implements IContext {
         if (!config.containsKey('openshiftRolloutTimeout')) {
             config.openshiftRolloutTimeout = 5 // minutes
         }
+        if (!config.containsKey('imagePromotionSequences')) {
+            config.imagePromotionSequences = ['dev->test', 'test->prod']
+        }
         if (!config.groupId) {
             config.groupId = "org.opendevstack.${config.projectId}"
         }
@@ -121,7 +124,7 @@ class Context implements IContext {
         config.gitCommitAuthor = retrieveGitCommitAuthor()
         config.gitCommitMessage = retrieveGitCommitMessage()
         config.gitCommitTime = retrieveGitCommitTime()
-        config.tagversion = "${config.buildNumber}-${config.gitCommit.take(8)}"
+        config.tagversion = "${config.buildNumber}-${getShortGitCommit()}"
 
         if (!config.containsKey('testResults')) {
             config.testResults = ''
@@ -246,6 +249,11 @@ class Context implements IContext {
         config.branchToEnvironmentMapping
     }
 
+    @NonCPS
+    List<String> getImagePromotionSequences() {
+        config.imagePromotionSequences
+    }
+
     String getAutoCloneEnvironmentsFromSourceMapping() {
         config.autoCloneEnvironmentsFromSourceMapping
     }
@@ -290,8 +298,14 @@ class Context implements IContext {
         config.repoName
     }
 
+    @NonCPS
     String getGitCommit() {
         config.gitCommit
+    }
+
+    @NonCPS
+    String getShortGitCommit() {
+        config.gitCommit.take(8)
     }
 
     String getGitCommitAuthor() {
@@ -308,6 +322,11 @@ class Context implements IContext {
 
     String getTargetProject() {
         config.targetProject
+    }
+
+    @NonCPS
+    String getSonarQubeEdition() {
+        config.sonarQubeEdition
     }
 
     @NonCPS
@@ -391,11 +410,16 @@ class Context implements IContext {
         }
         // Fixed name
         def env = config.branchToEnvironmentMapping[config.gitBranch]
+        // this is for cases where we set a $key into the map - e.g. prov app / doc gen
+        if (!env) {
+            env = config.branchToEnvironmentMapping.get("${config.gitBranch}")
+        }
         if (env) {
             config.environment = env
             config.cloneSourceEnv = environmentExists(env)
                 ? false
                 : config.autoCloneEnvironmentsFromSourceMapping[env]
+            logger.debug("Target env: ${env}, clone src: ${cloneSourceEnv}")
             return
         }
 
@@ -488,14 +512,16 @@ class Context implements IContext {
         }
     }
 
-    // set the application domain
-    void setOpenshiftApplicationDomain (String domain) {
-        config.domain = domain
-    }
-
-    // get the application domain
     String getOpenshiftApplicationDomain () {
-        return config.domain
+        if (!config.environment) {
+            return ''
+        }
+        if (!this.appDomain) {
+            logger.startClocked("${config.componentId}-get-oc-app-domain")
+            this.appDomain = ServiceRegistry.instance.get(OpenShiftService).applicationDomain
+            logger.debugClocked("${config.componentId}-get-oc-app-domain")
+        }
+        this.appDomain
     }
 
     private String retrieveGitUrl() {

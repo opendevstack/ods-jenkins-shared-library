@@ -1167,7 +1167,11 @@ class Project {
         "${getKey()}-cd-${secretName}"
     }
 
-    boolean forceGlobalRebuild () {
+    String getSourceRegistrySecretName() {
+        'mro-image-pull'
+    }
+
+    boolean getForceGlobalRebuild() {
         return (this.data.metadata.allowPartialRebuild &&
             this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
     }

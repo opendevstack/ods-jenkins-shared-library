@@ -7,11 +7,11 @@ Load the shared library in your `Jenkinsfile` like this:
 
 [source,groovy]
 ----
-@Library('ods-jenkins-shared-library@2.x') _
+@Library('ods-jenkins-shared-library@3.x') _
 
 odsOrchestrationPipeline(
   debug: true,
-  odsImageTag: '2.x'
+  odsImageTag: '3.x'
 )
 ----
 
@@ -139,7 +139,7 @@ repositories:
 
 === Optimization of runtime performance
 
-By default the shared library will always pull the *slave image* from the internal docker repository. Depending on the
+By default the shared library will always pull the *agent image* from the internal docker repository. Depending on the
 cluster node setup, this may decrease execution performance. In order to re-use loaded images, a knob in the `Jenkinsfile` configuration of the stage `odsOrchestrationPipeline` can be turned on:
 ----
 alwaysPullImage: true

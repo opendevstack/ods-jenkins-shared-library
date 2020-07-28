@@ -130,4 +130,9 @@ class Context implements IContext {
         config.nexusPassword
     }
 
+    @NonCPS
+    String getGitBranch() {
+        config.odsGitRef
+    }
+
 }

@@ -1,0 +1,22 @@
+Imports an image from another namespace.
+
+By default, the source image is identified using the commit which triggered the pipeline run.
+
+Available options:
+
+[cols="1,2"]
+|===
+| Option | Description
+
+| resourceName
+| Name of `ImageStream` to use (defaults to `context.componentId`).
+
+| sourceProject
+| OpenShift project from which to import the image identified by `resourceName`.
+
+| sourceTag
+| Image tag to look for in the `sourceProject` (defaults to `context.shortGitCommit`).
+
+| targetTag
+| Image tag to apply to the imported image in the target project (defaults to `sourceTag`).
+|===

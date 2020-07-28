@@ -2,6 +2,7 @@ package org.ods.services
 
 import org.ods.util.ILogger
 
+@SuppressWarnings('MethodCount')
 class GitService {
 
     @SuppressWarnings('NonFinalPublicField')
@@ -123,7 +124,7 @@ class GitService {
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs,
         ]
-        if (isSlaveNodeGitLfsEnabled()) {
+        if (isAgentNodeGitLfsEnabled()) {
             gitParams.extensions = [
                 [$class: 'GitLFSPull']
             ]
@@ -141,25 +142,54 @@ class GitService {
         )
     }
 
+    def commit(List files, String msg, boolean allowEmpty = true) {
+        def allowEmptyFlag = allowEmpty ? '--allow-empty' : ''
+        script.sh(
+            script: """
+                git add ${files.join(' ')}
+                git commit -m "${msg}" ${allowEmptyFlag}
+            """,
+            label: 'Commit'
+        )
+    }
+
     def createTag(String name) {
         script.sh(
-          script: """git tag -a -m "${name}" ${name}""",
+            script: """git tag -f -a -m "${name}" ${name}""",
             label: "tag with ${name}"
         )
     }
 
-    def pushTag(String name) {
+    def pushRef(String name) {
         script.sh(
             script: "git push origin ${name}",
-            label: "push tag ${name}"
+            label: "Push ref ${name}"
         )
     }
 
     def pushBranchWithTags(String name) {
         script.sh(
             script: "git push --tags origin ${name}",
-            label: "push branch ${name} with tags"
+            label: "Push branch ${name} with tags"
         )
+    }
+
+    def tagAndPush(String tag) {
+        if (remoteTagExists(tag)) {
+            logger.info("Skipping tag '${tag}' because it already exists.")
+        } else {
+            createTag(tag)
+            pushRef(tag)
+        }
+    }
+
+    def tagAndPushBranch(String branch, String tag) {
+        if (remoteTagExists(tag)) {
+            logger.info("Skipping tag '${tag}' because it already exists.")
+        } else {
+            createTag(tag)
+            pushBranchWithTags(branch)
+        }
     }
 
     def checkout(
@@ -211,40 +241,48 @@ class GitService {
         return branchCheckStatus == 0
     }
 
-    @SuppressWarnings('UnnecessaryElseStatement')
-    boolean otherFilesChangedAfterCommitOfFile(String fileName, String openshiftDir) {
-        if (!script.fileExists(fileName)) {
-            return true
+    // isAncestor returns true if maybeAncestorCommit is an ancestor of
+    // descendantCommit, or, in other words, if descendantCommit contains
+    // everything of maybeAncestorCommit (and potentially more).
+    boolean isAncestor(String maybeAncestorCommit, String descendantCommit) {
+        script.sh(
+            script: "git merge-base --is-ancestor ${maybeAncestorCommit} ${descendantCommit}",
+            returnStatus: true,
+            label: "Check if ${descendantCommit} is descendant of ${maybeAncestorCommit}"
+        ) == 0
+    }
+
+    void switchToExistingBranch(String branch) {
+        script.sh(
+            script: "git checkout ${branch}",
+            label: "Checkout branch ${branch}"
+        )
+    }
+
+    void switchToOriginTrackingBranch(String branch) {
+        if (localBranchExists(branch)) {
+            script.sh(
+                script: "git branch -D ${branch}",
+                label: "Delete local ${branch} branch"
+            )
         }
-        try {
-            def commitOfFile = script.sh(
-                script: """git log -1 --format=%H ${fileName}""",
-                    returnStdout: true,
-                    label: "Get commit of ${fileName}"
-                ).trim()
-            if (!commitOfFile) {
-                return true
-            }
-            def filesChanged = script.sh(
-                script: """git diff ${commitOfFile} HEAD --name-only""",
-                    returnStdout: true,
-                    label: "Get changes after commit ${commitOfFile}"
-                ).trim()
-            List files = filesChanged.normalize().readLines()
-            // remove with ${} does not work .. wtf..
-            def templateYml = openshiftDir + '/template.yml'
-            files.remove(templateYml)
-            if (files.size() == 0) {
-                logger.debug ('Clean tree, no changes')
-                return false
-            } else {
-                logger.info ("Found modified files other than '${fileName}' " +
-                    "after commit '${commitOfFile}'\rFiles modified: '${files}'")
-                return true
-            }
-        } catch (err) {
-            return true
-        }
+        script.sh(
+            script: "git checkout -b ${branch} origin/${branch}",
+            label: "Checkout new branch based on origin/${branch}"
+        )
+    }
+
+    void checkoutAndCommitFiles(String branchToCheckoutFrom, List<String> filesToCheckout, String msg) {
+        script.sh("git checkout ${branchToCheckoutFrom} -- ${filesToCheckout.join(' ')}")
+        commit(filesToCheckout, msg)
+    }
+
+    void mergeIntoMainBranch(String branchToMerge, String mainBranch, List<String> filesToCheckout) {
+        switchToOriginTrackingBranch(mainBranch)
+        checkoutAndCommitFiles(branchToMerge, filesToCheckout, "Checkout ${branchToMerge}")
+        script.sh("git merge ${branchToMerge}")
+        pushRef(mainBranch)
+        script.sh("git checkout ${branchToMerge}")
     }
 
     def checkoutNewLocalBranch(String name) {
@@ -267,7 +305,7 @@ class GitService {
         if (envToken == 'P') {
             previousEnvToken = 'Q'
         }
-        def tagPattern = "${ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-[0-9]*-${previousEnvToken}"
+        def tagPattern = "${ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
         script.sh(
             script: "git tag --list '${tagPattern}'",
             returnStdout: true,
@@ -275,7 +313,7 @@ class GitService {
         ).trim()
     }
 
-    private boolean isSlaveNodeGitLfsEnabled() {
+    private boolean isAgentNodeGitLfsEnabled() {
         def statusCode = script.sh(
             script: 'git lfs &> /dev/null',
             label: 'Check if Git LFS is enabled',

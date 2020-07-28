@@ -19,15 +19,15 @@ class Stage {
     protected def script
     protected Project project
     protected List<Set<Map>> repos
-    String startMROSlaveStageName
+    String startAgentStageName
 
     public final String STAGE_NAME = 'NOT SET'
 
-    Stage(def script, Project project, List<Set<Map>> repos, String startMROSlaveStageName = 'Init') {
+    Stage(def script, Project project, List<Set<Map>> repos, String startAgentStageName = 'Init') {
         this.script = script
         this.project = project
         this.repos = repos
-        this.startMROSlaveStageName = startMROSlaveStageName ?: ''
+        this.startAgentStageName = startAgentStageName ?: ''
     }
 
     def execute() {
@@ -73,8 +73,8 @@ class Stage {
             'orchestration': {
                 block2()
                 logger.debug("Current stage: '${STAGE_NAME}' -> " +
-                    "start mro stage: '${startMROSlaveStageName}'")
-                if (startMROSlaveStageName.equalsIgnoreCase(STAGE_NAME)) {
+                    "start agent stage: '${startAgentStageName}'")
+                if (startAgentStageName.equalsIgnoreCase(STAGE_NAME)) {
                     def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
                     logger.debugClocked(podLabel)
                     script.node (podLabel) {
@@ -134,7 +134,7 @@ class Stage {
             }
             logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
             def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
-            logger.debugClocked(podLabel, 'Starting orchestration pipeline slave pod')
+            logger.debugClocked(podLabel, 'Starting orchestration pipeline agent pod')
             script.node(podLabel) {
                 logger.debugClocked(podLabel)
                 git.configureUser()

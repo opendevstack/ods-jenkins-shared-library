@@ -65,7 +65,7 @@ That is a lot of boilerplate. 3.x reduces this dramatically:
 @Library('ods-jenkins-shared-library@3.x') _
 
 odsComponentPipeline(
-  imageStreamTag: 'ods/jenkins-slave-golang:3.x',
+  imageStreamTag: 'ods/jenkins-agent-golang:3.x',
   branchToEnvironmentMapping: ['master': 'dev']
 ) { context ->
   odsComponentStageScanWithSonar(context)
@@ -80,6 +80,20 @@ names as outlined above. Apart from this, it makes use of a new config option,
 environment variable. If you need it, the `image` config is still present (e.g.
 to reference images outside of OpenShift). `projectId` and `componentId` are
 now automatically configured, but can still be set if desired.
+
+=== Changed agent images
+
+Up to and including 2.x, Jenkins used "slave images" to do its work. They have
+been renamed to "agent images" in 3.x. All new agent images are located in the
+new central namespace `ods`. Therefore, you need to update the references in
+your `Jenkinsfile` (as shown above):
+
+* `cd/jenkins-slave-base` is now `ods/jenkins-agent-base`
+* `cd/jenkins-slave-golang` is now `ods/jenkins-agent-golang`
+* `cd/jenkins-slave-maven` is now `ods/jenkins-agent-maven`
+* `cd/jenkins-slave-nodejs10-angular` is now `ods/jenkins-agent-nodejs10-angular`
+* `cd/jenkins-slave-python` is now `ods/jenkins-agent-python`
+* `cd/jenkins-slave-scala` is now `ods/jenkins-agent-scala`
 
 === Changed `context` properties
 
@@ -98,3 +112,14 @@ use `context.bitbucketHostWithoutScheme`.
 
 TIP: A notable addition to the `context` object is a new property `issueId`, which
 exposes the Jira issue ID (such as `123` from branch `feature/FOO-123-bar-baz`).
+
+=== Different image tags
+
+Previously, images produced by `odsComponentStageBuildOpenShiftImage` where
+tagged with `context.tagversion`, which consisted of the Jenkins build number
+and the (shortened) Git commit (e.g. `7-cd3e9082`). This made it difficult
+for other processes (unaware of the Jenkins build number) to find those images.
+
+The images are now tagged with just the (shortened) Git commit (e.g. `cd3e9082`).
+This change also has the huge benefit that it allows to promote images between
+environments (avoiding to rebuild them) using the new stage xref:jenkins-shared-library:component-pipeline.adoc#_odscomponentstageimportopenshiftimageorelse[odsComponentStageImportOpenShiftImageOrElse].

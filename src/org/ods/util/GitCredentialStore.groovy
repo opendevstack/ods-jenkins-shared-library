@@ -21,4 +21,5 @@ class GitCredentialStore {
             label: 'setup git credential store'
         )
     }
+
 }

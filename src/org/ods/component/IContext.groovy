@@ -60,6 +60,8 @@ interface IContext {
     // Define which environments are cloned from which source environments.
     String getAutoCloneEnvironmentsFromSourceMapping()
 
+    List<String> getImagePromotionSequences()
+
     // The environment which was chosen as the clone source.
     String getCloneSourceEnv()
 
@@ -101,6 +103,9 @@ interface IContext {
     // Git commit SHA to build.
     String getGitCommit()
 
+    // Shortened Git commit SHA to build.
+    String getShortGitCommit()
+
     // Git commit author.
     String getGitCommitAuthor()
 
@@ -118,6 +123,9 @@ interface IContext {
 
     // Branch on which to run SonarQube analysis.
     String getSonarQubeBranch()
+
+    // Edition of the SonarQube server
+    String getSonarQubeEdition()
 
     // set branch on which to run SonarQube analysis.
     void setSonarQubeBranch(String sonarQubeBranch)
@@ -172,9 +180,6 @@ interface IContext {
 
     // set and add image labels
     void setExtensionImageLabels (Map <String, String> extensionLabels)
-
-    // set the application domain
-    void setOpenshiftApplicationDomain (String domain)
 
     // get the application domain
     String getOpenshiftApplicationDomain ()

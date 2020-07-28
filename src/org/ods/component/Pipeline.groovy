@@ -82,28 +82,31 @@ class Pipeline implements Serializable {
                         script.checkout script.scm
                     }
                     script.stage('odsPipeline start') {
+                        def defaultDockerRegistry = 'docker-registry.default.svc:5000'
+                        // we leave the check here for the registry
+                        // to bring this close to the real bootstrap of the agent.
                         if (!config.containsKey('podContainers') && !config.image) {
-                            config.image = "${script.env.DOCKER_REGISTRY}/${config.imageStreamTag}"
+                            def dockerRegistry = script.env.DOCKER_REGISTRY ?: defaultDockerRegistry
+                            config.image = "${dockerRegistry}/${config.imageStreamTag}"
                         }
-                        // in VERY rare (> 7 parallel slaves, sometimes the env.X returns null)
+                        // in VERY rare (> 7 parallel agents, sometimes the env.X returns null)
                         def wtfEnvBug = 'null/'
                         if (config.image?.startsWith(wtfEnvBug)) {
-                            script.node('master') {
-                                config.image = config.image.
-                                    replace(wtfEnvBug, "${script.env.DOCKER_REGISTRY}/")
-                                logger.warn ("Patched image via master env to: ${config.image}")
-                            }
-                            // still?!
-                            if (config.image.startsWith(wtfEnvBug)) {
-                                config.image = config.image.
-                                    replace(wtfEnvBug, 'docker-registry.default.svc:5000/')
-                                logger.warn ("Patched image via hardcode to: ${config.image}")
-                            }
+                            config.image = config.image.
+                                replace(wtfEnvBug, "${defaultDockerRegistry}/")
+                            logger.warn ("Patched image via master env to: ${config.image}")
                         }
                         context.assemble()
                         // register services after context was assembled
                         logger.debug('-> Registering & loading global services')
                         def registry = ServiceRegistry.instance
+
+                        // In non-MRO case, reset the ServiceRegistry.
+                        // This allows users to have two pipelines in one
+                        // Jenkinsfile with e.g. differing OpenShift target projects.
+                        if (this.localCheckoutEnabled) {
+                            registry.clear()
+                        }
 
                         // if we run in another context there is a good chance
                         // services have been already registered
@@ -161,9 +164,6 @@ class Pipeline implements Serializable {
                         if (autoCloneEnabled) {
                             createOpenShiftEnvironment(context)
                         }
-                        logger.startClocked("${context.componentId}-get-oc-app-domain")
-                        context.setOpenshiftApplicationDomain(openShiftService.applicationDomain)
-                        logger.debugClocked("${context.componentId}-get-oc-app-domain")
                     }
                 }
             } catch (err) {
@@ -211,6 +211,7 @@ class Pipeline implements Serializable {
                 containers: config.podContainers,
                 volumes: config.podVolumes,
                 serviceAccount: config.podServiceAccount,
+                slaveConnectTimeout: 240 // in seconds
             ) {
                 script.node(config.podLabel) {
                     try {
@@ -444,7 +445,7 @@ class Pipeline implements Serializable {
             config.resourceRequestMemory = '1Gi'
         }
         if (!config.containsKey('resourceLimitMemory')) {
-            // 2Gi is required for e.g. jenkins-slave-maven, which selects the Java
+            // 2Gi is required for e.g. jenkins-agent-maven, which selects the Java
             // version based on available memory.
             // Also, e.g. Angular is known to use a lot of memory during production
             // builds.

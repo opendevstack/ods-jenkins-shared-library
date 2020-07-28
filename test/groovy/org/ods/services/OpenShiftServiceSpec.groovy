@@ -1,5 +1,7 @@
 package org.ods.services
 
+import groovy.json.JsonSlurperClassic
+
 import spock.lang.*
 
 import util.*
@@ -24,6 +26,8 @@ class OpenShiftServiceSpec extends SpecHelper {
         '172.30.21.196:5000/baz/qux@sha256:abc' || '172.30.21.196:5000' | 'baz'      | 'qux'
         'baz/qux@sha256:abc'                    || ''                   | 'baz'      | 'qux'
         'foo/bar:2-3ec425bc'                    || ''                   | 'foo'      | 'bar'
+        'qux@sha256:abc'                        || ''                   | ''         | 'qux'
+        'bar:2-3ec425bc'                        || ''                   | ''         | 'bar'
     }
 
     def "image info with SHA for image stream URL"() {
@@ -59,7 +63,7 @@ class OpenShiftServiceSpec extends SpecHelper {
         def file = new FixtureHelper().getResource("pod.json")
 
         when:
-        def result = service.extractPodData(file.text, "deployment 'bar'")
+        def result = service.extractPodData(new JsonSlurperClassic().parseText(file.text))
 
         then:
         result == [
