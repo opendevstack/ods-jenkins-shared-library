@@ -47,60 +47,6 @@ class DocumentHistory {
         this.latestVersionId
     }
 
-    private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
-        def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect {
-            [id: it.id, previousProjectVersion: it.previousProjectVersion]
-        }.findAll { it.id != currentEntry.id }
-        def concurrentVersions = oldVersionsSimplified.reverse()
-            .takeWhile { it.projectVersion != currentEntry.previousProjectVersion }*.id
-
-        if (currentEntry.previousProjectVersion && oldVersionsSimplified.size() == concurrentVersions.size()) {
-            throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
-                "Project has as previous project version ${currentEntry.previousProjectVersion} " +
-                'but no document history containing that ' +
-                'version can be found. Please check the file named ' +
-                "'${this.getSavedDocumentName(currentEntry.id -1L)}.json'" +
-                ' in your release manager repository')
-        }
-
-        if (concurrentVersions.isEmpty()) {
-            return null
-        } else {
-            def pluralS = (concurrentVersions.size() ==1)? '' : 's'
-            return "This document version invalidates the changes done in version${pluralS} " +
-                "'${concurrentVersions.join(', ')}'."
-        }
-
-    }
-
-    private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {
-        def projectVersion = jiraData.version
-        def previousProjectVersion = jiraData.previousVersion ?:''
-        def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
-            .collectEntries { issueType, Map<String, Map> issues ->
-                failIfThereAreIssuesWithoutVersions(issues.values())
-                def issuesOfThisVersion = issues.findAll { it.value.version == projectVersion }.collect {
-                    issueKey, issue ->
-                    def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
-                    if (isAnUpdate) {
-                        [key: issueKey, action: 'change', predecessors: issue.predecessors]
-                    } else {
-                        [key: issueKey, action: 'add']
-                    }
-                }
-                [(issueType): issuesOfThisVersion]
-            }
-        def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [])
-            .collectEntries { issueType, List<String> issueKeys ->
-                [(issueType): issueKeys.collect {[key: it, action: 'discontinue']}]
-            }
-        def versionMap = Project.JiraDataItem.TYPES.collectEntries { String issueType ->
-            [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
-                + discontinuations.getOrDefault(issueType, [])]
-        } as Map
-        return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
-    }
-
     List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve) {
         this.logger.debug('Retrieving saved document history with name'
             + this.getSavedDocumentName(versionIdToRetrieve) )
@@ -124,7 +70,7 @@ class DocumentHistory {
     }
 
     private static void failIfThereAreIssuesWithoutVersions(Collection<Map> jiraIssues) {
-        if (jiraIssues){
+        if (jiraIssues) {
             def issuesWithNoVersion = jiraIssues.findAll { Map i ->
                 (i.version) ? false : true
             }
@@ -134,6 +80,59 @@ class DocumentHistory {
                     "'${issuesWithNoVersion.collect { it.key }.join(', ')}'")
             }
         }
+    }
+
+    private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
+        def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect {
+            [id: it.id, previousProjectVersion: it.previousProjectVersion]
+        }.findAll { it.id != currentEntry.id }
+        def concurrentVersions = oldVersionsSimplified.reverse()
+            .takeWhile { it.projectVersion != currentEntry.previousProjectVersion }*.id
+
+        if (currentEntry.previousProjectVersion && oldVersionsSimplified.size() == concurrentVersions.size()) {
+            throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
+                "Project has as previous project version ${currentEntry.previousProjectVersion} " +
+                'but no document history containing that ' +
+                'version can be found. Please check the file named ' +
+                "'${this.getSavedDocumentName(currentEntry.id - 1L)}.json'" +
+                ' in your release manager repository')
+        }
+
+        if (concurrentVersions.isEmpty()) {
+            return null
+        } else {
+            def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
+            return "This document version invalidates the changes done in version${pluralS} " +
+                "'${concurrentVersions.join(', ')}'."
+        }
+    }
+
+    private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {
+        def projectVersion = jiraData.version
+        def previousProjectVersion = jiraData.previousVersion ?: ''
+        def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
+            .collectEntries { issueType, Map<String, Map> issues ->
+                failIfThereAreIssuesWithoutVersions(issues.values())
+                def issuesOfThisVersion = issues.findAll { it.value.version == projectVersion }.collect {
+                    issueKey, issue ->
+                    def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
+                    if (isAnUpdate) {
+                        [key: issueKey, action: 'change', predecessors: issue.predecessors]
+                    } else {
+                        [key: issueKey, action: 'add']
+                    }
+                }
+                [(issueType): issuesOfThisVersion]
+            }
+        def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [])
+            .collectEntries { issueType, List<String> issueKeys ->
+                [(issueType): issueKeys.collect { [key: it, action: 'discontinue'] }]
+            }
+        def versionMap = Project.JiraDataItem.TYPES.collectEntries { String issueType ->
+            [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
+                + discontinuations.getOrDefault(issueType, [])]
+        } as Map
+        return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
 }

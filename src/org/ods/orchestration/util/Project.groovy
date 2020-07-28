@@ -1205,7 +1205,6 @@ class Project {
         this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
     }
 
-    @SuppressWarnings(['NestedBlockDepth'])
     Map mergeJiraData(Map oldData, Map newData) {
         def mergeMaps = { Map left, Map right ->
             def keys = (left.keySet() + right.keySet()).toSet()
@@ -1226,19 +1225,23 @@ class Project {
         // - Adding links to new issues
         // - Updating links for changes in issues (changing key 1 for key 2)
         def updateIssues = {Map<String,Map> left, Map<String,Map> right ->
+            def updateLink = { String issueType, String issueToUpdateKey, Map link ->
+                if (link.action == 'add') {
+                    left[issueType][issueToUpdateKey]."${link.linkType}" << link.origin
+                } else if (link.action == 'discontinue') {
+                    left[issueType][issueToUpdateKey]."${link.linkType}".removeAll{ it == link.origin }
+                } else if (link.action == 'change') {
+                    left[issueType][issueToUpdateKey]."${link.linkType}" << link.origin
+                    left[issueType][issueToUpdateKey]."${link.linkType}".removeAll{ it == link."replaces" }
+                }
+            }
+
             def reverseLinkIndex = buildChangesInLinks(left, right)
             left.findAll{JiraDataItem.TYPES.contains(it.key)}.each {issueType, issues ->
                 issues.values().each{ Map issueToUpdate ->
                     def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key,[])
                     linksToUpdate.each { Map link ->
-                        if (link.action == 'add') {
-                            left[issueType][issueToUpdate.key]."${link.linkType}" << link.origin
-                        } else if (link.action == 'discontinue') {
-                            left[issueType][issueToUpdate.key]."${link.linkType}".removeAll{ it == link.origin }
-                        } else if (link.action == 'change') {
-                            left[issueType][issueToUpdate.key]."${link.linkType}" << link.origin
-                            left[issueType][issueToUpdate.key]."${link.linkType}".removeAll{ it == link."replaces" }
-                        }
+                        updateLink(issueType, issueToUpdate.key, link)
                     }
                 }
             }
@@ -1292,23 +1295,25 @@ class Project {
         return (discontinuedLinks + additionsAndChanges).groupBy{it.target}
     }
 
-    @SuppressWarnings(['NestedBlockDepth', 'Indentation'])
     private static List getAdditionsAndChangesInLinks(Map newData) {
-        newData.findAll{JiraDataItem.TYPES.contains(it.key)}.collect{ issueType, issues ->
-            issues.collect{issueKey, issue ->
+
+        def getLink = {String issueType, Map issue, String targetKey, Boolean isAnUpdate ->
+            if (isAnUpdate) {
+                issue.predecessors.collect{
+                    [origin: issue.key, target: targetKey, linkType: issueType, action: 'change', replaces: it]
+                }
+            } else {
+                [origin: issue.key, target: targetKey, linkType: issueType, action: 'add']
+            }
+        }
+
+        newData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect { issueType, issues ->
+            issues.collect { String issueKey, Map issue ->
                 def isAnUpdate = ! issue.getOrDefault('predecessors', []).isEmpty()
 
-                def issueLinks = issue.findAll{JiraDataItem.TYPES.contains(it.key)}
-                issueLinks.collect{ String linkType, List linkedIssues ->
-                    linkedIssues.collect{ targetKey ->
-                        if (isAnUpdate) {
-                            issue.predecessors.collect{
-                                [origin: issue.key, target: targetKey, linkType: issueType, action: 'change', replaces: it]
-                            }
-                        } else {
-                            [origin: issue.key, target: targetKey, linkType: issueType, action: 'add']
-                        }
-                    }.flatten()
+                def issueLinks = issue.findAll { JiraDataItem.TYPES.contains(it.key) }
+                issueLinks.collect { String linkType, List linkedIssues ->
+                    linkedIssues.collect { getLink(issueType, issue, it, isAnUpdate) }.flatten()
                 }
             }
         }.flatten()
@@ -1347,8 +1352,27 @@ class Project {
      * @param newData
      * @return Map containing
      */
-    @SuppressWarnings(['NestedBlockDepth'])
     private static Map expandPredecessorInformation(Map savedData, Map newData) {
+        def expandPredecessor = { String issueType, String issueKey, String predecessor ->
+            def predecessorIssue = savedData.getOrDefault(issueType,[:]).getOrDefault(predecessor, null)
+            if (!predecessorIssue) {
+                throw new RuntimeException("Error: new issue '${issueKey}' references key '${predecessor}' " +
+                    "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
+                    "Existing issue list is '[${savedData.getOrDefault(issueType,[:]).keySet().join(', ')}]'")
+            }
+            def existingPredecessors = predecessorIssue.getOrDefault('expandedPredecessors', [:])
+            def result = [[key: predecessorIssue.key, version: predecessorIssue.version]]
+
+            if (existingPredecessors) {
+                result << existingPredecessors
+            }
+            result.flatten()
+
+
+        }
+
+
+
         newData.collectEntries {issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
                 def updatedIssues = content.collectEntries {String issueKey, Map issue ->
@@ -1356,20 +1380,8 @@ class Project {
                     if (predecessors.isEmpty()) {
                         [(issueKey): issue]
                     } else {
-                        def expandedPredecessors = predecessors.collect{ predecessor ->
-                            def predecessorIssue = savedData.getOrDefault(issueType,[:]).getOrDefault(predecessor, null)
-                            if (!predecessorIssue) {
-                                throw new RuntimeException("Error: new issue '${issueKey}' references key '${predecessor}' " +
-                                    "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
-                                    "Existing issue list is '[${savedData.getOrDefault(issueType,[:]).keySet().join(', ')}]'")
-                            }
-                            def existingPredecessors = predecessorIssue.getOrDefault('expandedPredecessors', [:])
-                            def result = [[key: predecessorIssue.key, version: predecessorIssue.version]]
-
-                            if (existingPredecessors) {
-                                result << existingPredecessors
-                            }
-                            result.flatten()
+                        def expandedPredecessors = predecessors.collect { predecessor ->
+                            expandPredecessor(issueType, issueKey, predecessor)
                         }.flatten()
                         [(issueKey): (issue + [expandedPredecessors: expandedPredecessors])]
                     }
