@@ -19,6 +19,7 @@ class DocumentHistory {
      * Autoincremental number containing the internal version Id of the document
      */
     protected Long latestVersionId
+    protected String documentSuffix = null
 
     DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment) {
         this.steps = steps
@@ -30,7 +31,8 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
     }
 
-    DocumentHistory load(Map jiraData, Long savedVersionId) {
+    DocumentHistory load(Map jiraData, Long savedVersionId = null, String suffix = null) {
+        this.documentSuffix = suffix
         if (savedVersionId) {
             this.latestVersionId = savedVersionId + 1L
             this.data = this.loadSavedDocHistoryData(savedVersionId)
@@ -40,6 +42,10 @@ class DocumentHistory {
         this.data.add(newDocDocumentHistoryEntry)
         this.data.sort{a, b-> b.getEntryId()<=>a.getEntryId()}
         this
+    }
+
+    Long getVersion() {
+        this.latestVersionId
     }
 
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
@@ -84,7 +90,7 @@ class DocumentHistory {
                 }
             [(issueType): issuesOfThisVersion]
         }
-        def discontinuations = jiraData.discontinuationsPerType.collectEntries {
+        def discontinuations = jiraData.getOrDefault("discontinuationsPerType", []).collectEntries {
             issueType, List<String> issueKeys ->
                 [(issueType): issueKeys.collect{ [key: it, action: 'discontinue']}]
         }
@@ -112,7 +118,7 @@ class DocumentHistory {
     }
 
     List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve) {
-        //println("retrieving " +this.getSavedDocumentName(versionIdToRetrieve) )
+        println("retrieving " +this.getSavedDocumentName(versionIdToRetrieve) )
         //new ProjectDataBitbucketRepository(steps)
         //    .loadFile(this.getSavedDocumentName(versionIdToRetrieve)) as List<DocumentHistoryEntry>
         []
@@ -124,7 +130,12 @@ class DocumentHistory {
     }
 
     protected String getSavedDocumentName(Long versionId) {
-        return "documentHistory-${this.targetEnvironment}-${versionId}"
+        def suffix = (documentSuffix)? "-" + documentSuffix : ""
+        return "documentHistory-${this.targetEnvironment}-${versionId}${suffix}"
+    }
+
+    List<DocumentHistoryEntry> getDocHistoryEntries() {
+        this.data
     }
 
 }

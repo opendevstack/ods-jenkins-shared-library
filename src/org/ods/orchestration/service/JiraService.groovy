@@ -612,4 +612,41 @@ class JiraService {
             throw new RuntimeException(message)
         }
     }
+
+    @NonCPS
+    Map<String, String> getTextFieldsOfIssue(String issueIdOrKey, List fields) {
+        if (!issueIdOrKey?.trim()) {
+            throw new IllegalArgumentException("Error: unable to retrieve text fields on Jira issue. 'issueIdOrKey' is undefined.")
+        }
+
+        if (!fields) {
+            throw new IllegalArgumentException("Error: unable to retrieve text fields on Jira issue. 'fields' is undefined.")
+        }
+
+        def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
+            .routeParam("fields", fields.join(","))
+            .routeParam("issueIdOrKey", issueIdOrKey)
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .asString()
+
+        response.ifSuccess {
+            if (response.getStatus() != 204) {
+                throw new RuntimeException("Error: unable to retrieve text fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
+            }
+        }
+
+        response.ifFailure {
+            def message = "Error: unable to retrieve text fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to retrieve text fields on Jira issue. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        new JsonSlurperClassic().parseText(response.getBody()).getOrDefault("fields", [:])
+    }
 }

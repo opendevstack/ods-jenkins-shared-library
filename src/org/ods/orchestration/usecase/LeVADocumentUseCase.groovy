@@ -308,16 +308,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
+        def docHistory = this.getDocumentHistory(documentType)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections    : sections,
-                requirements: requirementsForDocument
+                requirements: requirementsForDocument,
+                documentHistory: docHistory.docHistoryEntries
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType,
+            "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.",
+            sectionsNotDone, docHistory.getVersion() as String)
         return uri
     }
 
@@ -1089,15 +1093,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.pdf.merge(documents)
         }
 
+        def docHistory = this.getDocumentHistory(documentType)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
-                sections: sections
+                sections: sections,
+                documentHistory: docHistory.docHistoryEntries
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], modifier, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType,
+            "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.",
+            sectionsNotDone, docHistory.getVersion() as String)
         return uri
     }
 
@@ -1393,20 +1401,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return result
     }
 
-    void updateJiraDocumentationTrackingIssue(String documentType, String message, List<Map> sectionsNotDone = []) {
+    void updateJiraDocumentationTrackingIssue(String documentType, String message, List<Map> sectionsNotDone = [], String documentVersionId = null) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
 
-        def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
-        def jiraIssues = this.project.getDocumentTrackingIssues(jiraDocumentLabels)
-
-        if (jiraIssues.isEmpty()) {
-            throw new RuntimeException("Error: no Jira tracking issue associated with document type '${documentType}'.")
-        }
+        def jiraIssues = this.getDocumentTrackingIssues(documentType)
 
         // Append a warning message for documents which are considered work in progress
         if (!sectionsNotDone.isEmpty()) {
             message += " ${this.WORK_IN_PROGRESS_DOCUMENT_MESSAGE} See issues: ${sectionsNotDone.collect { it.key }.join(', ')}"
+        }
+
+        // Append a warning message if there are any open tasks. Documents will not be considered final
+        // TODO review me
+        if (documentVersionId && !this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
+            message += "\n *Since there are WIP issue in Jira that affect one or more documents," +
+                " this document cannot be considered final.*"
         }
 
         def metadata = this.getDocumentMetadata(documentType)
@@ -1418,12 +1428,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
 
             // In case of generating a final document, we add the label for the version that should be released
-            if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
-                def labelsToRemove = this.jiraUseCase.jira.getLabelsFromIssue(jiraIssue.key as String)
-                    .findAll{ String label -> label.startsWith(JiraUseCase.LabelPrefix.DOCUMENT_VERSION)}
-                this.jiraUseCase.jira.removeLabelsFromIssue(jiraIssue.key as String, labelsToRemove)
-                def labelName = JiraUseCase.LabelPrefix.DOCUMENT_VERSION + getDocumentVersion(this.project.version.id)
-                this.jiraUseCase.jira.addLabelsToIssue(jiraIssue.key as String, [labelName])
+            if (documentVersionId && !this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
+                this.updateValidDocVersionInJira(jiraIssue.key, documentVersionId)
             }
         }
     }
@@ -1459,4 +1465,61 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         return defaultTypes
     }
+
+    DocumentHistory getDocumentHistory(String documentType) {
+        def latestValidVersionId = this.getLatestDocVersionId(documentType)
+
+        def jiraData = this.project.data.jira as Map
+        def environment = this.project.buildParams.targetEnvironmentToken as String
+        def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment )
+        docHistory.load(jiraData, latestValidVersionId)
+
+        docHistory
+    }
+
+    protected void updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {
+        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields['Document Version']
+
+        this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
+            [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
+
+
+    }
+
+    protected Long getLatestDocVersionId(String documentType) {
+        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        def documentVersionField = documentationTrackingIssueFields['Document Version'] as String
+
+        def trackingIssues = this.getDocumentTrackingIssues(documentType)
+
+        // We will use the biggest ID available
+        def versionList = trackingIssues.each{issue ->
+            def version = this.jiraUseCase.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])
+                .getOrDefault(documentVersionField,"")
+            def versionNumber = 0L
+            try {
+                versionNumber = version.toLong()
+            } catch (NumberFormatException _) {
+                // TODO move me to logger
+                this.steps.echo("WARNING: document tracking issue '${issue.key}' does not contain a valid numerical" +
+                    "version. It contains value '${version}'.")
+            }
+            return versionNumber
+        }
+
+        return versionList.max()
+
+    }
+
+    protected List<Map> getDocumentTrackingIssues(String documentType) {
+        def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
+        def jiraIssues = this.project.getDocumentTrackingIssues(jiraDocumentLabels)
+
+        if (jiraIssues.isEmpty()) {
+            throw new RuntimeException("Error: no Jira tracking issue associated with document type '${documentType}'.")
+        }
+        return jiraIssues
+    }
+
 }

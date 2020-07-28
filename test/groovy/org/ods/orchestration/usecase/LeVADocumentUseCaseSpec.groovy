@@ -367,6 +367,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             [key:"3", name:"3",gampTopic:"GAMP TOPIC", configSpec:[name:"cs3"],funcSpec:[name:"fs3"]],
         ]
         def watermarkText = "WATERMARK"
+        def docHistory = new DocumentHistory(steps, logger, 'D')
+        docHistory.load(project.data.jira)
 
         when:
         usecase.createCSD()
@@ -379,10 +381,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
+        1 * usecase.getDocumentHistory(documentType) >> docHistory
         1 * project.getSystemRequirements() >> requirements
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [], "${docHistory.getVersion()}")
     }
 
     def "create TRC"() {
@@ -660,7 +663,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * project.getAutomatedTestsTypeIntegration()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(*_)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
     }
 
     def "create CFTR"() {
@@ -936,6 +939,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
+        def docHistory = new DocumentHistory(steps, logger, 'D')
+        docHistory.load(project.data.jira)
 
         when:
         usecase.createSSDS()
@@ -954,9 +959,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
+        1 * usecase.getDocumentHistory(documentType) >> docHistory
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.createDocument(documentTemplate, null, _, _, _, documentType, watermarkText) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [])
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [], "${docHistory.getVersion()}")
     }
 
     def "create RA"() {
@@ -1293,6 +1299,105 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * jiraUseCase.jira.updateTextFieldsOnIssue("TRK-2", _)
         1 * jiraUseCase.jira.appendCommentToIssue("TRK-2", "myMessage Attention: this document is work in progress! See issues: DOC-1, DOC-3")
+    }
+
+    def "update document version in Jira documentation tracking issue when official release and no WIP issues"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+
+        def documentType = "CSD"
+        def message = "myMessage"
+
+        def trackingIssues = [
+            "TRK-1"      : [
+                "key"        : "TRK-1",
+                "name"       : "Document Demo",
+                "description": "Tracking issue in Q",
+                "status"     : "PENDING",
+                "labels"     : [
+                    "Doc:${documentType}"
+                ]
+            ]
+        ]
+
+        project.data.jira.docs << trackingIssues
+
+        when:
+        usecase.updateJiraDocumentationTrackingIssue(documentType, message, [], "1")
+
+        then:
+        (1.._) * this.project.isDeveloperPreviewMode() >> false
+        (1.._) * this.project.hasWipJiraIssues() >> false
+
+        then:
+        1 * usecase.updateValidDocVersionInJira("TRK-1", "1")
+    }
+
+    def "does not update document version in Jira documentation tracking issue when run is developer preview"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+
+        def documentType = "CSD"
+        def message = "myMessage"
+
+        def trackingIssues = [
+            "TRK-1"      : [
+                "key"        : "TRK-1",
+                "name"       : "Document Demo",
+                "description": "Tracking issue in Q",
+                "status"     : "PENDING",
+                "labels"     : [
+                    "Doc:${documentType}"
+                ]
+            ]
+        ]
+
+        project.data.jira.docs << trackingIssues
+
+        when:
+        usecase.updateJiraDocumentationTrackingIssue(documentType, message, [], "1")
+
+        then:
+        (1.._) * this.project.isDeveloperPreviewMode() >> true
+        0 * this.project.hasWipJiraIssues() >> false
+
+        then:
+        0 * usecase.updateValidDocVersionInJira(_)
+    }
+
+    def "does not update document version in Jira documentation tracking issue when project has WIP issues"() {
+        given:
+        jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
+        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
+
+        def documentType = "CSD"
+        def message = "myMessage"
+
+        def trackingIssues = [
+            "TRK-1"      : [
+                "key"        : "TRK-1",
+                "name"       : "Document Demo",
+                "description": "Tracking issue in Q",
+                "status"     : "PENDING",
+                "labels"     : [
+                    "Doc:${documentType}"
+                ]
+            ]
+        ]
+
+        project.data.jira.docs << trackingIssues
+
+        when:
+        usecase.updateJiraDocumentationTrackingIssue(documentType, message, [], "1")
+
+        then:
+        (1.._) * this.project.isDeveloperPreviewMode() >> false
+        (1.._) * this.project.hasWipJiraIssues() >> true
+
+        then:
+        0 * usecase.updateValidDocVersionInJira(_)
     }
 
     def "watermark 'work in progress' should be applied to some document type when there are 'work in progress' issues"() {
