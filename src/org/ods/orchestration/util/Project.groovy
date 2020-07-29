@@ -307,7 +307,8 @@ class Project {
 
         def newData = this.loadJiraData(this.jiraProjectKey)
         // TODO removeme when jrra plugin is updated
-        //newData.version = '1.1'
+        newData.version = newData.project.version
+        newData.predecessors = []
         //newData.predecessors = ['1.0']
 
         // Get more info of the versions from Jira
@@ -320,10 +321,10 @@ class Project {
         if (previousVersionId) {
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
             def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
-            this.data.jira << mergedData
+            this.data.jira << this.addVersionToComponentsWithout(mergedData)
             this.data.jira.previousVersion = previousVersionId
         } else {
-            this.data.jira << newData
+            this.data.jira << this.addVersionToComponentsWithout(newData)
         }
 
         // Get more info of the versions from Jira
@@ -1256,7 +1257,8 @@ class Project {
         if (!oldData || oldData.isEmpty()) {
             return newData
         } else {
-            def discontinuations = newData.getOrDefault('discontinuations',[])
+            def discontinuations = newData.getOrDefault('discontinuations',[]) +
+                this.getComponentDiscontinuations(oldData, newData)
             // Expand some information from old saved data
             def newDataExpanded = expandPredecessorInformation (oldData, newData)
             newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
@@ -1276,6 +1278,22 @@ class Project {
                 .collect{ String issueKey, issue -> issueKey }
             [(issueType): discontinuationsPerType]
         }
+    }
+
+    private List<String> getComponentDiscontinuations(Map oldData, Map newData) {
+        def oldComponents = oldData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, []).keySet()
+        def newComponents = newData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, []).keySet()
+        oldComponents - newComponents
+    }
+
+    private Map addVersionToComponentsWithout(Map jiraData) {
+        def currentVersion = jiraData.version
+        jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, []).values().each { component ->
+            if (! component.version) {
+                jiraData[JiraDataItem.TYPE_COMPONENTS][component.key].version = currentVersion
+            }
+        }
+        jiraData
     }
 
     private static List getDiscontinuedLinks(Map savedData, List<String> discontinuations) {
