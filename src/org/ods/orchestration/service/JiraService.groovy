@@ -23,15 +23,15 @@ class JiraService {
 
     JiraService(String baseURL, String username, String password) {
         if (!baseURL?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Jira. 'baseURL' is undefined.")
+            throw new IllegalArgumentException('Error: unable to connect to Jira. \'baseURL\' is undefined.')
         }
 
         if (!username?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Jira. 'username' is undefined.")
+            throw new IllegalArgumentException('Error: unable to connect to Jira. \'username\' is undefined.')
         }
 
         if (!password?.trim()) {
-            throw new IllegalArgumentException("Error: unable to connect to Jira. 'password' is undefined.")
+            throw new IllegalArgumentException('Error: unable to connect to Jira. \'password\' is undefined.')
         }
 
         if (baseURL.endsWith('/')) {
@@ -51,11 +51,11 @@ class JiraService {
     @NonCPS
     void addLabelsToIssue(String issueIdOrKey, List names) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to add labels to Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to add labels to Jira issue. \'issueIdOrKey\' is undefined.')
         }
 
         if (!names) {
-            throw new IllegalArgumentException("Error: unable to add labels to Jira issue. 'names' is undefined.")
+            throw new IllegalArgumentException('Error: unable to add labels to Jira issue. \'names\' is undefined.')
         }
 
         def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
@@ -88,11 +88,11 @@ class JiraService {
     @NonCPS
     void appendCommentToIssue(String issueIdOrKey, String comment) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to append comment to Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to append comment to Jira issue. \'issueIdOrKey\' is undefined.')
         }
 
         if (!comment?.trim()) {
-            throw new IllegalArgumentException("Error: unable to append comment to Jira issue. 'comment' is undefined.")
+            throw new IllegalArgumentException('Error: unable to append comment to Jira issue. \'comment\' is undefined.')
         }
 
         def response = Unirest.post("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}/comment")
@@ -119,15 +119,15 @@ class JiraService {
     @NonCPS
     void createIssueLinkType(String linkType, Map inwardIssue, Map outwardIssue) {
         if (!linkType?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create Jira issue link. 'linkType' is undefined.")
+            throw new IllegalArgumentException('Error: unable to create Jira issue link. \'linkType\' is undefined.')
         }
 
         if (!inwardIssue) {
-            throw new IllegalArgumentException("Error: unable to create Jira issue link. 'inwardIssue' is undefined.")
+            throw new IllegalArgumentException('Error: unable to create Jira issue link. \'inwardIssue\' is undefined.')
         }
 
         if (!outwardIssue) {
-            throw new IllegalArgumentException("Error: unable to create Jira issue link. 'outwardIssue' is undefined.")
+            throw new IllegalArgumentException('Error: unable to create Jira issue link. \'outwardIssue\' is undefined.')
         }
 
         def response = Unirest.post("${this.baseURL}/rest/api/2/issueLink")
@@ -174,19 +174,19 @@ class JiraService {
     @NonCPS
     Map createIssueType(String type, String projectKey, String summary, String description) {
         if (!type?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create Jira issue. 'type' is undefined.")
+            throw new IllegalArgumentException('Error: unable to create Jira issue. \'type\' is undefined.')
         }
 
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create Jira issue. 'projectKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to create Jira issue. \'projectKey\' is undefined.')
         }
 
         if (!summary?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create Jira issue. 'summary' is undefined.")
+            throw new IllegalArgumentException('Error: unable to create Jira issue. \'summary\' is undefined.')
         }
 
         if (!description?.trim()) {
-            throw new IllegalArgumentException("Error: unable to create Jira issue. 'description' is undefined.")
+            throw new IllegalArgumentException('Error: unable to create Jira issue. \'description\' is undefined.')
         }
 
         def response = Unirest.post("${this.baseURL}/rest/api/2/issue")
@@ -235,7 +235,7 @@ class JiraService {
     @NonCPS
     Map getDocGenData(String projectKey) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get documentation generation data from Jira. 'projectKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to get documentation generation data from Jira. \'projectKey\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/platform/1.0/docgenreports/{projectKey}")
@@ -287,18 +287,18 @@ class JiraService {
     @NonCPS
     Map getIssueTypeMetadata(String projectKey, String issueTypeId) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Jira issue type metadata. 'projectKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to get Jira issue type metadata. \'projectKey\' is undefined.')
         }
 
         if (!issueTypeId?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Jira issue type metadata. 'issueTypeId' is undefined.")
+            throw new IllegalArgumentException('Error: unable to get Jira issue type metadata. \'issueTypeId\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/api/2/issue/createmeta/{projectKey}/issuetypes/{issueTypeId}")
-            .routeParam("projectKey", projectKey.toUpperCase())
-            .routeParam("issueTypeId", issueTypeId)
+            .routeParam('projectKey', projectKey.toUpperCase())
+            .routeParam('issueTypeId', issueTypeId)
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
+            .header('Accept', 'application/json')
             .asString()
 
         response.ifFailure {
@@ -317,13 +317,13 @@ class JiraService {
     @NonCPS
     Map getIssueTypes(String projectKey) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get Jira issue types. 'projectKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to get Jira issue types. \'projectKey\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/api/2/issue/createmeta/{projectKey}/issuetypes")
-            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam('projectKey', projectKey.toUpperCase())
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
+            .header('Accept', 'application/json')
             .asString()
 
         response.ifFailure {
@@ -342,13 +342,13 @@ class JiraService {
     @NonCPS
     Map getVersionsForProject(String projectKey) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to load project version from Jira. 'projectKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to load project version from Jira. \'projectKey\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}/versions")
-            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam('projectKey', projectKey.toUpperCase())
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
+            .header('Accept', 'application/json')
             .asString()
 
         response.ifFailure {
@@ -369,13 +369,13 @@ class JiraService {
     @NonCPS
     Map getProject(String projectKey) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get project from Jira. 'projectKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to get project from Jira. \'projectKey\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}")
-            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam('projectKey', projectKey.toUpperCase())
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
+            .header('Accept', 'application/json')
             .asString()
 
         response.ifFailure {
@@ -394,13 +394,13 @@ class JiraService {
     @NonCPS
     List getProjectVersions(String projectKey) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to get project versions from Jira. 'projectKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to get project versions from Jira. \'projectKey\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}/versions")
-            .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam('projectKey', projectKey.toUpperCase())
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
+            .header('Accept', 'application/json')
             .asString()
 
         response.ifFailure {
@@ -419,14 +419,14 @@ class JiraService {
     @NonCPS
     List<String> getLabelsFromIssue(String issueIdOrKey) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to remove labels from Jira issue. \'issueIdOrKey\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
             .routeParam("issueIdOrKey", issueIdOrKey)
-            .queryString("fields", "labels")
+            .queryString('fields', 'labels')
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
+            .header('Accept', 'application/json')
             .asString()
 
         response.ifFailure {
@@ -442,18 +442,18 @@ class JiraService {
     @NonCPS
     void removeLabelsFromIssue(String issueIdOrKey, List names) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to remove labels from Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to remove labels from Jira issue. \'issueIdOrKey\' is undefined.')
         }
 
         if (!names) {
-            throw new IllegalArgumentException("Error: unable to remove labels from Jira issue. 'names' is undefined.")
+            throw new IllegalArgumentException('Error: unable to remove labels from Jira issue. \'names\' is undefined.')
         }
 
         def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
-            .routeParam("issueIdOrKey", issueIdOrKey)
+            .routeParam('issueIdOrKey', issueIdOrKey)
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
+            .header('Accept', 'application/json')
+            .header('Content-Type', 'application/json')
             .body(JsonOutput.toJson(
                 [
                     update: [
@@ -479,7 +479,7 @@ class JiraService {
     @NonCPS
     Map searchByJQLQuery(Map query) {
         if (!query) {
-            throw new IllegalArgumentException("Error: unable to get Jira issues for JQL query. 'query' is undefined.")
+            throw new IllegalArgumentException('Error: unable to get Jira issues for JQL query. \'query\' is undefined.')
         }
 
         if (!query.maxResults) {
@@ -491,8 +491,8 @@ class JiraService {
 
         def response = Unirest.post("${this.baseURL}/rest/api/2/search")
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
+            .header('Accept', 'application/json')
+            .header('Content-Type', 'application/json')
             .body(JsonOutput.toJson(query))
             .asString()
 
@@ -518,18 +518,18 @@ class JiraService {
     @NonCPS
     void updateSelectListFieldsOnIssue(String issueIdOrKey, Map fields) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to update select list fields on Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to update select list fields on Jira issue. \'issueIdOrKey\' is undefined.')
         }
 
         if (!fields) {
-            throw new IllegalArgumentException("Error: unable to update select list fields on Jira issue. 'fields' is undefined.")
+            throw new IllegalArgumentException('Error: unable to update select list fields on Jira issue. \'fields\' is undefined.')
         }
 
         def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
-            .routeParam("issueIdOrKey", issueIdOrKey)
+            .routeParam('issueIdOrKey', issueIdOrKey)
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
+            .header('Accept', 'application/json')
+            .header('Content-Type', 'application/json')
             .body(JsonOutput.toJson(
                 [
                     update: fields.collectEntries { id, value_ ->
@@ -568,18 +568,18 @@ class JiraService {
     @NonCPS
     void updateTextFieldsOnIssue(String issueIdOrKey, Map fields) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to update text fields on Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to update text fields on Jira issue. \'issueIdOrKey\' is undefined.')
         }
 
         if (!fields) {
-            throw new IllegalArgumentException("Error: unable to update text fields on Jira issue. 'fields' is undefined.")
+            throw new IllegalArgumentException('Error: unable to update text fields on Jira issue. \'fields\' is undefined.')
         }
 
         def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
-            .routeParam("issueIdOrKey", issueIdOrKey)
+            .routeParam('issueIdOrKey', issueIdOrKey)
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
+            .header('Accept', 'application/json')
+            .header('Content-Type', 'application/json')
             .body(JsonOutput.toJson(
                 [
                     update: fields.collectEntries { id, value_ ->
@@ -616,19 +616,19 @@ class JiraService {
     @NonCPS
     Map<String, String> getTextFieldsOfIssue(String issueIdOrKey, List fields) {
         if (!issueIdOrKey?.trim()) {
-            throw new IllegalArgumentException("Error: unable to retrieve text fields on Jira issue. 'issueIdOrKey' is undefined.")
+            throw new IllegalArgumentException('Error: unable to retrieve text fields on Jira issue. \'issueIdOrKey\' is undefined.')
         }
 
         if (!fields) {
-            throw new IllegalArgumentException("Error: unable to retrieve text fields on Jira issue. 'fields' is undefined.")
+            throw new IllegalArgumentException('Error: unable to retrieve text fields on Jira issue. \'fields\' is undefined.')
         }
 
         def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
-            .routeParam("fields", fields.join(","))
-            .routeParam("issueIdOrKey", issueIdOrKey)
+            .routeParam('issueIdOrKey', issueIdOrKey)
+            .queryString('fields', fields.join(','))
             .basicAuth(this.username, this.password)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
+            .header('Accept', 'application/json')
+            .header('Cotent-Type', 'application/json')
             .asString()
 
         response.ifSuccess {
