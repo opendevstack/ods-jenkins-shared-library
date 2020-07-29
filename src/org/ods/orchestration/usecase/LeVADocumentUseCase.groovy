@@ -1495,9 +1495,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def trackingIssues = this.getDocumentTrackingIssues(documentType)
 
         // We will use the biggest ID available
-        def versionList = trackingIssues. each { issue ->
+        def versionList = trackingIssues.collect { issue ->
             def version = this.jiraUseCase.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])
                 .getOrDefault(documentVersionField, "")
+            this.steps.echo("DEBUGGGG: version for tracking issue key ${issue.key}: '${version}'")// TODO delemete
             def versionNumber = 0L
             try {
                 versionNumber = version.toLong()

@@ -623,19 +623,13 @@ class JiraService {
             throw new IllegalArgumentException('Error: unable to retrieve text fields on Jira issue. \'fields\' is undefined.')
         }
 
-        def response = Unirest.put("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
+        def response = Unirest.get("${this.baseURL}/rest/api/2/issue/{issueIdOrKey}")
             .routeParam('issueIdOrKey', issueIdOrKey)
             .queryString('fields', fields.join(','))
             .basicAuth(this.username, this.password)
             .header('Accept', 'application/json')
-            .header('Cotent-Type', 'application/json')
+            .header('Content-Type', 'application/json')
             .asString()
-
-        response.ifSuccess {
-            if (response.getStatus() != 204) {
-                throw new RuntimeException("Error: unable to retrieve text fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'.")
-            }
-        }
 
         response.ifFailure {
             def message = "Error: unable to retrieve text fields on Jira issue. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
