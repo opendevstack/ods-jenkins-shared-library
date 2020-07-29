@@ -205,20 +205,25 @@ class Project {
         List<JiraDataItem> getResolvedTests() {
             return this.getResolvedReferences(TYPE_TESTS)
         }
+
     }
 
     class TestType {
+
         static final String ACCEPTANCE = 'Acceptance'
         static final String INSTALLATION = 'Installation'
         static final String INTEGRATION = 'Integration'
         static final String UNIT = 'Unit'
+
     }
 
     class GampTopic {
+
         static final String AVAILABILITY_REQUIREMENT = 'Availability Requirement'
         static final String CONSTRAINT = 'Constraint'
         static final String FUNCTIONAL_REQUIREMENT = 'Functional Requirement'
         static final String INTERFACE_REQUIREMENT = 'Interface Requirement'
+
     }
 
     protected static final String BUILD_PARAM_VERSION_DEFAULT = 'WIP'
@@ -1209,13 +1214,13 @@ class Project {
         def mergeMaps = { Map left, Map right ->
             def keys = (left.keySet() + right.keySet()).toSet()
 
-            keys.collectEntries{ key ->
+            keys.collectEntries { key ->
                 if (!left[key] || left[key].isEmpty) {
                     [(key): right[key]]
                 }else if (!right[key] || right[key].isEmpty) {
                     [(key): left[key]]
                 } else {
-                    [(key): left[key]+right[key]]
+                    [(key): left[key] + right[key]]
                 }
             }
         }
@@ -1224,7 +1229,7 @@ class Project {
         // - Deleting links of removing issues
         // - Adding links to new issues
         // - Updating links for changes in issues (changing key 1 for key 2)
-        def updateIssues = {Map<String,Map> left, Map<String,Map> right ->
+        def updateIssues = { Map<String,Map> left, Map<String,Map> right ->
             def updateLink = { String issueType, String issueToUpdateKey, Map link ->
                 if (link.action == 'add') {
                     left[issueType][issueToUpdateKey]."${link.linkType}" << link.origin
@@ -1237,8 +1242,8 @@ class Project {
             }
 
             def reverseLinkIndex = buildChangesInLinks(left, right)
-            left.findAll{JiraDataItem.TYPES.contains(it.key)}.each {issueType, issues ->
-                issues.values().each{ Map issueToUpdate ->
+            left.findAll { JiraDataItem.TYPES.contains(it.key) }.each { issueType, issues ->
+                issues.values().each { Map issueToUpdate ->
                     def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key,[])
                     linksToUpdate.each { Map link ->
                         updateLink(issueType, issueToUpdate.key, link)
@@ -1267,7 +1272,7 @@ class Project {
 
     private static Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
         savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collectEntries { String issueType, Map issues ->
-            def discontinuationsPerType = issues.issues.findAll{discontinuations.contains(it.key)}
+            def discontinuationsPerType = issues.issues.findAll { discontinuations.contains(it.key) }
                 .collect{ String issueKey, issue -> issueKey }
             [(issueType): discontinuationsPerType]
         }
@@ -1275,9 +1280,9 @@ class Project {
 
     private static List getDiscontinuedLinks(Map savedData, List<String> discontinuations) {
         savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect{ issueType, Map issues ->
-            def discontinuedLinks = issues.findAll{discontinuations.contains(it.key)}
-                .collect{ key, issue ->
-                    def issueLinks = issue.findAll{JiraDataItem.TYPES.contains(it.key)}
+            def discontinuedLinks = issues.findAll { discontinuations.contains(it.key) }
+                .collect { key, issue ->
+                    def issueLinks = issue.findAll { JiraDataItem.TYPES.contains(it.key) }
                     issueLinks.collect { String linkType, List linkedIssues ->
                         linkedIssues.collect { targetKey ->
                             [origin: issue.key, target: targetKey, linkType: issueType, action: 'discontinue']
@@ -1292,14 +1297,13 @@ class Project {
         def discontinuedLinks = getDiscontinuedLinks(oldData, updates.getOrDefault('discontinuations', []))
         def additionsAndChanges = getAdditionsAndChangesInLinks(updates)
 
-        return (discontinuedLinks + additionsAndChanges).groupBy{it.target}
+        return (discontinuedLinks + additionsAndChanges).groupBy { it.target }
     }
 
     private static List getAdditionsAndChangesInLinks(Map newData) {
-
-        def getLink = {String issueType, Map issue, String targetKey, Boolean isAnUpdate ->
+        def getLink = { String issueType, Map issue, String targetKey, Boolean isAnUpdate ->
             if (isAnUpdate) {
-                issue.predecessors.collect{
+                issue.predecessors.collect {
                     [origin: issue.key, target: targetKey, linkType: issueType, action: 'change', replaces: it]
                 }
             } else {
@@ -1320,10 +1324,9 @@ class Project {
     }
 
     private static Map removeObsoleteIssues(Map jiraData, List<String> keysToRemove) {
-        def result = jiraData.collectEntries {issueType, content ->
+        def result = jiraData.collectEntries { issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
-                [(issueType): content.findAll{
-                    ! keysToRemove.contains(it.key)}]
+                [(issueType): content.findAll { ! keysToRemove.contains(it.key) } ]
             } else {
                 [(issueType): content]
             }
@@ -1335,12 +1338,12 @@ class Project {
      * Expected format is:
      *   issueType.issue."expandedPredecessors" -> [key:"", version:""]
      * @param jiraData
-     * @return
+     * @return keys of preceeded issues
      */
     private static List getPreceededKeys(Map jiraData) {
-        jiraData.findAll{JiraDataItem.TYPES.contains(it.key)}.values().collect{issueGroup ->
-            issueGroup.values().collect{issue ->
-                [issue.getOrDefault('expandedPredecessors',[]).collect{it.key}]
+        jiraData.findAll { JiraDataItem.TYPES.contains(it.key) }.values().collect { issueGroup ->
+            issueGroup.values().collect { issue ->
+                [issue.getOrDefault('expandedPredecessors',[]).collect { it.key }]
             }
         }.flatten().unique()
     }
@@ -1367,15 +1370,11 @@ class Project {
                 result << existingPredecessors
             }
             result.flatten()
-
-
         }
 
-
-
-        newData.collectEntries {issueType, content ->
+        newData.collectEntries { issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
-                def updatedIssues = content.collectEntries {String issueKey, Map issue ->
+                def updatedIssues = content.collectEntries { String issueKey, Map issue ->
                     def predecessors = issue.getOrDefault('predecessors', [])
                     if (predecessors.isEmpty()) {
                         [(issueKey): issue]

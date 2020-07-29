@@ -26,10 +26,12 @@ import groovy.xml.XmlUtil
     'MethodCount',
     'UseCollectMany',
     'ParameterName',
+    'TrailingComma',
     'SpaceAroundMapEntryColon'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
+
         CSD,
         DIL,
         DTP,
@@ -48,6 +50,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         OVERALL_DTR,
         OVERALL_IVR,
         OVERALL_TIR
+
     }
 
     private static Map DOCUMENT_TYPE_NAMES = [
@@ -101,176 +104,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.sq = sq
     }
 
-    /**
-     * This computes the information related to the components (modules) that are being developed
-     * @param documentType
-     * @return
-     */
-    protected Map computeComponentMetadata(String documentType) {
-        return this.project.components.collectEntries { component ->
-            def normComponentName = component.name.replaceAll('Technology-', '')
-
-            def gitUrl = new GitService(
-                this.steps, new Logger(this.steps, false)).getOriginUrl()
-            def isReleaseManagerComponent =
-                gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
-            if (isReleaseManagerComponent) {
-                return [ : ]
-            }
-
-            def repo_ = this.project.repositories.find { [it.id, it.name, it.metadata.name].contains(normComponentName) }
-            if (!repo_) {
-                def repoNamesAndIds = this.project.repositories.collect{ [id: it.id, name: it.name] }
-                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository configuration with id or name equal to '${normComponentName}' for Jira component '${component.name}' in project '${this.project.key}'. Please check the metatada.yml file. In this file there are the following repositories configured: ${repoNamesAndIds}")
-            }
-
-            def metadata = repo_.metadata
-
-            return [
-                component.name,
-                [
-                    key               : component.key,
-                    componentName     : component.name,
-                    componentId       : metadata.id ?: 'N/A - part of this application',
-                    componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
-                    odsRepoType       : repo_.type?.toLowerCase(),
-                    description       : metadata.description,
-                    nameOfSoftware    : metadata.name,
-                    references        : metadata.references ?: 'N/A',
-                    supplier          : metadata.supplier,
-                    version           : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ?
-                                        this.project.buildParams.version :
-                                        metadata.version,
-                    requirements      : component.getResolvedSystemRequirements(),
-                    softwareDesignSpec: component.getResolvedTechnicalSpecifications().findAll {
-                        it.softwareDesignSpec
-                    }.collect {
-                        [key: it.key, softwareDesignSpec: it.softwareDesignSpec]
-                    }
-                ]
-            ]
-        }
-    }
-
-    private List obtainCodeReviewReport(List<Map> repos) {
-        def reports =  repos.collect { r ->
-            // resurrect?
-            Map resurrectedDocument = resurrectAndStashDocument('SCRR-MD', r, false)
-            this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
-            if (resurrectedDocument.found) {
-                return resurrectedDocument.content
-            }
-
-            def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
-            def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
-
-            // Unstash SonarQube reports into path
-            def hasStashedSonarQubeReports = this.jenkins.unstashFilesIntoPath(sqReportsStashName, "${this.steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report")
-            if (!hasStashedSonarQubeReports) {
-                throw new RuntimeException("Error: unable to unstash SonarQube reports for repo '${r.id}' from stash '${sqReportsStashName}'.")
-            }
-
-            // Load SonarQube report files from path
-            def sqReportFiles = this.sq.loadReportsFromPath("${this.steps.env.WORKSPACE}/${sqReportsPath}")
-            if (sqReportFiles.isEmpty()) {
-                throw new RuntimeException("Error: unable to load SonarQube reports for repo '${r.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
-            }
-
-            def name = this.getDocumentBasename('SCRR-MD', this.project.buildParams.version, this.steps.env.BUILD_ID, r)
-            def sqReportFile = sqReportFiles.first()
-
-            def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
-
-            // store doc - we may need it later for partial deployments
-            if (!resurrectedDocument.found) {
-                def result = this.storeDocument("${name}.pdf", generatedSCRR, 'application/pdf')
-                this.steps.echo "Stored 'SCRR' for later consumption -> ${result}"
-            }
-            return generatedSCRR
-        }
-
-        return reports
-    }
-
-    protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
-        def result = [
-            discrepancies: 'No discrepancies found.',
-            conclusion   : [
-                summary  : 'Complete success, no discrepancies',
-                statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred.",
-            ]
-        ]
-
-        // Match Jira test issues with test results
-        def matchedHandler = { matched ->
-            matched.each { testIssue, testCase ->
-                testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped)
-                testIssue.isUnexecuted = !!testCase.skipped
-                testIssue.timestamp = testCase.timestamp
-            }
-        }
-
-        def unmatchedHandler = { unmatched ->
-            unmatched.each { testIssue ->
-                testIssue.isSuccess = false
-                testIssue.isUnexecuted = true
-            }
-        }
-
-        this.jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults ?: [:], matchedHandler, unmatchedHandler)
-
-        // Compute failed and missing Jira test issues
-        def failedTestIssues = testIssues.findAll { testIssue ->
-            return !testIssue.isSuccess && !testIssue.isUnexecuted
-        }
-
-        def unexecutedTestIssues = testIssues.findAll { testIssue ->
-            return !testIssue.isSuccess && testIssue.isUnexecuted
-        }
-
-        // Compute extraneous failed test cases
-        def extraneousFailedTestCases = []
-        testResults.testsuites.each { testSuite ->
-            extraneousFailedTestCases.addAll(testSuite.testcases.findAll { testCase ->
-                return (testCase.error || testCase.failure) && !failedTestIssues.any { this.jiraUseCase.checkTestsIssueMatchesTestCase(it, testCase) }
-            })
-        }
-
-        // Compute test discrepancies
-        def isMajorDiscrepancy = failedTestIssues || unexecutedTestIssues || extraneousFailedTestCases
-        if (isMajorDiscrepancy) {
-            result.discrepancies = 'The following major discrepancies were found during testing.'
-            result.conclusion.summary = 'No success - major discrepancies found'
-            result.conclusion.statement = 'Some discrepancies found as'
-
-            if (failedTestIssues || extraneousFailedTestCases) {
-                result.conclusion.statement += ' tests did fail'
-            }
-
-            if (failedTestIssues) {
-                result.discrepancies += " Failed tests: ${failedTestIssues.collect { it.key }.join(', ')}."
-            }
-
-            if (extraneousFailedTestCases) {
-                result.discrepancies += " Other failed tests: ${extraneousFailedTestCases.size()}."
-            }
-
-            if (unexecutedTestIssues) {
-                result.discrepancies += " Unexecuted tests: ${unexecutedTestIssues.collect { it.key }.join(', ')}."
-
-                if (failedTestIssues || extraneousFailedTestCases) {
-                    result.conclusion.statement += ' and others were not executed'
-                } else {
-                    result.conclusion.statement += ' tests were not executed'
-                }
-            }
-
-            result.conclusion.statement += '.'
-        }
-
-        return result
-    }
-
     String createCSD(Map repo = null, Map data = null) {
         def documentType = DocumentType.CSD as String
 
@@ -287,8 +120,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def requirements = this.project.getSystemRequirements()
-        def reqsWithNoGampTopic = requirements.findAll{ it.gampTopic == null }
-        def reqsGroupedByGampTopic = requirements.findAll{ it.gampTopic != null }.groupBy { it.gampTopic.toLowerCase() }
+        def reqsWithNoGampTopic = requirements. findAll { it.gampTopic == null }
+        def reqsGroupedByGampTopic = requirements. findAll { it.gampTopic != null }.groupBy { it.gampTopic.toLowerCase() }
         reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic ]
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             [
@@ -298,11 +131,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         key           : req.key,
                         applicability : 'Mandatory',
                         ursName       : req.name,
-                        ursDescription: req.description?: '',
-                        csName        : req.configSpec.name?: 'N/A',
-                        csDescription : req.configSpec.description?: '',
-                        fsName        : req.funcSpec.name?: 'N/A',
-                        fsDescription : req.funcSpec.description?: '',
+                        ursDescription: req.description ?: '',
+                        csName        : req.configSpec.name ?: 'N/A',
+                        csDescription : req.configSpec.description ?: '',
+                        fsName        : req.funcSpec.name ?: 'N/A',
+                        fsDescription : req.funcSpec.description ?: '',
                     ]
                 }, ["key"])
             ]
@@ -322,6 +155,130 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.updateJiraDocumentationTrackingIssue(documentType,
             "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.",
             sectionsNotDone, docHistory.getVersion() as String)
+        return uri
+    }
+
+    String createDTP(Map repo = null, Map data = null) {
+        def documentType = DocumentType.DTP as String
+
+        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+        if (!sections) {
+            sections = this.levaFiles.getDocumentChapterData(documentType)
+        }
+
+        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
+        // Add undone document sections to our collection of undone Jira issues
+        def sectionsNotDone = this.getSectionsNotDone(sections)
+        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+
+        def unitTests = this.project.getAutomatedTestsTypeUnit()
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+            data    : [
+                sections: sections,
+                tests: this.computeTestsWithRequirementsAndSpecs(unitTests),
+                modules: this.getReposWithUnitTestsInfo(unitTests)
+            ]
+        ]
+
+        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        return uri
+    }
+
+    String createDTR(Map repo, Map data) {
+        def documentType = DocumentType.DTR as String
+
+        Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
+        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
+        if (resurrectedDocument.found) {
+            return resurrectedDocument.uri
+        }
+
+        def unitTestData = data.tests.unit
+
+        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+        if (!sections) {
+            sections = this.levaFiles.getDocumentChapterData(documentType)
+        }
+
+        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
+        // Add undone document sections to our collection of undone Jira issues
+        def sectionsNotDone = this.getSectionsNotDone(sections)
+        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+
+        def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
+        def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
+
+        def obtainEnum = { category, value ->
+            return this.project.getEnumDictionary(category)[value as String]
+        }
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+            data    : [
+                repo              : repo,
+                sections          : sections,
+                tests             : testIssues.collect { testIssue ->
+                    def riskLevels = testIssue.getResolvedRisks(). collect {
+                        def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
+                        return value ? value.text : "None"
+                    }
+
+                    def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll { it.softwareDesignSpec }*.key
+                    [
+                        key               : testIssue.key,
+                        description       : testIssue.description ?: "N/A",
+                        systemRequirement : testIssue.requirements.join(", "),
+                        success           : testIssue.isSuccess ? "Y" : "N",
+                        remarks           : testIssue.isUnexecuted ? "Not executed" : "N/A",
+                        softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
+                        riskLevel         : riskLevels ? riskLevels.join(", ") : "N/A"
+                    ]
+                },
+                numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isUnexecuted },
+                testFiles         : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
+                    [name: file.name, path: file.path, text: XmlUtil.serialize(file.text)]
+                } ?: [], ["name"]),
+                discrepancies     : discrepancies.discrepancies,
+                conclusion        : [
+                    summary  : discrepancies.conclusion.summary,
+                    statement: discrepancies.conclusion.statement
+                ]
+            ]
+        ]
+
+        def files = unitTestData.testReportFiles.collectEntries { file ->
+            ["raw/${file.getName()}", file.getBytes()]
+        }
+
+        def modifier = { document ->
+            return document
+        }
+
+        def uri = this.createDocument(getDocumentTemplateName(documentType), repo, data_, files, modifier, documentType, watermarkText)
+        return uri
+    }
+
+    String createOverallDTR(Map repo = null, Map data = null) {
+        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
+        def metadata = this.getDocumentMetadata(documentTypeName)
+
+        def documentType = DocumentType.DTR as String
+
+        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
+        // Add undone document sections to our collection of undone Jira issues
+        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
+
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+
+        def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
 
@@ -363,8 +320,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     //Discrepancy ID -> BUG Issue ID
                     discrepancyID        : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
-                    testcaseID           : bug.tests.collect{ it.key }.join(", "),
-                    //-	Level of Test Case = Unit / Integration / Acceptance / Installation
+                    testcaseID           : bug.tests. collect { it.key }.join(", "),
+                    //- Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Integration",
                     //Description of Failure or Discrepancy -> Bug Issue Summary
                     description          : bug.name,
@@ -386,8 +343,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     //Discrepancy ID -> BUG Issue ID
                     discrepancyID        : bug.key,
                     //Test Case No. -> JIRA (Test Case Key)
-                    testcaseID           : bug.tests.collect{ it.key }.join(", "),
-                    //-	Level of Test Case = Unit / Integration / Acceptance / Installation
+                    testcaseID           : bug.tests. collect { it.key }.join(", "),
+                    //- Level of Test Case = Unit / Integration / Acceptance / Installation
                     level                : "Acceptance",
                     //Description of Failure or Discrepancy -> Bug Issue Summary
                     description          : bug.name,
@@ -405,157 +362,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
-        return uri
-    }
-
-    String createDTP(Map repo = null, Map data = null) {
-        def documentType = DocumentType.DTP as String
-
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
-
-        def unitTests = this.project.getAutomatedTestsTypeUnit()
-
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-            data    : [
-                sections: sections,
-                tests: this.computeTestsWithRequirementsAndSpecs(unitTests),
-                modules: this.getReposWithUnitTestsInfo(unitTests)
-            ]
-        ]
-
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
-        return uri
-    }
-
-    protected List<Map> computeTestsWithRequirementsAndSpecs(List<Map> tests) {
-        def obtainEnum = { category, value ->
-            return this.project.getEnumDictionary(category)[value as String]
-        }
-
-        tests.collect { testIssue ->
-
-            def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
-            def riskLevels = testIssue.getResolvedRisks().collect{
-                def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
-                return value ? value.text : "None"
-            }
-
-            [
-                moduleName: testIssue.components.join(", "),
-                testKey: testIssue.key,
-                description: testIssue.description ?: "N/A",
-                systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                softwareDesignSpec: (softwareDesignSpecs.join(", "))?: "N/A",
-                riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
-            ]
-        }
-    }
-
-    protected List<Map> getReposWithUnitTestsInfo(List<Map> unitTests) {
-        def componentTestMapping = computeComponentsUnitTests(unitTests)
-        this.project.repositories.collect{
-            [
-                id: it.id,
-                description: it.metadata.description,
-                tests: componentTestMapping[it.id]? componentTestMapping[it.id].join(", "): "None defined"
-            ]
-        }
-    }
-
-    protected Map computeComponentsUnitTests(List<Map> tests) {
-        def issueComponentMapping = tests.collect { test ->
-            test.getResolvedComponents().collect {[test: test.key, component: it.name] }
-        }.flatten()
-        issueComponentMapping.groupBy{ it.component }.collectEntries { c, v ->
-            [(c.replaceAll("Technology-", "")): v.collect{it.test}]
-        }
-    }
-
-    String createDTR(Map repo, Map data) {
-        def documentType = DocumentType.DTR as String
-
-        Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
-        this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
-        if (resurrectedDocument.found) {
-            return resurrectedDocument.uri
-        }
-
-        def unitTestData = data.tests.unit
-
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
-
-        def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
-        def discrepancies = this.computeTestDiscrepancies("Development Tests", testIssues, unitTestData.testResults)
-
-        def obtainEnum = { category, value ->
-            return this.project.getEnumDictionary(category)[value as String]
-        }
-
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-            data    : [
-                repo              : repo,
-                sections          : sections,
-                tests             : testIssues.collect { testIssue ->
-                    def riskLevels = testIssue.getResolvedRisks().collect{
-                        def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
-                        return value ? value.text : "None"
-                    }
-
-                    def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll{ it.softwareDesignSpec }.collect{ it.key }
-                    [
-                        key               : testIssue.key,
-                        description       : testIssue.description ?: "N/A",
-                        systemRequirement : testIssue.requirements.join(", "),
-                        success           : testIssue.isSuccess ? "Y" : "N",
-                        remarks           : testIssue.isUnexecuted ? "Not executed" : "N/A",
-                        softwareDesignSpec: (softwareDesignSpecs.join(", "))?: "N/A",
-                        riskLevel         : riskLevels ? riskLevels.join(", ") : "N/A"
-                    ]
-                },
-                numAdditionalTests: junit.getNumberOfTestCases(unitTestData.testResults) - testIssues.count { !it.isUnexecuted },
-                testFiles         : SortUtil.sortIssuesByProperties(unitTestData.testReportFiles.collect { file ->
-                    [name: file.name, path: file.path, text: XmlUtil.serialize(file.text)]
-                } ?: [], ["name"]),
-                discrepancies     : discrepancies.discrepancies,
-                conclusion        : [
-                    summary  : discrepancies.conclusion.summary,
-                    statement: discrepancies.conclusion.statement
-                ]
-            ]
-        ]
-
-        def files = unitTestData.testReportFiles.collectEntries { file ->
-            ["raw/${file.getName()}", file.getBytes()]
-        }
-
-        def modifier = { document ->
-            return document
-        }
-
-        def uri = this.createDocument(getDocumentTemplateName(documentType), repo, data_, files, modifier, documentType, watermarkText)
         return uri
     }
 
@@ -600,6 +406,78 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        return uri
+    }
+
+    String createCFTR(Map repo, Map data) {
+        def documentType = DocumentType.CFTR as String
+
+        def acceptanceTestData = data.tests.acceptance
+        def integrationTestData = data.tests.integration
+
+        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
+        // Add undone document sections to our collection of undone Jira issues
+        def sectionsNotDone = this.getSectionsNotDone(sections)
+        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+
+        def acceptanceTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeAcceptance(), ["key"])
+        def integrationTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeIntegration(), ["key"])
+        def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            data    : [
+                sections                     : sections,
+                numAdditionalAcceptanceTests : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isUnexecuted },
+                numAdditionalIntegrationTests: junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isUnexecuted },
+                conclusion                   : [
+                    summary  : discrepancies.conclusion.summary,
+                    statement: discrepancies.conclusion.statement
+                ]
+            ]
+        ]
+
+        if (!acceptanceTestIssues.isEmpty()) {
+            data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
+                [
+                    key        : testIssue.key,
+                    datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
+                    description: testIssue.description ?: "",
+                    remarks    : testIssue.isUnexecuted ? "Not executed" : "",
+                    risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                    success    : testIssue.isSuccess ? "Y" : "N",
+                    ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                ]
+            }
+        }
+
+        if (!integrationTestIssues.isEmpty()) {
+            data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
+                [
+                    key        : testIssue.key,
+                    datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
+                    description: testIssue.description ?: "",
+                    remarks    : testIssue.isUnexecuted ? "Not executed" : "",
+                    risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
+                    success    : testIssue.isSuccess ? "Y" : "N",
+                    ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
+                ]
+            }
+        }
+
+        def files = (acceptanceTestData.testReportFiles + integrationTestData.testReportFiles).collectEntries { file ->
+            ["raw/${file.getName()}", file.getBytes()]
+        }
+
+        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -691,78 +569,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createCFTR(Map repo, Map data) {
-        def documentType = DocumentType.CFTR as String
-
-        def acceptanceTestData = data.tests.acceptance
-        def integrationTestData = data.tests.integration
-
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
-
-        def acceptanceTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeAcceptance(), ["key"])
-        def integrationTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeIntegration(), ["key"])
-        def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
-
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data    : [
-                sections                     : sections,
-                numAdditionalAcceptanceTests : junit.getNumberOfTestCases(acceptanceTestData.testResults) - acceptanceTestIssues.count { !it.isUnexecuted },
-                numAdditionalIntegrationTests: junit.getNumberOfTestCases(integrationTestData.testResults) - integrationTestIssues.count { !it.isUnexecuted },
-                conclusion                   : [
-                    summary  : discrepancies.conclusion.summary,
-                    statement: discrepancies.conclusion.statement
-                ]
-            ]
-        ]
-
-        if (!acceptanceTestIssues.isEmpty()) {
-            data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
-                [
-                    key        : testIssue.key,
-                    datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: testIssue.description ?: "",
-                    remarks    : testIssue.isUnexecuted ? "Not executed" : "",
-                    risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
-                    success    : testIssue.isSuccess ? "Y" : "N",
-                    ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
-                ]
-            }
-        }
-
-        if (!integrationTestIssues.isEmpty()) {
-            data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
-                [
-                    key        : testIssue.key,
-                    datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: testIssue.description ?: "",
-                    remarks    : testIssue.isUnexecuted ? "Not executed" : "",
-                    risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
-                    success    : testIssue.isSuccess ? "Y" : "N",
-                    ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A"
-                ]
-            }
-        }
-
-        def files = (acceptanceTestData.testReportFiles + integrationTestData.testReportFiles).collectEntries { file ->
-            ["raw/${file.getName()}", file.getBytes()]
-        }
-
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
-        return uri
-    }
-
     String createIVP(Map repo = null, Map data = null) {
         def documentType = DocumentType.IVP as String
 
@@ -803,7 +609,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     [
                         key     : testIssue.key,
                         summary : testIssue.name,
-                        techSpec: testIssue.techSpecs.join(", ")?: "N/A"
+                        techSpec: testIssue.techSpecs.join(", ") ?: "N/A"
                     ]
                 }, ["key"]),
                 testsOdsService: testsOfRepoTypeOdsService,
@@ -812,6 +618,77 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        return uri
+    }
+
+    String createIVR(Map repo, Map data) {
+        def documentType = DocumentType.IVR as String
+
+        def installationTestData = data.tests.installation
+
+        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
+        }
+
+        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
+        // Add undone document sections to our collection of undone Jira issues
+        def sectionsNotDone = this.getSectionsNotDone(sections)
+        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
+
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+
+        def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
+        def discrepancies = this.computeTestDiscrepancies("Installation Tests", installationTestIssues, installationTestData.testResults)
+
+        def testsOfRepoTypeOdsCode = []
+        def testsOfRepoTypeOdsService = []
+        def testsGroupedByRepoType = groupTestsByRepoType(installationTestIssues)
+        testsGroupedByRepoType.each { repoTypes, tests ->
+            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE)) {
+                testsOfRepoTypeOdsCode.addAll(tests)
+            }
+
+            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)) {
+                testsOfRepoTypeOdsService.addAll(tests)
+            }
+        }
+
+        def data_ = [
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
+            data    : [
+                repositories      : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                sections          : sections,
+                tests             : SortUtil.sortIssuesByProperties(installationTestIssues.collect { testIssue ->
+                    [
+                        key        : testIssue.key,
+                        description: testIssue.description ?: "",
+                        remarks    : testIssue.isUnexecuted ? "Not executed" : "",
+                        success    : testIssue.isSuccess ? "Y" : "N",
+                        summary    : testIssue.name,
+                        techSpec   : testIssue.techSpecs.join(", ") ?: "N/A"
+                    ]
+                }, ["key"]),
+                numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isUnexecuted },
+                testFiles         : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
+                    [name: file.name, path: file.path, text: file.text]
+                } ?: [], ["name"]),
+                discrepancies     : discrepancies.discrepancies,
+                conclusion        : [
+                    summary  : discrepancies.conclusion.summary,
+                    statement: discrepancies.conclusion.statement
+                ],
+                testsOdsService   : testsOfRepoTypeOdsService,
+                testsOdsCode      : testsOfRepoTypeOdsCode
+            ]
+        ]
+
+        def files = data.tests.installation.testReportFiles.collectEntries { file ->
+            ["raw/${file.getName()}", file.getBytes()]
+        }
+
+        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -841,13 +718,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def matchedHandler = { result ->
             result.each { testIssue, testCase ->
                 testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped
-                    || !testIssue.getResolvedBugs().findAll{ bug -> bug.status?.toLowerCase() != "done"}.isEmpty()
+                    || !testIssue.getResolvedBugs(). findAll { bug -> bug.status?.toLowerCase() != "done" }.isEmpty()
                     || testIssue.isUnexecuted)
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
                 testIssue.timestamp = testIssue.isUnexecuted ? "N/A" : testCase.timestamp
                 testIssue.isUnexecuted = false
                 testIssue.actualResult = testIssue.isSuccess ? "Expected result verified by automated test" :
-                                         !testIssue.isUnexecuted ? "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below." : "Not executed"
+                                         testIssue.isUnexecuted ? "Not executed" : "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below."
             }
         }
 
@@ -955,77 +832,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createIVR(Map repo, Map data) {
-        def documentType = DocumentType.IVR as String
-
-        def installationTestData = data.tests.installation
-
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
-
-        def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
-        def discrepancies = this.computeTestDiscrepancies("Installation Tests", installationTestIssues, installationTestData.testResults)
-
-        def testsOfRepoTypeOdsCode = []
-        def testsOfRepoTypeOdsService = []
-        def testsGroupedByRepoType = groupTestsByRepoType(installationTestIssues)
-        testsGroupedByRepoType.each { repoTypes, tests ->
-            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE)) {
-                testsOfRepoTypeOdsCode.addAll(tests)
-            }
-
-            if (repoTypes.contains(MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE)) {
-                testsOfRepoTypeOdsService.addAll(tests)
-            }
-        }
-
-        def data_ = [
-            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
-            data    : [
-                repositories      : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
-                sections          : sections,
-                tests             : SortUtil.sortIssuesByProperties(installationTestIssues.collect { testIssue ->
-                    [
-                        key        : testIssue.key,
-                        description: testIssue.description ?: "",
-                        remarks    : testIssue.isUnexecuted ? "Not executed" : "",
-                        success    : testIssue.isSuccess ? "Y" : "N",
-                        summary    : testIssue.name,
-                        techSpec   : testIssue.techSpecs.join(", ")?: "N/A"
-                    ]
-                }, ["key"]),
-                numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isUnexecuted },
-                testFiles         : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
-                    [name: file.name, path: file.path, text: file.text]
-                } ?: [], ["name"]),
-                discrepancies     : discrepancies.discrepancies,
-                conclusion        : [
-                    summary  : discrepancies.conclusion.summary,
-                    statement: discrepancies.conclusion.statement
-                ],
-                testsOdsService   : testsOfRepoTypeOdsService,
-                testsOdsCode      : testsOfRepoTypeOdsCode
-            ]
-        ]
-
-        def files = data.tests.installation.testReportFiles.collectEntries { file ->
-            ["raw/${file.getName()}", file.getBytes()]
-        }
-
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
-        return uri
-    }
-
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
 
@@ -1047,7 +853,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { techSpec ->
                 [
                     key        : techSpec.key,
-                    req_key    : techSpec.requirements.join(", ")?:"None",
+                    req_key    : techSpec.requirements.join(", ") ?: "None",
                     description: techSpec.systemDesignSpec
                 ]
             }
@@ -1073,7 +879,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modules = componentsMetadata.findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }.collect { component ->
             // We will set-up a double loop in the template. For moustache limitations we need to have lists
             component.requirements = component.requirements.collect { r ->
-                [key: r.key, name: r.name, reqDescription: r.description, gampTopic: r.gampTopic?:"uncategorized"]
+                [key: r.key, name: r.name, reqDescription: r.description, gampTopic: r.gampTopic ?: "uncategorized"]
             }.groupBy { it.gampTopic.toLowerCase() }.collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
             return component
@@ -1083,7 +889,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         sections."sec10".modules = modules
 
         // Code review report
-        def codeRepos = this.project.repositories.findAll{ it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+        def codeRepos = this.project.repositories. findAll { it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
         def codeReviewReports = obtainCodeReviewReport(codeRepos)
 
         def modifier = { document ->
@@ -1107,15 +913,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.",
             sectionsNotDone, docHistory.getVersion() as String)
         return uri
-    }
-
-    String getDocumentTemplateName(String documentType) {
-        def capability = this.project.getCapability("LeVADocs")
-        if (!capability) {
-            return documentType
-        }
-
-        return this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType) ? documentType + "-" + capability.GAMPCategory : documentType
     }
 
     String createTIP(Map repo = null, Map data = null) {
@@ -1205,6 +1002,40 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.createDocument(getDocumentTemplateName(documentType), repo, data_, [:], modifier, documentType, watermarkText)
     }
 
+    String createOverallTIR(Map repo = null, Map data = null) {
+        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
+        def metadata = this.getDocumentMetadata(documentTypeName)
+
+        def documentType = DocumentType.TIR as String
+
+        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
+        // Add undone document sections to our collection of undone Jira issues
+        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
+
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
+
+        def visitor = { data_ ->
+            // Prepend a section for the Jenkins build log
+            data_.sections.add(0, [
+                heading: 'Installed Component Summary'
+            ])
+            data_.sections.add(1, [
+                heading: 'Jenkins Build Log'
+            ])
+
+            // Add Jenkins build log data
+            data_.jenkinsData = [
+                log: this.jenkins.getCurrentBuildLogAsText()
+            ]
+
+            data_.repositories = this.project.repositories
+        }
+
+        def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
+        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
+        return uri
+    }
+
     String createTRC(Map repo, Map data) {
         def documentType = DocumentType.TRC as String
 
@@ -1262,55 +1093,264 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createOverallDTR(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
-        def metadata = this.getDocumentMetadata(documentTypeName)
-
-        def documentType = DocumentType.DTR as String
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
-
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
-
-        def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
-        return uri
-    }
-
-    String createOverallTIR(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
-        def metadata = this.getDocumentMetadata(documentTypeName)
-
-        def documentType = DocumentType.TIR as String
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
-
-        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
-
-        def visitor = { data_ ->
-            // Prepend a section for the Jenkins build log
-            data_.sections.add(0, [
-                heading: 'Installed Component Summary'
-            ])
-            data_.sections.add(1, [
-                heading: 'Jenkins Build Log'
-            ])
-
-            // Add Jenkins build log data
-            data_.jenkinsData = [
-                log: this.jenkins.getCurrentBuildLogAsText()
-            ]
-
-            data_.repositories = this.project.repositories
+    String getDocumentTemplateName(String documentType) {
+        def capability = this.project.getCapability("LeVADocs")
+        if (!capability) {
+            return documentType
         }
 
-        def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
-        return uri
+        return this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType) ? documentType + "-" + capability.GAMPCategory : documentType
+    }
+
+    List<String> getSupportedDocuments() {
+        return DocumentType.values().collect { it as String }
+    }
+
+    String getDocumentTemplatesVersion() {
+        def capability = this.project.getCapability('LeVADocs')
+        return capability.templatesVersion
+    }
+
+    boolean isArchivalRelevant (String documentType) {
+        List notArchiveDocTypes = [
+            DocumentType.TIR as String,
+            DocumentType.DTR as String
+        ]
+        return !(documentType && notArchiveDocTypes.contains(documentType))
+    }
+
+    Map getFiletypeForDocumentType (String documentType) {
+        if (!documentType) {
+            throw new RuntimeException ('Cannot lookup Null docType for storage!')
+        }
+        Map defaultTypes = [storage: 'zip', content: 'pdf' ]
+
+        if (DOCUMENT_TYPE_NAMES.containsKey(documentType)) {
+            return defaultTypes
+        } else if (DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.containsKey(documentType)) {
+            return DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.get(documentType)
+        }
+        return defaultTypes
+    }
+
+    protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
+        def result = [
+            discrepancies: 'No discrepancies found.',
+            conclusion   : [
+                summary  : 'Complete success, no discrepancies',
+                statement: "It is determined that all steps of the ${name} have been successfully executed and signature of this report verifies that the tests have been performed according to the plan. No discrepancies occurred.",
+            ]
+        ]
+
+        // Match Jira test issues with test results
+        def matchedHandler = { matched ->
+            matched.each { testIssue, testCase ->
+                testIssue.isSuccess = !(testCase.error || testCase.failure || testCase.skipped)
+                testIssue.isUnexecuted = !!testCase.skipped
+                testIssue.timestamp = testCase.timestamp
+            }
+        }
+
+        def unmatchedHandler = { unmatched ->
+            unmatched.each { testIssue ->
+                testIssue.isSuccess = false
+                testIssue.isUnexecuted = true
+            }
+        }
+
+        this.jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults ?: [:], matchedHandler, unmatchedHandler)
+
+        // Compute failed and missing Jira test issues
+        def failedTestIssues = testIssues.findAll { testIssue ->
+            return !testIssue.isSuccess && !testIssue.isUnexecuted
+        }
+
+        def unexecutedTestIssues = testIssues.findAll { testIssue ->
+            return !testIssue.isSuccess && testIssue.isUnexecuted
+        }
+
+        // Compute extraneous failed test cases
+        def extraneousFailedTestCases = []
+        testResults.testsuites.each { testSuite ->
+            extraneousFailedTestCases.addAll(testSuite.testcases.findAll { testCase ->
+                return (testCase.error || testCase.failure) && !failedTestIssues.any { this.jiraUseCase.checkTestsIssueMatchesTestCase(it, testCase) }
+            })
+        }
+
+        // Compute test discrepancies
+        def isMajorDiscrepancy = failedTestIssues || unexecutedTestIssues || extraneousFailedTestCases
+        if (isMajorDiscrepancy) {
+            result.discrepancies = 'The following major discrepancies were found during testing.'
+            result.conclusion.summary = 'No success - major discrepancies found'
+            result.conclusion.statement = 'Some discrepancies found as'
+
+            if (failedTestIssues || extraneousFailedTestCases) {
+                result.conclusion.statement += ' tests did fail'
+            }
+
+            if (failedTestIssues) {
+                result.discrepancies += " Failed tests: ${failedTestIssues.collect { it.key }.join(', ')}."
+            }
+
+            if (extraneousFailedTestCases) {
+                result.discrepancies += " Other failed tests: ${extraneousFailedTestCases.size()}."
+            }
+
+            if (unexecutedTestIssues) {
+                result.discrepancies += " Unexecuted tests: ${unexecutedTestIssues.collect { it.key }.join(', ')}."
+
+                if (failedTestIssues || extraneousFailedTestCases) {
+                    result.conclusion.statement += ' and others were not executed'
+                } else {
+                    result.conclusion.statement += ' tests were not executed'
+                }
+            }
+
+            result.conclusion.statement += '.'
+        }
+
+        return result
+    }
+
+    protected List<Map> computeTestsWithRequirementsAndSpecs(List<Map> tests) {
+        def obtainEnum = { category, value ->
+            return this.project.getEnumDictionary(category)[value as String]
+        }
+
+        tests.collect { testIssue ->
+
+            def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications(). findAll { it.softwareDesignSpec }. collect { it.key }
+            def riskLevels = testIssue.getResolvedRisks(). collect {
+                def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
+                return value ? value.text : "None"
+            }
+
+            [
+                moduleName: testIssue.components.join(", "),
+                testKey: testIssue.key,
+                description: testIssue.description ?: "N/A",
+                systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
+                riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
+            ]
+        }
+    }
+
+    private List obtainCodeReviewReport(List<Map> repos) {
+        def reports =  repos.collect { r ->
+            // resurrect?
+            Map resurrectedDocument = resurrectAndStashDocument('SCRR-MD', r, false)
+            this.steps.echo "Resurrected 'SCRR' for ${r.id} -> (${resurrectedDocument.found})"
+            if (resurrectedDocument.found) {
+                return resurrectedDocument.content
+            }
+
+            def sqReportsPath = "${PipelineUtil.SONARQUBE_BASE_DIR}/${r.id}"
+            def sqReportsStashName = "scrr-report-${r.id}-${this.steps.env.BUILD_ID}"
+
+            // Unstash SonarQube reports into path
+            def hasStashedSonarQubeReports = this.jenkins.unstashFilesIntoPath(sqReportsStashName, "${this.steps.env.WORKSPACE}/${sqReportsPath}", "SonarQube Report")
+            if (!hasStashedSonarQubeReports) {
+                throw new RuntimeException("Error: unable to unstash SonarQube reports for repo '${r.id}' from stash '${sqReportsStashName}'.")
+            }
+
+            // Load SonarQube report files from path
+            def sqReportFiles = this.sq.loadReportsFromPath("${this.steps.env.WORKSPACE}/${sqReportsPath}")
+            if (sqReportFiles.isEmpty()) {
+                throw new RuntimeException("Error: unable to load SonarQube reports for repo '${r.id}' from path '${this.steps.env.WORKSPACE}/${sqReportsPath}'.")
+            }
+
+            def name = this.getDocumentBasename('SCRR-MD', this.project.buildParams.version, this.steps.env.BUILD_ID, r)
+            def sqReportFile = sqReportFiles.first()
+
+            def generatedSCRR = this.pdf.convertFromMarkdown(sqReportFile, true)
+
+            // store doc - we may need it later for partial deployments
+            if (!resurrectedDocument.found) {
+                def result = this.storeDocument("${name}.pdf", generatedSCRR, 'application/pdf')
+                this.steps.echo "Stored 'SCRR' for later consumption -> ${result}"
+            }
+            return generatedSCRR
+        }
+
+        return reports
+    }
+
+    /**
+     * This computes the information related to the components (modules) that are being developed
+     * @param documentType
+     * @return component metadata with software design specs, requirements and info comming from the component repo
+     */
+    protected Map computeComponentMetadata(String documentType) {
+        return this.project.components.collectEntries { component ->
+            def normComponentName = component.name.replaceAll('Technology-', '')
+
+            def gitUrl = new GitService(
+                this.steps, new Logger(this.steps, false)).getOriginUrl()
+            def isReleaseManagerComponent =
+                gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
+            if (isReleaseManagerComponent) {
+                return [ : ]
+            }
+
+            def repo_ = this.project.repositories.find {
+                [it.id, it.name, it.metadata.name].contains(normComponentName)
+            }
+            if (!repo_) {
+                def repoNamesAndIds = this.project.repositories. collect { [id: it.id, name: it.name] }
+                throw new RuntimeException("Error: unable to create ${documentType}. Could not find a repository " +
+                    "configuration with id or name equal to '${normComponentName}' for " +
+                    "Jira component '${component.name}' in project '${this.project.key}'. Please check " +
+                    "the metatada.yml file. In this file there are the following repositories " +
+                    "configured: ${repoNamesAndIds}")
+            }
+
+            def metadata = repo_.metadata
+
+            return [
+                component.name,
+                [
+                    key               : component.key,
+                    componentName     : component.name,
+                    componentId       : metadata.id ?: 'N/A - part of this application',
+                    componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
+                    odsRepoType       : repo_.type?.toLowerCase(),
+                    description       : metadata.description,
+                    nameOfSoftware    : metadata.name,
+                    references        : metadata.references ?: 'N/A',
+                    supplier          : metadata.supplier,
+                    version           : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ?
+                        this.project.buildParams.version :
+                        metadata.version,
+                    requirements      : component.getResolvedSystemRequirements(),
+                    softwareDesignSpec: component.getResolvedTechnicalSpecifications().findAll {
+                        it.softwareDesignSpec
+                    }.collect {
+                        [key: it.key, softwareDesignSpec: it.softwareDesignSpec]
+                    }
+                ]
+            ]
+        }
+    }
+
+    protected Map computeComponentsUnitTests(List<Map> tests) {
+        def issueComponentMapping = tests.collect { test ->
+            test.getResolvedComponents().collect { [test: test.key, component: it.name] }
+        }.flatten()
+        issueComponentMapping.groupBy { it.component }.collectEntries { c, v ->
+            [(c.replaceAll("Technology-", "")): v*.test ]
+        }
+    }
+
+    protected List<Map> getReposWithUnitTestsInfo(List<Map> unitTests) {
+        def componentTestMapping = computeComponentsUnitTests(unitTests)
+        this.project.repositories.collect {
+            [
+                id: it.id,
+                description: it.metadata.description,
+                tests: componentTestMapping[it.id]? componentTestMapping[it.id].join(", "): "None defined"
+            ]
+        }
     }
 
     private Map groupTestsByRepoType(List jiraTestIssues) {
@@ -1333,7 +1373,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }.groupBy { it.repoTypes }
     }
 
-    Map getDocumentMetadata(String documentTypeName, Map repo = null) {
+    protected Map getDocumentMetadata(String documentTypeName, Map repo = null) {
         def name = this.project.name
         if (repo) {
             name += ": ${repo.id}"
@@ -1377,14 +1417,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return labels
     }
 
-    List<String> getSupportedDocuments() {
-        return DocumentType.values().collect { it as String }
-    }
-
     protected String getWatermarkText(String documentType, boolean hasWipJiraIssues) {
         def result = null
 
-        if (this.project.isDeveloperPreviewMode()){
+        if (this.project.isDeveloperPreviewMode()) {
             result = this.DEVELOPER_PREVIEW_WATERMARK
         }
 
@@ -1395,7 +1431,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return result
     }
 
-    void updateJiraDocumentationTrackingIssue(String documentType, String message, List<Map> sectionsNotDone = [], String documentVersionId = null) {
+    protected void updateJiraDocumentationTrackingIssue(String documentType, String message, List<Map> sectionsNotDone = [], String documentVersionId = null) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
 
@@ -1433,34 +1469,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }
     }
 
-    String getDocumentTemplatesVersion() {
-        def capability = this.project.getCapability('LeVADocs')
-        return capability.templatesVersion
-    }
-
-    boolean isArchivalRelevant (String documentType) {
-        List notArchiveDocTypes = [
-            DocumentType.TIR as String,
-            DocumentType.DTR as String
-        ]
-        return !(documentType && notArchiveDocTypes.contains(documentType))
-    }
-
-    Map getFiletypeForDocumentType (String documentType) {
-        if (!documentType) {
-            throw new RuntimeException ('Cannot lookup Null docType for storage!')
-        }
-        Map defaultTypes = [storage: 'zip', content: 'pdf' ]
-
-        if (DOCUMENT_TYPE_NAMES.containsKey(documentType)) {
-            return defaultTypes
-        } else if (DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.containsKey(documentType)) {
-            return DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS.get(documentType)
-        }
-        return defaultTypes
-    }
-
-    DocumentHistory getDocumentHistory(String documentType) {
+    protected DocumentHistory getDocumentHistory(String documentType) {
         def latestValidVersionId = this.getLatestDocVersionId(documentType)
 
         def jiraData = this.project.data.jira as Map
@@ -1477,8 +1486,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
             [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
-
-
     }
 
     protected Long getLatestDocVersionId(String documentType) {
@@ -1488,9 +1495,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def trackingIssues = this.getDocumentTrackingIssues(documentType)
 
         // We will use the biggest ID available
-        def versionList = trackingIssues.each{issue ->
+        def versionList = trackingIssues. each { issue ->
             def version = this.jiraUseCase.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])
-                .getOrDefault(documentVersionField,"")
+                .getOrDefault(documentVersionField, "")
             def versionNumber = 0L
             try {
                 versionNumber = version.toLong()
@@ -1503,7 +1510,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         return versionList.max()
-
     }
 
     protected List<Map> getDocumentTrackingIssues(String documentType) {
