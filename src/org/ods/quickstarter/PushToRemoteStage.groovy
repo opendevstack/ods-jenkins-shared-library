@@ -8,9 +8,6 @@ class PushToRemoteStage extends Stage {
 
     PushToRemoteStage(def script, IContext context, Map config = [:]) {
         super(script, context, config)
-        if (!config.branch) {
-            config.branch = 'master'
-        }
     }
 
     def run() {
@@ -59,9 +56,7 @@ class PushToRemoteStage extends Stage {
             }
             script.echo("Pushing quickstarter git repo to ${context.gitUrlHttp}")
             script.sh(
-                script: """
-                  git push -u origin ${config.branch}
-                  """,
+                script: 'git push -u origin $(git rev-parse --abbrev-ref HEAD)',
                 label: 'Push to remote'
             )
         }
