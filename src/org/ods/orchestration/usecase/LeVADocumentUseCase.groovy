@@ -1446,8 +1446,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Append a warning message if there are any open tasks. Documents will not be considered final
         // TODO review me
-        if (documentVersionId && !this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
-            message += "\n *Since there are WIP issue in Jira that affect one or more documents," +
+        if (documentVersionId && !this.project.isDeveloperPreviewMode() && this.project.hasWipJiraIssues()) {
+            message += "\n *Since there are WIP issues in Jira that affect one or more documents," +
                 " this document cannot be considered final.*"
         }
 
@@ -1456,13 +1456,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields['Document Version']
 
         jiraIssues.each { jiraIssue ->
-            this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssue.key, [(documentationTrackingIssueDocumentVersionField.id): "${metadata.version}-${metadata.jenkins.buildNumber}"])
-            this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
+            //this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssue.key, [(documentationTrackingIssueDocumentVersionField.id): "${metadata.version}-${metadata.jenkins.buildNumber}"])
 
             // In case of generating a final document, we add the label for the version that should be released
             if (documentVersionId && !this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
                 this.updateValidDocVersionInJira(jiraIssue.key, documentVersionId)
             }
+            this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
         }
     }
 

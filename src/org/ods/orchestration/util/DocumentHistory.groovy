@@ -128,7 +128,7 @@ class DocumentHistory {
         }
 
         if (concurrentVersions.isEmpty()) {
-            return null
+            return ''
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
             return "This document version invalidates the changes done in version${pluralS} " +

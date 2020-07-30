@@ -680,7 +680,7 @@ class Project {
     }
 
     String getVersionName(){
-        return this.data.jira.project.version?.name
+        return this.data.jira.version
     }
 
     String getPreviousVersionId() {
@@ -1204,7 +1204,15 @@ class Project {
      * @return File name created
      */
     String saveVersionData() {
-        def savedEntities = ['mitigations', 'requirements', 'risks', 'tests', 'techSpecs', 'version', 'predecessors']
+        def savedEntities = ['components',
+                             'mitigations',
+                             'requirements',
+                             'risks',
+                             'tests',
+                             'techSpecs',
+                             'epics',
+                             'version',
+                             'predecessors']
         def dataToSave = this.data.jira.findAll{savedEntities.contains(it.key)}
         logger.debug('Saving Jira data for the version ' + JsonOutput.toJson(this.getVersionName()))
         this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
