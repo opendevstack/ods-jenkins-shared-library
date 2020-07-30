@@ -210,10 +210,10 @@ class FinalizeStage extends Stage {
 
         def filesToCommit = [project.envStateFileName]
         def messageToCommit = "ODS: Record commits deployed into ${project.buildParams.targetEnvironmentToken}"
-        if (project.isAssembleMode) {
+        if (! project.isWorkInProgress && project.isAssembleMode) {
             def versionDataFileName =  project.saveVersionData()
             filesToCommit.add(versionDataFileName)
-            messageToCommit = messageToCommit + " and project version data for ${project.getVersionName()}"
+            messageToCommit = messageToCommit + " and project data of version ${project.getVersionName()}"
         }
 
         git.commit(
@@ -229,7 +229,7 @@ class FinalizeStage extends Stage {
             git.switchToOriginTrackingBranch('master')
             git.checkoutAndCommitFiles(
                 project.gitReleaseBranch,
-                [project.envStateFileName],
+                filesToCommit,
                 "ODS: Update ${project.buildParams.targetEnvironmentToken} env state"
             )
             git.pushRef('master')
