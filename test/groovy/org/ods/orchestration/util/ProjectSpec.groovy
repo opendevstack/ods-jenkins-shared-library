@@ -1980,6 +1980,185 @@ class ProjectSpec extends SpecHelper {
         issueListIsEquals(rskResult.getResolvedTests(), [tst1])
     }
 
+    def "assign versions to components"() {
+        given:
+        def firstVersion = '1'
+
+        def cmp = { name, String version = null -> [key: "CMP-${name}" as String, name: name, version: version]}
+        def cmp1 = cmp('front')
+
+        def newVersionData = [
+            project     : [name: "my-project"],
+            version: firstVersion,
+            predecessors: [],
+            bugs        : [:],
+            components  : [(cmp1.key):cmp1],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp1.key):cmp1 + [version: firstVersion]],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+        project = createProject([
+            //"loadSavedJiraData": { return storedData },
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        def component = project.getComponents().first()
+        component.version == mergedData.components[cmp1.key].version
+    }
+
+    def "merge a new component"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp = { name, String version = null -> [key: "CMP-${name}" as String, name: name, version: version]}
+        def cmp1 = cmp('front')
+        def cmp2 = cmp('new')
+
+        def cmp1wv = cmp1.clone() + [version:firstVersion]
+        def cmp2wv = cmp2.clone() + [version: secondVersion]
+
+        def storedData = [
+            components  : [(cmp1wv.key):cmp1wv],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project"],
+            version: secondVersion,
+            predecessors: [firstVersion],
+            bugs        : [:],
+            components  : [(cmp1.key):cmp1, (cmp2.key):cmp2],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp1wv.key):cmp1wv, (cmp2wv.key):cmp2wv],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+        project = createProject([
+            //"loadSavedJiraData": { return storedData },
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+    }
+
+    def "merge a discontinued component"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp = { name, String version = null -> [key: "CMP-${name}" as String, name: name, version: version]}
+        def cmp1 = cmp('front')
+        def cmp2 = cmp('new')
+        def cmp1wv = cmp1.clone() + [version:firstVersion]
+        def cmp2Updated = cmp2.clone() + [version: secondVersion]
+
+        def storedData = [
+            components  : [(cmp1wv.key):cmp1wv],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project"],
+            version: secondVersion,
+            predecessors: [firstVersion],
+            bugs        : [:],
+            components  : [(cmp2.key):cmp2],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp2Updated.key):cmp2Updated],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: [cmp1.key]
+        ]
+        project = createProject([
+            //"loadSavedJiraData": { return storedData },
+            "loadJiraData": { return newVersionData }
+        ]).init()
+
+        when:
+        project.load(this.git, this.jiraUseCase)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadJiraData(_) >> newVersionData
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+    }
+
     Boolean issueIsEquals(Map issueA, Map issueB) {
         issueA == issueB
 

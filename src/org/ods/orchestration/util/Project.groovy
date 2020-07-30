@@ -307,8 +307,8 @@ class Project {
 
         def newData = this.loadJiraData(this.jiraProjectKey)
         // TODO removeme when jrra plugin is updated
-        newData.version = newData.project.version
-        newData.predecessors = []
+        //newData.version = newData.project.version
+        //newData.predecessors = []
         //newData.predecessors = ['1.0']
 
         // Get more info of the versions from Jira
@@ -330,9 +330,6 @@ class Project {
         // Get more info of the versions from Jira
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
         this.data.jira.project.previousVersion = this.loadVersionDataFromJira(previousVersionId)
-
-        // TODO change me
-        this.saveVersionData()
 
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests) // TODO removeme when endpoint is updated
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
@@ -682,7 +679,7 @@ class Project {
         return this.data.jira.project.version
     }
 
-    Map getVersionName(){
+    String getVersionName(){
         return this.data.jira.project.version?.name
     }
 
@@ -1202,13 +1199,17 @@ class Project {
         new ProjectDataBitbucketRepository(steps).loadFile(savedVersion)
     }
 
-    void saveVersionData() {
+    /**
+     * Saves the materialized jira data for this and old versions
+     * @return File name created
+     */
+    String saveVersionData() {
         def savedEntities = ['mitigations', 'requirements', 'risks', 'tests', 'techSpecs', 'version', 'predecessors']
         def dataToSave = this.data.jira.findAll{savedEntities.contains(it.key)}
         logger.debug('Saving Jira data for the version ' + JsonOutput.toJson(this.getVersionName()))
-        new ProjectDataBitbucketRepository(steps).save(dataToSave, this.getVersionName())
-
         this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
+
+        new ProjectDataBitbucketRepository(steps).save(dataToSave, this.getVersionName())
     }
 
     Map mergeJiraData(Map oldData, Map newData) {
@@ -1281,14 +1282,14 @@ class Project {
     }
 
     private List<String> getComponentDiscontinuations(Map oldData, Map newData) {
-        def oldComponents = oldData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, []).keySet()
-        def newComponents = newData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, []).keySet()
-        oldComponents - newComponents
+        def oldComponents = oldData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).keySet()
+        def newComponents = newData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).keySet()
+        (oldComponents - newComponents) as List
     }
 
     private Map addVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version
-        jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, []).values().each { component ->
+        jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).values().each { component ->
             if (! component.version) {
                 jiraData[JiraDataItem.TYPE_COMPONENTS][component.key].version = currentVersion
             }

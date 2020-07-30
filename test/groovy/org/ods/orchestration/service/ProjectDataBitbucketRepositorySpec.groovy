@@ -44,7 +44,7 @@ class ProjectDataBitbucketRepositorySpec extends SpecHelper {
         repo.save(jiraData, version)
 
         then:
-        1 * steps.writeJSON(_)
+        1 * steps.writeFile(_)
 
     }
 

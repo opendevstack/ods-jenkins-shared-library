@@ -1,5 +1,6 @@
 package org.ods.orchestration.service.leva
 
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import org.ods.util.IPipelineSteps
 
@@ -14,9 +15,13 @@ class ProjectDataBitbucketRepository {
         this.steps = steps
     }
 
-    void save(Object jiraData, String version) {
-        def jsonOut = this.steps.readJSON( text: groovy.json.JsonOutput.toJson(jiraData))
-        this.steps.writeJSON(file: "${BASE_DIR}/${version}.json", json: jsonOut, pretty: 2)
+    String save(Object jiraData, String version) {
+        def fileName = "${BASE_DIR}/${version}.json"
+        steps.writeFile(
+            file: fileName,
+            text: JsonOutput.prettyPrint(JsonOutput.toJson(jiraData))
+        )
+        return fileName
     }
 
     Object loadFile(String fileName) {

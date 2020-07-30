@@ -37,7 +37,7 @@ class DocumentHistory {
             this.data = this.loadSavedDocHistoryData(savedVersionId)
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData)
-        newDocDocumentHistoryEntry.rational = rationaleIfConcurrentVersionsAreFound(newDocDocumentHistoryEntry)
+        newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
         this.data.add(newDocDocumentHistoryEntry)
         this.data.sort { a, b -> b.getEntryId() <=> a.getEntryId() }
         this
@@ -64,6 +64,28 @@ class DocumentHistory {
         this.data
     }
 
+    List<Map> getHistoryForIssueTypes(List<String> issueTypes) {
+        def transformEntry =  { DocumentHistoryEntry e ->
+            def formatedIssues = issueTypes.collect {type ->
+                def issues = e.getOrDefault(type, [])
+                def changed = issues.findAll { it.action == "change" }.clone()
+                    .collect { [key: it.key, predecessors: it.predecessors.join(", ")]}
+
+                [ type: type,
+                  added: issues.findAll { it.action == "add" },
+                  changed:changed,
+                  deleted: issues.findAll { it.action == "delete" },
+                ]
+            }
+
+            return [entryId: e.getEntryId(),
+                    rational: e.getRational(),
+                    issueType: formatedIssues
+            ]
+        }
+        this.data.collect {transformEntry(it)}
+    }
+
     protected String getSavedDocumentName(Long versionId) {
         def suffix = (documentSuffix) ? "-" + documentSuffix : ""
         return "documentHistory-${this.targetEnvironment}-${versionId}${suffix}"
@@ -80,6 +102,13 @@ class DocumentHistory {
                     "'${issuesWithNoVersion.collect { it.key }.join(', ')}'")
             }
         }
+    }
+
+    private String createRational(DocumentHistoryEntry currentEntry) {
+        def versionText = 'This document version contains the modifications for ' +
+            "project version ${currentEntry.getProjectVersion()}.\n"
+
+        return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
     }
 
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
@@ -103,7 +132,7 @@ class DocumentHistory {
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
             return "This document version invalidates the changes done in version${pluralS} " +
-                "'${concurrentVersions.join(', ')}'."
+                "'${concurrentVersions.join(', ')}'. "
         }
     }
 
@@ -124,7 +153,7 @@ class DocumentHistory {
                 }
                 [(issueType): issuesOfThisVersion]
             }
-        def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [])
+        def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [:])
             .collectEntries { issueType, List<String> issueKeys ->
                 [(issueType): issueKeys.collect { [key: it, action: 'discontinue'] }]
             }

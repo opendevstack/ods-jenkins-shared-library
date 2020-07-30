@@ -147,7 +147,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections    : sections,
                 requirements: requirementsForDocument,
-                documentHistory: docHistory.docHistoryEntries
+                documentHistory: docHistory.getHistoryForIssueTypes([Project.JiraDataItem.TYPE_REQUIREMENTS])
             ]
         ]
 
@@ -904,7 +904,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.docHistoryEntries
+                documentHistory: docHistory.getHistoryForIssueTypes([Project.JiraDataItem.TYPE_REQUIREMENTS,
+                                                                     Project.JiraDataItem.TYPE_COMPONENTS,
+                                                                     Project.JiraDataItem.TYPE_TECHSPECS])
             ]
         ]
 

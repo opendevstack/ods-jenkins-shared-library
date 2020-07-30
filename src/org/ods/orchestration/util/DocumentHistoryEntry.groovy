@@ -112,6 +112,11 @@ class DocumentHistoryEntry implements Map, Serializable {
     }
 
     @NonCPS
+    String getRational() {
+        return rational
+    }
+
+    @NonCPS
     String getProjectVersion() {
         return projectVersion
     }
