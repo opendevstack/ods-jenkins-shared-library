@@ -13,7 +13,6 @@
 - add withStage for quickstarters ([#378](https://github.com/opendevstack/ods-jenkins-shared-library/pull/378))
 - (Optionally) Deploy via Tailor ([#96](https://github.com/opendevstack/ods-jenkins-shared-library/issues/96))
 - Allow configuration of BB project ([#317](https://github.com/opendevstack/ods-jenkins-shared-library/pull/317))
-- Make central namespace configurable ([#311](https://github.com/opendevstack/ods-jenkins-shared-library/issues/311))
 - Make ODS namespace configurable ([#312](https://github.com/opendevstack/ods-jenkins-shared-library/pull/312))
 - Document params to odsPipeline ([#126](https://github.com/opendevstack/ods-jenkins-shared-library/issues/126))
 - quickstarters/pushToRemoteStage should support existing local git repo ([#265](https://github.com/opendevstack/ods-jenkins-shared-library/issues/265))
@@ -26,10 +25,10 @@
 - ods-pipeline should have 2 more stages (start / finish) ([#201](https://github.com/opendevstack/ods-jenkins-shared-library/issues/201))
 - verbosity of standard shared libary stages ([#196](https://github.com/opendevstack/ods-jenkins-shared-library/issues/196))
 - Allow easy configuration of compute resources ([#173](https://github.com/opendevstack/ods-jenkins-shared-library/issues/173))
+- Fix rollout race condition and display events in Jenkins log ([#385](https://github.com/opendevstack/ods-jenkins-shared-library/pull/385))
 
 ### Changed
 - Lazily set OpenShift app domain ([#396](https://github.com/opendevstack/ods-jenkins-shared-library/pull/396))
-- Fix rollout race condition and display events in Jenkins log ([#385](https://github.com/opendevstack/ods-jenkins-shared-library/pull/385))
 - bitbucket status setting in MRO on fail ([#370](https://github.com/opendevstack/ods-jenkins-shared-library/pull/370))
 - Skip shared lib build / deploy if commits did not change ([#103](https://github.com/opendevstack/ods-jenkins-shared-library/issues/103))
 - Ease and document Tailor-based preview deploy ([#340](https://github.com/opendevstack/ods-jenkins-shared-library/pull/340))
@@ -37,7 +36,6 @@
 - Orchestration Pipeline: Merge released code back into main branch ([#367](https://github.com/opendevstack/ods-jenkins-shared-library/issues/367))
 - Use URLs consistently ([#366](https://github.com/opendevstack/ods-jenkins-shared-library/pull/366))
 - MRO performance on large application ([#348](https://github.com/opendevstack/ods-jenkins-shared-library/issues/348))
-- Remove OWASP support ([#225](https://github.com/opendevstack/ods-jenkins-shared-library/issues/225))
 - Merge OpenShiftService ([#273](https://github.com/opendevstack/ods-jenkins-shared-library/issues/273))
 - Unify script/steps approach ([#276](https://github.com/opendevstack/ods-jenkins-shared-library/issues/276))
 - Merge GitUtil into GitService ([#285](https://github.com/opendevstack/ods-jenkins-shared-library/issues/285))
@@ -98,7 +96,8 @@
 - Build is still "running" after it finishes ([#189](https://github.com/opendevstack/ods-jenkins-shared-library/issues/189))
 - oc rollout output parser does not work always ([#184](https://github.com/opendevstack/ods-jenkins-shared-library/issues/184))
 
-
+### Removed
+- Remove OWASP support ([#225](https://github.com/opendevstack/ods-jenkins-shared-library/issues/225))
 
 ## [2.0] - 2019-12-13
 
