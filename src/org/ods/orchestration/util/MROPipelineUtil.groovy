@@ -338,7 +338,7 @@ class MROPipelineUtil extends PipelineUtil {
                         if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
                         } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
                     } else {
                         def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
@@ -357,7 +357,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 }
                             }
                         } else {
-                            this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                            this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
                     }
 
