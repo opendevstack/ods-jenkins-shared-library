@@ -245,7 +245,7 @@ class Project {
 
         this.data.build = [
             hasFailingTests: false,
-            hasUnexecutedJiraTests: false
+            hasUnexecutedJiraTests: false,
         ]
     }
 
@@ -293,7 +293,7 @@ class Project {
             targetTag: targetTag ? targetTag.toString() : '',
             author: git.getCommitAuthor(),
             message: git.getCommitMessage(),
-            time: git.getCommitTime()
+            time: git.getCommitTime(),
         ]
         this.logger.debug "Using release manager commit: ${this.data.git.commit}"
     }
@@ -583,7 +583,7 @@ class Project {
             "RELEASE_PARAM_CHANGE_DESC=${params.changeDescription}",
             "RELEASE_PARAM_CONFIG_ITEM=${params.configItem}",
             "RELEASE_PARAM_VERSION=${params.version}",
-            "RELEASE_STATUS_JIRA_ISSUE_KEY=${params.releaseStatusJiraIssueKey}"
+            "RELEASE_STATUS_JIRA_ISSUE_KEY=${params.releaseStatusJiraIssueKey}",
         ]
     }
 
@@ -850,7 +850,7 @@ class Project {
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
-            rePromote: rePromote
+            rePromote: rePromote,
         ]
     }
 
@@ -903,7 +903,7 @@ class Project {
                 name: jiraBug.fields.summary,
                 assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
                 dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
-                status: jiraBug.fields.status.name
+                status: jiraBug.fields.status.name,
             ]
 
             def testKeys = []
@@ -963,7 +963,7 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
-                ]
+                ],
             ]
         }
     }
@@ -988,7 +988,7 @@ class Project {
                             ]
                         ]
                     }
-                ]
+                ],
             ]
         }
     }
@@ -1032,7 +1032,7 @@ class Project {
 
             repo.data = [
                 openshift: [:],
-                documents: [:]
+                documents: [:],
             ]
 
             // Set repo type, if not provided
@@ -1212,8 +1212,8 @@ class Project {
                              'techSpecs',
                              'epics',
                              'version',
-                             'predecessors']
-        def dataToSave = this.data.jira.findAll{savedEntities.contains(it.key)}
+                             'predecessors',]
+        def dataToSave = this.data.jira.findAll { savedEntities.contains(it.key) }
         logger.debug('Saving Jira data for the version ' + JsonOutput.toJson(this.getVersionName()))
         this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
 
@@ -1227,7 +1227,7 @@ class Project {
             keys.collectEntries { key ->
                 if (!left[key] || left[key].isEmpty) {
                     [(key): right[key]]
-                }else if (!right[key] || right[key].isEmpty) {
+                } else if (!right[key] || right[key].isEmpty) {
                     [(key): left[key]]
                 } else {
                     [(key): left[key] + right[key]]
@@ -1254,7 +1254,7 @@ class Project {
             def reverseLinkIndex = buildChangesInLinks(left, right)
             left.findAll { JiraDataItem.TYPES.contains(it.key) }.each { issueType, issues ->
                 issues.values().each { Map issueToUpdate ->
-                    def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key,[])
+                    def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key, [])
                     linksToUpdate.each { Map link ->
                         updateLink(issueType, issueToUpdate.key, link)
                     }
@@ -1264,7 +1264,7 @@ class Project {
         }
 
         if (!oldData || oldData.isEmpty()) {
-            return newData
+            newData
         } else {
             def discontinuations = newData.getOrDefault('discontinuations',[]) +
                 this.getComponentDiscontinuations(oldData, newData)
@@ -1306,7 +1306,8 @@ class Project {
     }
 
     private static List getDiscontinuedLinks(Map savedData, List<String> discontinuations) {
-        savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect{ issueType, Map issues ->
+        savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect {
+            issueType, Map issues ->
             def discontinuedLinks = issues.findAll { discontinuations.contains(it.key) }
                 .collect { key, issue ->
                     def issueLinks = issue.findAll { JiraDataItem.TYPES.contains(it.key) }
@@ -1364,7 +1365,7 @@ class Project {
     /**
      * Expected format is:
      *   issueType.issue."expandedPredecessors" -> [key:"", version:""]
-     * @param jiraData
+     * @param jiraData map of jira data
      * @return keys of preceeded issues
      */
     private static List getPreceededKeys(Map jiraData) {
@@ -1378,17 +1379,17 @@ class Project {
     /**
      * Recover the information about "preceding" issues for all the new ones that are an update on previously
      * released ones. That way we can provide all the changes in the documents
-     * @param savedData
-     * @param newData
-     * @return Map containing
+     * @param savedData data from old versions retrieved by the pipeline
+     * @param newData data for the current version
+     * @return Map new data with the issue predecessors expanded
      */
     private static Map expandPredecessorInformation(Map savedData, Map newData) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
-            def predecessorIssue = savedData.getOrDefault(issueType,[:]).getOrDefault(predecessor, null)
+            def predecessorIssue = savedData.getOrDefault(issueType, [:]).getOrDefault(predecessor, null)
             if (!predecessorIssue) {
                 throw new RuntimeException("Error: new issue '${issueKey}' references key '${predecessor}' " +
                     "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
-                    "Existing issue list is '[${savedData.getOrDefault(issueType,[:]).keySet().join(', ')}]'")
+                    "Existing issue list is '[${savedData.getOrDefault(issueType, [:]).keySet().join(', ')}]'")
             }
             def existingPredecessors = predecessorIssue.getOrDefault('expandedPredecessors', [:])
             def result = [[key: predecessorIssue.key, version: predecessorIssue.version]]

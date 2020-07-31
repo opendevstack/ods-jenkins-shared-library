@@ -77,7 +77,8 @@ class DocumentHistorySpec extends SpecHelper {
             requirements: [[key: req1.key, action: 'add']],
             risks       : [[key: rsk1.key, action: 'add']],
             tests       : [[key: tst1.key, action: 'add'], [key: tst2.key, action: 'add']],
-            techSpecs   : [[key: ts1.key, action: 'add']]], 1L, firstProjectVersion, '', '')]
+            techSpecs   : [[key: ts1.key, action: 'add']]], 1L, firstProjectVersion, '',
+            "Modifications for project version ${firstProjectVersion}.")]
 
         this.jiraData11_first = [
             bugs        : [:],
@@ -102,7 +103,8 @@ class DocumentHistorySpec extends SpecHelper {
             requirements: [[key: req2.key, action: 'add']],
             risks       : [],
             tests       : [[key: tst2.key, action: 'discontinue']],
-            techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion ,'')] + entries10
+            techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion ,
+            "Modifications for project version ${secondProjectVersion}.")] + entries10
 
         this.jiraDataFix = [
             bugs        : [:],
@@ -128,7 +130,8 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
-            "This document version invalidates the changes done in version '${secondProjectVersion}'.")] + entries11_first
+            "Modifications for project version ${bugfixProjectVersion}." +
+                " This document version invalidates the changes done in document version '2'.")] + entries11_first
 
         this.jiraData11_second = [
             bugs        : [:],
@@ -154,7 +157,8 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst2.key, action: 'discontinue']],
             techSpecs   : [],
-        ], 4L, secondProjectVersion, bugfixProjectVersion, '')] + entriesFix
+        ], 4L, secondProjectVersion, bugfixProjectVersion,
+            "Modifications for project version ${secondProjectVersion}.")] + entriesFix
 
         this.jiraData20 = [
             bugs        : [:],
@@ -179,7 +183,8 @@ class DocumentHistorySpec extends SpecHelper {
             requirements: [[key: req3.key, action: 'change', predecessors: req3.predecessors]],
             risks       : [],
             tests       : [],
-            techSpecs   : []], 5L, fourthProjectVersion, secondProjectVersion, '')] + entries11_second
+            techSpecs   : []], 5L, fourthProjectVersion, secondProjectVersion,
+            "Modifications for project version ${fourthProjectVersion}.")] + entries11_second
     }
 
 
@@ -296,17 +301,12 @@ class DocumentHistorySpec extends SpecHelper {
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
-        println("analyzing ID " + a.getEntryId() + " and " + b.getEntryId())
         if (a.getEntryId() != b.getEntryId()) return false
-        println("\tID equals")
         if (a.getProjectVersion() != b.getProjectVersion()) return false
-        println("\tversion equals")
         if (a.getPreviousProjectVersion() != b.getPreviousProjectVersion()) return false
-        println("\tpreviousProjVersion equals")
-        if (a.rational != b.rational) return false
-        println("\trational equals")
+        if (a.getRational() != b.getRational()) return false
         if (a.getDelegate() != b.getDelegate()) return false
-        return true
+        return a == b
     }
 
     Boolean entryListIsEquals(List<DocumentHistoryEntry> entriesA, List<DocumentHistoryEntry> entriesB) {
@@ -315,16 +315,12 @@ class DocumentHistorySpec extends SpecHelper {
         def areEquals = entriesA.collect{ DocumentHistoryEntry issueA ->
             if (! issuesBKeys.contains(issueA.getEntryId())) return false
             def correspondentIssueB = entriesB.find{it.getEntryId() == issueA.getEntryId()}
-            println("Entry A " + issueA)
-            println("Entry B " + correspondentIssueB)
-
-            //println("entries are equal?? " + entryIsEquals(issueA, correspondentIssueB))
             if (! entryIsEquals(issueA, correspondentIssueB)) {
                 println("THINGS ARE NOT OK!!!! returning false")
                 return false
             }
             return true
         }
-        return areEquals.contains(true)
+        return ! areEquals.contains(false)
     }
 }

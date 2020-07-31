@@ -4,10 +4,10 @@ import com.cloudbees.groovy.cps.NonCPS
 
 class DocumentHistoryEntry implements Map, Serializable {
 
-    private Long entryId
-    private Map delegate
-    private String projectVersion
-    private String previousProjectVersion
+    private final Long entryId
+    private final Map delegate
+    private final String projectVersion
+    private final String previousProjectVersion
     String rational
 
     DocumentHistoryEntry(Map map, Long entryId, String projectVersion,
@@ -80,7 +80,7 @@ class DocumentHistoryEntry implements Map, Serializable {
             id: entryId,
             projectVersion: projectVersion,
             previousProjectVersion: previousProjectVersion,
-            rational: rational
+            rational: rational,
         ]).keySet()
     }
 
@@ -91,7 +91,7 @@ class DocumentHistoryEntry implements Map, Serializable {
             entryId: entryId,
             projectVersion: projectVersion,
             previousProjectVersion: previousProjectVersion,
-            rational: rational
+            rational: rational,
         ]).values()
     }
 
@@ -102,7 +102,7 @@ class DocumentHistoryEntry implements Map, Serializable {
             entryId: entryId,
             projectVersion: projectVersion,
             previousProjectVersion: previousProjectVersion,
-            rational: rational
+            rational: rational,
         ]).entrySet()
     }
 

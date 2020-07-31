@@ -66,14 +66,14 @@ class DocumentHistory {
 
     List<Map> getHistoryForIssueTypes(List<String> issueTypes) {
         def transformEntry =  { DocumentHistoryEntry e ->
-            def formatedIssues = issueTypes.collect {type ->
+            def formatedIssues = issueTypes.collect { type ->
                 def issues = e.getOrDefault(type, [])
                 def changed = issues.findAll { it.action == "change" }.clone()
-                    .collect { [key: it.key, predecessors: it.predecessors.join(", ")]}
+                    .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
                 [ type: type,
                   added: issues.findAll { it.action == "add" },
-                  changed:changed,
+                  changed: changed,
                   deleted: issues.findAll { it.action == "delete" },
                 ]
             }
@@ -83,7 +83,7 @@ class DocumentHistory {
                     issueType: formatedIssues
             ]
         }
-        this.data.collect {transformEntry(it)}
+        this.data.collect { transformEntry(it) }
     }
 
     protected String getSavedDocumentName(Long versionId) {
@@ -99,40 +99,44 @@ class DocumentHistory {
             if (!issuesWithNoVersion.isEmpty()) {
                 throw new RuntimeException('In order to build a coherent document history we need to have a' +
                     ' version for all the elements. In this case, the following items have this state: ' +
-                    "'${issuesWithNoVersion.collect { it.key }.join(', ')}'")
+                    "'${issuesWithNoVersion*.key.join(', ')}'")
             }
         }
     }
 
     private String createRational(DocumentHistoryEntry currentEntry) {
-        def versionText = 'This document version contains the modifications for ' +
-            "project version ${currentEntry.getProjectVersion()}.\n"
+        def versionText = "Modifications for project version ${currentEntry.getProjectVersion()}."
 
         return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
     }
 
+    /**
+     * Adds a rational in case concurrent versions are found. This can only be achieved
+     * @param currentEntry
+     * @return
+     */
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect {
-            [id: it.id, previousProjectVersion: it.previousProjectVersion]
-        }.findAll { it.id != currentEntry.id }
-        def concurrentVersions = oldVersionsSimplified.reverse()
-            .takeWhile { it.projectVersion != currentEntry.previousProjectVersion }*.id
+            [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
+        }.findAll { it.id != currentEntry.getEntryId() }
+        def concurrentVersions = oldVersionsSimplified
+            .takeWhile { it.version != currentEntry.getPreviousProjectVersion() }*.id
 
-        if (currentEntry.previousProjectVersion && oldVersionsSimplified.size() == concurrentVersions.size()) {
+        if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size()) {
             throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
-                "Project has as previous project version ${currentEntry.previousProjectVersion} " +
+                "Project has as previous project version ${currentEntry.getPreviousProjectVersion()} " +
                 'but no document history containing that ' +
                 'version can be found. Please check the file named ' +
-                "'${this.getSavedDocumentName(currentEntry.id - 1L)}.json'" +
+                "'${this.getSavedDocumentName(currentEntry.getEntryId() - 1L)}.json'" +
                 ' in your release manager repository')
         }
 
         if (concurrentVersions.isEmpty()) {
-            return ''
+            ''
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
-            return "This document version invalidates the changes done in version${pluralS} " +
-                "'${concurrentVersions.join(', ')}'. "
+            " This document version invalidates the changes done in document version${pluralS} " +
+                "'${concurrentVersions.join(', ')}'."
         }
     }
 
