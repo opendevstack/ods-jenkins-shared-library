@@ -337,16 +337,6 @@ class MROPipelineUtil extends PipelineUtil {
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
                         if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
-                        } else if (this.project.isPromotionMode && name == PipelinePhases.FINALIZE) {
-                            if (!this.project.buildParams.rePromote) {
-                                this.steps.dir(baseDir) {
-                                    git.tagAndPush(this.project.targetTag)
-                                }
-                            }
-                        } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
-                            this.steps.dir(baseDir) {
-                                git.tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
-                            }
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
