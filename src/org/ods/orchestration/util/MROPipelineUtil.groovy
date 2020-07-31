@@ -357,17 +357,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 }
                             }
                         } else {
-                            // Ignore undefined phases
-                        }
-
-                        if (this.project.isPromotionMode && !this.project.buildParams.rePromote && name == PipelinePhases.FINALIZE) {
-                            this.steps.dir(baseDir) {
-                                git.tagAndPush(this.project.targetTag)
-                            }
-                        } else if (this.project.isAssembleMode && !this.project.isWorkInProgress && name == PipelinePhases.FINALIZE) {
-                            this.steps.dir(baseDir) {
-                                git.tagAndPushBranch(this.project.gitReleaseBranch, this.project.targetTag)
-                            }
+                            this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
                     }
 
