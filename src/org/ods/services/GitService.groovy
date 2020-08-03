@@ -174,24 +174,6 @@ class GitService {
         )
     }
 
-    def tagAndPush(String tag) {
-        if (remoteTagExists(tag)) {
-            logger.info("Skipping tag '${tag}' because it already exists.")
-        } else {
-            createTag(tag)
-            pushRef(tag)
-        }
-    }
-
-    def tagAndPushBranch(String branch, String tag) {
-        if (remoteTagExists(tag)) {
-            logger.info("Skipping tag '${tag}' because it already exists.")
-        } else {
-            createTag(tag)
-            pushBranchWithTags(branch)
-        }
-    }
-
     def checkout(
         String gitRef,
         def extensions,

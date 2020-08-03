@@ -296,10 +296,14 @@ class BitbucketService {
             file: BB_TOKEN_SECRET,
             text: secretYml
         )
-        script.sh """
-            oc -n ${openShiftCdProject} create -f ${BB_TOKEN_SECRET};
-            rm ${BB_TOKEN_SECRET}
+        try {
+            script.sh """
+                oc -n ${openShiftCdProject} create -f ${BB_TOKEN_SECRET};
+                rm ${BB_TOKEN_SECRET}
             """
+        } catch (Exception ex) {
+            logger.warn "Could not create secret ${tokenSecretName}. Error was: ${ex}"
+        }
     }
 
     private boolean basicAuthCredentialsIdExists(String credentialsId) {
