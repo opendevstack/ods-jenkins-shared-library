@@ -403,6 +403,10 @@ def sayHello(def context) {
 }
 ----
 
+=== Skipping pipeline runs
+
+If the message of the built commit contains `[ci skip]`, the pipeline is skipped. The Jenkins build status will be set to `NOT_BUILT`, the Bitbucket build status to `SUCCESSFUL` (as there is no "skipped" state). The pipeline will start to execute initially, but abort before launching any agent nodes or starting any of the stages defined in the `Jenkinsfile`.
+
 === Automatically cloning environments on the fly
 
 Caution! Cloning environments on-the-fly is an advanced feature and should only be used if you understand OpenShift well, as there are many moving parts and things can go wrong in multiple places.
