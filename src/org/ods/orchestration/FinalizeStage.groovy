@@ -164,23 +164,25 @@ class FinalizeStage extends Stage {
 
     private void integrateIntoMainBranch(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def repoIntegrateTasks = flattenedRepos.collectEntries { repo ->
-            [
-                (repo.id): {
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                        def filesToCheckout = []
-                        if (steps.fileExists('openshift')) {
-                            filesToCheckout = ['openshift/ods-deployments.json']
-                        } else {
-                            filesToCheckout = [
-                                'openshift-exported/ods-deployments.json',
-                                'openshift-exported/template.yml'
-                            ]
+        def repoIntegrateTasks = flattenedRepos
+            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }
+            .collectEntries { repo ->
+                [
+                    (repo.id): {
+                        steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                            def filesToCheckout = []
+                            if (steps.fileExists('openshift')) {
+                                filesToCheckout = ['openshift/ods-deployments.json']
+                            } else {
+                                filesToCheckout = [
+                                    'openshift-exported/ods-deployments.json',
+                                    'openshift-exported/template.yml'
+                                ]
+                            }
+                            git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                         }
-                        git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                     }
-                }
-            ]
+                ]
         }
         repoIntegrateTasks.failFast = true
         script.parallel(repoIntegrateTasks)
