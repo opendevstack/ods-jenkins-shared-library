@@ -25,13 +25,13 @@ class DocumentHistorySpec extends SpecHelper {
         steps = Spy(PipelineSteps)
         logger = Mock(Logger)
 
-        def cmp = {  name, String version = null ->  [key: "Technology-${name}" as String, name: name, version:version] }
-        def epc = {  name, String version = null ->  [key: "EPIC-${name}" as String, description: name, version:version] }
-        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
-        def ts  = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
-        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
-        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
-        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+        def cmp = {  name, String version = null ->  [key: "Technology-${name}" as String, name: name, versions: [version]]}
+        def epc = {  name, String version = null ->  [key: "EPC-${name}" as String, description: name, versions: [version]]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions: [version]]}
+        def ts  = {  name, String version = null ->  [key: "TS-${name}"  as String, description:name, versions: [version]]}
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions: [version]]}
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions: [version]]}
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions: [version]]}
 
 
         def firstProjectVersion = '1.0'
@@ -300,6 +300,102 @@ class DocumentHistorySpec extends SpecHelper {
         history.data == versionEntries
     }
 
+    def "returns empty doc history and logs a warning if some issues do not have a version"() {
+        setup:
+        def targetEnvironment = 'D'
+        def savedVersionId = 0L
+        def issueNV = [key: "ISSUE-A"]
+        def issueV = [key: "ISSUE-A", versions: ['2']]
+
+        def base_saved_data = [
+            bugs        : [:],
+            version     : "1",
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuationsPerType : [:]
+        ]
+
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+
+        when: "We have a versioned component"
+        history.load(base_saved_data + [components: [(issueV.key):issueV]], savedVersionId)
+
+        then:
+        history.allIssuesAreValid
+
+        when: "We have a non versioned component"
+        history.load(base_saved_data + [components: [(issueNV.key):issueNV]], savedVersionId)
+
+        then:
+        ! history.allIssuesAreValid
+
+        when: "We have a versioned epic"
+        history.load(base_saved_data + [epics: [(issueV.key):issueV]], savedVersionId)
+
+        then:
+        history.allIssuesAreValid
+
+        when: "We have a non versioned epic"
+        history.load(base_saved_data + [epics: [(issueNV.key):issueNV]], savedVersionId)
+
+        then:
+        ! history.allIssuesAreValid
+
+        when: "We have a versioned risks"
+        history.load(base_saved_data + [risks: [(issueV.key):issueV]], savedVersionId)
+
+        then:
+        history.allIssuesAreValid
+
+        when: "We have a non versioned risks"
+        history.load(base_saved_data + [risks: [(issueNV.key):issueNV]], savedVersionId)
+
+        then:
+        ! history.allIssuesAreValid
+
+        when: "We have a versioned requirements"
+        history.load(base_saved_data + [requirements: [(issueV.key):issueV]], savedVersionId)
+
+        then:
+        history.allIssuesAreValid
+
+        when: "We have a non versioned requirements"
+        history.load(base_saved_data + [requirements: [(issueNV.key):issueNV]], savedVersionId)
+
+        then:
+        ! history.allIssuesAreValid
+
+        when: "We have a versioned tests"
+        history.load(base_saved_data + [tests: [(issueV.key):issueV]], savedVersionId)
+
+        then:
+        history.allIssuesAreValid
+
+        when: "We have a non versioned tests"
+        history.load(base_saved_data + [tests: [(issueNV.key):issueNV]], savedVersionId)
+
+        then:
+        ! history.allIssuesAreValid
+
+        when: "We have a versioned techSpecs"
+        history.load(base_saved_data + [techSpecs: [(issueV.key):issueV]], savedVersionId)
+
+        then:
+        history.allIssuesAreValid
+
+        when: "We have a non versioned techSpecs"
+        history.load(base_saved_data + [techSpecs: [(issueNV.key):issueNV]], savedVersionId)
+
+        then:
+        ! history.allIssuesAreValid
+    }
+
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
         if (a.getEntryId() != b.getEntryId()) return false
         if (a.getProjectVersion() != b.getProjectVersion()) return false
@@ -316,7 +412,6 @@ class DocumentHistorySpec extends SpecHelper {
             if (! issuesBKeys.contains(issueA.getEntryId())) return false
             def correspondentIssueB = entriesB.find{it.getEntryId() == issueA.getEntryId()}
             if (! entryIsEquals(issueA, correspondentIssueB)) {
-                println("THINGS ARE NOT OK!!!! returning false")
                 return false
             }
             return true

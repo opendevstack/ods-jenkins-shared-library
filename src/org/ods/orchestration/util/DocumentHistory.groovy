@@ -18,6 +18,7 @@ class DocumentHistory {
      */
     protected Long latestVersionId
     protected String documentSuffix = null
+    protected Boolean allIssuesAreValid = true
 
     DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment) {
         this.steps = steps
@@ -32,14 +33,17 @@ class DocumentHistory {
 
     DocumentHistory load(Map jiraData, Long savedVersionId = null, String suffix = null) {
         this.documentSuffix = suffix
-        if (savedVersionId) {
-            this.latestVersionId = savedVersionId + 1L
-            this.data = this.loadSavedDocHistoryData(savedVersionId)
-        }
+
+        this.latestVersionId = (savedVersionId ?:0L) + 1L
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData)
-        newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
-        this.data.add(newDocDocumentHistoryEntry)
-        this.data.sort { a, b -> b.getEntryId() <=> a.getEntryId() }
+        if (this.allIssuesAreValid) {
+            if (savedVersionId) {
+                this.data = this.loadSavedDocHistoryData(savedVersionId)
+            }
+            newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
+            this.data.add(newDocDocumentHistoryEntry)
+            this.data.sort { a, b -> b.getEntryId() <=> a.getEntryId() }
+        }
         this
     }
 
@@ -91,15 +95,20 @@ class DocumentHistory {
         return "documentHistory-${this.targetEnvironment}-${versionId}${suffix}"
     }
 
-    private static void failIfThereAreIssuesWithoutVersions(Collection<Map> jiraIssues) {
+    private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
         if (jiraIssues) {
             def issuesWithNoVersion = jiraIssues.findAll { Map i ->
-                (i.version) ? false : true
+                (i.versions) ? false : true
             }
             if (!issuesWithNoVersion.isEmpty()) {
-                throw new RuntimeException('In order to build a coherent document history we need to have a' +
-                    ' version for all the elements. In this case, the following items have this state: ' +
-                    "'${issuesWithNoVersion*.key.join(', ')}'")
+                //throw new RuntimeException('In order to build a coherent document history we need to have a' +
+                //    ' version for all the elements. In this case, the following items have this state: ' +
+                //    "'${issuesWithNoVersion*.key.join(', ')}'")
+                this.logger.warn('Document history not valid. We don\'t have a version for  the following' +
+                    " elements'${issuesWithNoVersion*.key.join(', ')}'. If you are not using versioning " +
+                    'and its automated document history you can ignore this warning. Otherwise, make sure ' +
+                    'all the issues have a version attached to it.')
+                this.allIssuesAreValid = false
             }
         }
     }
@@ -112,8 +121,8 @@ class DocumentHistory {
 
     /**
      * Adds a rational in case concurrent versions are found. This can only be achieved
-     * @param currentEntry
-     * @return
+     * @param currentEntry current document history entry
+     * @return rational message
      */
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect {
@@ -143,17 +152,18 @@ class DocumentHistory {
     private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {
         def projectVersion = jiraData.version
         def previousProjectVersion = jiraData.previousVersion ?: ''
+        this.allIssuesAreValid = true
         def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { issueType, Map<String, Map> issues ->
-                failIfThereAreIssuesWithoutVersions(issues.values())
-                def issuesOfThisVersion = issues.findAll { it.value.version == projectVersion }.collect {
-                    issueKey, issue ->
-                    def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
-                    if (isAnUpdate) {
-                        [key: issueKey, action: 'change', predecessors: issue.predecessors]
-                    } else {
-                        [key: issueKey, action: 'add']
-                    }
+                checkIfAllIssuesHaveVersions(issues.values())
+                def issuesOfThisVersion = issues.findAll { it.value.versions?.contains(projectVersion) }
+                    .collect { issueKey, issue ->
+                        def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
+                        if (isAnUpdate) {
+                            [key: issueKey, action: 'change', predecessors: issue.predecessors]
+                        } else {
+                            [key: issueKey, action: 'add']
+                        }
                 }
                 [(issueType): issuesOfThisVersion]
             }

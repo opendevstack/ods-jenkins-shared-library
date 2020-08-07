@@ -56,6 +56,10 @@ class ProjectSpec extends SpecHelper {
             project.loadJiraDataIssueTypes(*_) >> { return createProjectJiraDataIssueTypes() }
         }
 
+        if (mixins.containsKey("loadJiraData")) {
+            project.loadJiraData(*_) >> { mixins["loadJiraData"]() }
+        }
+
         return project
     }
 
@@ -856,7 +860,7 @@ class ProjectSpec extends SpecHelper {
 
         then:
         1 * project.loadJiraData(_) >> [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             bugs        : [],
             components  : [(component1.key): component1],
             epics       : [(epic1.key): epic1],
@@ -1090,18 +1094,21 @@ class ProjectSpec extends SpecHelper {
             getDocGenData(_) >> {
                 return docGenData
             }
+            isVersionEnabledForDelta(*_) >> { return false }
         }
 
         def projectObj = new Project(steps, logger)
         projectObj.git = git
         projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira, logger)
+        projectObj.data.buildParams = createProjectBuildParams()
 
         def projectKey = "DEMO"
 
         project = createProject([
             "loadJiraData": {
                 return projectObj.loadJiraData(projectKey)
-            }
+            },
+            "versioningIsEnabled": { return false }
         ])
 
         when:
@@ -1139,13 +1146,6 @@ class ProjectSpec extends SpecHelper {
         when:
         docGenData = [project: [id: "4711"]]
         def result = project.loadJiraData(projectKey)
-
-        then:
-        result.project.id == "4711"
-
-        when:
-        docGenData = [project: [id: 4711]]
-        result = project.loadJiraData(projectKey)
 
         then:
         result.project.id == "4711"
@@ -1451,12 +1451,42 @@ class ProjectSpec extends SpecHelper {
         metadataFile.delete()
     }
 
+    def "use old docGen report when version is not enabled for the feature"() {
+        setup:
+        def versionEnabled
+        def jiraServiceStubs = { JiraService it ->
+            it.isVersionEnabledForDelta(*_) >> {
+                return versionEnabled
+            }
+            it.getDocGenData(*_) >> { return [project:[id:"1"]] }
+            it.getDeltaDocGenData(*_) >> { return [project:[id:"1"]] }
+        }
+        project = setupWithJiraService(jiraServiceStubs)
+
+        when:
+        versionEnabled = false
+        project.loadJiraData("projectKey")
+
+        then:
+        0 * project.loadJiraDataForCurrentVersion(*_)
+        1 * project.loadFullJiraData(_)
+
+        when:
+        versionEnabled = true
+        project.loadJiraData("DEMO")
+
+        then:
+        1 * project.loadJiraDataForCurrentVersion(*_)
+        0 * project.loadFullJiraData(_)
+
+    }
+
     def "load saved data from the previousVersion"() {
-        given:
+        setup:
         def firstVersion = '1'
         def secondVersion = '2'
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: secondVersion,
             predecessors: [firstVersion],
             bugs        : [:],
@@ -1469,17 +1499,13 @@ class ProjectSpec extends SpecHelper {
             techSpecs   : [:],
             docs        : [:]
         ]
-        project = createProject([
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.loadJiraDataForCurrentVersion("KEY", secondVersion)
 
         then:
-        1 * project.loadJiraData(_) >> newVersionData
-
-        then:
+        1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(firstVersion) >> [:]
 
     }
@@ -1488,7 +1514,7 @@ class ProjectSpec extends SpecHelper {
         given:
         def firstVersion = '1'
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: firstVersion,
             predecessors: [],
             bugs        : [:],
@@ -1501,25 +1527,23 @@ class ProjectSpec extends SpecHelper {
             techSpecs   : [:],
             docs        : [:]
         ]
-        project = createProject([
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", firstVersion)
 
         then:
-        1 * project.loadJiraData(_) >> newVersionData
+        1 * project.loadVersionJiraData(*_) >>  newVersionData
 
         then:
-        0 * project.loadSavedJiraData(_)
+        0 * project.loadJiraDataForCurrentVersion(_)
     }
 
     def "do initial load if no previousVersion information is listed"() {
         given:
         def firstVersion = '1'
         def noPreviousReleases1 = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: firstVersion,
             bugs        : [:],
             components  : [:],
@@ -1531,15 +1555,13 @@ class ProjectSpec extends SpecHelper {
             techSpecs   : [:],
             docs        : [:]
         ]
-        project = createProject([
-            "loadJiraData": { return noPreviousReleases1 }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.loadJiraDataForCurrentVersion("KEY", firstVersion)
 
         then:
-        1 * project.loadJiraData(_)
+        1 * project.loadVersionJiraData(*_) >> noPreviousReleases1
 
         then:
         0 * project.loadSavedJiraData(_)
@@ -1550,7 +1572,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
 
         def noPreviousReleases1 = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: firstVersion,
             predecessors: [],
             bugs        : [:],
@@ -1563,15 +1585,13 @@ class ProjectSpec extends SpecHelper {
             techSpecs   : [:],
             docs        : [:]
         ]
-        project = createProject([
-            "loadJiraData": { return noPreviousReleases1 }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.loadJiraDataForCurrentVersion("KEY", firstVersion)
 
         then:
-        1 * project.loadJiraData(_)
+        1 * project.loadVersionJiraData(*_) >> noPreviousReleases1
 
         then:
         0 * project.loadSavedJiraData(_)
@@ -1584,11 +1604,11 @@ class ProjectSpec extends SpecHelper {
         def secondVersion = '2'
 
         def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
-        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
-        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
-        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
-        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
-        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
 
         def req1 = req('1', firstVersion)
         def rsk1 = rsk('1', firstVersion)
@@ -1614,7 +1634,7 @@ class ProjectSpec extends SpecHelper {
             docs        : [:]
         ]
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: secondVersion,
             predecessors: [firstVersion],
             bugs        : [:],
@@ -1639,22 +1659,19 @@ class ProjectSpec extends SpecHelper {
             techSpecs   : [:],
             docs        : [:]
         ]
-        project = createProject([
-            //"loadSavedJiraData": { return storedData },
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
         1 * project.loadSavedJiraData(_) >> storedData
-        1 * project.loadJiraData(_) >> newVersionData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
         1 * project.mergeJiraData(storedData, newVersionData)
-        1 * project.convertJiraDataToJiraDataItems(_)
-        1 * project.resolveJiraDataItemReferences(_)
 
         then:
         issueListIsEquals(project.components , mergedData.components.values() as List)
@@ -1683,11 +1700,11 @@ class ProjectSpec extends SpecHelper {
         def secondVersion = '2'
 
         def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
-        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
-        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
-        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
-        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
-        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
 
         def req1 = req('1', firstVersion)
         def rsk1 = rsk('1', firstVersion)
@@ -1715,7 +1732,7 @@ class ProjectSpec extends SpecHelper {
             docs        : [:]
         ]
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: secondVersion,
             predecessors: [firstVersion],
             bugs        : [:],
@@ -1741,22 +1758,19 @@ class ProjectSpec extends SpecHelper {
             techSpecs   : [:],
             docs        : [:]
         ]
-        project = createProject([
-            //"loadSavedJiraData": { return storedData },
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
         1 * project.loadSavedJiraData(_) >> storedData
-        1 * project.loadJiraData(_) >> newVersionData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
         1 * project.mergeJiraData(storedData, newVersionData)
-        1 * project.convertJiraDataToJiraDataItems(_)
-        1 * project.resolveJiraDataItemReferences(_)
 
         then:
         issueListIsEquals(project.components, mergedData.components.values() as List)
@@ -1780,11 +1794,11 @@ class ProjectSpec extends SpecHelper {
         def secondVersion = '2'
 
         def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
-        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
-        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
-        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
-        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
-        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
 
         def req0 = req('betaReq', betaVersion)
         def req1 = req('1', firstVersion)
@@ -1796,20 +1810,20 @@ class ProjectSpec extends SpecHelper {
 
 
         req1 << [risks: [rsk1.key], tests: [tst1.key]]
-        req2 << [predecessors: [req0.key], expandedPredecessors: [[key: req0.key, version: req0.version]]]
+        req2 << [predecessors: [req0.key], expandedPredecessors: [[key: req0.key, versions: req0.versions]]]
         rsk1 << [requirements: [req1.key], tests: [tst1.key]]
         tst1 << [requirements: [req1.key], risks: [rsk1.key]]
 
         rsk2 << [requirements: [req1.key], tests: [tst1.key], predecessors: [rsk1.key],
-                 expandedPredecessors: [[key: rsk1.key, version: rsk1.version]]]
+                 expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
         req3 << [predecessors: [req2.key]]
         def req1Updated = req1.clone() + [risks: [rsk2.key]]
         def tst1Updated = tst1.clone() + [risks: [rsk2.key]]
         def rsk2WithDetails = rsk2.clone()
-        rsk2WithDetails << [expandedPredecessors: [[key: rsk1.key, version: rsk1.version]]]
+        rsk2WithDetails << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
         def req3withDetails = req3.clone()
-        req3withDetails << [expandedPredecessors: [[key: req2.key, version: req2.version],
-                                                   [key: req0.key, version: req0.version]]]
+        req3withDetails << [expandedPredecessors: [[key: req2.key, versions: req2.versions],
+                                                   [key: req0.key, versions: req0.versions]]]
 
         def storedData = [
             components  : [:],
@@ -1822,7 +1836,7 @@ class ProjectSpec extends SpecHelper {
             docs        : [:]
         ]
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: secondVersion,
             predecessors: [firstVersion],
             bugs        : [:],
@@ -1846,22 +1860,19 @@ class ProjectSpec extends SpecHelper {
             techSpecs   : [:],
             docs        : [:]
         ]
-        project = createProject([
-            //"loadSavedJiraData": { return storedData },
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
         1 * project.loadSavedJiraData(_) >> storedData
-        1 * project.loadJiraData(_) >> newVersionData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
         1 * project.mergeJiraData(storedData, newVersionData)
-        1 * project.convertJiraDataToJiraDataItems(_)
-        1 * project.resolveJiraDataItemReferences(_)
 
         then:
         issueListIsEquals(project.components, mergedData.components.values() as List)
@@ -1886,11 +1897,11 @@ class ProjectSpec extends SpecHelper {
         def secondVersion = '2'
 
         def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
-        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, version:version] }
-        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, version:version] }
-        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, version:version] }
-        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, version:version] }
-        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, version:version] }
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
 
         def req1 = req('1', firstVersion)
         def rsk1 = rsk('1', firstVersion)
@@ -1916,7 +1927,7 @@ class ProjectSpec extends SpecHelper {
             docs        : [:]
         ]
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: secondVersion,
             predecessors: [firstVersion],
             bugs        : [:],
@@ -1942,22 +1953,19 @@ class ProjectSpec extends SpecHelper {
             docs        : [:],
             discontinuations: [tst2.key]
         ]
-        project = createProject([
-            //"loadSavedJiraData": { return storedData },
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraData("my-project")
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
+        1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
-        1 * project.loadJiraData(_) >> newVersionData
 
         then:
         1 * project.mergeJiraData(storedData, newVersionData)
-        1 * project.convertJiraDataToJiraDataItems(_)
-        1 * project.resolveJiraDataItemReferences(_)
 
         then:
         issueListIsEquals(project.components, mergedData.components.values() as List)
@@ -1984,11 +1992,11 @@ class ProjectSpec extends SpecHelper {
         given:
         def firstVersion = '1'
 
-        def cmp = { name, String version = null -> [key: "CMP-${name}" as String, name: name, version: version]}
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
         def cmp1 = cmp('front')
 
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: firstVersion,
             predecessors: [],
             bugs        : [:],
@@ -2004,7 +2012,7 @@ class ProjectSpec extends SpecHelper {
         ]
 
         def mergedData = [
-            components  : [(cmp1.key):cmp1 + [version: firstVersion]],
+            components  : [(cmp1.key):cmp1 + [versions: [firstVersion]]],
             epics       : [:],
             mitigations : [:],
             requirements: [:],
@@ -2014,16 +2022,13 @@ class ProjectSpec extends SpecHelper {
             docs        : [:],
             discontinuations: []
         ]
-        project = createProject([
-            //"loadSavedJiraData": { return storedData },
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.loadJiraData(_) >> newVersionData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
         def component = project.getComponents().first()
@@ -2035,12 +2040,12 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp = { name, String version = null -> [key: "CMP-${name}" as String, name: name, version: version]}
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
         def cmp1 = cmp('front')
         def cmp2 = cmp('new')
 
-        def cmp1wv = cmp1.clone() + [version:firstVersion]
-        def cmp2wv = cmp2.clone() + [version: secondVersion]
+        def cmp1wv = cmp1.clone() + [versions: [firstVersion]]
+        def cmp2wv = cmp2.clone() + [versions: [secondVersion]]
 
         def storedData = [
             components  : [(cmp1wv.key):cmp1wv],
@@ -2053,7 +2058,7 @@ class ProjectSpec extends SpecHelper {
             docs        : [:]
         ]
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             version: secondVersion,
             predecessors: [firstVersion],
             bugs        : [:],
@@ -2079,17 +2084,14 @@ class ProjectSpec extends SpecHelper {
             docs        : [:],
             discontinuations: []
         ]
-        project = createProject([
-            //"loadSavedJiraData": { return storedData },
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraData("my-project")
 
         then:
         1 * project.loadSavedJiraData(_) >> storedData
-        1 * project.loadJiraData(_) >> newVersionData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
         issueListIsEquals(project.components, mergedData.components.values() as List)
@@ -2100,11 +2102,11 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp = { name, String version = null -> [key: "CMP-${name}" as String, name: name, version: version]}
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
         def cmp1 = cmp('front')
         def cmp2 = cmp('new')
-        def cmp1wv = cmp1.clone() + [version:firstVersion]
-        def cmp2Updated = cmp2.clone() + [version: secondVersion]
+        def cmp1wv = cmp1.clone() + [versions:[firstVersion]]
+        def cmp2Updated = cmp2.clone() + [versions: [secondVersion]]
 
         def storedData = [
             components  : [(cmp1wv.key):cmp1wv],
@@ -2117,7 +2119,7 @@ class ProjectSpec extends SpecHelper {
             docs        : [:]
         ]
         def newVersionData = [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id: "0"],
             version: secondVersion,
             predecessors: [firstVersion],
             bugs        : [:],
@@ -2143,17 +2145,14 @@ class ProjectSpec extends SpecHelper {
             docs        : [:],
             discontinuations: [cmp1.key]
         ]
-        project = createProject([
-            //"loadSavedJiraData": { return storedData },
-            "loadJiraData": { return newVersionData }
-        ]).init()
+        project = setupWithJiraService()
 
         when:
-        project.load(this.git, this.jiraUseCase)
+        project.data.jira = project.loadJiraData("my-project")
 
         then:
+        1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
-        1 * project.loadJiraData(_) >> newVersionData
 
         then:
         issueListIsEquals(project.components, mergedData.components.values() as List)
@@ -2178,5 +2177,25 @@ class ProjectSpec extends SpecHelper {
             issueIsEquals(issueA, correspondentIssueB)
         }
         return areEquals.isEmpty() || areEquals.contains(true)
+    }
+
+    Project setupWithJiraService(Closure jiraMockedMethods = null) {
+        def jiraMockedM = jiraMockedMethods ?: { JiraService it ->
+            it.isVersionEnabledForDelta(*_) >> { return true }
+        }
+        def projectObj = new Project(steps, logger)
+        projectObj.git = git
+        def jira = Mock(JiraService) { jiraMockedM(it) }
+        JiraUseCase jiraUseCase = Spy(JiraUseCase, constructorArgs: [projectObj, steps, Mock(MROPipelineUtil), jira, logger])
+        jiraUseCase.updateJiraReleaseStatusBuildNumber(*_) >> null
+        projectObj.jiraUseCase = jiraUseCase
+        projectObj.data.buildParams = createProjectBuildParams()
+        def projectKey = "DEMO"
+
+        Project spied =  Spy(projectObj)
+        spied.getJiraProjectKey() >> projectKey
+        spied.loadVersionDataFromJira(_) >> {String versionName -> [id: 1, name: versionName] }
+
+        return spied
     }
 }

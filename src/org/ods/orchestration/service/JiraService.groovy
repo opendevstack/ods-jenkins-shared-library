@@ -235,7 +235,8 @@ class JiraService {
     @NonCPS
     Map getDocGenData(String projectKey) {
         if (!projectKey?.trim()) {
-            throw new IllegalArgumentException('Error: unable to get documentation generation data from Jira. \'projectKey\' is undefined.')
+            throw new IllegalArgumentException('Error: unable to get documentation generation data from Jira. ' +
+                '\'projectKey\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/platform/1.0/docgenreports/{projectKey}")
@@ -245,10 +246,41 @@ class JiraService {
             .asString()
 
         response.ifFailure {
-            def message = "Error: unable to get documentation generation data. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+            def message = 'Error: unable to get documentation generation data. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to get documentation generation data. Jira could not be found at: '${this.baseURL}'."
+                message = 'Error: unable to get documentation generation data. ' +
+                    "Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    @NonCPS
+    Map getDeltaDocGenData(String projectKey, String version) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: unable to get documentation generation data from Jira. ' +
+                '\'projectKey\' is undefined.')
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/deltadocgenreports/{projectKey}")
+            .routeParam("projectKey", projectKey.toUpperCase())
+            .basicAuth(this.username, this.password)
+            .header("Accept", "application/json")
+            .queryString("version", version)
+            .asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to get documentation generation data. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = 'Error: unable to get documentation generation data. ' +
+                    "Jira could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)
@@ -642,5 +674,42 @@ class JiraService {
         }
 
         new JsonSlurperClassic().parseText(response.getBody()).getOrDefault("fields", [:])
+    }
+
+    @NonCPS
+    Boolean isVersionEnabledForDelta(String projectKey, String versionName) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: unable to check project versions from Jira. ' +
+                '\'projectKey\' is undefined.')
+        }
+
+        if (!versionName?.trim()) {
+            throw new IllegalArgumentException('Error: unable to check project versions from Jira. ' +
+                '\'version\' is undefined.')
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}")
+            .routeParam('projectKey', projectKey.toUpperCase())
+            .routeParam('version', versionName)
+            .basicAuth(this.username, this.password)
+            .header('Accept', 'application/json')
+            .asString()
+
+        response.ifFailure {
+            if (response.getStatus() == 400) {
+                if(response.getBody().contains("Invalid project versionName.")) {
+                    return false
+                }
+            }
+            def message = 'Error: unable to get project versions. Jira responded with code: ' +
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get project versions. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+        return true
     }
 }

@@ -168,6 +168,9 @@ class Project {
 
         @NonCPS
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
+        // Reason: that is because when you do this.resolvedBugs it goes to the get method for delegate dictionary
+        // and does deletage.resolvedBugs  And we have no entry there
+        // An option would be to put some logic for this in the get() method of this class
         private List<JiraDataItem> getResolvedReferences(String type) {
             // Reference this within jiraResolved (contains readily resolved references to other entities)
             def item = Project.this.data.jiraResolved[this.type][this.key]
@@ -302,34 +305,12 @@ class Project {
         this.git = git
         this.jiraUseCase = jiraUseCase
 
-        this.data.jira = [:]
+        this.data.jira = [project: [ : ]]
         this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
-
-        def newData = this.loadJiraData(this.jiraProjectKey)
-        // TODO removeme when jrra plugin is updated
-        //newData.version = newData.project.version
-        //newData.predecessors = []
-        //newData.predecessors = ['1.0']
-
-        // Get more info of the versions from Jira
-        def predecessors = newData.getOrDefault("predecessors", [])
-        def previousVersionId = null
-        if (! predecessors.isEmpty()) {
-            previousVersionId = predecessors.first()
-        }
-
-        if (previousVersionId) {
-            def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
-            def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
-            this.data.jira << this.addVersionToComponentsWithout(mergedData)
-            this.data.jira.previousVersion = previousVersionId
-        } else {
-            this.data.jira << this.addVersionToComponentsWithout(newData)
-        }
+        this.data.jira << this.loadJiraData(this.jiraProjectKey)
 
         // Get more info of the versions from Jira
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
-        this.data.jira.project.previousVersion = this.loadVersionDataFromJira(previousVersionId)
 
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests) // TODO removeme when endpoint is updated
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
@@ -688,7 +669,7 @@ class Project {
     }
 
     Map getJiraFieldsForIssueType(String issueTypeName) {
-        return this.data.jira.issueTypes[issueTypeName]?.fields ?: [:]
+        return this.data.jira?.issueTypes[issueTypeName]?.fields ?: [:]
     }
 
     String getKey() {
@@ -866,22 +847,80 @@ class Project {
             tests: [:],
         ]
 
-        if (!this.jiraUseCase) return result
-        if (!this.jiraUseCase.jira) return result
+        //if (!this.jiraUseCase) return result
+        //if (!this.jiraUseCase.jira) return result
 
-        result = this.jiraUseCase.jira.getDocGenData(projectKey)
+        if (this.jiraUseCase && this.jiraUseCase.jira) {
+            // TODO how we send the version when we have a WIP build?
+            def usesVersions = this.versioningIsEnabled(projectKey)
+            if (usesVersions) {
+                result = this.loadJiraDataForCurrentVersion(projectKey, this.buildParams.version)
+            } else {
+                // TODO remove in ODS 4.0 version
+                // TODO how we send the version when we have a WIP build?
+                result = this.loadFullJiraData(projectKey)
+            }
+        }
+
+
+        // FIXME: fix data types that should be sent correctly by the REST endpoint
+        //result.project.id = result.project.id as String
+
+        /*result.tests.each { key, test ->
+            test.id = test.id as String
+            test.bugs = test.bugs ?: []
+        } */
+
+        return result
+    }
+
+    /**
+     * Checks if the JIRA version supports the versioning feature
+     * @ true if versioning is enabled
+     */
+    protected Boolean versioningIsEnabled(String projectKey) {
+        this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, this.buildParams.version)
+    }
+
+    protected Map loadFullJiraData(String projectKey) {
+        def result = this.jiraUseCase.jira.getDocGenData(projectKey)
         if (result?.project?.id == null) {
             throw new IllegalArgumentException(
                 "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
+        result
+    }
 
-        // FIXME: fix data types that should be sent correctly by the REST endpoint
-        result.project.id = result.project.id as String
-
-        result.tests.each { key, test ->
-            test.id = test.id as String
-            test.bugs = test.bugs ?: []
+    protected Map loadVersionJiraData(String projectKey, String versionName) {
+        def result = this.jiraUseCase.jira.getDeltaDocGenData(projectKey, versionName)
+        if (result?.project?.id == null) {
+            throw new IllegalArgumentException(
+                "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
+        result
+    }
+
+
+    protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
+        def result = [:]
+        def newData = this.loadVersionJiraData(projectKey, versionName)
+
+        // Get more info of the versions from Jira
+        def predecessors = newData.getOrDefault("predecessors", [])
+        def previousVersionId = null
+        if (! predecessors.isEmpty()) {
+            previousVersionId = predecessors.first()
+        }
+        if (previousVersionId) {
+            def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
+            def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
+            result << this.addVersionToComponentsWithout(mergedData)
+            result.previousVersion = previousVersionId
+        } else {
+            result << this.addVersionToComponentsWithout(newData)
+        }
+        // Get more info of the versions from Jira
+        result.project << [previousVersion: this.loadVersionDataFromJira(previousVersionId)]
 
         return result
     }
@@ -933,12 +972,12 @@ class Project {
         loadVersionDataFromJira(this.buildParams.version)
     }
 
-    protected Map loadVersionDataFromJira(String versionId) {
+    protected Map loadVersionDataFromJira(String versionName) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
         return this.jiraUseCase.jira.getVersionsForProject(this.jiraProjectKey).find { version ->
-            versionId == version.value
+            versionName == version.value
         }
     }
 
@@ -1298,8 +1337,8 @@ class Project {
     private Map addVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version
         jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).values().each { component ->
-            if (! component.version) {
-                jiraData[JiraDataItem.TYPE_COMPONENTS][component.key].version = currentVersion
+            if (! component.versions) {
+                jiraData[JiraDataItem.TYPE_COMPONENTS][component.key].versions = [currentVersion]
             }
         }
         jiraData
@@ -1392,7 +1431,7 @@ class Project {
                     "Existing issue list is '[${savedData.getOrDefault(issueType, [:]).keySet().join(', ')}]'")
             }
             def existingPredecessors = predecessorIssue.getOrDefault('expandedPredecessors', [:])
-            def result = [[key: predecessorIssue.key, version: predecessorIssue.version]]
+            def result = [[key: predecessorIssue.key, versions: predecessorIssue.versions]]
 
             if (existingPredecessors) {
                 result << existingPredecessors
