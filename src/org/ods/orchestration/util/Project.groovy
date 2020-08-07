@@ -652,6 +652,10 @@ class Project {
         return this.data.jira.epics.values() as List
     }
 
+    Map<String, DocumentHistory> getDocumentHistories() {
+        return this.data.documentHistories?: [:]
+    }
+
     String getId() {
         return this.data.jira.project.id
     }
@@ -1238,11 +1242,30 @@ class Project {
         new ProjectDataBitbucketRepository(steps).loadFile(savedVersion)
     }
 
+
+    /**
+     * Saves the project data to the
+     * @return filenames saved
+     */
+    List<String> saveProjectData() {
+        def repo = new ProjectDataBitbucketRepository(steps)
+        def fileNames = []
+        if (this.isAssembleMode) {
+            fileNames.add(this.saveVersionData(repo))
+        }
+        fileNames.addAll(this.getDocumentHistories().collect { docName, dh ->
+            // FIXME this is wrong. Logic con the filename should not be handled here. It's just for testing
+            dh.documentSuffix = docName
+            dh.saveDocHistoryData(repo)
+        })
+        return fileNames
+    }
+
     /**
      * Saves the materialized jira data for this and old versions
      * @return File name created
      */
-    String saveVersionData() {
+    String saveVersionData(ProjectDataBitbucketRepository repository) {
         def savedEntities = ['components',
                              'mitigations',
                              'requirements',
@@ -1256,7 +1279,7 @@ class Project {
         logger.debug('Saving Jira data for the version ' + JsonOutput.toJson(this.getVersionName()))
         this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
 
-        new ProjectDataBitbucketRepository(steps).save(dataToSave, this.getVersionName())
+        repository.save(dataToSave, this.getVersionName())
     }
 
     Map mergeJiraData(Map oldData, Map newData) {

@@ -51,6 +51,10 @@ class DocumentHistory {
         this.latestVersionId
     }
 
+    String setDocumentSuffix(String suffix) {
+        this.documentSuffix = suffix
+    }
+
     List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve) {
         this.logger.debug('Retrieving saved document history with name'
             + this.getSavedDocumentName(versionIdToRetrieve) )
@@ -59,9 +63,8 @@ class DocumentHistory {
         []
     }
 
-    void saveDocHistoryData() {
-        new ProjectDataBitbucketRepository(steps)
-            .save(this.data, this.getSavedDocumentName(this.latestVersionId))
+    String saveDocHistoryData(ProjectDataBitbucketRepository repository) {
+        repository.save(this.data, this.getSavedDocumentName(this.latestVersionId))
     }
 
     List<DocumentHistoryEntry> getDocHistoryEntries() {

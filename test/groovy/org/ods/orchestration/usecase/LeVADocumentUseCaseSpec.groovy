@@ -1,10 +1,7 @@
 package org.ods.orchestration.usecase
 
-import groovy.json.JsonOutput
 
 import java.nio.file.Files
-
-import static groovy.test.GroovyAssert.shouldFail
 
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
@@ -13,8 +10,6 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
-
-import spock.lang.*
 
 import static util.FixtureHelper.*
 
@@ -381,7 +376,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * usecase.getDocumentHistory(documentType) >> docHistory
+        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
         1 * project.getSystemRequirements() >> requirements
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -959,7 +954,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * usecase.getDocumentHistory(documentType) >> docHistory
+        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.createDocument(documentTemplate, null, _, _, _, documentType, watermarkText) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", [], "${docHistory.getVersion()}")

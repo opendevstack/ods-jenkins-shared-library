@@ -210,10 +210,10 @@ class FinalizeStage extends Stage {
 
         def filesToCommit = [project.envStateFileName]
         def messageToCommit = "ODS: Record commits deployed into ${project.buildParams.targetEnvironmentToken}"
-        if (! project.isWorkInProgress && project.isAssembleMode) {
-            def versionDataFileName =  project.saveVersionData()
-            filesToCommit.add(versionDataFileName)
-            messageToCommit = messageToCommit + " and project data of version ${project.getVersionName()}"
+        if (! project.isWorkInProgress) {
+            def projectDataFileNames =  project.saveProjectData()
+            filesToCommit.addAll(projectDataFileNames)
+            messageToCommit = messageToCommit + " and data of version ${project.getVersionName()}"
         }
 
         git.commit(

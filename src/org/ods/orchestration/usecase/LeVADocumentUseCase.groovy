@@ -141,7 +141,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
-        def docHistory = this.getDocumentHistory(documentType)
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
@@ -899,7 +899,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.pdf.merge(documents)
         }
 
-        def docHistory = this.getDocumentHistory(documentType)
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
@@ -1471,13 +1471,20 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }
     }
 
-    protected DocumentHistory getDocumentHistory(String documentType) {
+    protected DocumentHistory getAndStoreDocumentHistory(String documentType) {
         def latestValidVersionId = this.getLatestDocVersionId(documentType)
-
+        // TODO add here logic in case we have already loaded the doc versions
+        // and also for different docVersions per document. Something like:
+        // - If we have already saved the version, load it from project
+        // - Else if target version file exists, add a suffix for the document type (how can we do this?)
         def jiraData = this.project.data.jira as Map
         def environment = this.project.buildParams.targetEnvironmentToken as String
         def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment )
         docHistory.load(jiraData, latestValidVersionId)
+
+        // Save the doc history to project class, so it can be persisted when considered
+        if (! this.project.data.documentHistories) this.project.data.documentHistories = [:]
+        this.project.data.documentHistories[documentType] = docHistory
 
         docHistory
     }
