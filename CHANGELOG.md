@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [3.0] - 2020-08-11
 
 ### Added
 - Merge ([ods-mro-shared-library](https://github.com/opendevstack/ods-mro-jenkins-shared-library)) into this library, and consolidate services ([#271](https://github.com/opendevstack/ods-jenkins-shared-library/issues/271))
