@@ -391,8 +391,7 @@ class Project {
 
     List<JiraDataItem> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { key, testIssue ->
-            def result = testIssue.status.toLowerCase() == JiraDataItem.ISSUE_STATUS_DONE &&
-                testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
+            def result = testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
 
             if (result && componentName) {
                 result = testIssue.getResolvedComponents()
