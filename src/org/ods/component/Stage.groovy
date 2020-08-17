@@ -36,10 +36,8 @@ abstract class Stage {
             return true
         }
         // Check if prefix (e.g. "release/") is allowed
-        eligibleBranches.each { eligibleBranch ->
-            if (eligibleBranch.endsWith('/') && branch.startsWith(eligibleBranch)) {
-                return true
-            }
+        if (eligibleBranches.any { it.endsWith('/') && branch.startsWith(it) }) {
+            return true
         }
         // Check if specific branch is allowed
         return eligibleBranches.contains(branch)
