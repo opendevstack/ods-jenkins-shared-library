@@ -646,7 +646,7 @@ class JiraService {
     }
 
     @NonCPS
-    Map<String, String> getTextFieldsOfIssue(String issueIdOrKey, List fields) {
+    Map<String, Object> getTextFieldsOfIssue(String issueIdOrKey, List fields) {
         if (!issueIdOrKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to retrieve text fields on Jira issue. \'issueIdOrKey\' is undefined.')
         }

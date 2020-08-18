@@ -237,6 +237,7 @@ class JiraUseCase {
 
         def productReleaseVersionField = releaseStatusIssueFields['ProductRelease Version']
         return this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField])
+            .get(productReleaseVersionField).name
     }
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
