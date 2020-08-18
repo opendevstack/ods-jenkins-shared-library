@@ -1524,7 +1524,7 @@ class ProjectSpec extends SpecHelper {
 
         then:
         1 * project.getDocumentChapterData(_) >> [:]
-        0 * project.getVersionFromReleaseStatusIssue()
+        1 * project.getVersionFromReleaseStatusIssue()
         0 * project.loadJiraDataForCurrentVersion(*_)
         1 * project.loadFullJiraData(_)
 

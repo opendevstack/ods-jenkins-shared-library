@@ -241,6 +241,7 @@ class Project {
     protected JiraUseCase jiraUseCase
     protected ILogger logger
     protected Map config
+    protected Boolean isVersioningEnabled = false
 
     protected Map data = [:]
 
@@ -867,14 +868,18 @@ class Project {
         ]
     }
 
+    boolean getIsVersioningEnabled() {
+        return this.isVersioningEnabled
+    }
+
     /**
      * Checks if the JIRA version supports the versioning feature
      * @ true if versioning is enabled
      */
-    boolean versioningIsEnabled(String projectKey) {
+    protected boolean checkIfVersioningIsEnabled(String projectKey, String versionName) {
         if (!this.jiraUseCase) return false
         if (!this.jiraUseCase.jira) return false
-        return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, this.buildParams.version)
+        return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
     }
 
     protected Map loadJiraData(String projectKey) {
@@ -890,10 +895,10 @@ class Project {
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
-            def usesVersions = this.versioningIsEnabled(projectKey)
-            if (usesVersions) {
+            def currentVersion = this.getVersionFromReleaseStatusIssue()
+            this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)
+            if (this.isVersioningEnabled) {
                 // We detect the correct version even if the build is WIP
-                def currentVersion = this.getVersionFromReleaseStatusIssue()
                 result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
             } else {
                 // TODO remove in ODS 4.0 version

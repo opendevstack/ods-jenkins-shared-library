@@ -267,11 +267,11 @@ class JiraService {
                 '\'projectKey\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/deltadocgenreports/{projectKey}")
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/deltadocgenreports/{projectKey}/{version}")
             .routeParam("projectKey", projectKey.toUpperCase())
+            .routeParam("version", version)
             .basicAuth(this.username, this.password)
             .header("Accept", "application/json")
-            .queryString("version", version)
             .asString()
 
         response.ifFailure {
@@ -701,7 +701,9 @@ class JiraService {
                     return false
                 }
             }
-            def message = 'Error: unable to get project versions. Jira responded with code: ' +
+            def message = 'Error: unable to get project versions in url . ' +
+                "${this.baseURL}/rest/platform/1.1/productreleases/${projectKey.toUpperCase()}/${versionName}" +
+                'Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {

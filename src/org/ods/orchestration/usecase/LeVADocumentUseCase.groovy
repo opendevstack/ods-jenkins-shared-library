@@ -1359,7 +1359,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields['Document Version']
 
-        if (this.project.versioningIsEnabled(this.project.key)) {
+        if (this.project.isVersioningEnabled) {
             if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
                 // In case of generating a final document, we add the label for the version that should be released
                 this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
