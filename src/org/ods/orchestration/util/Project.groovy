@@ -688,6 +688,11 @@ class Project {
         return this.data.jira.project.previousVersion?.id
     }
 
+    /**
+     * Obtains the mapping of Jira fields for a given issue type from the saved data
+     * @param issueTypeName Jira issue type
+     * @return Map containing [id: "customfield_XYZ", name:"name shown in jira"]
+     */
     Map getJiraFieldsForIssueType(String issueTypeName) {
         return this.data.jira?.issueTypes[issueTypeName]?.fields ?: [:]
     }

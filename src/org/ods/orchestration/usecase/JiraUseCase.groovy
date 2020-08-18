@@ -20,6 +20,8 @@ class JiraUseCase {
     class CustomIssueFields {
         static final String CONTENT = 'EDP Content'
         static final String HEADING_NUMBER = 'EDP Heading Number'
+        static final String DOCUMENT_VERSION = 'Document Version'
+        static final String RELEASE_VERSION = 'ProductRelease Version'
     }
 
     class LabelPrefix {
@@ -162,8 +164,8 @@ class JiraUseCase {
         if (!this.jira) return [:]
 
         def docChapterIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER)
-        def contentField = docChapterIssueFields[CustomIssueFields.CONTENT]
-        def headingNumberField = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER]
+        def contentField = docChapterIssueFields[CustomIssueFields.CONTENT].id
+        def headingNumberField = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER].id
 
         def jql = "project = ${projectKey} " +
             "AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'"
@@ -235,9 +237,14 @@ class JiraUseCase {
         def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey as String
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
-        def productReleaseVersionField = releaseStatusIssueFields['ProductRelease Version']
-        return this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField])
-            .get(productReleaseVersionField).name
+        def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
+        def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
+        if (!versionField?.getOrDefault(productReleaseVersionField.id, null)?.name) {
+            throw new IllegalArgumentException('Unable to obtain version name from release status issue. Please check' +
+                " that fiels with name '${productReleaseVersionField.name}' and id '${productReleaseVersionField.id}'" +
+                'has a correct version value.')
+        }
+        return versionField[productReleaseVersionField.id].name
     }
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {

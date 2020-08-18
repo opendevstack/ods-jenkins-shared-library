@@ -159,15 +159,15 @@ class JiraUseCaseSpec extends SpecHelper {
         // Test Parameters
 
         def docChapterFields = [
-            (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "0",
-            (JiraUseCase.CustomIssueFields.CONTENT): "1",
+            (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
+            (JiraUseCase.CustomIssueFields.CONTENT): [id: "1"],
         ]
 
         // Argument Constraints
         def jqlQuery = [
             fields: ['key', 'status', 'summary', 'labels', 'issuelinks',
-                     docChapterFields[JiraUseCase.CustomIssueFields.CONTENT],
-                     docChapterFields[JiraUseCase.CustomIssueFields.HEADING_NUMBER]],
+                     docChapterFields[JiraUseCase.CustomIssueFields.CONTENT].id,
+                     docChapterFields[JiraUseCase.CustomIssueFields.HEADING_NUMBER].id],
             jql: "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'",
             expand: ['renderedFields'],
         ]
@@ -254,15 +254,15 @@ class JiraUseCaseSpec extends SpecHelper {
         def predecessorKey = "PRED-1"
 
         def docChapterFields = [
-            (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "0",
-            (JiraUseCase.CustomIssueFields.CONTENT): "1",
+            (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
+            (JiraUseCase.CustomIssueFields.CONTENT): [id: "1"],
         ]
 
         // Argument Constraints
         def jqlQuery = [
             fields: ['key', 'status', 'summary', 'labels', 'issuelinks',
-                     docChapterFields[JiraUseCase.CustomIssueFields.CONTENT],
-                     docChapterFields[JiraUseCase.CustomIssueFields.HEADING_NUMBER]],
+                     docChapterFields[JiraUseCase.CustomIssueFields.CONTENT].id,
+                     docChapterFields[JiraUseCase.CustomIssueFields.HEADING_NUMBER].id],
             jql: "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'" +
                 " AND fixVersion = '${version}'",
             expand: ['renderedFields'],
@@ -601,5 +601,49 @@ class JiraUseCaseSpec extends SpecHelper {
         ]
 
         result == expected
+    }
+
+    def "get version from Jira"() {
+        given:
+        def textFieldsOfIssue
+        def jira = Mock(JiraService) {
+            getTextFieldsOfIssue(*_) >> { issueIdOrKey, List <String> fields ->
+                fields.collectEntries { [(it): textFieldsOfIssue] }
+            }
+        }
+        def usecase = Spy(new JiraUseCase(project, steps, util, jira, logger))
+        def result
+
+        when:
+        textFieldsOfIssue = null
+        usecase.getVersionFromReleaseStatusIssue()
+
+        then:
+        project.buildParams.releaseStatusJiraIssueKey >> "KEY-1"
+        project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [(JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"]]
+        def e = thrown(IllegalArgumentException)
+        e.message.contains('Unable to obtain version name from release status issue')
+
+        when:
+        textFieldsOfIssue = [somethingElse: "something else"]
+        usecase.getVersionFromReleaseStatusIssue()
+
+        then:
+        project.buildParams.releaseStatusJiraIssueKey >> "KEY-1"
+        project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [(JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"]]
+        e = thrown(IllegalArgumentException)
+        e.message.contains('Unable to obtain version name from release status issue')
+
+        when:
+        textFieldsOfIssue = [name: "versionX"]
+        result = usecase.getVersionFromReleaseStatusIssue()
+
+        then:
+        project.buildParams.releaseStatusJiraIssueKey >> "KEY-1"
+        project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [(JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"]]
+        result == "versionX"
+
+
+
     }
 }

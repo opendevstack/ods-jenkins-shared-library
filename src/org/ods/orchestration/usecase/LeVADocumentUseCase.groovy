@@ -1357,7 +1357,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected void updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
-        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields['Document Version']
+        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION]
 
         if (this.project.isVersioningEnabled) {
             if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
@@ -1374,7 +1374,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Long getLatestDocVersionId(String documentType) {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
-        def documentVersionField = documentationTrackingIssueFields['Document Version'] as String
+        def documentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
 
         def trackingIssues = this.getDocumentTrackingIssues(documentType)
 

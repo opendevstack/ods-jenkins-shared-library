@@ -1138,6 +1138,7 @@ class ProjectSpec extends SpecHelper {
             }
             isVersionEnabledForDelta(*_) >> { return false }
             searchByJQLQuery(*_) >> { return [ issues: [jiraIssue1]]}
+            getTextFieldsOfIssue(*_) >> { return [field_0: [name: "1"]]}
         }
 
         def projectObj = new Project(steps, logger)
@@ -1145,9 +1146,12 @@ class ProjectSpec extends SpecHelper {
         projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira, logger)
         projectObj.data.buildParams = createProjectBuildParams()
         projectObj.data.jira = [issueTypes: [
-            (JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER as String): [ fields: [
-                (JiraUseCase.CustomIssueFields.CONTENT): "1",
-                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "0",
+            (JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER): [ fields: [
+                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
+                (JiraUseCase.CustomIssueFields.CONTENT): [id: "1"],
+            ]],
+            (JiraUseCase.IssueTypes.RELEASE_STATUS): [ fields: [
+                (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
             ]]
         ]]
 
@@ -1509,13 +1513,13 @@ class ProjectSpec extends SpecHelper {
             }
             it.getDocGenData(*_) >> { return [project:[id:"1"]] }
             it.getDeltaDocGenData(*_) >> { return [project:[id:"1"]] }
+            it.getTextFieldsOfIssue(*_) >> { return [field_0: [name: "1"]]}
         }
         project = setupWithJiraService(jiraServiceStubs)
         project.data.jira = [issueTypes: [
-            (JiraUseCase.IssueTypes.RELEASE_STATUS as String): [
-                (JiraUseCase.CustomIssueFields.CONTENT): "0",
-                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "1",
-            ]
+            (JiraUseCase.IssueTypes.RELEASE_STATUS): [ fields: [
+                (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
+            ]]
         ]]
 
         when:
