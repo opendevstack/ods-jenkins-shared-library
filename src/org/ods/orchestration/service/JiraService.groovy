@@ -701,9 +701,9 @@ class JiraService {
                     return false
                 }
             }
-            def message = 'Error: unable to get project versions in url . ' +
+            def message = 'Error: unable to get project versions in url ' +
                 "${this.baseURL}/rest/platform/1.1/productreleases/${projectKey.toUpperCase()}/${versionName}" +
-                'Jira responded with code: ' +
+                ' Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {

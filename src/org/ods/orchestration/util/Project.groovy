@@ -324,7 +324,7 @@ class Project {
         this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs()
 
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
-        this.data.jira.undoneDocChapters = this.computeWipPerDocChapter(this.data.jira)
+        this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
         if (this.hasWipJiraIssues()) {
             def message = 'Pipeline-generated documents are watermarked ' +
@@ -359,7 +359,7 @@ class Project {
     }
 
     protected Map<String, List> computeWipJiraIssues(Map data) {
-        def result = [:] //[docChapters: this.computeWipPerDocChapter(data)]
+        def result = [:]
 
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
@@ -369,20 +369,22 @@ class Project {
         return result
     }
 
-
-
     /**
      * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
      * the sections not done
      * @param data jira data
      * @return dict with map documentTypes -> sectionsNotDoneKeys
      */
-    protected Map<String,List> computeWipPerDocChapter(Map data) {
-        data.getOrDefault(JiraDataItem.TYPE_DOCS, [:]).values().groupBy { it.document }
+    protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
+        data.getOrDefault(JiraDataItem.TYPE_DOCS, [:]).values()
+            .findAll { issueIsWIP(it) }
+            .collect { chapter ->
+                chapter.documents.collect { [doc: it, key: chapter.key] }
+            }.flatten()
+            .groupBy { it.doc }
             .collectEntries { doc, issues ->
-                [(doc as String): issues.findAll { issueIsWIP(it) }*.key as List<String>]
+                [(doc as String): issues*.key as List<String>]
             }
-
     }
 
     protected boolean issueIsWIP(Map issue) {
@@ -786,11 +788,11 @@ class Project {
 
     List<JiraDataItem> getDocumentChaptersForDocument(String document) {
         return this.data.jira.getOrDefault(JiraDataItem.TYPE_DOCS, [:])
-            .findAll { k, v -> v.document && v.document == document }.values() as List
+            .findAll { k, v -> v.documents && v.documents.contains(document) }.values() as List
     }
 
     List<String> getWIPDocChaptersForDocument(String documentType) {
-        return this.data.jira.undoneDocChapters.getOrDefault(documentType, [])
+        return this.getWIPDocChapters().getOrDefault(documentType, [])
     }
 
     Map getWIPDocChapters() {
@@ -871,10 +873,6 @@ class Project {
             version: version,
             rePromote: rePromote,
         ]
-    }
-
-    boolean getIsVersioningEnabled() {
-        return this.isVersioningEnabled
     }
 
     /**

@@ -211,7 +211,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 section: 'sec1s0',
                 number : '1.0',
                 heading: '1-summary',
-                document: 'CSD',
+                documents: ['CSD'],
                 content: '<html>myContent1</html>',
                 status: 'DONE',
                 key: 'JIRA-1',
@@ -222,7 +222,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 section: 'sec2s0',
                 number : '2.0',
                 heading: '2-summary',
-                document: 'SSDS',
+                documents: ['SSDS'],
                 content: '<html>myContent2</html>',
                 status: 'DONE',
                 key: 'JIRA-2',
@@ -233,7 +233,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 section: 'sec3s0',
                 number : '3.0',
                 heading: '3-summary',
-                document: 'DTP',
+                documents: ['DTP'],
                 content: '<html>myContent3</html>',
                 status: 'DONE',
                 key: 'JIRA-3',
@@ -315,7 +315,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 section: 'sec1s0',
                 number : '1.0',
                 heading: '1-summary',
-                document: 'CSD',
+                documents: ['CSD'],
                 content: '<html>myContent1</html>',
                 status: 'DONE',
                 key: 'JIRA-1',
@@ -326,7 +326,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 section: 'sec2s0',
                 number : '2.0',
                 heading: '2-summary',
-                document: 'SSDS',
+                documents: ['SSDS'],
                 content: '<html>myContent2</html>',
                 status: 'DONE',
                 key: 'JIRA-2',
@@ -337,7 +337,7 @@ class JiraUseCaseSpec extends SpecHelper {
                 section: 'sec3s0',
                 number : '3.0',
                 heading: '3-summary',
-                document: 'DTP',
+                documents: ['DTP'],
                 content: '<html>myContent3</html>',
                 status: 'DONE',
                 key: 'JIRA-3',
@@ -349,6 +349,64 @@ class JiraUseCaseSpec extends SpecHelper {
         result['JIRA-1'] == expected['JIRA-1']
         result['JIRA-2'] == expected['JIRA-2']
         result['JIRA-3'] == expected['JIRA-3']
+    }
+
+    def "get document chapter data with multiple doclabels"() {
+        given:
+        // Test Parameters
+        def version = "myVersion"
+        def predecessorKey = "PRED-1"
+
+        def docChapterFields = [
+            (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
+            (JiraUseCase.CustomIssueFields.CONTENT): [id: "1"],
+        ]
+
+        // Argument Constraints
+        def jqlQuery = [
+            fields: ['key', 'status', 'summary', 'labels', 'issuelinks',
+                     docChapterFields[JiraUseCase.CustomIssueFields.CONTENT].id,
+                     docChapterFields[JiraUseCase.CustomIssueFields.HEADING_NUMBER].id],
+            jql: "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'" +
+                " AND fixVersion = '${version}'",
+            expand: ['renderedFields'],
+        ]
+
+        // Stubbed Method Responses
+        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
+        jiraIssue1.fields["0"] = "1.0"
+        jiraIssue1.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "CSD", JiraUseCase.LabelPrefix.DOCUMENT+ "SSDS"]
+        jiraIssue1.renderedFields = [:]
+        jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
+        jiraIssue1.renderedFields.description = "<html>1-description</html>"
+
+        def jiraResult = [
+            issues: [jiraIssue1],
+        ]
+
+        when:
+        def result = usecase.getDocumentChapterData(project.jiraProjectKey, version)
+
+        then:
+        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER) >> docChapterFields
+        1 * jira.searchByJQLQuery(jqlQuery) >> jiraResult
+
+        then:
+        def expected = [
+            'JIRA-1': [
+                section: 'sec1s0',
+                number : '1.0',
+                heading: '1-summary',
+                documents: ['CSD', 'SSDS'],
+                content: '<html>myContent1</html>',
+                status: 'DONE',
+                key: 'JIRA-1',
+                predecessors: [],
+                versions: [version],
+            ]
+        ]
+
+        result == expected
     }
 
     def "match Jira test issues against test results"() {

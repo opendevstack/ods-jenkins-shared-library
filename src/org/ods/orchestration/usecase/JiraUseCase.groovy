@@ -203,14 +203,15 @@ class JiraUseCase {
                 content = this.convertHTMLImageSrcIntoBase64Data(content)
             }
 
-            def documentType = issue.fields.getOrDefault('labels', [])
+            def documentTypes = issue.fields.getOrDefault('labels', [])
                 .findAll{String l -> l.startsWith(LabelPrefix.DOCUMENT)}
                 .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}
-            if (documentType.size() != 1) {
-                throw new IllegalArgumentException("Error: issue '${issue.key}' contains '${documentType.size()}' " +
-                    "document labels. There should be only one label starting with '${LabelPrefix.DOCUMENT}'")
+            if (documentTypes.size() == 0) {
+                throw new IllegalArgumentException("Error: issue '${issue.key}' of type " +
+                    "'${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' contains '${documentType.size()}' " +
+                    "document labels. There should be at least one label starting with '${LabelPrefix.DOCUMENT}'")
             }
-            documentType = documentType.first()
+
 
             def predecessorLinks = issue.fields.issuelinks
                 .findAll { it.type.name == "Succeeds" && it.outwardIssue?.key }
@@ -220,7 +221,7 @@ class JiraUseCase {
                     section: "sec${number.replaceAll(/\./, "s")}".toString(),
                     number: number,
                     heading: issue.fields.summary,
-                    document: documentType,
+                    documents: documentTypes,
                     content: content?.replaceAll("\u00a0", " ") ?: "",
                     status: issue.fields.status.name,
                     key: issue.key as String,

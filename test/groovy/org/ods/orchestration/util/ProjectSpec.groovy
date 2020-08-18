@@ -794,17 +794,17 @@ class ProjectSpec extends SpecHelper {
                     "${type}-1": [
                         status: "TODO",
                         key: "${type}-1",
-                        document: document
+                        documents: [document],
                     ],
                     "${type}-2": [
                         status: "DOING",
                         key: "${type}-2",
-                        document: document
+                        documents: [document],
                     ],
                     "${type}-3": [
                         status: "DONE",
                         key: "${type}-3",
-                        document: document
+                        documents: [document],
                     ]
                 ]
             }
@@ -830,8 +830,6 @@ class ProjectSpec extends SpecHelper {
 
         when:
         project.load(git, jiraUseCase)
-
-        //project.data.jira.undone.docChapters["myDocumentType"] = ["docChapters-1", "docChapters-2"]
 
         then:
         project.hasWipJiraIssues()
@@ -2266,5 +2264,82 @@ class ProjectSpec extends SpecHelper {
         spied.loadVersionDataFromJira(_) >> {String versionName -> [id: 1, name: versionName] }
 
         return spied
+    }
+
+    def "returns document chapters for a document"() {
+        given:
+        def document = 'myDocumentType'
+        def nodoc = [
+            nodoc1: [key:'nodoc1', documents:[]],
+            nodoc2: [key:'nodoc2'],
+        ]
+        def onedoc = [onedoc: [key:'onedoc', documents:[document]]]
+        def twodoc = [twodoc: [key:'twodoc', documents:[document,'anotherdoc']]]
+        def otherdoc = [otherdoc: [key:'otherdoc', documents:['anotherdoc']]]
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = onedoc
+        def result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 1
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = twodoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 1
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = onedoc + twodoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 2
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = nodoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 0
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = otherdoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 0
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = onedoc + twodoc + nodoc + otherdoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 2
+    }
+
+    def "compute WIP document chapters per document"() {
+        def issue = { String key, String status, List<String> docs ->
+            [(key): [ documents: docs, status: status, key: key ]]
+        }
+
+        def data = [(Project.JiraDataItem.TYPE_DOCS):
+            issue('done1', Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD', 'SSDS']) +
+                issue('done2', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
+                issue('canceled', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
+                issue('undone1', 'WORK IN PROGress', ['CSD', 'SSDS']) +
+                issue('undone2', 'Some custom status', ['SSDS']) +
+                issue('undone3', 'TO DO', ['DTP'])
+        ]
+        def expected = [ CSD: ['undone1'], SSDS: ['undone1', 'undone2'], DTP: ['undone3']]
+
+        when:
+        def result = project.computeWipDocChapterPerDocument(data)
+
+        then:
+        result == expected
+
     }
 }
