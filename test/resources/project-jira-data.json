@@ -127,11 +127,11 @@
         }
     },
     "components": {
-        "Technology-demo-app-payment": {
-            "key": "Technology-demo-app-payment",
+        "Technology-demo-app-catalogue": {
+            "key": "Technology-demo-app-catalogue",
             "id": "2",
             "version": "1.0",
-            "name": "Technology-demo-app-payment",
+            "name": "Technology-demo-app-catalogue",
             "description": "Technology component demo-app-paymnent stored at https://bitbucket-dev.biscrum.com/projects/NET/repos/net-demo-app-payment/browse",
             "epics": [
                 "NET-124"
@@ -176,7 +176,7 @@
             "description": "If a payment cannot be processed within the required time provide a discount for the next purchase for the same customer to make them come back.",
             "status": "TO DO",
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -206,7 +206,7 @@
                 "acceptanceCriteria": "The desired payment interval can be configured on system level."
             },
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "epics": [
                 "NET-124"
@@ -261,7 +261,7 @@
             "systemDesignSpec": "Use containerized infrastructure to support quick and easy provisioning of a multitude of micro services that do one thing only and one thing right and fast.",
             "softwareDesignSpec": "Implement the system using a loosely coupled micro services architecture for improved extensibility and maintainability.",
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -314,7 +314,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -354,7 +354,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -362,9 +362,7 @@
             "techSpecs": [
                 "NET-128"
             ],
-            "risks": [
-                "DEMO-50"
-            ],
+            "risks": [],
             "bugs": []
         },
         "NET-131": {
@@ -397,7 +395,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -431,7 +429,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -477,7 +475,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -498,7 +496,7 @@
             "executionType": "Automated",
             "steps": [],
             "components": [
-                "Technology-demo-app-frontend"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -519,7 +517,7 @@
             "executionType": "Automated",
             "steps": [],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -540,7 +538,7 @@
             "executionType": "Automated",
             "steps": [],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -561,13 +559,13 @@
             "executionType": "Automated",
             "steps": [],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
             ],
             "techSpecs": [
-                "DEMO-15"
+                "NET-128"
             ],
             "bugs": []
         },
@@ -589,7 +587,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -597,9 +595,7 @@
             "techSpecs": [
                 "NET-128"
             ],
-            "risks": [
-                "DEMO-50"
-            ],
+            "risks": [],
             "bugs": []
         },
         "NET-139": {
@@ -620,7 +616,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -648,7 +644,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -676,7 +672,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -704,7 +700,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -732,7 +728,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"
@@ -760,7 +756,7 @@
                 }
             ],
             "components": [
-                "Technology-demo-app-payment"
+                "Technology-demo-app-catalogue"
             ],
             "requirements": [
                 "NET-125"

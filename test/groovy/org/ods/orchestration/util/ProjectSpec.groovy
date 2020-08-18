@@ -45,9 +45,9 @@ class ProjectSpec extends SpecHelper {
         }
 
         if (mixins.containsKey("loadJiraDataDocs")) {
-            project.loadJiraDataDocs(*_) >> { mixins["loadJiraDataDocs"]() }
+            project.loadJiraDataTrackingDocs(*_) >> { mixins["loadJiraDataDocs"]() }
         } else {
-            project.loadJiraDataDocs(*_) >> { return createProjectJiraDataDocs() }
+            project.loadJiraDataTrackingDocs(*_) >> { return createProjectJiraDataDocs() }
         }
 
         if (mixins.containsKey("loadJiraDataIssueTypes")) {
@@ -58,6 +58,10 @@ class ProjectSpec extends SpecHelper {
 
         if (mixins.containsKey("loadJiraData")) {
             project.loadJiraData(*_) >> { mixins["loadJiraData"]() }
+        }
+
+        if (mixins.containsKey("getDocumentChapterData")) {
+            project.getDocumentChapterData(*_) >> { mixins["getDocumentChapterData"]() }
         }
 
         return project
@@ -611,13 +615,16 @@ class ProjectSpec extends SpecHelper {
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             data[type] = [
                 "${type}-1": [
-                    status: "TODO"
+                    status: "TODO",
+                    key: "${type}-1",
                 ],
                 "${type}-2": [
-                    status: "DOING"
+                    status: "DOING",
+                    key: "${type}-2",
                 ],
                 "${type}-3": [
-                    status: "DONE"
+                    status: "DONE",
+                    key: "${type}-3",
                 ]
             ]
         }
@@ -641,7 +648,7 @@ class ProjectSpec extends SpecHelper {
             data[type] = [:]
         }
 
-        def expected = [docChapters: [:]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = []
         }
@@ -683,7 +690,7 @@ class ProjectSpec extends SpecHelper {
             ]
         }
 
-        def expected = [docChapters: [:]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = []
         }
@@ -735,7 +742,7 @@ class ProjectSpec extends SpecHelper {
             ]
         }
 
-        def expected = [docChapters: [:]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = [ "${type}-1", "${type}-2" ]
         }
@@ -777,14 +784,39 @@ class ProjectSpec extends SpecHelper {
 
     def "get wip Jira issues for a collection of document chapters"() {
         setup:
+        def document = 'myDocumentType'
         def data = [project: [:], components: [:]]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
-            data[type] = [:]
+            if (type != Project.JiraDataItem.TYPE_DOCS) {
+                data[type] = [:]
+            } else {
+                data[type] = [
+                    "${type}-1": [
+                        status: "TODO",
+                        key: "${type}-1",
+                        document: document
+                    ],
+                    "${type}-2": [
+                        status: "DOING",
+                        key: "${type}-2",
+                        document: document
+                    ],
+                    "${type}-3": [
+                        status: "DONE",
+                        key: "${type}-3",
+                        document: document
+                    ]
+                ]
+            }
         }
 
-        def expected = [docChapters: ["myDocumentType": ["docChapters-1", "docChapters-2"]]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
-            expected[type] = []
+            if (type != Project.JiraDataItem.TYPE_DOCS) {
+                expected[type] = []
+            } else {
+                expected[type] = ["${type}-1", "${type}-2"]
+            }
         }
 
         project = createProject([
@@ -799,13 +831,15 @@ class ProjectSpec extends SpecHelper {
         when:
         project.load(git, jiraUseCase)
 
-        project.data.jira.undone.docChapters["myDocumentType"] = ["docChapters-1", "docChapters-2"]
+        //project.data.jira.undone.docChapters["myDocumentType"] = ["docChapters-1", "docChapters-2"]
 
         then:
         project.hasWipJiraIssues()
 
         then:
         project.getWipJiraIssues() == expected
+        project.getWIPDocChapters() == [(document): [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]]
+        project.getWIPDocChaptersForDocument(document) == [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]
     }
 
     def "load initial version"() {
@@ -875,7 +909,7 @@ class ProjectSpec extends SpecHelper {
         1 * project.convertJiraDataToJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
         1 * project.loadJiraDataBugs(_) >> createProjectJiraDataBugs()
-        1 * project.loadJiraDataDocs() >> createProjectJiraDataDocs()
+        1 * project.loadJiraDataTrackingDocs() >> createProjectJiraDataDocs()
         1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
         1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
@@ -1090,17 +1124,32 @@ class ProjectSpec extends SpecHelper {
         setup:
         def docGenData
 
+        // Stubbed Method Responses limitation of not being able to spy/mock JiraUseCase for projectObj
+        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
+        jiraIssue1.fields["0"] = "1.0"
+        jiraIssue1.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "CSD"]
+        jiraIssue1.renderedFields = [:]
+        jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
+        jiraIssue1.renderedFields.description = "<html>1-description</html>"
+
         def jira = Mock(JiraService) {
             getDocGenData(_) >> {
                 return docGenData
             }
             isVersionEnabledForDelta(*_) >> { return false }
+            searchByJQLQuery(*_) >> { return [ issues: [jiraIssue1]]}
         }
 
         def projectObj = new Project(steps, logger)
         projectObj.git = git
         projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira, logger)
         projectObj.data.buildParams = createProjectBuildParams()
+        projectObj.data.jira = [issueTypes: [
+            (JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER as String): [ fields: [
+                (JiraUseCase.CustomIssueFields.CONTENT): "1",
+                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "0",
+            ]]
+        ]]
 
         def projectKey = "DEMO"
 
@@ -1462,12 +1511,20 @@ class ProjectSpec extends SpecHelper {
             it.getDeltaDocGenData(*_) >> { return [project:[id:"1"]] }
         }
         project = setupWithJiraService(jiraServiceStubs)
+        project.data.jira = [issueTypes: [
+            (JiraUseCase.IssueTypes.RELEASE_STATUS as String): [
+                (JiraUseCase.CustomIssueFields.CONTENT): "0",
+                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "1",
+            ]
+        ]]
 
         when:
         versionEnabled = false
         project.loadJiraData("projectKey")
 
         then:
+        1 * project.getDocumentChapterData(_) >> [:]
+        0 * project.getVersionFromReleaseStatusIssue()
         0 * project.loadJiraDataForCurrentVersion(*_)
         1 * project.loadFullJiraData(_)
 
@@ -1476,7 +1533,11 @@ class ProjectSpec extends SpecHelper {
         project.loadJiraData("DEMO")
 
         then:
+        1 * project.getVersionFromReleaseStatusIssue() >> '1'
+
+        then:
         1 * project.loadJiraDataForCurrentVersion(*_)
+        1 * project.getDocumentChapterData(*_) >> [:]
         0 * project.loadFullJiraData(_)
 
     }
@@ -1961,6 +2022,7 @@ class ProjectSpec extends SpecHelper {
         project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
@@ -2028,6 +2090,7 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
+        1 * project.getVersionFromReleaseStatusIssue() >> firstVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
@@ -2090,6 +2153,7 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2151,6 +2215,7 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 

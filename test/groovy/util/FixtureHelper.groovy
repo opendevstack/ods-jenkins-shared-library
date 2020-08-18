@@ -58,7 +58,7 @@ class FakeProject extends Project {
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.docs = this.loadJiraDataDocs()
+        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs()
         this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
 
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
@@ -112,7 +112,7 @@ class FakeProject extends Project {
         return bugs
     }
 
-    protected Map loadJiraDataDocs() {
+    protected Map loadJiraDataTrackingDocs() {
         return FixtureHelper.createProjectJiraDataDocs()
     }
 

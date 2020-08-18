@@ -70,14 +70,15 @@ class DocumentHistorySpec extends SpecHelper {
         ]
 
         this.entries10 = [new DocumentHistoryEntry([
-            bugs        : [],
-            components  : [[key: cmp1.key, action: 'add']],
-            epics       : [],
-            mitigations : [[key: mit1.key, action: 'add']],
-            requirements: [[key: req1.key, action: 'add']],
-            risks       : [[key: rsk1.key, action: 'add']],
-            tests       : [[key: tst1.key, action: 'add'], [key: tst2.key, action: 'add']],
-            techSpecs   : [[key: ts1.key, action: 'add']]], 1L, firstProjectVersion, '',
+            bugs                  : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components            : [[key: cmp1.key, action: 'add']],
+            epics                 : [],
+            mitigations           : [[key: mit1.key, action: 'add']],
+            requirements          : [[key: req1.key, action: 'add']],
+            risks                 : [[key: rsk1.key, action: 'add']],
+            tests                 : [[key: tst1.key, action: 'add'], [key: tst2.key, action: 'add']],
+            techSpecs             : [[key: ts1.key, action: 'add']]], 1L, firstProjectVersion, '',
             "Modifications for project version ${firstProjectVersion}.")]
 
         this.jiraData11_first = [
@@ -97,6 +98,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries11_first = [new DocumentHistoryEntry([
             bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [[key: epc1.key, action:'add']],
             mitigations : [[key: mit2.key, action: 'change', predecessors: mit2.predecessors]],
@@ -123,6 +125,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entriesFix = [new DocumentHistoryEntry([
             bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [],
             mitigations : [],
@@ -150,6 +153,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries11_second = [new DocumentHistoryEntry([
             bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [[key: epc1.key, action:'add']],
             mitigations : [[key: mit2.key, action: 'change', predecessors: mit2.predecessors]],
@@ -177,6 +181,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         this.entries20 = [new DocumentHistoryEntry([
             bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
             epics       : [],
             mitigations : [],

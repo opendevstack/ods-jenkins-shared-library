@@ -53,7 +53,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     }
 
-    private static Map DOCUMENT_TYPE_NAMES = [
+    protected static Map DOCUMENT_TYPE_NAMES = [
         (DocumentType.CSD as String)        : 'Combined Specification Document',
         (DocumentType.DIL as String)        : 'Discrepancy Log',
         (DocumentType.DTP as String)        : 'Software Development Testing Plan',
@@ -107,21 +107,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createCSD(Map repo = null, Map data = null) {
         def documentType = DocumentType.CSD as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def requirements = this.project.getSystemRequirements()
         def reqsWithNoGampTopic = requirements. findAll { it.gampTopic == null }
-        def reqsGroupedByGampTopic = requirements. findAll { it.gampTopic != null }.groupBy { it.gampTopic.toLowerCase() }
+        def reqsGroupedByGampTopic = requirements. findAll { it.gampTopic != null }
+            .groupBy { it.gampTopic.toLowerCase() }
         reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic ]
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             [
@@ -152,25 +144,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType,
-            "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.",
-            sectionsNotDone, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
     String createDTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.DTP as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSectionsFileOptional(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def unitTests = this.project.getAutomatedTestsTypeUnit()
@@ -185,7 +166,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -200,16 +181,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def unitTestData = data.tests.unit
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSectionsFileOptional(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def testIssues = this.project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
@@ -268,17 +240,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createOverallDTR(Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
         def metadata = this.getDocumentMetadata(documentTypeName)
-
         def documentType = DocumentType.DTR as String
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
 
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -361,22 +328,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
     String createCFTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.CFTP as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
@@ -406,7 +365,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -416,16 +375,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestData = data.tests.acceptance
         def integrationTestData = data.tests.integration
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def acceptanceTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeAcceptance(), ["key"])
@@ -478,23 +428,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
     String createRA(Map repo = null, Map data = null) {
         def documentType = DocumentType.RA as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def obtainEnum = { category, value ->
@@ -565,23 +506,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
     String createIVP(Map repo = null, Map data = null) {
         def documentType = DocumentType.IVP as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
@@ -618,7 +550,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -627,16 +559,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def installationTestData = data.tests.installation
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def installationTestIssues = this.project.getAutomatedTestsTypeInstallation()
@@ -689,7 +612,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -697,16 +620,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTCR(Map repo = null, Map data = null) {
         String documentType = DocumentType.TCR as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def integrationTestData = data.tests.integration
@@ -780,23 +694,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
     String createTCP(Map repo = null, Map data = null) {
         String documentType = DocumentType.TCP as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
@@ -828,23 +733,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def componentsMetadata = SortUtil.sortIssuesByProperties(this.computeComponentMetadata(documentType).collect { it.value }, ["key"])
@@ -911,25 +807,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], modifier, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType,
-            "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.",
-            sectionsNotDone, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
     String createTIP(Map repo = null, Map data = null) {
         def documentType = DocumentType.TIP as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSectionsFileOptional(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def data_ = [
@@ -942,7 +827,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -950,16 +835,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            sections = this.levaFiles.getDocumentChapterData(documentType)
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSectionsFileOptional(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def deploynoteData = 'Components were built & deployed during installation.'
@@ -1010,10 +886,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def documentType = DocumentType.TIR as String
 
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.project.data.jira.undone.docChapters[documentType] ?: []
-
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def visitor = { data_ ->
@@ -1034,7 +906,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${documentTypeName} has been generated and is available at: ${uri}.", sectionsNotDone)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -1045,16 +917,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def installationTestData = data.tests.installation
         def integrationTestData = data.tests.integration
 
-        def sections = this.jiraUseCase.getDocumentChapterData(documentType)
-        if (!sections) {
-            throw new RuntimeException("Error: unable to create ${documentType}. Could not obtain document chapter data from Jira.")
-        }
-
-        // FIXME: doc sections to be gathered via REST endpoint; then Project.load will determine undones
-        // Add undone document sections to our collection of undone Jira issues
-        def sectionsNotDone = this.getSectionsNotDone(sections)
-        this.project.data.jira.undone.docChapters[documentType] = sectionsNotDone
-
+        def sections = this.getDocumentSections(documentType)
         def systemRequirements = this.project.getSystemRequirements()
 
         // Compute the test issues we do not consider done (not successful)
@@ -1091,7 +954,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone + testIssuesWip)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
 
@@ -1220,7 +1083,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         tests.collect { testIssue ->
-
             def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications(). findAll { it.softwareDesignSpec }. collect { it.key }
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
@@ -1360,7 +1222,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def components = test.getResolvedComponents()
             test.repoTypes = components.collect { component ->
                 def normalizedComponentName = component.name.replaceAll('Technology-', '')
-                def repository = project.repositories.find { repository ->
+                def repository = this.project.repositories.find { repository ->
                     [repository.id, repository.name].contains(normalizedComponentName)
                 }
 
@@ -1433,42 +1295,46 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return result
     }
 
-    protected void updateJiraDocumentationTrackingIssue(String documentType, String message, List<Map> sectionsNotDone = [], String documentVersionId = null) {
+    protected void updateJiraDocumentationTrackingIssue(String documentType,
+                                                        String docLocation,
+                                                        String documentVersionId = null) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
 
         def jiraIssues = this.getDocumentTrackingIssues(documentType)
-
+        def msg = "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${docLocation}."
+        def sectionsNotDone = this.getSectionsNotDone(documentType)
         // Append a warning message for documents which are considered work in progress
         if (!sectionsNotDone.isEmpty()) {
-            message += " ${this.WORK_IN_PROGRESS_DOCUMENT_MESSAGE} See issues: ${sectionsNotDone.collect { it.key }.join(', ')}"
+            msg += " ${WORK_IN_PROGRESS_DOCUMENT_MESSAGE} See issues:" +
+                " ${sectionsNotDone.join(', ')}"
         }
 
         // Append a warning message if there are any open tasks. Documents will not be considered final
         // TODO review me
         if (documentVersionId && !this.project.isDeveloperPreviewMode() && this.project.hasWipJiraIssues()) {
-            message += "\n *Since there are WIP issues in Jira that affect one or more documents," +
+            msg += "\n *Since there are WIP issues in Jira that affect one or more documents," +
                 " this document cannot be considered final.*"
         }
 
-        def metadata = this.getDocumentMetadata(documentType)
-        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
-        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields['Document Version']
+        if (! documentVersionId) {
+            def metadata = this.getDocumentMetadata(documentType)
+            documentVersionId = "${metadata.version}-${metadata.jenkins.buildNumber}"
+        }
 
-        jiraIssues.each { jiraIssue ->
-            //this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssue.key, [(documentationTrackingIssueDocumentVersionField.id): "${metadata.version}-${metadata.jenkins.buildNumber}"])
-
-            // In case of generating a final document, we add the label for the version that should be released
-            if (documentVersionId && !this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
-                this.updateValidDocVersionInJira(jiraIssue.key, documentVersionId)
-            }
-            this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key, message)
+        jiraIssues.each { Map jiraIssue ->
+            this.updateValidDocVersionInJira(jiraIssue.key as String, documentVersionId)
+            this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key as String, msg)
         }
     }
 
-    protected List<Map> getSectionsNotDone (Map issues = [:]) {
+    protected List<String> getSectionsNotDone(String documentType) {
+        return this.project.getWIPDocChaptersForDocument(documentType)
+    }
+
+    protected List<String> computeSectionsNotDone(Map issues = [:]) {
         if (!issues) return []
-        return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }
+        return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }*.key
     }
 
     protected DocumentHistory getAndStoreDocumentHistory(String documentType) {
@@ -1493,8 +1359,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields['Document Version']
 
-        this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
-            [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
+        if (this.project.versioningIsEnabled(this.project.key)) {
+            if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
+                // In case of generating a final document, we add the label for the version that should be released
+                this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
+                    [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
+            }
+        } else {
+            // TODO removeme for ODS 4.0
+            this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
+                [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
+        }
     }
 
     protected Long getLatestDocVersionId(String documentType) {
@@ -1532,4 +1407,35 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return jiraIssues
     }
 
+    protected Map getDocumentSections(String documentType) {
+        def sections = this.project.getDocumentChaptersForDocument(documentType)
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. " +
+                'Could not obtain document chapter data from Jira.')
+        }
+        // Extract-out the section, as needed for the DocGen interface
+        return sections.collectEntries { sec ->
+            [(sec.section): sec]
+        }
+    }
+
+    protected Map getDocumentSectionsFileOptional(String documentType) {
+        def sections = this.project.getDocumentChaptersForDocument(documentType)
+        sections = sections?.collectEntries { sec ->
+            [(sec.section): sec]
+        }
+        if (!sections || sections.isEmpty() ) {
+            sections = this.levaFiles.getDocumentChapterData(documentType)
+            if (!this.project.data.jira.undoneDocChapters) {
+                this.project.data.jira.undoneDocChapters = [:]
+            }
+            this.project.data.jira.undoneDocChapters[documentType] = this.computeSectionsNotDone(sections)
+        }
+        if (!sections) {
+            throw new RuntimeException("Error: unable to create ${documentType}. " +
+                'Could not obtain document chapter data from Jira nor files.')
+        }
+        // Extract-out the section, as needed for the DocGen interface
+        return sections
+    }
 }

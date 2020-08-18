@@ -37,6 +37,7 @@ class Project {
         static final String TYPE_TECHSPECS = 'techSpecs'
         static final String TYPE_TESTS = 'tests'
         static final String TYPE_DOCS = 'docs'
+        static final String TYPE_DOCTRACKING = 'docTrackings'
 
         static final List TYPES = [
             TYPE_BUGS,
@@ -47,6 +48,7 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_DOCS,
         ]
 
         static final List TYPES_WITH_STATUS = [
@@ -57,6 +59,7 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_DOCS,
         ]
 
         static final String ISSUE_STATUS_DONE = 'done'
@@ -317,10 +320,10 @@ class Project {
 
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.docs = this.loadJiraDataDocs()
+        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs()
 
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
-        this.data.jira.undone.docChapters = [:]
+        this.data.jira.undoneDocChapters = this.computeWipPerDocChapter(this.data.jira)
 
         if (this.hasWipJiraIssues()) {
             def message = 'Pipeline-generated documents are watermarked ' +
@@ -355,35 +358,48 @@ class Project {
     }
 
     protected Map<String, List> computeWipJiraIssues(Map data) {
-        def result = [:]
+        def result = [:] //[docChapters: this.computeWipPerDocChapter(data)]
 
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
-                result[type] = data[type]
-                    .findAll { key, issue ->
-                        issue.status != null &&
-                        !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
-                        !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
-                    }
-                    .collect { key, issue ->
-                        return key
-                    }
+                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
             }
         }
-
         return result
+    }
+
+
+
+    /**
+     * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
+     * the sections not done
+     * @param data jira data
+     * @return dict with map documentTypes -> sectionsNotDoneKeys
+     */
+    protected Map<String,List> computeWipPerDocChapter(Map data) {
+        data.getOrDefault(JiraDataItem.TYPE_DOCS, [:]).values().groupBy { it.document }
+            .collectEntries { doc, issues ->
+                [(doc as String): issues.findAll { issueIsWIP(it) }*.key as List<String>]
+            }
+
+    }
+
+    protected boolean issueIsWIP(Map issue) {
+        issue.status != null &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
     }
 
     protected Map convertJiraDataToJiraDataItems(Map data) {
         JiraDataItem.TYPES.each { type ->
-            if (data[type] == null) {
-                throw new IllegalArgumentException(
-                    "Error: Jira data does not include references to items of type '${type}'.")
-            }
-
-            data[type] = data[type].collectEntries { key, item ->
-                return [key, new JiraDataItem(item, type)]
-            }
+            if (data.containsKey(type)) {
+                data[type] = data[type].collectEntries { key, item ->
+                    [key, new JiraDataItem(item, type)]
+                }
+            } //else {
+                //throw new IllegalArgumentException(
+                //    "Error: Jira data does not include references to items of type '${type}'.")
+            //}
         }
 
         return data
@@ -593,7 +609,7 @@ class Project {
     }
 
     List<Map> getDocumentTrackingIssues() {
-        return this.data.jira.docs.values() as List
+        return this.data.jira.trackingDocs.values() as List
     }
 
     List<Map> getDocumentTrackingIssues(List<String> labels) {
@@ -762,6 +778,19 @@ class Project {
         return this.data.jira.tests.values() as List
     }
 
+    List<JiraDataItem> getDocumentChaptersForDocument(String document) {
+        return this.data.jira.getOrDefault(JiraDataItem.TYPE_DOCS, [:])
+            .findAll { k, v -> v.document && v.document == document }.values() as List
+    }
+
+    List<String> getWIPDocChaptersForDocument(String documentType) {
+        return this.data.jira.undoneDocChapters.getOrDefault(documentType, [])
+    }
+
+    Map getWIPDocChapters() {
+        return this.data.jira.getOrDefault('undoneDocChapters', [:])
+    }
+
     Map getEnvironmentConfig() {
         def environments = getEnvironments()
         environments[buildParams.targetEnvironment]
@@ -838,6 +867,16 @@ class Project {
         ]
     }
 
+    /**
+     * Checks if the JIRA version supports the versioning feature
+     * @ true if versioning is enabled
+     */
+    boolean versioningIsEnabled(String projectKey) {
+        if (!this.jiraUseCase) return false
+        if (!this.jiraUseCase.jira) return false
+        return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, this.buildParams.version)
+    }
+
     protected Map loadJiraData(String projectKey) {
         def result = [
             components: [:],
@@ -850,21 +889,17 @@ class Project {
             tests: [:],
         ]
 
-        //if (!this.jiraUseCase) return result
-        //if (!this.jiraUseCase.jira) return result
-
         if (this.jiraUseCase && this.jiraUseCase.jira) {
-            // TODO how we send the version when we have a WIP build?
             def usesVersions = this.versioningIsEnabled(projectKey)
             if (usesVersions) {
-                result = this.loadJiraDataForCurrentVersion(projectKey, this.buildParams.version)
+                // We detect the correct version even if the build is WIP
+                def currentVersion = this.getVersionFromReleaseStatusIssue()
+                result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
             } else {
                 // TODO remove in ODS 4.0 version
-                // TODO how we send the version when we have a WIP build?
                 result = this.loadFullJiraData(projectKey)
             }
         }
-
 
         // FIXME: fix data types that should be sent correctly by the REST endpoint
         //result.project.id = result.project.id as String
@@ -877,12 +912,8 @@ class Project {
         return result
     }
 
-    /**
-     * Checks if the JIRA version supports the versioning feature
-     * @ true if versioning is enabled
-     */
-    protected Boolean versioningIsEnabled(String projectKey) {
-        this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, this.buildParams.version)
+    protected String getVersionFromReleaseStatusIssue() {
+        return this.jiraUseCase.getVersionFromReleaseStatusIssue()
     }
 
     protected Map loadFullJiraData(String projectKey) {
@@ -891,6 +922,8 @@ class Project {
             throw new IllegalArgumentException(
                 "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
+        def docChapterData = this.getDocumentChapterData(projectKey)
+        result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
         result
     }
 
@@ -900,7 +933,13 @@ class Project {
             throw new IllegalArgumentException(
                 "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
+        def docChapterData = this.getDocumentChapterData(projectKey, versionName)
+        result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
         result
+    }
+
+    protected Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
+        this.jiraUseCase.getDocumentChapterData(projectKey, versionName)
     }
 
 
@@ -984,7 +1023,7 @@ class Project {
         }
     }
 
-    protected Map loadJiraDataDocs() {
+    protected Map loadJiraDataTrackingDocs() {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
@@ -993,7 +1032,7 @@ class Project {
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
             throw new IllegalArgumentException(
-                "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCS}'.")
+                "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}'.")
         }
 
         return jiraIssues.collectEntries { jiraIssue ->
@@ -1110,7 +1149,6 @@ class Project {
             result.capabilities = []
         }
 
-        // TODO move me to the LeVA documents plugin
         def levaDocsCapabilities = result.capabilities.findAll { it instanceof Map && it.containsKey('LeVADocs') }
         if (levaDocsCapabilities) {
             if (levaDocsCapabilities.size() > 1) {

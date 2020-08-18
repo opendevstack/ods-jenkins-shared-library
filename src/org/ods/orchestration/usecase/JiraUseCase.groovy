@@ -23,7 +23,6 @@ class JiraUseCase {
     }
 
     class LabelPrefix {
-        static final String DOCUMENT_VERSION = 'ReleasedDocVersion:'
         static final String DOCUMENT = 'Doc:'
     }
 
@@ -153,36 +152,48 @@ class JiraUseCase {
         }
     }
 
-    Map getDocumentChapterData(String documentType) {
+    /**
+     * Obtains all document chapter data attached attached to a given version
+     * @param versionName the version name from jira
+     * @return Map (key: issue) with all the document chapter issues and its relevant content
+     */
+    @SuppressWarnings(['AbcMetric'])
+    Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
         if (!this.jira) return [:]
 
-        def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
+        def docChapterIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER)
+        def contentField = docChapterIssueFields[CustomIssueFields.CONTENT]
+        def headingNumberField = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER]
+
+        def jql = "project = ${projectKey} " +
+            "AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'"
+
+        if (versionName) {
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
 
         def jqlQuery = [
-            jql: "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
-            expand: ['names', 'renderedFields']
+            fields: ['key', 'status', 'summary', 'labels', 'issuelinks', contentField, headingNumberField],
+            jql: jql,
+            expand: ['renderedFields'],
         ]
 
         def result = this.jira.searchByJQLQuery(jqlQuery)
         if (!result || result.total == 0) {
-            throw new IllegalStateException("Error: could not find document chapter data for document '${documentType}' using JQL query: '${jqlQuery}'.")
+            throw new IllegalStateException("Error: could not find document chapters using JQL query: '${jqlQuery}'.")
         }
-
-        // TODO: rewrite using Project.getJiraFieldsForIssueType(issueTypeName)
-        def numberKeys = result.names.findAll { it.value == CustomIssueFields.HEADING_NUMBER }.collect { it.key }
-        def contentFieldKeys = result.names.findAll { it.value == CustomIssueFields.CONTENT }.collect { it.key }
 
         return result.issues.collectEntries { issue ->
             def number = issue.fields.find { field ->
-                numberKeys.contains(field.key) && field.value
+                headingNumberField == field.key && field.value
             }
             if (!number) {
-                throw new IllegalArgumentException("Error: could not find heading number for document '${documentType}' and issue '${issue.key}'.")
+                throw new IllegalArgumentException("Error: could not find heading number for issue '${issue.key}'.")
             }
             number = number.getValue().trim()
 
             def content = issue.renderedFields.find { field ->
-                contentFieldKeys.contains(field.key) && field.value
+                contentField == field.key && field.value
             }
             content = content ? content.getValue() : ""
 
@@ -190,21 +201,42 @@ class JiraUseCase {
                 content = this.convertHTMLImageSrcIntoBase64Data(content)
             }
 
-            return [
-                "sec${number.replaceAll(/\./, "s")}".toString(),
-                [
+            def documentType = issue.fields.getOrDefault('labels', [])
+                .findAll{String l -> l.startsWith(LabelPrefix.DOCUMENT)}
+                .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}
+            if (documentType.size() != 1) {
+                throw new IllegalArgumentException("Error: issue '${issue.key}' contains '${documentType.size()}' " +
+                    "document labels. There should be only one label starting with '${LabelPrefix.DOCUMENT}'")
+            }
+            documentType = documentType.first()
+
+            def predecessorLinks = issue.fields.issuelinks
+                .findAll { it.type.name == "Succeeds" && it.outwardIssue?.key }
+                .collect{ it.outwardIssue.key }
+
+            return [(issue.key as String): [
+                    section: "sec${number.replaceAll(/\./, "s")}".toString(),
                     number: number,
                     heading: issue.fields.summary,
+                    document: documentType,
                     content: content?.replaceAll("\u00a0", " ") ?: "",
                     status: issue.fields.status.name,
-                    key: issue.key
+                    key: issue.key as String,
+                    predecessors: predecessorLinks.isEmpty()? [] : predecessorLinks,
+                    versions: versionName? [versionName] : [],
                 ]
             ]
         }
     }
 
-    private String getDocumentChapterIssueLabelForDocumentType(String documentType) {
-        return "${LabelPrefix.DOCUMENT}${documentType}"
+    String getVersionFromReleaseStatusIssue() {
+        if (!this.jira) return ""
+
+        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey as String
+        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
+
+        def productReleaseVersionField = releaseStatusIssueFields['ProductRelease Version']
+        return this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField])
     }
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {

@@ -157,73 +157,198 @@ class JiraUseCaseSpec extends SpecHelper {
     def "get document chapter data"() {
         given:
         // Test Parameters
-        def documentType = "myDocumentType"
+
+        def docChapterFields = [
+            (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "0",
+            (JiraUseCase.CustomIssueFields.CONTENT): "1",
+        ]
 
         // Argument Constraints
         def jqlQuery = [
-            jql   : "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = Doc:${documentType}",
-            expand: ["names", "renderedFields"]
+            fields: ['key', 'status', 'summary', 'labels', 'issuelinks',
+                     docChapterFields[JiraUseCase.CustomIssueFields.CONTENT],
+                     docChapterFields[JiraUseCase.CustomIssueFields.HEADING_NUMBER]],
+            jql: "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'",
+            expand: ['renderedFields'],
         ]
 
         // Stubbed Method Responses
         def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
         jiraIssue1.fields["0"] = "1.0"
+        jiraIssue1.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "CSD"]
         jiraIssue1.renderedFields = [:]
         jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
         jiraIssue1.renderedFields.description = "<html>1-description</html>"
 
         def jiraIssue2 = createJiraIssue("2", null, null, null, "DONE")
         jiraIssue2.fields["0"] = "2.0"
+        jiraIssue2.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "SSDS"]
         jiraIssue2.renderedFields = [:]
         jiraIssue2.renderedFields["1"] = "<html>myContent2</html>"
         jiraIssue2.renderedFields.description = "<html>2-description</html>"
 
         def jiraIssue3 = createJiraIssue("3", null, null, null, "DONE")
         jiraIssue3.fields["0"] = "3.0"
+        jiraIssue3.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "DTP"]
         jiraIssue3.renderedFields = [:]
         jiraIssue3.renderedFields["1"] = "<html>myContent3</html>"
         jiraIssue3.renderedFields.description = "<html>3-description</html>"
 
         def jiraResult = [
             issues: [jiraIssue1, jiraIssue2, jiraIssue3],
-            names : [
-                "0": JiraUseCase.CustomIssueFields.HEADING_NUMBER,
-                "1": JiraUseCase.CustomIssueFields.CONTENT
-            ]
         ]
 
         when:
-        def result = usecase.getDocumentChapterData(documentType)
+        def result = usecase.getDocumentChapterData(project.jiraProjectKey)
 
         then:
+        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER) >> docChapterFields
         1 * jira.searchByJQLQuery(jqlQuery) >> jiraResult
 
         then:
         def expected = [
-            "sec1s0": [
-                number : "1.0",
-                heading: "1-summary",
-                content: "<html>myContent1</html>",
-                status: "DONE",
-                key: "JIRA-1"
+            'JIRA-1': [
+                section: 'sec1s0',
+                number : '1.0',
+                heading: '1-summary',
+                document: 'CSD',
+                content: '<html>myContent1</html>',
+                status: 'DONE',
+                key: 'JIRA-1',
+                predecessors: [],
+                versions: [],
             ],
-            "sec2s0": [
-                number : "2.0",
-                heading: "2-summary",
-                content: "<html>myContent2</html>",
-                status: "DONE",
-                key: "JIRA-2"
+            'JIRA-2': [
+                section: 'sec2s0',
+                number : '2.0',
+                heading: '2-summary',
+                document: 'SSDS',
+                content: '<html>myContent2</html>',
+                status: 'DONE',
+                key: 'JIRA-2',
+                predecessors: [],
+                versions: [],
             ],
-            "sec3s0": [
-                number : "3.0",
-                heading: "3-summary",
-                content: "<html>myContent3</html>",
-                status: "DONE",
-                key: "JIRA-3"
+            'JIRA-3': [
+                section: 'sec3s0',
+                number : '3.0',
+                heading: '3-summary',
+                document: 'DTP',
+                content: '<html>myContent3</html>',
+                status: 'DONE',
+                key: 'JIRA-3',
+                predecessors: [],
+                versions: [],
             ]
         ]
 
-        result == expected
+        result['JIRA-1'] == expected['JIRA-1']
+        result['JIRA-2'] == expected['JIRA-2']
+        result['JIRA-3'] == expected['JIRA-3']
+    }
+
+    def "get document chapter data with version"() {
+        given:
+        // Test Parameters
+        def version = "myVersion"
+        def predecessorKey = "PRED-1"
+
+        def docChapterFields = [
+            (JiraUseCase.CustomIssueFields.HEADING_NUMBER): "0",
+            (JiraUseCase.CustomIssueFields.CONTENT): "1",
+        ]
+
+        // Argument Constraints
+        def jqlQuery = [
+            fields: ['key', 'status', 'summary', 'labels', 'issuelinks',
+                     docChapterFields[JiraUseCase.CustomIssueFields.CONTENT],
+                     docChapterFields[JiraUseCase.CustomIssueFields.HEADING_NUMBER]],
+            jql: "project = ${project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'" +
+                " AND fixVersion = '${version}'",
+            expand: ['renderedFields'],
+        ]
+
+        // Stubbed Method Responses
+        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
+        jiraIssue1.fields["0"] = "1.0"
+        jiraIssue1.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "CSD"]
+        jiraIssue1.renderedFields = [:]
+        jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
+        jiraIssue1.renderedFields.description = "<html>1-description</html>"
+
+        def jiraIssue2 = createJiraIssue("2", null, null, null, "DONE")
+        jiraIssue2.fields["0"] = "2.0"
+        jiraIssue2.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "SSDS"]
+        jiraIssue2.fields.issuelinks = [
+            [type:[name: "Succeeds"], outwardIssue: [key: predecessorKey]],
+            [type:[name: "Succeeds"], inwardIssue: [key: "Should not appwar the successor"]],
+        ]
+        jiraIssue2.renderedFields = [:]
+        jiraIssue2.renderedFields["1"] = "<html>myContent2</html>"
+        jiraIssue2.renderedFields.description = "<html>2-description</html>"
+
+        def jiraIssue3 = createJiraIssue("3", null, null, null, "DONE")
+        jiraIssue3.fields["0"] = "3.0"
+        jiraIssue3.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "DTP"]
+        jiraIssue3.fields.issuelinks = [
+            [type:[name: "AnotherLink"], outwardIssue: [key: "Should not appear other links outward"]],
+            [type:[name: "AnotherLink2"], inwardIssue: [key: "Should not appear other links inward"]],
+        ]
+        jiraIssue3.renderedFields = [:]
+        jiraIssue3.renderedFields["1"] = "<html>myContent3</html>"
+        jiraIssue3.renderedFields.description = "<html>3-description</html>"
+
+        def jiraResult = [
+            issues: [jiraIssue1, jiraIssue2, jiraIssue3],
+        ]
+
+        when:
+        def result = usecase.getDocumentChapterData(project.jiraProjectKey, version)
+
+        then:
+        1 * project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER) >> docChapterFields
+        1 * jira.searchByJQLQuery(jqlQuery) >> jiraResult
+
+        then:
+        def expected = [
+            'JIRA-1': [
+                section: 'sec1s0',
+                number : '1.0',
+                heading: '1-summary',
+                document: 'CSD',
+                content: '<html>myContent1</html>',
+                status: 'DONE',
+                key: 'JIRA-1',
+                predecessors: [],
+                versions: [version],
+            ],
+            'JIRA-2': [
+                section: 'sec2s0',
+                number : '2.0',
+                heading: '2-summary',
+                document: 'SSDS',
+                content: '<html>myContent2</html>',
+                status: 'DONE',
+                key: 'JIRA-2',
+                predecessors: [predecessorKey],
+                versions: [version],
+            ],
+            'JIRA-3': [
+                section: 'sec3s0',
+                number : '3.0',
+                heading: '3-summary',
+                document: 'DTP',
+                content: '<html>myContent3</html>',
+                status: 'DONE',
+                key: 'JIRA-3',
+                predecessors: [],
+                versions: [version],
+            ]
+        ]
+
+        result['JIRA-1'] == expected['JIRA-1']
+        result['JIRA-2'] == expected['JIRA-2']
+        result['JIRA-3'] == expected['JIRA-3']
     }
 
     def "match Jira test issues against test results"() {
