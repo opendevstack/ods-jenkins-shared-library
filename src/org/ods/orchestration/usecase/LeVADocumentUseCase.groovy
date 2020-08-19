@@ -139,7 +139,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections    : sections,
                 requirements: requirementsForDocument,
-                documentHistory: docHistory.getHistoryForIssueTypes([Project.JiraDataItem.TYPE_REQUIREMENTS])
+                documentHistory: docHistory.getHistoryForDocumentType([Project.JiraDataItem.TYPE_REQUIREMENTS])
             ]
         ]
 
@@ -498,15 +498,24 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
         metadata.orientation = "Landscape"
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TECHSPECS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_MITIGATIONS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: metadata,
             data    : [
-                sections: sections
+                sections: sections,
+                documentHistory: docHistory.getHistoryForDocumentType(docHistoryIssues)
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -800,9 +809,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForIssueTypes([Project.JiraDataItem.TYPE_REQUIREMENTS,
-                                                                     Project.JiraDataItem.TYPE_COMPONENTS,
-                                                                     Project.JiraDataItem.TYPE_TECHSPECS])
+                documentHistory: docHistory.getHistoryForDocumentType([Project.JiraDataItem.TYPE_REQUIREMENTS,
+                                                                       Project.JiraDataItem.TYPE_COMPONENTS,
+                                                                       Project.JiraDataItem.TYPE_TECHSPECS])
             ]
         ]
 
@@ -945,16 +954,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec4") sections."sec4" = [:]
         sections."sec4".systemRequirements = SortUtil.sortIssuesByProperties(systemRequirements, ["key"])
-
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
-                sections: sections
+                sections: sections,
+                documentHistory: docHistory.getHistoryForDocumentType(docHistoryIssues)
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -1174,7 +1189,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return [
                 component.name,
                 [
-                    key               : component.key,
+                    key               : component.name,
                     componentName     : component.name,
                     componentId       : metadata.id ?: 'N/A - part of this application',
                     componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
@@ -1381,15 +1396,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
             def version = this.jiraUseCase.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])
-                .getOrDefault(documentVersionField, "")
-            this.steps.echo("DEBUGGGG: version for tracking issue key ${issue.key}: '${version}'")// TODO delemete
+                .getOrDefault(documentVersionField, null)
             def versionNumber = 0L
-            try {
-                versionNumber = version.toLong()
-            } catch (NumberFormatException _) {
-                // TODO move me to logger
-                this.steps.echo("WARNING: document tracking issue '${issue.key}' does not contain a valid numerical" +
-                    "version. It contains value '${version}'.")
+            if (version) {
+                try {
+                    versionNumber = version.toLong()
+                } catch (NumberFormatException _) {
+                    this.steps.echo("WARNING: document tracking issue '${issue.key}' does not contain a valid numerical" +
+                        "version. It contains value '${version}'.")
+                }
             }
             return versionNumber
         }

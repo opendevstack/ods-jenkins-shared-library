@@ -420,6 +420,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def uri = "http://nexus"
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
+        def docHistory = new DocumentHistory(steps, logger, 'D')
+        docHistory.load(project.data.jira)
 
         when:
         usecase.createTRC(null, data)
@@ -435,7 +437,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create DIL"() {
@@ -973,6 +976,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def uri = "http://nexus"
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
+        def docHistory = new DocumentHistory(steps, logger, 'D')
+        docHistory.load(project.data.jira)
 
         when:
         usecase.createRA()
@@ -984,11 +989,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         2 * project.getRisks()
+        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create TIP"() {

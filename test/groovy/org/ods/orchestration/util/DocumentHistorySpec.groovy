@@ -79,7 +79,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks                 : [[key: rsk1.key, action: 'add']],
             tests                 : [[key: tst1.key, action: 'add'], [key: tst2.key, action: 'add']],
             techSpecs             : [[key: ts1.key, action: 'add']]], 1L, firstProjectVersion, '',
-            "Modifications for project version ${firstProjectVersion}.")]
+            "Modifications for project version '${firstProjectVersion}'.")]
 
         this.jiraData11_first = [
             bugs        : [:],
@@ -106,7 +106,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst2.key, action: 'discontinue']],
             techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion ,
-            "Modifications for project version ${secondProjectVersion}.")] + entries10
+            "Modifications for project version '${secondProjectVersion}'.")] + entries10
 
         this.jiraDataFix = [
             bugs        : [:],
@@ -133,7 +133,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst3.key, action: 'add']],
             techSpecs   : []], 3L, bugfixProjectVersion, firstProjectVersion,
-            "Modifications for project version ${bugfixProjectVersion}." +
+            "Modifications for project version '${bugfixProjectVersion}'." +
                 " This document version invalidates the changes done in document version '2'.")] + entries11_first
 
         this.jiraData11_second = [
@@ -162,7 +162,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [[key: tst2.key, action: 'discontinue']],
             techSpecs   : [],
         ], 4L, secondProjectVersion, bugfixProjectVersion,
-            "Modifications for project version ${secondProjectVersion}.")] + entriesFix
+            "Modifications for project version '${secondProjectVersion}'.")] + entriesFix
 
         this.jiraData20 = [
             bugs        : [:],
@@ -189,7 +189,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 5L, fourthProjectVersion, secondProjectVersion,
-            "Modifications for project version ${fourthProjectVersion}.")] + entries11_second
+            "Modifications for project version '${fourthProjectVersion}'.")] + entries11_second
     }
 
 
@@ -399,6 +399,43 @@ class DocumentHistorySpec extends SpecHelper {
 
         then:
         ! history.allIssuesAreValid
+    }
+
+    def "changes document chapter key for the number when getting history for document type"() {
+        setup:
+        def targetEnvironment = 'D'
+        def savedVersionId = 0L
+
+        def base_saved_data = [
+            bugs                   : [:],
+            version                : "1",
+            components             : [:],
+            epics                  : [:],
+            mitigations            : [:],
+            requirements           : [:],
+            risks                  : [:],
+            tests                  : [:],
+            techSpecs              : [:],
+            (Project.JiraDataItem.TYPE_DOCS) : [
+                'added':[key: "issue1", versions: ['1'], number: 'numberOfAdded', documents: ['doc1', 'doc2']],
+                'changed':[key: "issue1", versions: ['1'], number: 'numberOfChanged', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],
+            ],
+            discontinuationsPerType: [:]
+        ]
+
+
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        history.load(base_saved_data, savedVersionId)
+
+        when:
+        def result = history.getHistoryForDocumentType([], 'doc1')
+
+
+        then:
+        result.first().issueType.first().type == 'document sections'
+        result.first().issueType.first().added == [[action:'add', key:'numberOfAdded']]
+        result.first().issueType.first().changed == [[action:'change', key:'numberOfChanged']]
+
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {

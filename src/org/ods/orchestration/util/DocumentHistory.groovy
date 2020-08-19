@@ -1,6 +1,8 @@
 package org.ods.orchestration.util
 
+import org.apache.poi.poifs.filesystem.DocumentEntry
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
+import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
@@ -37,7 +39,7 @@ class DocumentHistory {
         this.latestVersionId = (savedVersionId ?:0L) + 1L
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData)
         if (this.allIssuesAreValid) {
-            if (savedVersionId) {
+            if (savedVersionId && savedVersionId != 0L) {
                 this.data = this.loadSavedDocHistoryData(savedVersionId)
             }
             newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
@@ -71,26 +73,41 @@ class DocumentHistory {
         this.data
     }
 
-    List<Map> getHistoryForIssueTypes(List<String> issueTypes) {
+    List<Map> getHistoryForDocumentType(List<String> issueTypes, String documentType = null) {
         def transformEntry =  { DocumentHistoryEntry e ->
             def formatedIssues = issueTypes.collect { type ->
                 def issues = e.getOrDefault(type, [])
-                def changed = issues.findAll { it.action == "change" }.clone()
+                def changed = issues.findAll { it.action == 'change' }.clone()
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
                 [ type: type,
-                  added: issues.findAll { it.action == "add" },
+                  added: issues.findAll { it.action == 'add' },
                   changed: changed,
-                  deleted: issues.findAll { it.action == "delete" },
+                  deleted: issues.findAll { it.action == 'delete' },
                 ]
             }
 
             return [entryId: e.getEntryId(),
                     rational: e.getRational(),
-                    issueType: formatedIssues
+                    issueType: formatedIssues + computeDocChaptersOfDocument(e, documentType)
             ]
         }
         this.data.collect { transformEntry(it) }
+    }
+
+    protected static Map computeDocChaptersOfDocument(DocumentHistoryEntry entry, String documentType) {
+        if (documentType) {
+            def docIssues = entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
+                .findAll { it.documents.contains(documentType)}
+                .collect { [action: it.action, key: it.number] }
+            return [ type: 'document sections',
+                     added: docIssues.findAll { it.action == 'add' },
+                     changed: docIssues.findAll { it.action == 'change' },
+                     deleted: docIssues.findAll { it.action == 'delete' },
+            ]
+        } else {
+            return [:]
+        }
     }
 
     protected String getSavedDocumentName(Long versionId) {
@@ -117,7 +134,7 @@ class DocumentHistory {
     }
 
     private String createRational(DocumentHistoryEntry currentEntry) {
-        def versionText = "Modifications for project version ${currentEntry.getProjectVersion()}."
+        def versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
 
         return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
     }
@@ -157,15 +174,15 @@ class DocumentHistory {
         def previousProjectVersion = jiraData.previousVersion ?: ''
         this.allIssuesAreValid = true
         def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
-            .collectEntries { issueType, Map<String, Map> issues ->
+            .collectEntries { String issueType, Map<String, Map> issues ->
                 checkIfAllIssuesHaveVersions(issues.values())
                 def issuesOfThisVersion = issues.findAll { it.value.versions?.contains(projectVersion) }
                     .collect { issueKey, issue ->
                         def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
                         if (isAnUpdate) {
-                            [key: issueKey, action: 'change', predecessors: issue.predecessors]
+                            computeIssueContent(issueType, 'change', issue)
                         } else {
-                            [key: issueKey, action: 'add']
+                            computeIssueContent(issueType, 'add', issue)
                         }
                 }
                 [(issueType): issuesOfThisVersion]
@@ -179,6 +196,17 @@ class DocumentHistory {
                 + discontinuations.getOrDefault(issueType, [])]
         } as Map
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
+    }
+
+    private static Map computeIssueContent(String issueType, String action, Map issue) {
+        def result = [key: issue.key, action: action]
+        if (Project.JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
+            result << [documents: issue.documents, number: issue.number]
+        }
+        if (action.equalsIgnoreCase('change')){
+            result << [predecessors: issue.predecessors]
+        }
+        return result
     }
 
 }

@@ -902,9 +902,11 @@ class Project {
             this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)
             if (this.isVersioningEnabled) {
                 // We detect the correct version even if the build is WIP
+                logger.info("Project has versioning enabled.")
                 result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
             } else {
                 // TODO remove in ODS 4.0 version
+                logger.info("Versioning not supported for this release")
                 result = this.loadFullJiraData(projectKey)
             }
         }
@@ -962,12 +964,13 @@ class Project {
             previousVersionId = predecessors.first()
         }
         if (previousVersionId) {
+            logger.info("Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
             def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
-            result << this.addVersionToComponentsWithout(mergedData)
+            result << this.addKeyAndVersionToComponentsWithout(mergedData)
             result.previousVersion = previousVersionId
         } else {
-            result << this.addVersionToComponentsWithout(newData)
+            result << this.addKeyAndVersionToComponentsWithout(newData)
         }
         // Get more info of the versions from Jira
         result.project << [previousVersion: this.loadVersionDataFromJira(previousVersionId)]
@@ -1402,11 +1405,13 @@ class Project {
         (oldComponents - newComponents) as List
     }
 
-    private Map addVersionToComponentsWithout(Map jiraData) {
+    private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
+        logger.debug("Adding component versions to the following data ${JsonOutput.toJson(jiraData)}")
         def currentVersion = jiraData.version
-        jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).values().each { component ->
+        jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).each { k, component ->
+            jiraData[JiraDataItem.TYPE_COMPONENTS][k].key = k
             if (! component.versions) {
-                jiraData[JiraDataItem.TYPE_COMPONENTS][component.key].versions = [currentVersion]
+                jiraData[JiraDataItem.TYPE_COMPONENTS][k].versions = [currentVersion]
             }
         }
         jiraData
