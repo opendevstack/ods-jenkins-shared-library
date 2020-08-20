@@ -510,7 +510,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: metadata,
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues)
+                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues),
+                csdversion: this.getLatestDocVersionId(DocumentType.CSD),
+                ssdsversion: this.getLatestDocVersionId(DocumentType.SSDS),
             ]
         ]
 
@@ -811,7 +813,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 sections: sections,
                 documentHistory: docHistory.getHistoryForDoc([Project.JiraDataItem.TYPE_REQUIREMENTS,
                                                               Project.JiraDataItem.TYPE_COMPONENTS,
-                                                              Project.JiraDataItem.TYPE_TECHSPECS])
+                                                              Project.JiraDataItem.TYPE_TECHSPECS]),
+                csdversion: this.getLatestDocVersionId(DocumentType.CSD),
             ]
         ]
 
@@ -964,7 +967,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues)
+                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues),
+                csdversion: this.getLatestDocVersionId(DocumentType.CSD),
+                raversion: this.getLatestDocVersionId(DocumentType.RA),
+                cftpversion: this.getLatestDocVersionId(DocumentType.CFTP),
+                cftrversion: this.getLatestDocVersionId(DocumentType.CFTR),
             ]
         ]
 
@@ -1353,8 +1360,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected DocumentHistory getAndStoreDocumentHistory(String documentType) {
-        def latestValidVersionId = this.getLatestDocVersionId(documentType)
-
         // If we have already saved the version, load it from project
         if (this.project.historyForDocumentExists(documentType)) {
             return this.project.getHistoryForDocument(documentType)
@@ -1362,6 +1367,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def jiraData = this.project.data.jira as Map
             def environment = this.project.buildParams.targetEnvironmentToken as String
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentType)
+            def latestValidVersionId = this.getLatestDocVersionId(documentType)
             docHistory.load(jiraData, latestValidVersionId)
 
             // Save the doc history to project class, so it can be persisted when considered
@@ -1386,31 +1392,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
                 [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
         }
-    }
-
-    protected Long getLatestDocVersionId(String documentType) {
-        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
-        def documentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
-
-        def trackingIssues = this.getDocumentTrackingIssues(documentType)
-
-        // We will use the biggest ID available
-        def versionList = trackingIssues.collect { issue ->
-            def version = this.jiraUseCase.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])
-                .getOrDefault(documentVersionField, null)
-            def versionNumber = 0L
-            if (version) {
-                try {
-                    versionNumber = version.toLong()
-                } catch (NumberFormatException _) {
-                    this.steps.echo("WARNING: document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        "version. It contains value '${version}'.")
-                }
-            }
-            return versionNumber
-        }
-
-        return versionList.max()
     }
 
     protected List<Map> getDocumentTrackingIssues(String documentType) {
@@ -1454,4 +1435,24 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // Extract-out the section, as needed for the DocGen interface
         return sections
     }
+
+    /**
+     * Gets the valid or to be valid document version either from the current project (for documents created
+     * together) or from Jira for documents generated in another environments.
+     * @param document to be gathered the id of
+     * @return string with the valid id
+     */
+    protected String getLatestDocVersionId(String document) {
+        def trackingIssues =  this.getDocumentTrackingIssues(document)
+        if (this.project.historyForDocumentExists(document)) {
+            this.project.getHistoryForDocument(document).getVersion().toString()
+        } else {
+            this.jiraUseCase.getLatestDocVersionId(trackingIssues).toString()
+        }
+    }
+
+    protected String getLatestDocVersionId(DocumentType document) {
+        this.getLatestDocVersionId(document as String)
+    }
+
 }
