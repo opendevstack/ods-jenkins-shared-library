@@ -843,6 +843,19 @@ class Project {
         "${getKey()}-${getConcreteEnvironment()}"
     }
 
+    boolean historyForDocumentExists(String document) {
+        this.data.documentHistories?.getOrDefault(document, null)? true : false
+    }
+
+    DocumentHistory getHistoryForDocument(String document) {
+        return this.data.documentHistories.getOrDefault(document, [:])
+    }
+
+    void setHistoryForDocument(DocumentHistory docHistory, String document) {
+        if (!this.data.documentHistories) this.data.documentHistories = [:]
+        this.data.documentHistories[document] = docHistory
+    }
+
     static Map loadBuildParams(IPipelineSteps steps) {
         def releaseStatusJiraIssueKey = steps.env.releaseStatusJiraIssueKey?.trim()
         if (isTriggeredByChangeManagementProcess(steps) && !releaseStatusJiraIssueKey) {
@@ -1030,7 +1043,7 @@ class Project {
         if (!this.jiraUseCase.jira) return [:]
 
         return this.jiraUseCase.jira.getVersionsForProject(this.jiraProjectKey).find { version ->
-            versionName == version.value
+            versionName == version.name
         }
     }
 
@@ -1296,15 +1309,13 @@ class Project {
      * @return filenames saved
      */
     List<String> saveProjectData() {
-        def repo = new ProjectDataBitbucketRepository(steps)
+        def bitbucketRepo = new ProjectDataBitbucketRepository(steps)
         def fileNames = []
         if (this.isAssembleMode) {
-            fileNames.add(this.saveVersionData(repo))
+            fileNames.add(this.saveVersionData(bitbucketRepo))
         }
         fileNames.addAll(this.getDocumentHistories().collect { docName, dh ->
-            // FIXME this is wrong. Logic con the filename should not be handled here. It's just for testing
-            dh.documentSuffix = docName
-            dh.saveDocHistoryData(repo)
+            dh.saveDocHistoryData(bitbucketRepo)
         })
         return fileNames
     }

@@ -201,7 +201,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedVersionId = null
 
         def versionEntries = entries10
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
         history.load(jiraData, savedVersionId)
@@ -224,7 +224,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedData = entries10
 
         def versionEntries = entries11_first
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
         history.load(jiraData, savedVersionId)
@@ -246,7 +246,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedData = entries11_first
 
         def versionEntries = entriesFix
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
         history.load(jiraData, savedVersionId)
@@ -269,7 +269,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedData = entriesFix
 
         def versionEntries = entries11_second
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
         history.load(jiraData, savedVersionId)
@@ -291,7 +291,7 @@ class DocumentHistorySpec extends SpecHelper {
         def savedData = entries11_second
 
         def versionEntries = entries20
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
         history.load(jiraData, savedVersionId)
@@ -326,7 +326,7 @@ class DocumentHistorySpec extends SpecHelper {
             discontinuationsPerType : [:]
         ]
 
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when: "We have a versioned component"
         history.load(base_saved_data + [components: [(issueV.key):issueV]], savedVersionId)
@@ -417,23 +417,24 @@ class DocumentHistorySpec extends SpecHelper {
             tests                  : [:],
             techSpecs              : [:],
             (Project.JiraDataItem.TYPE_DOCS) : [
-                'added':[key: "issue1", versions: ['1'], number: 'numberOfAdded', documents: ['doc1', 'doc2']],
-                'changed':[key: "issue1", versions: ['1'], number: 'numberOfChanged', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],
+                'added1':[key: "added1", versions: ['1'], number: 'numberOfAdded1', documents: ['doc1', 'doc2']],
+                'added2':[key: "added2", versions: ['1'], number: 'numberOfAdded2', documents: ['doc1'], predecessors: []],
+                'otherDocCh':[key: "otherDocCh", versions: ['1'], number: 'shouldNotAppear', documents: ['doc2']],
+                'changed1':[key: "changed1", versions: ['1'], number: 'numberOfChanged', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],
             ],
             discontinuationsPerType: [:]
         ]
 
 
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment])
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'doc1'])
         history.load(base_saved_data, savedVersionId)
 
         when:
-        def result = history.getHistoryForDocumentType([], 'doc1')
-
+        def result = history.getHistoryForDoc([])
 
         then:
         result.first().issueType.first().type == 'document sections'
-        result.first().issueType.first().added == [[action:'add', key:'numberOfAdded']]
+        result.first().issueType.first().added == [[action:'add', key:'numberOfAdded1'], [action:'add', key:'numberOfAdded2']]
         result.first().issueType.first().changed == [[action:'change', key:'numberOfChanged']]
 
     }

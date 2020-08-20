@@ -1,8 +1,7 @@
 package org.ods.orchestration.util
 
-import org.apache.poi.poifs.filesystem.DocumentEntry
+
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
-import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
@@ -19,13 +18,13 @@ class DocumentHistory {
      * Autoincremental number containing the internal version Id of the document
      */
     protected Long latestVersionId
-    protected String documentSuffix = null
+    protected final String documentType
     protected Boolean allIssuesAreValid = true
 
-    DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment) {
+    DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment, String documentType) {
         this.steps = steps
         this.logger = logger
-
+        this.documentType = documentType
         if (!targetEnvironment) {
             throw new RuntimeException('Variable \'targetEnvironment\' cannot be empty for computing Document History')
         }
@@ -33,9 +32,7 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
     }
 
-    DocumentHistory load(Map jiraData, Long savedVersionId = null, String suffix = null) {
-        this.documentSuffix = suffix
-
+    DocumentHistory load(Map jiraData, Long savedVersionId = null) {
         this.latestVersionId = (savedVersionId ?:0L) + 1L
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData)
         if (this.allIssuesAreValid) {
@@ -53,16 +50,11 @@ class DocumentHistory {
         this.latestVersionId
     }
 
-    String setDocumentSuffix(String suffix) {
-        this.documentSuffix = suffix
-    }
-
     List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve) {
         this.logger.debug('Retrieving saved document history with name'
             + this.getSavedDocumentName(versionIdToRetrieve) )
-        //new ProjectDataBitbucketRepository(steps)
-        //    .loadFile(this.getSavedDocumentName(versionIdToRetrieve)) as List<DocumentHistoryEntry>
-        []
+        new ProjectDataBitbucketRepository(steps)
+            .loadFile(this.getSavedDocumentName(versionIdToRetrieve)) as List<DocumentHistoryEntry>
     }
 
     String saveDocHistoryData(ProjectDataBitbucketRepository repository) {
@@ -73,7 +65,7 @@ class DocumentHistory {
         this.data
     }
 
-    List<Map> getHistoryForDocumentType(List<String> issueTypes, String documentType = null) {
+    List<Map> getHistoryForDoc(List<String> issueTypes) {
         def transformEntry =  { DocumentHistoryEntry e ->
             def formatedIssues = issueTypes.collect { type ->
                 def issues = e.getOrDefault(type, [])
@@ -89,30 +81,28 @@ class DocumentHistory {
 
             return [entryId: e.getEntryId(),
                     rational: e.getRational(),
-                    issueType: formatedIssues + computeDocChaptersOfDocument(e, documentType)
+                    issueType: formatedIssues + computeDocChaptersOfDocument(e)
             ]
         }
         this.data.collect { transformEntry(it) }
     }
 
-    protected static Map computeDocChaptersOfDocument(DocumentHistoryEntry entry, String documentType) {
-        if (documentType) {
-            def docIssues = entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
-                .findAll { it.documents.contains(documentType)}
-                .collect { [action: it.action, key: it.number] }
-            return [ type: 'document sections',
-                     added: docIssues.findAll { it.action == 'add' },
-                     changed: docIssues.findAll { it.action == 'change' },
-                     deleted: docIssues.findAll { it.action == 'delete' },
-            ]
-        } else {
-            return [:]
-        }
+    protected static Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
+        def docIssues = entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
+            .collect { [action: it.action, key: it.number] }
+        return [ type: 'document sections',
+                 added: docIssues.findAll { it.action == 'add' },
+                 changed: docIssues.findAll { it.action == 'change' },
+                 deleted: docIssues.findAll { it.action == 'delete' },
+        ]
+
     }
 
     protected String getSavedDocumentName(Long versionId) {
-        def suffix = (documentSuffix) ? "-" + documentSuffix : ""
-        return "documentHistory-${this.targetEnvironment}-${versionId}${suffix}"
+        versionId // TODO removeme
+        def suffix = (documentType) ? "-" + documentType : ""
+        //return "documentHistory-${this.targetEnvironment}-${versionId}${suffix}"
+        return "documentHistory-${this.targetEnvironment}-${suffix}"
     }
 
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
@@ -170,21 +160,14 @@ class DocumentHistory {
     }
 
     private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {
+        logger.debug("Parsing jira data to document history")
         def projectVersion = jiraData.version
         def previousProjectVersion = jiraData.previousVersion ?: ''
         this.allIssuesAreValid = true
         def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { String issueType, Map<String, Map> issues ->
                 checkIfAllIssuesHaveVersions(issues.values())
-                def issuesOfThisVersion = issues.findAll { it.value.versions?.contains(projectVersion) }
-                    .collect { issueKey, issue ->
-                        def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
-                        if (isAnUpdate) {
-                            computeIssueContent(issueType, 'change', issue)
-                        } else {
-                            computeIssueContent(issueType, 'add', issue)
-                        }
-                }
+                def issuesOfThisVersion = getIssueChangesForVersion(projectVersion, issueType, issues)
                 [(issueType): issuesOfThisVersion]
             }
         def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [:])
@@ -196,6 +179,23 @@ class DocumentHistory {
                 + discontinuations.getOrDefault(issueType, [])]
         } as Map
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
+    }
+
+    private List<Map> getIssueChangesForVersion(String version, String issueType, Map<String, Map> issues) {
+        // Filter chapter issues for this document only
+        if (issueType == Project.JiraDataItem.TYPE_DOCS) {
+            issues = issues.findAll { it.value.documents.contains(this.documentType)}
+        }
+
+        issues.findAll { it.value.versions?.contains(version) }
+            .collect { issueKey, issue ->
+                def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
+                if (isAnUpdate) {
+                    computeIssueContent(issueType, 'change', issue)
+                } else {
+                    computeIssueContent(issueType, 'add', issue)
+                }
+            }
     }
 
     private static Map computeIssueContent(String issueType, String action, Map issue) {

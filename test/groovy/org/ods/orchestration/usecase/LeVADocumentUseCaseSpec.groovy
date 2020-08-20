@@ -1,6 +1,5 @@
 package org.ods.orchestration.usecase
 
-import org.w3c.dom.DocumentType
 
 import java.nio.file.Files
 
@@ -363,7 +362,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             [key:"3", name:"3",gampTopic:"GAMP TOPIC", configSpec:[name:"cs3"],funcSpec:[name:"fs3"]],
         ]
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D')
+        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
         docHistory.load(project.data.jira)
 
         when:
@@ -420,7 +419,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def uri = "http://nexus"
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D')
+        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
         docHistory.load(project.data.jira)
 
         when:
@@ -937,7 +936,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D')
+        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
         docHistory.load(project.data.jira)
 
         when:
@@ -976,7 +975,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def uri = "http://nexus"
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D')
+        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
         docHistory.load(project.data.jira)
 
         when:

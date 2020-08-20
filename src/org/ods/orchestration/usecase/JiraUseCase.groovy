@@ -241,8 +241,9 @@ class JiraUseCase {
         def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
         def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
         if (!versionField?.getOrDefault(productReleaseVersionField.id, null)?.name) {
-            throw new IllegalArgumentException('Unable to obtain version name from release status issue. Please check' +
-                " that fiels with name '${productReleaseVersionField.name}' and id '${productReleaseVersionField.id}'" +
+            throw new IllegalArgumentException('Unable to obtain version name from release status issue' +
+                " ${releaseStatusIssueKey}. Please check that field with name" +
+                " '${productReleaseVersionField.name}' and id '${productReleaseVersionField.id}' " +
                 'has a correct version value.')
         }
         return versionField[productReleaseVersionField.id].name

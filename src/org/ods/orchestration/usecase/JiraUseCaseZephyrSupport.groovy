@@ -26,7 +26,7 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         if (!testIssues?.isEmpty()) {
             def buildParams = this.project.buildParams
 
-            def versionId = this.project.version?.key ?: '-1'
+            def versionId = this.project.version?.id ?: '-1'
             def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
 
             // Zephyr test cycle properties

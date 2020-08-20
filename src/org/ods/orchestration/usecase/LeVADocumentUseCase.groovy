@@ -139,7 +139,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections    : sections,
                 requirements: requirementsForDocument,
-                documentHistory: docHistory.getHistoryForDocumentType([Project.JiraDataItem.TYPE_REQUIREMENTS])
+                documentHistory: docHistory.getHistoryForDoc([Project.JiraDataItem.TYPE_REQUIREMENTS])
             ]
         ]
 
@@ -510,7 +510,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: metadata,
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDocumentType(docHistoryIssues)
+                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues)
             ]
         ]
 
@@ -809,9 +809,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDocumentType([Project.JiraDataItem.TYPE_REQUIREMENTS,
-                                                                       Project.JiraDataItem.TYPE_COMPONENTS,
-                                                                       Project.JiraDataItem.TYPE_TECHSPECS])
+                documentHistory: docHistory.getHistoryForDoc([Project.JiraDataItem.TYPE_REQUIREMENTS,
+                                                              Project.JiraDataItem.TYPE_COMPONENTS,
+                                                              Project.JiraDataItem.TYPE_TECHSPECS])
             ]
         ]
 
@@ -964,7 +964,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDocumentType(docHistoryIssues)
+                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues)
             ]
         ]
 
@@ -1354,20 +1354,21 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected DocumentHistory getAndStoreDocumentHistory(String documentType) {
         def latestValidVersionId = this.getLatestDocVersionId(documentType)
-        // TODO add here logic in case we have already loaded the doc versions
-        // and also for different docVersions per document. Something like:
-        // - If we have already saved the version, load it from project
-        // - Else if target version file exists, add a suffix for the document type (how can we do this?)
-        def jiraData = this.project.data.jira as Map
-        def environment = this.project.buildParams.targetEnvironmentToken as String
-        def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment )
-        docHistory.load(jiraData, latestValidVersionId)
 
-        // Save the doc history to project class, so it can be persisted when considered
-        if (! this.project.data.documentHistories) this.project.data.documentHistories = [:]
-        this.project.data.documentHistories[documentType] = docHistory
+        // If we have already saved the version, load it from project
+        if (this.project.historyForDocumentExists(documentType)) {
+            return this.project.getHistoryForDocument(documentType)
+        } else {
+            def jiraData = this.project.data.jira as Map
+            def environment = this.project.buildParams.targetEnvironmentToken as String
+            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentType)
+            docHistory.load(jiraData, latestValidVersionId)
 
-        docHistory
+            // Save the doc history to project class, so it can be persisted when considered
+            this.project.setHistoryForDocument(docHistory, documentType)
+
+            return docHistory
+        }
     }
 
     protected void updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {

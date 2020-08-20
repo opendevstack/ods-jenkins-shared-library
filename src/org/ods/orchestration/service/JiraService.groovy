@@ -394,7 +394,7 @@ class JiraService {
         }
 
         return new JsonSlurperClassic().parseText(response.getBody()).collectEntries { jiraVersion ->
-            [jiraVersion.id, jiraVersion.name]
+            [id: jiraVersion.id, name: jiraVersion.name]
         }
     }
 
