@@ -126,24 +126,22 @@ class FinalizeStage extends Stage {
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def repoPushTasks = flattenedRepos
-            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }
-            .collectEntries { repo ->
-                [
-                    (repo.id): {
-                        steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                            if (project.isWorkInProgress) {
-                                git.pushRef(repo.branch)
-                            } else if (project.isAssembleMode) {
-                                git.createTag(project.targetTag)
-                                git.pushBranchWithTags(project.gitReleaseBranch)
-                            } else {
-                                git.createTag(project.targetTag)
-                                git.pushRef(project.targetTag)
-                            }
+        def repoPushTasks = flattenedRepos.collectEntries { repo ->
+            [
+                (repo.id): {
+                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                        if (project.isWorkInProgress) {
+                            git.pushRef(repo.branch)
+                        } else if (project.isAssembleMode) {
+                            git.createTag(project.targetTag)
+                            git.pushBranchWithTags(project.gitReleaseBranch)
+                        } else {
+                            git.createTag(project.targetTag)
+                            git.pushRef(project.targetTag)
                         }
                     }
-                ]
+                }
+            ]
         }
         repoPushTasks.failFast = true
         script.parallel(repoPushTasks)
@@ -166,25 +164,23 @@ class FinalizeStage extends Stage {
 
     private void integrateIntoMainBranch(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def repoIntegrateTasks = flattenedRepos
-            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }
-            .collectEntries { repo ->
-                [
-                    (repo.id): {
-                        steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                            def filesToCheckout = []
-                            if (steps.fileExists('openshift')) {
-                                filesToCheckout = ['openshift/ods-deployments.json']
-                            } else {
-                                filesToCheckout = [
-                                    'openshift-exported/ods-deployments.json',
-                                    'openshift-exported/template.yml'
-                                ]
-                            }
-                            git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
+        def repoIntegrateTasks = flattenedRepos.collectEntries { repo ->
+            [
+                (repo.id): {
+                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                        def filesToCheckout = []
+                        if (steps.fileExists('openshift')) {
+                            filesToCheckout = ['openshift/ods-deployments.json']
+                        } else {
+                            filesToCheckout = [
+                                'openshift-exported/ods-deployments.json',
+                                'openshift-exported/template.yml'
+                            ]
                         }
+                        git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                     }
-                ]
+                }
+            ]
         }
         repoIntegrateTasks.failFast = true
         script.parallel(repoIntegrateTasks)
