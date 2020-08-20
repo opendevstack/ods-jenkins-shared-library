@@ -372,7 +372,7 @@ class JiraService {
     }
 
     @NonCPS
-    Map getVersionsForProject(String projectKey) {
+    List<Map> getVersionsForProject(String projectKey) {
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to load project version from Jira. \'projectKey\' is undefined.')
         }
@@ -393,7 +393,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody()).collectEntries { jiraVersion ->
+        return new JsonSlurperClassic().parseText(response.getBody()).collect { jiraVersion ->
             [id: jiraVersion.id, name: jiraVersion.name]
         }
     }

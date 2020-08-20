@@ -31,6 +31,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     SonarQubeUseCase sq
     LeVADocumentUseCase usecase
     Logger logger
+    DocumentHistory docHistory
 
     def setup() {
         project = Spy(createProject())
@@ -52,6 +53,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         logger = Mock(Logger)
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
         project.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
+
+
+        docHistory = new DocumentHistory(steps, logger, 'D', 'someDocument')
+        docHistory.load(project.data.jira)
+        usecase.getAndStoreDocumentHistory(*_) >> docHistory
     }
 
     def "compute test discrepancies"() {
@@ -362,8 +368,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             [key:"3", name:"3",gampTopic:"GAMP TOPIC", configSpec:[name:"cs3"],funcSpec:[name:"fs3"]],
         ]
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
-        docHistory.load(project.data.jira)
 
         when:
         usecase.createCSD()
@@ -375,7 +379,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
         1 * project.getSystemRequirements() >> requirements
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -419,8 +422,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def uri = "http://nexus"
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
-        docHistory.load(project.data.jira)
 
         when:
         usecase.createTRC(null, data)
@@ -436,7 +437,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
@@ -497,7 +497,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create DTP without Jira"() {
@@ -530,7 +530,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         0 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
 
     def "create DTR"() {
@@ -660,7 +660,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create CFTR"() {
@@ -715,7 +715,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, files, null, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
 
         cleanup:
         xmlFile.delete()
@@ -750,7 +750,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create TCR"() {
@@ -803,7 +803,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], null, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, testResults, _, _)
         1 * jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, testResults, _, _)
@@ -840,7 +840,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create IVR"() {
@@ -890,7 +890,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, files, null, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
 
         cleanup:
         xmlFile.delete()
@@ -936,8 +936,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
-        docHistory.load(project.data.jira)
 
         when:
         usecase.createSSDS()
@@ -955,7 +953,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.createDocument(documentTemplate, null, _, _, _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
@@ -975,8 +972,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def uri = "http://nexus"
         def documentTemplate = "template"
         def watermarkText = "WATERMARK"
-        def docHistory = new DocumentHistory(steps, logger, 'D', documentType)
-        docHistory.load(project.data.jira)
 
         when:
         usecase.createRA()
@@ -988,7 +983,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         2 * project.getRisks()
-        1 * usecase.getAndStoreDocumentHistory(documentType) >> docHistory
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -1023,7 +1017,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create TIP without Jira"() {
@@ -1052,7 +1046,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
         0 * usecase.getSectionsNotDone(documentType) >> []
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
 
     def "create TIR"() {
@@ -1153,7 +1147,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-Cover", documentType, _, _, _) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "create overall TIR"() {
@@ -1171,7 +1165,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri)
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
 
     def "get supported documents"() {

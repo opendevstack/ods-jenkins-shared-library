@@ -430,7 +430,7 @@ class DocumentHistorySpec extends SpecHelper {
         history.load(base_saved_data, savedVersionId)
 
         when:
-        def result = history.getHistoryForDoc([])
+        def result = history.getDocGenFormat([])
 
         then:
         result.first().issueType.first().type == 'document sections'

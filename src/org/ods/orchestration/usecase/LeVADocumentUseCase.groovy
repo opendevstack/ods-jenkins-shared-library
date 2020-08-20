@@ -139,7 +139,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections    : sections,
                 requirements: requirementsForDocument,
-                documentHistory: docHistory.getHistoryForDoc([Project.JiraDataItem.TYPE_REQUIREMENTS])
+                documentHistory: docHistory.getDocGenFormat([Project.JiraDataItem.TYPE_REQUIREMENTS])
             ]
         ]
 
@@ -156,17 +156,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def unitTests = this.project.getAutomatedTestsTypeUnit()
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TECHSPECS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
                 tests: this.computeTestsWithRequirementsAndSpecs(unitTests),
-                modules: this.getReposWithUnitTestsInfo(unitTests)
+                modules: this.getReposWithUnitTestsInfo(unitTests),
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -191,6 +199,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.project.getEnumDictionary(category)[value as String]
         }
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TECHSPECS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
@@ -221,7 +236,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 conclusion        : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
-                ]
+                ],
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
@@ -245,7 +261,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -340,6 +357,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_MITIGATIONS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
@@ -360,12 +384,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
                     ]
-                }
+                },
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -382,6 +407,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def integrationTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeIntegration(), ["key"])
         def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TECHSPECS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
@@ -391,7 +423,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 conclusion                   : [
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
-                ]
+                ],
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
@@ -428,7 +461,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -510,9 +543,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: metadata,
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues),
-                csdversion: this.getLatestDocVersionId(DocumentType.CSD),
-                ssdsversion: this.getLatestDocVersionId(DocumentType.SSDS),
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
@@ -543,6 +574,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TECHSPECS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
@@ -557,11 +595,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 }, ["key"]),
                 testsOdsService: testsOfRepoTypeOdsService,
                 testsOdsCode   : testsOfRepoTypeOdsCode
-            ]
+            ],
+            documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -589,6 +628,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TECHSPECS,
+            Project.JiraDataItem.TYPE_RISKS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
@@ -615,7 +661,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
                 testsOdsCode      : testsOfRepoTypeOdsCode
-            ]
+            ],
+            documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
         ]
 
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
@@ -623,7 +670,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -665,6 +712,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, integrationTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
         this.jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, acceptanceTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
@@ -701,11 +753,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTestFiles : SortUtil.sortIssuesByProperties(acceptanceTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -718,6 +771,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_REQUIREMENTS,
+            Project.JiraDataItem.TYPE_TESTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
@@ -739,12 +797,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : testIssue.steps
                     ]
-                }, ["key"])
+                }, ["key"]),
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -811,10 +870,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDoc([Project.JiraDataItem.TYPE_REQUIREMENTS,
-                                                              Project.JiraDataItem.TYPE_COMPONENTS,
-                                                              Project.JiraDataItem.TYPE_TECHSPECS]),
-                csdversion: this.getLatestDocVersionId(DocumentType.CSD),
+                documentHistory: docHistory.getDocGenFormat([Project.JiraDataItem.TYPE_REQUIREMENTS,
+                                                             Project.JiraDataItem.TYPE_COMPONENTS,
+                                                             Project.JiraDataItem.TYPE_TECHSPECS]),
             ]
         ]
 
@@ -828,18 +886,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def sections = this.getDocumentSectionsFileOptional(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
-
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_COMPONENTS,
+        ]
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 project_key : this.project.key,
                 repositories: this.project.repositories,
-                sections    : sections
+                sections    : sections,
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
         def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -858,6 +920,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             deploynoteData = 'NO Components were built during installation, existing components (created in Dev) were deployed.'
         }
 
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_COMPONENTS,
+        ]
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             deployNote   : deploynoteData,
@@ -867,7 +933,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ],
             data: [
                 repo    : repo,
-                sections: sections
+                sections: sections,
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
@@ -918,7 +985,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri)
+        def docHistory = this.getAndStoreDocumentHistory(documentType)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
@@ -967,11 +1035,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getHistoryForDoc(docHistoryIssues),
-                csdversion: this.getLatestDocVersionId(DocumentType.CSD),
-                raversion: this.getLatestDocVersionId(DocumentType.RA),
-                cftpversion: this.getLatestDocVersionId(DocumentType.CFTP),
-                cftrversion: this.getLatestDocVersionId(DocumentType.CFTR),
+                documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
 
@@ -1279,7 +1343,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 buildNumber: this.steps.env.BUILD_NUMBER,
                 buildUrl   : this.steps.env.BUILD_URL,
                 jobName    : this.steps.env.JOB_NAME
-            ]
+            ],
+            referencedDocs : this.getReferencedDocumentsVersion()
         ]
 
         metadata.header = ["${documentTypeName}, Config Item: ${metadata.buildParameter.configItem}", "Doc ID/Version: see auto-generated cover page"]
@@ -1360,6 +1425,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected DocumentHistory getAndStoreDocumentHistory(String documentType) {
+        if (!this.jiraUseCase) return
+        if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
         if (this.project.historyForDocumentExists(documentType)) {
             return this.project.getHistoryForDocument(documentType)
@@ -1442,17 +1509,61 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * @param document to be gathered the id of
      * @return string with the valid id
      */
-    protected String getLatestDocVersionId(String document) {
-        def trackingIssues =  this.getDocumentTrackingIssues(document)
+    protected Long getLatestDocVersionId(String document) {
         if (this.project.historyForDocumentExists(document)) {
-            this.project.getHistoryForDocument(document).getVersion().toString()
+            this.project.getHistoryForDocument(document).getVersion()
         } else {
-            this.jiraUseCase.getLatestDocVersionId(trackingIssues).toString()
+            def trackingIssues =  this.getDocumentTrackingIssues(document)
+            this.jiraUseCase.getLatestDocVersionId(trackingIssues)
         }
     }
 
-    protected String getLatestDocVersionId(DocumentType document) {
-        this.getLatestDocVersionId(document as String)
+    /**
+     * gets teh document version IDS at the start ... can't do that...
+     * @return
+     */
+    protected Map getReferencedDocumentsVersion() {
+        if (!this.jiraUseCase) return [:]
+        if (!this.jiraUseCase.jira) return [:]
+
+        def environment = this.project.buildParams.targetEnvironmentToken
+        def docIsCreatedInTheEnvironment = { String doc ->
+            LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].contains(doc)
+        }
+
+        def referencedDcocs = [
+            DocumentType.CSD,
+            DocumentType.SSDS,
+            DocumentType.RA,
+            DocumentType.TRC,
+            DocumentType.DTP,
+            DocumentType.DTR,
+            DocumentType.CFTP,
+            DocumentType.TIR,
+            DocumentType.TIP,
+        ]
+
+        referencedDcocs.collectEntries { DocumentType dt ->
+            def doc = dt as String
+            def version
+
+            if (this.project.isVersioningEnabled) {
+                // TODO removeme in ODS 4.x
+                version = "${this.steps.env.RELEASE_PARAM_VERSION}-${this.steps.env.BUILD_NUMBER}"
+            } else if (this.project.historyForDocumentExists(doc)) {
+                version = this.project.getHistoryForDocument(doc).getVersion()
+            } else {
+                def trackingIssues =  this.getDocumentTrackingIssues(doc)
+                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
+                    // The document will be generated in this deploy but it is not created yet
+                    version += 1L
+                }
+            }
+
+            [(doc): "${this.project.buildParams.configItem} / ${version}"]
+        }
+
     }
 
 }

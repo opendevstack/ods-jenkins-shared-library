@@ -4,6 +4,8 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import org.ods.util.IPipelineSteps
 
+import java.nio.file.NoSuchFileException
+
 
 class ProjectDataBitbucketRepository {
 
@@ -25,17 +27,23 @@ class ProjectDataBitbucketRepository {
     }
 
     Object loadFile(String fileName) {
-        def savedData =  this.steps.readFile(file: "${BASE_DIR}/${fileName}.json")
-        def data = [:]
-        if (savedData) {
-            data = new JsonSlurperClassic().parseText(savedData) ?: [:]
-        } else {
-            throw new RuntimeException(
-                'Error: unable to load saved information prom the previous version. ' +
-                    "File '${BASE_DIR}/${fileName}.json' could not be read."
-            )
+        try {
+            def savedData =  this.steps.readFile(file: "${BASE_DIR}/${fileName}.json")
+            def data = [:]
+            if (savedData) {
+                data = new JsonSlurperClassic().parseText(savedData) ?: [:]
+            } else {
+                throw new RuntimeException(
+                    'Error: unable to load saved information prom the previous version. ' +
+                        "File '${BASE_DIR}/${fileName}.json' could not be read."
+                )
+            }
+            return data
+        } catch (NoSuchFileException e) {
+            throw new NoSuchFileException("File '${BASE_DIR}/${fileName}.json' is expected to be inside the release" +
+                'manager repository but was not found and thus, document history cannot be build. If you come from' +
+                'and old ODS version, create one for each document to use the automated document history feature.')
         }
-        return data
     }
 
 }

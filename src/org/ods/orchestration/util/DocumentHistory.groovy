@@ -65,7 +65,7 @@ class DocumentHistory {
         this.data
     }
 
-    List<Map> getHistoryForDoc(List<String> issueTypes) {
+    List<Map> getDocGenFormat(List<String> issueTypes) {
         def transformEntry =  { DocumentHistoryEntry e ->
             def formatedIssues = issueTypes.collect { type ->
                 def issues = e.getOrDefault(type, [])
@@ -102,7 +102,7 @@ class DocumentHistory {
         versionId // TODO removeme
         def suffix = (documentType) ? "-" + documentType : ""
         //return "documentHistory-${this.targetEnvironment}-${versionId}${suffix}"
-        return "documentHistory-${this.targetEnvironment}-${suffix}"
+        return "documentHistory-${this.targetEnvironment}${suffix}"
     }
 
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
