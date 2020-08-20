@@ -64,14 +64,14 @@ class FinalizeStage extends Stage {
             script.parallel(repoFinalizeTasks)
 
             if (project.isAssembleMode && !project.isWorkInProgress) {
-                integrateIntoMainBranch(steps, git)
+                integrateIntoMainBranchRepos(steps, git)
             }
 
             gatherCreatedExecutionCommits(steps, git)
 
             if (!project.buildParams.rePromote) {
                 pushRepos(steps, git)
-                recordAndPushEnvState(steps, logger, git)
+                recordAndPushEnvStateForReleaseManager(steps, logger, git)
             }
 
             // add the tag commit that was created for traceability ..
@@ -162,9 +162,11 @@ class FinalizeStage extends Stage {
         script.parallel(gatherCommitTasks)
     }
 
-    private void integrateIntoMainBranch(IPipelineSteps steps, GitService git) {
+    private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def repoIntegrateTasks = flattenedRepos.collectEntries { repo ->
+        def repoIntegrateTasks = flattenedRepos
+            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }
+            .collectEntries { repo ->
             [
                 (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
@@ -186,7 +188,7 @@ class FinalizeStage extends Stage {
         script.parallel(repoIntegrateTasks)
     }
 
-    private void recordAndPushEnvState(IPipelineSteps steps, ILogger logger, GitService git) {
+    private void recordAndPushEnvStateForReleaseManager(IPipelineSteps steps, ILogger logger, GitService git) {
         // record release manager repo state
         logger.debug "Finalize: Recording HEAD commits from repos ..."
         logger.debug "On release manager commit ${git.commitSha}"
