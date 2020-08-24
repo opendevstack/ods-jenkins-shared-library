@@ -1551,7 +1551,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: secondVersion,
-            predecessors: [firstVersion],
+            precedingVersions: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1579,7 +1579,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: firstVersion,
-            predecessors: [],
+            precedingVersions: [],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1637,7 +1637,7 @@ class ProjectSpec extends SpecHelper {
         def noPreviousReleases1 = [
             project     : [name: "my-project", id:'0'],
             version: firstVersion,
-            predecessors: [],
+            precedingVersions: [],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1699,7 +1699,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: secondVersion,
-            predecessors: [firstVersion],
+            precedingVersions: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1797,7 +1797,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: secondVersion,
-            predecessors: [firstVersion],
+            precedingVersions: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1901,7 +1901,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: secondVersion,
-            predecessors: [firstVersion],
+            precedingVersions: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -1992,7 +1992,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: secondVersion,
-            predecessors: [firstVersion],
+            precedingVersions: [firstVersion],
             bugs        : [:],
             components  : [:],
             epics       : [:],
@@ -2062,7 +2062,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: firstVersion,
-            predecessors: [],
+            precedingVersions: [],
             bugs        : [:],
             components  : [(cmp1.key):cmp1],
             epics       : [:],
@@ -2125,7 +2125,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id:'0'],
             version: secondVersion,
-            predecessors: [firstVersion],
+            precedingVersions: [firstVersion],
             bugs        : [:],
             components  : [(cmp1.key):cmp1, (cmp2.key):cmp2],
             epics       : [:],
@@ -2187,7 +2187,7 @@ class ProjectSpec extends SpecHelper {
         def newVersionData = [
             project     : [name: "my-project", id: "0"],
             version: secondVersion,
-            predecessors: [firstVersion],
+            precedingVersions: [firstVersion],
             bugs        : [:],
             components  : [(cmp2.key):cmp2],
             epics       : [:],

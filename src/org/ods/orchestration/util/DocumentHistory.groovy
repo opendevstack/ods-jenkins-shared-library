@@ -50,11 +50,34 @@ class DocumentHistory {
         this.latestVersionId
     }
 
-    List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve) {
-        this.logger.debug('Retrieving saved document history with name'
-            + this.getSavedDocumentName(versionIdToRetrieve) )
-        new ProjectDataBitbucketRepository(steps)
-            .loadFile(this.getSavedDocumentName(versionIdToRetrieve)) as List<DocumentHistoryEntry>
+    List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve,
+                                                       ProjectDataBitbucketRepository repo = null) {
+        def fileName = this.getSavedDocumentName(versionIdToRetrieve)
+        this.logger.debug("Retrieving saved document history with name '${fileName}'.")
+        if (!repo) {
+            repo = new ProjectDataBitbucketRepository(steps)
+        }
+        def content = repo.loadFile(fileName)
+        try {
+            content.collect{ Map entry ->
+                if (! entry.entryId) {
+                    throw new RuntimeException('EntryId cannot be empty')
+                }
+                if (! entry.projectVersion) {
+                    throw new RuntimeException('projectVersion cannot be empty')
+                }
+                new DocumentHistoryEntry(
+                    entry,
+                    entry.entryId,
+                    entry.projectVersion,
+                    entry.previousProjectVersion,
+                    entry.rational
+                )
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to load saved document history for file '${fileName}': ${e.message}", e)
+        }
     }
 
     String saveDocHistoryData(ProjectDataBitbucketRepository repository) {
@@ -73,9 +96,9 @@ class DocumentHistory {
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
                 [ type: type,
-                  added: issues.findAll { it.action == 'add' },
-                  changed: changed,
-                  deleted: issues.findAll { it.action == 'delete' },
+                  added: SortUtil.sortIssueKeys(issues.findAll { it.action == 'add' }),
+                  changed: SortUtil.sortIssuesByProperties(changed, ['key']),
+                  deleted: SortUtil.sortIssueKeys(issues.findAll { it.action == 'delete' }),
                 ]
             }
 
@@ -88,8 +111,8 @@ class DocumentHistory {
     }
 
     protected static Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
-        def docIssues = entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
-            .collect { [action: it.action, key: it.number] }
+        def docIssues = SortUtil.sortIssuesByProperties(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
+            .collect { [action: it.action, key: it.number] }, ['key'])
         return [ type: 'document sections',
                  added: docIssues.findAll { it.action == 'add' },
                  changed: docIssues.findAll { it.action == 'change' },
@@ -136,6 +159,7 @@ class DocumentHistory {
      */
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect {
+            it.getClass()
             [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
         }.findAll { it.id != currentEntry.getEntryId() }
         def concurrentVersions = oldVersionsSimplified

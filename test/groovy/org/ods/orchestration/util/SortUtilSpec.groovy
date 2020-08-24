@@ -34,4 +34,14 @@ class SortUtilSpec extends SpecHelper {
         [ [ key: "KEY-2", key_2: "KEY-2" ], [ key: "KEY-1", key_2: "KEY-20" ] ] | ["key", "key_2"] || [ [ key: "KEY-1", key_2: "KEY-20" ], [ key: "KEY-2", key_2: "KEY-2" ] ]
     }
 
+    def "sort list of issue keys by numeric part of jira keys"() {
+        expect:
+        SortUtil.sortIssueKeys(issues) == findResult
+
+        where:
+        issues                            || findResult
+        [ "KEY-1", "KEY-2", "KEY-12"]     || [ "KEY-1", "KEY-2", "KEY-12" ]
+        [ "KEY-12", "KEY-2" , "KEY-1" ]   || [ "KEY-1", "KEY-2", "KEY-12" ]
+    }
+
 }

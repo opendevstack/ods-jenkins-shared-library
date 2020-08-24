@@ -158,6 +158,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def docHistory = this.getAndStoreDocumentHistory(documentType)
         def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_COMPONENTS,
             Project.JiraDataItem.TYPE_REQUIREMENTS,
             Project.JiraDataItem.TYPE_TECHSPECS,
             Project.JiraDataItem.TYPE_RISKS,
@@ -201,6 +202,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def docHistory = this.getAndStoreDocumentHistory(documentType)
         def docHistoryIssues = [
+            Project.JiraDataItem.TYPE_COMPONENTS,
             Project.JiraDataItem.TYPE_REQUIREMENTS,
             Project.JiraDataItem.TYPE_TECHSPECS,
             Project.JiraDataItem.TYPE_RISKS,
@@ -475,7 +477,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.project.getEnumDictionary(category)[value as String]
         }
 
-        def risks = this.project.getRisks().collect { r ->
+        def risks = this.project.getRisks().collect { risk ->
+            def r = risk.cloneIt()
             def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
             def testsText = r.tests ? r.tests.join(", ") : "None"
             r.proposedMeasures = "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}"
@@ -1352,12 +1355,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return metadata
     }
 
-    private List<String> getJiraTrackingIssueLabelsForDocumentType(String documentType) {
+    private List<String> getJiraTrackingIssueLabelsForDocTypeAndEnvs(String documentType, List<String> envs = null) {
         def labels = []
 
-        def environment = this.project.buildParams.targetEnvironmentToken
-        LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].get(documentType).each { label ->
-            labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
+        def environments = (envs)? envs : this.project.buildParams.targetEnvironmentToken
+        environments.each { env ->
+            LeVADocumentScheduler.ENVIRONMENT_TYPE[env].get(documentType).each { label ->
+                labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
+            }
         }
 
         if (this.project.isDeveloperPreviewMode()) {
@@ -1461,8 +1466,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    protected List<Map> getDocumentTrackingIssues(String documentType) {
-        def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocumentType(documentType)
+    protected List<Map> getDocumentTrackingIssues(String documentType, List<String> environments = null) {
+        def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocTypeAndEnvs(documentType, environments)
         def jiraIssues = this.project.getDocumentTrackingIssues(jiraDocumentLabels)
 
         if (jiraIssues.isEmpty()) {
@@ -1528,7 +1533,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = this.project.buildParams.targetEnvironmentToken
         def docIsCreatedInTheEnvironment = { String doc ->
-            LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].contains(doc)
+            LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].containsKey(doc)
         }
 
         def referencedDcocs = [
@@ -1539,6 +1544,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.DTP,
             DocumentType.DTR,
             DocumentType.CFTP,
+            DocumentType.CFTR,
             DocumentType.TIR,
             DocumentType.TIP,
         ]
@@ -1547,15 +1553,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def doc = dt as String
             def version
 
-            if (this.project.isVersioningEnabled) {
+            if (! this.project.isVersioningEnabled) {
                 // TODO removeme in ODS 4.x
                 version = "${this.steps.env.RELEASE_PARAM_VERSION}-${this.steps.env.BUILD_NUMBER}"
             } else if (this.project.historyForDocumentExists(doc)) {
                 version = this.project.getHistoryForDocument(doc).getVersion()
             } else {
-                def trackingIssues =  this.getDocumentTrackingIssues(doc)
+                def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
                 version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
+                if (this.project.isWorkInProgress) {
+                    version = (version + 1L).toString() + "-WIP"
+                } else if (docIsCreatedInTheEnvironment(doc)) {
                     // The document will be generated in this deploy but it is not created yet
                     version += 1L
                 }

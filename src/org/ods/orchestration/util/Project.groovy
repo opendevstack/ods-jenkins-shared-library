@@ -971,7 +971,7 @@ class Project {
         def newData = this.loadVersionJiraData(projectKey, versionName)
 
         // Get more info of the versions from Jira
-        def predecessors = newData.getOrDefault("predecessors", [])
+        def predecessors = newData.getOrDefault("precedingVersions", [])
         def previousVersionId = null
         if (! predecessors.isEmpty()) {
             previousVersionId = predecessors.first()
@@ -983,6 +983,7 @@ class Project {
             result << this.addKeyAndVersionToComponentsWithout(mergedData)
             result.previousVersion = previousVersionId
         } else {
+            logger.info("No predecessor project version found. Loading only data from Jira.")
             result << this.addKeyAndVersionToComponentsWithout(newData)
         }
         // Get more info of the versions from Jira
@@ -1333,10 +1334,10 @@ class Project {
                              'techSpecs',
                              'epics',
                              'version',
-                             'predecessors',]
+                              'docs',
+                             'precedingVersions',]
         def dataToSave = this.data.jira.findAll { savedEntities.contains(it.key) }
         logger.debug('Saving Jira data for the version ' + JsonOutput.toJson(this.getVersionName()))
-        this.steps.echo('I am going to save the following ' + JsonOutput.toJson(dataToSave)) // TODO deleteme
 
         repository.save(dataToSave, this.getVersionName())
     }
@@ -1363,12 +1364,12 @@ class Project {
         def updateIssues = { Map<String,Map> left, Map<String,Map> right ->
             def updateLink = { String issueType, String issueToUpdateKey, Map link ->
                 if (link.action == 'add') {
-                    left[issueType][issueToUpdateKey]."${link.linkType}" << link.origin
+                    left[issueType][issueToUpdateKey][link.linkType] << link.origin
                 } else if (link.action == 'discontinue') {
-                    left[issueType][issueToUpdateKey]."${link.linkType}".removeAll{ it == link.origin }
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link.origin }
                 } else if (link.action == 'change') {
-                    left[issueType][issueToUpdateKey]."${link.linkType}" << link.origin
-                    left[issueType][issueToUpdateKey]."${link.linkType}".removeAll{ it == link."replaces" }
+                    left[issueType][issueToUpdateKey][link.linkType] << link.origin
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link."replaces" }
                 }
             }
 
@@ -1377,7 +1378,12 @@ class Project {
                 issues.values().each { Map issueToUpdate ->
                     def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key, [])
                     linksToUpdate.each { Map link ->
-                        updateLink(issueType, issueToUpdate.key, link)
+                        try {
+                            updateLink(issueType, issueToUpdate.key, link)
+                        } catch (Exception e) {
+                            throw new IllegalStateException("Error found when updating link ${link} for issue " +
+                                "${issueToUpdate.key} from a previous version. Error message: ${e.message}", e)
+                        }
                     }
                 }
             }
@@ -1417,7 +1423,6 @@ class Project {
     }
 
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
-        logger.debug("Adding component versions to the following data ${JsonOutput.toJson(jiraData)}")
         def currentVersion = jiraData.version
         jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).each { k, component ->
             jiraData[JiraDataItem.TYPE_COMPONENTS][k].key = k

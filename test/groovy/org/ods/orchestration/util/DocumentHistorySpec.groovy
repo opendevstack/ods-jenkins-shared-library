@@ -1,5 +1,6 @@
 package org.ods.orchestration.util
 
+import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.PipelineSteps
@@ -437,6 +438,81 @@ class DocumentHistorySpec extends SpecHelper {
         result.first().issueType.first().added == [[action:'add', key:'numberOfAdded1'], [action:'add', key:'numberOfAdded2']]
         result.first().issueType.first().changed == [[action:'change', key:'numberOfChanged']]
 
+    }
+
+    def "loads saved data as DocumentEntry"() {
+        given:
+        def targetEnvironment = 'D'
+        def savedVersionId = 1L
+        def savedProjVersion = 'version'
+        def savedData = [[
+                bugs                  : [],
+                (Project.JiraDataItem.TYPE_DOCS): [],
+                components            : [[key: "CMP", action: 'add']],
+                epics                 : [[key: "EPC", action: 'add']],
+                mitigations           : [[key: "MIT", action: 'add']],
+                requirements          : [[key: "req1.key", action: 'add']],
+                risks                 : [[key: "rsk1.key", action: 'add']],
+                tests                 : [[key: "tst1.key", action: 'add']],
+                techSpecs             : [[key: "ts1.key", action: 'add']],
+                entryId: 1,
+                projectVersion: savedProjVersion,
+                previousProjectVersion: '',
+                rational: "Modifications for project version '${savedProjVersion}'."
+            ]]
+
+        def expectedResult = savedData.collect{ Map entry -> new DocumentHistoryEntry(
+            entry,
+            entry.entryId,
+            entry.projectVersion,
+            entry.previousProjectVersion,
+            entry.rational
+        )}
+
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+        ProjectDataBitbucketRepository repo = Spy(constructorArgs: [steps])
+
+        when:
+        def result = history.loadSavedDocHistoryData(savedVersionId, repo)
+
+        then:
+        1 * repo.loadFile(_) >> savedData
+        result.size() == expectedResult.size()
+        result.getClass() == expectedResult.getClass()
+        result == expectedResult
+        result.first().getEntryId() == expectedResult.first().getEntryId()
+
+        when:
+        history.loadSavedDocHistoryData(savedVersionId, repo)
+
+        then:
+        1 * repo.loadFile(_) >> [wrong: "saved data"]
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("Unable to load saved document history for file")
+
+        when:
+        history.loadSavedDocHistoryData(savedVersionId, repo)
+
+        then:
+        1 * repo.loadFile(_) >> [[bugs: ["BUG-1"], projectVersion: 'version']]
+
+        then:
+        e = thrown(RuntimeException)
+        e.message.contains("Unable to load saved document history for file")
+        e.message.contains('EntryId cannot be empty')
+
+        when:
+        history.loadSavedDocHistoryData(savedVersionId, repo)
+
+        then:
+        1 * repo.loadFile(_) >> [[bugs: ["BUG-1"], entryId: 12]]
+
+        then:
+        e = thrown(RuntimeException)
+        e.message.contains("Unable to load saved document history for file")
+        e.message.contains('projectVersion cannot be empty')
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
