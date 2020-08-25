@@ -260,7 +260,7 @@ class OpenShiftService {
             label: "Start Openshift build ${name}",
             returnStdout: true
         ).trim()
-        return getLastBuildVersion()
+        return getLastBuildVersion(name)
     }
 
     String followBuild(String name, int version) {
