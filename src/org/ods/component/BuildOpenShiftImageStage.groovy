@@ -102,14 +102,16 @@ class BuildOpenShiftImageStage extends Stage {
         patchBuildConfig(imageLabels)
 
         // Start and follow build of container image.
+        int buildVersion = 0
         script.timeout(time: config.buildTimeoutMinutes) {
             logger.startClocked("${config.resourceName}-build")
-            logger.info startAndFollowBuild()
+            buildVersion = startBuild()
+            logger.info followBuild(buildVersion)
             logger.debugClocked("${config.resourceName}-build")
         }
 
         // Retrieve build status.
-        def lastVersion = getLastVersion()
+        def lastVersion = buildVersion
         def buildId = "${config.resourceName}-${lastVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
@@ -147,8 +149,12 @@ class BuildOpenShiftImageStage extends Stage {
         openShift.getImageReference(config.resourceName, config.imageTag)
     }
 
-    private String startAndFollowBuild() {
-        openShift.startAndFollowBuild(config.resourceName, config.dockerDir)
+    private int startBuild() {
+        openShift.startBuild(config.resourceName, config.dockerDir)
+    }
+
+    private String followBuild(int version) {
+        openShift.followBuild(config.resourceName, version)
     }
 
     private int getLastVersion() {
