@@ -265,7 +265,9 @@ class OpenShiftService {
 
     String followBuild(String name, int version) {
         steps.sh(
-            script: "oc logs --follow --version${version} bc/${name}"
+            script: "oc -n ${project} logs -f --version=${version} bc/${name}",
+            label: "Logs of Openshift build ${name}",
+            returnStdout: true
         ).trim()
     }
 
