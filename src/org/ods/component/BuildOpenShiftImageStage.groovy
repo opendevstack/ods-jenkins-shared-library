@@ -149,10 +149,6 @@ class BuildOpenShiftImageStage extends Stage {
         openShift.getImageReference(config.resourceName, config.imageTag)
     }
 
-    private String startAndFollowBuild() {
-        openShift.startAndFollowBuild(config.resourceName, config.dockerDir)
-    }
-
     private int startBuild() {
         openShift.startBuild(config.resourceName, config.dockerDir)
     }
