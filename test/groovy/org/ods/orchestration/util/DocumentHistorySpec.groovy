@@ -515,6 +515,30 @@ class DocumentHistorySpec extends SpecHelper {
         e.message.contains('projectVersion cannot be empty')
     }
 
+    def "builds docHistory with only added/removed things when redeploying same version with no changes"() {
+        given:
+        def jiraData = jiraData10
+        def firstProjectVersion = '1.0'
+        def targetEnvironment = 'D'
+        def savedVersionId = 1L
+        def savedData = entries10
+
+        def versionEntries = [new DocumentHistoryEntry(entries10.first().getDelegate(), 2L, firstProjectVersion, '',
+            "Modifications for project version '${firstProjectVersion}'. This document version invalidates the changes done in document version '1'.")] + entries10
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+        when:
+        history.load(jiraData, savedVersionId)
+
+        then:
+        1 * history.loadSavedDocHistoryData(_) >> savedData
+
+        then:
+        history.latestVersionId == 2L
+        assert entryListIsEquals(history.data, versionEntries)
+        history.data == versionEntries
+    }
+
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
         if (a.getEntryId() != b.getEntryId()) return false
         if (a.getProjectVersion() != b.getProjectVersion()) return false

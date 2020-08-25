@@ -1,6 +1,6 @@
 package org.ods.orchestration.util
 
-
+import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -96,9 +96,9 @@ class DocumentHistory {
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
                 [ type: type,
-                  added: SortUtil.sortIssueKeys(issues.findAll { it.action == 'add' }),
+                  added: SortUtil.sortIssuesByProperties(issues.findAll { it.action == 'add' }, ['key']),
                   changed: SortUtil.sortIssuesByProperties(changed, ['key']),
-                  deleted: SortUtil.sortIssueKeys(issues.findAll { it.action == 'delete' }),
+                  deleted: SortUtil.sortIssuesByProperties(issues.findAll { it.action == 'delete' }, ['key']),
                 ]
             }
 
@@ -111,8 +111,8 @@ class DocumentHistory {
     }
 
     protected static Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
-        def docIssues = SortUtil.sortIssuesByProperties(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
-            .collect { [action: it.action, key: it.number] }, ['key'])
+        def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
+            .collect { [action: it.action, key: it.number] }, 'key')
         return [ type: 'document sections',
                  added: docIssues.findAll { it.action == 'add' },
                  changed: docIssues.findAll { it.action == 'change' },
@@ -138,7 +138,8 @@ class DocumentHistory {
                 //    ' version for all the elements. In this case, the following items have this state: ' +
                 //    "'${issuesWithNoVersion*.key.join(', ')}'")
                 this.logger.warn('Document history not valid. We don\'t have a version for  the following' +
-                    " elements'${issuesWithNoVersion*.key.join(', ')}'. If you are not using versioning " +
+                    " elements'${issuesWithNoVersion.collect {it.key }.join(', ')}'. " +
+                    'If you are not using versioning ' +
                     'and its automated document history you can ignore this warning. Otherwise, make sure ' +
                     'all the issues have a version attached to it.')
                 this.allIssuesAreValid = false
@@ -159,11 +160,9 @@ class DocumentHistory {
      */
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect {
-            it.getClass()
             [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
         }.findAll { it.id != currentEntry.getEntryId() }
-        def concurrentVersions = oldVersionsSimplified
-            .takeWhile { it.version != currentEntry.getPreviousProjectVersion() }*.id
+        def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
         if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size()) {
             throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
@@ -175,12 +174,19 @@ class DocumentHistory {
         }
 
         if (concurrentVersions.isEmpty()) {
-            ''
+            return ''
         } else {
             def pluralS = (concurrentVersions.size() == 1) ? '' : 's'
-            " This document version invalidates the changes done in document version${pluralS} " +
+            return " This document version invalidates the changes done in document version${pluralS} " +
                 "'${concurrentVersions.join(', ')}'."
         }
+    }
+
+    @NonCPS
+    private static List<String> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
+        // DO NOT remove this method. Takewhile is not supported by Jenkins and must be used in a Non-CPS method
+        versions.takeWhile { it.version != previousProjVersion }
+            .collect { it.id }
     }
 
     private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {

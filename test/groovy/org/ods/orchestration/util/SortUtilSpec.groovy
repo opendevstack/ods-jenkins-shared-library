@@ -36,12 +36,14 @@ class SortUtilSpec extends SpecHelper {
 
     def "sort list of issue keys by numeric part of jira keys"() {
         expect:
-        SortUtil.sortIssueKeys(issues) == findResult
+        SortUtil.sortHeadingNumbers(issues, properties) == findResult
 
         where:
-        issues                            || findResult
-        [ "KEY-1", "KEY-2", "KEY-12"]     || [ "KEY-1", "KEY-2", "KEY-12" ]
-        [ "KEY-12", "KEY-2" , "KEY-1" ]   || [ "KEY-1", "KEY-2", "KEY-12" ]
+        issues                                                                  | properties       || findResult
+        [ [ key: "1.1" ], [ key: "2.3.2" ], [ key: "11"] ]                      | "key"            || [ [ key: "1.1" ], [ key: "2.3.2" ], [ key: "11" ] ]
+        [ [ key: "11"], [ key: "2.3.2" ], [ key: "1.1" ] ]                      | "key"            || [ [ key: "1.1" ], [ key: "2.3.2" ], [ key: "11" ] ]
+        [ [ key: "2.4"], [ key: "2.3.2" ], [ key: "2.3.1" ] ]                   | "key"            || [ [ key: "2.3.1" ], [ key: "2.3.2" ], [ key: "2.4" ] ]
+
     }
 
 }

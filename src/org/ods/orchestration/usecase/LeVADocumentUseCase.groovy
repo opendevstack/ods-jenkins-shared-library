@@ -219,7 +219,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         return value ? value.text : "None"
                     }
 
-                    def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll { it.softwareDesignSpec }*.key
+                    def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications().findAll { it.softwareDesignSpec }
+                        .collect { it.key }
                     [
                         key               : testIssue.key,
                         description       : testIssue.description ?: "N/A",
@@ -1291,7 +1292,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             test.getResolvedComponents().collect { [test: test.key, component: it.name] }
         }.flatten()
         issueComponentMapping.groupBy { it.component }.collectEntries { c, v ->
-            [(c.replaceAll("Technology-", "")): v*.test ]
+            [(c.replaceAll("Technology-", "")): v.collect { it.test } ]
         }
     }
 
@@ -1426,7 +1427,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected List<String> computeSectionsNotDone(Map issues = [:]) {
         if (!issues) return []
-        return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }*.key
+        return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }.collect { it.key }
     }
 
     protected DocumentHistory getAndStoreDocumentHistory(String documentType) {
@@ -1437,7 +1438,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.project.getHistoryForDocument(documentType)
         } else {
             def jiraData = this.project.data.jira as Map
-            def environment = this.project.buildParams.targetEnvironmentToken as String
+            def environment = this.computeSavedDocumentEnvironment(documentType)
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentType)
             def latestValidVersionId = this.getLatestDocVersionId(documentType)
             docHistory.load(jiraData, latestValidVersionId)
@@ -1447,6 +1448,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return docHistory
         }
+    }
+
+    protected String computeSavedDocumentEnvironment(String documentType) {
+        def environment = this.project.buildParams.targetEnvironmentToken
+        if (this.project.isWorkInProgress) {
+            environment = ['D', 'Q', 'P'].find { env ->
+                LeVADocumentScheduler.ENVIRONMENT_TYPE[env].containsKey(documentType)
+            }
+        }
+        environment
     }
 
     protected void updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {

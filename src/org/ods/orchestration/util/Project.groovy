@@ -383,7 +383,7 @@ class Project {
             }.flatten()
             .groupBy { it.doc }
             .collectEntries { doc, issues ->
-                [(doc as String): issues*.key as List<String>]
+                [(doc as String): issues.collect { it.key } as List<String>]
             }
     }
 

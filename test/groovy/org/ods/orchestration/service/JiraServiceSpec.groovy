@@ -2115,7 +2115,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to update select list fields on Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+        e.message == "Error: unable to update select list fields on Jira issue JIRA-123. Jira could not be found at: 'http://localhost:${server.port()}'."
 
         cleanup:
         stopServer(server)
@@ -2137,7 +2137,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to update select list fields on Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to update select list fields on Jira issue JIRA-123. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
@@ -2262,7 +2262,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to update text fields on Jira issue. Jira could not be found at: 'http://localhost:${server.port()}'."
+        e.message == "Error: unable to update text fields on Jira issue JIRA-123. Jira could not be found at: 'http://localhost:${server.port()}'."
 
         cleanup:
         stopServer(server)
@@ -2284,7 +2284,7 @@ class JiraServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to update text fields on Jira issue. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to update text fields on Jira issue JIRA-123. Jira responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
