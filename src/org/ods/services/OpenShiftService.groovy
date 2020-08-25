@@ -257,7 +257,8 @@ class OpenShiftService {
     int startBuild(String name, String dir) {
         steps.sh(
             script: "oc -n ${project} start-build ${name} --from-dir ${dir}",
-            label: "Start Openshift build ${name}"
+            label: "Start Openshift build ${name}",
+            returnStdout: true
         ).trim()
         return getLastBuildVersion()
     }
