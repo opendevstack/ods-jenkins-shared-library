@@ -2163,22 +2163,94 @@ class ProjectSpec extends SpecHelper {
         issueListIsEquals(project.components, mergedData.components.values() as List)
     }
 
-    def "merge a discontinued component"() {
+    def "merge the links of a component"() {
         given:
         def firstVersion = '1'
         def secondVersion = '2'
 
         def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def req1 = req('1', firstVersion)
+        def req2 = req('2', firstVersion)
+        def req3 = req('3', secondVersion)
+
         def cmp1 = cmp('front')
         def cmp2 = cmp('new')
-        def cmp1wv = cmp1.clone() + [versions:[firstVersion]]
+
+        req1 << [components: [cmp1.key]]
+        req2 << [components: [cmp2.key]]
+        req3 << [components: [cmp1.key]]
+
+        def cmp1wv = cmp1.clone() + [versions: [firstVersion]]
+        def cmp2wv = cmp2.clone() + [versions: [secondVersion]]
+
+        def storedData = [
+            components  : [(cmp1wv.key):cmp1wv + [requirements: [req1.key]], (cmp2wv.key):cmp2wv + [requirements: [req2.key]]],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1, (req2.key): req2],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [(cmp1.key):cmp1 + [requirements: [req3.key]], (cmp2.key):cmp2],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req3.key): req3],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp1wv.key):cmp1wv + [requirements: [req1.key, req3.key]], (cmp2wv.key):cmp2wv+ [requirements: [req2.key]]],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1, (req2.key): req2, (req3.key): req3],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraData("my-project")
+
+        then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+    }
+
+    def "merge a discontinued component"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def req1 = req('1', firstVersion) + [components: []]
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
+        def cmp1wv = cmp('front') + [versions:[firstVersion], requirements: [req1.key]]
+        def cmp2 = cmp('new')
         def cmp2Updated = cmp2.clone() + [versions: [secondVersion]]
 
         def storedData = [
             components  : [(cmp1wv.key):cmp1wv],
             epics       : [:],
             mitigations : [:],
-            requirements: [:],
+            requirements: [(req1.key): req1 + [components: [cmp1wv.key]]],
             risks       : [:],
             tests       : [:],
             techSpecs   : [:],
@@ -2204,12 +2276,12 @@ class ProjectSpec extends SpecHelper {
             components  : [(cmp2Updated.key):cmp2Updated],
             epics       : [:],
             mitigations : [:],
-            requirements: [:],
+            requirements: [(req1.key): req1],
             risks       : [:],
             tests       : [:],
             techSpecs   : [:],
             docs        : [:],
-            discontinuations: [cmp1.key]
+            discontinuations: [cmp1wv.key]
         ]
         project = setupWithJiraService()
 
@@ -2223,16 +2295,11 @@ class ProjectSpec extends SpecHelper {
 
         then:
         issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
     }
 
     Boolean issueIsEquals(Map issueA, Map issueB) {
         issueA == issueB
-
-        /*issueA.forEach{mapKey, value ->
-            if (!issueB[mapKey]) return false
-            if (issueB[mapKey] != value ) return false
-        }
-        true*/
     }
 
     Boolean issueListIsEquals(List issuesA, List issuesB) {

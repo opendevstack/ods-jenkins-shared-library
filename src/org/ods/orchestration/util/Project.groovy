@@ -1393,8 +1393,10 @@ class Project {
         if (!oldData || oldData.isEmpty()) {
             newData
         } else {
+            newData[JiraDataItem.TYPE_COMPONENTS] = this.mergeComponentsLinks(oldData, newData)
             def discontinuations = newData.getOrDefault('discontinuations',[]) +
                 this.getComponentDiscontinuations(oldData, newData)
+            newData.discontinuations = discontinuations
             // Expand some information from old saved data
             def newDataExpanded = expandPredecessorInformation (oldData, newData)
             newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
@@ -1408,12 +1410,34 @@ class Project {
         }
     }
 
-    private static Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
-        savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collectEntries { String issueType, Map issues ->
-            def discontinuationsPerType = issues.issues.findAll { discontinuations.contains(it.key) }
-                .collect{ String issueKey, issue -> issueKey }
-            [(issueType): discontinuationsPerType]
+    /**
+     * Return new components with the links coming from the old data. This is because we are not receiving all
+     * the old links from the docgen reports for the components. and we need a special merge.
+     * @param oldComponents components of the saved data
+     * @param newComponents components for the new data
+     * @return merged components with all the links
+     */
+    private Map mergeComponentsLinks(Map oldComponents, Map newComponents) {
+        newComponents[JiraDataItem.TYPE_COMPONENTS].collectEntries { compName, newComp ->
+            def oldComp = oldComponents[JiraDataItem.TYPE_COMPONENTS].getOrDefault(compName, [:])
+            def updatedComp = (newComp.keySet() + oldComp.keySet()).collectEntries { String type ->
+                if (JiraDataItem.TYPES.contains(type)) {
+                    [(type): (newComp[type] ?: []) +  (oldComp[type] ?: [])]
+                } else {
+                    [(type): newComp[type] ?: oldComp[type]]
+                }
+            }
+            [(compName): updatedComp]
         }
+    }
+
+    private static Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
+        savedData.findAll { JiraDataItem.TYPES.contains(it.key) }
+            .collectEntries { String issueType, Map issues ->
+                def discontinuationsPerType = issues.issues.findAll { discontinuations.contains(it.key) }
+                    .collect { String issueKey, issue -> issueKey }
+                [(issueType): discontinuationsPerType]
+            }
     }
 
     private List<String> getComponentDiscontinuations(Map oldData, Map newData) {
