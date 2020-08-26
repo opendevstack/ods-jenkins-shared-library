@@ -199,10 +199,6 @@ class JiraUseCase {
             }
             content = content ? content.getValue() : ""
 
-            if (content.contains("<img")) {
-                content = this.convertHTMLImageSrcIntoBase64Data(content)
-            }
-
             def documentTypes = issue.fields.getOrDefault('labels', [])
                 .findAll{String l -> l.startsWith(LabelPrefix.DOCUMENT)}
                 .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}

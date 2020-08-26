@@ -1421,4 +1421,81 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         result == "1.0"
     }
+
+    def "converts html images to base64"() {
+        given:
+        // Argument Constraints
+        def contentWithImage = '<img src=http://image.com/image >'
+        def contentNoImage = 'contentHere'
+        def docChapters = [[key:'DC-1', content: contentWithImage], [key:'DC-1', content: contentNoImage]]
+        def docChapters2 = ['1': [key:'DC-1', content: contentWithImage], '2': [key:'DC-1', content: contentNoImage]]
+        def imageb64 = 'thisIsAn64BaSeIMaGeEeE'
+        def requirements = [[key:"2", description:contentWithImage,
+                             configSpec:[description:contentWithImage],
+                             funcSpec:[description: contentWithImage]]]
+        def techSpecs = [[key:"2", systemDesignSpec:contentWithImage],[key:"3", softwareDesignSpec: contentWithImage]]
+        def compMetadata = [
+            "demo-app-front-end": [
+                key           : "Front-key",
+                componentName : "demo-app-front-end",
+                componentId   : "front",
+                componentType : "ODS Component",
+                odsRepoType   : "ods",
+                description   : "Example description",
+                nameOfSoftware: "Stock Shop frontend",
+                references    : "N/A",
+                supplier      : "N/A",
+                version       : "0.1",
+                requirements  : [],
+                techSpecs     : [techSpecs[0]]
+            ]
+        ]
+        when:
+        def result = usecase.convertImages(contentWithImage)
+
+        then:
+        1 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
+        result == imageb64
+
+        when:
+        result = usecase.convertImages(contentNoImage)
+
+        then:
+        0 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage)
+        result == contentNoImage
+
+        when:
+        usecase.getDocumentSections('somedoc')
+
+        then:
+        1 * project.getDocumentChaptersForDocument(_) >> docChapters
+        2 * usecase.convertImages(_)
+        1 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
+
+        when:
+        usecase.createCSD()
+
+        then:
+        1 * usecase.getDocumentSections(_) >> docChapters2
+        1 * project.getSystemRequirements() >> requirements
+        3 * usecase.convertImages(_)
+        3 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
+        1 * usecase.createDocument(*_) >> ''
+        1 * usecase.updateJiraDocumentationTrackingIssue(*_)
+
+        when:
+        usecase.createSSDS()
+
+        then:
+        1 * usecase.getDocumentSections(_) >> docChapters2
+        1 * usecase.computeComponentMetadata(_) >> compMetadata
+        1 * project.getTechnicalSpecifications() >> techSpecs
+
+        then:
+        1 * usecase.convertImages(_)
+        1 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
+        1 * usecase.createDocument(*_) >> ''
+        usecase.obtainCodeReviewReport(*_) >> []
+        1 * usecase.updateJiraDocumentationTrackingIssue(*_)
+    }
 }

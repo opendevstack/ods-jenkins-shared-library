@@ -481,7 +481,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def risks = this.project.getRisks().collect { risk ->
-            def r = risk.cloneIt()
+            def r = risk
             def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
             def testsText = r.tests ? r.tests.join(", ") : "None"
             r.proposedMeasures = "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}"
@@ -825,7 +825,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { techSpec ->
                 [
                     key        : techSpec.key,
-                    req_key    : techSpec.requirements.join(", ") ?: "None",
+                    req_key    : techSpec.requirements?.join(", ") ?: "None",
                     description: this.convertImages(techSpec.systemDesignSpec)
                 ]
             }
@@ -1204,7 +1204,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
     }
 
-    private List obtainCodeReviewReport(List<Map> repos) {
+    protected List obtainCodeReviewReport(List<Map> repos) {
         def reports =  repos.collect { r ->
             // resurrect?
             Map resurrectedDocument = resurrectAndStashDocument('SCRR-MD', r, false)
@@ -1283,7 +1283,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
                     odsRepoType       : repo_.type?.toLowerCase(),
                     description       : metadata.description,
-                    nameOfSoftware    : metadata.name,
+                    nameOfSoftware    : normComponentName ?: metadata.name,
                     references        : metadata.references ?: 'N/A',
                     supplier          : metadata.supplier,
                     version           : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ?
@@ -1508,7 +1508,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
         // Extract-out the section, as needed for the DocGen interface
         return sections.collectEntries { sec ->
-            [(sec.section): sec]
+            [(sec.section): sec + [content: this.convertImages(sec.content)]]
         }
     }
 
