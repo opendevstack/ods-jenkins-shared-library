@@ -99,7 +99,7 @@ class JiraUseCase {
             testCase.name.startsWith("${issueKeyClean}_")
     }
 
-    private String convertHTMLImageSrcIntoBase64Data(String html) {
+    String convertHTMLImageSrcIntoBase64Data(String html) {
         def server = this.jira.baseURL
 
         def pattern = ~/src="(${server}.*\.(?:gif|GIF|jpg|JPG|jpeg|JPEG|png|PNG))"/

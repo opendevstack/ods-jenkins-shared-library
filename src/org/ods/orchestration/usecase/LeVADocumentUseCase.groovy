@@ -116,20 +116,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .groupBy { it.gampTopic.toLowerCase() }
         reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic ]
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
+            def updatedReqs = reqs.collect { req ->
+                [
+                    key           : req.key,
+                    applicability : 'Mandatory',
+                    ursName       : req.name,
+                    ursDescription: this.convertImages(req.description ?: ''),
+                    csName        : req.configSpec.name ?: 'N/A',
+                    csDescription : this.convertImages(req.configSpec.description ?: ''),
+                    fsName        : req.funcSpec.name ?: 'N/A',
+                    fsDescription : this.convertImages(req.funcSpec.description ?: ''),
+                ]
+            }
+
             [
-                gampTopic.replaceAll(' ', '').toLowerCase(),
-                SortUtil.sortIssuesByProperties(reqs.collect { req ->
-                    [
-                        key           : req.key,
-                        applicability : 'Mandatory',
-                        ursName       : req.name,
-                        ursDescription: req.description ?: '',
-                        csName        : req.configSpec.name ?: 'N/A',
-                        csDescription : req.configSpec.description ?: '',
-                        fsName        : req.funcSpec.name ?: 'N/A',
-                        fsDescription : req.funcSpec.description ?: '',
-                    ]
-                }, ["key"])
+                (gampTopic.replaceAll(' ', '').toLowerCase()):
+                SortUtil.sortIssuesByProperties(updatedReqs, ["key"])
             ]
         }
 
@@ -824,7 +826,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 [
                     key        : techSpec.key,
                     req_key    : techSpec.requirements.join(", ") ?: "None",
-                    description: techSpec.systemDesignSpec
+                    description: this.convertImages(techSpec.systemDesignSpec)
                 ]
             }
 
@@ -846,13 +848,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         // Get the components that we consider modules in SSDS (the ones you have to code)
-        def modules = componentsMetadata.findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }.collect { component ->
-            // We will set-up a double loop in the template. For moustache limitations we need to have lists
-            component.requirements = component.requirements.collect { r ->
-                [key: r.key, name: r.name, reqDescription: r.description, gampTopic: r.gampTopic ?: "uncategorized"]
-            }.groupBy { it.gampTopic.toLowerCase() }.collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
+        def modules = componentsMetadata
+            .findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+            .collect { component ->
+                // We will set-up a double loop in the template. For moustache limitations we need to have lists
+                component.requirements = component.requirements.collect { r ->
+                    [key: r.key, name: r.name,
+                     reqDescription: this.convertImages(r.description), gampTopic: r.gampTopic ?: "uncategorized"]
+                }.groupBy { it.gampTopic.toLowerCase() }
+                    .collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
-            return component
+                return component
         }
 
         if (!sections."sec10") sections."sec10" = [:]
@@ -1088,6 +1094,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return defaultTypes
     }
 
+    protected String convertImages(String content) {
+        def result = content
+        if (content && content.contains("<img")) {
+            result = this.jiraUseCase.convertHTMLImageSrcIntoBase64Data(content)
+        }
+        result
+    }
+
     protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
         def result = [
             discrepancies: 'No discrepancies found.',
@@ -1262,8 +1276,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def metadata = repo_.metadata
 
             return [
-                component.name,
-                [
+                (component.name): [
                     key               : component.name,
                     componentName     : component.name,
                     componentId       : metadata.id ?: 'N/A - part of this application',
@@ -1280,7 +1293,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     softwareDesignSpec: component.getResolvedTechnicalSpecifications().findAll {
                         it.softwareDesignSpec
                     }.collect {
-                        [key: it.key, softwareDesignSpec: it.softwareDesignSpec]
+                        [key: it.key, softwareDesignSpec: this.convertImages(it.softwareDesignSpec)]
                     }
                 ]
             ]
