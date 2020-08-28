@@ -688,7 +688,7 @@ class JiraService {
                 '\'version\' is undefined.')
         }
 
-        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/{version}")
+        def response = Unirest.get("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/versions/{version}")
             .routeParam('projectKey', projectKey.toUpperCase())
             .routeParam('version', versionName)
             .basicAuth(this.username, this.password)
@@ -702,7 +702,7 @@ class JiraService {
                 }
             }
             def message = 'Error: unable to get project versions in url ' +
-                "${this.baseURL}/rest/platform/1.1/productreleases/${projectKey.toUpperCase()}/${versionName}" +
+                "${this.baseURL}/rest/platform/1.1/productreleases/${projectKey.toUpperCase()}/versions/${versionName}" +
                 ' Jira responded with code: ' +
                 "'${response.getStatus()}' and message: '${response.getBody()}'."
 
