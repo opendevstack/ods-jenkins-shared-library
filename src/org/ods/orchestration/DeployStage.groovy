@@ -1,6 +1,5 @@
 package org.ods.orchestration
 
-import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.services.ServiceRegistry
 import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.LeVADocumentScheduler

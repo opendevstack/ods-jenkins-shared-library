@@ -169,45 +169,53 @@ class Project {
             return result
         }
 
-        @NonCPS
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
         // Reason: that is because when you do this.resolvedBugs it goes to the get method for delegate dictionary
         // and does deletage.resolvedBugs  And we have no entry there
         // An option would be to put some logic for this in the get() method of this class
+        @NonCPS
         private List<JiraDataItem> getResolvedReferences(String type) {
             // Reference this within jiraResolved (contains readily resolved references to other entities)
             def item = Project.this.data.jiraResolved[this.type][this.key]
             return item[type] ?: []
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedBugs() {
             return this.getResolvedReferences(TYPE_BUGS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedComponents() {
             return this.getResolvedReferences(TYPE_COMPONENTS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedEpics() {
             return this.getResolvedReferences(TYPE_EPICS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedMitigations() {
             return this.getResolvedReferences(TYPE_MITIGATIONS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedSystemRequirements() {
             return this.getResolvedReferences(TYPE_REQUIREMENTS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedRisks() {
             return this.getResolvedReferences(TYPE_RISKS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedTechnicalSpecifications() {
             return this.getResolvedReferences(TYPE_TECHSPECS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedTests() {
             return this.getResolvedReferences(TYPE_TESTS)
         }
@@ -1212,12 +1220,16 @@ class Project {
         this.jiraUseCase.addCommentInReleaseStatus(message)
     }
 
-    @NonCPS
     protected Map resolveJiraDataItemReferences(Map data) {
+        this.resolveJiraDataItemReferences(data, JiraDataItem.TYPES)
+    }
+
+    @NonCPS
+    protected Map resolveJiraDataItemReferences(Map data, List<String> jiraTypes) {
         def result = [:]
 
         data.each { type, values ->
-            if (!JiraDataItem.TYPES.contains(type)) {
+            if (!jiraTypes.contains(type)) {
                 return
             }
 
@@ -1226,7 +1238,7 @@ class Project {
             values.each { key, item ->
                 result[type][key] = [:]
 
-                JiraDataItem.TYPES.each { referenceType ->
+                jiraTypes.each { referenceType ->
                     if (item.containsKey(referenceType)) {
                         result[type][key][referenceType] = []
 

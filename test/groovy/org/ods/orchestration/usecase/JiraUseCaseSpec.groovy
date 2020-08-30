@@ -700,8 +700,42 @@ class JiraUseCaseSpec extends SpecHelper {
         project.buildParams.releaseStatusJiraIssueKey >> "KEY-1"
         project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS) >> [(JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"]]
         result == "versionX"
+    }
+
+    def "get HTML Image As Base64"() {
+        given:
+        def jiraUrl = new URI("https://jira.com")
+        def contentType = "contentType"
+        def binaryData = "binaryData".bytes
+        def binaryDataCoded = binaryData.encodeBase64()
+
+        def jira = Mock(JiraService) {
+            getBaseURL() >> {
+                jiraUrl
+            }
+            getFileFromJira(*_) >> {
+                [ contentType: contentType, data: binaryData ]
+            }
+        }
+        def usecase = Spy(new JiraUseCase(project, steps, util, jira, logger))
+
+        when: 'we have a simple image tag'
+        def result = usecase.convertHTMLImageSrcIntoBase64Data("<img src=\"${jiraUrl}/something.png\">")
+
+        then:
+        result == "<img src=\"data:${contentType};base64,${binaryDataCoded}\">"
 
 
+        when: 'we a complex image tag structure with two extensions'
+        result = usecase.convertHTMLImageSrcIntoBase64Data("<img src=\"${jiraUrl}/something.png\" imagetext=\"something.png\">")
 
+        then:
+        result == "<img src=\"data:${contentType};base64,${binaryDataCoded}\" imagetext=\"something.png\">"
+
+        when: 'we have two images'
+        result = usecase.convertHTMLImageSrcIntoBase64Data("<img src=\"${jiraUrl}/something.png\" imagetext=\"something.png\">aaa<img src=\"${jiraUrl}/something2.png\" imagetext=\"something2.png\">")
+
+        then:
+        result == "<img src=\"data:${contentType};base64,${binaryDataCoded}\" imagetext=\"something.png\">aaa<img src=\"data:${contentType};base64,${binaryDataCoded}\" imagetext=\"something2.png\">"
     }
 }

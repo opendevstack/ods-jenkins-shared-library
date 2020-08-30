@@ -102,7 +102,7 @@ class JiraUseCase {
     String convertHTMLImageSrcIntoBase64Data(String html) {
         def server = this.jira.baseURL
 
-        def pattern = ~/src="(${server}.*\.(?:gif|GIF|jpg|JPG|jpeg|JPEG|png|PNG))"/
+        def pattern = ~/src="(${server}.*?\.(?:gif|GIF|jpg|JPG|jpeg|JPEG|png|PNG))"/
         def result = html.replaceAll(pattern) { match ->
             def src = match[1]
             def img = this.jira.getFileFromJira(src)
