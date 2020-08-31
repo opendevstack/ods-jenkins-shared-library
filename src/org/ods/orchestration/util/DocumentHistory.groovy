@@ -10,6 +10,10 @@ import org.ods.util.IPipelineSteps
  */
 class DocumentHistory {
 
+    static final String ADD = 'add'
+    static final String DELETE = 'discontinue'
+    static final String CHANGE = 'change'
+
     protected IPipelineSteps steps
     protected ILogger logger
     protected List<DocumentHistoryEntry> data = []
@@ -92,13 +96,13 @@ class DocumentHistory {
         def transformEntry =  { DocumentHistoryEntry e ->
             def formatedIssues = issueTypes.collect { type ->
                 def issues = e.getOrDefault(type, [])
-                def changed = issues.findAll { it.action == 'change' }.clone()
+                def changed = issues.findAll { it.action == CHANGE }.clone()
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
                 [ type: type,
-                  added: SortUtil.sortIssuesByProperties(issues.findAll { it.action == 'add' }, ['key']),
-                  changed: SortUtil.sortIssuesByProperties(changed, ['key']),
-                  deleted: SortUtil.sortIssuesByProperties(issues.findAll { it.action == 'delete' }, ['key']),
+                  (ADD +'ed'): SortUtil.sortIssuesByProperties(issues.findAll { it.action == ADD }, ['key']),
+                  (CHANGE + 'd'): SortUtil.sortIssuesByProperties(changed, ['key']),
+                  (DELETE + 'd'): SortUtil.sortIssuesByProperties(issues.findAll { it.action == DELETE }, ['key']),
                 ]
             }
 
@@ -110,13 +114,13 @@ class DocumentHistory {
         this.data.collect { transformEntry(it) }
     }
 
-    protected static Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
+    protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
         def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
             .collect { [action: it.action, key: it.number] }, 'key')
         return [ type: 'document sections',
-                 added: docIssues.findAll { it.action == 'add' },
-                 changed: docIssues.findAll { it.action == 'change' },
-                 deleted: docIssues.findAll { it.action == 'delete' },
+                 (ADD +'ed'): docIssues.findAll { it.action == ADD },
+                 (CHANGE + 'd'): docIssues.findAll { it.action == CHANGE },
+                 (DELETE + 'd'): docIssues.findAll { it.action == DELETE },
         ]
 
     }
@@ -201,8 +205,8 @@ class DocumentHistory {
                 [(issueType): issuesOfThisVersion]
             }
         def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [:])
-            .collectEntries { issueType, List<String> issueKeys ->
-                [(issueType): issueKeys.collect { [key: it, action: 'discontinue'] }]
+            .collectEntries { String issueType, List<Map> issues ->
+                [(issueType): issues.collect { computeIssueContent(issueType, DELETE, it) } ]
             }
         def versionMap = Project.JiraDataItem.TYPES.collectEntries { String issueType ->
             [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
@@ -221,19 +225,19 @@ class DocumentHistory {
             .collect { issueKey, issue ->
                 def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
                 if (isAnUpdate) {
-                    computeIssueContent(issueType, 'change', issue)
+                    computeIssueContent(issueType, CHANGE, issue)
                 } else {
-                    computeIssueContent(issueType, 'add', issue)
+                    computeIssueContent(issueType, ADD, issue)
                 }
             }
     }
 
-    private static Map computeIssueContent(String issueType, String action, Map issue) {
+    private Map computeIssueContent(String issueType, String action, Map issue) {
         def result = [key: issue.key, action: action]
         if (Project.JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
             result << [documents: issue.documents, number: issue.number]
         }
-        if (action.equalsIgnoreCase('change')){
+        if (action.equalsIgnoreCase(CHANGE)){
             result << [predecessors: issue.predecessors]
         }
         return result

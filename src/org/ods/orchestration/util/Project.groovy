@@ -970,7 +970,15 @@ class Project {
     }
 
     protected Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
-        this.jiraUseCase.getDocumentChapterData(projectKey, versionName)
+        def docChapters = this.jiraUseCase.getDocumentChapterData(projectKey, versionName)
+        if (docChapters.isEmpty() && !this.isVersioningEnabled) {
+            //TODO remove for ODS 4.0
+            //If versioning is not enabled, the query should always return results. If not, there is an issue with
+            // the jira project itself.
+            throw new IllegalStateException("Error: could not find document chapters for project ${projectKey}.")
+        } else {
+            return docChapters
+        }
     }
 
 
@@ -1357,14 +1365,17 @@ class Project {
     Map mergeJiraData(Map oldData, Map newData) {
         def mergeMaps = { Map left, Map right ->
             def keys = (left.keySet() + right.keySet()).toSet()
-
             keys.collectEntries { key ->
-                if (!left[key] || left[key].isEmpty) {
-                    [(key): right[key]]
-                } else if (!right[key] || right[key].isEmpty) {
-                    [(key): left[key]]
+                if (JiraDataItem.TYPES.contains(key)) {
+                    if (!left[key] || left[key].isEmpty()) {
+                        [(key): right[key]]
+                    } else if (!right[key] || right[key].isEmpty()) {
+                        [(key): left[key]]
+                    } else {
+                        [(key): left[key] + right[key]]
+                    }
                 } else {
-                    [(key): left[key] + right[key]]
+                    [(key):right.getOrDefault(key, null)]
                 }
             }
         }
@@ -1375,6 +1386,9 @@ class Project {
         // - Updating links for changes in issues (changing key 1 for key 2)
         def updateIssues = { Map<String,Map> left, Map<String,Map> right ->
             def updateLink = { String issueType, String issueToUpdateKey, Map link ->
+                if (! left[issueType][issueToUpdateKey].containsKey(link.linkType)) {
+                    left[issueType][issueToUpdateKey][link.linkType] = []
+                }
                 if (link.action == 'add') {
                     left[issueType][issueToUpdateKey][link.linkType] << link.origin
                 } else if (link.action == 'discontinue') {
@@ -1432,22 +1446,25 @@ class Project {
     private Map mergeComponentsLinks(Map oldComponents, Map newComponents) {
         newComponents[JiraDataItem.TYPE_COMPONENTS].collectEntries { compName, newComp ->
             def oldComp = oldComponents[JiraDataItem.TYPE_COMPONENTS].getOrDefault(compName, [:])
-            def updatedComp = (newComp.keySet() + oldComp.keySet()).collectEntries { String type ->
-                if (JiraDataItem.TYPES.contains(type)) {
-                    [(type): (newComp[type] ?: []) +  (oldComp[type] ?: [])]
-                } else {
-                    [(type): newComp[type] ?: oldComp[type]]
-                }
-            }
+            def updatedComp = mergeJiraItemLinks(oldComp, newComp)
             [(compName): updatedComp]
+        }
+    }
+
+    private static mergeJiraItemLinks(Map oldItem, Map newItem) {
+        (oldItem.keySet() + newItem.keySet()).collectEntries { String type ->
+            if (JiraDataItem.TYPES.contains(type)) {
+                [(type): ((newItem[type] ?: []) +  (oldItem[type] ?: [])).unique()]
+            } else {
+                [(type): newItem[type] ?: oldItem[type]]
+            }
         }
     }
 
     private static Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
         savedData.findAll { JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { String issueType, Map issues ->
-                def discontinuationsPerType = issues.issues.findAll { discontinuations.contains(it.key) }
-                    .collect { String issueKey, issue -> issueKey }
+                def discontinuationsPerType = issues.values().findAll { discontinuations.contains(it.key) }
                 [(issueType): discontinuationsPerType]
             }
     }
@@ -1574,7 +1591,11 @@ class Project {
                         def expandedPredecessors = predecessors.collect { predecessor ->
                             expandPredecessor(issueType, issueKey, predecessor)
                         }.flatten()
-                        [(issueKey): (issue + [expandedPredecessors: expandedPredecessors])]
+                        // Get old links from predecessor (just one allowed)
+                        def predecessorIssue = savedData.get(issueType).get(predecessors.first())
+                        def updatedIssue = mergeJiraItemLinks(predecessorIssue, issue)
+
+                        [(issueKey): (updatedIssue + [expandedPredecessors: expandedPredecessors])]
                     }
                 }
                 [(issueType): updatedIssues]

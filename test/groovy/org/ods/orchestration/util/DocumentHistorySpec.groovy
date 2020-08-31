@@ -94,7 +94,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [(tst1.key): tst1],
             techSpecs   : [(ts1.key):ts1],
             docs        : [:],
-            discontinuationsPerType : [tests: [tst2.key]]
+            discontinuationsPerType : [tests: [tst2]]
         ]
 
         this.entries11_first = [new DocumentHistoryEntry([
@@ -149,7 +149,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [(tst1.key): tst1, (tst3.key):tst3],
             techSpecs   : [(ts1.key):ts1],
             docs        : [:],
-            discontinuationsPerType : [tests: [tst2.key]]
+            discontinuationsPerType : [tests: [tst2]]
         ]
 
         this.entries11_second = [new DocumentHistoryEntry([
@@ -423,7 +423,7 @@ class DocumentHistorySpec extends SpecHelper {
                 'otherDocCh':[key: "otherDocCh", versions: ['1'], number: 'shouldNotAppear', documents: ['doc2']],
                 'changed1':[key: "changed1", versions: ['1'], number: 'numberOfChanged', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],
             ],
-            discontinuationsPerType: [:]
+            discontinuationsPerType: [(Project.JiraDataItem.TYPE_DOCS) : [[key: "discontinued", versions: ['1'], number: 'discontinuedNum', documents: ['doc1']]]]
         ]
 
 
@@ -437,6 +437,7 @@ class DocumentHistorySpec extends SpecHelper {
         result.first().issueType.first().type == 'document sections'
         result.first().issueType.first().added == [[action:'add', key:'numberOfAdded1'], [action:'add', key:'numberOfAdded2']]
         result.first().issueType.first().changed == [[action:'change', key:'numberOfChanged']]
+        result.first().issueType.first().discontinued == [[action:'discontinue', key:'discontinuedNum']]
 
     }
 

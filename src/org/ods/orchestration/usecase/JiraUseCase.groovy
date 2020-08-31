@@ -182,7 +182,8 @@ class JiraUseCase {
 
         def result = this.jira.searchByJQLQuery(jqlQuery)
         if (!result || result.total == 0) {
-            throw new IllegalStateException("Error: could not find document chapters using JQL query: '${jqlQuery}'.")
+            this.logger.warn("There are no document chapters assigned to this version. Using JQL query: '${jqlQuery}'.")
+            return [:]
         }
 
         return result.issues.collectEntries { issue ->

@@ -480,36 +480,31 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.project.getEnumDictionary(category)[value as String]
         }
 
-        def risks = this.project.getRisks().collect { risk ->
-            def r = risk
+        def risks = this.project.getRisks().collect { r ->
             def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
             def testsText = r.tests ? r.tests.join(", ") : "None"
-            r.proposedMeasures = "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}"
-
             def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
-            r.requirements = requirements.collect { it.name }.join("<br/>")
-            r.requirementsKey = requirements.collect { it.key }.join("<br/>")
-
             def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
-            r.gxpRelevance = gxpRelevance ? gxpRelevance."short" : "None"
-
             def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
-            r.probabilityOfOccurrence = probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None"
-
             def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
-            r.severityOfImpact = severityOfImpact ? severityOfImpact."short" : "None"
-
             def probabilityOfDetection = obtainEnum("ProbabilityOfDetection", r.probabilityOfDetection)
-            r.probabilityOfDetection = probabilityOfDetection ? probabilityOfDetection."short" : "None"
-
             def riskPriority = obtainEnum("RiskPriority", r.riskPriority)
-            r.riskPriority = riskPriority ? riskPriority.value : "N/A"
 
-            r.riskPriorityNumber = r.riskPriorityNumber ?: "N/A"
-
-            r.riskComment = r.riskComment ? r.riskComment : "N/A"
-
-            return r
+            return [
+                key: r.key,
+                name: r.name,
+                description: r.description,
+                proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
+                requirements: requirements.collect { it.name }.join("<br/>"),
+                requirementsKey: requirements.collect { it.key }.join("<br/>"),
+                gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
+                probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
+                severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
+                probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
+                riskPriority: riskPriority ? riskPriority.value : "N/A",
+                riskPriorityNumber: r.riskPriorityNumber ?: "N/A",
+                riskComment: r.riskComment ? r.riskComment : "N/A",
+            ]
         }
 
         def proposedMeasuresDesription = this.project.getRisks().collect { r ->
@@ -1452,8 +1447,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         } else {
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
-            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentType)
             def latestValidVersionId = this.getLatestDocVersionId(documentType)
+            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentType)
             docHistory.load(jiraData, latestValidVersionId)
 
             // Save the doc history to project class, so it can be persisted when considered
