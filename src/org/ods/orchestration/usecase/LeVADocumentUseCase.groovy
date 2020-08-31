@@ -377,17 +377,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTests : acceptanceTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: "",
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                        risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
+                        description: testIssue.description ?: '',
+                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
+                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
                     ]
                 },
                 integrationTests: integrationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: "",
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                        risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A"
+                        description: testIssue.description ?: '',
+                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
+                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
                     ]
                 },
                 documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
@@ -1574,7 +1574,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             if (! this.project.isVersioningEnabled) {
                 // TODO removeme in ODS 4.x
-                version = "${this.steps.env.RELEASE_PARAM_VERSION}-${this.steps.env.BUILD_NUMBER}"
+                version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
             } else if (this.project.historyForDocumentExists(doc)) {
                 version = this.project.getHistoryForDocument(doc).getVersion()
             } else {

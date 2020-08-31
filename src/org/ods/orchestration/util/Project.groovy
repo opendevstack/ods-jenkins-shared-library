@@ -511,7 +511,7 @@ class Project {
             envParams = params.collectEntries {
                 if (it.trim().size() > 0 && !it.trim().startsWith('#')) {
                     def vals = it.split('=')
-                    [vals.first().trim(), vals[1..vals.size()-1].join('=').trim()]
+                    [vals.first().trim(), vals[1..vals.size() - 1].join('=').trim()]
                 } else {
                     [:]
                 }
@@ -679,7 +679,7 @@ class Project {
     }
 
     Map<String, DocumentHistory> getDocumentHistories() {
-        return this.data.documentHistories?: [:]
+        return this.data.documentHistories ?: [:]
     }
 
     String getId() {
@@ -690,7 +690,7 @@ class Project {
         return this.data.jira.project.version
     }
 
-    String getVersionName(){
+    String getVersionName() {
         return this.data.jira.version
     }
 
@@ -1375,7 +1375,7 @@ class Project {
                         [(key): left[key] + right[key]]
                     }
                 } else {
-                    [(key):right.getOrDefault(key, null)]
+                    [(key): right.getOrDefault(key, null)]
                 }
             }
         }

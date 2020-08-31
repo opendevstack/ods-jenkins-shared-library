@@ -45,7 +45,7 @@ class DocumentHistory {
             }
             newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
             this.data.add(newDocDocumentHistoryEntry)
-            this.data.sort { a, b -> b.getEntryId() <=> a.getEntryId() }
+            this.data = sortDocHistories(this.data)
         }
         this
     }
@@ -85,7 +85,7 @@ class DocumentHistory {
     }
 
     String saveDocHistoryData(ProjectDataBitbucketRepository repository) {
-        repository.save(this.data, this.getSavedDocumentName(this.latestVersionId))
+        repository.save(this.data, this.getSavedDocumentName())
     }
 
     List<DocumentHistoryEntry> getDocHistoryEntries() {
@@ -125,11 +125,15 @@ class DocumentHistory {
 
     }
 
-    protected String getSavedDocumentName(Long versionId) {
-        versionId // TODO removeme
-        def suffix = (documentType) ? "-" + documentType : ""
-        //return "documentHistory-${this.targetEnvironment}-${versionId}${suffix}"
+    protected String getSavedDocumentName() {
+        def suffix = (documentType) ? '-' + documentType : ''
         return "documentHistory-${this.targetEnvironment}${suffix}"
+    }
+
+    // Do not remove me. Sort is not supported by the Jenkins runtime
+    @NonCPS
+    protected List<DocumentHistoryEntry> sortDocHistories(List<DocumentHistoryEntry> dhs) {
+        dhs.sort { a, b -> b.getEntryId() <=> a.getEntryId() }
     }
 
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
@@ -173,7 +177,7 @@ class DocumentHistory {
                 "Project has as previous project version ${currentEntry.getPreviousProjectVersion()} " +
                 'but no document history containing that ' +
                 'version can be found. Please check the file named ' +
-                "'${this.getSavedDocumentName(currentEntry.getEntryId() - 1L)}.json'" +
+                "'${this.getSavedDocumentName()}.json'" +
                 ' in your release manager repository')
         }
 
