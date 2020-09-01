@@ -1019,13 +1019,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, hasFailingTestIssues || this.project.hasWipJiraIssues())
 
         systemRequirements = systemRequirements.collect { r ->
+            def predecessors = r.expandedPredecessors.collect { [key: it.key, versions: it.versions.join(', ')] }
             [
-                key        : r.key,
-                name       : r.name,
-                //TODO add predecessors
-                description: r.description,
-                risks      : r.risks.join(", "),
-                tests      : r.tests.join(", ")
+                key         : r.key,
+                name        : r.name,
+                description : r.description,
+                risks       : r.risks.join(", "),
+                tests       : r.tests.join(", "),
+                predecessors: predecessors,
             ]
         }
 
