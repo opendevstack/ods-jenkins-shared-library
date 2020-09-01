@@ -11,8 +11,11 @@ import org.ods.util.IPipelineSteps
 class DocumentHistory {
 
     static final String ADD = 'add'
+    static final String ADDED = ADD + 'ed'
     static final String DELETE = 'discontinue'
+    static final String DELETED = DELETE + 'd'
     static final String CHANGE = 'change'
+    static final String CHANGED = CHANGE + 'd'
 
     protected IPipelineSteps steps
     protected ILogger logger
@@ -45,7 +48,7 @@ class DocumentHistory {
             }
             newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
             this.data.add(newDocDocumentHistoryEntry)
-            this.data = sortDocHistories(this.data)
+            this.data = sortDocHistories(this.data).reverse()
         }
         this
     }
@@ -80,7 +83,7 @@ class DocumentHistory {
                 )
             }
 
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException('Unable to load saved document history for file ' +
                 "'${fileName}': ${e.message}", e)
         }
@@ -102,9 +105,9 @@ class DocumentHistory {
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
                 [ type: type,
-                  (ADD + 'ed'): SortUtil.sortIssuesByKey(issues.findAll { it.action == ADD }),
-                  (CHANGE + 'd'): SortUtil.sortIssuesByKey(changed),
-                  (DELETE + 'd'): SortUtil.sortIssuesByKey(issues.findAll { it.action == DELETE }),
+                  (ADDED): SortUtil.sortIssuesByKey(issues.findAll { it.action == ADD }),
+                  (CHANGED): SortUtil.sortIssuesByKey(changed),
+                  (DELETED): SortUtil.sortIssuesByKey(issues.findAll { it.action == DELETE }),
                 ]
             }
 
@@ -113,16 +116,16 @@ class DocumentHistory {
                     issueType: formatedIssues + computeDocChaptersOfDocument(e)
             ]
         }
-        this.data.collect { transformEntry(it) }
+        sortDocHistories(this.data).collect { transformEntry(it) }
     }
 
     protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
         def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
             .collect { [action: it.action, key: it.number] }, 'key')
         return [ type: 'document sections',
-                 (ADD + 'ed'): docIssues.findAll { it.action == ADD },
-                 (CHANGE + 'd'): docIssues.findAll { it.action == CHANGE },
-                 (DELETE + 'd'): docIssues.findAll { it.action == DELETE },
+                 (ADDED): docIssues.findAll { it.action == ADD },
+                 (CHANGED): docIssues.findAll { it.action == CHANGE },
+                 (DELETED): docIssues.findAll { it.action == DELETE },
         ]
 
     }
@@ -134,7 +137,7 @@ class DocumentHistory {
 
     // Do not remove me. Sort is not supported by the Jenkins runtime
     @NonCPS
-    protected List<DocumentHistoryEntry> sortDocHistories(List<DocumentHistoryEntry> dhs) {
+    protected static List<DocumentHistoryEntry> sortDocHistories(List<DocumentHistoryEntry> dhs) {
         dhs.sort { it.getEntryId() }
     }
 

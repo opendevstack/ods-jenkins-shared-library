@@ -23,7 +23,9 @@ class DocumentHistorySpec extends SpecHelper {
     List<DocumentHistoryEntry> entries20
 
     def setup() {
-        steps = Spy(PipelineSteps)
+        steps = Mock(PipelineSteps) {
+            getEnv() >> { return [WORKSPACE: '/work/spa/ce'] }
+        }
         logger = Mock(Logger)
 
         def cmp = {  name, String version = null ->  [key: "Technology-${name}" as String, name: name, versions: [version]]}
@@ -438,7 +440,26 @@ class DocumentHistorySpec extends SpecHelper {
         result.first().issueType.first().added == [[action:'add', key:'numberOfAdded1'], [action:'add', key:'numberOfAdded2']]
         result.first().issueType.first().changed == [[action:'change', key:'numberOfChanged']]
         result.first().issueType.first().discontinued == [[action:'discontinue', key:'discontinuedNum']]
+    }
 
+    def "returns data for DocGen sorted"() {
+        setup:
+        def jiraData = jiraData11_first
+        def targetEnvironment = 'D'
+        def savedVersionId = 1L
+        def savedData = entries10
+
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+        when:
+        history.load(jiraData, savedVersionId)
+        def result = history.getDocGenFormat([])
+
+        then:
+        1 * history.loadSavedDocHistoryData(_) >> savedData
+
+        then:
+        result.collect { it.entryId } == [1, 2]
     }
 
     def "loads saved data as DocumentEntry"() {
@@ -490,7 +511,7 @@ class DocumentHistorySpec extends SpecHelper {
         1 * repo.loadFile(_) >> [wrong: "saved data"]
 
         then:
-        def e = thrown(RuntimeException)
+        def e = thrown(IllegalArgumentException)
         e.message.contains("Unable to load saved document history for file")
 
         when:
@@ -500,7 +521,7 @@ class DocumentHistorySpec extends SpecHelper {
         1 * repo.loadFile(_) >> [[bugs: ["BUG-1"], projectVersion: 'version']]
 
         then:
-        e = thrown(RuntimeException)
+        e = thrown(IllegalArgumentException)
         e.message.contains("Unable to load saved document history for file")
         e.message.contains('EntryId cannot be empty')
 
@@ -511,7 +532,7 @@ class DocumentHistorySpec extends SpecHelper {
         1 * repo.loadFile(_) >> [[bugs: ["BUG-1"], entryId: 12]]
 
         then:
-        e = thrown(RuntimeException)
+        e = thrown(IllegalArgumentException)
         e.message.contains("Unable to load saved document history for file")
         e.message.contains('projectVersion cannot be empty')
     }
