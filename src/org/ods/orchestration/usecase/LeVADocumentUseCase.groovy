@@ -131,7 +131,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             [
                 (gampTopic.replaceAll(' ', '').toLowerCase()):
-                SortUtil.sortIssuesByProperties(updatedReqs, ["key"])
+                SortUtil.sortIssuesByKey(updatedReqs)
             ]
         }
 
@@ -292,8 +292,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        SortUtil.sortIssuesByProperties(acceptanceTestBugs, ["key"])
-        SortUtil.sortIssuesByProperties(integrationTestBugs, ["key"])
+        SortUtil.sortIssuesByKey(acceptanceTestBugs)
+        SortUtil.sortIssuesByKey(integrationTestBugs)
 
         def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
         metadata.orientation = "Landscape"
@@ -408,8 +408,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        def acceptanceTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeAcceptance(), ["key"])
-        def integrationTestIssues = SortUtil.sortIssuesByProperties(this.project.getAutomatedTestsTypeIntegration(), ["key"])
+        def acceptanceTestIssues = SortUtil.sortIssuesByKey(this.project.getAutomatedTestsTypeAcceptance())
+        def integrationTestIssues = SortUtil.sortIssuesByKey(this.project.getAutomatedTestsTypeIntegration())
         def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
 
         def docHistory = this.getAndStoreDocumentHistory(documentType)
@@ -526,8 +526,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         if (!sections."sec5") sections."sec5" = [:]
-        sections."sec5".risks = SortUtil.sortIssuesByProperties(risks, ["key"])
-        sections."sec5".proposedMeasures = SortUtil.sortIssuesByProperties(proposedMeasuresDesription, ["key"])
+        sections."sec5".risks = SortUtil.sortIssuesByKey(risks)
+        sections."sec5".proposedMeasures = SortUtil.sortIssuesByKey(proposedMeasuresDesription)
 
         def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
         metadata.orientation = "Landscape"
@@ -587,13 +587,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 repositories   : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections       : sections,
-                tests          : SortUtil.sortIssuesByProperties(installationTestIssues.collect { testIssue ->
+                tests          : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
                         key     : testIssue.key,
                         summary : testIssue.name,
                         techSpec: testIssue.techSpecs.join(", ") ?: "N/A"
                     ]
-                }, ["key"]),
+                }),
                 testsOdsService: testsOfRepoTypeOdsService,
                 testsOdsCode   : testsOfRepoTypeOdsCode
             ],
@@ -641,7 +641,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 repositories      : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections          : sections,
-                tests             : SortUtil.sortIssuesByProperties(installationTestIssues.collect { testIssue ->
+                tests             : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
                         description: testIssue.description ?: "",
@@ -650,7 +650,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         summary    : testIssue.name,
                         techSpec   : testIssue.techSpecs.join(", ") ?: "N/A"
                     ]
-                }, ["key"]),
+                }),
                 numAdditionalTests: junit.getNumberOfTestCases(installationTestData.testResults) - installationTestIssues.count { !it.isUnexecuted },
                 testFiles         : SortUtil.sortIssuesByProperties(installationTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
@@ -722,7 +722,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections            : sections,
-                integrationTests    : SortUtil.sortIssuesByProperties(integrationTestIssues.collect { testIssue ->
+                integrationTests    : SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : testIssue.description,
@@ -734,8 +734,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
                     ]
-                }, ["key"]),
-                acceptanceTests     : SortUtil.sortIssuesByProperties(acceptanceTestIssues.collect { testIssue ->
+                }),
+                acceptanceTests     : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : testIssue.description,
@@ -747,7 +747,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
                     ]
-                }, ["key"]),
+                }),
                 integrationTestFiles: SortUtil.sortIssuesByProperties(integrationTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
@@ -781,7 +781,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                integrationTests: SortUtil.sortIssuesByProperties(integrationTestIssues.collect { testIssue ->
+                integrationTests: SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : testIssue.description,
@@ -789,8 +789,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : testIssue.steps
                     ]
-                }, ["key"]),
-                acceptanceTests : SortUtil.sortIssuesByProperties(acceptanceTestIssues.collect { testIssue ->
+                }),
+                acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
                         description : testIssue.description,
@@ -798,7 +798,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : testIssue.steps
                     ]
-                }, ["key"]),
+                }),
                 documentHistory: docHistory.getDocGenFormat(docHistoryIssues),
             ]
         ]
@@ -814,7 +814,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        def componentsMetadata = SortUtil.sortIssuesByProperties(this.computeComponentMetadata(documentType).collect { it.value }, ["key"])
+        def componentsMetadata = SortUtil.sortIssuesByKey(this.computeComponentMetadata(documentType).values())
         def systemDesignSpecifications = this.project.getTechnicalSpecifications()
             .findAll { it.systemDesignSpec }
             .collect { techSpec ->
@@ -1022,6 +1022,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [
                 key        : r.key,
                 name       : r.name,
+                //TODO add predecessors
                 description: r.description,
                 risks      : r.risks.join(", "),
                 tests      : r.tests.join(", ")
@@ -1029,7 +1030,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         if (!sections."sec4") sections."sec4" = [:]
-        sections."sec4".systemRequirements = SortUtil.sortIssuesByProperties(systemRequirements, ["key"])
+        sections."sec4".systemRequirements = SortUtil.sortIssuesByKey(systemRequirements)
         def docHistory = this.getAndStoreDocumentHistory(documentType)
         def docHistoryIssues = [
             Project.JiraDataItem.TYPE_REQUIREMENTS,
@@ -1447,7 +1448,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         } else {
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
-            def latestValidVersionId = this.getLatestDocVersionId(documentType)
+            def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentType)
             docHistory.load(jiraData, latestValidVersionId)
 
@@ -1533,11 +1534,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * @param document to be gathered the id of
      * @return string with the valid id
      */
-    protected Long getLatestDocVersionId(String document) {
+    protected Long getLatestDocVersionId(String document, List<String> environments = null) {
         if (this.project.historyForDocumentExists(document)) {
             this.project.getHistoryForDocument(document).getVersion()
         } else {
-            def trackingIssues =  this.getDocumentTrackingIssues(document)
+            def trackingIssues =  this.getDocumentTrackingIssues(document, environments)
             this.jiraUseCase.getLatestDocVersionId(trackingIssues)
         }
     }

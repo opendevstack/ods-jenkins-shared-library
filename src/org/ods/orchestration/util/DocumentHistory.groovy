@@ -37,7 +37,7 @@ class DocumentHistory {
     }
 
     DocumentHistory load(Map jiraData, Long savedVersionId = null) {
-        this.latestVersionId = (savedVersionId ?:0L) + 1L
+        this.latestVersionId = (savedVersionId ?: 0L) + 1L
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData)
         if (this.allIssuesAreValid) {
             if (savedVersionId && savedVersionId != 0L) {
@@ -56,19 +56,20 @@ class DocumentHistory {
 
     List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve,
                                                        ProjectDataBitbucketRepository repo = null) {
-        def fileName = this.getSavedDocumentName(versionIdToRetrieve)
-        this.logger.debug("Retrieving saved document history with name '${fileName}'.")
+        def fileName = this.getSavedDocumentName()
+        this.logger.debug("Retrieving saved document history with name '${fileName}' " +
+            "with version '${versionIdToRetrieve}' in workspace '${this.steps.env.WORKSPACE}'.")
         if (!repo) {
             repo = new ProjectDataBitbucketRepository(steps)
         }
         def content = repo.loadFile(fileName)
         try {
-            content.collect{ Map entry ->
+            content.collect { Map entry ->
                 if (! entry.entryId) {
-                    throw new RuntimeException('EntryId cannot be empty')
+                    throw new IllegalArgumentException('EntryId cannot be empty')
                 }
                 if (! entry.projectVersion) {
-                    throw new RuntimeException('projectVersion cannot be empty')
+                    throw new IllegalArgumentException('projectVersion cannot be empty')
                 }
                 new DocumentHistoryEntry(
                     entry,
@@ -79,8 +80,9 @@ class DocumentHistory {
                 )
             }
 
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to load saved document history for file '${fileName}': ${e.message}", e)
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException('Unable to load saved document history for file ' +
+                "'${fileName}': ${e.message}", e)
         }
     }
 
@@ -100,9 +102,9 @@ class DocumentHistory {
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
                 [ type: type,
-                  (ADD +'ed'): SortUtil.sortIssuesByProperties(issues.findAll { it.action == ADD }, ['key']),
-                  (CHANGE + 'd'): SortUtil.sortIssuesByProperties(changed, ['key']),
-                  (DELETE + 'd'): SortUtil.sortIssuesByProperties(issues.findAll { it.action == DELETE }, ['key']),
+                  (ADD + 'ed'): SortUtil.sortIssuesByKey(issues.findAll { it.action == ADD }),
+                  (CHANGE + 'd'): SortUtil.sortIssuesByKey(changed),
+                  (DELETE + 'd'): SortUtil.sortIssuesByKey(issues.findAll { it.action == DELETE }),
                 ]
             }
 
@@ -118,7 +120,7 @@ class DocumentHistory {
         def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
             .collect { [action: it.action, key: it.number] }, 'key')
         return [ type: 'document sections',
-                 (ADD +'ed'): docIssues.findAll { it.action == ADD },
+                 (ADD + 'ed'): docIssues.findAll { it.action == ADD },
                  (CHANGE + 'd'): docIssues.findAll { it.action == CHANGE },
                  (DELETE + 'd'): docIssues.findAll { it.action == DELETE },
         ]
@@ -133,7 +135,7 @@ class DocumentHistory {
     // Do not remove me. Sort is not supported by the Jenkins runtime
     @NonCPS
     protected List<DocumentHistoryEntry> sortDocHistories(List<DocumentHistoryEntry> dhs) {
-        dhs.sort { a, b -> b.getEntryId() <=> a.getEntryId() }
+        dhs.sort { it.getEntryId() }
     }
 
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
@@ -167,14 +169,14 @@ class DocumentHistory {
      * @return rational message
      */
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
-        def oldVersionsSimplified = (this.data.clone() as List<DocumentHistoryEntry>).collect {
+        def oldVersionsSimplified = this.data.collect {
             [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
         }.findAll { it.id != currentEntry.getEntryId() }
         def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
         if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size()) {
             throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
-                "Project has as previous project version ${currentEntry.getPreviousProjectVersion()} " +
+                "Project has as previous project version '${currentEntry.getPreviousProjectVersion()}' " +
                 'but no document history containing that ' +
                 'version can be found. Please check the file named ' +
                 "'${this.getSavedDocumentName()}.json'" +
@@ -188,13 +190,6 @@ class DocumentHistory {
             return " This document version invalidates the changes done in document version${pluralS} " +
                 "'${concurrentVersions.join(', ')}'."
         }
-    }
-
-    @NonCPS
-    private static List<String> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
-        // DO NOT remove this method. Takewhile is not supported by Jenkins and must be used in a Non-CPS method
-        versions.takeWhile { it.version != previousProjVersion }
-            .collect { it.id }
     }
 
     private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {
@@ -222,7 +217,7 @@ class DocumentHistory {
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map<String, Map> issues) {
         // Filter chapter issues for this document only
         if (issueType == Project.JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentType)}
+            issues = issues.findAll { it.value.documents.contains(this.documentType) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }
@@ -241,10 +236,17 @@ class DocumentHistory {
         if (Project.JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
             result << [documents: issue.documents, number: issue.number]
         }
-        if (action.equalsIgnoreCase(CHANGE)){
+        if (action.equalsIgnoreCase(CHANGE)) {
             result << [predecessors: issue.predecessors]
         }
         return result
+    }
+
+    @NonCPS
+    private static List<String> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
+        // DO NOT remove this method. Takewhile is not supported by Jenkins and must be used in a Non-CPS method
+        versions.takeWhile { it.version != previousProjVersion }
+            .collect { it.id }
     }
 
 }

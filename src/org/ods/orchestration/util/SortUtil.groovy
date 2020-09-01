@@ -16,6 +16,12 @@ class SortUtil {
     }
 
     @NonCPS
+    // Sorts a collection of maps in the order of the jira key
+    static List<Map> sortIssuesByKey(Collection<Map> issues) {
+        return sortIssuesByProperties(issues, ['key'])
+    }
+
+    @NonCPS
     // Sorts a collection of maps in the order of the keys in properties
     static List<Map> sortHeadingNumbers(Collection<Map> issueKeys, String numberKey) {
         return issueKeys.sort { number ->

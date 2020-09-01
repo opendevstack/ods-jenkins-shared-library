@@ -372,7 +372,10 @@ class JiraUseCase {
             }
             return versionNumber
         }
-        return versionList.max()
+        def result = versionList.max()
+        logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
+            "${trackingIssues.collect { it.key } }")
+        return result
     }
 
     private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
