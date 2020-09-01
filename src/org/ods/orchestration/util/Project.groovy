@@ -1397,6 +1397,8 @@ class Project {
                     left[issueType][issueToUpdateKey][link.linkType] << link.origin
                     left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link."replaces" }
                 }
+                // Remove potential duplicates
+                left[issueType][issueToUpdateKey][link.linkType].unique(true)
             }
 
             def reverseLinkIndex = buildChangesInLinks(left, right)
