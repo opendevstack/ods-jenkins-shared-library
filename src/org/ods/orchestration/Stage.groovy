@@ -55,7 +55,6 @@ class Stage {
                     reportError.initCause(e)
                     throw reportError
                 }
-                logger.debug("Project content " + project)//TODO deleteme
 
                 throw eThrow
             } finally {
