@@ -898,11 +898,18 @@ class Project {
 
     /**
      * Checks if the JIRA version supports the versioning feature
+     * If jira or JiraUsecase is not enabled -> false
+     * If templates version is 1.0 -> false
+     * Otherwise, check from Jira
      * @ true if versioning is enabled
      */
-    protected boolean checkIfVersioningIsEnabled(String projectKey, String versionName) {
+    boolean checkIfVersioningIsEnabled(String projectKey, String versionName) {
         if (!this.jiraUseCase) return false
         if (!this.jiraUseCase.jira) return false
+        def levaDocsCapability = this.getCapability('LeVADocs')
+        if (levaDocsCapability.templatesVersion == '1.0') {
+            return false
+        }
         return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
     }
 
@@ -1207,7 +1214,7 @@ class Project {
 
             def templatesVersion = levaDocsCapability.LeVADocs?.templatesVersion
             if (!templatesVersion) {
-                levaDocsCapability.LeVADocs.templatesVersion = '1.0'
+                levaDocsCapability.LeVADocs.templatesVersion = '1.1'
             }
         }
 

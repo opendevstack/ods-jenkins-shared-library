@@ -384,7 +384,7 @@ class ProjectSpec extends SpecHelper {
             [
                 "LeVADocs": [
                     GAMPCategory: 5,
-                    templatesVersion: "1.0"
+                    templatesVersion: "1.1"
                 ]
             ]
         ]
@@ -420,7 +420,7 @@ class ProjectSpec extends SpecHelper {
         then:
         project.getCapability("LeVADocs") == [
             GAMPCategory: 5,
-            templatesVersion: "1.0"
+            templatesVersion: "1.1"
         ]
 
         when:
@@ -1152,14 +1152,14 @@ class ProjectSpec extends SpecHelper {
                 (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
             ]]
         ]]
+        projectObj.data.metadata = [capabilities:[[LeVADocs:[GAMPCategory: 5,templatesVersion: "1.1"]]]]
 
         def projectKey = "DEMO"
 
         project = createProject([
             "loadJiraData": {
                 return projectObj.loadJiraData(projectKey)
-            },
-            "versioningIsEnabled": { return false }
+            }
         ])
 
         when:
@@ -1443,7 +1443,7 @@ class ProjectSpec extends SpecHelper {
         def result = project.init()
 
         then:
-        result.getCapability("LeVADocs").templatesVersion == "1.0"
+        result.getCapability("LeVADocs").templatesVersion == "1.1"
 
         cleanup:
         metadataFile.delete()
@@ -2329,7 +2329,7 @@ class ProjectSpec extends SpecHelper {
         Project spied =  Spy(projectObj)
         spied.getJiraProjectKey() >> projectKey
         spied.loadVersionDataFromJira(_) >> {String versionName -> [id: 1, name: versionName] }
-
+        spied.getCapability('LeVADocs') >> [templatesVersion: '1.1']
         return spied
     }
 
@@ -2407,6 +2407,53 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == expected
+    }
+
+    def "assert if versioning is enabled for the project"() {
+        given:
+        def versionEnabled
+        def jiraServiceStubs = { JiraService it ->
+            it.isVersionEnabledForDelta(*_) >> {
+                return versionEnabled
+            }
+        }
+        def project = setupWithJiraService( jiraServiceStubs )
+
+        when:
+        versionEnabled = true
+        def result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        result
+
+        when:
+        versionEnabled = false
+        result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        !result
+
+        when:
+        versionEnabled = false
+        result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        project.getCapability('LeVADocs') >> [templatesVersion: '1.0']
+
+        then:
+        !result
+
+        when:
+        versionEnabled = true
+        result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        project.getCapability('LeVADocs') >> [templatesVersion: '1.0']
+
+        then:
+        !result
+
+
 
     }
 }
