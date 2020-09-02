@@ -80,7 +80,10 @@ Available options are:
 | Deprecated in 3.x! Please use option `failOnVulnerabilities` on `odsComponentStageScanWithSnyk`.
 
 | openshiftBuildTimeout
-| Deprecated in 3.x! Please use option `buildTimeoutMinutes` on `odsComponentBuildOpenShiftImage`.
+| Deprecated in 3.x! Please use option `buildTimeoutMinutes` on `odsComponentStageBuildOpenShiftImage`.
+
+| openshiftRolloutTimeout
+| Deprecated in 3.x! Please use option `deployTimeoutMinutes` on `odsComponentStageRolloutOpenShiftDeployment`.
 |===
 
 == Pipeline Context
