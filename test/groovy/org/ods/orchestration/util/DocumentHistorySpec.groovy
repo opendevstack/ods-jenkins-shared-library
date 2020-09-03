@@ -82,7 +82,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks                 : [[key: rsk1.key, action: 'add']],
             tests                 : [[key: tst1.key, action: 'add'], [key: tst2.key, action: 'add']],
             techSpecs             : [[key: ts1.key, action: 'add']]], 1L, firstProjectVersion, '',
-            "Modifications for project version '${firstProjectVersion}'.")]
+            "Initial document version.")]
 
         this.jiraData11_first = [
             bugs        : [:],
@@ -407,7 +407,7 @@ class DocumentHistorySpec extends SpecHelper {
     def "changes document chapter key for the number when getting history for document type"() {
         setup:
         def targetEnvironment = 'D'
-        def savedVersionId = 0L
+        def savedVersionId = 1L
 
         def base_saved_data = [
             bugs                   : [:],
@@ -420,26 +420,27 @@ class DocumentHistorySpec extends SpecHelper {
             tests                  : [:],
             techSpecs              : [:],
             (Project.JiraDataItem.TYPE_DOCS) : [
-                'added1':[key: "added1", versions: ['1'], number: 'numberOfAdded1', documents: ['doc1', 'doc2']],
-                'added2':[key: "added2", versions: ['1'], number: 'numberOfAdded2', documents: ['doc1'], predecessors: []],
-                'otherDocCh':[key: "otherDocCh", versions: ['1'], number: 'shouldNotAppear', documents: ['doc2']],
-                'changed1':[key: "changed1", versions: ['1'], number: 'numberOfChanged', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],
+                'added1':[key: "added1", versions: ['1'], number: 'numberOfAdded1', name: 'name', documents: ['doc1', 'doc2']],
+                'added2':[key: "added2", versions: ['1'], number: 'numberOfAdded2', name: 'name', documents: ['doc1'], predecessors: []],
+                'otherDocCh':[key: "otherDocCh", versions: ['1'], number: 'shouldNotAppear', name: 'name', documents: ['doc2']],
+                'changed1':[key: "changed1", versions: ['1'], number: 'numberOfChanged', name: 'name', documents: ['doc1', 'doc2'], predecessors: ['somePredec']],
             ],
-            discontinuationsPerType: [(Project.JiraDataItem.TYPE_DOCS) : [[key: "discontinued", versions: ['1'], number: 'discontinuedNum', documents: ['doc1']]]]
+            discontinuationsPerType: [(Project.JiraDataItem.TYPE_DOCS) : [[key: "discontinued", versions: ['1'], number: 'discontinuedNum', name: 'name', documents: ['doc1']]]]
         ]
 
 
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'doc1'])
+        history.loadSavedDocHistoryData(savedVersionId) >> [new DocumentHistoryEntry([:], 1L, '1.0', '', 'Initial document version.')]
         history.load(base_saved_data, savedVersionId)
 
         when:
-        def result = history.getDocGenFormat([])
+        def result = history.getDocGenFormat()
 
         then:
-        result.first().issueType.first().type == 'document sections'
-        result.first().issueType.first().added == [[action:'add', key:'numberOfAdded1'], [action:'add', key:'numberOfAdded2']]
-        result.first().issueType.first().changed == [[action:'change', key:'numberOfChanged']]
-        result.first().issueType.first().discontinued == [[action:'discontinue', key:'discontinuedNum']]
+        result.last().issueType.first().type == 'document sections'
+        result.last().issueType.first().added == [[action:'add', key:'numberOfAdded1 name'], [action:'add', key:'numberOfAdded2 name']]
+        result.last().issueType.first().changed == [[action:'change', key:'numberOfChanged name']]
+        result.last().issueType.first().discontinued == [[action:'discontinue', key:'discontinuedNum name']]
     }
 
     def "returns data for DocGen sorted"() {
@@ -453,7 +454,27 @@ class DocumentHistorySpec extends SpecHelper {
 
         when:
         history.load(jiraData, savedVersionId)
-        def result = history.getDocGenFormat([])
+        def result = history.getDocGenFormat()
+
+        then:
+        1 * history.loadSavedDocHistoryData(_) >> savedData
+
+        then:
+        result.collect { it.entryId } == [1, 2]
+    }
+
+    def "returns data for DocGen with "() {
+        setup:
+        def jiraData = jiraData11_first
+        def targetEnvironment = 'D'
+        def savedVersionId = 1L
+        def savedData = entries10
+
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+        when:
+        history.load(jiraData, savedVersionId)
+        def result = history.getDocGenFormat()
 
         then:
         1 * history.loadSavedDocHistoryData(_) >> savedData
@@ -559,6 +580,156 @@ class DocumentHistorySpec extends SpecHelper {
         history.latestVersionId == 2L
         assert entryListIsEquals(history.data, versionEntries)
         history.data == versionEntries
+    }
+
+    def "filters issues to what we have in the document"() {
+        given:
+        def targetEnvironment = 'D'
+        def savedVersionId = null
+
+        def cmp = {  name, String version = null ->  [key: "Technology-${name}" as String, name: name, versions: [version]]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions: [version]]}
+        def ts  = {  name, String version = null ->  [key: "TS-${name}"  as String, description:name, versions: [version]]}
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions: [version]]}
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions: [version]]}
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions: [version]]}
+
+        def firstProjectVersion = '1.0'
+
+        def cmp1 = cmp('frontend', firstProjectVersion )
+        def req1 = req('1', firstProjectVersion)
+        def ts1 = ts('1', firstProjectVersion)
+        def rsk1 = rsk('1', firstProjectVersion)
+        def tst1 = tst('1', firstProjectVersion)
+        def tst2 = tst('toDiscontinue', firstProjectVersion)
+        def mit1 = mit('toChange', firstProjectVersion)
+
+        def jiraData = [
+            bugs        : [:],
+            version     : firstProjectVersion,
+            previousVersion: null,
+            components  : [(cmp1.key):cmp1],
+            epics       : [:],
+            mitigations : [(mit1.key):mit1],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1, (tst2.key): tst2],
+            techSpecs   : [(ts1.key):ts1],
+            docs        : [:],
+            discontinuationsPerType : [:]
+        ]
+
+        def result = [new DocumentHistoryEntry([
+            bugs                  : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components            : [],
+            epics                 : [],
+            mitigations           : [],
+            requirements          : [[key: req1.key, action: 'add']],
+            risks                 : [],
+            tests                 : [[key: tst1.key, action: 'add']],
+            techSpecs             : []], 1L, firstProjectVersion, '',
+            "Initial document version.")]
+
+        def compareItems = ['bugs', 'components', 'epics', 'mitigations', 'requirements', 'risks',
+                            'tests', 'techSpecs', Project.JiraDataItem.TYPE_DOCS]
+        def issuesToInclude = [req1.key, tst1.key]
+
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+
+        when:
+        history.load(jiraData, savedVersionId, issuesToInclude)
+
+        then:
+        compareItems.each {
+            history.data.first()[it] == result.first()[it]
+        }
+        history.data.first() == result.first()
+    }
+
+
+    def "handle filtered issues that might have no longer be in the document"() {
+        given:
+        def targetEnvironment = 'D'
+        def savedVersionId = 1L
+
+        def cmp = {  name, String version = null ->  [key: "Technology-${name}" as String, name: name, versions: [version]]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions: [version]]}
+        def ts  = {  name, String version = null ->  [key: "TS-${name}"  as String, description:name, versions: [version]]}
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions: [version]]}
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions: [version]]}
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions: [version]]}
+
+        def firstProjectVersion = '1.0'
+        def secondProjectVersion = '2.0'
+
+        def cmp1 = cmp('frontend', firstProjectVersion )
+        def req1 = req('1', firstProjectVersion)
+        def ts1 = ts('1', firstProjectVersion)
+        def rsk1 = rsk('1', firstProjectVersion)
+        def tst1 = tst('1', firstProjectVersion)
+        def tst2 = tst('2', firstProjectVersion)
+        def mit1 = mit('1', firstProjectVersion)
+
+        def req2 = req('2', secondProjectVersion)
+        def tst1c = tst('1changed', secondProjectVersion) << [predecessors: [tst1.key]]
+
+        def jiraData = [
+            bugs        : [:],
+            version     : secondProjectVersion,
+            previousVersion: firstProjectVersion,
+            components  : [(cmp1.key):cmp1],
+            epics       : [:],
+            mitigations : [(mit1.key):mit1],
+            requirements: [(req1.key): req1,(req2.key): req2],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1c.key): tst1c, (tst2.key): tst2],
+            techSpecs   : [(ts1.key):ts1],
+            docs        : [:],
+            discontinuationsPerType : [:]
+        ]
+
+        def savedData = [new DocumentHistoryEntry([
+            bugs                  : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components            : [],
+            epics                 : [],
+            mitigations           : [],
+            requirements          : [[key: req1.key, action: 'add']],
+            risks                 : [],
+            tests                 : [[key: tst1.key, action: 'add']],
+            techSpecs             : []], 1L, firstProjectVersion, '',
+            "Initial document version.")]
+
+        def result = [new DocumentHistoryEntry([
+            bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components  : [],
+            epics       : [],
+            mitigations : [],
+            requirements: [[key: req2.key, action: 'add']],
+            risks       : [],
+            tests       : [[key: tst1.key, action: 'discontinue']],
+            techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion ,
+            "Modifications for project version '${secondProjectVersion}'.")] + savedData
+
+        def compareItems = ['bugs', 'components', 'epics', 'mitigations', 'requirements', 'risks',
+                            'tests', 'techSpecs', Project.JiraDataItem.TYPE_DOCS]
+
+        def issuesToInclude = [req1.key, req2.key]
+
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+        history.loadSavedDocHistoryData(savedVersionId) >> savedData
+
+
+        when:
+        history.load(jiraData, savedVersionId, issuesToInclude)
+
+        then:
+        compareItems.each {
+            history.data.first()[it] == result.first()[it]
+        }
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {

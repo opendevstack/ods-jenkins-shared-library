@@ -39,9 +39,9 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
     }
 
-    DocumentHistory load(Map jiraData, Long savedVersionId = null) {
+    DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys = null) {
         this.latestVersionId = (savedVersionId ?: 0L) + 1L
-        def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData)
+        def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
         if (this.allIssuesAreValid) {
             if (savedVersionId && savedVersionId != 0L) {
                 this.data = this.loadSavedDocHistoryData(savedVersionId)
@@ -97,10 +97,20 @@ class DocumentHistory {
         this.data
     }
 
-    List<Map> getDocGenFormat(List<String> issueTypes) {
+    List<Map> getDocGenFormat() {
+        def issueTypes = Project.JiraDataItem.TYPES - Project.JiraDataItem.TYPE_DOCS
         def transformEntry =  { DocumentHistoryEntry e ->
+            if (e.getEntryId() == 1L) {
+                return [
+                    entryId: e.getEntryId(),
+                    rational: e.getRational(),
+                    ]
+            }
             def formatedIssues = issueTypes.collect { type ->
                 def issues = e.getOrDefault(type, [])
+                if (issues.isEmpty()) {
+                    return null
+                }
                 def changed = issues.findAll { it.action == CHANGE }.clone()
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
@@ -109,7 +119,7 @@ class DocumentHistory {
                   (CHANGED): SortUtil.sortIssuesByKey(changed),
                   (DELETED): SortUtil.sortIssuesByKey(issues.findAll { it.action == DELETE }),
                 ]
-            }
+            }.findAll { it }
 
             return [entryId: e.getEntryId(),
                     rational: e.getRational(),
@@ -120,8 +130,8 @@ class DocumentHistory {
     }
 
     protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
-        def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, [])
-            .collect { [action: it.action, key: it.number] }, 'key')
+        def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, []), 'number')
+            .collect { [action: it.action, key: "${it.number} ${it.name}"] }
         return [ type: 'document sections',
                  (ADDED): docIssues.findAll { it.action == ADD },
                  (CHANGED): docIssues.findAll { it.action == CHANGE },
@@ -161,8 +171,10 @@ class DocumentHistory {
     }
 
     private String createRational(DocumentHistoryEntry currentEntry) {
+        if (currentEntry.getEntryId() == 1L) {
+            return "Initial document version."
+        }
         def versionText = "Modifications for project version '${currentEntry.getProjectVersion()}'."
-
         return versionText + rationaleIfConcurrentVersionsAreFound(currentEntry)
     }
 
@@ -195,7 +207,7 @@ class DocumentHistory {
         }
     }
 
-    private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData) {
+    private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData, List<String> keysInDocument) {
         logger.debug("Parsing jira data to document history")
         def projectVersion = jiraData.version
         def previousProjectVersion = jiraData.previousVersion ?: ''
@@ -203,12 +215,14 @@ class DocumentHistory {
         def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { String issueType, Map<String, Map> issues ->
                 checkIfAllIssuesHaveVersions(issues.values())
-                def issuesOfThisVersion = getIssueChangesForVersion(projectVersion, issueType, issues)
+                def issuesOfThisVersion = this.filterIssues(issues, projectVersion, issueType, keysInDocument)
                 [(issueType): issuesOfThisVersion]
             }
         def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [:])
             .collectEntries { String issueType, List<Map> issues ->
-                [(issueType): issues.collect { computeIssueContent(issueType, DELETE, it) } ]
+                def result = issues.findAll { keysInDocument?.contains(it.key) ?: true }
+                    .collect { computeIssueContent(issueType, DELETE, it) }
+                [(issueType): result ]
             }
         def versionMap = Project.JiraDataItem.TYPES.collectEntries { String issueType ->
             [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
@@ -217,6 +231,17 @@ class DocumentHistory {
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
+
+    private List<Map> filterIssues(Map<String, Map> issues, String version,
+                                   String issueType, List<String> keysInDocument) {
+        def result = issues
+        def isNotDocTypes = !issueType.equalsIgnoreCase(Project.JiraDataItem.TYPE_DOCS)
+        if (keysInDocument && !keysInDocument.isEmpty() && isNotDocTypes) {
+            result = issues.subMap(keysInDocument)
+        }
+        return this.getIssueChangesForVersion(version, issueType, result)
+
+    }
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map<String, Map> issues) {
         // Filter chapter issues for this document only
         if (issueType == Project.JiraDataItem.TYPE_DOCS) {
@@ -237,7 +262,7 @@ class DocumentHistory {
     private Map computeIssueContent(String issueType, String action, Map issue) {
         def result = [key: issue.key, action: action]
         if (Project.JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
-            result << [documents: issue.documents, number: issue.number]
+            result << issue.subMap(['documents', 'number', 'name'])
         }
         if (action.equalsIgnoreCase(CHANGE)) {
             result << [predecessors: issue.predecessors]

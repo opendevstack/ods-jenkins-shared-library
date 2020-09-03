@@ -859,6 +859,10 @@ class Project {
         return this.data.documentHistories.getOrDefault(document, [:])
     }
 
+    List<DocumentHistory> findHistoryForDocumentType(String documentType) {
+        return this.data.documentHistories.keySet().find { it.startsWith(documentType) }
+    }
+
     void setHistoryForDocument(DocumentHistory docHistory, String document) {
         if (!this.data.documentHistories) this.data.documentHistories = [:]
         this.data.documentHistories[document] = docHistory

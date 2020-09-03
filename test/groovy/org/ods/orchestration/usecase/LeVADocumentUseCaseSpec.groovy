@@ -432,7 +432,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getSystemRequirements()
+        2 * project.getSystemRequirements()
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -947,7 +947,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.computeComponentMetadata(documentType) >> compMetadata
-        1 * project.getTechnicalSpecifications()
+        2 * project.getTechnicalSpecifications()
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
         sq.loadReportsFromPath(_) >> sqReportFiles
 
@@ -982,7 +982,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        2 * project.getRisks()
+        3 * project.getRisks()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentTemplate, null, _, [:], _, documentType, watermarkText) >> uri
@@ -1145,6 +1145,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallDTR()
 
         then:
+        1 * project.findHistoryForDocumentType(*_) >> [docHistory]
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
@@ -1163,6 +1164,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallTIR()
 
         then:
+        1 * project.findHistoryForDocumentType(*_) >> [docHistory]
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
@@ -1489,13 +1491,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentSections(_) >> docChapters2
         1 * usecase.computeComponentMetadata(_) >> compMetadata
-        1 * project.getTechnicalSpecifications() >> techSpecs
 
         then:
         1 * usecase.convertImages(_)
         1 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
         1 * usecase.createDocument(*_) >> ''
         usecase.obtainCodeReviewReport(*_) >> []
+        project.getTechnicalSpecifications() >> techSpecs
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
 }
