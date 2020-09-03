@@ -325,7 +325,7 @@ When using this approach, you need to keep a few things in mind:
 
 - Any changes done in the OpenShift web console will effectively be reverted with each deploy. When you store templates in code, all changes must be applied to them.
 - You can always preview the changes that will happen by running `tailor diff` from your local machine.
-- `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes. When you remove the image trigger, it is crucial to configure `imagePullPolicy: Always` for the container, otherwise you might roll out old images.
+- `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes. When you remove the image trigger, it is crucial to add the internal registry to the `image` field, and to configure `imagePullPolicy: Always` for the container (otherwise you might roll out old images).
 
 If you want to use https://github.com/opendevstack/tailor#working-with-secrets[encrypted secrets with Tailor], you have to create a keypair for Jenkins so that the pipeline can use it to decrypt the parameters. The easiest way to do this is to create an OpenShift secret named `tailor-private-key` and sync it with Jenkins as a credential. Example:
 ```
