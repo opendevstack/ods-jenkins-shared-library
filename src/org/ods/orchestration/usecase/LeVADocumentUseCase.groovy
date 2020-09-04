@@ -1425,21 +1425,22 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }.collect { it.key }
     }
 
-    protected DocumentHistory getAndStoreDocumentHistory(String documentType, List<String> keysInDoc = null) {
+    protected DocumentHistory getAndStoreDocumentHistory(String documentName, List<String> keysInDoc = null) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
-        if (this.project.historyForDocumentExists(documentType)) {
-            return this.project.getHistoryForDocument(documentType)
+        if (this.project.historyForDocumentExists(documentName)) {
+            return this.project.getHistoryForDocument(documentName)
         } else {
+            def documentType = documentName.split('-').first()
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
             def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
-            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentType)
+            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
             docHistory.load(jiraData, latestValidVersionId, keysInDoc)
 
             // Save the doc history to project class, so it can be persisted when considered
-            this.project.setHistoryForDocument(docHistory, documentType)
+            this.project.setHistoryForDocument(docHistory, documentName)
 
             return docHistory
         }
