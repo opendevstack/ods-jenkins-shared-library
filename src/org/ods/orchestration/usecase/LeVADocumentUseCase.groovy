@@ -265,7 +265,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
-        def docHistory = this.project.findHistoryForDocumentType(documentType).first()
+        def docHistory = this.project.findHistoryForDocumentType(documentType)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -973,7 +973,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
-        def docHistory = this.project.findHistoryForDocumentType(documentType).first()
+        def docHistory = this.project.findHistoryForDocumentType(documentType)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }

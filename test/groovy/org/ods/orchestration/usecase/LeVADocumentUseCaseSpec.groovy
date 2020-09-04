@@ -1145,7 +1145,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallDTR()
 
         then:
-        1 * project.findHistoryForDocumentType(*_) >> [docHistory]
+        1 * project.findHistoryForDocumentType(*_) >> docHistory
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
@@ -1164,7 +1164,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallTIR()
 
         then:
-        1 * project.findHistoryForDocumentType(*_) >> [docHistory]
+        1 * project.findHistoryForDocumentType(*_) >> docHistory
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")

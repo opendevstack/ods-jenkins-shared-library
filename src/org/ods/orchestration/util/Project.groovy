@@ -859,8 +859,10 @@ class Project {
         return this.data.documentHistories.getOrDefault(document, [:])
     }
 
-    List<DocumentHistory> findHistoryForDocumentType(String documentType) {
-        return this.data.documentHistories.keySet().find { it.startsWith(documentType) }
+    DocumentHistory findHistoryForDocumentType(String documentType) {
+        // All docHistories for DTR and TIR should have the same version
+        def key = this.data.documentHistories.keySet().find { it.startsWith(documentType) }
+        return this.getHistoryForDocument(key)
     }
 
     void setHistoryForDocument(DocumentHistory docHistory, String document) {
