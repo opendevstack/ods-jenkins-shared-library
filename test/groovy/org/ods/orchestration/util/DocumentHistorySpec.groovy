@@ -671,7 +671,7 @@ class DocumentHistorySpec extends SpecHelper {
         def tst1 = tst('1', firstProjectVersion)
         def tst2 = tst('2', firstProjectVersion)
         def mit1 = mit('1', firstProjectVersion)
-
+        def rskDisc = rsk('disctontinued', firstProjectVersion)
         def req2 = req('2', secondProjectVersion)
         def tst1c = tst('1changed', secondProjectVersion) << [predecessors: [tst1.key]]
 
@@ -687,7 +687,7 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [(tst1c.key): tst1c, (tst2.key): tst2],
             techSpecs   : [(ts1.key):ts1],
             docs        : [:],
-            discontinuationsPerType : [:]
+            discontinuationsPerType : [risks:[rskDisc]]
         ]
 
         def savedData = [new DocumentHistoryEntry([
@@ -702,7 +702,7 @@ class DocumentHistorySpec extends SpecHelper {
             techSpecs             : []], 1L, firstProjectVersion, '',
             "Initial document version.")]
 
-        def result = [new DocumentHistoryEntry([
+        def result = new DocumentHistoryEntry([
             bugs        : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
@@ -712,10 +712,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [[key: tst1.key, action: 'discontinue']],
             techSpecs   : []], 2L, secondProjectVersion, firstProjectVersion ,
-            "Modifications for project version '${secondProjectVersion}'.")] + savedData
-
-        def compareItems = ['bugs', 'components', 'epics', 'mitigations', 'requirements', 'risks',
-                            'tests', 'techSpecs', Project.JiraDataItem.TYPE_DOCS]
+            "Modifications for project version '${secondProjectVersion}'.")
 
         def issuesToInclude = [req1.key, req2.key]
 
@@ -727,9 +724,15 @@ class DocumentHistorySpec extends SpecHelper {
         history.load(jiraData, savedVersionId, issuesToInclude)
 
         then:
-        compareItems.each {
-            history.data.first()[it] == result.first()[it]
-        }
+        history.data.first().bugs == result.bugs
+        history.data.first().components == result.components
+        history.data.first().epics == result.epics
+        history.data.first().mitigations == result.mitigations
+        history.data.first().requirements == result.requirements
+        history.data.first().risks == result.risks
+        history.data.first().tests == result.tests
+        history.data.first().techSpecs == result.techSpecs
+        history.data.first()[Project.JiraDataItem.TYPE_DOCS] == result[Project.JiraDataItem.TYPE_DOCS]
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {

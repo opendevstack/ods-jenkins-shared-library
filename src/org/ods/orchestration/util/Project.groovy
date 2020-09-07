@@ -466,6 +466,10 @@ class Project {
         !getIsPromotionMode()
     }
 
+    boolean getIsVersioningEnabled() {
+        isVersioningEnabled
+    }
+
     static boolean isPromotionMode(String targetEnvironmentToken) {
         ['Q', 'P'].contains(targetEnvironmentToken)
     }
@@ -945,14 +949,6 @@ class Project {
             }
         }
 
-        // FIXME: fix data types that should be sent correctly by the REST endpoint
-        //result.project.id = result.project.id as String
-
-        /*result.tests.each { key, test ->
-            test.id = test.id as String
-            test.bugs = test.bugs ?: []
-        } */
-
         return result
     }
 
@@ -1399,7 +1395,7 @@ class Project {
         // - Updating links for changes in issues (changing key 1 for key 2)
         def updateIssues = { Map<String,Map> left, Map<String,Map> right ->
             def updateLink = { String issueType, String issueToUpdateKey, Map link ->
-                if (! left[issueType][issueToUpdateKey].containsKey(link.linkType)) {
+                if (! left[issueType][issueToUpdateKey][link.linkType]) {
                     left[issueType][issueToUpdateKey][link.linkType] = []
                 }
                 if (link.action == 'add') {
@@ -1410,7 +1406,7 @@ class Project {
                     left[issueType][issueToUpdateKey][link.linkType] << link.origin
                     left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link."replaces" }
                 }
-                // Remove potential duplicates
+                // Remove potential duplicates in place
                 left[issueType][issueToUpdateKey][link.linkType].unique(true)
             }
 

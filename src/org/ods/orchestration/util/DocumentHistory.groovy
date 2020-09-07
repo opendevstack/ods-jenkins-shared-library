@@ -39,13 +39,13 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
     }
 
-    DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys = null) {
+    DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys = []) {
         this.latestVersionId = (savedVersionId ?: 0L) + 1L
+        if (savedVersionId && savedVersionId != 0L) {
+            this.data = this.loadSavedDocHistoryData(savedVersionId)
+        }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
         if (this.allIssuesAreValid) {
-            if (savedVersionId && savedVersionId != 0L) {
-                this.data = this.loadSavedDocHistoryData(savedVersionId)
-            }
             newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
             this.data.add(newDocDocumentHistoryEntry)
             this.data = sortDocHistories(this.data).reverse()
@@ -82,7 +82,6 @@ class DocumentHistory {
                     entry.rational
                 )
             }
-
         } catch (Exception e) {
             throw new IllegalArgumentException('Unable to load saved document history for file ' +
                 "'${fileName}': ${e.message}", e)
@@ -129,6 +128,17 @@ class DocumentHistory {
         sortDocHistories(this.data).collect { transformEntry(it) }
     }
 
+    @SuppressWarnings(['UseCollectMany'])
+    protected List<String> getDocumentKeys() {
+        def result = this.data.collect { e ->
+            e.getDelegate().collect { type, actions -> actions.collect { it.key } }
+        }.flatten()
+        if (result) {
+            return result
+        }
+        return []
+    }
+
     protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
         def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, []), 'number')
             .collect { [action: it.action, key: "${it.number} ${it.name}"] }
@@ -151,6 +161,40 @@ class DocumentHistory {
         dhs.sort { it.getEntryId() }
     }
 
+    private static Map computeDiscontinuations(Map jiraData, List<String> previousDocumentIssues) {
+        jiraData.getOrDefault("discontinuationsPerType", [:])
+            .collectEntries { String issueType, List<Map> issues ->
+                def discont = discontinuedIssuesThatWereInDocument(issueType, previousDocumentIssues, issues)
+                [(issueType): discont.collect { computeIssueContent(issueType, DELETE, it) } ]
+            }
+    }
+
+    private static List<Map> discontinuedIssuesThatWereInDocument(String issuesType, List<String> previousDocIssues,
+                                                                  List<Map> discontinued) {
+        if (issuesType.equalsIgnoreCase(Project.JiraDataItem.TYPE_DOCS)) {
+            discontinued
+        } else {
+            discontinued.findAll { previousDocIssues.contains(it.key) }
+        }
+    }
+
+    private static Map computeIssueContent(String issueType, String action, Map issue) {
+        def result = [key: issue.key, action: action]
+        if (Project.JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
+            result << issue.subMap(['documents', 'number', 'name'])
+        }
+        if (action.equalsIgnoreCase(CHANGE)) {
+            result << [predecessors: issue.predecessors]
+        }
+        return result
+    }
+
+    @NonCPS
+    private static List<String> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
+        // DO NOT remove this method. Takewhile is not supported by Jenkins and must be used in a Non-CPS method
+        versions.takeWhile { it.version != previousProjVersion }.collect { it.id }
+    }
+
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
         if (jiraIssues) {
             def issuesWithNoVersion = jiraIssues.findAll { Map i ->
@@ -161,7 +205,7 @@ class DocumentHistory {
                 //    ' version for all the elements. In this case, the following items have this state: ' +
                 //    "'${issuesWithNoVersion*.key.join(', ')}'")
                 this.logger.warn('Document history not valid. We don\'t have a version for  the following' +
-                    " elements'${issuesWithNoVersion.collect {it.key }.join(', ')}'. " +
+                    " elements'${issuesWithNoVersion.collect { it.key }.join(', ')}'. " +
                     'If you are not using versioning ' +
                     'and its automated document history you can ignore this warning. Otherwise, make sure ' +
                     'all the issues have a version attached to it.')
@@ -212,37 +256,53 @@ class DocumentHistory {
         def projectVersion = jiraData.version
         def previousProjectVersion = jiraData.previousVersion ?: ''
         this.allIssuesAreValid = true
-        def additionsAndUpdates = jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
-            .collectEntries { String issueType, Map<String, Map> issues ->
-                checkIfAllIssuesHaveVersions(issues.values())
-                def issuesOfThisVersion = this.filterIssues(issues, projectVersion, issueType, keysInDocument)
-                [(issueType): issuesOfThisVersion]
-            }
-        def discontinuations = jiraData.getOrDefault("discontinuationsPerType", [:])
-            .collectEntries { String issueType, List<Map> issues ->
-                def result = issues.findAll { keysInDocument?.contains(it.key) ?: true }
-                    .collect { computeIssueContent(issueType, DELETE, it) }
-                [(issueType): result ]
-            }
-        def versionMap = Project.JiraDataItem.TYPES.collectEntries { String issueType ->
-            [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
-                + discontinuations.getOrDefault(issueType, [])]
-        } as Map
+
+        def versionMap = this.computeEntryData(jiraData, projectVersion, keysInDocument)
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
+    private Map computeEntryData(Map jiraData, String projectVersion, List<String> keysInDocument) {
+        def previousDocumentIssues = this.getDocumentKeys()
+        def additionsAndUpdates = this.computeAdditionsAndUpdates(jiraData, projectVersion)
+        def discontinuations = computeDiscontinuations(jiraData, previousDocumentIssues)
 
-    private List<Map> filterIssues(Map<String, Map> issues, String version,
-                                   String issueType, List<String> keysInDocument) {
-        def result = issues
-        def isNotDocTypes = !issueType.equalsIgnoreCase(Project.JiraDataItem.TYPE_DOCS)
-        if (keysInDocument && !keysInDocument.isEmpty() && isNotDocTypes) {
-            result = issues.subMap(keysInDocument)
-        }
-        return this.getIssueChangesForVersion(version, issueType, result)
+        def addUpdDisc = Project.JiraDataItem.TYPES.collectEntries { String issueType ->
+            [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
+                + discontinuations.getOrDefault(issueType, [])]
+        } as Map
 
+        return this.computeIssuesThatAreNotInDocumentAnymore(previousDocumentIssues, addUpdDisc, keysInDocument)
     }
-    private List<Map> getIssueChangesForVersion(String version, String issueType, Map<String, Map> issues) {
+
+    private Map computeIssuesThatAreNotInDocumentAnymore(
+        List<String> previousDocIssues, Map versionActions, List<String> issuesInDoc) {
+        if (!issuesInDoc) { return versionActions }
+
+        def issuesNotInDocAnymore = previousDocIssues - issuesInDoc
+        versionActions.collectEntries { issueType, actions ->
+            def typeResult = actions.collect { Map a ->
+                if (issuesInDoc.contains(a.key)) {
+                    a
+                } else if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors)) {
+                    a.predecessors.collect { computeIssueContent(issueType, DELETE, [key: it]) }
+                } else {
+                    null
+                }
+            }
+            [(issueType): typeResult.flatten() - [null]]
+        }
+    }
+
+    private Map computeAdditionsAndUpdates(Map jiraData, String projectVersion) {
+        jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
+            .collectEntries { String issueType, Map<String, Map> issues ->
+                checkIfAllIssuesHaveVersions(issues.values())
+                def issuesOfThisVersion = this.getIssueChangesForVersion(projectVersion, issueType, issues)
+                [(issueType): issuesOfThisVersion]
+            }
+    }
+
+    private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == Project.JiraDataItem.TYPE_DOCS) {
             issues = issues.findAll { it.value.documents.contains(this.documentType) }
@@ -257,24 +317,6 @@ class DocumentHistory {
                     computeIssueContent(issueType, ADD, issue)
                 }
             }
-    }
-
-    private Map computeIssueContent(String issueType, String action, Map issue) {
-        def result = [key: issue.key, action: action]
-        if (Project.JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
-            result << issue.subMap(['documents', 'number', 'name'])
-        }
-        if (action.equalsIgnoreCase(CHANGE)) {
-            result << [predecessors: issue.predecessors]
-        }
-        return result
-    }
-
-    @NonCPS
-    private static List<String> getConcurrentVersions(List<Map> versions, String previousProjVersion) {
-        // DO NOT remove this method. Takewhile is not supported by Jenkins and must be used in a Non-CPS method
-        versions.takeWhile { it.version != previousProjVersion }
-            .collect { it.id }
     }
 
 }
