@@ -285,7 +285,7 @@ class DocumentHistory {
             def typeResult = actions.collect { Map a ->
                 if (issuesInDoc.contains(a.key)) {
                     a
-                } else if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors)) {
+                } else if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors ?: [])) {
                     a.predecessors.collect { computeIssueContent(issueType, DELETE, [key: it]) }
                 } else {
                     null

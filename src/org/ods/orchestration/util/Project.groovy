@@ -1430,7 +1430,7 @@ class Project {
         if (!oldData || oldData.isEmpty()) {
             newData
         } else {
-            newData[JiraDataItem.TYPE_COMPONENTS] = this.mergeComponentsLinks(oldData, newData)
+            oldData[JiraDataItem.TYPE_COMPONENTS] = this.mergeComponentsLinks(oldData, newData)
             def discontinuations = newData.getOrDefault('discontinuations',[]) +
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
@@ -1443,6 +1443,7 @@ class Project {
             def obsoleteKeys = discontinuations + getPreceededKeys(newDataExpanded)
             def oldDataWithoutObsoletes = removeObsoleteIssues(oldDataWithUpdatedLinks, obsoleteKeys)
 
+            newDataExpanded[JiraDataItem.TYPE_COMPONENTS] = oldDataWithoutObsoletes[JiraDataItem.TYPE_COMPONENTS]
             mergeMaps(oldDataWithoutObsoletes, newDataExpanded)
         }
     }
