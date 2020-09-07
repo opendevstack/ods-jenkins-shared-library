@@ -2,6 +2,7 @@ package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
+import org.ods.orchestration.util.Project.JiraDataItem
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
@@ -97,7 +98,7 @@ class DocumentHistory {
     }
 
     List<Map> getDocGenFormat() {
-        def issueTypes = Project.JiraDataItem.TYPES - Project.JiraDataItem.TYPE_DOCS
+        def issueTypes = JiraDataItem.TYPES - JiraDataItem.TYPE_DOCS
         def transformEntry =  { DocumentHistoryEntry e ->
             if (e.getEntryId() == 1L) {
                 return [
@@ -130,9 +131,10 @@ class DocumentHistory {
 
     @SuppressWarnings(['UseCollectMany'])
     protected List<String> getDocumentKeys() {
-        def result = this.data.collect { e ->
-            e.getDelegate().collect { type, actions -> actions.collect { it.key } }
-        }.flatten()
+        def result = this.data.findAll { JiraDataItem.TYPES.contains(it) }
+            .collect { e ->
+                e.getDelegate().collect { type, actions -> actions.collect { it.key } }
+            }.flatten()
         if (result) {
             return result
         }
@@ -140,7 +142,7 @@ class DocumentHistory {
     }
 
     protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
-        def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(Project.JiraDataItem.TYPE_DOCS, []), 'number')
+        def docIssues = SortUtil.sortHeadingNumbers(entry.getOrDefault(JiraDataItem.TYPE_DOCS, []), 'number')
             .collect { [action: it.action, key: "${it.number} ${it.name}"] }
         return [ type: 'document sections',
                  (ADDED): docIssues.findAll { it.action == ADD },
@@ -171,7 +173,7 @@ class DocumentHistory {
 
     private static List<Map> discontinuedIssuesThatWereInDocument(String issuesType, List<String> previousDocIssues,
                                                                   List<Map> discontinued) {
-        if (issuesType.equalsIgnoreCase(Project.JiraDataItem.TYPE_DOCS)) {
+        if (issuesType.equalsIgnoreCase(JiraDataItem.TYPE_DOCS)) {
             discontinued
         } else {
             discontinued.findAll { previousDocIssues.contains(it.key) }
@@ -180,7 +182,7 @@ class DocumentHistory {
 
     private static Map computeIssueContent(String issueType, String action, Map issue) {
         def result = [key: issue.key, action: action]
-        if (Project.JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
+        if (JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
             result << issue.subMap(['documents', 'number', 'name'])
         }
         if (action.equalsIgnoreCase(CHANGE)) {
@@ -266,7 +268,7 @@ class DocumentHistory {
         def additionsAndUpdates = this.computeAdditionsAndUpdates(jiraData, projectVersion)
         def discontinuations = computeDiscontinuations(jiraData, previousDocumentIssues)
 
-        def addUpdDisc = Project.JiraDataItem.TYPES.collectEntries { String issueType ->
+        def addUpdDisc = JiraDataItem.TYPES.collectEntries { String issueType ->
             [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
                 + discontinuations.getOrDefault(issueType, [])]
         } as Map
@@ -294,7 +296,7 @@ class DocumentHistory {
     }
 
     private Map computeAdditionsAndUpdates(Map jiraData, String projectVersion) {
-        jiraData.findAll { Project.JiraDataItem.TYPES.contains(it.key) }
+        jiraData.findAll { JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { String issueType, Map<String, Map> issues ->
                 checkIfAllIssuesHaveVersions(issues.values())
                 def issuesOfThisVersion = this.getIssueChangesForVersion(projectVersion, issueType, issues)
@@ -304,7 +306,7 @@ class DocumentHistory {
 
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
-        if (issueType == Project.JiraDataItem.TYPE_DOCS) {
+        if (issueType == JiraDataItem.TYPE_DOCS) {
             issues = issues.findAll { it.value.documents.contains(this.documentType) }
         }
 

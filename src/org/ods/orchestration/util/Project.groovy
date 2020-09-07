@@ -998,7 +998,7 @@ class Project {
         // Get more info of the versions from Jira
         def predecessors = newData.getOrDefault("precedingVersions", [])
         def previousVersionId = null
-        if (! predecessors.isEmpty()) {
+        if (predecessors && ! predecessors.isEmpty()) {
             previousVersionId = predecessors.first()
         }
         if (previousVersionId) {
