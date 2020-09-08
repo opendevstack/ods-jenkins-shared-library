@@ -40,16 +40,16 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
     }
 
-    DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys = []) {
+    DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys) {
         this.latestVersionId = (savedVersionId ?: 0L) + 1L
         if (savedVersionId && savedVersionId != 0L) {
-            this.data = this.loadSavedDocHistoryData(savedVersionId)
+            this.data = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
         if (this.allIssuesAreValid) {
             newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
-            this.data.add(newDocDocumentHistoryEntry)
-            this.data = sortDocHistories(this.data).reverse()
+            this.data.add(0, newDocDocumentHistoryEntry)
+            this.data = sortDocHistoriesReversed(this.data)
         }
         this
     }
@@ -131,9 +131,10 @@ class DocumentHistory {
 
     @SuppressWarnings(['UseCollectMany'])
     protected List<String> getDocumentKeys() {
-        def result = this.data.findAll { JiraDataItem.TYPES.contains(it) }
+        def result = this.data
             .collect { e ->
-                e.getDelegate().collect { type, actions -> actions.collect { it.key } }
+                e.findAll { JiraDataItem.TYPES.contains(it.key) }
+                    .collect { type, actions -> actions.collect { it.key } }
             }.flatten()
         if (result) {
             return result
@@ -161,6 +162,11 @@ class DocumentHistory {
     @NonCPS
     protected static List<DocumentHistoryEntry> sortDocHistories(List<DocumentHistoryEntry> dhs) {
         dhs.sort { it.getEntryId() }
+    }
+
+    @NonCPS
+    protected static List<DocumentHistoryEntry> sortDocHistoriesReversed(List<DocumentHistoryEntry> dhs) {
+        sortDocHistories(dhs).reverse()
     }
 
     private static Map computeDiscontinuations(Map jiraData, List<String> previousDocumentIssues) {
@@ -287,6 +293,8 @@ class DocumentHistory {
                     a
                 } else if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors ?: [])) {
                     a.predecessors.collect { computeIssueContent(issueType, DELETE, [key: it]) }
+                } else if (a.type == DELETE) {
+                    a
                 } else {
                     null
                 }

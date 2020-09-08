@@ -1443,21 +1443,25 @@ class Project {
             def obsoleteKeys = discontinuations + getPreceededKeys(newDataExpanded)
             def oldDataWithoutObsoletes = removeObsoleteIssues(oldDataWithUpdatedLinks, obsoleteKeys)
 
-            newDataExpanded[JiraDataItem.TYPE_COMPONENTS] = oldDataWithoutObsoletes[JiraDataItem.TYPE_COMPONENTS]
+            // merge old component data to new for the existing components
+            newDataExpanded[JiraDataItem.TYPE_COMPONENTS] = newDataExpanded[JiraDataItem.TYPE_COMPONENTS]
+                .collectEntries { compN, v ->
+                    [ (compN): oldDataWithoutObsoletes[JiraDataItem.TYPE_COMPONENTS].getOrDefault(compN, v)]
+                }
             mergeMaps(oldDataWithoutObsoletes, newDataExpanded)
         }
     }
 
     /**
-     * Return new components with the links coming from the old data. This is because we are not receiving all
+     * Return old components with the links coming from the new data. This is because we are not receiving all
      * the old links from the docgen reports for the components. and we need a special merge.
      * @param oldComponents components of the saved data
      * @param newComponents components for the new data
      * @return merged components with all the links
      */
     private Map mergeComponentsLinks(Map oldComponents, Map newComponents) {
-        newComponents[JiraDataItem.TYPE_COMPONENTS].collectEntries { compName, newComp ->
-            def oldComp = oldComponents[JiraDataItem.TYPE_COMPONENTS].getOrDefault(compName, [:])
+        oldComponents[JiraDataItem.TYPE_COMPONENTS].collectEntries { compName, oldComp ->
+            def newComp = newComponents[JiraDataItem.TYPE_COMPONENTS].getOrDefault(compName, [:])
             def updatedComp = mergeJiraItemLinks(oldComp, newComp)
             [(compName): updatedComp]
         }
