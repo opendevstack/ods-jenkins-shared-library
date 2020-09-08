@@ -56,7 +56,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
 
         docHistory = new DocumentHistory(steps, logger, 'D', 'someDocument')
-        docHistory.load(project.data.jira)
+        docHistory.load(project.data.jira, [])
         usecase.getAndStoreDocumentHistory(*_) >> docHistory
     }
 
