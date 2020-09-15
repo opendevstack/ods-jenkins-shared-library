@@ -16,6 +16,8 @@ class GitService {
         this.logger = logger
     }
 
+    // mergedIssueId gets the issue ID from the merged branch.
+    // This only works on merge commits.
     static String mergedIssueId(String project, String repository, String commitMessage) {
         def b = mergedBranch(project, repository, commitMessage)
         if (b) {
@@ -34,6 +36,19 @@ class GitService {
         ''
     }
 
+    // Looks for an issue ID of form "PROJ-123" in the commit message.
+    // If multiple such issue IDs are present, the first one is returned.
+    static String issueIdFromCommit(String commitMessage, String projectId) {
+        def uppercaseProject = projectId.toUpperCase()
+        def msgMatcher = commitMessage =~ /${uppercaseProject}-([0-9]+)/
+        if (msgMatcher) {
+            return msgMatcher[0][1]
+        }
+        return ''
+    }
+
+    // Looks for an issue ID of form "PROJ-123" in the branch name.
+    // If multiple such issue IDs are present, the first one is returned.
     static String issueIdFromBranch(String branchName, String projectId) {
         def tokens = extractBranchCode(branchName).split('-')
         def pId = tokens[0]

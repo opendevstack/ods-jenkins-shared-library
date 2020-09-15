@@ -397,7 +397,14 @@ class Context implements IContext {
     }
 
     String getIssueId() {
-        GitService.issueIdFromBranch(config.gitBranch, config.projectId)
+        if (!config.containsKey("issueId")) {
+            config.issueId = GitService.issueIdFromBranch(
+                config.gitBranch, config.projectId
+            ) ?: GitService.issueIdFromCommit(
+                config.gitCommitMessage, config.projectId
+            )
+        }
+        config.issueId
     }
 
     // This logic must be consistent with what is described in README.md.
