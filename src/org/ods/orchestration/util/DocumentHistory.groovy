@@ -320,7 +320,7 @@ class DocumentHistory {
 
         issues.findAll { it.value.versions?.contains(version) }
             .collect { issueKey, issue ->
-                def isAnUpdate = !issue.getOrDefault('predecessors', []).isEmpty()
+                def isAnUpdate = issue.get('predecessors') != null && !issue.getOrDefault('predecessors', []).isEmpty()
                 if (isAnUpdate) {
                     computeIssueContent(issueType, CHANGE, issue)
                 } else {
