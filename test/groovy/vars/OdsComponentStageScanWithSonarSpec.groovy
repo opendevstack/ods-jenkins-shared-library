@@ -142,7 +142,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     then:
     printCallStack()
-    assertCallStackContains("Skipping as branch 'feature/foo' is not covered by the 'branch' option.")
+    assertCallStackContains("Skipping stage 'SonarQube Analysis' for branch 'feature/foo'")
     assertJobStatusSuccess()
   }
 
