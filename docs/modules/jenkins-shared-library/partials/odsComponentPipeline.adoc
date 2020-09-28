@@ -169,7 +169,7 @@ The `context` object contains the following properties:
 | Git commit time in RFC 3399.
 
 | issueId
-| Jira issue ID if any present in the branch name (e.g. `123` from branch `feature/FOO-123-bar-baz`).
+| Jira issue ID if any present in either commit message or branch name (e.g. `123` from commit message `FOO-123: Bar` or branch `feature/FOO-123-bar`). If the issue ID is present in both, the branch name has precedence.
 
 | openshiftHost
 | OpenShift host - value taken from `OPENSHIFT_API_URL`.
