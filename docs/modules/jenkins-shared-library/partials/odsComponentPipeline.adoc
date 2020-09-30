@@ -50,7 +50,10 @@ Available options are:
 | Serviceaccount to use when running the pod.
 
 | notifyNotGreen
-| Whether to send notifications if the build is not successful.
+| Whether to send notifications if the build is not successful. Enabled by default.
+
+| emailextRecipients
+| Notify to this list of emails when `notifyNotGreen` is enabled. It is empty by default.
 
 | branchToEnvironmentMapping
 | Define which branches are deployed to which environments, see <<_git_workflow_branch_to_environment_mapping,Git Workflow / Branch to Environment Mapping>>

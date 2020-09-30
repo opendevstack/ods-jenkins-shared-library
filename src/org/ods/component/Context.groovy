@@ -113,6 +113,9 @@ class Context implements IContext {
         if (!config.containsKey('imagePromotionSequences')) {
             config.imagePromotionSequences = ['dev->test', 'test->prod']
         }
+        if (!config.containsKey('emailextRecipients')) {
+            config.emailextRecipients = null
+        }
         if (!config.groupId) {
             config.groupId = "org.opendevstack.${config.projectId}"
         }
@@ -158,6 +161,10 @@ class Context implements IContext {
 
     void setDebug(def debug) {
         config.debug = debug
+    }
+
+    List<String> getEmailextRecipients() {
+        config.emailextRecipients
     }
 
     String getJobName() {
