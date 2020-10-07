@@ -172,6 +172,7 @@ class Project {
             def item = Project.this.data.jiraResolved[this.type][this.key]
             return item[type] ?: []
         }
+        
         @NonCPS
         List<JiraDataItem> getResolvedBugs() {
             return this.getResolvedReferences(TYPE_BUGS)
