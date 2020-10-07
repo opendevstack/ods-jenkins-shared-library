@@ -244,7 +244,7 @@ class Project {
         this.logger = logger
 
         this.data.build = [
-                hasFailingTests       : false,
+                hasFailingTests: false,
                 hasUnexecutedJiraTests: false
         ]
     }
@@ -287,13 +287,13 @@ class Project {
         }
 
         this.data.git = [
-                commit   : git.getCommitSha(),
-                url      : git.getOriginUrl(),
-                baseTag  : baseTag ? baseTag.toString() : '',
+                commit: git.getCommitSha(),
+                url: git.getOriginUrl(),
+                baseTag: baseTag ? baseTag.toString() : '',
                 targetTag: targetTag ? targetTag.toString() : '',
-                author   : git.getCommitAuthor(),
-                message  : git.getCommitMessage(),
-                time     : git.getCommitTime()
+                author: git.getCommitAuthor(),
+                message: git.getCommitMessage(),
+                time: git.getCommitTime()
         ]
         this.logger.debug "Using release manager commit: ${this.data.git.commit}"
     }
@@ -354,12 +354,12 @@ class Project {
             if (data.containsKey(type)) {
                 result[type] = data[type]
                         .findAll { key, issue ->
-                            issue.status != null &&
+                        issue.status != null &&
                                     !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
                                     !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
                         }
                         .collect { key, issue ->
-                            return key
+                        return key
                         }
             }
         }
@@ -809,27 +809,27 @@ class Project {
         def rePromote = steps.env.rePromote?.trim() == 'true'
 
         return [
-                changeDescription        : changeDescription,
-                changeId                 : changeId,
-                configItem               : configItem,
+                changeDescription: changeDescription,
+                changeId: changeId,
+                configItem: configItem,
                 releaseStatusJiraIssueKey: releaseStatusJiraIssueKey,
-                targetEnvironment        : targetEnvironment,
-                targetEnvironmentToken   : targetEnvironmentToken,
-                version                  : version,
-                rePromote                : rePromote
+                targetEnvironment: targetEnvironment,
+                targetEnvironmentToken: targetEnvironmentToken,
+                version: version,
+                rePromote: rePromote
         ]
     }
 
     protected Map loadJiraData(String projectKey) {
         def result = [
-                components  : [:],
-                epics       : [:],
-                mitigations : [:],
-                project     : [:],
+                components: [:],
+                epics: [:],
+                mitigations: [:],
+                project: [:],
                 requirements: [:],
-                risks       : [:],
-                techSpecs   : [:],
-                tests       : [:],
+                risks: [:],
+                techSpecs: [:],
+                tests: [:],
         ]
 
         if (!this.jiraUseCase) return result
@@ -857,7 +857,7 @@ class Project {
         if (!this.jiraUseCase.jira) return [:]
 
         def jqlQuery = [
-                jql   : "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
+                jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
                 expand: [],
                 fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
         ]
@@ -865,11 +865,11 @@ class Project {
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
         return jiraBugs.collectEntries { jiraBug ->
             def bug = [
-                    key     : jiraBug.key,
-                    name    : jiraBug.fields.summary,
+                    key: jiraBug.key,
+                    name: jiraBug.fields.summary,
                     assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
-                    dueDate : '', // TODO: currently unsupported for not being enabled on a Bug issue
-                    status  : jiraBug.fields.status.name
+                    dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
+                    status: jiraBug.fields.status.name
             ]
 
             def testKeys = []
@@ -921,11 +921,11 @@ class Project {
             [
                     jiraIssue.key,
                     [
-                            key        : jiraIssue.key,
-                            name       : jiraIssue.fields.summary,
+                            key: jiraIssue.key,
+                            name: jiraIssue.fields.summary,
                             description: jiraIssue.fields.description,
-                            status     : jiraIssue.fields.status.name,
-                            labels     : jiraIssue.fields.labels,
+                            status: jiraIssue.fields.status.name,
+                            labels: jiraIssue.fields.labels,
                     ]
             ]
         }
@@ -940,13 +940,13 @@ class Project {
             [
                     jiraIssueType.name,
                     [
-                            id    : jiraIssueType.id,
-                            name  : jiraIssueType.name,
+                            id: jiraIssueType.id,
+                            name: jiraIssueType.name,
                             fields: this.jiraUseCase.jira.getIssueTypeMetadata(this.jiraProjectKey, jiraIssueType.id).values.collectEntries { value ->
                                 [
                                         value.name,
                                         [
-                                                id  : value.fieldId,
+                                                id: value.fieldId,
                                                 name: value.name,
                                         ]
                                 ]
