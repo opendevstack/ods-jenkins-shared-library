@@ -172,43 +172,43 @@ class Project {
             def item = Project.this.data.jiraResolved[this.type][this.key]
             return item[type] ?: []
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedBugs() {
             return this.getResolvedReferences(TYPE_BUGS)
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedComponents() {
             return this.getResolvedReferences(TYPE_COMPONENTS)
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedEpics() {
             return this.getResolvedReferences(TYPE_EPICS)
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedMitigations() {
             return this.getResolvedReferences(TYPE_MITIGATIONS)
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedSystemRequirements() {
             return this.getResolvedReferences(TYPE_REQUIREMENTS)
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedRisks() {
             return this.getResolvedReferences(TYPE_RISKS)
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedTechnicalSpecifications() {
             return this.getResolvedReferences(TYPE_TECHSPECS)
         }
-        
-        @NonCPS
+		
+      	@NonCPS
         List<JiraDataItem> getResolvedTests() {
             return this.getResolvedReferences(TYPE_TESTS)
         }
