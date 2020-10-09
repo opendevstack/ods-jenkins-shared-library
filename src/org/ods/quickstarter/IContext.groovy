@@ -34,6 +34,10 @@ interface IContext {
 
     String getOdsGitRef()
 
+    String getAgentImageTag()
+
+    String getSharedLibraryRef()
+
     String getTargetDir()
 
     String getPackageName()
