@@ -97,6 +97,91 @@ class BitbucketService {
         passwordCredentialsId
     }
 
+    String getDefaultReviewerConditions(String repo) {
+        String res
+        withTokenCredentials { username, token ->
+            res = script.sh(
+                label: 'Get default reviewer conditions via API',
+                script: """curl \\
+                  --fail \\
+                  -sS \\
+                  --request GET \\
+                  --header \"Authorization: Bearer ${token}\" \\
+                  ${bitbucketUrl}/rest/default-reviewers/1.0/projects/${project}/repos/${repo}/conditions""",
+                returnStdout: true
+            ).trim()
+        }
+        return res
+    }
+
+    // Returns a list of bitbucket user names (not display names) that are listed as the default reviewers of the given repo.
+    List<String> getDefaultReviewers(String repo) {
+        List reviewerConditions
+        try {
+            reviewerConditions = script.readJSON(text: getDefaultReviewerConditions(repo))
+        }
+        catch (Exception ex) {
+            logger.warn "Could not understand API response. Error was: ${ex}"
+            return []
+        }
+        List<String> reviewers = []
+        for (condition in reviewerConditions) {
+            for (reviewer in condition['reviewers']) {
+                reviewers.add(reviewer['name'])
+            }
+        }
+        return reviewers
+    }
+
+    // Creates pull request in "repo" from branch "fromRef" to "toRef". "reviewers" is a list of bitbucket user names.
+    String createPullRequest(String repo, String fromRef, String toRef, String title, String description, List<String> reviewers) {
+        String res
+        def payload = """{
+                "title": "${title}",
+                "description": "${description}",              
+                "state": "OPEN",
+                "open": true,
+                "closed": false,
+                "fromRef": {
+                    "id": "refs/heads/${fromRef}",
+                    "repository": {
+                        "slug": "${repo}",
+                        "name": null,
+                        "project": {
+                            "key": "${project}"
+                        }
+                    }
+                },
+                "toRef": {
+                    "id": "refs/heads/${toRef}",
+                    "repository": {
+                        "slug": "${repo}",
+                        "name": null,
+                        "project": {
+                            "key": "${project}"
+                        }
+                    }
+                },
+                "locked": false,
+                "reviewers": [${reviewers ? reviewers.collect {"{\"user\": { \"name\": \"${it}\" }}" }.join(',') : ''}]
+            }"""
+        withTokenCredentials { username, token ->
+            res = script.sh(
+                label: 'Create pull request via API',
+                script: """curl \\
+                  --fail \\
+                  -sS \\
+                  --request POST \\
+                  --header \"Authorization: Bearer ${token}\" \\
+                  --header \"Content-Type: application/json\" \\
+                  --data '${payload}' \\
+                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests""",
+                returnStdout: true
+            ).trim()
+        }
+        res
+    }
+
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).
     String getPullRequests(String repo, String state = 'OPEN') {
         String res
@@ -105,7 +190,7 @@ class BitbucketService {
                 label: 'Get pullrequests via API',
                 script: """curl \\
                   --fail \\
-                  --silent \\
+                  -sS \\
                   --header \"Authorization: Bearer ${token}\" \\
                   ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}""",
                 returnStdout: true
@@ -153,7 +238,7 @@ class BitbucketService {
                 label: "Post comment to PR#${pullRequestId}",
                 script: """curl \\
                   --fail \\
-                  --silent \\
+                  -sS \\
                   --request POST \\
                   --header \"Authorization: Bearer ${token}\" \\
                   --header \"Content-Type: application/json\" \\
@@ -177,7 +262,7 @@ class BitbucketService {
                         label: 'Set bitbucket build status via API',
                         script: """curl \\
                             --fail \\
-                            --silent \\
+                            -sS \\
                             --request POST \\
                             --header \"Authorization: Bearer ${token}\" \\
                             --header \"Content-Type: application/json\" \\
@@ -269,7 +354,7 @@ class BitbucketService {
                 returnStdout: true,
                 script: """set +x; curl \\
                   --fail \\
-                  --silent \\
+                  -sS \\
                   --request PUT \\
                   --header \"Content-Type: application/json\" \\
                   --header \"${AuthUtil.header(AuthUtil.SCHEME_BASIC, username, password)}\" \\
