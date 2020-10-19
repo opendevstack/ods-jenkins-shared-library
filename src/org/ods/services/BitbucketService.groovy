@@ -4,7 +4,7 @@ import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
 
-@SuppressWarnings('PublicMethodsBeforeNonPublicMethods')
+@SuppressWarnings(['PublicMethodsBeforeNonPublicMethods', 'ParameterCount'])
 class BitbucketService {
 
     // file name used to write token secret yaml
@@ -114,7 +114,8 @@ class BitbucketService {
         return res
     }
 
-    // Returns a list of bitbucket user names (not display names) that are listed as the default reviewers of the given repo.
+    // Returns a list of bitbucket user names (not display names)
+    // that are listed as the default reviewers of the given repo.
     List<String> getDefaultReviewers(String repo) {
         List reviewerConditions
         try {
@@ -134,11 +135,12 @@ class BitbucketService {
     }
 
     // Creates pull request in "repo" from branch "fromRef" to "toRef". "reviewers" is a list of bitbucket user names.
-    String createPullRequest(String repo, String fromRef, String toRef, String title, String description, List<String> reviewers) {
+    String createPullRequest(String repo, String fromRef, String toRef, String title, String description,
+                             List<String> reviewers) {
         String res
         def payload = """{
                 "title": "${title}",
-                "description": "${description}",              
+                "description": "${description}",
                 "state": "OPEN",
                 "open": true,
                 "closed": false,
@@ -163,7 +165,7 @@ class BitbucketService {
                     }
                 },
                 "locked": false,
-                "reviewers": [${reviewers ? reviewers.collect {"{\"user\": { \"name\": \"${it}\" }}" }.join(',') : ''}]
+                "reviewers": [${reviewers ? reviewers.collect { "{\"user\": { \"name\": \"${it}\" }}" }.join(',') : ''}]
             }"""
         withTokenCredentials { username, token ->
             res = script.sh(
