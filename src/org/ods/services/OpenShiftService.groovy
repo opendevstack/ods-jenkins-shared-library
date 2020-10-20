@@ -678,7 +678,6 @@ class OpenShiftService {
     }
 
     private void doTailorApply(String tailorParams) {
-        reloginToCurrentClusterIfNeeded()
         steps.sh(
             script: """tailor \
               ${tailorVerboseFlag()} \
