@@ -55,7 +55,8 @@ class DeployOdsComponent {
                     project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
                 )
 
-                def pod = os.getPodDataForDeployment(replicationController)
+                def pod = os.getPodDataForDeployment(replicationController,
+                    project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10)
 
                 verifyImageShas(deployment, pod.containers)
 

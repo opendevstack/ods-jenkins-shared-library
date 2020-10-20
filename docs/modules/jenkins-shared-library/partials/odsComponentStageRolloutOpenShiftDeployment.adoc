@@ -20,6 +20,9 @@ Available options:
 | deployTimeoutMinutes
 | Adjust timeout of rollout (defaults to 5 minutes). Caution: This needs to be aligned with the deployment strategy timeout (timeoutSeconds) and the readiness probe timeouts (initialDelaySeconds + failureThreshold * periodSeconds).
 
+| deployTimeoutRetries
+| Adjust retries to wait for the pod during a rollout (defaults to 5). 
+
 | openshiftDir
 | Directory with OpenShift templates (defaults to `openshift`).
 
