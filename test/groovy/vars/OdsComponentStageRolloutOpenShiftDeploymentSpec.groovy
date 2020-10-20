@@ -30,13 +30,14 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "run successfully without Tailor"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 6]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.getLatestVersion(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getPodDataForDeployment(*_) >> [ deploymentId: "${config.componentId}-124" ]
+    // test the handover of the poddata retries
+    openShiftService.getPodDataForDeployment(_,6) >> [ deploymentId: "${config.componentId}-124" ]
     openShiftService.getImagesOfDeploymentConfig (*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -61,7 +62,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "run successfully with Tailor"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
@@ -105,7 +106,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
   @Unroll
   def "fails when rollout info cannot be retrieved"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists({ it == 'DeploymentConfig' }, _) >> dcExists
@@ -138,7 +139,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
 
   def "skip when no environment given"() {
     given:
-    def config = [environment: null, gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e']
+    def config = [environment: null, gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e', openshiftRolloutTimeoutRetries: 5]
     def context = new Context(null, config, logger)
 
     when:

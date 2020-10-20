@@ -188,4 +188,10 @@ interface IContext {
     // get the application domain
     String getOpenshiftApplicationDomain ()
 
+    // set the rollout retry
+    void setOpenshiftRolloutTimeoutRetries (int retries)
+
+    // get the rollout retry
+    int getOpenshiftRolloutTimeoutRetries ()
+
 }

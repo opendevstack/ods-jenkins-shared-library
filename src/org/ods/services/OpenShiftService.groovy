@@ -430,8 +430,7 @@ class OpenShiftService {
         "${rcEventMessages}\n=== Events from Pod '${pod}' ===\n${podEventMessages}"
     }
 
-    Map getPodDataForDeployment(String rc) {
-        def retries = 5
+    Map getPodDataForDeployment(String rc, int retries) {
         for (def i = 0; i < retries; i++) {
             def podData = checkForPodData(rc)
             if (podData) {
@@ -574,7 +573,8 @@ class OpenShiftService {
             if (latestDeployedVersion < 1) {
                 logger.debug("Image SHAs of '${deploymentName}' could not be compared")
             } else {
-                podData = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
+                podData = getPodDataForDeployment(
+                    "${deploymentName}-${latestDeployedVersion}", 5)
             }
             pods[deploymentName] = podData
         }
