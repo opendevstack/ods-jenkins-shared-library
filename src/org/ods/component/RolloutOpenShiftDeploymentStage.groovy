@@ -28,6 +28,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.deployTimeoutMinutes) {
             config.deployTimeoutMinutes = context.openshiftRolloutTimeout ?: 5
         }
+        if (!config.deployTimeoutRetries) {
+            config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
+        }
         if (!config.openshiftDir) {
             config.openshiftDir = 'openshift'
         }
@@ -114,7 +117,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             script.error ex.message
         }
 
-        def pod = openShift.getPodDataForDeployment(replicationController)
+        def pod = openShift.getPodDataForDeployment(replicationController,
+            config.deployTimeoutRetries)
         context.addDeploymentToArtifactURIs(config.resourceName, pod)
 
         return pod

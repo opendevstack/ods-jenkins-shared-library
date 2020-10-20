@@ -87,6 +87,9 @@ Available options are:
 
 | openshiftRolloutTimeout
 | Deprecated in 3.x! Please use option `deployTimeoutMinutes` on `odsComponentStageRolloutOpenShiftDeployment`.
+
+| testResults
+| Configurable location for xunit test results, in case the build does not put them into `build/test-results/test`.
 |===
 
 == Pipeline Context
