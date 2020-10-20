@@ -385,6 +385,13 @@ The shared library already sets the build status of the built commit. It also
 provides three convenience methods on `BitbucketService` to interact with pull
 requests:
 
+- `String createPullRequest(String repo, String fromRef, String toRef, String title, String description, List<String> reviewers)`
+  creates a pull request in `repo` from branch `fromRef` to `toRef`.
+  `reviewers` is a list of bitbucket user names.
+- `List<String> getDefaultReviewers(String repo)` returns a list of bitbucket
+  user names (not display names) that are listed as the default reviewers of the given `repo`.
+- `String getDefaultReviewerConditions(String repo)` returns all default
+  reviewer conditions of the given `repo`, which can be parsed using `readJSON`.
 - `String getPullRequests(String repo, String state = 'OPEN')` returns
   all open pull requests, which can be parsed using `readJSON`.
 - `Map findPullRequest(String repo, String branch, String state = 'OPEN')`
