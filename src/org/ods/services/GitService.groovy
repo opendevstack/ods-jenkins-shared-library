@@ -74,13 +74,16 @@ class GitService {
         } else if (branch.startsWith('release/')) {
             def list = branch.drop('release/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
+        } else if (branch.startsWith('release-ods-generated/')) {
+            def list = branch.drop('release-ods-generated/'.length()).tokenize('-')
+            "${list[0]}-${list[1]}"
         } else {
             branch
         }
     }
 
     static String getReleaseBranch(String version) {
-        "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
+        "release-ods-generated/${version}"
     }
 
     String getOriginUrl() {
@@ -201,7 +204,7 @@ class GitService {
             extensions: extensions,
             userRemoteConfigs: userRemoteConfigs,
         ])
-    }
+        }
 
     boolean remoteTagExists(String name) {
         def tagStatus = script.sh(
