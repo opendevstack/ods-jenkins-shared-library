@@ -382,7 +382,7 @@ stage('Cleanup preview resources') {
 === Interacting with Bitbucket
 
 The shared library already sets the build status of the built commit. It also
-provides three convenience methods on `BitbucketService` to interact with pull
+provides convenience methods on `BitbucketService` to interact with pull
 requests:
 
 - `String createPullRequest(String repo, String fromRef, String toRef, String title, String description, List<String> reviewers)`
