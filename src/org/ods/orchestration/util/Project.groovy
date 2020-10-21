@@ -810,7 +810,7 @@ class Project {
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
-            rePromote: rePromote
+            rePromote: rePromote,
         ]
     }
 
@@ -863,7 +863,7 @@ class Project {
                 name: jiraBug.fields.summary,
                 assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
                 dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
-                status: jiraBug.fields.status.name
+                status: jiraBug.fields.status.name,
             ]
 
             def testKeys = []
@@ -919,7 +919,7 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
-                ]
+                ],
             ]
         }
     }
@@ -943,7 +943,7 @@ class Project {
                                 name: value.name,
                             ]
                         ]
-                    }
+                    },
                 ]
             ]
         }
@@ -1053,12 +1053,12 @@ class Project {
         return result
     }
 
-    public void reportPipelineStatus(String message = '', boolean isError = false) {
+    void reportPipelineStatus(String message = '', boolean isError = false) {
         if (!this.jiraUseCase) return
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
-    public void addCommentInReleaseStatus(String message) {
+    void addCommentInReleaseStatus(String message) {
         if (!this.jiraUseCase) return
         this.jiraUseCase.addCommentInReleaseStatus(message)
     }

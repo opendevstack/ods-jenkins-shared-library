@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1234,
+    "scope": {
+      "type": "PROJECT",
+      "resourceId": 4321
+    },
+    "sourceRefMatcher": {
+      "active": true,
+      "id": "ANY_REF_MATCHER_ID",
+      "displayId": "ANY_REF_MATCHER_ID",
+      "type": {
+        "id": "ANY_REF",
+        "name": "Any branch"
+      }
+    },
+    "targetRefMatcher": {
+      "active": true,
+      "id": "ANY_REF_MATCHER_ID",
+      "displayId": "ANY_REF_MATCHER_ID",
+      "type": {
+        "id": "ANY_REF",
+        "name": "Any branch"
+      }
+    },
+    "reviewers": [
+      {
+        "name": "john.doe@example.com",
+        "emailAddress": "john.doe@example.com",
+        "id": 12345,
+        "displayName": "Doe, John",
+        "active": true,
+        "slug": "john.doe_example.com",
+        "type": "NORMAL",
+        "links": {
+          "self": [
+            {
+              "href": "https://bitbucket.example.com/users/john.doe_example.com"
+            }
+          ]
+        }
+      },
+      {
+        "name": "jane.doe@example.com",
+        "emailAddress": "jane.doe@example.com",
+        "id": 54321,
+        "displayName": "Doe, Jane",
+        "active": true,
+        "slug": "jane.doe_example.com",
+        "type": "NORMAL",
+        "links": {
+          "self": [
+            {
+              "href": "https://bitbucket.example.com/users/jane.doe_example.com"
+            }
+          ]
+        }
+      }
+    ],
+    "requiredApprovals": 1
+  }
+]
