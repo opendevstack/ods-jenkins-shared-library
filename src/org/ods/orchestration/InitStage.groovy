@@ -324,6 +324,24 @@ class InitStage extends Stage {
 
         executeInParallel(checkoutClosure, loadClosure)
 
+        if(registry.get(JiraUseCase) && registry.get(JiraUseCase).jira){
+            logger.debug("Verify that each unit test in Jira project ${project.key} has exactly one component assigned.")
+            def faultMap = [:]
+            project.data.jira.tests
+                .findAll{it.value.get("testType") == "Unit"}
+                .each{entry ->
+                    if(entry.value.get("components").size() != 1){
+                        faultMap.put(entry.key, entry.value.get("components").size())
+                    }
+                }
+            if(faultMap.size() != 0){
+                def faultyTestIssues = faultMap.keySet()
+                    .collect{key -> key + ": " + faultMap.get(key) + "; "}
+                    .inject(""){temp, val -> temp + val}
+                throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
+            }
+        }
+
         // In promotion mode, we need to check if the checked out repos are on commits
         // which "contain" the commits defined in the env state.
         if (project.isPromotionMode && !project.buildParams.rePromote) {
