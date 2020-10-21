@@ -602,6 +602,25 @@ class OpenShiftService {
         true
     }
 
+    void reloginToCurrentClusterIfNeeded () {
+        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
+        def logDetails = logger.debugMode ? '' : 'set +x'
+        def success = steps.sh(
+            script: """
+                ${logDetails}
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
+                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+            """,
+            returnStatus: true,
+            label: 'Check if OCP session exists'
+        ) == 0
+        if (!success) {
+            throw new RuntimeException(
+                'Could not (re)login to cluster, this is a systemic failure'
+            )
+        }
+    }
+
     private void importImageFromProject(String sourceProject, String sourceImageRef, String targetImageRef) {
         steps.sh(
             script: """oc -n ${project} tag ${sourceProject}/${sourceImageRef} ${targetImageRef}""",
@@ -675,6 +694,7 @@ class OpenShiftService {
         Map<String,
         String> envParams,
         String targetFile) {
+        reloginToCurrentClusterIfNeeded()
         // Export
         steps.sh(
             script: "tailor ${tailorVerboseFlag()} -n ${exportProject} export ${tailorParams} > ${targetFile}",
