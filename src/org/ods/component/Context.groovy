@@ -540,6 +540,7 @@ class Context implements IContext {
     }
 
     // get the rollout retry
+    @NonCPS
     int getOpenshiftRolloutTimeoutRetries () {
         config.openshiftRolloutTimeoutRetries
     }
