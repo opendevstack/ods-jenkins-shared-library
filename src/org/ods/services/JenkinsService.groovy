@@ -22,17 +22,22 @@ class JenkinsService {
             xUnitResultDir = customXunitResultsDir.trim()
         }
 
-        logger.info "Attempting to stash testresults from location: '${xUnitResultDir}'"
+        logger.debug "Collecting (applicable) testresults from location: '${xUnitResultDir}'"
+        def logCommand = logger.debugMode ? '' : 'set +x'
         script.sh(
             script: """
-            mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${xUnitResultDir} &&
+                ${logCommand}
+                mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${xUnitResultDir} &&
                 cp -rf ${xUnitResultDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true
             """,
             label: "Moving test results to system location: ${XUNIT_SYSTEM_RESULT_DIR}"
           )
 
         def foundTests = script.sh(
-            script: "ls -la ${XUNIT_SYSTEM_RESULT_DIR}/*.xml | wc -l",
+            script: """
+                ${logCommand}
+                ls -la ${XUNIT_SYSTEM_RESULT_DIR}/*.xml | wc -l
+            """,
             returnStdout: true,
             label: "Counting test results in ${XUNIT_SYSTEM_RESULT_DIR}"
         ).trim()
@@ -56,7 +61,7 @@ class JenkinsService {
                 allowEmpty: true
             )
         } else {
-            logger.info 'No xUnit results found!!'
+            logger.debug 'No xUnit results for stashing'
         }
 
         return contextresultMap
@@ -81,7 +86,7 @@ class JenkinsService {
             try {
                 this.script.unstash(name)
             } catch (e) {
-                this.script.echo("Could not find any files of type '${type}' to unstash for name '${name}'")
+                logger.info ("Could not find any files of type '${type}' to unstash for name '${name}'")
                 result = false
             }
         }
