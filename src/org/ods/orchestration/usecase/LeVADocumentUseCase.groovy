@@ -111,12 +111,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def requirements = this.project.getSystemRequirements()
-        def reqsWithNoGampTopic = requirements. findAll { it.gampTopic == null }
+        this.steps.echo "DEBUG: ---- requirements \r${requirements.toString()}\r -----"
+
+        def reqsWithNoGampTopic = requirements.findAll { it.gampTopic == null }
         def reqsGroupedByGampTopic = requirements. findAll { it.gampTopic != null }
             .groupBy { it.gampTopic.toLowerCase() }
         reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic ]
+
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             def updatedReqs = reqs.collect { req ->
+            def epics = req.getResolvedEpics()
+            def epic = !epics.isEmpty() ? epics.first() : null
                 [
                     key           : req.key,
                     applicability : 'Mandatory',
@@ -126,12 +131,32 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     csDescription : this.convertImages(req.configSpec.description ?: ''),
                     fsName        : req.funcSpec.name ?: 'N/A',
                     fsDescription : this.convertImages(req.funcSpec.description ?: ''),
+                    epic          : epic?.key,
+                    epicName      : epic?.epicName,
+                    epicName2     : epic?.name,
                 ]
             }
+            
+            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll{ 
+                it.epic != null}.groupBy{it.epic}
 
+            def index = 0
+            def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
+                index = index + 1
+                [
+                        epicName : req.value.epicName.first(),
+                        key : req.key,
+                        epicIndex : index,
+                        stories : req.value
+                ]
+            }
+            def output = [
+                noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll{ it.epic == null },
+                epics  : SortUtil.sortIssuesByKey(reqsGroupByEpicUpdated)
+            ]
+            
             [
-                (gampTopic.replaceAll(' ', '').toLowerCase()):
-                SortUtil.sortIssuesByKey(updatedReqs)
+                (gampTopic.replaceAll(' ', '').toLowerCase()): output
             ]
         }
 
