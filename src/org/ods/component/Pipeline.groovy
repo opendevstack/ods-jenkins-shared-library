@@ -171,7 +171,7 @@ class Pipeline implements Serializable {
                 updateBuildStatus('FAILURE')
                 setBitbucketBuildStatus('FAILED')
                 if (notifyNotGreen) {
-                    doNotifyNotGreen()
+                    doNotifyNotGreen(context.emailextRecipients)
                 }
                 throw err
             }
@@ -242,7 +242,7 @@ class Pipeline implements Serializable {
                             updateBuildStatus('FAILURE')
                             setBitbucketBuildStatus('FAILED')
                             if (notifyNotGreen) {
-                                doNotifyNotGreen()
+                                doNotifyNotGreen(context.emailextRecipients)
                             }
                             if (!!script.env.MULTI_REPO_BUILD) {
                                 context.addArtifactURI('failedStage', script.env.STAGE_NAME)
@@ -306,18 +306,15 @@ class Pipeline implements Serializable {
         bitbucketService.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName)
     }
 
-    private void doNotifyNotGreen() {
+    private void doNotifyNotGreen(List<String> emailextRecipients) {
         String subject = "Build $context.componentId on project $context.projectId  failed!"
         String body = "<p>$subject</p> <p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> "
+        String recipients = emailextRecipients ? emailextRecipients.join(", ") : ''
 
         script.emailext(
             body: body, mimeType: 'text/html',
             replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
-            to: script.emailextrecipients([
-                [$class: 'CulpritsRecipientProvider'],
-                [$class: 'RequesterRecipientProvider'],
-                [$class: 'UpstreamComitterRecipientProvider']
-            ])
+            to: recipients
         )
     }
 

@@ -1,7 +1,6 @@
 package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import groovy.json.JsonOutput
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 
@@ -9,22 +8,22 @@ import java.nio.file.Paths
 
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.usecase.*
-import org.yaml.snakeyaml.Yaml
 import org.ods.services.GitService
 import org.ods.services.NexusService
-import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
+import org.yaml.snakeyaml.Yaml
 
 @SuppressWarnings(['LineLength',
-    'AbcMetric',
-    'IfStatementBraces',
-    'Instanceof',
-    'CyclomaticComplexity',
-    'GStringAsMapKey',
-    'ImplementationAsType',
-    'UseCollectMany',
-    'MethodCount',
-    'PublicMethodsBeforeNonPublicMethods'])
+        'AbcMetric',
+        'IfStatementBraces',
+        'Instanceof',
+        'CyclomaticComplexity',
+        'GStringAsMapKey',
+        'ImplementationAsType',
+        'UseCollectMany',
+        'MethodCount',
+        'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
     class JiraDataItem implements Map, Serializable {
@@ -336,8 +335,8 @@ class Project {
 
         if (this.hasWipJiraIssues()) {
             def message = 'Pipeline-generated documents are watermarked ' +
-                "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
-                'since the following issues are work in progress: '
+                    "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
+                    'since the following issues are work in progress: '
             this.getWipJiraIssues().each { type, keys ->
                 def values = keys instanceof Map ? keys.values().flatten() : keys
                 if (!values.isEmpty()) {
@@ -422,8 +421,8 @@ class Project {
 
             if (result && componentName) {
                 result = testIssue.getResolvedComponents()
-                    .collect { it.name.toLowerCase() }
-                    .contains(componentName.toLowerCase())
+                        .collect { it.name.toLowerCase() }
+                        .contains(componentName.toLowerCase())
             }
 
             if (result && testTypes) {
@@ -480,7 +479,7 @@ class Project {
 
     boolean isDeveloperPreviewMode() {
         return BUILD_PARAM_VERSION_DEFAULT.equalsIgnoreCase(this.data.buildParams.version) &&
-            this.data.buildParams.targetEnvironmentToken == "D"
+                this.data.buildParams.targetEnvironmentToken == "D"
     }
 
     static boolean isWorkInProgress(String version) {
@@ -669,9 +668,9 @@ class Project {
 
         this.steps.dir(path) {
             result = this.steps.sh(
-                label: "Get Git URL for repository at path '${path}' and origin '${remote}'",
-                script: "git config --get remote.${remote}.url",
-                returnStdout: true
+                    label: "Get Git URL for repository at path '${path}' and origin '${remote}'",
+                    script: "git config --get remote.${remote}.url",
+                    returnStdout: true
             ).trim()
         }
 
@@ -754,7 +753,7 @@ class Project {
 
             if (result && componentName) {
                 result = req.getResolvedComponents().collect { it.name.toLowerCase() }.
-                    contains(componentName.toLowerCase())
+                        contains(componentName.toLowerCase())
             }
 
             if (result && gampTopics) {
@@ -787,7 +786,7 @@ class Project {
 
             if (result && componentName) {
                 result = techSpec.getResolvedComponents().collect { it.name.toLowerCase() }.
-                    contains(componentName.toLowerCase())
+                        contains(componentName.toLowerCase())
             }
 
             return result
@@ -878,7 +877,7 @@ class Project {
         def releaseStatusJiraIssueKey = steps.env.releaseStatusJiraIssueKey?.trim()
         if (isTriggeredByChangeManagementProcess(steps) && !releaseStatusJiraIssueKey) {
             throw new IllegalArgumentException(
-                "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
+                    "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
         }
 
         def version = steps.env.version?.trim() ?: BUILD_PARAM_VERSION_DEFAULT
@@ -925,14 +924,14 @@ class Project {
 
     protected Map loadJiraData(String projectKey) {
         def result = [
-            components: [:],
-            epics: [:],
-            mitigations: [:],
-            project: [:],
-            requirements: [:],
-            risks: [:],
-            techSpecs: [:],
-            tests: [:],
+                components: [:],
+                epics: [:],
+                mitigations: [:],
+                project: [:],
+                requirements: [:],
+                risks: [:],
+                techSpecs: [:],
+                tests: [:],
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
@@ -960,7 +959,7 @@ class Project {
         def result = this.jiraUseCase.jira.getDocGenData(projectKey)
         if (result?.project?.id == null) {
             throw new IllegalArgumentException(
-                "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
+                    "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
         def docChapterData = this.getDocumentChapterData(projectKey)
         result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
@@ -1022,9 +1021,9 @@ class Project {
         if (!this.jiraUseCase.jira) return [:]
 
         def jqlQuery = [
-            jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
-            expand: [],
-            fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+                jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
+                expand: [],
+                fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
         ]
 
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
@@ -1041,7 +1040,8 @@ class Project {
             if (jiraBug.fields.issuelinks) {
                 testKeys = jiraBug.fields.issuelinks.findAll {
                     it.type.name == 'Blocks' && it.outwardIssue &&
-                    it.outwardIssue.fields.issuetype.name == 'Test' }.collect { it.outwardIssue.key }
+                            it.outwardIssue.fields.issuetype.name == 'Test'
+                }.collect { it.outwardIssue.key }
             }
 
             // Add relations from bug to tests
@@ -1158,7 +1158,7 @@ class Project {
             // Check for existence of required attribute 'repositories[i].id'
             if (!repo.id?.trim()) {
                 throw new IllegalArgumentException(
-                    "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
+                        "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
 
             repo.data = [
@@ -1174,7 +1174,7 @@ class Project {
             // Resolve repo URL, if not provided
             if (!repo.url?.trim()) {
                 this.logger.debug("Could not determine Git URL for repo '${repo.id}' " +
-                    'from project meta data. Attempting to resolve automatically...')
+                        'from project meta data. Attempting to resolve automatically...')
 
                 def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
                 if (repo.name?.trim()) {
@@ -1190,7 +1190,7 @@ class Project {
             // Resolve repo branch, if not provided
             if (!repo.branch?.trim()) {
                 this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                    "from project meta data. Assuming 'master'.")
+                        "from project meta data. Assuming 'master'.")
                 repo.branch = 'master'
             }
         }
@@ -1203,7 +1203,7 @@ class Project {
         if (levaDocsCapabilities) {
             if (levaDocsCapabilities.size() > 1) {
                 throw new IllegalArgumentException(
-                    "Error: unable to parse project metadata. More than one 'LeVADoc' capability has been defined.")
+                        "Error: unable to parse project metadata. More than one 'LeVADoc' capability has been defined.")
             }
 
             def levaDocsCapability = levaDocsCapabilities.first()
@@ -1211,7 +1211,7 @@ class Project {
             def gampCategory = levaDocsCapability.LeVADocs?.GAMPCategory
             if (!gampCategory) {
                 throw new IllegalArgumentException(
-                    "Error: 'LeVADocs' capability has been defined but contains no 'GAMPCategory'.")
+                        "Error: 'LeVADocs' capability has been defined but contains no 'GAMPCategory'.")
             }
 
             def templatesVersion = levaDocsCapability.LeVADocs?.templatesVersion
@@ -1289,25 +1289,25 @@ class Project {
         return JsonOutput.prettyPrint(JsonOutput.toJson(result))
     }
 
-    List<String> getMainReleaseManagerEnv () {
+    List<String> getMainReleaseManagerEnv() {
         def mroSharedLibVersion = this.steps.sh(
-            script: "env | grep 'library.ods-mro-jenkins-shared-library.version' | cut -d= -f2",
-            returnStdout: true,
-            label: 'getting ODS shared lib version'
+                script: "env | grep 'library.ods-mro-jenkins-shared-library.version' | cut -d= -f2",
+                returnStdout: true,
+                label: 'getting ODS shared lib version'
         ).trim()
 
         return [
-            "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
-            "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
-            "ods.build.rm.${getKey()}.repo.commit.msg=${gitData.message}",
-            "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
-            "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
-            "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
-            "ods.build.orchestration.lib.version=${mroSharedLibVersion}",
+                "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
+                "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
+                "ods.build.rm.${getKey()}.repo.commit.msg=${gitData.message}",
+                "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
+                "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
+                "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
+                "ods.build.orchestration.lib.version=${mroSharedLibVersion}",
         ]
     }
 
-    String getReleaseManagerBitbucketHostUrl () {
+    String getReleaseManagerBitbucketHostUrl() {
         return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
     }
 
@@ -1322,10 +1322,10 @@ class Project {
 
     boolean getForceGlobalRebuild() {
         return (this.data.metadata.allowPartialRebuild &&
-            this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
+                this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
     }
 
-    void addConfigSetting (def key, def value) {
+    void addConfigSetting(def key, def value) {
         this.config.put(key, value)
     }
 
