@@ -71,6 +71,16 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getAgentImageTag() {
+        config.agentImageTag
+    }
+
+    @NonCPS
+    String getSharedLibraryRef() {
+        config.sharedLibraryRef
+    }
+
+    @NonCPS
     String getTargetDir() {
         config.targetDir
     }
