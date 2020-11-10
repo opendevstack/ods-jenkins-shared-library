@@ -646,6 +646,7 @@ class JiraServiceSpec extends SpecHelper {
                 description: "myDescription",
                 projectKey: "PROJECT-1",
                 summary: "mySummary",
+                fixVersion: null,
                 type: "myType"
             ],
             headers: [
@@ -664,6 +665,9 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
+                fixVersions: [
+                    [name: result.data.fixVersion]
+                ],
                 issuetype: [
                     name: result.data.type
                 ]
@@ -845,6 +849,7 @@ class JiraServiceSpec extends SpecHelper {
                 description: "myDescription",
                 projectKey: "PROJECT-1",
                 summary: "mySummary",
+                fixVersion: "1.0"
             ],
             headers: [
                 "Accept": "application/json",
@@ -862,6 +867,9 @@ class JiraServiceSpec extends SpecHelper {
                 ],
                 summary: result.data.summary,
                 description: result.data.description,
+                fixVersions: [
+                    [name: result.data.fixVersion]
+                ],
                 issuetype: [
                     name: "Bug"
                 ]
@@ -892,7 +900,66 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.createIssueTypeBug(request.data.projectKey, request.data.summary, request.data.description)
+        def result = service.createIssueTypeBug(
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
+
+        then:
+        result == [ "JIRA-123": request.data.summary ]
+
+        cleanup:
+        stopServer(server)
+    }
+
+    Map createIssueTypeBugRequestDataWithoutVersion(Map mixins = [:]) {
+        def result = [
+            data: [
+                description: "myDescription",
+                projectKey: "PROJECT-1",
+                summary: "mySummary"
+            ],
+            headers: [
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            ],
+            password: "password",
+            path: "/rest/api/2/issue",
+            username: "username"
+        ]
+
+        result.body = JsonOutput.toJson([
+            fields: [
+                project: [
+                    key: result.data.projectKey
+                ],
+                summary: result.data.summary,
+                description: result.data.description,
+                fixVersions: [
+                    [name: null]
+                ],
+                issuetype: [
+                    name: "Bug"
+                ]
+            ]
+        ])
+
+        return result << mixins
+    }
+
+    def "create issue type 'Bug' without fix version"() {
+        given:
+        def request = createIssueTypeBugRequestDataWithoutVersion()
+        def response = createIssueTypeBugResponseData([
+            body: JsonOutput.toJson([
+                "JIRA-123": request.data.summary
+            ])
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        when:
+        def result = service.createIssueTypeBug(
+            request.data.projectKey, request.data.summary, request.data.description)
 
         then:
         result == [ "JIRA-123": request.data.summary ]
@@ -912,7 +979,8 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueTypeBug(request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssueTypeBug(
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
 
         then:
         def e = thrown(RuntimeException)
@@ -934,7 +1002,8 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.createIssueTypeBug(request.data.projectKey, request.data.summary, request.data.description)
+        service.createIssueTypeBug(
+            request.data.projectKey, request.data.summary, request.data.description, request.data.fixVersion)
 
         then:
         def e = thrown(RuntimeException)
