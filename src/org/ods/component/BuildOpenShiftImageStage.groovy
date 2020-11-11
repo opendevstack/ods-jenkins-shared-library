@@ -111,14 +111,13 @@ class BuildOpenShiftImageStage extends Stage {
         }
 
         // Retrieve build status.
-        def lastVersion = buildVersion
-        def buildId = "${config.resourceName}-${lastVersion}"
+        def buildId = "${config.resourceName}-${buildVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
-            script.error "OpenShift Build #${lastVersion} was not successful - status is '${buildStatus}'."
+            script.error "OpenShift Build #${buildVersion} was not successful - status is '${buildStatus}'."
         }
         def imageReference = getImageReference()
-        logger.info "Build #${lastVersion} of '${config.resourceName}' has produced image: ${imageReference}."
+        logger.info "Build #${buildVersion} of '${config.resourceName}' has produced image: ${imageReference}."
 
         context.addBuildToArtifactURIs(
             config.resourceName,

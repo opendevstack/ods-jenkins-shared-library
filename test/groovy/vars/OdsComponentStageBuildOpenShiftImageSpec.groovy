@@ -37,7 +37,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(_, _) >> 'bar-123'
     openShiftService.startBuild(_,_) >> 123
-    openShiftService.getLastBuildVersion(_) >> 122
+    openShiftService.getLastBuildVersion(_) >> 123
     openShiftService.getBuildStatus(_) >> 'complete'
     openShiftService.getImageReference(_, _) >> '0daecc05'
     
@@ -91,7 +91,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(*_) >> 'bar-123'
-    openShiftService.getLastBuildVersion(*_) >> 122
+    openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.startBuild(_,_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
@@ -135,7 +135,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(*_) >> 'overwrite-123'
     openShiftService.startBuild(_,_) >> 123
-    openShiftService.getLastBuildVersion(*_) >> 122
+    openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
