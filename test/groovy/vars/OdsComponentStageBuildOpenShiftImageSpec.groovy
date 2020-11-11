@@ -36,7 +36,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(_, _) >> 'bar-123'
-    openShiftService.getLastBuildVersion(_) >> 123
+    openShiftService.startBuild(_,_) >> 123
+    openShiftService.getLastBuildVersion(_) >> 122
     openShiftService.getBuildStatus(_) >> 'complete'
     openShiftService.getImageReference(_, _) >> '0daecc05'
     
@@ -90,7 +91,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(*_) >> 'bar-123'
-    openShiftService.getLastBuildVersion(*_) >> 123
+    openShiftService.getLastBuildVersion(*_) >> 122
+    openShiftService.startBuild(_,_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
@@ -132,7 +134,8 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
     openShiftService.startAndFollowBuild(*_) >> 'overwrite-123'
-    openShiftService.getLastBuildVersion(*_) >> 123
+    openShiftService.startBuild(_,_) >> 123
+    openShiftService.getLastBuildVersion(*_) >> 122
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
@@ -189,6 +192,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.startAndFollowBuild(*_) >> startBuildOutput
     openShiftService.getLastBuildVersion(*_) >> lastBuildVersion
+    openShiftService.startBuild(_,_) >> lastBuildVersion
     openShiftService.getBuildStatus(*_) >> buildStatus
     openShiftService.getImageReference() >> imageReference
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
