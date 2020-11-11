@@ -156,10 +156,6 @@ class BuildOpenShiftImageStage extends Stage {
         openShift.followBuild(config.resourceName, version)
     }
 
-    private int getLastVersion() {
-        openShift.getLastBuildVersion(config.resourceName)
-    }
-
     private String getBuildStatus(String build) {
         openShift.getBuildStatus(build)
     }
