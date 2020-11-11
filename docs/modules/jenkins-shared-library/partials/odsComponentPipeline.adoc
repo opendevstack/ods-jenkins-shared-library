@@ -50,7 +50,10 @@ Available options are:
 | Serviceaccount to use when running the pod.
 
 | notifyNotGreen
-| Whether to send notifications if the build is not successful.
+| Whether to send notifications if the build is not successful. Enabled by default.
+
+| emailextRecipients
+| Notify to this list of emails when `notifyNotGreen` is enabled. It is empty by default.
 
 | branchToEnvironmentMapping
 | Define which branches are deployed to which environments, see <<_git_workflow_branch_to_environment_mapping,Git Workflow / Branch to Environment Mapping>>
@@ -80,7 +83,13 @@ Available options are:
 | Deprecated in 3.x! Please use option `failOnVulnerabilities` on `odsComponentStageScanWithSnyk`.
 
 | openshiftBuildTimeout
-| Deprecated in 3.x! Please use option `buildTimeoutMinutes` on `odsComponentBuildOpenShiftImage`.
+| Deprecated in 3.x! Please use option `buildTimeoutMinutes` on `odsComponentStageBuildOpenShiftImage`.
+
+| openshiftRolloutTimeout
+| Deprecated in 3.x! Please use option `deployTimeoutMinutes` on `odsComponentStageRolloutOpenShiftDeployment`.
+
+| testResults
+| Configurable location for xunit test results, in case the build does not put them into `build/test-results/test`.
 |===
 
 == Pipeline Context
@@ -166,7 +175,7 @@ The `context` object contains the following properties:
 | Git commit time in RFC 3399.
 
 | issueId
-| Jira issue ID if any present in the branch name (e.g. `123` from branch `feature/FOO-123-bar-baz`).
+| Jira issue ID if any present in either commit message or branch name (e.g. `123` from commit message `FOO-123: Bar` or branch `feature/FOO-123-bar`). If the issue ID is present in both, the branch name has precedence.
 
 | openshiftHost
 | OpenShift host - value taken from `OPENSHIFT_API_URL`.
@@ -322,7 +331,7 @@ When using this approach, you need to keep a few things in mind:
 
 - Any changes done in the OpenShift web console will effectively be reverted with each deploy. When you store templates in code, all changes must be applied to them.
 - You can always preview the changes that will happen by running `tailor diff` from your local machine.
-- `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes. When you remove the image trigger, it is crucial to configure `imagePullPolicy: Always` for the container, otherwise you might roll out old images.
+- `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes. When you remove the image trigger, it is crucial to add the internal registry to the `image` field, and to configure `imagePullPolicy: Always` for the container (otherwise you might roll out old images).
 
 If you want to use https://github.com/opendevstack/tailor#working-with-secrets[encrypted secrets with Tailor], you have to create a keypair for Jenkins so that the pipeline can use it to decrypt the parameters. The easiest way to do this is to create an OpenShift secret named `tailor-private-key` and sync it with Jenkins as a credential. Example:
 ```
@@ -376,9 +385,16 @@ stage('Cleanup preview resources') {
 === Interacting with Bitbucket
 
 The shared library already sets the build status of the built commit. It also
-provides three convenience methods on `BitbucketService` to interact with pull
+provides convenience methods on `BitbucketService` to interact with pull
 requests:
 
+- `String createPullRequest(String repo, String fromRef, String toRef, String title, String description, List<String> reviewers)`
+  creates a pull request in `repo` from branch `fromRef` to `toRef`.
+  `reviewers` is a list of bitbucket user names.
+- `List<String> getDefaultReviewers(String repo)` returns a list of bitbucket
+  user names (not display names) that are listed as the default reviewers of the given `repo`.
+- `String getDefaultReviewerConditions(String repo)` returns all default
+  reviewer conditions of the given `repo`, which can be parsed using `readJSON`.
 - `String getPullRequests(String repo, String state = 'OPEN')` returns
   all open pull requests, which can be parsed using `readJSON`.
 - `Map findPullRequest(String repo, String branch, String state = 'OPEN')`

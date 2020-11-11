@@ -100,10 +100,16 @@ The `context` object contains the following properties:
 | Central namespace where images are located, retrieved from `ODS_NAMESPACE` build parameter.
 
 | odsImageTag
-| Image tag used for the agent pod, retrieved from `ODS_IMAGE_TAG` build parameter.
+| ODS image tag. Retrieved from `ODS_IMAGE_TAG` build parameter. If not set, defaults to `latest`.
 
 | odsGitRef
-| Git ref, retrieved from `ODS_GIT_REF` build parameter.
+| ODS Git ref. Retrieved from `ODS_GIT_REF` build parameter. If not set, defaults to `master`.
+
+| agentImageTag
+| Image tag used for the agent pod, retrieved from `odsImageTag` unless the `AGENT_IMAGE_TAG` build parameter is set.
+
+| sharedLibraryRef
+| Git reference used for the Jenkins shared library, retrieved from `odsImageTag` unless the `SHARED_LIBRARY_REF` build parameter is set.
 
 | bitbucketUrl
 | Bitbucket URL - value taken from `BITBUCKET_URL`. If BITBUCKET_URL is not present, it will default to `https://<BITBUCKET_HOST>``. `bitbucketHost` is an alias for `bitbucketUrl`.

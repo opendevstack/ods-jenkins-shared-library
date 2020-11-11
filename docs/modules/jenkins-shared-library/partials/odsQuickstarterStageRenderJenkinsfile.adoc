@@ -8,6 +8,8 @@ The handled replacements are:
 - `@git_url_http@` => `context.gitUrlHttp`
 - `@ods_image_tag@` => `context.odsImageTag`
 - `@ods_git_ref@` => `context.odsGitRef`
+- `@agent_image_tag@` => `context.agentImageTag`
+- `@shared_library_ref@` => `context.sharedLibraryRef`
 
 Available options:
 

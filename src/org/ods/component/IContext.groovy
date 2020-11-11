@@ -8,6 +8,10 @@ interface IContext {
     // Get debug mode
     boolean getDebug()
 
+    // Jenkins email extension recipients list
+    // docs: https://www.jenkins.io/doc/pipeline/steps/email-ext/
+    List<String> getEmailextRecipients()
+
     // Get the location of the xmlunit results
     String getTestResults()
 
@@ -183,5 +187,11 @@ interface IContext {
 
     // get the application domain
     String getOpenshiftApplicationDomain ()
+
+    // set the rollout retry
+    void setOpenshiftRolloutTimeoutRetries (int retries)
+
+    // get the rollout retry
+    int getOpenshiftRolloutTimeoutRetries ()
 
 }

@@ -13,6 +13,36 @@ class ContextSpec extends Specification {
     def noEnv = []
 
     @Unroll
+    def "IssueID: when branch is #branch and commit is #commit issueId should be #expectedIssueId"(branch, commit, expectedIssueId) {
+        given:
+        def config = [
+            projectId: 'foo',
+            gitBranch: branch,
+            gitCommitMessage: commit
+        ]
+
+        when:
+        def uut = new Context(script, config, logger)
+
+        then:
+        uut.getIssueId() == expectedIssueId
+
+        where:
+        branch                | commit                     || expectedIssueId
+        'develop'             | 'Some text'                || ''
+        'develop'             | 'FOO-123: Some text'       || '123'
+        'develop'             | 'FOO-123 Some text'        || '123'
+        'develop'             | 'Some text (FOO-123)'      || '123'
+        'develop'             | 'Some text (FOOBAR-123)'   || ''
+        'develop'             | 'FOO 123 bar'              || ''
+        'feature/foo-123-bar' | 'FOO-456: Todo'            || '123'
+        'develop'             | 'FOO-456 replaces FOO-123' || '456'
+        'feature/foo-123-bar' | 'Todo'                     || '123'
+        'feature/foo-123-bar' | 'Todo'                     || '123'
+        'release/1.0.0'       | 'Todo'                     || ''
+    }
+
+    @Unroll
     def "Gitflow: when branch is #branch and existingEnv is #existingEnv expectedEnv should be #expectedEnv"(branch, existingEnv, expectedEnv) {
         given:
         def config = [

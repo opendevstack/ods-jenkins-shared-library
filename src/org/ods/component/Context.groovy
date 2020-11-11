@@ -110,8 +110,14 @@ class Context implements IContext {
         if (!config.containsKey('openshiftRolloutTimeout')) {
             config.openshiftRolloutTimeout = 5 // minutes
         }
+        if (!config.containsKey('openshiftRolloutTimeoutRetries')) {
+            config.openshiftRolloutTimeoutRetries = 5 // retries
+        }
         if (!config.containsKey('imagePromotionSequences')) {
             config.imagePromotionSequences = ['dev->test', 'test->prod']
+        }
+        if (!config.containsKey('emailextRecipients')) {
+            config.emailextRecipients = null
         }
         if (!config.groupId) {
             config.groupId = "org.opendevstack.${config.projectId}"
@@ -158,6 +164,10 @@ class Context implements IContext {
 
     void setDebug(def debug) {
         config.debug = debug
+    }
+
+    List<String> getEmailextRecipients() {
+        config.emailextRecipients
     }
 
     String getJobName() {
@@ -397,7 +407,14 @@ class Context implements IContext {
     }
 
     String getIssueId() {
-        GitService.issueIdFromBranch(config.gitBranch, config.projectId)
+        if (!config.containsKey("issueId")) {
+            config.issueId = GitService.issueIdFromBranch(
+                config.gitBranch, config.projectId
+            ) ?: GitService.issueIdFromCommit(
+                config.gitCommitMessage, config.projectId
+            )
+        }
+        config.issueId
     }
 
     // This logic must be consistent with what is described in README.md.
@@ -522,6 +539,17 @@ class Context implements IContext {
             logger.debugClocked("${config.componentId}-get-oc-app-domain")
         }
         this.appDomain
+    }
+
+    // set the rollout retry
+    void setOpenshiftRolloutTimeoutRetries (int retries) {
+        config.openshiftRolloutTimeoutRetries = retries
+    }
+
+    // get the rollout retry
+    @NonCPS
+    int getOpenshiftRolloutTimeoutRetries () {
+        config.openshiftRolloutTimeoutRetries
     }
 
     private String retrieveGitUrl() {

@@ -447,8 +447,7 @@ class OpenShiftService {
         "${rcEventMessages}\n=== Events from Pod '${pod}' ===\n${podEventMessages}"
     }
 
-    Map getPodDataForDeployment(String rc) {
-        def retries = 5
+    Map getPodDataForDeployment(String rc, int retries) {
         for (def i = 0; i < retries; i++) {
             def podData = checkForPodData(rc)
             if (podData) {
@@ -591,7 +590,8 @@ class OpenShiftService {
             if (latestDeployedVersion < 1) {
                 logger.debug("Image SHAs of '${deploymentName}' could not be compared")
             } else {
-                podData = getPodDataForDeployment("${deploymentName}-${latestDeployedVersion}")
+                podData = getPodDataForDeployment(
+                    "${deploymentName}-${latestDeployedVersion}", 5)
             }
             pods[deploymentName] = podData
         }
@@ -617,6 +617,25 @@ class OpenShiftService {
         }
         logger.debug("Container '${containerName}' is using defined image '${definedImageSha}'.")
         true
+    }
+
+    void reloginToCurrentClusterIfNeeded () {
+        def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
+        def logDetails = logger.debugMode ? '' : 'set +x'
+        def success = steps.sh(
+            script: """
+                ${logDetails}
+                oc login ${kubeUrl} --insecure-skip-tls-verify=true \
+                --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
+            """,
+            returnStatus: true,
+            label: 'Check if OCP session exists'
+        ) == 0
+        if (!success) {
+            throw new RuntimeException(
+                'Could not (re)login to cluster, this is a systemic failure'
+            )
+        }
     }
 
     private void importImageFromProject(String sourceProject, String sourceImageRef, String targetImageRef) {
@@ -692,6 +711,7 @@ class OpenShiftService {
         Map<String,
         String> envParams,
         String targetFile) {
+        reloginToCurrentClusterIfNeeded()
         // Export
         steps.sh(
             script: "tailor ${tailorVerboseFlag()} -n ${exportProject} export ${tailorParams} > ${targetFile}",

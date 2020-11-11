@@ -248,6 +248,29 @@ As mentioned in the "Source Code Organisation" section, the orchestration pipeli
 def config = [debug: true, odsImageTag: 'x.x', versionedDevEnvs: true]
 ```
 
+=== Customizing the Release Manager configuration
+
+==== Timeouts and retries
+
+If one of your components take longer than 10 minutes (this is the default value) to be promoted from one environment to another, the Release Manager pipeline will exit due to this timeout.
+You can increase this timeout by setting the `openshiftRolloutTimeoutMinutes` per environment in the Release Manager repository in the `metadata.yml` file.
+Similarly, the number of retries is configurable with the `openshiftRolloutTimeoutRetries` property.
+
+The following example establishes a timeout of `120` minutes for both `qa` and `prod` environments with a total number of `3` retries.
+
+```yaml
+...
+environments:
+  prod:
+    apiUrl: https://...
+    credentialsId: ...
+    openshiftRolloutTimeoutMinutes: 120
+    openshiftRolloutTimeoutRetries: 3
+  qa:
+    openshiftRolloutTimeoutMinutes: 120
+    openshiftRolloutTimeoutRetries: 3
+...
+```
 
 === Walkthrough
 

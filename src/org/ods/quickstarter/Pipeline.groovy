@@ -25,6 +25,8 @@ class Pipeline implements Serializable {
         config.odsNamespace = script.env.ODS_NAMESPACE ?: 'ods'
         config.odsImageTag = script.env.ODS_IMAGE_TAG ?: 'latest'
         config.odsGitRef = script.env.ODS_GIT_REF ?: 'master'
+        config.agentImageTag = script.env.AGENT_IMAGE_TAG ?: config.odsImageTag
+        config.sharedLibraryRef = script.env.SHARED_LIBRARY_REF ?: config.odsImageTag
         config.projectId = script.env.PROJECT_ID.toLowerCase()
         config.componentId = script.env.COMPONENT_ID.toLowerCase()
         config.gitUrlHttp = script.env.GIT_URL_HTTP
