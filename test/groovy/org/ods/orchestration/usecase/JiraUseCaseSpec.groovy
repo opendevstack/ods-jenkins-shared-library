@@ -136,7 +136,10 @@ class JiraUseCaseSpec extends SpecHelper {
         usecase.createBugsForFailedTestIssues(testIssues, failures, comment)
 
         then:
-        1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text) >> bug
+        1 * project.getVersionFromReleaseStatusIssue() >> "1.0"
+
+        then:
+        1 * jira.createIssueTypeBug(project.jiraProjectKey, failures.first().type, failures.first().text, "1.0") >> bug
 
         then:
         1 * jira.createIssueLinkTypeBlocks(bug, {
@@ -525,8 +528,8 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * util.warnBuildIfTestResultsContainFailure(testResults)
 
         then:
-        1 * usecase.createBugsForFailedTestIssues(testIssues, errors, steps.env.RUN_DISPLAY_URL)
-        1 * usecase.createBugsForFailedTestIssues(testIssues, failures, steps.env.RUN_DISPLAY_URL)
+        1 * usecase.createBugsForFailedTestIssues(testIssues, errors, steps.env.RUN_DISPLAY_URL) >> null
+        1 * usecase.createBugsForFailedTestIssues(testIssues, failures, steps.env.RUN_DISPLAY_URL) >> null
     }
 
     def "report test results for component in PROD"() {
@@ -559,8 +562,8 @@ class JiraUseCaseSpec extends SpecHelper {
         1 * util.warnBuildIfTestResultsContainFailure(testResults)
 
         then:
-        1 * usecase.createBugsForFailedTestIssues(testIssues, errors, steps.env.RUN_DISPLAY_URL)
-        1 * usecase.createBugsForFailedTestIssues(testIssues, failures, steps.env.RUN_DISPLAY_URL)
+        1 * usecase.createBugsForFailedTestIssues(testIssues, errors, steps.env.RUN_DISPLAY_URL) >> null
+        1 * usecase.createBugsForFailedTestIssues(testIssues, failures, steps.env.RUN_DISPLAY_URL) >> null
     }
 
     def "update Jira release status build number"() {
