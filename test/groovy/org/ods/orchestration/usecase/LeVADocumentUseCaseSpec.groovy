@@ -362,12 +362,29 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def chapterData = ["sec1": [content: "myContent", status: "DONE", key:"DEMO-1"]]
         def uri = "http://nexus"
         def documentTemplate = "template"
-        def requirements = [
-            [key:"1", name:"1",configSpec:[name:"cs1"],funcSpec:[name:"fs1"]],
-            [key:"2", name:"2",gampTopic:"gamP topic", configSpec:[name:"cs2"],funcSpec:[name:"fs2"]],
-            [key:"3", name:"3",gampTopic:"GAMP TOPIC", configSpec:[name:"cs3"],funcSpec:[name:"fs3"]],
-        ]
         def watermarkText = "WATERMARK"
+
+        def jiraDataItem1 = project.getSystemRequirements().first().cloneIt()
+        jiraDataItem1.put("key", "1")
+        jiraDataItem1.put("name", "1")
+        jiraDataItem1.get("configSpec").put("name", "cs1")
+        jiraDataItem1.get("funcSpec").put("name", "fs1")
+
+        def jiraDataItem2 = project.getSystemRequirements().first().cloneIt()
+        jiraDataItem2.put("key", "2")
+        jiraDataItem2.put("name", "2")
+        jiraDataItem2.put("gampTopic", "gamP topic")
+        jiraDataItem2.get("configSpec").put("name", "cs2")
+        jiraDataItem2.get("funcSpec").put("name", "fs2")
+
+        def jiraDataItem3 = project.getSystemRequirements().first().cloneIt()
+        jiraDataItem3.put("key", "3")
+        jiraDataItem3.put("name", "3")
+        jiraDataItem3.put("gampTopic", "GAMP TOPIC")
+        jiraDataItem3.get("configSpec").put("name", "cs3")
+        jiraDataItem3.get("funcSpec").put("name", "fs3")
+
+        def requirements = [jiraDataItem1, jiraDataItem2, jiraDataItem3]
 
         when:
         usecase.createCSD()
@@ -1432,9 +1449,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def docChapters = [[key:'DC-1', content: contentWithImage], [key:'DC-1', content: contentNoImage]]
         def docChapters2 = ['1': [key:'DC-1', content: contentWithImage], '2': [key:'DC-1', content: contentNoImage]]
         def imageb64 = 'thisIsAn64BaSeIMaGeEeE'
-        def requirements = [[key:"2", description:contentWithImage,
-                             configSpec:[description:contentWithImage],
-                             funcSpec:[description: contentWithImage]]]
+        def requirements = project.getSystemRequirements().each {
+            it.cloneIt()
+        }
+        def jiraDataItem = requirements.first()
+        jiraDataItem.put("description", contentWithImage)
+        jiraDataItem.get("funcSpec").put("description", contentWithImage)
+        jiraDataItem.get("configSpec").put("description", contentWithImage)
+
         def techSpecs = [[key:"2", systemDesignSpec:contentWithImage],[key:"3", softwareDesignSpec: contentWithImage]]
         def compMetadata = [
             "demo-app-front-end": [
