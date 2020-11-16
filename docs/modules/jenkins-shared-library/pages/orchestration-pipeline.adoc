@@ -116,10 +116,9 @@ If no `branch` parameter is provided for a repository, `master` will be assumed.
 
 Instead of merely resolving repositories into a strictly sequential execution model, our library automatically understands which repositories form independent groups and can run in parallel for best time-to-feedback and time-to-delivery.
 
-=== Building of components & partial deployments
+=== Partial rebuilding of components
 
-By default the shared library will rebuild all type `ods` components, no matter which ones changed. In order to allow
-partial building, that is based on changes one has done to the components, the following needs to be configured
+By default the shared library will rebuild all type `ods` components, no matter which ones changed since the last release. In order to build _only_ the components whose source code changed (partial rebuilding as we will call it from now on), the following needs to be configured
 in `metadata.yml`
 ----
 allowPartialRebuild : true
@@ -136,6 +135,8 @@ repositories:
     name: my-repo-B
     forceRebuild : true
 ```
+
+It is important to highlight that, despite having configured partial rebuild, the orchestration pipeline will still deploy all the components (both those which changed and which did not) to the target environment.
 
 === Optimization of runtime performance
 
