@@ -176,7 +176,7 @@ class Project {
         private List<JiraDataItem> getResolvedReferences(String type) {
             // Reference this within jiraResolved (contains readily resolved references to other entities)
             def item = Project.this.data.jiraResolved[this.type][this.key]
-            return item[type] ?: []
+            return item && item[type] ? item[type] : []
         }
 
         @NonCPS

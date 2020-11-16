@@ -120,8 +120,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             def updatedReqs = reqs.collect { req ->
-            def epics = req.getResolvedEpics()
-            def epic = !epics.isEmpty() ? epics.first() : null
+                def epics = req.getResolvedEpics()
+                def epic = !epics.isEmpty() ? epics.first() : null
                 [
                     key           : req.key,
                     applicability : 'Mandatory',
@@ -136,8 +136,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     epicName2     : epic?.name,
                 ]
             }
-            
-            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll{ 
+
+            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll{
                 it.epic != null}.groupBy{it.epic}
 
             def index = 0
@@ -154,7 +154,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll{ it.epic == null },
                 epics  : SortUtil.sortIssuesByKey(reqsGroupByEpicUpdated)
             ]
-            
+
             [
                 (gampTopic.replaceAll(' ', '').toLowerCase()): output
             ]
