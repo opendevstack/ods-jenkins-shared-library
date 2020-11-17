@@ -66,12 +66,16 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         def dcExists = deploymentConfigExists()
-        def originalDeploymentVersion = dcExists ? openShift.getLatestVersion(config.resourceName) : 0
+        def originalDeploymentVersion = 0
+        if (dcExists) {
+            originalDeploymentVersion = openShift.getLatestVersion(context.targetProject, config.resourceName)
+        }
 
         if (script.fileExists(config.openshiftDir)) {
             script.dir(config.openshiftDir) {
                 jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
                     openShift.tailorApply(
+                        context.targetProject,
                         [selector: config.tailorSelector, exclude: config.tailorExclude],
                         config.tailorParamFile,
                         config.tailorParams,
@@ -94,7 +98,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         def ownedImageStreams = openShift
-            .getImagesOfDeploymentConfig(config.resourceName)
+            .getImagesOfDeploymentConfig(context.targetProject, config.resourceName)
             .findAll { context.targetProject == it.repository }
         def missingStreams = missingImageStreams(ownedImageStreams)
         if (missingStreams) {
@@ -109,6 +113,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         String replicationController
         try {
             replicationController = openShift.rollout(
+                context.targetProject,
                 config.resourceName,
                 originalDeploymentVersion,
                 config.deployTimeoutMinutes
@@ -117,8 +122,11 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             script.error ex.message
         }
 
-        def pod = openShift.getPodDataForDeployment(replicationController,
-            config.deployTimeoutRetries)
+        def pod = openShift.getPodDataForDeployment(
+            context.targetProject,
+            replicationController,
+            config.deployTimeoutRetries
+        )
         context.addDeploymentToArtifactURIs(config.resourceName, pod)
 
         return pod
@@ -132,15 +140,15 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     }
 
     private boolean deploymentConfigExists() {
-        openShift.resourceExists('DeploymentConfig', config.resourceName)
+        openShift.resourceExists(context.targetProject, 'DeploymentConfig', config.resourceName)
     }
 
     private List<Map<String, String>> missingImageStreams(List<Map<String, String>> imageStreams) {
-        imageStreams.findAll { !openShift.resourceExists('ImageStream', it.name) }
+        imageStreams.findAll { !openShift.resourceExists(context.targetProject, 'ImageStream', it.name) }
     }
 
     private void setImageTagLatest(List<Map<String, String>> imageStreams) {
-        imageStreams.each { openShift.setImageTag(it.name, config.imageTag, 'latest') }
+        imageStreams.each { openShift.setImageTag(context.targetProject, it.name, config.imageTag, 'latest') }
     }
 
 }

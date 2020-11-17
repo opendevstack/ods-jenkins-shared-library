@@ -148,8 +148,7 @@ class InitStage extends Stage {
         registry.add(OpenShiftService,
             new OpenShiftService(
                 registry.get(PipelineSteps),
-                logger,
-                project.targetProject
+                logger
             )
         )
 
@@ -376,10 +375,10 @@ class InitStage extends Stage {
         def os = registry.get(OpenShiftService)
 
         // It is assumed that the pipeline runs in the same cluster as the 'D' env.
-        if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists()) {
+        if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists(project.targetProject)) {
             runOnAgentPod(true) {
                 def sourceEnv = project.buildParams.targetEnvironment
-                os.createVersionedDevelopmentEnvironment(project.key, sourceEnv)
+                os.createVersionedDevelopmentEnvironment(project.key, project.targetProject, sourceEnv)
 
                 def envParamsFile = project.environmentParamsFile
                 def envParams = project.getEnvironmentParams(envParamsFile)
@@ -406,7 +405,8 @@ class InitStage extends Stage {
                             if (exportRequired) {
                                 logger.debug("Exporting current OpenShift state to folder '${openshiftDir}'.")
                                 def targetFile = 'template.yml'
-                                (new OpenShiftService(steps, logger, "${project.key}-${sourceEnv}")).tailorExport(
+                                os.tailorExport(
+                                    "${project.key}-${sourceEnv}",
                                     componentSelector,
                                     envParams,
                                     targetFile
@@ -421,6 +421,7 @@ class InitStage extends Stage {
                             def preserve = []
                             def applyFunc = { pkeyFile ->
                                 os.tailorApply(
+                                        project.targetProject,
                                         [selector: componentSelector],
                                         envParamsFile,
                                         params,

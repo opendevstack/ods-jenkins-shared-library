@@ -80,6 +80,7 @@ class BuildOpenShiftImageStage extends Stage {
             script.dir(config.openshiftDir) {
                 jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
                     openShift.tailorApply(
+                        context.targetProject,
                         [selector: config.tailorSelector, include: config.tailorInclude],
                         config.tailorParamFile,
                         config.tailorParams,
@@ -141,27 +142,28 @@ class BuildOpenShiftImageStage extends Stage {
     }
 
     private boolean buildConfigExists() {
-        openShift.resourceExists('BuildConfig', config.resourceName)
+        openShift.resourceExists(context.targetProject, 'BuildConfig', config.resourceName)
     }
 
     private String getImageReference() {
-        openShift.getImageReference(config.resourceName, config.imageTag)
+        openShift.getImageReference(context.targetProject, config.resourceName, config.imageTag)
     }
 
     private int startBuild() {
-        openShift.startBuild(config.resourceName, config.dockerDir)
+        openShift.startBuild(context.targetProject, config.resourceName, config.dockerDir)
     }
 
     private String followBuild(int version) {
-        openShift.followBuild(config.resourceName, version)
+        openShift.followBuild(context.targetProject, config.resourceName, version)
     }
 
     private String getBuildStatus(String build) {
-        openShift.getBuildStatus(build)
+        openShift.getBuildStatus(context.targetProject, build)
     }
 
     private String patchBuildConfig(Map imageLabels) {
         openShift.patchBuildConfig(
+            context.targetProject,
             config.resourceName,
             config.imageTag,
             config.buildArgs,

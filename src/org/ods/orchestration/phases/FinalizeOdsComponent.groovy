@@ -1,5 +1,8 @@
 package org.ods.orchestration.phases
 
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
+
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.services.GitService
@@ -11,6 +14,7 @@ import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
 
 // Finalize ODS comnponent (code or service) in 'dev'.
+@TypeChecked
 class FinalizeOdsComponent {
 
     private Project project
@@ -43,32 +47,38 @@ class FinalizeOdsComponent {
                 def commitMessage = ''
                 if (openshiftDir == 'openshift-exported') {
                     commitMessage = 'ODS: Export OpenShift configuration ' +
-                        "\r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
+                        "\r${commitBuildReference()}"
                     logger.debugClocked(
                         "export-ocp-${repo.id}",
                         "Exporting current OpenShift state to folder '${openshiftDir}'."
                     )
                     os.tailorExport(
+                        project.targetProject,
                         componentSelector,
                         envParams,
                         OpenShiftService.EXPORTED_TEMPLATE_FILE
                     )
                     filesToStage << OpenShiftService.EXPORTED_TEMPLATE_FILE
-                    logger.debugClocked("export-ocp-${repo.id}")
+                    logger.debugClocked("export-ocp-${repo.id}", (null as String))
                 } else {
                     commitMessage = "ODS: Export Openshift deployment state " +
-                        "\r${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
+                        "\r${commitBuildReference()}"
                     // TODO: Display drift?
                 }
 
                 writeDeploymentDescriptor(repo)
 
-                logger.debugClocked("export-ocp-git-${repo.id}")
+                logger.debugClocked("export-ocp-git-${repo.id}", (null as String))
                 filesToStage << DeploymentDescriptor.FILE_NAME
                 git.commit(filesToStage, "${commitMessage} [ci skip]")
-                logger.debugClocked("export-ocp-git-${repo.id}")
+                logger.debugClocked("export-ocp-git-${repo.id}", (null as String))
             }
         }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String commitBuildReference() {
+        "${steps.currentBuild.description}\r${steps.env.BUILD_URL}"
     }
 
     private String findOrCreateOpenShiftDir() {
@@ -88,6 +98,7 @@ class FinalizeOdsComponent {
         openshiftDir
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     private void writeDeploymentDescriptor(Map repo) {
         def strippedDeployments = DeploymentDescriptor.stripDeployments(repo.data.openshift.deployments)
         def createdByBuild = repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR]
@@ -103,14 +114,17 @@ class FinalizeOdsComponent {
         new DeploymentDescriptor(strippedDeployments, createdByBuild).writeToFile(steps)
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     private void verifyDeploymentsBuiltByODS(Map repo, String componentSelector) {
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        logger.debugClocked("export-ocp-verify-${repo.id}")
+        logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
         // Verify that all DCs are managed by ODS
         def odsBuiltDeploymentInformation = repo.data.openshift.deployments ?: [:]
         def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
-        def allComponentDeployments = os.getDeploymentConfigsForComponent(componentSelector)
+        def allComponentDeployments = os.getDeploymentConfigsForComponent(
+            project.targetProject, componentSelector
+        )
         logger.debug(
             "ODS created deployments for ${repo.id}: " +
             "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
@@ -132,11 +146,11 @@ class FinalizeOdsComponent {
         }
 
         def imagesFromOtherProjectsFail = []
-        odsBuiltDeploymentInformation.each { odsBuiltDeploymentName, odsBuiltDeployment ->
-            odsBuiltDeployment.containers?.each { containerName, containerImage ->
+        odsBuiltDeploymentInformation.each { String odsBuiltDeploymentName, Map odsBuiltDeployment ->
+            odsBuiltDeployment.containers?.each { String containerName, String containerImage ->
                 def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
                 if (project.targetProject != owningProject
-                    && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
+                    && !MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
                     def msg = "Deployment: ${odsBuiltDeploymentName} / " +
                         "Container: ${containerName} / Owner: ${owningProject}"
                     logger.warn "! Image out of scope! ${msg}"
@@ -155,6 +169,6 @@ class FinalizeOdsComponent {
                 throw new RuntimeException(message)
             }
         }
-        logger.debugClocked("export-ocp-verify-${repo.id}")
+        logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
     }
 }

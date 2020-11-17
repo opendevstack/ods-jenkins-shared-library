@@ -131,9 +131,7 @@ class Pipeline implements Serializable {
                         if (!registry.get(OpenShiftService)) {
                             logger.debug 'Registering OpenShiftService'
                             registry.add(OpenShiftService, new OpenShiftService(
-                                steps,
-                                logger,
-                                context.targetProject
+                                steps, logger
                             ))
                         }
                         this.openShiftService = registry.get(OpenShiftService)
@@ -474,8 +472,8 @@ class Pipeline implements Serializable {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = (new OpenShiftService(steps, logger, projectName))
-                    .getOriginUrlFromBuildConfig(bcName)
+                origin = (new OpenShiftService(steps, logger))
+                    .getOriginUrlFromBuildConfig(projectName, bcName)
                 logger.debug("Retrieved Git origin URL from build config: ${origin}")
             }
 

@@ -40,6 +40,7 @@ class ImportOpenShiftImageStage extends Stage {
 
         if (config.imagePullerSecret) {
             openShift.importImageTagFromSourceRegistry(
+                context.targetProject,
                 config.resourceName,
                 config.imagePullerSecret,
                 config.sourceProject,
@@ -48,6 +49,7 @@ class ImportOpenShiftImageStage extends Stage {
             )
         } else {
             openShift.importImageTagFromProject(
+                context.targetProject,
                 config.resourceName,
                 config.sourceProject,
                 config.sourceTag,

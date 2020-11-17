@@ -45,7 +45,7 @@ class FinalizeStage extends Stage {
         if (project.isAssembleMode) {
             // Check if the target environment exists in OpenShift
             def targetProject = project.targetProject
-            if (!os.envExists()) {
+            if (!os.envExists(targetProject)) {
                 throw new RuntimeException(
                     "Error: target environment '${targetProject}' does not exist in OpenShift."
                 )

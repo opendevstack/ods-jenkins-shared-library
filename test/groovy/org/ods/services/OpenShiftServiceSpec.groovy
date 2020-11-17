@@ -12,7 +12,7 @@ class OpenShiftServiceSpec extends SpecHelper {
     def "image info for image URL"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = new OpenShiftService(steps, new Logger(steps, false), 'foo')
+        def service = new OpenShiftService(steps, new Logger(steps, false))
 
         when:
         def result = service.imageInfoForImageUrl(imageUrl)
@@ -33,7 +33,7 @@ class OpenShiftServiceSpec extends SpecHelper {
     def "image info with SHA for image stream URL"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false), 'foo'], global: true)
+        def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
         OpenShiftService.getImageReference(*_) >> imageReference
 
         when:
@@ -59,7 +59,7 @@ class OpenShiftServiceSpec extends SpecHelper {
     def "pod data extraction"() {
         given:
         def steps = Spy(util.PipelineSteps)
-        def service = new OpenShiftService(steps, new Logger(steps, false), 'foo')
+        def service = new OpenShiftService(steps, new Logger(steps, false))
         def file = new FixtureHelper().getResource("pod.json")
 
         when:

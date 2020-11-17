@@ -46,7 +46,6 @@ class OdsComponentStageImportOpenShiftImageSpec extends PipelineSpockTestBase {
     printCallStack()
     assertCallStackContains('''Imported image 'foo-dev/bar:cd3e9082' into 'foo-test/bar:cd3e9082'.''')
     assertJobStatusSuccess()
-    //1 * openShiftService.importImageTagFromProject(*_)
   }
 
   def "skip when no environment given"() {
