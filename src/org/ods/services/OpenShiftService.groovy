@@ -254,6 +254,23 @@ class OpenShiftService {
         ).trim()
     }
 
+    int startBuild(String name, String dir) {
+        steps.sh(
+            script: "oc -n ${project} start-build ${name} --from-dir ${dir}",
+            label: "Start Openshift build ${name}",
+            returnStdout: true
+        ).trim()
+        return getLastBuildVersion(name)
+    }
+
+    String followBuild(String name, int version) {
+        steps.sh(
+            script: "oc -n ${project} logs -f --version=${version} bc/${name}",
+            label: "Logs of Openshift build ${name}",
+            returnStdout: true
+        ).trim()
+    }
+
     int getLastBuildVersion(String name) {
         def versionNumber = steps.sh(
             returnStdout: true,
