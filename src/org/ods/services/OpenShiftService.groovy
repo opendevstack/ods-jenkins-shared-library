@@ -13,6 +13,10 @@ import java.security.SecureRandom
 class OpenShiftService {
 
     static final String EXPORTED_TEMPLATE_FILE = 'template.yml'
+    static final String ROLLOUT_COMPLETE = 'complete'
+    static final String ROLLOUT_WAITING = 'waiting'
+    static final String DEPLOYMENTCONFIG_KIND = 'DeploymentConfig'
+    static final String DEPLOYMENT_KIND = 'Deployment'
 
     private final IPipelineSteps steps
     private final ILogger logger
@@ -146,89 +150,107 @@ class OpenShiftService {
         doTailorExport(project, "-l ${selector}", envParams, targetFile)
     }
 
-    String rollout(String project, String name, int priorVersion, int timeoutMinutes) {
-        def latestVersion = getLatestVersion(project, name)
-        if (latestVersion > priorVersion) {
+    String rollout(String project, String kind, String name, int priorRevision, int timeoutMinutes) {
+        def revision = getRevision(project, kind, name)
+        if (revision > priorRevision) {
             logger.info "Rollout of deployment for '${name}' has been triggered automatically."
         } else {
-            startRollout(project, name, latestVersion)
+            if (kind == OpenShiftService.DEPLOYMENTCONFIG_KIND) {
+                startRollout(project, name, revision)
+            } else {
+                restartRollout(project, name, revision)
+            }
         }
+        watchRollout(project, kind, name, timeoutMinutes)
+    }
+
+    // watchRollout watches the rollout of either a DeploymentConfig or a Deployment resource.
+    // It returns the name of the respective "pod manager", which is either a ReplicationController
+    // (in the case of kind=DeploymentConfig) or a ReplicaSet (for kind=Deployment).
+    String watchRollout(String project, String kind, String name, int timeoutMinutes) {
+        def podManagerKind = getPodManagerKind(kind)
         try {
             steps.timeout(time: timeoutMinutes) {
                 logger.startClocked("${name}-watch-rollout".toString())
-                watchRollout(project, name)
+                doWatchRollout(project, kind, name)
                 logger.debugClocked("${name}-watch-rollout".toString(), (null as String))
             }
         } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
-            latestVersion = getLatestVersion(project, name)
-            def replicationController = "${name}-${latestVersion}"
+            def revision = getRevision(project, kind, name)
+            def podManagerName = getPodManagerName(project, kind, name, revision)
             throw new RuntimeException(
-                'Deployment timed out. ' +
-                "Observed related event messages:\n${getEventMessages(project, replicationController)}"
+                'Rollout timed out. ' +
+                "Observed related event messages:\n${getRolloutEventMessages(project, podManagerKind, podManagerName)}"
             )
         }
 
-        latestVersion = getLatestVersion(project, name)
-        def replicationController = "${name}-${latestVersion}"
-        def rolloutStatus = getRolloutStatus(project, replicationController)
-        if (rolloutStatus != 'complete') {
+        def revision = getRevision(project, kind, name)
+        def podManagerName = getPodManagerName(project, kind, name, revision)
+        def rolloutStatus = getRolloutStatus(project, kind, podManagerName)
+        if (rolloutStatus != ROLLOUT_COMPLETE) {
             throw new RuntimeException(
-                "Deployment #${latestVersion} failed with status '${rolloutStatus}'. " +
-                "Observed related event messages:\n${getEventMessages(project, replicationController)}"
+                "Rollout #${revision} failed with status '${rolloutStatus}'. " +
+                "Observed related event messages:\n${getRolloutEventMessages(project, podManagerKind, podManagerName)}"
             )
         } else {
-            logger.info "Deployment #${latestVersion} of '${name}' successfully rolled out."
+            logger.info "Rollout #${revision} of ${kind} '${name}' successful."
         }
-        replicationController
+        podManagerName
     }
 
-    void startRollout(String project, String name, int version) {
-        try {
-            steps.sh(
-                script: "oc -n ${project} rollout latest dc/${name}",
-                label: "Rollout latest version of dc/${name}"
-            )
-        } catch (ex) {
-            // It could be that some other process (e.g. image trigger) started
-            // a rollout just before we wanted to start it. In that case, we
-            // do not need to fail.
-            def newVersion = getLatestVersion(project, name)
-            if (newVersion > version) {
-                logger.debug("Deployment #${newVersion} has been started by another process")
-            } else {
-                throw ex
-            }
+    int getRevision(String project, String kind, String name) {
+        String revision
+        if (kind == DEPLOYMENTCONFIG_KIND) {
+            revision = steps.sh(
+                script: "oc -n ${project} get ${kind}/${name} -o jsonpath='{.status.latestVersion}'",
+                label: "Get latest version of ${kind}/${name}",
+                returnStdout: true
+            ).toString().trim()
+        } else {
+            def jsonPath = '{.metadata.annotations.deployment\\.kubernetes\\.io/revision}'
+            revision = steps.sh(
+                script: "oc -n ${project} get ${kind}/${name} -o jsonpath='${jsonPath}'",
+                label: "Get revision of ${kind}/${name}",
+                returnStdout: true
+            ).toString().trim()
         }
-    }
-
-    void watchRollout(String project, String name) {
-        steps.sh(
-            script: "oc -n ${project} rollout status dc/${name} --watch=true",
-            label: "Watch rollout of latest version of dc/${name}"
-        )
-    }
-
-    int getLatestVersion(String project, String name) {
-        def versionNumber = steps.sh(
-            script: "oc -n ${project} get dc/${name} -o jsonpath='{.status.latestVersion}'",
-            label: "Get latest version of dc/${name}",
-            returnStdout: true
-        ).toString().trim()
-        if (!versionNumber.isInteger()) {
+        if (!revision.isInteger()) {
             throw new RuntimeException(
-                "ERROR: Latest version of DeploymentConfig '${name}' is not a number: '${versionNumber}"
+                "ERROR: Latest version of ${kind} '${name}' is not a number: '${revision}"
             )
         }
-        versionNumber as int
+        revision as int
     }
 
-    String getRolloutStatus(String project, String name) {
-        def jsonPath = '{.metadata.annotations.openshift\\.io/deployment\\.phase}'
-        steps.sh(
-            script: "oc -n ${project} get rc/${name} -o jsonpath='${jsonPath}'",
-            label: "Get status of ReplicationController ${name}",
-            returnStdout: true
-        ).toString().trim().toLowerCase()
+    // getRolloutStatus queries the state of the rollout for given kind/name.
+    // It returns either "complete" or some other (temporary) state, e.g. "waiting".
+    @TypeChecked(TypeCheckingMode.SKIP)
+    @SuppressWarnings('LineLength')
+    String getRolloutStatus(String project, String kind, String name) {
+        if (kind == DEPLOYMENTCONFIG_KIND) {
+            def jsonPath = '{.metadata.annotations.openshift\\.io/deployment\\.phase}'
+            return getJSONPath(project, 'rc', name, jsonPath).toLowerCase()
+        }
+        // Logic for Deployment resources is taken from:
+        // https://github.com/kubernetes/kubernetes/blob/2e57e54fa6a251826a14ed365a12c99faa3a93be/staging/src/k8s.io/kubectl/pkg/polymorphichelpers/rollout_status.go#L89.
+        // However, we look at the ReplicaSetStatus because that will tell us if
+        // the specific rollout we're interested in is successful or not. It
+        // could be that some other process has trigger another rollout which
+        // cancelled "our" rollout.
+        // Documentation of the ReplicaSetStatus is at:
+        // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#replicasetstatus-v1-apps
+        def rsJSON = getJSON(project, 'rs', name)
+        def status = rsJSON.status
+        if (!status.replicas) {
+            return ROLLOUT_WAITING // Deployment spec update not observed... (should never happen)
+        }
+        if (status.fullyLabeledReplicas < status.replicas) {
+            return ROLLOUT_WAITING // Not enough pods with matching labels yet
+        }
+        if (status.availableReplicas < status.replicas) {
+            return ROLLOUT_WAITING // Not enough pods available yet
+        }
+        ROLLOUT_COMPLETE // deployment successfully rolled out
     }
 
     void setImageTag(String project, String name, String sourceTag, String destinationTag) {
@@ -388,95 +410,27 @@ class OpenShiftService {
         )
     }
 
-    String getEventMessages(String project, String rc) {
-        String rcEventMessages
-        try {
-            rcEventMessages = steps.sh(
-                script: """
-                    oc -n ${project} get events \
-                        --field-selector involvedObject.kind=ReplicationController,involvedObject.name=${rc} \
-                        -o custom-columns=MESSAGE:.message --no-headers
-                """,
-                returnStdout: true,
-                label: "Get event messages for replication controller ${rc}"
-            ).toString().trim()
-        } catch (ex) {
-            logger.debug("Error when retrieving events for replication controller ${rc}:\n${ex}")
-        }
-        if (!rcEventMessages) {
-            return "Could not find any events for replication controller ${rc}."
-        }
-        rcEventMessages = "=== Events from ReplicationController '${rc}' ===\n${rcEventMessages}"
-        String pod
-        try {
-            pod = steps.sh(
-                script: """
-                    oc -n ${project} get pod \
-                        -l deployment=${rc} \
-                        -o custom-columns=NAME:.metadata.name --no-headers | head -1
-                """,
-                returnStdout: true,
-                label: "Get first pod name of replication controller ${rc}"
-            ).toString().trim()
-        } catch (ex) {
-            logger.debug("Error when retrieving pod for replication controller ${rc}:\n${ex}")
-        }
-        if (!pod) {
-            return "${rcEventMessages}\nCould not find any pod for replication controller ${rc}."
-        }
-        String podEventMessages
-        try {
-            podEventMessages = steps.sh(
-                script: """
-                    oc -n ${project} get events \
-                        --field-selector involvedObject.kind=Pod,involvedObject.name=${pod} \
-                        -o custom-columns=MESSAGE:.message --no-headers
-                """,
-                returnStdout: true,
-                label: "Get event messages for pod ${pod}"
-            ).toString().trim()
-        } catch (ex) {
-            logger.debug("Error when retrieving events for pod ${pod}:\n${ex}")
-        }
-        if (!podEventMessages) {
-            return "${rcEventMessages}\nCould not find any events for pod for ${pod}."
-        }
-        "${rcEventMessages}\n=== Events from Pod '${pod}' ===\n${podEventMessages}"
-    }
-
-    Map getPodDataForDeployment(String project, String rc, int retries) {
+    // Returns data about the pods (replicas) of the deployment.
+    // If not all pods are running until the retries are exhausted,
+    // an exception is thrown.
+    List<Map> getPodDataForDeployment(String project, String kind, String podManagerName, int retries) {
+        def label = getPodLabelForPodManager(project, kind, podManagerName)
         for (def i = 0; i < retries; i++) {
-            def podData = checkForPodData(project, rc)
+            def podData = checkForPodData(project, label)
             if (podData) {
                 return podData
             }
-            // Wait 12 seconds before asking again. Sometimes the deployment finishes but the
-            // status is not set to "running" immediately ...
-            steps.echo("Could not find 'running' pod for deployment=${rc} - waiting")
+            steps.echo("Could not find 'running' pod(s) with label '${label}' - waiting")
             steps.sleep(12)
         }
-        throw new RuntimeException("Could not find 'running' pod for deployment=${rc}")
+        throw new RuntimeException("Could not find 'running' pod(s) with label '${label}'")
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    Map checkForPodData(String project, String rc) {
-        def stdout = steps.sh(
-            script: "oc -n ${project} get pod -l deployment=${rc} -o json",
-            returnStdout: true,
-            label: "Getting OpenShift pod data for deployment ${rc}"
-        ).toString().trim()
-        def podJson = new JsonSlurperClassic().parseText(stdout)
-        if (podJson?.items[0]?.status?.phase?.toLowerCase() != 'running') {
-            return [:]
-        }
-        extractPodData(podJson)
-    }
-
-    List getDeploymentConfigsForComponent(String project, String componentSelector) {
+    List<String> getResourcesForComponent(String project, String kind, String selector) {
         steps.sh(
-            script: "oc -n ${project} get dc -l ${componentSelector} -o jsonpath='{.items[*].metadata.name}'",
+            script: "oc -n ${project} get ${kind} -l ${selector} -o jsonpath='{.items[*].metadata.name}'",
             returnStdout: true,
-            label: "Getting all DeploymentConfig names for selector '${componentSelector}'"
+            label: "Getting all ${kind} names for selector '${selector}'"
         ).toString().trim().tokenize(' ')
     }
 
@@ -554,13 +508,12 @@ class OpenShiftService {
         imageInfoWithSha(shaUrl.split('/').toList())
     }
 
-    List<Map<String, String>> getImagesOfDeploymentConfig(String project, String dc) {
-        def imageString = steps.sh(
-            script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
-            label: "Get container images for deploymentconfigs (${dc})",
+    List<Map<String, String>> getImagesOfDeployment(String project, String kind, String name) {
+        steps.sh(
+            script: "oc -n ${project} get ${kind} ${name} -o jsonpath='{.spec.template.spec.containers[*].image}'",
+            label: "Get container images for ${kind} ${name}",
             returnStdout: true
-        ).toString().trim()
-        imageString.tokenize(' ').collect { imageInfoForImageUrl(it) }
+        ).toString().trim().tokenize(' ').collect { imageInfoForImageUrl(it) }
     }
 
     String getOriginUrlFromBuildConfig(String project, String bcName) {
@@ -571,27 +524,29 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    Map getPodDataForDeployments(String project, List<String> deploymentNames) {
+    Map getPodDataForDeployments(String project, String kind, List<String> deploymentNames) {
         Map pods = [:]
-        deploymentNames.each { deploymentName ->
-            Map podData = [:]
-            logger.debug("Verifying images of deployment '${deploymentName}'")
-            int latestDeployedVersion = 0
+        deploymentNames.each { name ->
+            Map pod = [:]
+            logger.debug("Verifying images of ${kind} '${name}'")
+            int revision = 0
             try {
-                latestDeployedVersion = getLatestVersion(project, deploymentName)
+                revision = getRevision(project, kind, name)
             } catch (err) {
-                logger.debug("DeploymentConfig '${deploymentName}' does not exist!")
+                logger.debug("${kind} '${name}' does not exist!")
             }
-            if (latestDeployedVersion < 1) {
-                logger.debug("Image SHAs of '${deploymentName}' could not be compared")
+            if (revision < 1) {
+                logger.debug("No revision of ${kind} '${name}' found")
             } else {
-                podData = getPodDataForDeployment(
-                    project,
-                    "${deploymentName}-${latestDeployedVersion}",
-                    5
+                def podManagerName = getPodManagerName(project, kind, name, revision)
+                def podData = getPodDataForDeployment(
+                    project, kind, podManagerName, 5
                 )
+                // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                // update this to return multiple pods.
+                pod = podData[0]
             }
-            pods[deploymentName] = podData
+            pods[name] = pod
         }
         pods
     }
@@ -617,7 +572,206 @@ class OpenShiftService {
         true
     }
 
-    void reloginToCurrentClusterIfNeeded () {
+    private String getJSONPath(String project, String kind, String name, String jsonPath) {
+        steps.sh(
+            script: "oc -n ${project} get ${kind}/${name} -o jsonpath='${jsonPath}'",
+            label: "Get ${jsonPath} of ${kind} ${name}",
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    private Map getJSON(String project, String kind, String name) {
+        def stdout = steps.sh(
+            script: "oc -n ${project} get ${kind}/${name} -o json",
+            returnStdout: true,
+            label: "Get JSON of ${kind}/${name}"
+        ).toString().trim()
+        def json = new JsonSlurperClassic().parseText(stdout)
+        json as Map
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    // checkForPodData returns a subset of information from every pod, once
+    // all pods matching the label are "running". If this is not the case,
+    // it returns an empty list.
+    private List<Map> checkForPodData(String project, String label) {
+        def stdout = steps.sh(
+            script: "oc -n ${project} get pod -l ${label} -o json",
+            returnStdout: true,
+            label: "Getting OpenShift pod data for pods labelled with ${label}"
+        ).toString().trim()
+        def podJson = new JsonSlurperClassic().parseText(stdout)
+        if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
+            return extractPodData(podJson)
+        }
+        []
+    }
+
+    private String getPodManagerName(String project, String kind, String name, int revision) {
+        if (kind == DEPLOYMENTCONFIG_KIND) {
+            "${name}-${revision}"
+        } else {
+            getReplicaSetName(project, name, revision)
+        }
+    }
+
+    private String getPodLabelForPodManager(String project, String kind, String podManagerName) {
+        if (kind == DEPLOYMENTCONFIG_KIND) {
+            return "deployment=${podManagerName}"
+        }
+        "pod-template-hash=${getReplicaSetPodTemplateHash(project, podManagerName)}"
+    }
+
+    // TODO: Is it reliable to use the last part of the podManagerName as the hash?
+    // E.g. ReplicaSet "foo-5b78f6b48b" typically has label "pod-template-hash=5b78f6b48b".
+    private String getReplicaSetPodTemplateHash(String project, String replicaSetName) {
+        steps.sh(
+            script: "oc -n ${project} get rs ${replicaSetName} -ojsonpath='{.metadata.labels.pod-template-hash}'",
+            label: "Get pod-template-hash label of ${replicaSetName}",
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    private String getResourceUID(String project, String kind, String name) {
+        steps.sh(
+            script: "oc -n ${project} get ${kind}/${name} -ojsonpath='{.metadata.uid}'",
+            label: "Get UID of ${kind}/${name}",
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    // getReplicaSetName returns the name of the ReplicaSet which has the given
+    // deployment as its owner, and has been created for the given revision.
+    // TODO: Newer versions of Go should allow {{break}} in the template to
+    // avoid potentially getting an array, from which we take the first entry now.
+    @SuppressWarnings('LineLength')
+    private String getReplicaSetName(String project, String deploymentName, int revision) {
+        def uid = getResourceUID(project, DEPLOYMENT_KIND, deploymentName)
+        steps.sh(
+            script: """oc -n ${project} get rs -o go-template --template='{{range .items}}{{if eq (index .metadata.annotations "deployment.kubernetes.io/revision") "${revision}"}}{{\$name := .metadata.name}}{{range .metadata.ownerReferences}}{{if eq .uid "${uid}"}}{{\$name}} {{end}}{{end}}{{end}}{{end}}'""",
+            label: "Get current ReplicaSet of ${deploymentName}",
+            returnStdout: true
+        ).toString().trim().tokenize(' ')[0]
+    }
+
+    // Pods of DeploymentConfig resources are managed by ReplicationController resources.
+    // Pods of Deployment resources are managed by ReplicaSet resources.
+    private String getPodManagerKind(String deploymentKind) {
+        if (deploymentKind == DEPLOYMENTCONFIG_KIND) {
+            return "ReplicationController"
+        }
+        "ReplicaSet"
+    }
+
+    private String getEventMessages(String project, String kind, String name) {
+        steps.sh(
+            script: """
+                oc -n ${project} get events \
+                    --field-selector involvedObject.kind=${kind},involvedObject.name=${name} \
+                    -o custom-columns=MESSAGE:.message --no-headers
+            """,
+            returnStdout: true,
+            label: "Get event messages for ${kind} ${name}"
+        ).toString().trim()
+    }
+
+    private List<String> getPodsWithLabel(String project, String label) {
+        steps.sh(
+            script: """
+                oc -n ${project} get pods \
+                    -l ${label} \
+                    -ojsonpath='{.items[*].metadata.name}'
+            """,
+            returnStdout: true,
+            label: "Get pods with label '${label}'"
+        ).toString().trim().tokenize(' ')
+    }
+
+    private String getRolloutEventMessages(String project, String kind, String podManagerName) {
+        String managerEventMessages
+        try {
+            managerEventMessages = getEventMessages(project, kind, podManagerName)
+        } catch (ex) {
+            logger.debug("Error when retrieving events for ${kind} ${podManagerName}:\n${ex}")
+        }
+        if (!managerEventMessages) {
+            return "Could not find any events for ${kind} ${podManagerName}."
+        }
+        managerEventMessages = "=== Events from ${kind} '${podManagerName}' ===\n${managerEventMessages}"
+        String pod
+        try {
+            def label = getPodLabelForPodManager(project, kind, podManagerName)
+            pod = getPodsWithLabel(project, label)[0]
+        } catch (ex) {
+            logger.debug("Error when retrieving pod for ${kind} ${podManagerName}:\n${ex}")
+        }
+        if (!pod) {
+            return "${managerEventMessages}\nCould not find any pod for ${kind} ${podManagerName}."
+        }
+        String podEventMessages
+        try {
+            podEventMessages = getEventMessages(project, "Pod", pod)
+        } catch (ex) {
+            logger.debug("Error when retrieving events for pod ${pod}:\n${ex}")
+        }
+        if (!podEventMessages) {
+            return "${managerEventMessages}\nCould not find any events for pod for ${pod}."
+        }
+        "${managerEventMessages}\n=== Events from Pod '${pod}' ===\n${podEventMessages}"
+    }
+
+    // startRollout triggers a rollout of a DeploymentConfig resource.
+    // Deployment resources cannot be targeted using "rollout latest".
+    private void startRollout(String project, String name, int version) {
+        try {
+            steps.sh(
+                script: "oc -n ${project} rollout latest dc/${name}",
+                label: "Rollout latest version of dc/${name}"
+            )
+        } catch (ex) {
+            // It could be that some other process (e.g. image trigger) started
+            // a rollout just before we wanted to start it. In that case, we
+            // do not need to fail.
+            def newVersion = getRevision(project, DEPLOYMENTCONFIG_KIND, name)
+            if (newVersion > version) {
+                logger.debug("Rollout #${newVersion} has been started by another process")
+            } else {
+                throw ex
+            }
+        }
+    }
+
+    // restartRollout triggers a rollout of a Deployment resource.
+    // Available in Kubernetes 1.15+, see https://github.com/kubernetes/kubernetes/issues/13488.
+    // This means this will simply fail on an OpenShift 3.11 cluster.
+    // DeploymentConfig resources cannot be targeted using "rollout restart".
+    private void restartRollout(String project, String name, int version) {
+        try {
+            steps.sh(
+                script: "oc -n ${project} rollout restart deployment/${name}",
+                label: "Rollout restart of deployment/${name}"
+            )
+        } catch (ex) {
+            // It could be that some other process (e.g. image trigger) started
+            // a rollout just before we wanted to start it. In that case, we
+            // do not need to fail.
+            def newVersion = getRevision(project, DEPLOYMENT_KIND, name)
+            if (newVersion > version) {
+                logger.debug("Rollout #${newVersion} has been started by another process")
+            } else {
+                throw ex
+            }
+        }
+    }
+
+    private void doWatchRollout(String project, String kind, String name) {
+        steps.sh(
+            script: "oc -n ${project} rollout status ${kind}/${name} --watch=true",
+            label: "Watch rollout of latest version of ${kind}/${name}"
+        )
+    }
+
+    private void reloginToCurrentClusterIfNeeded() {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
         def logDetails = logger.debugMode ? '' : 'set +x'
         def success = steps.sh(
@@ -667,31 +821,33 @@ class OpenShiftService {
 
     @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
     @TypeChecked(TypeCheckingMode.SKIP)
-    private Map extractPodData(Map podJson) {
-        def podOCData = podJson.items[0] ?: [:]
-
-        def pod = [:]
-        // Only set needed data on "pod"
-        pod.podName = podOCData.metadata?.name ?: 'N/A'
-        pod.podNamespace = podOCData.metadata?.namespace ?: 'N/A'
-        pod.podMetaDataCreationTimestamp = podOCData.metadata?.creationTimestamp ?: 'N/A'
-        pod.deploymentId = 'N/A'
-        if (podOCData.metadata?.annotations && podOCData.metadata.annotations['openshift.io/deployment.name']) {
-            pod.deploymentId = podOCData.metadata.annotations['openshift.io/deployment.name']
-        }
-        pod.podNode = podOCData.spec?.nodeName ?: 'N/A'
-        pod.podIp = podOCData.status?.podIP ?: 'N/A'
-        pod.podStatus = podOCData.status?.phase ?: 'N/A'
-        pod.podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
-        pod.containers = [:]
-        podOCData.spec?.containers?.each { container ->
-            podOCData.status?.containerStatuses?.each { containerStatus ->
-                if (containerStatus.name == container.name) {
-                    pod.containers[container.name] = containerStatus.imageID - ~/^docker-pullable:\/\//
+    private List<Map> extractPodData(Map podJson) {
+        def podData = []
+        podJson.items.each { podOCData ->
+            def pod = [:]
+            // Only set needed data on "pod"
+            pod.podName = podOCData.metadata?.name ?: 'N/A'
+            pod.podNamespace = podOCData.metadata?.namespace ?: 'N/A'
+            pod.podMetaDataCreationTimestamp = podOCData.metadata?.creationTimestamp ?: 'N/A'
+            pod.deploymentId = 'N/A'
+            if (podOCData.metadata?.generateName) {
+                pod.deploymentId = podOCData.metadata.generateName - ~/-$/ // Trim dash suffix
+            }
+            pod.podNode = podOCData.spec?.nodeName ?: 'N/A'
+            pod.podIp = podOCData.status?.podIP ?: 'N/A'
+            pod.podStatus = podOCData.status?.phase ?: 'N/A'
+            pod.podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
+            pod.containers = [:]
+            podOCData.spec?.containers?.each { container ->
+                podOCData.status?.containerStatuses?.each { containerStatus ->
+                    if (containerStatus.name == container.name) {
+                        pod.containers[container.name] = containerStatus.imageID - ~/^docker-pullable:\/\//
+                    }
                 }
             }
+            podData << pod
         }
-        pod
+        podData
     }
 
     private String tailorVerboseFlag() {

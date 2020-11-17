@@ -137,6 +137,9 @@ interface IContext {
     // snyk behaviour configuration in case it reports vulnerabilities
     boolean getFailOnSnykScanVulnerabilities()
 
+    // Whether the pipeline run has been triggered by the orchestration pipeline
+    boolean getTriggeredByOrchestrationPipeline()
+
     String getIssueId()
 
     // Number of environments to allow.

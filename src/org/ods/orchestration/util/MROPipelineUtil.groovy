@@ -483,7 +483,11 @@ class MROPipelineUtil extends PipelineUtil {
         )
         Map deployments
         try {
-            deployments = os.getPodDataForDeployments(project.targetProject, deploymentDescriptor.deploymentNames)
+            deployments = os.getPodDataForDeployments(
+                project.targetProject,
+                OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                deploymentDescriptor.deploymentNames
+            )
         } catch(ex) {
             logger.info(
                 "Resurrection of previous build for '${repo.id}' not possible as " +

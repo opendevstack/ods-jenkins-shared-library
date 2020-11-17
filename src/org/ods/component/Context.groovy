@@ -53,6 +53,7 @@ class Context implements IContext {
         config.openshiftHost = script.env.OPENSHIFT_API_URL
         config << BitbucketService.readConfigFromEnv(script.env)
         config << NexusService.readConfigFromEnv(script.env)
+        config.triggeredByOrchestrationPipeline = !!script.env.MULTI_REPO_BUILD
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 
@@ -351,6 +352,11 @@ class Context implements IContext {
     @NonCPS
     boolean getFailOnSnykScanVulnerabilities() {
         config.failOnSnykScanVulnerabilities
+    }
+
+    @NonCPS
+    boolean getTriggeredByOrchestrationPipeline() {
+        config.triggeredByOrchestrationPipeline
     }
 
     int getEnvironmentLimit() {
