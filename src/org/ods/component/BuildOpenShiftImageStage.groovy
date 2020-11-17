@@ -102,21 +102,22 @@ class BuildOpenShiftImageStage extends Stage {
         patchBuildConfig(imageLabels)
 
         // Start and follow build of container image.
+        int buildVersion = 0
         script.timeout(time: config.buildTimeoutMinutes) {
             logger.startClocked("${config.resourceName}-build")
-            logger.info startAndFollowBuild()
+            buildVersion = startBuild()
+            logger.info followBuild(buildVersion)
             logger.debugClocked("${config.resourceName}-build")
         }
 
         // Retrieve build status.
-        def lastVersion = getLastVersion()
-        def buildId = "${config.resourceName}-${lastVersion}"
+        def buildId = "${config.resourceName}-${buildVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
-            script.error "OpenShift Build #${lastVersion} was not successful - status is '${buildStatus}'."
+            script.error "OpenShift Build #${buildVersion} was not successful - status is '${buildStatus}'."
         }
         def imageReference = getImageReference()
-        logger.info "Build #${lastVersion} of '${config.resourceName}' has produced image: ${imageReference}."
+        logger.info "Build #${buildVersion} of '${config.resourceName}' has produced image: ${imageReference}."
 
         context.addBuildToArtifactURIs(
             config.resourceName,
@@ -147,12 +148,12 @@ class BuildOpenShiftImageStage extends Stage {
         openShift.getImageReference(config.resourceName, config.imageTag)
     }
 
-    private String startAndFollowBuild() {
-        openShift.startAndFollowBuild(config.resourceName, config.dockerDir)
+    private int startBuild() {
+        openShift.startBuild(config.resourceName, config.dockerDir)
     }
 
-    private int getLastVersion() {
-        openShift.getLastBuildVersion(config.resourceName)
+    private String followBuild(int version) {
+        openShift.followBuild(config.resourceName, version)
     }
 
     private String getBuildStatus(String build) {
