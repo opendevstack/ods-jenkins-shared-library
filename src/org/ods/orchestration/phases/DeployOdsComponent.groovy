@@ -134,7 +134,7 @@ class DeployOdsComponent {
         def imageParts = imageRaw.split('/')
         if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
             logger.debug(
-                "Skipping import of '${imageInfo.name}', " +
+                "Skipping import of '${imageRaw}', " +
                 "because it is defined as excluded: ${MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT}"
             )
         } else {
