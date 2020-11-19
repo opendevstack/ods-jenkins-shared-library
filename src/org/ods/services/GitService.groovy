@@ -6,7 +6,8 @@ import org.ods.util.ILogger
 class GitService {
 
     @SuppressWarnings('NonFinalPublicField')
-    public static String ODS_GIT_TAG_BRANCH_PREFIX = 'ods-generated-'
+    public static String ODS_GIT_TAG_PREFIX = 'ods-generated-'
+    public static String ODS_GIT_BRANCH_PREFIX = 'release/'
 
     private final def script
     private final ILogger logger
@@ -74,16 +75,13 @@ class GitService {
         } else if (branch.startsWith('release/')) {
             def list = branch.drop('release/'.length()).tokenize('-')
             "${list[0]}-${list[1]}"
-        } else if (branch.startsWith('release-ods-generated/')) {
-            def list = branch.drop('release-ods-generated/'.length()).tokenize('-')
-            "${list[0]}-${list[1]}"
         } else {
             branch
         }
     }
 
     static String getReleaseBranch(String version) {
-        "release-ods-generated/${version}"
+        "${ODS_GIT_BRANCH_PREFIX}${ODS_GIT_TAG_PREFIX}${version}"
     }
 
     String getOriginUrl() {
@@ -204,7 +202,7 @@ class GitService {
             extensions: extensions,
             userRemoteConfigs: userRemoteConfigs,
         ])
-        }
+    }
 
     boolean remoteTagExists(String name) {
         def tagStatus = script.sh(
@@ -305,7 +303,7 @@ class GitService {
         if (envToken == 'P') {
             previousEnvToken = 'Q'
         }
-        def tagPattern = "${ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
+        def tagPattern = "${ODS_GIT_TAG_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
         script.sh(
             script: "git tag --list '${tagPattern}'",
             returnStdout: true,
