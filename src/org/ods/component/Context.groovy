@@ -570,7 +570,7 @@ class Context implements IContext {
 
     private String retrieveGitCommitMessage() {
         script.sh(
-            returnStdout: true, script: 'git log -1 --pretty=%B HEAD',
+            returnStdout: true, script: "git log -1 --format='%f' HEAD",
             label: 'getting GIT commit message'
         ).trim()
     }
