@@ -7,7 +7,7 @@ class GitService {
 
     @SuppressWarnings('NonFinalPublicField')
     public static String ODS_GIT_TAG_PREFIX = 'ods-generated-'
-    public static String ODS_GIT_BRANCH_PREFIX = 'release/'
+    public final static String ODS_GIT_BRANCH_PREFIX = 'release/'
 
     private final def script
     private final ILogger logger
@@ -81,7 +81,7 @@ class GitService {
     }
 
     static String getReleaseBranch(String version) {
-        "${ODS_GIT_BRANCH_PREFIX}${ODS_GIT_TAG_PREFIX}${version}"
+        "${ODS_GIT_BRANCH_PREFIX}${version}"
     }
 
     String getOriginUrl() {
