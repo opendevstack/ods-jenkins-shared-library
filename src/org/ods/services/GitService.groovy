@@ -6,7 +6,8 @@ import org.ods.util.ILogger
 class GitService {
 
     @SuppressWarnings('NonFinalPublicField')
-    public static String ODS_GIT_TAG_BRANCH_PREFIX = 'ods-generated-'
+    public static String ODS_GIT_TAG_PREFIX = 'ods-generated-'
+    public final static String ODS_GIT_BRANCH_PREFIX = 'release/'
 
     private final def script
     private final ILogger logger
@@ -80,7 +81,7 @@ class GitService {
     }
 
     static String getReleaseBranch(String version) {
-        "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
+        "${ODS_GIT_BRANCH_PREFIX}${version}"
     }
 
     String getOriginUrl() {
@@ -302,7 +303,7 @@ class GitService {
         if (envToken == 'P') {
             previousEnvToken = 'Q'
         }
-        def tagPattern = "${ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
+        def tagPattern = "${ODS_GIT_TAG_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
         script.sh(
             script: "git tag --list '${tagPattern}'",
             returnStdout: true,
