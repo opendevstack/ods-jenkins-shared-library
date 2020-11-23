@@ -1431,7 +1431,7 @@ class Project {
             newData
         } else {
             oldData[JiraDataItem.TYPE_COMPONENTS] = this.mergeComponentsLinks(oldData, newData)
-            def discontinuations = newData.getOrDefault('discontinuations',[]) +
+            def discontinuations = newData.getOrDefault('discontinuedKeys',[]) +
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
             // Expand some information from old saved data

@@ -2002,7 +2002,7 @@ class ProjectSpec extends SpecHelper {
             tests       : [:],
             techSpecs   : [:],
             docs        : [:],
-            discontinuations: [tst2.key]
+            discontinuedKeys: [tst2.key]
         ]
 
         def mergedData = [
