@@ -1,25 +1,25 @@
 package org.ods.services
 
 import groovy.json.JsonSlurperClassic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import java.security.SecureRandom
 
 @SuppressWarnings('MethodCount')
+@TypeChecked
 class OpenShiftService {
 
     static final String EXPORTED_TEMPLATE_FILE = 'template.yml'
 
     private final IPipelineSteps steps
     private final ILogger logger
-    private final String project
-    private String appDomain
 
-    OpenShiftService(IPipelineSteps steps, ILogger logger, String project) {
+    OpenShiftService(IPipelineSteps steps, ILogger logger) {
         this.steps = steps
         this.logger = logger
-        this.project = project
     }
 
     static void createProject(IPipelineSteps steps, String name) {
@@ -31,7 +31,7 @@ class OpenShiftService {
 
     static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
         steps.sh(
-            script: """oc login ${apiUrl} --token=${apiToken} >& /dev/null""",
+            script: "oc login ${apiUrl} --token=${apiToken} >& /dev/null",
             label: "login to external cluster (${apiUrl})"
         )
     }
@@ -41,7 +41,7 @@ class OpenShiftService {
             script: 'oc whoami --show-server',
             label: 'Get OpenShift API server URL',
             returnStdout: true
-        ).trim()
+        ).toString().trim()
     }
 
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
@@ -49,7 +49,7 @@ class OpenShiftService {
             returnStdout: true,
             script: "oc projects | grep '^\\s*${projectId}-' | wc -l",
             label: "check ocp environment maximum for '${projectId}-*'"
-        ).trim().toInteger() >= limit
+        ).toString().trim().toInteger() >= limit
     }
 
     static boolean envExists(IPipelineSteps steps, String project) {
@@ -73,7 +73,7 @@ class OpenShiftService {
             script: "oc -n ${project} get route ${routeName} -o jsonpath='{.spec.host}'",
             returnStdout: true,
             label: 'get cluster route domain'
-        ).trim()
+        ).toString().trim()
         def routePrefixLength = "${routeName}-${project}".length() + 1
         def openShiftPublicHost = routeUrl[routePrefixLength..-1]
         steps.sh (
@@ -88,7 +88,7 @@ class OpenShiftService {
             returnStdout: true,
             script: "oc -n ${project} get istag ${name}:${tag} -o jsonpath='{.image.dockerImageReference}'",
             label: "Get image reference of ${name}:${tag}"
-        ).trim()
+        ).toString().trim()
     }
 
     static String imageExists(IPipelineSteps steps, String project, String name, String tag) {
@@ -99,11 +99,11 @@ class OpenShiftService {
         ) == 0
     }
 
-    boolean envExists() {
+    boolean envExists(String project) {
         envExists(steps, project)
     }
 
-    def createVersionedDevelopmentEnvironment(String projectKey, String sourceEnvName) {
+    def createVersionedDevelopmentEnvironment(String projectKey, String project, String sourceEnvName) {
         def limit = 3
         if (tooManyEnvironments(steps, "${projectKey}-dev-", limit)) {
             throw new RuntimeException(
@@ -119,7 +119,7 @@ class OpenShiftService {
         steps.dir(tmpDir) {
             createProject(steps, project)
             doTailorExport("${projectKey}-${sourceEnvName}", 'serviceaccount,rolebinding', [:], 'template.yml')
-            doTailorApply('serviceaccount,rolebinding --upsert-only')
+            doTailorApply(project, 'serviceaccount,rolebinding --upsert-only')
             steps.deleteDir()
         }
     }
@@ -129,52 +129,52 @@ class OpenShiftService {
     }
 
     @SuppressWarnings(['LineLength', 'ParameterCount'])
-    void tailorApply(Map<String, String> target, String paramFile, List<String> params, List<String> preserve, String tailorPrivateKeyFile, boolean verify) {
+    void tailorApply(String project, Map<String, String> target, String paramFile, List<String> params, List<String> preserve, String tailorPrivateKeyFile, boolean verify) {
         def verifyFlag = verify ? '--verify' : ''
         def tailorPrivateKeyFlag = tailorPrivateKeyFile ? "--private-key ${tailorPrivateKeyFile}" : ''
         def selectorFlag = target.selector ? "--selector ${target.selector}" : ''
         def excludeFlag = target.exclude ? "--exclude ${target.exclude}" : ''
         def includeArg = target.include ?: ''
         def paramFileFlag = paramFile ? "--param-file ${paramFile}" : ''
-        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain()}"
+        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain(project)}".toString()
         def paramFlags = params.collect { "--param ${it}" }.join(' ')
         def preserveFlags = preserve.collect { "--preserve ${it}" }.join(' ')
-        doTailorApply("${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}")
+        doTailorApply(project, "${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}")
     }
 
-    void tailorExport(String selector, Map<String, String> envParams, String targetFile) {
+    void tailorExport(String project, String selector, Map<String, String> envParams, String targetFile) {
         doTailorExport(project, "-l ${selector}", envParams, targetFile)
     }
 
-    String rollout(String name, int priorVersion, int timeoutMinutes) {
-        def latestVersion = getLatestVersion(name)
+    String rollout(String project, String name, int priorVersion, int timeoutMinutes) {
+        def latestVersion = getLatestVersion(project, name)
         if (latestVersion > priorVersion) {
             logger.info "Rollout of deployment for '${name}' has been triggered automatically."
         } else {
-            startRollout(name, latestVersion)
+            startRollout(project, name, latestVersion)
         }
         try {
             steps.timeout(time: timeoutMinutes) {
-                logger.startClocked("${name}-watch-rollout")
-                watchRollout(name)
-                logger.debugClocked("${name}-watch-rollout")
+                logger.startClocked("${name}-watch-rollout".toString())
+                watchRollout(project, name)
+                logger.debugClocked("${name}-watch-rollout".toString(), (null as String))
             }
         } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
-            latestVersion = getLatestVersion(name)
+            latestVersion = getLatestVersion(project, name)
             def replicationController = "${name}-${latestVersion}"
             throw new RuntimeException(
                 'Deployment timed out. ' +
-                "Observed related event messages:\n${getEventMessages(replicationController)}"
+                "Observed related event messages:\n${getEventMessages(project, replicationController)}"
             )
         }
 
-        latestVersion = getLatestVersion(name)
+        latestVersion = getLatestVersion(project, name)
         def replicationController = "${name}-${latestVersion}"
-        def rolloutStatus = getRolloutStatus(replicationController)
+        def rolloutStatus = getRolloutStatus(project, replicationController)
         if (rolloutStatus != 'complete') {
             throw new RuntimeException(
                 "Deployment #${latestVersion} failed with status '${rolloutStatus}'. " +
-                "Observed related event messages:\n${getEventMessages(replicationController)}"
+                "Observed related event messages:\n${getEventMessages(project, replicationController)}"
             )
         } else {
             logger.info "Deployment #${latestVersion} of '${name}' successfully rolled out."
@@ -182,7 +182,7 @@ class OpenShiftService {
         replicationController
     }
 
-    void startRollout(String name, int version) {
+    void startRollout(String project, String name, int version) {
         try {
             steps.sh(
                 script: "oc -n ${project} rollout latest dc/${name}",
@@ -192,7 +192,7 @@ class OpenShiftService {
             // It could be that some other process (e.g. image trigger) started
             // a rollout just before we wanted to start it. In that case, we
             // do not need to fail.
-            def newVersion = getLatestVersion(name)
+            def newVersion = getLatestVersion(project, name)
             if (newVersion > version) {
                 logger.debug("Deployment #${newVersion} has been started by another process")
             } else {
@@ -201,19 +201,19 @@ class OpenShiftService {
         }
     }
 
-    void watchRollout(String name) {
+    void watchRollout(String project, String name) {
         steps.sh(
             script: "oc -n ${project} rollout status dc/${name} --watch=true",
             label: "Watch rollout of latest version of dc/${name}"
         )
     }
 
-    int getLatestVersion(String name) {
+    int getLatestVersion(String project, String name) {
         def versionNumber = steps.sh(
             script: "oc -n ${project} get dc/${name} -o jsonpath='{.status.latestVersion}'",
             label: "Get latest version of dc/${name}",
             returnStdout: true
-        ).trim()
+        ).toString().trim()
         if (!versionNumber.isInteger()) {
             throw new RuntimeException(
                 "ERROR: Latest version of DeploymentConfig '${name}' is not a number: '${versionNumber}"
@@ -222,23 +222,23 @@ class OpenShiftService {
         versionNumber as int
     }
 
-    String getRolloutStatus(String name) {
+    String getRolloutStatus(String project, String name) {
         def jsonPath = '{.metadata.annotations.openshift\\.io/deployment\\.phase}'
         steps.sh(
             script: "oc -n ${project} get rc/${name} -o jsonpath='${jsonPath}'",
             label: "Get status of ReplicationController ${name}",
             returnStdout: true
-        ).trim().toLowerCase()
+        ).toString().trim().toLowerCase()
     }
 
-    void setImageTag(String name, String sourceTag, String destinationTag) {
+    void setImageTag(String project, String name, String sourceTag, String destinationTag) {
         steps.sh(
             script: "oc -n ${project} tag ${name}:${sourceTag} ${name}:${destinationTag}",
             label: "Set tag ${destinationTag} on is/${name}"
         )
     }
 
-    boolean resourceExists(String kind, String name) {
+    boolean resourceExists(String project, String kind, String name) {
         steps.sh(
             script: "oc -n ${project} get ${kind}/${name} &> /dev/null",
             returnStatus: true,
@@ -246,37 +246,29 @@ class OpenShiftService {
         ) == 0
     }
 
-    String startAndFollowBuild(String name, String dir) {
-        steps.sh(
-            script: "oc -n ${project} start-build ${name} --from-dir ${dir} --follow",
-            label: "Start and follow OpenShift build ${name}",
-            returnStdout: true
-        ).trim()
-    }
-
-    int startBuild(String name, String dir) {
+    int startBuild(String project, String name, String dir) {
         steps.sh(
             script: "oc -n ${project} start-build ${name} --from-dir ${dir}",
             label: "Start Openshift build ${name}",
             returnStdout: true
-        ).trim()
-        return getLastBuildVersion(name)
+        ).toString().trim()
+        return getLastBuildVersion(project, name)
     }
 
-    String followBuild(String name, int version) {
+    String followBuild(String project, String name, int version) {
         steps.sh(
             script: "oc -n ${project} logs -f --version=${version} bc/${name}",
             label: "Logs of Openshift build ${name}",
             returnStdout: true
-        ).trim()
+        ).toString().trim()
     }
 
-    int getLastBuildVersion(String name) {
+    int getLastBuildVersion(String project, String name) {
         def versionNumber = steps.sh(
             returnStdout: true,
             script: "oc -n ${project} get bc/${name} -o jsonpath='{.status.lastVersion}'",
             label: "Get lastVersion of BuildConfig ${name}"
-        ).trim()
+        ).toString().trim()
         if (!versionNumber.isInteger()) {
             throw new RuntimeException(
                 "ERROR: Last version of BuildConfig '${name}' is not a number: '${versionNumber}"
@@ -285,11 +277,11 @@ class OpenShiftService {
         versionNumber as int
     }
 
-    String getBuildStatus(String buildId) {
+    String getBuildStatus(String project, String buildId) {
         def buildStatus = 'unknown'
         def retries = 5
         for (def i = 0; i < retries; i++) {
-            buildStatus = checkForBuildStatus(buildId)
+            buildStatus = checkForBuildStatus(project, buildId)
             logger.debug ("Build: '${buildId}' - status: '${buildStatus}'")
             if (buildStatus == 'complete') {
                 return buildStatus
@@ -305,7 +297,7 @@ class OpenShiftService {
     }
 
     @SuppressWarnings('LineLength')
-    void patchBuildConfig(String name, String tag, Map buildArgs, Map imageLabels) {
+    void patchBuildConfig(String project, String name, String tag, Map buildArgs, Map imageLabels) {
         def odsImageLabels = []
         for (def key : imageLabels.keySet()) {
             odsImageLabels << """{"name": "${key}", "value": "${imageLabels[key]}"}"""
@@ -318,7 +310,7 @@ class OpenShiftService {
             script: "oc -n ${project} get bc/${name} -o jsonpath='{.spec.output.imageLabels}'",
             returnStdout: true,
             label: 'Test existance of path .spec.output.imageLabels'
-        ).trim()
+        ).toString().trim()
         if (imageLabelsValue.length() == 0) {
             imageLabelsOp = 'add'
         }
@@ -348,50 +340,55 @@ class OpenShiftService {
         )
     }
 
-    String getImageReference(String name, String tag) {
+    String getImageReference(String project, String name, String tag) {
         getImageReference(steps, project, name, tag)
     }
 
-    String getContainerForImage(String projectId, String rc, String image) {
-        def jsonPath = """{.spec.template.spec.containers[?(contains .image "${image}")].name}"""
-        steps.sh(
-            script: "oc -n ${projectId} get rc ${rc} -o jsonpath='${jsonPath}'",
-            returnStdout: true,
-            label: "Getting containers for ${rc} and image ${image}"
-        )
+    void importImageTagFromProject(
+        String project,
+        String name,
+        String sourceProject,
+        String sourceTag,
+        String targetTag) {
+        importImageFromProject(project, sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}")
     }
 
-    void importImageTagFromProject(String name, String sourceProject, String sourceTag, String targetTag) {
-        importImageFromProject(sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}")
-    }
-
+    @SuppressWarnings('ParameterCount')
     void importImageTagFromSourceRegistry(
+        String project,
         String name,
         String sourceRegistrySecret,
         String sourceProject,
         String sourceTag,
         String targetTag) {
         importImageFromSourceRegistry(
-            sourceRegistrySecret, sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}"
+            project, sourceRegistrySecret, sourceProject, "${name}:${sourceTag}", "${name}:${targetTag}"
         )
     }
 
-    void importImageShaFromProject(String name, String sourceProject, String imageSha, String imageTag) {
-        importImageFromProject(sourceProject, "${name}@${imageSha}", "${name}:${imageTag}")
+    void importImageShaFromProject(
+        String project,
+        String name,
+        String sourceProject,
+        String imageSha,
+        String imageTag) {
+        importImageFromProject(project, sourceProject, "${name}@${imageSha}", "${name}:${imageTag}")
     }
 
+    @SuppressWarnings('ParameterCount')
     void importImageShaFromSourceRegistry(
+        String project,
         String name,
         String sourceRegistrySecret,
         String sourceProject,
         String imageSha,
         String imageTag) {
         importImageFromSourceRegistry(
-            sourceRegistrySecret, sourceProject, "${name}@${imageSha}", "${name}:${imageTag}"
+            project, sourceRegistrySecret, sourceProject, "${name}@${imageSha}", "${name}:${imageTag}"
         )
     }
 
-    String getEventMessages(String rc) {
+    String getEventMessages(String project, String rc) {
         String rcEventMessages
         try {
             rcEventMessages = steps.sh(
@@ -402,7 +399,7 @@ class OpenShiftService {
                 """,
                 returnStdout: true,
                 label: "Get event messages for replication controller ${rc}"
-            ).trim()
+            ).toString().trim()
         } catch (ex) {
             logger.debug("Error when retrieving events for replication controller ${rc}:\n${ex}")
         }
@@ -420,7 +417,7 @@ class OpenShiftService {
                 """,
                 returnStdout: true,
                 label: "Get first pod name of replication controller ${rc}"
-            ).trim()
+            ).toString().trim()
         } catch (ex) {
             logger.debug("Error when retrieving pod for replication controller ${rc}:\n${ex}")
         }
@@ -437,7 +434,7 @@ class OpenShiftService {
                 """,
                 returnStdout: true,
                 label: "Get event messages for pod ${pod}"
-            ).trim()
+            ).toString().trim()
         } catch (ex) {
             logger.debug("Error when retrieving events for pod ${pod}:\n${ex}")
         }
@@ -447,9 +444,9 @@ class OpenShiftService {
         "${rcEventMessages}\n=== Events from Pod '${pod}' ===\n${podEventMessages}"
     }
 
-    Map getPodDataForDeployment(String rc, int retries) {
+    Map getPodDataForDeployment(String project, String rc, int retries) {
         for (def i = 0; i < retries; i++) {
-            def podData = checkForPodData(rc)
+            def podData = checkForPodData(project, rc)
             if (podData) {
                 return podData
             }
@@ -461,12 +458,13 @@ class OpenShiftService {
         throw new RuntimeException("Could not find 'running' pod for deployment=${rc}")
     }
 
-    Map checkForPodData(String rc) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    Map checkForPodData(String project, String rc) {
         def stdout = steps.sh(
             script: "oc -n ${project} get pod -l deployment=${rc} -o json",
             returnStdout: true,
             label: "Getting OpenShift pod data for deployment ${rc}"
-        ).trim()
+        ).toString().trim()
         def podJson = new JsonSlurperClassic().parseText(stdout)
         if (podJson?.items[0]?.status?.phase?.toLowerCase() != 'running') {
             return [:]
@@ -474,19 +472,16 @@ class OpenShiftService {
         extractPodData(podJson)
     }
 
-    List getDeploymentConfigsForComponent(String componentSelector) {
+    List getDeploymentConfigsForComponent(String project, String componentSelector) {
         steps.sh(
             script: "oc -n ${project} get dc -l ${componentSelector} -o jsonpath='{.items[*].metadata.name}'",
             returnStdout: true,
             label: "Getting all DeploymentConfig names for selector '${componentSelector}'"
-        ).trim().tokenize(' ')
+        ).toString().trim().tokenize(' ')
     }
 
-    String getApplicationDomain() {
-        if (!this.appDomain) {
-            this.appDomain = getApplicationDomainOfProject(steps, project)
-        }
-        this.appDomain
+    String getApplicationDomain(String project) {
+        getApplicationDomainOfProject(steps, project)
     }
 
     // imageInfoForImageUrl expects an image URL like one of the following:
@@ -555,35 +550,35 @@ class OpenShiftService {
                 "ERROR: Image reference ${urlParts[2]} does not consist of two parts (name:tag)"
             )
         }
-        def shaUrl = getImageReference(steps, urlParts[-2], tagParts[0], tagParts[1])
+        def shaUrl = getImageReference(urlParts[-2], tagParts[0], tagParts[1])
         imageInfoWithSha(shaUrl.split('/').toList())
     }
 
-    List<Map<String, String>> getImagesOfDeploymentConfig(String dc) {
-        def imageString = steps.sh (
+    List<Map<String, String>> getImagesOfDeploymentConfig(String project, String dc) {
+        def imageString = steps.sh(
             script: "oc -n ${project} get dc ${dc} -o jsonpath='{.spec.template.spec.containers[*].image}'",
             label: "Get container images for deploymentconfigs (${dc})",
             returnStdout: true
-        )
+        ).toString().trim()
         imageString.tokenize(' ').collect { imageInfoForImageUrl(it) }
     }
 
-    String getOriginUrlFromBuildConfig(String bcName) {
+    String getOriginUrlFromBuildConfig(String project, String bcName) {
         return steps.sh(
             script: "oc -n ${project} get bc/${bcName} -o jsonpath='{.spec.source.git.uri}'",
             returnStdout: true,
             label: "Get origin from BuildConfig ${bcName}"
-        ).trim()
+        ).toString().trim()
     }
 
-    Map getPodDataForDeployments(List<String> deploymentNames) {
+    Map getPodDataForDeployments(String project, List<String> deploymentNames) {
         Map pods = [:]
         deploymentNames.each { deploymentName ->
             Map podData = [:]
             logger.debug("Verifying images of deployment '${deploymentName}'")
             int latestDeployedVersion = 0
             try {
-                latestDeployedVersion = getLatestVersion(deploymentName)
+                latestDeployedVersion = getLatestVersion(project, deploymentName)
             } catch (err) {
                 logger.debug("DeploymentConfig '${deploymentName}' does not exist!")
             }
@@ -591,7 +586,10 @@ class OpenShiftService {
                 logger.debug("Image SHAs of '${deploymentName}' could not be compared")
             } else {
                 podData = getPodDataForDeployment(
-                    "${deploymentName}-${latestDeployedVersion}", 5)
+                    project,
+                    "${deploymentName}-${latestDeployedVersion}",
+                    5
+                )
             }
             pods[deploymentName] = podData
         }
@@ -599,8 +597,8 @@ class OpenShiftService {
     }
 
     boolean areImageShasUpToDate(Map defData, Map podData) {
-        defData.containers.every { containerName, definedImage ->
-            verifyImageSha(containerName, definedImage, podData.containers[containerName])
+        defData.containers.every { String containerName, String definedImage ->
+            verifyImageSha(containerName, definedImage, podData.containers[containerName].toString())
         }
     }
 
@@ -638,7 +636,11 @@ class OpenShiftService {
         }
     }
 
-    private void importImageFromProject(String sourceProject, String sourceImageRef, String targetImageRef) {
+    private void importImageFromProject(
+        String project,
+        String sourceProject,
+        String sourceImageRef,
+        String targetImageRef) {
         steps.sh(
             script: """oc -n ${project} tag ${sourceProject}/${sourceImageRef} ${targetImageRef}""",
             label: "Import image ${sourceImageRef} to ${project}/${targetImageRef}"
@@ -646,11 +648,12 @@ class OpenShiftService {
     }
 
     private void importImageFromSourceRegistry(
+        String project,
         String sourceRegistrySecret,
         String sourceProject,
         String sourceImageRef,
         String targetImageRef) {
-        def sourceClusterRegistryHost = getSourceClusterRegistryHost(sourceRegistrySecret)
+        def sourceClusterRegistryHost = getSourceClusterRegistryHost(project, sourceRegistrySecret)
         def sourceImageFull = "${sourceClusterRegistryHost}/${sourceProject}/${sourceImageRef}"
         steps.sh(
             script: """
@@ -663,6 +666,7 @@ class OpenShiftService {
     }
 
     @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
+    @TypeChecked(TypeCheckingMode.SKIP)
     private Map extractPodData(Map podJson) {
         def podOCData = podJson.items[0] ?: [:]
 
@@ -694,7 +698,7 @@ class OpenShiftService {
         steps.env.DEBUG ? '--verbose' : ''
     }
 
-    private void doTailorApply(String tailorParams) {
+    private void doTailorApply(String project, String tailorParams) {
         steps.sh(
             script: """tailor \
               ${tailorVerboseFlag()} \
@@ -706,7 +710,7 @@ class OpenShiftService {
     }
 
     private void doTailorExport(
-        String exportProject,
+        String project,
         String tailorParams,
         Map<String,
         String> envParams,
@@ -714,8 +718,8 @@ class OpenShiftService {
         reloginToCurrentClusterIfNeeded()
         // Export
         steps.sh(
-            script: "tailor ${tailorVerboseFlag()} -n ${exportProject} export ${tailorParams} > ${targetFile}",
-            label: "Tailor export of ${exportProject} (${tailorParams}) into ${targetFile}"
+            script: "tailor ${tailorVerboseFlag()} -n ${project} export ${tailorParams} > ${targetFile}",
+            label: "Tailor export of ${project} (${tailorParams}) into ${targetFile}"
         )
 
         // Tailor prior to 1.0.0 did not handle TAILOR_NAMESPACE automatically.
@@ -728,7 +732,7 @@ class OpenShiftService {
             returnStatus: true
         ) == 0
         if (!templateContainsTailorNamespace) {
-            envParams['TAILOR_NAMESPACE'] = exportProject
+            envParams['TAILOR_NAMESPACE'] = project
             steps.sh(
                 script: """echo "parameters:" >> ${targetFile}""",
                 label: "Add parameters section into ${targetFile}"
@@ -736,7 +740,7 @@ class OpenShiftService {
         }
 
         // Replace values from envParams with parameters, and add parameters into template.
-        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomainOfProject(steps, exportProject)
+        envParams['ODS_OPENSHIFT_APP_DOMAIN'] = getApplicationDomain(project)
         def templateParams = ''
         def sedReplacements = ''
         envParams.each { key, val ->
@@ -752,7 +756,8 @@ class OpenShiftService {
         )
     }
 
-    private String getSourceClusterRegistryHost(String secretName) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String getSourceClusterRegistryHost(String project, String secretName) {
         def dockerConfig = steps.sh(
             script: """
             oc -n ${project} get secret ${secretName} --output="jsonpath={.data.\\.dockerconfigjson}" | base64 --decode
@@ -771,12 +776,12 @@ class OpenShiftService {
         authKeys.first()
     }
 
-    private String checkForBuildStatus(String buildId) {
+    private String checkForBuildStatus(String project, String buildId) {
         steps.sh(
             returnStdout: true,
             script: "oc -n ${project} get build ${buildId} -o jsonpath='{.status.phase}'",
             label: "Get phase of build ${buildId}"
-        ).trim().toLowerCase()
+        ).toString().trim().toLowerCase()
     }
 
     private Map<String, String> imageInfoWithSha(List<String> urlParts) {

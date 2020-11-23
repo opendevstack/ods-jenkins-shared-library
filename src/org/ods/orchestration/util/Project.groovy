@@ -514,7 +514,7 @@ class Project {
         this.data.git.baseTag
     }
 
-    def getTargetTag() {
+    String getTargetTag() {
         this.data.git.targetTag
     }
 

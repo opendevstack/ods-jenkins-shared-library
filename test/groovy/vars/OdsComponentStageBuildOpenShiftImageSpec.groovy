@@ -31,15 +31,14 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
   def "run successfully without Tailor"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
-    openShiftService.startAndFollowBuild(_, _) >> 'bar-123'
-    openShiftService.startBuild(_,_) >> 123
-    openShiftService.getLastBuildVersion(_) >> 123
-    openShiftService.getBuildStatus(_) >> 'complete'
-    openShiftService.getImageReference(_, _) >> '0daecc05'
+    openShiftService.startBuild(*_) >> 123
+    openShiftService.getLastBuildVersion(*_) >> 123
+    openShiftService.getBuildStatus(*_) >> 'complete'
+    openShiftService.getImageReference(*_) >> '0daecc05'
     
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -86,13 +85,12 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
   def "run successfully with Tailor"() {
     given:
-    def c = config + [environment: 'dev', projectId: 'foo']
+    def c = config + [environment: 'dev', projectId: 'foo', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
-    openShiftService.startAndFollowBuild(*_) >> 'bar-123'
     openShiftService.getLastBuildVersion(*_) >> 123
-    openShiftService.startBuild(_,_) >> 123
+    openShiftService.startBuild(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
@@ -118,6 +116,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     buildInfo.image == "0daecc05"
 
     1 * openShiftService.tailorApply(
+      'foo-dev',
       [selector: 'app=foo-bar', include: 'bc,is'],
       '',
       [],
@@ -129,12 +128,15 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
   def "run successfully with overwrite component and image labels"() {
     given:
-    def c = config + [environment: 'dev', "globalExtensionImageLabels" : [ "globalext": "extG" ]]
+    def c = config + [
+      environment: 'dev',
+      targetProject: 'foo-dev',
+      globalExtensionImageLabels: [ "globalext": "extG" ]
+    ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
-    openShiftService.startAndFollowBuild(*_) >> 'overwrite-123'
-    openShiftService.startBuild(_,_) >> 123
+    openShiftService.startBuild(*_) >> 123
     openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
@@ -190,11 +192,10 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def c = config + [environment: 'dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
-    openShiftService.startAndFollowBuild(*_) >> startBuildOutput
     openShiftService.getLastBuildVersion(*_) >> lastBuildVersion
-    openShiftService.startBuild(_,_) >> lastBuildVersion
+    openShiftService.startBuild(*_) >> lastBuildVersion
     openShiftService.getBuildStatus(*_) >> buildStatus
-    openShiftService.getImageReference() >> imageReference
+    openShiftService.getImageReference(*_) >> imageReference
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:

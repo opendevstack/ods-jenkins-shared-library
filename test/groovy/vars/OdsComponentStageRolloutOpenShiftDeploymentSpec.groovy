@@ -37,7 +37,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getLatestVersion(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
     // test the handover of the poddata retries
-    openShiftService.getPodDataForDeployment(_,6) >> [ deploymentId: "${config.componentId}-124" ]
+    openShiftService.getPodDataForDeployment(_, _, 6) >> [ deploymentId: "${config.componentId}-124" ]
     openShiftService.getImagesOfDeploymentConfig (*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -94,6 +94,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo.deploymentId
 
     1 * openShiftService.tailorApply(
+      'foo-dev',
       [selector: 'app=foo-bar', exclude: 'bc,is'],
       '',
       [],
@@ -106,14 +107,14 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
   @Unroll
   def "fails when rollout info cannot be retrieved"() {
     given:
-    def c = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5]
-    IContext context = new Context(null, c, logger)
+    def cfg = config + [environment: 'dev', targetProject: 'foo-dev', openshiftRolloutTimeoutRetries: 5]
+    IContext context = new Context(null, cfg, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
-    openShiftService.resourceExists({ it == 'DeploymentConfig' }, _) >> dcExists
-    openShiftService.resourceExists({ it == 'ImageStream' }, _) >> isExists
+    openShiftService.resourceExists(_, { it == 'DeploymentConfig' }, _) >> dcExists
+    openShiftService.resourceExists(_, { it == 'ImageStream' }, _) >> isExists
     openShiftService.getImagesOfDeploymentConfig (*_) >> images
     openShiftService.getLatestVersion(*_) >> latestVersion
-    openShiftService.rollout(*_) >> { x, y, z ->
+    openShiftService.rollout(*_) >> { a, b, c, d ->
             throw new RuntimeException('Boom!')
         }
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
