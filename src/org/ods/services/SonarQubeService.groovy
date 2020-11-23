@@ -22,6 +22,7 @@ class SonarQubeService {
                 '-Dsonar.scm.provider=git',
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
+                "-Dsonar.branch.name=${properties['sonar.branch.name']}",
             ]
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
@@ -48,8 +49,9 @@ class SonarQubeService {
         }
     }
 
-    def generateCNESReport(String projectKey, String author) {
+    def generateCNESReport(String projectKey, String author, String sonarBranch, String sonarQubeEdition) {
         withSonarServerConfig { hostUrl, authToken ->
+            def branchParam = sonarQubeEdition != 'community' ? "-b $sonarBranch" : ''
             script.sh(
                 label: 'Generate CNES Report',
                 script: """
@@ -57,7 +59,8 @@ class SonarQubeService {
                     -s ${hostUrl} \
                     -t ${authToken} \
                     -p ${projectKey} \
-                    -a ${author}
+                    -a ${author} \
+                    ${branchParam}
                 """
             )
         }

@@ -76,7 +76,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     then:
     printCallStack()
     1 * sonarQubeService.scan(
-      ['sonar.projectKey': 'foo-bar', 'sonar.projectName': 'foo-bar'],
+      ['sonar.projectKey': 'foo-bar', 'sonar.projectName': 'foo-bar', 'sonar.branch.name': 'feature/foo'],
       'cd3e9082d7466942e1de86902bb9e663751dae8e',
       [
         bitbucketUrl: 'https://bitbucket.example.com',
