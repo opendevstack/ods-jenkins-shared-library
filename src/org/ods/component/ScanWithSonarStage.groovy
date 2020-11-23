@@ -97,7 +97,7 @@ class ScanWithSonarStage extends Stage {
     private void scan(Map sonarProperties) {
         def pullRequestInfo = assemblePullRequestInfo()
         def doScan = { Map prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.debug)
+            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, context.debug)
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
