@@ -61,7 +61,7 @@ class GitTag {
         List<String> iterationParts = []
         if (tag && tag.contains('-') && tag.size() > 4) {
             iterationParts = tag
-                .replace("${GitService.ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-", '')
+                .replace("${GitService.ODS_GIT_TAG_PREFIX}v${version}-${changeId}-", '')
                 .replace("-${envToken}", '')
                 .split('b')
         }
@@ -72,7 +72,7 @@ class GitTag {
     }
 
     String toString() {
-        "${GitService.ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-${iteration}b${buildNumber}-${envToken}"
+        "${GitService.ODS_GIT_TAG_PREFIX}v${version}-${changeId}-${iteration}b${buildNumber}-${envToken}"
     }
 
     GitTag nextIterationWithBuildNumber(String buildNumber) {

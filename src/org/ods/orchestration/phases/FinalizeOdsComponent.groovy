@@ -136,7 +136,7 @@ class FinalizeOdsComponent {
             odsBuiltDeployment.containers?.each { containerName, containerImage ->
                 def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
                 if (project.targetProject != owningProject
-                    && !EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
+                    && !MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(owningProject)) {
                     def msg = "Deployment: ${odsBuiltDeploymentName} / " +
                         "Container: ${containerName} / Owner: ${owningProject}"
                     logger.warn "! Image out of scope! ${msg}"
