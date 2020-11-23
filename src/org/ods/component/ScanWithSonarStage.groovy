@@ -138,7 +138,8 @@ class ScanWithSonarStage extends Stage {
         return [:]
     }
 
-    private generateAndArchiveReports(String projectKey, String author, String sonarBranch, String sonarQubeEdition, boolean archive) {
+    private generateAndArchiveReports(String projectKey, String author, String sonarBranch, String sonarQubeEdition,
+                                      boolean archive) {
         def targetReport = "SCRR-${projectKey}.docx"
         def targetReportMd = "SCRR-${projectKey}.md"
         sonarQube.generateCNESReport(projectKey, author, sonarBranch, sonarQubeEdition)
