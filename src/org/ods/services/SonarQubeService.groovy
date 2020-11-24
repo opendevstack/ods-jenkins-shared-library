@@ -54,7 +54,7 @@ class SonarQubeService {
 
     def generateCNESReport(String projectKey, String author, String sonarBranch, String sonarQubeEdition) {
         withSonarServerConfig { hostUrl, authToken ->
-            def branchParam = sonarQubeEdition == 'community' ? '' : "-b $sonarBranch"
+            def branchParam = sonarQubeEdition == 'community' ? '' : "-b ${sonarBranch}"
             script.sh(
                 label: 'Generate CNES Report',
                 script: """
