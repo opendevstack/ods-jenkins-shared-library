@@ -63,17 +63,29 @@ class ScanWithSonarStage extends Stage {
             logger.info 'No long-lived branches configured.'
         }
 
+        script.echo "__________________________________"
+        script.echo "SONARQUBEEDITION"
+        script.echo context.sonarQubeEdition
+        script.echo "__________________________________"
+
         def sonarProperties = sonarQube.readProperties()
 
         def sonarProjectKey = "${context.projectId}-${context.componentId}"
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
+        sonarProperties['sonar.branch.name'] = context.gitBranch
 
         logger.startClocked("${sonarProjectKey}-sq-scan")
         scan(sonarProperties)
         logger.debugClocked("${sonarProjectKey}-sq-scan")
 
-        generateAndArchiveReports(sonarProjectKey, context.buildTag, context.localCheckoutEnabled)
+        generateAndArchiveReports(
+            sonarProjectKey,
+            context.buildTag,
+            sonarProperties['sonar.branch.name'],
+            context.sonarQubeEdition,
+            context.localCheckoutEnabled
+        )
 
         if (config.requireQualityGatePass) {
             def qualityGateResult = getQualityGateResult(sonarProjectKey)
@@ -90,7 +102,7 @@ class ScanWithSonarStage extends Stage {
     private void scan(Map sonarProperties) {
         def pullRequestInfo = assemblePullRequestInfo()
         def doScan = { Map prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.debug)
+            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, context.debug)
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
@@ -131,10 +143,11 @@ class ScanWithSonarStage extends Stage {
         return [:]
     }
 
-    private generateAndArchiveReports(String projectKey, String author, boolean archive) {
+    private generateAndArchiveReports(String projectKey, String author, String sonarBranch, String sonarQubeEdition,
+                                      boolean archive) {
         def targetReport = "SCRR-${projectKey}.docx"
         def targetReportMd = "SCRR-${projectKey}.md"
-        sonarQube.generateCNESReport(projectKey, author)
+        sonarQube.generateCNESReport(projectKey, author, sonarBranch, sonarQubeEdition)
         script.sh(
             label: 'Create artifacts dir',
             script: 'mkdir -p artifacts'

@@ -29,7 +29,8 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
       buildTime: '2020-03-23 12:27:08 +0100',
       odsSharedLibVersion: '2.x',
       branchToEnvironmentMapping: ['master': 'dev', 'release/': 'test'],
-      sonarQubeBranch: 'master'
+      sonarQubeBranch: 'master',
+      sonarQubeEdition: 'developer',
   ]
 
   def "run successfully"() {
@@ -76,7 +77,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     then:
     printCallStack()
     1 * sonarQubeService.scan(
-      ['sonar.projectKey': 'foo-bar', 'sonar.projectName': 'foo-bar'],
+      ['sonar.projectKey': 'foo-bar', 'sonar.projectName': 'foo-bar', 'sonar.branch.name': 'feature/foo'],
       'cd3e9082d7466942e1de86902bb9e663751dae8e',
       [
         bitbucketUrl: 'https://bitbucket.example.com',
@@ -87,6 +88,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         branch: 'feature/foo',
         baseBranch: 'master'
       ],
+        "developer",
       false
     )
     assertJobStatusSuccess()
