@@ -63,11 +63,6 @@ class ScanWithSonarStage extends Stage {
             logger.info 'No long-lived branches configured.'
         }
 
-        script.echo "__________________________________"
-        script.echo "SONARQUBEEDITION"
-        script.echo context.sonarQubeEdition
-        script.echo "__________________________________"
-
         def sonarProperties = sonarQube.readProperties()
 
         def sonarProjectKey = "${context.projectId}-${context.componentId}"
