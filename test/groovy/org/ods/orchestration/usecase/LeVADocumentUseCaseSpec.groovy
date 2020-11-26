@@ -385,7 +385,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         jiraDataItem3.get("funcSpec").put("name", "fs3")
 
         def requirements = [jiraDataItem1, jiraDataItem2, jiraDataItem3]
-
+        project.data.jira.discontinuationsPerType = [requirements:[]]
         when:
         usecase.createCSD()
 
@@ -1474,6 +1474,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                 techSpecs     : [techSpecs[0]]
             ]
         ]
+        project.data.jira.discontinuationsPerType = [requirements:[]]
+
         when:
         def result = usecase.convertImages(contentWithImage)
 

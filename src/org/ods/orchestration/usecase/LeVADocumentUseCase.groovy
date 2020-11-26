@@ -160,7 +160,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
-        def keysInDoc = requirementsForDocument.values().collect { it.key }.flatten()
+        def keysInDoc = requirementsForDocument.values().collect{it.noepics*.key + it.epics*.key}.flatten()
+        if(project.data?.jira?.discontinuationsPerType) {
+            keysInDoc += project.data.jira.discontinuationsPerType.requirements*.key
+        }
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),

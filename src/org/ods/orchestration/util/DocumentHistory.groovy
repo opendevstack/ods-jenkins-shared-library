@@ -43,7 +43,13 @@ class DocumentHistory {
     DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys) {
         this.latestVersionId = (savedVersionId ?: 0L) + 1L
         if (savedVersionId && savedVersionId != 0L) {
-            this.data = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
+            def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
+            def projectVersion = jiraData.version
+            if (projectVersion == docHistories.get(0).projectVersion) {
+                latestVersionId = docHistories.get(0).entryId
+                docHistories.remove(0)
+            }
+            this.data = docHistories
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
         if (this.allIssuesAreValid) {
