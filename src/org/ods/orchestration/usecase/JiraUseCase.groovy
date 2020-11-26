@@ -116,7 +116,8 @@ class JiraUseCase {
         if (!this.jira) return
 
         testFailures.each { failure ->
-            def bug = this.jira.createIssueTypeBug(this.project.jiraProjectKey, failure.type, failure.text)
+            def bug = this.jira.createIssueTypeBug(
+                this.project.jiraProjectKey, failure.type, failure.text, this.project.versionFromReleaseStatusIssue)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -124,6 +125,9 @@ class JiraUseCase {
                 // Find the testcases within the current failure that corresponds to a Jira test issue
                 if (isMatch) {
                     // Add a reference to the current bug to the Jira test issue
+                    if (null == testIssue.bugs) {
+                        testIssue.bugs = []
+                    }
                     testIssue.bugs << bug.key
 
                     // Add a link to the current bug on the Jira test issue (within Jira)

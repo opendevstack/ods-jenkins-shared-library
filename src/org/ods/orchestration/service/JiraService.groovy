@@ -172,7 +172,7 @@ class JiraService {
     }
 
     @NonCPS
-    Map createIssueType(String type, String projectKey, String summary, String description) {
+    Map createIssueType(String type, String projectKey, String summary, String description, String fixVersion = null) {
         if (!type?.trim()) {
             throw new IllegalArgumentException('Error: unable to create Jira issue. \'type\' is undefined.')
         }
@@ -201,6 +201,9 @@ class JiraService {
                         ],
                         summary: summary,
                         description: description,
+                        fixVersions: [
+                           [name: fixVersion]
+                        ],
                         issuetype: [
                             name: type
                         ]
@@ -228,8 +231,8 @@ class JiraService {
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    Map createIssueTypeBug(String projectKey, String summary, String description) {
-        return createIssueType("Bug", projectKey, summary, description)
+    Map createIssueTypeBug(String projectKey, String summary, String description, String fixVersion = null) {
+        return createIssueType("Bug", projectKey, summary, description, fixVersion)
     }
 
     @NonCPS
