@@ -1030,7 +1030,7 @@ class Project {
         def jqlQuery = [
                 jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND fixVersion = '${versionName}' AND status != Done",
                 expand: [],
-                fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+                fields: ['assignee', 'duedate', 'fixVersion', 'issuelinks', 'status', 'summary']
         ]
 
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
