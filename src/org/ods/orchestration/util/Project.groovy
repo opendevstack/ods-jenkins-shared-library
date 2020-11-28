@@ -973,7 +973,6 @@ class Project {
 
     protected Map loadVersionJiraData(String projectKey, String versionName) {
         def result = this.jiraUseCase.jira.getDeltaDocGenData(projectKey, versionName)
-        this.steps.echo "??? loadVersionJiraData: " + result
         if (result?.project?.id == null) {
             throw new IllegalArgumentException(
                 "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
@@ -1610,7 +1609,9 @@ class Project {
             if (JiraDataItem.TYPES.contains(issueType)) {
                 def updatedIssues = content.collectEntries { String issueKey, Map issue ->
                     steps.echo "??? issueKey: " + issueKey + " issue: " + issue
+                    //steps.echo "??? typeof predecessors value: " + issue.predecessors.getClass().getName()
                     def predecessors = issue.getOrDefault('predecessors', [])
+                    steps.echo "??? type of predecessors: " + (predecessors == null) ? "is null" : (predecessors.getClass().getName())
                     if (predecessors.isEmpty()) {
                         [(issueKey): issue]
                     } else {
