@@ -906,8 +906,8 @@ class ProjectSpec extends SpecHelper {
 
         1 * project.convertJiraDataToJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
-        1 * project.loadJiraDataBugs(_) >> createProjectJiraDataBugs()
-        1 * project.loadJiraDataTrackingDocs() >> createProjectJiraDataDocs()
+        1 * project.loadJiraDataBugs(*_) >> createProjectJiraDataBugs()
+        1 * project.loadJiraDataTrackingDocs(*_) >> createProjectJiraDataDocs()
         1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
         1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
