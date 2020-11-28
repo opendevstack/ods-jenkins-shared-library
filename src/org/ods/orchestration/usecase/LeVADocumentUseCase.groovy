@@ -546,7 +546,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         if (!sections."sec5") sections."sec5" = [:]
-        sections."sec5".risks = SortUtil.sortIssuesByKey(risks)
+        sections."sec5".risks = SortUtil.sortIssuesByProperties(risks, ["requirementsKey", "key"])
         sections."sec5".proposedMeasures = SortUtil.sortIssuesByKey(proposedMeasuresDesription)
 
         def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
