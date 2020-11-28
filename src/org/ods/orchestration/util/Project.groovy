@@ -1610,7 +1610,8 @@ class Project {
                 def updatedIssues = content.collectEntries { String issueKey, Map issue ->
                     steps.echo "??? issueKey: " + issueKey + " issue: " + issue
                     //steps.echo "??? typeof predecessors value: " + issue.predecessors.getClass().getName()
-                    def predecessors = issue.getOrDefault('predecessors', [])
+                    //def predecessors = issue.getOrDefault('predecessors', [])
+                    def predecessors = issue.predecessors ?: []
                     steps.echo "??? type of predecessors: " + (predecessors == null) ? "is null" : (predecessors.getClass().getName())
                     if (predecessors.isEmpty()) {
                         [(issueKey): issue]
