@@ -862,7 +862,7 @@ class Project {
         // FIXME getAt with safe-navigation operator is necessary, since
         // this.data.documentHistories can be null. Should be initialized
         // in the load() method or before.
-        return this.data.documentHistories?.getAt(document) ?: [:]
+        return this.data.documentHistories?.getAt(document)// ?: new DocumentHistory(this.steps, logger, this.buildParams.targetEnvironmentToken, document)
     }
 
     DocumentHistory findHistoryForDocumentType(String documentType) {
