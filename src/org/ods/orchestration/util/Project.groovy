@@ -861,11 +861,11 @@ class Project {
     }
 
     boolean historyForDocumentExists(String document) {
-        return this.data.documentHistories[document] ? true : false
+        return this.getHistoryForDocument(document) ? true : false
     }
 
     DocumentHistory getHistoryForDocument(String document) {
-        return this.data.documentHistories[document] ?: [:]
+        return this.data.documentHistories?.getAt(document) ?: [:]
     }
 
     DocumentHistory findHistoryForDocumentType(String documentType) {
