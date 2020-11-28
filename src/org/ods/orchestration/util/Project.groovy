@@ -1028,7 +1028,7 @@ class Project {
         if (!this.jiraUseCase.jira) return [:]
 
         def jqlQuery = [
-                jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND fixVersion = '${versionName}' AND status != Done",
+                jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
                 expand: [],
                 fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
         ]
