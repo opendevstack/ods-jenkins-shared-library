@@ -1546,7 +1546,7 @@ class Project {
 
         newData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect { issueType, issues ->
             issues.collect { String issueKey, Map issue ->
-                def isAnUpdate = ! issue.getOrDefault('predecessors', []).isEmpty()
+                def isAnUpdate = ! (issue.predecessors ?: []).isEmpty()
 
                 def issueLinks = issue.findAll { JiraDataItem.TYPES.contains(it.key) }
                 issueLinks.collect { String linkType, List linkedIssues ->
