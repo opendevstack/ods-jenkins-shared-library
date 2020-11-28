@@ -316,17 +316,25 @@ class Project {
         this.git = git
         this.jiraUseCase = jiraUseCase
 
+        // FIXME: the quality of this function degraded with ODS 3.1 and needs a cleanup
+        // with a clear concept for versioning (scattered across various places)
         this.data.jira = [project: [ : ]]
         this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
         this.data.jira << this.loadJiraData(this.jiraProjectKey)
 
         // Get more info of the versions from Jira
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
-        this.data.jira.bugs = this.loadJiraDataBugs(this.getVersionName(), this.data.jira.tests) // TODO removeme when endpoint is updated
+
+        def version = null
+        if (this.isVersioningEnabled) {
+            version = this.getVersionName()
+        }
+
+        this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests, version) // TODO removeme when endpoint is updated
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(this.getVersionName())
+        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(version)
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
@@ -1023,14 +1031,20 @@ class Project {
         return result
     }
 
-    protected Map loadJiraDataBugs(String versionName, Map tests) {
+    protected Map loadJiraDataBugs(Map tests, String versionName = null) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
+        def jql = "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done"
+
+        if (versionName) {
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
+
         def jqlQuery = [
-                jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
-                expand: [],
-                fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+            fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary'],
+            jql: jql,
+            expand: []
         ]
 
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
@@ -1080,11 +1094,19 @@ class Project {
         }
     }
 
-    protected Map loadJiraDataTrackingDocs(String versionName) {
+    protected Map loadJiraDataTrackingDocs(String versionName = null) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def jqlQuery = [jql: "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}' AND fixVersion = '${versionName}'"]
+        def jql = "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"
+
+        if (versionName) {
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
+
+        def jqlQuery = [
+            jql: jql
+        ]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
