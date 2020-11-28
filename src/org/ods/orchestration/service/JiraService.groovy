@@ -471,6 +471,7 @@ class JiraService {
             }
             throw new RuntimeException(message)
         }
+
         new JsonSlurperClassic().parseText(response.getBody()).getOrDefault("fields", [:]).getOrDefault("labels", [])
     }
 
