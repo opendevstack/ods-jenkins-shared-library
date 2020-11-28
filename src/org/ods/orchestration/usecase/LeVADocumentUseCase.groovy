@@ -111,7 +111,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def requirements = this.project.getSystemRequirements()
-        this.steps.echo "DEBUG: ---- requirements \r${requirements.toString()}\r -----"
 
         def reqsWithNoGampTopic = requirements.findAll { it.gampTopic == null }
         def reqsGroupedByGampTopic = requirements. findAll { it.gampTopic != null }
@@ -1593,7 +1592,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
             } else if (this.project.historyForDocumentExists(doc)) {
                 version = this.project.getHistoryForDocument(doc).getVersion()
-                this.steps.echo("FIXME ??? Found Version: ${version}")
             } else {
                 def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
                 version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)

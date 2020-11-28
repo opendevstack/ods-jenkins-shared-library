@@ -1471,7 +1471,7 @@ class Project {
      */
     private Map mergeComponentsLinks(Map oldComponents, Map newComponents) {
         oldComponents[JiraDataItem.TYPE_COMPONENTS].collectEntries { compName, oldComp ->
-            def newComp = newComponents[JiraDataItem.TYPE_COMPONENTS].getOrDefault(compName, [:])
+            def newComp = newComponents[JiraDataItem.TYPE_COMPONENTS][compName] ?: [:]
             def updatedComp = mergeJiraItemLinks(oldComp, newComp)
             [(compName): updatedComp]
         }
@@ -1496,14 +1496,14 @@ class Project {
     }
 
     private List<String> getComponentDiscontinuations(Map oldData, Map newData) {
-        def oldComponents = oldData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).keySet()
-        def newComponents = newData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).keySet()
+        def oldComponents = (oldData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).keySet()
+        def newComponents = (newData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).keySet()
         (oldComponents - newComponents) as List
     }
 
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version
-        jiraData.getOrDefault(JiraDataItem.TYPE_COMPONENTS, [:]).each { k, component ->
+        (jiraData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).each { k, component ->
             jiraData[JiraDataItem.TYPE_COMPONENTS][k].key = k
             if (! component.versions) {
                 jiraData[JiraDataItem.TYPE_COMPONENTS][k].versions = [currentVersion]
@@ -1529,7 +1529,7 @@ class Project {
     }
 
     private static Map<String, List> buildChangesInLinks(Map oldData, Map updates) {
-        def discontinuedLinks = getDiscontinuedLinks(oldData, updates.getOrDefault('discontinuations', []))
+        def discontinuedLinks = getDiscontinuedLinks(oldData, (updates.discontinuations ?: []))
         def additionsAndChanges = getAdditionsAndChangesInLinks(updates)
 
         return (discontinuedLinks + additionsAndChanges).groupBy { it.target }
@@ -1578,7 +1578,7 @@ class Project {
     private static List getPreceededKeys(Map jiraData) {
         jiraData.findAll { JiraDataItem.TYPES.contains(it.key) }.values().collect { issueGroup ->
             issueGroup.values().collect { issue ->
-                [issue.getOrDefault('expandedPredecessors',[]).collect { it.key }]
+                [(issue.expandedPredecessors ?: []).collect { it.key }]
             }
         }.flatten().unique()
     }
@@ -1592,13 +1592,13 @@ class Project {
      */
     private static Map expandPredecessorInformation(Map savedData, Map newData, def steps) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
-            def predecessorIssue = savedData.getOrDefault(issueType, [:]).getOrDefault(predecessor, null)
+            def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]
             if (!predecessorIssue) {
                 throw new RuntimeException("Error: new issue '${issueKey}' references key '${predecessor}' " +
                     "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
-                    "Existing issue list is '[${savedData.getOrDefault(issueType, [:]).keySet().join(', ')}]'")
+                    "Existing issue list is '[${(savedData[issueType] ?: [:]).keySet().join(', ')}]'")
             }
-            def existingPredecessors = predecessorIssue.getOrDefault('expandedPredecessors', [:])
+            def existingPredecessors = (predecessorIssue.expandedPredecessors ?: [:])
             def result = [[key: predecessorIssue.key, versions: predecessorIssue.versions]]
 
             if (existingPredecessors) {
@@ -1610,11 +1610,7 @@ class Project {
         newData.collectEntries { issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
                 def updatedIssues = content.collectEntries { String issueKey, Map issue ->
-                    steps.echo "??? issueKey: " + issueKey + " issue: " + issue
-                    //steps.echo "??? typeof predecessors value: " + issue.predecessors.getClass().getName()
-                    //def predecessors = issue.getOrDefault('predecessors', [])
                     def predecessors = issue.predecessors ?: []
-                    steps.echo "??? type of predecessors: " + (predecessors == null) ? "is null" : (predecessors.getClass().getName())
                     if (predecessors.isEmpty()) {
                         [(issueKey): issue]
                     } else {
