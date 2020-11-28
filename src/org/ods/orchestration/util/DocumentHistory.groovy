@@ -336,4 +336,18 @@ class DocumentHistory {
             }
     }
 
+    public String toString() {
+        def result = ""
+
+        this.data.each { entry ->
+            result += "ID: " + entry.entryId
+            result += "ProjectVersion: " + entry.projectVersion
+            result += "PreviousProjectVersion: " + entry.previousProjectVersion
+            result += "Rational: " + entry.rational
+            result += "----------"
+        }
+
+        return result
+    }
+
 }
