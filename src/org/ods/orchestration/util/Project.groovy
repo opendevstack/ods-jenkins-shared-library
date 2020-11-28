@@ -1042,12 +1042,14 @@ class Project {
         }
 
         def jqlQuery = [
-            fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary'],
+            fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary', 'version', 'versions', 'fixVersion'],
             jql: jql,
             expand: []
         ]
 
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
+        this.steps.echo("??? jiraBugs: " + jiraBugs)
+
         return jiraBugs.collectEntries { jiraBug ->
             def bug = [
                 key: jiraBug.key,
