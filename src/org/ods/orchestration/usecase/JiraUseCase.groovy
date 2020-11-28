@@ -207,7 +207,7 @@ class JiraUseCase {
             }
             content = content ? content.getValue() : ""
 
-            def documentTypes = (issue.fields.labels ?: [])
+            def documentTypes = issue.fields.getOrDefault('labels', [])
                 .findAll{String l -> l.startsWith(LabelPrefix.DOCUMENT)}
                 .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}
             if (documentTypes.size() == 0) {
@@ -244,7 +244,7 @@ class JiraUseCase {
 
         def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
         def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
-        if (!versionField?.productReleaseVersionField?.id?.name) {
+        if (!versionField?.getOrDefault(productReleaseVersionField.id, null)?.name) {
             throw new IllegalArgumentException('Unable to obtain version name from release status issue' +
                 " ${releaseStatusIssueKey}. Please check that field with name" +
                 " '${productReleaseVersionField.name}' and id '${productReleaseVersionField.id}' " +
@@ -366,7 +366,8 @@ class JiraUseCase {
 
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
-            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.documentVersionField
+            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.
+                getOrDefault(documentVersionField, null)
             def versionNumber = 0L
             if (version) {
                 try {

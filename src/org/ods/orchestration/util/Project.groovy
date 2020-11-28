@@ -1608,9 +1608,12 @@ class Project {
         newData.collectEntries { issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
                 def updatedIssues = content.collectEntries { String issueKey, Map issue ->
-                    def predecessors = issue.predecessors ?: []
+                    steps.echo "??? issueKey: " + issueKey + " issue: " + issue
+                    //steps.echo "??? typeof predecessors value: " + issue.predecessors.getClass().getName()
+                    def predecessors = issue.getOrDefault('predecessors', [])
+                    steps.echo "??? type of predecessors: " + (predecessors == null) ? "is null" : (predecessors.getClass().getName())
                     if (predecessors.isEmpty()) {
-                        return [(issueKey): issue]
+                        [(issueKey): issue]
                     } else {
                         def expandedPredecessors = predecessors.collect { predecessor ->
                             expandPredecessor(issueType, issueKey, predecessor)
@@ -1619,13 +1622,12 @@ class Project {
                         def predecessorIssue = savedData.get(issueType).get(predecessors.first())
                         def updatedIssue = mergeJiraItemLinks(predecessorIssue, issue)
 
-                        return [(issueKey): (updatedIssue + [expandedPredecessors: expandedPredecessors])]
+                        [(issueKey): (updatedIssue + [expandedPredecessors: expandedPredecessors])]
                     }
                 }
-
-                return [(issueType): updatedIssues]
+                [(issueType): updatedIssues]
             } else {
-                return [(issueType): content]
+                [(issueType): content]
             }
         }
     }
