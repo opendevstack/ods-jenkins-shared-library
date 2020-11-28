@@ -864,16 +864,15 @@ class Project {
         this.data.documentHistories?.getOrDefault(document, null)? true : false
     }
 
-    @NonCPS
     DocumentHistory getHistoryForDocument(String document) {
         this.steps.echo("??? getHistoryForDocument for doc ${document}")
         this.data.documentHistories.each { doc, hist ->
             this.steps.echo("Document: ${doc}")
-            //def hist_string = "History: ${hist}"
-            //this.steps.echo(hist_string)
+//            def hist_string = "History: ${hist}"
+ //           this.steps.echo(hist_string)
         }
 
-        return this.data.documentHistories.getOrDefault(document, [:])
+        return this.data.documentHistories[document] ?: [:]
     }
 
     DocumentHistory findHistoryForDocumentType(String documentType) {
