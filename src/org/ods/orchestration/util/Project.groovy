@@ -861,7 +861,7 @@ class Project {
     }
 
     boolean historyForDocumentExists(String document) {
-        return this.getHistoryForDocument(document) ? true : false
+        return this.data.documentHistories?.getOrDefault(document, null)? true : false
     }
 
     DocumentHistory getHistoryForDocument(String document) {
