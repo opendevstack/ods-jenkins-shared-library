@@ -211,7 +211,6 @@ class DocumentHistory {
 
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
         if (jiraIssues) {
-            this.steps.echo("??? jiraIssues: " + jiraIssues)
             def issuesWithNoVersion = jiraIssues.findAll { Map i ->
                 (i.versions) ? false : true
             }
