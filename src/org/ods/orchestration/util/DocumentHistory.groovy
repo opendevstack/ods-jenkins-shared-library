@@ -211,9 +211,11 @@ class DocumentHistory {
 
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
         if (jiraIssues) {
+            this.steps.echo("??? jiraIssues: " + jiraIssues)
             def issuesWithNoVersion = jiraIssues.findAll { Map i ->
                 (i.versions) ? false : true
             }
+
             if (!issuesWithNoVersion.isEmpty()) {
                 //throw new RuntimeException('In order to build a coherent document history we need to have a' +
                 //    ' version for all the elements. In this case, the following items have this state: ' +
