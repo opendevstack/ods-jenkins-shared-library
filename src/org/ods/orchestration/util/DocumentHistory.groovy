@@ -215,6 +215,8 @@ class DocumentHistory {
                 (i.versions) ? false : true
             }
 
+            this.steps.echo("??? issuesWithNoVersion: " + issuesWithNoVersion)
+
             if (!issuesWithNoVersion.isEmpty()) {
                 //throw new RuntimeException('In order to build a coherent document history we need to have a' +
                 //    ' version for all the elements. In this case, the following items have this state: ' +
