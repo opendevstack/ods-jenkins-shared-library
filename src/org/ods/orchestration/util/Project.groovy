@@ -387,7 +387,8 @@ class Project {
      * @return dict with map documentTypes -> sectionsNotDoneKeys
      */
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
-        data.getOrDefault(JiraDataItem.TYPE_DOCS, [:]).values()
+        (data[JiraDataItem.TYPE_DOCS] ?: [:])
+            .values()
             .findAll { issueIsWIP(it) }
             .collect { chapter ->
                 chapter.documents.collect { [doc: it, key: chapter.key] }
@@ -802,16 +803,17 @@ class Project {
     }
 
     List<JiraDataItem> getDocumentChaptersForDocument(String document) {
-        return this.data.jira.getOrDefault(JiraDataItem.TYPE_DOCS, [:])
-            .findAll { k, v -> v.documents && v.documents.contains(document) }.values() as List
+        def docs = this.data.jira[JiraDataItem.TYPE_DOCS] ?: [:]
+        return docs.findAll { k, v -> v.documents && v.documents.contains(document) }.values() as List
     }
 
     List<String> getWIPDocChaptersForDocument(String documentType) {
-        return this.getWIPDocChapters().getOrDefault(documentType, [])
+        def docs = this.getWIPDocChapters()
+        return docs[documentType] ?: []
     }
 
     Map getWIPDocChapters() {
-        return this.data.jira.getOrDefault('undoneDocChapters', [:])
+        return this.data.jira.undoneDocChapters ?: [:]
     }
 
     Map getEnvironmentConfig() {

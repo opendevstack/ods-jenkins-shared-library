@@ -368,15 +368,9 @@ class JiraUseCase {
 
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
-//            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.
-//                getOrDefault(documentVersionField, null)
-            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.
-                getOrDefault(documentVersionField, null)
-            def version1 = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
-            this.steps.echo("??? version: " + version)
-            this.steps.echo("??? version1: " + version1)
-
             def versionNumber = 0L
+
+            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
             if (version) {
                 try {
                     versionNumber = version.toLong()
@@ -385,11 +379,14 @@ class JiraUseCase {
                         "version. It contains value '${version}'.")
                 }
             }
+
             return versionNumber
         }
+
         def result = versionList.max()
         logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
             "${trackingIssues.collect { it.key } }")
+
         return result
     }
 

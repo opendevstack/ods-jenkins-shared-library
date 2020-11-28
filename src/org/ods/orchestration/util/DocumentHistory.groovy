@@ -281,8 +281,9 @@ class DocumentHistory {
         def discontinuations = computeDiscontinuations(jiraData, previousDocumentIssues)
 
         def addUpdDisc = JiraDataItem.TYPES.collectEntries { String issueType ->
-            [(issueType): additionsAndUpdates.getOrDefault(issueType, [])
-                + discontinuations.getOrDefault(issueType, [])]
+            [(issueType): (additionsAndUpdates[issueType] ?: [])
+                + (discontinuations[issueType] ?: [])
+            ]
         } as Map
 
         return this.computeIssuesThatAreNotInDocumentAnymore(previousDocumentIssues, addUpdDisc, keysInDocument)
@@ -326,7 +327,7 @@ class DocumentHistory {
 
         issues.findAll { it.value.versions?.contains(version) }
             .collect { issueKey, issue ->
-                def isAnUpdate = issue.predecessors != null && !issue.getOrDefault('predecessors', []).isEmpty()
+                def isAnUpdate = issue.predecessors
                 if (isAnUpdate) {
                     computeIssueContent(issueType, CHANGE, issue)
                 } else {
