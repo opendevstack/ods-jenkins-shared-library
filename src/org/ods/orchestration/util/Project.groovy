@@ -1059,7 +1059,7 @@ class Project {
                 assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
                 dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
                 status: jiraBug.fields.status.name,
-                versions: jiraBug.fields.versions
+                versions: jiraBug.fields.fixVersions.collect { it.name }
             ]
 
             def testKeys = []
