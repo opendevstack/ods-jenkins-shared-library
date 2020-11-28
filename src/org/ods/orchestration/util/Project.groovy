@@ -1608,6 +1608,7 @@ class Project {
         newData.collectEntries { issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
                 def updatedIssues = content.collectEntries { String issueKey, Map issue ->
+                    this.steps.echo "??? issue: " + issue
                     def predecessors = issue.getOrDefault('predecessors', [])
                     if (predecessors.isEmpty()) {
                         [(issueKey): issue]
