@@ -973,6 +973,7 @@ class Project {
 
     protected Map loadVersionJiraData(String projectKey, String versionName) {
         def result = this.jiraUseCase.jira.getDeltaDocGenData(projectKey, versionName)
+        this.steps.echo "??? loadVersionJiraData: " + result
         if (result?.project?.id == null) {
             throw new IllegalArgumentException(
                 "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
