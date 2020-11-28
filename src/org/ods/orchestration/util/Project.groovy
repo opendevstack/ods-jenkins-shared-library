@@ -330,6 +330,9 @@ class Project {
             version = this.getVersionName()
         }
 
+        // FIXME: contrary to the comment below, the bug data from this method is still relevant
+        // implementation needs to be cleaned up and bug data should be delivered through plugin's
+        // REST endpoint, not plain Jira
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests, version) // TODO removeme when endpoint is updated
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
@@ -1050,7 +1053,6 @@ class Project {
         ]
 
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
-        this.steps.echo("??? jiraBugs: " + jiraBugs)
 
         return jiraBugs.collectEntries { jiraBug ->
             def bug = [
