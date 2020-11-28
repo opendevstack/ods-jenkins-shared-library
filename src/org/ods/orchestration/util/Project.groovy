@@ -1443,7 +1443,7 @@ class Project {
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
             // Expand some information from old saved data
-            def newDataExpanded = expandPredecessorInformation (oldData, newData)
+            def newDataExpanded = expandPredecessorInformation (oldData, newData, this.steps)
             newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
 
             // Update data from previous version
@@ -1588,7 +1588,7 @@ class Project {
      * @param newData data for the current version
      * @return Map new data with the issue predecessors expanded
      */
-    private static Map expandPredecessorInformation(Map savedData, Map newData) {
+    private static Map expandPredecessorInformation(Map savedData, Map newData, def steps) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
             def predecessorIssue = savedData.getOrDefault(issueType, [:]).getOrDefault(predecessor, null)
             if (!predecessorIssue) {
@@ -1608,7 +1608,7 @@ class Project {
         newData.collectEntries { issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
                 def updatedIssues = content.collectEntries { String issueKey, Map issue ->
-                    this.steps.echo "??? issue: " + issue
+                    steps.echo "??? issueKey: " + issueKey + " issue: " + issue
                     def predecessors = issue.getOrDefault('predecessors', [])
                     if (predecessors.isEmpty()) {
                         [(issueKey): issue]
