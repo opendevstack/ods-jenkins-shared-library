@@ -1442,7 +1442,7 @@ class Project {
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
             // Expand some information from old saved data
-            def newDataExpanded = expandPredecessorInformation (oldData, newData, this.steps)
+            def newDataExpanded = expandPredecessorInformation (oldData, newData)
             newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
 
             // Update data from previous version
@@ -1587,7 +1587,7 @@ class Project {
      * @param newData data for the current version
      * @return Map new data with the issue predecessors expanded
      */
-    private static Map expandPredecessorInformation(Map savedData, Map newData, def steps) {
+    private static Map expandPredecessorInformation(Map savedData, Map newData) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
             def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]
             if (!predecessorIssue) {
