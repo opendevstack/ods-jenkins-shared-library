@@ -865,6 +865,7 @@ class Project {
     }
 
     DocumentHistory getHistoryForDocument(String document) {
+        this.steps.echo("??? getHistoryForDocument for doc ${document}: " + this.data.documentHistories)
         return this.data.documentHistories.getOrDefault(document, [:])
     }
 
