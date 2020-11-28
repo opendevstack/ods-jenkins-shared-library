@@ -1039,7 +1039,7 @@ class Project {
         def jql = "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done"
 
         if (versionName) {
-            fields << 'versions'
+            fields << 'fixVersions'
             jql = jql + " AND fixVersion = '${versionName}'"
         }
 
@@ -1059,6 +1059,7 @@ class Project {
                 assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
                 dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
                 status: jiraBug.fields.status.name,
+                versions: jiraBug.fields.versions
             ]
 
             def testKeys = []
