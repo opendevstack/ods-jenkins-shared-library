@@ -853,11 +853,11 @@ class Project {
     }
 
     String getGitReleaseBranch() {
-        GitService.getReleaseBranch(buildParams.version)
+        return GitService.getReleaseBranch(buildParams.version)
     }
 
     String getTargetProject() {
-        "${getKey()}-${getConcreteEnvironment()}"
+        return "${getKey()}-${getConcreteEnvironment()}"
     }
 
     boolean historyForDocumentExists(String document) {
@@ -1003,7 +1003,7 @@ class Project {
         def newData = this.loadVersionJiraData(projectKey, versionName)
 
         // Get more info of the versions from Jira
-        def predecessors = newData.getOrDefault("precedingVersions", [])
+        def predecessors = newData.precedingVersions ?: []
         def previousVersionId = null
         if (predecessors && ! predecessors.isEmpty()) {
             previousVersionId = predecessors.first()
@@ -1394,7 +1394,7 @@ class Project {
                         [(key): left[key] + right[key]]
                     }
                 } else {
-                    [(key): right.getOrDefault(key, null)]
+                    [(key): right[key]]
                 }
             }
         }
@@ -1423,7 +1423,7 @@ class Project {
             def reverseLinkIndex = buildChangesInLinks(left, right)
             left.findAll { JiraDataItem.TYPES.contains(it.key) }.each { issueType, issues ->
                 issues.values().each { Map issueToUpdate ->
-                    def linksToUpdate = reverseLinkIndex.getOrDefault(issueToUpdate.key, [])
+                    def linksToUpdate = reverseLinkIndex[issueToUpdate.key] ?: []
                     linksToUpdate.each { Map link ->
                         try {
                             updateLink(issueType, issueToUpdate.key, link)
@@ -1441,7 +1441,7 @@ class Project {
             newData
         } else {
             oldData[JiraDataItem.TYPE_COMPONENTS] = this.mergeComponentsLinks(oldData, newData)
-            def discontinuations = newData.getOrDefault('discontinuedKeys',[]) +
+            def discontinuations = (newData.discontinuedKeys ?: []) +
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
             // Expand some information from old saved data
@@ -1456,7 +1456,7 @@ class Project {
             // merge old component data to new for the existing components
             newDataExpanded[JiraDataItem.TYPE_COMPONENTS] = newDataExpanded[JiraDataItem.TYPE_COMPONENTS]
                 .collectEntries { compN, v ->
-                    [ (compN): oldDataWithoutObsoletes[JiraDataItem.TYPE_COMPONENTS].getOrDefault(compN, v)]
+                    [ (compN): (oldDataWithoutObsoletes[JiraDataItem.TYPE_COMPONENTS][compN] ?: v)]
                 }
             mergeMaps(oldDataWithoutObsoletes, newDataExpanded)
         }
