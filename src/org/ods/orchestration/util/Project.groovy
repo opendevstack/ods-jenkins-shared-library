@@ -1110,8 +1110,13 @@ class Project {
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
-            throw new IllegalArgumentException(
-                "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}' for version '${versionName}'.")
+            def message = "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}'"
+            if (versionName) {
+                message += " for version '${versionName}'"
+            }
+            message += "."
+
+            throw new IllegalArgumentException(message)
         }
 
         return jiraIssues.collectEntries { jiraIssue ->
