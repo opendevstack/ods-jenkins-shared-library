@@ -86,7 +86,7 @@ class FinalizeStage extends Stage {
         }
 
         // Dump a representation of the project
-        logger.debug("---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
+        logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 

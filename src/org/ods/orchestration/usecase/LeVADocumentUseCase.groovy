@@ -111,7 +111,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def requirements = this.project.getSystemRequirements()
-        this.steps.echo "DEBUG: ---- requirements \r${requirements.toString()}\r -----"
 
         def reqsWithNoGampTopic = requirements.findAll { it.gampTopic == null }
         def reqsGroupedByGampTopic = requirements. findAll { it.gampTopic != null }

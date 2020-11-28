@@ -85,7 +85,7 @@ abstract class DocGenUseCase {
         if (repo) {
             message += " for ${repo.id}"
         }
-        message += " uploaded @ ${uri.toString()}"
+        message += " uploaded @ ${uri}"
         this.steps.echo message
         return uri.toString()
     }

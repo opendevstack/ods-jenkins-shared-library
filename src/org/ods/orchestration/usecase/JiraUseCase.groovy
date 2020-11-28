@@ -204,7 +204,7 @@ class JiraUseCase {
             }
             content = content ? content.getValue() : ""
 
-            def documentTypes = issue.fields.getOrDefault('labels', [])
+            def documentTypes = (issue.fields.labels ?: [])
                 .findAll{String l -> l.startsWith(LabelPrefix.DOCUMENT)}
                 .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}
             if (documentTypes.size() == 0) {
@@ -241,12 +241,13 @@ class JiraUseCase {
 
         def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
         def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
-        if (!versionField?.getOrDefault(productReleaseVersionField.id, null)?.name) {
+        if (!versionField || !versionField[productReleaseVersionField.id]?.name) {
             throw new IllegalArgumentException('Unable to obtain version name from release status issue' +
                 " ${releaseStatusIssueKey}. Please check that field with name" +
                 " '${productReleaseVersionField.name}' and id '${productReleaseVersionField.id}' " +
                 'has a correct version value.')
         }
+
         return versionField[productReleaseVersionField.id].name
     }
 
@@ -363,9 +364,9 @@ class JiraUseCase {
 
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
-            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.
-                getOrDefault(documentVersionField, null)
             def versionNumber = 0L
+
+            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
             if (version) {
                 try {
                     versionNumber = version.toLong()
@@ -374,11 +375,14 @@ class JiraUseCase {
                         "version. It contains value '${version}'.")
                 }
             }
+
             return versionNumber
         }
+
         def result = versionList.max()
         logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
             "${trackingIssues.collect { it.key } }")
+
         return result
     }
 
