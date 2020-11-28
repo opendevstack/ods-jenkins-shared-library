@@ -322,13 +322,16 @@ class Project {
 
         // Get more info of the versions from Jira
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
-
-        this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests) // TODO removeme when endpoint is updated
+        // TODO: versioning (DONE)
+        this.data.jira.bugs = this.loadJiraDataBugs(this.getVersionName(), this.data.jira.tests) // TODO removeme when endpoint is updated
+        this.steps.echo("??? BUGS: " + this.data.jira.bugs)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
 
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs()
+        // TODO: versioning (DONE)
+        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(this.getVersionName())
+        this.steps.echo("??? DOCS: " + this.data.jira.trackingDocs)
 
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
@@ -337,6 +340,7 @@ class Project {
             def message = 'Pipeline-generated documents are watermarked ' +
                     "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
                     'since the following issues are work in progress: '
+
             this.getWipJiraIssues().each { type, keys ->
                 def values = keys instanceof Map ? keys.values().flatten() : keys
                 if (!values.isEmpty()) {
@@ -935,7 +939,8 @@ class Project {
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
-            def currentVersion = this.getVersionFromReleaseStatusIssue()
+            def currentVersion = this.getVersionFromReleaseStatusIssue() // TODO why is param.version not sufficient here?
+
             this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)
             if (this.isVersioningEnabled) {
                 // We detect the correct version even if the build is WIP
@@ -963,7 +968,7 @@ class Project {
         }
         def docChapterData = this.getDocumentChapterData(projectKey)
         result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
-        result
+        return result
     }
 
     protected Map loadVersionJiraData(String projectKey, String versionName) {
@@ -972,9 +977,10 @@ class Project {
             throw new IllegalArgumentException(
                 "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
         }
+
         def docChapterData = this.getDocumentChapterData(projectKey, versionName)
         result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
-        result
+        return result
     }
 
     protected Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
@@ -1000,6 +1006,7 @@ class Project {
         if (predecessors && ! predecessors.isEmpty()) {
             previousVersionId = predecessors.first()
         }
+
         if (previousVersionId) {
             logger.info("Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
             def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
@@ -1010,18 +1017,19 @@ class Project {
             logger.info("No predecessor project version found. Loading only data from Jira.")
             result << this.addKeyAndVersionToComponentsWithout(newData)
         }
+
         // Get more info of the versions from Jira
         result.project << [previousVersion: this.loadVersionDataFromJira(previousVersionId)]
 
         return result
     }
 
-    protected Map loadJiraDataBugs(Map tests) {
+    protected Map loadJiraDataBugs(String versionName, Map tests) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
         def jqlQuery = [
-                jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
+                jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND fixVersion = '${versionName}' AND status != Done",
                 expand: [],
                 fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
         ]
@@ -1073,16 +1081,16 @@ class Project {
         }
     }
 
-    protected Map loadJiraDataTrackingDocs() {
+    protected Map loadJiraDataTrackingDocs(String versionName) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def jqlQuery = [jql: "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"]
+        def jqlQuery = [jql: "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}' AND fixVersion = '${versionName}'"]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
             throw new IllegalArgumentException(
-                "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}'.")
+                "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}' for version '${versionName}'.")
         }
 
         return jiraIssues.collectEntries { jiraIssue ->

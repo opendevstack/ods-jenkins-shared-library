@@ -178,6 +178,9 @@ class JiraUseCase {
             jql = jql + " AND fixVersion = '${versionName}'"
         }
 
+        steps.echo("??? JiraUseCase.getDocumentChapterData")
+        steps.echo("??? query: " + jql)
+
         def jqlQuery = [
             fields: ['key', 'status', 'summary', 'labels', 'issuelinks', contentField, headingNumberField],
             jql: jql,
