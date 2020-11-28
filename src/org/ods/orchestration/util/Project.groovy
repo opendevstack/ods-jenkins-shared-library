@@ -322,17 +322,11 @@ class Project {
 
         // Get more info of the versions from Jira
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
-        // TODO: versioning (DONE)
         this.data.jira.bugs = this.loadJiraDataBugs(this.getVersionName(), this.data.jira.tests) // TODO removeme when endpoint is updated
-        this.steps.echo("??? BUGS: " + this.data.jira.bugs)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
-
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        // TODO: versioning (DONE)
         this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(this.getVersionName())
-        this.steps.echo("??? DOCS: " + this.data.jira.trackingDocs)
-
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
@@ -865,6 +859,9 @@ class Project {
     }
 
     DocumentHistory getHistoryForDocument(String document) {
+        // FIXME getAt with safe-navigation operator is necessary, since
+        // this.data.documentHistories can be null. Should be initialized
+        // in the load() method or before.
         return this.data.documentHistories?.getAt(document) ?: [:]
     }
 
