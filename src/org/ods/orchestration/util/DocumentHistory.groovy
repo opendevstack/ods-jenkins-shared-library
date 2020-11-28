@@ -339,12 +339,15 @@ class DocumentHistory {
     public String toString() {
         def result = ""
 
+        result += "LatestVersionID: " + latestVersionId + "\n"
+        result += "DocumentType: " + documentType + "\n"
+
         this.data.each { entry ->
-            result += "ID: " + entry.entryId
-            result += "ProjectVersion: " + entry.projectVersion
-            result += "PreviousProjectVersion: " + entry.previousProjectVersion
-            result += "Rational: " + entry.rational
-            result += "----------"
+            result += "----------\n"
+            result += "ID: " + entry.entryId + "\n"
+            result += "ProjectVersion: " + entry.projectVersion + "\n"
+            result += "PreviousProjectVersion: " + entry.previousProjectVersion + "\n"
+            result += "Rational: " + entry.rational + "\n"
         }
 
         return result
