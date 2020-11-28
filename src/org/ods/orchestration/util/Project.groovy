@@ -868,8 +868,10 @@ class Project {
         this.steps.echo("??? getHistoryForDocument for doc ${document}")
         this.data.documentHistories.each { doc, hist ->
             this.steps.echo("${doc}")
-            this.steps.echo("${hist}")
+            def hist_string = "${hist}"
+            this.steps.echo(hist_string)
         }
+        
         return this.data.documentHistories.getOrDefault(document, [:])
     }
 
