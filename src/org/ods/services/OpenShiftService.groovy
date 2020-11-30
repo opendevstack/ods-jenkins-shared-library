@@ -107,27 +107,6 @@ class OpenShiftService {
         envExists(steps, project)
     }
 
-    def createVersionedDevelopmentEnvironment(String projectKey, String project, String sourceEnvName) {
-        def limit = 3
-        if (tooManyEnvironments(steps, "${projectKey}-dev-", limit)) {
-            throw new RuntimeException(
-                "Error: only ${limit} versioned ${projectKey}-dev-* environments are allowed. " +
-                'Please clean up and run the pipeline again.'
-            )
-        }
-        def tmpDir = "tmp-${project}"
-        steps.sh(
-            script: "mkdir -p ${tmpDir}",
-            label: "Ensure ${tmpDir} exists"
-        )
-        steps.dir(tmpDir) {
-            createProject(steps, project)
-            doTailorExport("${projectKey}-${sourceEnvName}", 'serviceaccount,rolebinding', [:], 'template.yml')
-            doTailorApply(project, 'serviceaccount,rolebinding --upsert-only')
-            steps.deleteDir()
-        }
-    }
-
     String getApiUrl() {
         getApiUrl(steps)
     }

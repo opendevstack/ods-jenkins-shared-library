@@ -374,71 +374,20 @@ class InitStage extends Stage {
         }
         def os = registry.get(OpenShiftService)
 
-        // It is assumed that the pipeline runs in the same cluster as the 'D' env.
-        if (project.buildParams.targetEnvironmentToken == 'D' && !os.envExists(project.targetProject)) {
-            runOnAgentPod(true) {
-                def sourceEnv = project.buildParams.targetEnvironment
-                os.createVersionedDevelopmentEnvironment(project.key, project.targetProject, sourceEnv)
-
-                def envParamsFile = project.environmentParamsFile
-                def envParams = project.getEnvironmentParams(envParamsFile)
-
-                repos.each { repo ->
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                        def openshiftDir = 'openshift-exported'
-                        def exportRequired = true
-                        if (script.fileExists('openshift')) {
-                            logger.debug(
-                                "Found 'openshift' folder, current OpenShift state " +
-                                    "will not be exported into 'openshift-exported'."
-                            )
-                            openshiftDir = 'openshift'
-                            exportRequired = false
-                        } else {
-                            steps.sh(
-                                script: "mkdir -p ${openshiftDir}",
-                                label: "Ensure ${openshiftDir} exists"
-                            )
-                        }
-                        def componentSelector = "app=${project.key}-${repo.id}"
-                        steps.dir(openshiftDir) {
-                            if (exportRequired) {
-                                logger.debug("Exporting current OpenShift state to folder '${openshiftDir}'.")
-                                def targetFile = 'template.yml'
-                                os.tailorExport(
-                                    "${project.key}-${sourceEnv}",
-                                    componentSelector,
-                                    envParams,
-                                    targetFile
-                                )
-                            }
-
-                            logger.info(
-                                "Applying desired OpenShift state defined in ${openshiftDir} " +
-                                "to ${project.targetProject}."
-                            )
-                            def params = []
-                            def preserve = []
-                            def applyFunc = { pkeyFile ->
-                                os.tailorApply(
-                                        project.targetProject,
-                                        [selector: componentSelector],
-                                        envParamsFile,
-                                        params,
-                                        preserve,
-                                        pkeyFile,
-                                        false
-                                    )
-                            }
-                            def jenkins = registry.get(JenkinsService)
-                            jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { pkeyFile ->
-                                applyFunc(pkeyFile)
-                            }
-                        }
-                    }
-                }
-            }
+        // Compute target project. For now, the existance of DEV on the same cluster is verified.
+        def concreteEnv = Project.getConcreteEnvironment(
+            project.buildParams.targetEnvironment,
+            project.buildParams.version.toString(),
+            project.versionedDevEnvsEnabled
+        )
+        def targetProject = "${project.key}-${concreteEnv}"
+        if (project.buildParams.targetEnvironment == 'dev' && !os.envExists(targetProject)) {
+            throw new RuntimeException(
+                "Target project ${targetProject} does not exist " +
+                "(versionedDevEnvsEnabled=${project.versionedDevEnvsEnabled})."
+            )
         }
+        project.setTargetProject(targetProject)
 
         logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
