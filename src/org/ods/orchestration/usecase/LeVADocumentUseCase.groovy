@@ -160,6 +160,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def keysInDoc = requirementsForDocument.values().collect{it.noepics*.key + it.epics*.key}.flatten()
+
+
         if(project.data?.jira?.discontinuationsPerType) {
             keysInDoc += project.data.jira.discontinuationsPerType.requirements*.key
         }
@@ -1457,6 +1459,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
         if (this.project.historyForDocumentExists(documentName)) {
+
             return this.project.getHistoryForDocument(documentName)
         } else {
             def documentType = documentName.split('-').first()
@@ -1503,7 +1506,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected List<Map> getDocumentTrackingIssues(String documentType, List<String> environments = null) {
         def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocTypeAndEnvs(documentType, environments)
         def jiraIssues = this.project.getDocumentTrackingIssues(jiraDocumentLabels)
-
+        if (jiraIssues.isEmpty()) {
+            throw new RuntimeException("Error: no Jira tracking issue associated with document type '${documentType}'.")
+        }
+        return jiraIssues
+    }
+    protected List<Map> getDocumentTrackingIssuesForHistory(String documentType, List<String> environments = null) {
+        def jiraDocumentLabels = this.getJiraTrackingIssueLabelsForDocTypeAndEnvs(documentType, environments)
+        def jiraIssues = this.project.getDocumentTrackingIssuesForHistory(jiraDocumentLabels)
         if (jiraIssues.isEmpty()) {
             throw new RuntimeException("Error: no Jira tracking issue associated with document type '${documentType}'.")
         }
@@ -1552,7 +1562,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (this.project.historyForDocumentExists(document)) {
             this.project.getHistoryForDocument(document).getVersion()
         } else {
-            def trackingIssues =  this.getDocumentTrackingIssues(document, environments)
+            def trackingIssues =  this.getDocumentTrackingIssuesForHistory(document, environments)
             this.jiraUseCase.getLatestDocVersionId(trackingIssues)
         }
     }
