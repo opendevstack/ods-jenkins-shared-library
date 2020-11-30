@@ -61,21 +61,7 @@ interface IContext {
     // Define which branches are deployed to which environments.
     Map<String, String> getBranchToEnvironmentMapping()
 
-    // Define which environments are cloned from which source environments.
-    String getAutoCloneEnvironmentsFromSourceMapping()
-
     List<String> getImagePromotionSequences()
-
-    // The environment which was chosen as the clone source.
-    String getCloneSourceEnv()
-
-    // Set the environment to clone
-    void setCloneSourceEnv( String cloneSourceEnv)
-
-    // The branch in which the clone-project.sh script is used
-    String getCloneProjectScriptBranch()
-
-    Map<String, String> getCloneProjectScriptUrls()
 
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
