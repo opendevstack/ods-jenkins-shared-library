@@ -93,12 +93,6 @@ class Context implements IContext {
         config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
 
         logger.debug 'Setting defaults ...'
-        if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
-            config.autoCloneEnvironmentsFromSourceMapping = [:]
-        }
-        if (!config.containsKey('cloneProjectScriptBranch')) {
-            config.cloneProjectScriptBranch = 'master'
-        }
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
             config.failOnSnykScanVulnerabilities = true
         }
@@ -265,22 +259,6 @@ class Context implements IContext {
         config.imagePromotionSequences
     }
 
-    String getAutoCloneEnvironmentsFromSourceMapping() {
-        config.autoCloneEnvironmentsFromSourceMapping
-    }
-
-    String getCloneSourceEnv() {
-        config.cloneSourceEnv
-    }
-
-    void setCloneSourceEnv(String cloneSourceEnv) {
-        config.cloneSourceEnv = cloneSourceEnv
-    }
-
-    String getCloneProjectScriptBranch() {
-        config.cloneProjectScriptBranch
-    }
-
     String getEnvironment() {
         config.environment
     }
@@ -439,10 +417,7 @@ class Context implements IContext {
         }
         if (env) {
             config.environment = env
-            config.cloneSourceEnv = environmentExists(env)
-                ? false
-                : config.autoCloneEnvironmentsFromSourceMapping[env]
-            logger.debug("Target env: ${env}, clone src: ${cloneSourceEnv}")
+            logger.debug("Target env: ${env}")
             return
         }
 
@@ -470,22 +445,9 @@ class Context implements IContext {
             return
         }
 
-        logger.info 'No environment to deploy to was determined, returning..\r' +
+        logger.info 'No environment to deploy to was determined.\r' +
             "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
         config.environment = ''
-        config.cloneSourceEnv = ''
-    }
-
-    Map<String, String> getCloneProjectScriptUrls() {
-        def scripts = ['clone-project.sh', 'import-project.sh', 'export-project.sh',]
-        def m = [:]
-        def branch = getCloneProjectScriptBranch().replace('/', '%2F')
-        def baseUrl = "${config.bitbucketUrl}/projects/${config.odsBitbucketProject}/repos/ods-core/raw/ocp-scripts"
-        for (script in scripts) {
-            def url = "${baseUrl}/${script}?at=refs%2Fheads%2F${branch}"
-            m.put(script, url)
-        }
-        return m
     }
 
     Map<String, Object> getBuildArtifactURIs() {
@@ -658,15 +620,12 @@ class Context implements IContext {
     // - the +genericEnv+ without suffix
     private void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
         def specifcEnv = genericEnv + '-' + branchSuffix
-
         def ticketId = GitService.issueIdFromBranch(config.gitBranch, config.projectId)
         if (ticketId) {
             specifcEnv = genericEnv + '-' + ticketId
         }
 
-        config.cloneSourceEnv = config.autoCloneEnvironmentsFromSourceMapping[genericEnv]
-        def autoCloneEnabled = !!config.cloneSourceEnv
-        if (autoCloneEnabled || environmentExists(specifcEnv)) {
+        if (environmentExists(specifcEnv)) {
             config.environment = specifcEnv
         } else {
             config.environment = genericEnv
