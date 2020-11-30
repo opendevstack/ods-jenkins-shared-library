@@ -67,18 +67,123 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         result == [
-            podName: 'bar-164-6xxbw',
-            podNamespace: 'foo-dev',
-            podMetaDataCreationTimestamp: '2020-05-18T10:43:56Z',
-            deploymentId: 'bar-164',
-            podNode: 'ip-172-31-61-82.eu-central-1.compute.internal',
-            podIp: '10.128.17.92',
-            podStatus: 'Running',
-            podStartupTimeStamp: '2020-05-18T10:43:56Z',
-            containers: [
-                bar: '172.30.21.196:5000/foo-dev/bar@sha256:07ba1778e7003335e6f6e0f809ce7025e5a8914dc5767f2faedd495918bee58a'
+            [
+                podName: 'bar-164-6xxbw',
+                podNamespace: 'foo-dev',
+                podMetaDataCreationTimestamp: '2020-05-18T10:43:56Z',
+                deploymentId: 'bar-164',
+                podNode: 'ip-172-31-61-82.eu-central-1.compute.internal',
+                podIp: '10.128.17.92',
+                podStatus: 'Running',
+                podStartupTimeStamp: '2020-05-18T10:43:56Z',
+                containers: [
+                    bar: '172.30.21.196:5000/foo-dev/bar@sha256:07ba1778e7003335e6f6e0f809ce7025e5a8914dc5767f2faedd495918bee58a'
+                ]
             ]
         ]
+    }
+
+    // test implementation to prove as much as possible without actually
+    // running against a real cluster.
+    def "rollout: just watch if triggered already"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(Logger, constructorArgs: [steps, false])
+        def service = Spy(OpenShiftService, constructorArgs: [steps, logger])
+        service.getRevision('foo', 'Deployment', 'bar') >> 2
+        service.watchRollout('foo', 'Deployment', 'bar', 5) >> 'bar-6f8db5fb69'
+
+        when:
+        def result = service.rollout('foo', 'Deployment', 'bar', 1, 5)
+
+        then:
+        1 * logger.info("Rollout of deployment for 'bar' has been triggered automatically.")
+        result == 'bar-6f8db5fb69'
+    }
+
+    // test implementation to prove as much as possible without actually
+    // running against a real cluster.
+    def "rollout: Deployment: restart if not triggered already"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(Logger, constructorArgs: [steps, false])
+        def service = Spy(OpenShiftService, constructorArgs: [steps, logger])
+        service.getRevision('foo', 'Deployment', 'bar') >> 1
+        service.watchRollout('foo', 'Deployment', 'bar', 5) >> 'bar-6f8db5fb69'
+
+        when:
+        def result = service.rollout('foo', 'Deployment', 'bar', 1, 5)
+
+        then:
+        0 * logger.info(*_)
+        0 * service.invokeMethod('startRollout')
+        1 * service.invokeMethod('restartRollout', ['foo', 'bar', 1])
+        result == 'bar-6f8db5fb69'
+    }
+
+    // test implementation to prove as much as possible without actually
+    // running against a real cluster.
+    def "rollout: DeploymentConfig: start if not triggered already"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(Logger, constructorArgs: [steps, false])
+        def service = Spy(OpenShiftService, constructorArgs: [steps, logger])
+        service.getRevision('foo', 'DeploymentConfig', 'bar') >> 1
+        service.watchRollout('foo', 'DeploymentConfig', 'bar', 5) >> 'bar-2'
+
+        when:
+        def result = service.rollout('foo', 'DeploymentConfig', 'bar', 1, 5)
+
+        then:
+        0 * logger.info(*_)
+        1 * service.invokeMethod('startRollout', ['foo', 'bar', 1])
+        0 * service.invokeMethod('restartRollout')
+        result == 'bar-2'
+    }
+
+    // test implementation to prove as much as possible without actually
+    // running against a real cluster.
+    def "rollout status: Deployment"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = new Logger(steps, false)
+        def service = Spy(OpenShiftService, constructorArgs: [steps, logger])
+        service.invokeMethod('getJSON', ['foo', 'rs', 'bar']) >> [
+            status: [
+                replicas: replicas,
+                fullyLabeledReplicas: fullyLabeledReplicas,
+                availableReplicas: availableReplicas
+            ]
+        ]
+
+        when:
+        def result = service.getRolloutStatus('foo', 'Deployment', 'bar')
+
+        then:
+        result == status
+
+        where:
+        replicas | fullyLabeledReplicas | availableReplicas || status
+        null     | null                 | null              || 'waiting'
+        1        | 0                    | 0                 || 'waiting'
+        1        | 1                    | 0                 || 'waiting'
+        1        | 1                    | 1                 || 'complete'
+    }
+
+    // test implementation to prove as much as possible without actually
+    // running against a real cluster.
+    def "rollout status: DeploymentConfig"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = new Logger(steps, false)
+        def service = Spy(OpenShiftService, constructorArgs: [steps, logger])
+        service.invokeMethod('getJSONPath', *_) >> 'complete'
+
+        when:
+        def result = service.getRolloutStatus('foo', 'DeploymentConfig', 'bar')
+
+        then:
+        result == 'complete'
     }
 
 }

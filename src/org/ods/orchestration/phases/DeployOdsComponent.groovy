@@ -56,13 +56,21 @@ class DeployOdsComponent {
 
                 def replicationController = os.rollout(
                     project.targetProject,
+                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
                     deploymentName,
                     originalDeploymentVersions[deploymentName],
                     project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
                 )
 
-                def pod = os.getPodDataForDeployment(project.targetProject, replicationController,
-                    project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10)
+                def podData = os.getPodDataForDeployment(
+                    project.targetProject,
+                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                    replicationController,
+                    project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                )
+                // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                // update this to deal with multiple pods.
+                def pod = podData[0]
 
                 verifyImageShas(deployment, pod.containers)
 
@@ -95,10 +103,14 @@ class DeployOdsComponent {
 
     private Map gatherOriginalDeploymentVersions(Map<String, Object> deployments) {
         deployments.collectEntries { deploymentName, deployment ->
-            def dcExists = os.resourceExists(project.targetProject, 'DeploymentConfig', deploymentName)
+            def dcExists = os.resourceExists(
+                project.targetProject, OpenShiftService.DEPLOYMENTCONFIG_KIND, deploymentName
+            )
             def latestVersion = 0
             if (dcExists) {
-                latestVersion = os.getLatestVersion(project.targetProject, deploymentName)
+                latestVersion = os.getRevision(
+                    project.targetProject, OpenShiftService.DEPLOYMENTCONFIG_KIND, deploymentName
+                )
             }
             [(deploymentName): latestVersion]
         }

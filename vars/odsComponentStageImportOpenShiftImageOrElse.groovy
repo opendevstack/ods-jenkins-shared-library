@@ -14,7 +14,7 @@ def call(IContext context, Map config = [:], Closure block) {
         logger = new Logger (this, !!env.DEBUG)
     }
 
-    if (!!env.MULTI_REPO_BUILD) {
+    if (context.triggeredByOrchestrationPipeline) {
         logger.debug(
             '''Orchestration pipeline builds always run the 'orElse' branch ''' +
             'as image building and importing is handled in the orchestration pipeline.'
