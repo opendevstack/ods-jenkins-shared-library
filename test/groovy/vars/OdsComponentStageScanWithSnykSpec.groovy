@@ -142,7 +142,7 @@ class OdsComponentStageScanWithSnykSpec extends PipelineSpockTestBase {
 
         then:
         printCallStack()
-        assertCallStackContains("Skipping as branch 'feature/foo' is not covered by the 'branch' option.")
+        assertCallStackContains("Skipping stage 'Snyk Security Scan' for branch 'feature/foo'")
         assertJobStatusSuccess()
     }
 

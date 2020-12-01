@@ -18,8 +18,8 @@ Available options:
 |===
 | Option | Description
 
-| branch
-| Branch(es) to scan. This can be a comma separated list. Next to exact matches, it also supports prefixes (e.g. `feature/`) and all branches (`*`).
+| branch / branches
+| Branch(es) to scan. Option can be either a string (`branch: 'master'`) or a list (`branches: ['master', 'develop']`). Next to exact matches, it also supports prefixes (e.g. `feature/`) and all branches (`*`). Defaults to `master` or `*`, depending on the SonarQube server capabilities.
 
 | requireQualityGatePass
 | Whether to fail the build if the quality gate defined in the SonarQube project is not reached. Defaults to `false`.

@@ -19,15 +19,19 @@ class ScanWithSonarStage extends Stage {
         SonarQubeService sonarQube,
         ILogger logger) {
         super(script, context, config, logger)
-        if (config.branch) {
-            config.eligibleBranches = config.branch.split(',')
-        } else if (context.sonarQubeBranch) {
-            config.eligibleBranches = context.sonarQubeBranch.split(',')
-        } else if (context.sonarQubeEdition != 'community') {
-            config.eligibleBranches = ['*']
-        } else {
-            config.eligibleBranches = ['master']
+        // If user did not explicitly define which branches to scan,
+        // infer that information from elsewhere.
+        if (!config.containsKey('branches') && !config.containsKey('branch')) {
+            if (context.sonarQubeBranch) {
+                config.branches = context.sonarQubeBranch.split(',')
+            } else if (context.sonarQubeEdition != 'community') {
+                config.branches = ['*']
+            } else {
+                // Community edition can only scan one branch in a meaningful way
+                config.branches = ['master']
+            }
         }
+
         if (!config.containsKey('longLivedBranches')) {
             config.longLivedBranches = context.branchToEnvironmentMapping
                 .keySet()
@@ -45,18 +49,6 @@ class ScanWithSonarStage extends Stage {
     }
 
     protected run() {
-        if (config.eligibleBranches) {
-            logger.info "Scanned branches: ${config.eligibleBranches.join(', ')}"
-        } else {
-            logger.info 'No branches to scan configured.'
-            return
-        }
-
-        if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
-            logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
-            return
-        }
-
         if (config.longLivedBranches) {
             logger.info "Long-lived branches: ${config.longLivedBranches.join(', ')}"
         } else {

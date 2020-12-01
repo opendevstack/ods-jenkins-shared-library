@@ -9,8 +9,6 @@ abstract class Stage {
     protected Map config
     protected ILogger logger
 
-    public final String STAGE_NAME = 'NOT SET'
-
     protected Stage(def script, IContext context, Map config, ILogger logger) {
         this.script = script
         this.context = context
@@ -19,6 +17,11 @@ abstract class Stage {
     }
 
     def execute() {
+        setConfiguredBranches()
+        if (!isEligibleBranch(config.branches, context.gitBranch)) {
+            logger.info "Skipping stage '${stageLabel()}' for branch '${context.gitBranch}'"
+            return
+        }
         script.withStage(stageLabel(), context, logger) {
             return this.run()
         }
@@ -28,6 +31,16 @@ abstract class Stage {
 
     protected String stageLabel() {
         STAGE_NAME
+    }
+
+    protected setConfiguredBranches() {
+        if (!config.containsKey('branches')) {
+            if (config.containsKey('branch')) {
+                config.branches = config.branch.split(',')
+            } else {
+                config.branches = ['*']
+            }
+        }
     }
 
     protected boolean isEligibleBranch(def eligibleBranches, String branch) {
