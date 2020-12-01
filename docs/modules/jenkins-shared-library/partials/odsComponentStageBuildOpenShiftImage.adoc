@@ -31,28 +31,4 @@ Available options:
 
 | dockerDir
 | Docker context directory (defaults to `docker`).
-
-| openshiftDir
-| Directory with OpenShift templates (defaults to `openshift`).
-
-| tailorPrivateKeyCredentialsId
-| Credentials name of the secret key used by Tailor (defaults to `<PROJECT>-cd-tailor-private-key`). Only relevant if the directory referenced by `openshiftDir` exists.
-
-| tailorSelector
-| Selector scope used by Tailor (defaults to `app=<PROJECT>-<COMPONENT>`). Only relevant if the directory referenced by `openshiftDir` exists.
-
-| tailorVerify
-| Whether Tailor verifies the live configuration against the desired state after application (defaults to `false`). Only relevant if the directory referenced by `openshiftDir` exists.
-
-| tailorInclude
-| Resource kind restriction used by Tailor (defaults to `bc,is`). Only relevant if the directory referenced by `openshiftDir` exists.
-
-| tailorParamFile
-| Path to Tailor parameter file (defaults to none). Only relevant if the directory referenced by `openshiftDir` exists.
-
-| tailorPreserve
-| Paths to preserve in the live configuration (defaults to `['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name']`). Only relevant if the directory referenced by `openshiftDir` exists.
-
-| tailorParams
-| Additional parameters to pass to Tailor (defaults to `[]`). Only relevant if the directory referenced by `openshiftDir` exists.
 |===

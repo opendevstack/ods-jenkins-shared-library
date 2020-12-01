@@ -72,6 +72,9 @@ interface IContext {
     // Target project, based on the environment. E.g. "foo-dev".
     String getTargetProject()
 
+    // Name of the CD project
+    String getCdProject()
+
     // Group ID, defaults to: org.opendevstack.<projectID>.
     String getGroupId()
 

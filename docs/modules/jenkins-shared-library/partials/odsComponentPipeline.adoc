@@ -138,6 +138,9 @@ The `context` object contains the following properties:
 | targetProject
 | Target project, based on the environment. E.g. `foo-dev`.
 
+| cdProject
+| CD project. E.g. `foo-cd`.
+
 | groupId
 | Group ID, defaults to: org.opendevstack.+++<projectID>+++.+++</projectID>+++
 
