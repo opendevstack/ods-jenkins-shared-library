@@ -97,7 +97,7 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    static String imageExists(IPipelineSteps steps, String project, String name, String tag) {
+    boolean imageExists(String project, String name, String tag) {
         steps.sh(
             returnStatus: true,
             script: "oc -n ${project} get istag ${name}:${tag} &> /dev/null",

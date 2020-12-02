@@ -108,9 +108,6 @@ class Context implements IContext {
         if (!config.containsKey('openshiftRolloutTimeoutRetries')) {
             config.openshiftRolloutTimeoutRetries = 5 // retries
         }
-        if (!config.containsKey('imagePromotionSequences')) {
-            config.imagePromotionSequences = ['dev->test', 'test->prod']
-        }
         if (!config.containsKey('emailextRecipients')) {
             config.emailextRecipients = null
         }
@@ -252,11 +249,6 @@ class Context implements IContext {
     @NonCPS
     Map<String, String> getBranchToEnvironmentMapping() {
         config.branchToEnvironmentMapping
-    }
-
-    @NonCPS
-    List<String> getImagePromotionSequences() {
-        config.imagePromotionSequences
     }
 
     String getEnvironment() {
