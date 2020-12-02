@@ -338,6 +338,7 @@ class Project {
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
         this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(version)
+        this.data.jira.trackingDocsForHistory = this.loadJiraDataTrackingDocs()
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
@@ -640,6 +641,25 @@ class Project {
         def result = []
 
         def issues = this.getDocumentTrackingIssues()
+        labels.each { label ->
+            issues.each { issue ->
+                if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
+                    result << [key: issue.key, status: issue.status]
+                }
+            }
+        }
+
+        return result.unique()
+    }
+
+    List<Map> getDocumentTrackingIssuesForHistory() {
+        return this.data.jira.trackingDocsForHistory.values() as List
+    }
+
+    List<Map> getDocumentTrackingIssuesForHistory(List<String> labels) {
+        def result = []
+
+        def issues = this.getDocumentTrackingIssuesForHistory()
         labels.each { label ->
             issues.each { issue ->
                 if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
@@ -1518,7 +1538,7 @@ class Project {
         }
     }
 
-    private static Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
+    private Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
         savedData.findAll { JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { String issueType, Map issues ->
                 def discontinuationsPerType = issues.values().findAll { discontinuations.contains(it.key) }

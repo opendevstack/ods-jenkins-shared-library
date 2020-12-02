@@ -45,8 +45,10 @@ class DocumentHistory {
         if (savedVersionId && savedVersionId != 0L) {
             def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
             def projectVersion = jiraData.version
+
             if (projectVersion == docHistories.get(0).projectVersion) {
                 latestVersionId = docHistories.get(0).entryId
+
                 docHistories.remove(0)
             }
             this.data = docHistories
@@ -175,7 +177,7 @@ class DocumentHistory {
         sortDocHistories(dhs).reverse()
     }
 
-    private static Map computeDiscontinuations(Map jiraData, List<String> previousDocumentIssues) {
+    private Map computeDiscontinuations(Map jiraData, List<String> previousDocumentIssues) {
         (jiraData.discontinuationsPerType ?: [:])
             .collectEntries { String issueType, List<Map> issues ->
                 def discont = discontinuedIssuesThatWereInDocument(issueType, previousDocumentIssues, issues)
@@ -277,6 +279,7 @@ class DocumentHistory {
     }
 
     private Map computeEntryData(Map jiraData, String projectVersion, List<String> keysInDocument) {
+
         def previousDocumentIssues = this.getDocumentKeys()
         def additionsAndUpdates = this.computeAdditionsAndUpdates(jiraData, projectVersion)
         def discontinuations = computeDiscontinuations(jiraData, previousDocumentIssues)

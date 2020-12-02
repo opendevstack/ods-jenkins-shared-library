@@ -53,6 +53,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         logger = Mock(Logger)
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
         project.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
+        project.getDocumentTrackingIssuesForHistory(_) >> [[key: 'ID-01', status: 'TODO']]
 
 
         docHistory = new DocumentHistory(steps, logger, 'D', 'someDocument')
