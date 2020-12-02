@@ -6,6 +6,7 @@ import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
+import org.ods.util.PodData
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
 
@@ -37,7 +38,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getRevision('foo-dev', 'DeploymentConfig', 'bar') >> 123
     openShiftService.rollout('foo-dev', 'DeploymentConfig', 'bar', 123, 5) >> "bar-124"
     // test the handover of the poddata retries
-    openShiftService.getPodDataForDeployment('foo-dev', 'DeploymentConfig', 'bar-124', 6) >> [[ deploymentId: "bar-124" ]]
+    openShiftService.getPodDataForDeployment('foo-dev', 'DeploymentConfig', 'bar-124', 6) >> [new PodData([ deploymentId: "bar-124" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'DeploymentConfig', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -51,13 +52,13 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertJobStatusSuccess()
-    deploymentInfo['DeploymentConfig']['bar'][0].deploymentId == "bar-124"
+    deploymentInfo['DeploymentConfig/bar'][0].deploymentId == "bar-124"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
     buildArtifacts.deployments.containsKey (config.componentId)
-    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['DeploymentConfig']['bar'][0].deploymentId
+    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['DeploymentConfig/bar'][0].deploymentId
   }
 
   def "run successfully without Tailor [Deployment]"() {
@@ -69,7 +70,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getRevision('foo-dev', 'Deployment', 'bar') >> 123
     openShiftService.rollout('foo-dev', 'Deployment', 'bar', 123, 5) >> "bar-6f8db5fb69"
     // test the handover of the poddata retries
-    openShiftService.getPodDataForDeployment('foo-dev', 'Deployment', 'bar-6f8db5fb69', 6) >> [[ deploymentId: "bar-6f8db5fb69" ]]
+    openShiftService.getPodDataForDeployment('foo-dev', 'Deployment', 'bar-6f8db5fb69', 6) >> [new PodData([ deploymentId: "bar-6f8db5fb69" ])]
     openShiftService.getImagesOfDeployment('foo-dev', 'Deployment', 'bar') >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -83,13 +84,13 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertJobStatusSuccess()
-    deploymentInfo['Deployment']['bar'][0].deploymentId == "bar-6f8db5fb69"
+    deploymentInfo['Deployment/bar'][0].deploymentId == "bar-6f8db5fb69"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
     buildArtifacts.deployments.containsKey (config.componentId)
-    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['Deployment']['bar'][0].deploymentId
+    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['Deployment/bar'][0].deploymentId
   }
 
   def "run successfully with Tailor"() {
@@ -100,7 +101,7 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [DeploymentConfig: ['bar']]
     openShiftService.getRevision(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getPodDataForDeployment(*_) >> [[ deploymentId: "${config.componentId}-124" ]]
+    openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
     openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
     JenkinsService jenkinsService = Stub(JenkinsService.class)
@@ -117,13 +118,13 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertJobStatusSuccess()
-    deploymentInfo['DeploymentConfig']['bar'][0].deploymentId == "bar-124"
+    deploymentInfo['DeploymentConfig/bar'][0].deploymentId == "bar-124"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
     buildArtifacts.deployments.containsKey(config.componentId)
-    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['DeploymentConfig']['bar'][0].deploymentId
+    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['DeploymentConfig/bar'][0].deploymentId
 
     1 * openShiftService.tailorApply(
       'foo-dev',

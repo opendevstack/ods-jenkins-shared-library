@@ -3,6 +3,7 @@ package org.ods.component
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.util.ILogger
+import org.ods.util.PodData
 
 @SuppressWarnings('ParameterCount')
 class RolloutOpenShiftDeploymentStage extends Stage {
@@ -105,18 +106,12 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         STAGE_NAME
     }
 
-    // rollout returns something like this:
+    // rollout returns a map like this:
     // [
-    //    DeploymentConfig: [
-    //      foo: [[podName: 'foo-a'], [podName: 'foo-b']],
-    //      bar: [[podName: 'bar-a']]
-    //    ],
-    //    Deployment: [
-    //      baz: [[podName: 'baz-a']]
-    //    ],
+    //    'DeploymentConfig/foo': [[podName: 'foo-a', ...], [podName: 'foo-b', ...]],
+    //    'Deployment/bar': [[podName: 'bar-a', ...]]
     // ]
-    // TODO: Change this from map/list to a typed structure.
-    private Map<String, Map<String, List<Map>>> rollout(
+    private Map<String, List<PodData>> rollout(
         Map<String, List<String>> deploymentResources,
         Map<String, Map<String, Integer>> originalVersions) {
         def rolloutData = [:]
@@ -129,22 +124,18 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
                 def podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
 
-                if (!rolloutData.containsKey(resourceKind)) {
-                    rolloutData[resourceKind] = [:]
-                }
-                rolloutData[resourceKind][resourceName] = podData
+                rolloutData["${resourceKind}/${resourceName}"] = podData
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to store multiple pod artifacts.
                 // TODO: Potential conflict if resourceName is duplicated between
                 // Deployment and DeploymentConfig resource.
-                def pod = podData[0]
-                context.addDeploymentToArtifactURIs(resourceName, pod)
+                context.addDeploymentToArtifactURIs(resourceName, podData[0]?.toMap())
             }
         }
         rolloutData
     }
 
-    private List<Map> rolloutDeployment(String resourceKind, String resourceName, int originalVersion) {
+    private List<PodData> rolloutDeployment(String resourceKind, String resourceName, int originalVersion) {
         def ownedImageStreams = openShift
             .getImagesOfDeployment(context.targetProject, resourceKind, resourceName)
             .findAll { context.targetProject == it.repository }

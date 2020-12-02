@@ -70,7 +70,7 @@ class DeployOdsComponent {
                 )
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to deal with multiple pods.
-                def pod = podData[0]
+                def pod = podData[0].toMap()
 
                 verifyImageShas(deployment, pod.containers)
 
