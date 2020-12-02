@@ -40,4 +40,7 @@ Available options:
 
 | severityThreshold
 | Severity threshold for failing. If any found vulnerability has a severity equal or higher to the threshold, the snyk test will return with a failure status. Possible values are `low`, `medium`, `high`. Defaults to `low`.
+
+| additionalOptions
+| Additional options for the Snyk CLI. Please refer to the official Snyk CLI reference for possible options and don't forget to take the CLI version of your ODS installation into account. The value of `additionalOptions` must be a map in which the key is the official option name and the value a possible option value. If there is no option value, set it to the empty string `''`. Example: ['all-sub-projects':'', 'show-vulnerable-paths':'all']
 |===
