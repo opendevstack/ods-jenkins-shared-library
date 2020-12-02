@@ -70,4 +70,58 @@ Available options:
 
 | tailorParams
 | Additional parameters to pass to Tailor (defaults to `[]`). Only relevant if the directory referenced by `openshiftDir` exists.
+
+| environmentsConfigMap
+| Name of a `ConfigMap` within the `*-cd` namespace which defines the target projects of a conceptual environment. See the examples below.
 |===
+
+By default, a rollout happens in the OpenShift project identified by `context.targetProject`. This is constructed from `context.projectId` and `context.environment` (which is selected based on the `branchToEnvironmentMapping` configuration in your `Jenkinsfile`). With the `environmentsConfigMap` option, it is possible to specify explicitly which target projects rollout should happen in for the selected environment. This allows you to deploy into a namespace with a custom name, to deploy into multiple namespaces within one cluster, and into namespaces across different clusters.
+
+Example:
+
+`Jenkinsfile`
+[source,groovy]
+----
+@Library('ods-jenkins-shared-library@latest') _
+odsComponentPipeline(
+  imageStreamTag: 'ods/jenkins-agent-base:latest',
+  branchToEnvironmentMapping: [
+    'master': 'dev',
+    'release/': 'test'
+  ]
+) { context ->
+  odsComponentFindOpenShiftImageOrElse(context) {
+    odsComponentStageBuildOpenShiftImage(context)
+  }
+  odsComponentStageRolloutOpenShiftDeployment(context, [environmentsConfigMap: 'ods-environments'])
+}
+----
+
+`ConfigMap` `ods-environments`
+[source,yaml]
+----
+data:
+  dev: |-
+    local:
+      namespace: foo-dev
+  test: |-
+    local-qa:
+      namespace: foo-test
+    local-uat:
+      namespace: foo-uat
+    aro:
+      namespace: foo-test
+      apiUrl: https://api.a3pqde7f.westeurope.aroapp.io:6443
+      apiCredentialsSecret: aro-api
+      registryHost: image-registry.apps.a3pqde7f.westeurope.aroapp.io
+----
+
+A push into branch `master` would select the `dev` environment, which is configured to deploy into the logical target `local` (you can use any name here - it only serves as an identifier to distinguish targets). This logical target resolves to the specific namespace `foo-dev`. As there is no further configuration for this target, it is assumed that the namespace is on the same cluster as the Jenkins pipeline, and that the `jenkins` serviceaccount running the pipeline has enough rights to administrate resources in `foo-dev` (which is the default setup in ODS).
+
+A push into branch `release/something` would select the `test` environment, which triggers three rollouts. One for the target `local-qa` into the namespace `foo-test`, one for the target `local-uat` into the namespace `foo-uat`, and one for the target `aro` into the namespace `foo-test`. Note that the first two rollouts are on the same cluster, while the `aro` target is on an external cluster. For Jenkins to be able to deploy there, you need to supply the following configuration:
+
+* `apiUrl`: the OpenShift API of the external cluster (including scheme and port if applicable)
+* `apiCredentialsSecret`: the name of a `Secret` of type `kubernetes.io/basic-auth` in the local `foo-cd` namespace, which holds the credentials of a `ServiceAccount` with `admin` permissions in the target project. The serviceaccount can be setup via `oc create sa ${name} && oc policy add-role-to-user admin system:serviceaccount:${project}:${name}`.
+* `registryHost`: To transport images from the local `foo-cd` namespace to the external registry, you need to configure the (external!) hostname of your OpenShift registry where you want to push images to. The source and destination credentials are automatically retrieved from the `jenkins` serviceaccount in the source project and the `builder` serviceaccount in the target project. If you want to use a different secret for the target instead, you may set `registrySecret` pointing to a Secret in the target project of either type `kubernetes.io/dockercfg` or `kubernetes.io/dockerconfigjson`. The image push is implemented via https://github.com/containers/skopeo[skopeo]. Additional flags can be passed verbatim to the `skopeo` binary by specifying `skopeoAdditionalFlags`, e.g. `['--src-tls-verify=false', '--dest-tls-verify=false']`.
+
+CAUTION: Deploying to new targets requires that your repository defines the Kubernetes resources. Otherwise the target project is empty and no deployment can be triggered.
