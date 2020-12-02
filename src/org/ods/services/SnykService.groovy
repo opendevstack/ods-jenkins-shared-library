@@ -41,16 +41,18 @@ class SnykService {
         ) == 0
     }
 
-    boolean test(String organisation, String buildFile, String severityThreshold) {
+    boolean test(String organisation, String buildFile, String severityThreshold, Map<String, String> additionalOptions) {
+        def options = "--org=${organisation} " +
+            "--file=${buildFile} " +
+            "--severity-threshold=${severityThreshold} | tee -a ${reportFile}"
+        additionalOptions.each {option, value ->
+            options += " " + option + (value ? "=" + value : "")
+        }
         script.sh(
             script: """
               set -e
               set -o pipefail
-              snyk test \
-              --org=${organisation} \
-              --file=${buildFile} \
-              --all-sub-projects \
-              --severity-threshold=${severityThreshold} | tee -a ${reportFile}
+              snyk test ${options}
             """,
             returnStatus: true,
             label: 'Run Snyk test'
