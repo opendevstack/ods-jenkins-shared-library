@@ -59,15 +59,16 @@ class SnykService {
         ) == 0
     }
 
-    boolean monitor(String organisation, String buildFile) {
+    boolean monitor(String organisation, String buildFile, Map<String, String> additionalOptions) {
+        def options = "--org=${organisation} --file=${buildFile}"
+        additionalOptions.each {option, value ->
+            options += " --" + option + (value ? "=" + value : "")
+        }
         script.sh(
             script: """
               set -e
               set -o pipefail
-              snyk monitor \
-              --org=${organisation} \
-              --file=${buildFile} \
-              --all-sub-projects | tee -a ${reportFile}
+              snyk monitor ${options} | tee -a ${reportFile}
             """,
             returnStatus: true,
             label: 'Start monitoring in snyk.io'

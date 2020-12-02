@@ -81,7 +81,7 @@ class ScanWithSnykStage extends Stage {
             logger.debugClocked("${config.projectName}-snyk-scan")
 
             logger.startClocked("${config.projectName}-snyk-monitor")
-            if (!snyk.monitor(config.organisation, config.buildFile)) {
+            if (!snyk.monitor(config.organisation, config.buildFile, config.additionalOptions)) {
                 script.error 'Snyk monitor failed'
             }
             logger.debugClocked("${config.projectName}-snyk-monitor")
