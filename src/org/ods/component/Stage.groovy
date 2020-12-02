@@ -19,7 +19,10 @@ abstract class Stage {
     def execute() {
         setConfiguredBranches()
         if (!isEligibleBranch(config.branches, context.gitBranch)) {
-            logger.info "Skipping stage '${stageLabel()}' for branch '${context.gitBranch}'"
+            logger.info(
+                "Skipping stage '${stageLabel()}' for branch '${context.gitBranch}' " +
+                "as it is not covered by: ${config.branches.collect { "'${it}'" } join(', ')}."
+            )
             return
         }
         script.withStage(stageLabel(), context, logger) {
