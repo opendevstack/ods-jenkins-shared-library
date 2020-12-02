@@ -146,7 +146,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 [
                         epicName        : req.value.epicName.first(),
                         epicTitle       : req.value.epicTitle.first(),
-                        epicDescription : req.value.epicDescription.first(),
+                        epicDescription : this.convertImages(req.value.epicDescription.first() ?: ''),
                         key             : req.key,
                         epicIndex       : index,
                         stories         : req.value,
