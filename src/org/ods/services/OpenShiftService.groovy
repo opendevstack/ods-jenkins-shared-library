@@ -426,12 +426,24 @@ class OpenShiftService {
         throw new RuntimeException("Could not find 'running' pod(s) with label '${label}'")
     }
 
-    List<String> getResourcesForComponent(String project, String kind, String selector) {
-        steps.sh(
-            script: "oc -n ${project} get ${kind} -l ${selector} -o jsonpath='{.items[*].metadata.name}'",
+    // getResourcesForComponent returns a map in which each kind is mapped to a list of resources.
+    Map<String, List<String>> getResourcesForComponent(String project, List<String> kinds, String selector) {
+        def items = steps.sh(
+            script: """oc -n ${project} get ${kinds.join(',')} \
+                -l ${selector} \
+                -o jsonpath='{range .items[*]}{@.kind}:{@.metadata.name} {end}'""",
             returnStdout: true,
-            label: "Getting all ${kind} names for selector '${selector}'"
+            label: "Getting all ${kinds.join(',')} names for selector '${selector}'"
         ).toString().trim().tokenize(' ')
+        Map<String, List<String>> m = [:]
+        items.each {
+            def parts = it.split(':')
+            if (!m.containsKey(parts[0])) {
+                m[parts[0]] = []
+            }
+            m[parts[0]] << parts[1]
+        }
+        m
     }
 
     String getApplicationDomain(String project) {

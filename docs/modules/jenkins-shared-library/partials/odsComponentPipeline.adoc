@@ -349,7 +349,6 @@ With this in place, you can adapt the rollout stage:
 odsComponentStageRolloutOpenShiftDeployment(
   context,
   [
-    resourceName: "${suffixedComponent}",
     tailorSelector: "app=${context.projectId}-${suffixedComponent}",
     tailorParams: ["COMPONENT_SUFFIX=${componentSuffix}"]
   ]

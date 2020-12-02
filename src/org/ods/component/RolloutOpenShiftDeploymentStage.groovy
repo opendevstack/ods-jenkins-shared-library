@@ -19,11 +19,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         JenkinsService jenkins,
         ILogger logger) {
         super(script, context, config, logger)
-        if (!config.resourceName) {
-            config.resourceName = context.componentId
-        }
-        if (!config.deploymentKind) {
-            config.deploymentKind = OpenShiftService.DEPLOYMENTCONFIG_KIND
+        if (!config.selector) {
+            config.selector = "app=${context.projectId}-${context.componentId}"
         }
         if (!config.imageTag) {
             config.imageTag = context.shortGitCommit
@@ -41,7 +38,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
         }
         if (!config.tailorSelector) {
-            config.tailorSelector = "app=${context.projectId}-${context.componentId}"
+            config.tailorSelector = config.selector
         }
         if (!config.containsKey('tailorVerify')) {
             config.tailorVerify = false
@@ -63,22 +60,21 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     }
 
     protected run() {
-        if (context.triggeredByOrchestrationPipeline && config.deploymentKind == OpenShiftService.DEPLOYMENT_KIND) {
-            script.error "Deployment resources cannot be used in the orchestration pipeline yet."
-            return
-        }
         if (!context.environment) {
             logger.warn 'Skipping because of empty (target) environment ...'
             return
         }
+        def deploymentKinds = [OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND]
 
-        def dExists = deploymentExists()
-        def originalDeploymentVersion = 0
-        if (dExists) {
-            originalDeploymentVersion = openShift.getRevision(
-                context.targetProject, config.deploymentKind, config.resourceName
-            )
+        def deploymentResources = openShift.getResourcesForComponent(
+            context.targetProject, deploymentKinds, config.selector
+        )
+        if (context.triggeredByOrchestrationPipeline
+            && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)) {
+            script.error "Deployment resources cannot be used in the orchestration pipeline yet."
+            return
         }
+        def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
         if (script.fileExists(config.openshiftDir)) {
             script.dir(config.openshiftDir) {
@@ -94,28 +90,51 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     )
                 }
             }
-            // If deployment did not exist prior to this stage,
-            // check again now as Tailor might have created it.
-            if (!dExists) {
-                dExists = deploymentExists()
+        }
+
+        deploymentResources = openShift.getResourcesForComponent(
+            context.targetProject, deploymentKinds, config.selector
+        )
+        return rollout(deploymentResources, originalDeploymentVersions)
+    }
+
+    private Map<String,List<Map>> rollout(
+        Map<String, List<String>> deploymentResources,
+        Map<String, Map<String, Integer>> originalVersions) {
+        def rolloutData = [:]
+        deploymentResources.each { resourceKind, resourceNames ->
+            resourceNames.each { resourceName ->
+                def originalVersion = 0
+                if (originalVersions.containsKey(resourceKind)) {
+                    originalVersion = originalVersions[resourceKind][resourceName] ?: 0
+                }
+
+                def podData = rolloutDeployment(resourceKind, resourceName, originalVersion)
+
+                if (!rolloutData.containsKey(resourceKind)) {
+                    rolloutData[resourceKind] = [:]
+                }
+                rolloutData[resourceKind][resourceName] = podData
+                // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                // update this to store multiple pod artifacts.
+                // TODO: Potential conflict if resourceName is duplicated between
+                // Deployment and DeploymentConfig resource.
+                def pod = podData[0]
+                context.addDeploymentToArtifactURIs(resourceName, pod)
             }
         }
+        rolloutData
+    }
 
-        if (!dExists) {
-            script.error "${config.deploymentKind} '${config.resourceName}' does not exist. " +
-                'Verify that you have setup the OpenShift resource correctly ' +
-                'and/or set the "deploymentKind"/"resourceName" option of the pipeline stage appropriately.'
-        }
-
+    private List<Map> rolloutDeployment(String resourceKind, String resourceName, int originalVersion) {
         def ownedImageStreams = openShift
-            .getImagesOfDeployment(context.targetProject, config.deploymentKind, config.resourceName)
+            .getImagesOfDeployment(context.targetProject, resourceKind, resourceName)
             .findAll { context.targetProject == it.repository }
         def missingStreams = missingImageStreams(ownedImageStreams)
         if (missingStreams) {
-            script.error "The following ImageStream resources  for ${config.deploymentKind} '${config.resourceName}' " +
+            script.error "The following ImageStream resources  for ${resourceKind} '${resourceName}' " +
                 """do not exist: '${missingStreams.collect { "${it.repository}/${it.name}" }}'. """ +
-                'Verify that you have setup the OpenShift resources correctly ' +
-                'and/or set the "resourceName" option of the pipeline stage appropriately.'
+                'Verify that you have setup the OpenShift resources correctly.'
         }
 
         setImageTagLatest(ownedImageStreams)
@@ -124,38 +143,36 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         try {
             podManager = openShift.rollout(
                 context.targetProject,
-                config.deploymentKind,
-                config.resourceName,
-                originalDeploymentVersion,
+                resourceKind,
+                resourceName,
+                originalVersion,
                 config.deployTimeoutMinutes
             )
         } catch (ex) {
             script.error ex.message
         }
 
-        def podData = openShift.getPodDataForDeployment(
+        return openShift.getPodDataForDeployment(
             context.targetProject,
-            config.deploymentKind,
+            resourceKind,
             podManager,
             config.deployTimeoutRetries
         )
-        // TODO: Once the orchestration pipeline can deal with multiple replicas,
-        // update this to store multiple pod artifacts.
-        def pod = podData[0]
-        context.addDeploymentToArtifactURIs(config.resourceName, pod)
-
-        return pod
     }
 
-    protected String stageLabel() {
-        if (config.resourceName != context.componentId) {
-            return "${STAGE_NAME} (${config.resourceName})"
+    private Map<String, Map<String, Integer>> fetchOriginalVersions(Map<String, List<String>> deploymentResources) {
+        def originalVersions = [:]
+        deploymentResources.each { resourceKind, resourceNames ->
+            if (!originalVersions.containsKey(resourceKind)) {
+                originalVersions[resourceKind] = [:]
+            }
+            resourceNames.each { resourceName ->
+                originalVersions[resourceKind][resourceName] = openShift.getRevision(
+                    context.targetProject, resourceKind, resourceName
+                )
+            }
         }
-        STAGE_NAME
-    }
-
-    private boolean deploymentExists() {
-        openShift.resourceExists(context.targetProject, config.deploymentKind, config.resourceName)
+        originalVersions
     }
 
     private List<Map<String, String>> missingImageStreams(List<Map<String, String>> imageStreams) {

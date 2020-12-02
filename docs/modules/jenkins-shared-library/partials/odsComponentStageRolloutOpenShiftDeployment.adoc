@@ -11,8 +11,8 @@ Available options:
 |===
 | Option | Description
 
-| resourceName
-| Name of `DeploymentConfig` to use (defaults to `context.componentId`).
+| selector
+| Selector scope used to determine which resources are part of a component (defaults to `app=<PROJECT>-<COMPONENT>`).
 
 | imageTag
 | Image tag on which to apply the `latest` tag (defaults to `context.shortGitCommit`).
@@ -30,7 +30,7 @@ Available options:
 | Credentials name of the secret key used by Tailor (defaults to `<PROJECT>-cd-tailor-private-key`). Only relevant if the directory referenced by `openshiftDir` exists.
 
 | tailorSelector
-| Selector scope used by Tailor (defaults to `app=<PROJECT>-<COMPONENT>`). Only relevant if the directory referenced by `openshiftDir` exists.
+| Selector scope used by Tailor (defaults to config option `selector`). Only relevant if the directory referenced by `openshiftDir` exists.
 
 | tailorVerify
 | Whether Tailor verifies the live configuration against the desired state after application (defaults to `false`). Only relevant if the directory referenced by `openshiftDir` exists.
