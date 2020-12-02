@@ -41,11 +41,14 @@ class SnykService {
         ) == 0
     }
 
-    boolean test(String organisation, String buildFile, String severityThreshold, Map<String, String> additionalOptions) {
+    boolean test(String organisation,
+                 String buildFile,
+                 String severityThreshold,
+                 Map<String, String> additionalOptions) {
         def options = "--org=${organisation} " +
             "--file=${buildFile} " +
             "--severity-threshold=${severityThreshold}"
-        additionalOptions.each {option, value ->
+        additionalOptions.each { option, value ->
             options += " --" + option + (value ? "=" + value : "")
         }
         script.sh(
@@ -61,7 +64,7 @@ class SnykService {
 
     boolean monitor(String organisation, String buildFile, Map<String, String> additionalOptions) {
         def options = "--org=${organisation} --file=${buildFile}"
-        additionalOptions.each {option, value ->
+        additionalOptions.each { option, value ->
             options += " --" + option + (value ? "=" + value : "")
         }
         script.sh(
