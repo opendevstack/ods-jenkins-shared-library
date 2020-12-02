@@ -556,6 +556,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getRisks()
             .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values()  }
             .flatten()
+        if(this.project.data.jira.discontinuationsPerType) {
+            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+        }
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
