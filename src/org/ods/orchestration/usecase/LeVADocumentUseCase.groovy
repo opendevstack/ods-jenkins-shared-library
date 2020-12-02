@@ -122,17 +122,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def epics = req.getResolvedEpics()
                 def epic = !epics.isEmpty() ? epics.first() : null
                 [
-                    key           : req.key,
-                    applicability : 'Mandatory',
-                    ursName       : req.name,
-                    ursDescription: this.convertImages(req.description ?: ''),
-                    csName        : req.configSpec.name ?: 'N/A',
-                    csDescription : this.convertImages(req.configSpec.description ?: ''),
-                    fsName        : req.funcSpec.name ?: 'N/A',
-                    fsDescription : this.convertImages(req.funcSpec.description ?: ''),
-                    epic          : epic?.key,
-                    epicName      : epic?.epicName,
-                    epicName2     : epic?.name,
+                    key             : req.key,
+                    applicability   : 'Mandatory',
+                    ursName         : req.name,
+                    ursDescription  : this.convertImages(req.description ?: ''),
+                    csName          : req.configSpec.name ?: 'N/A',
+                    csDescription   : this.convertImages(req.configSpec.description ?: ''),
+                    fsName          : req.funcSpec.name ?: 'N/A',
+                    fsDescription   : this.convertImages(req.funcSpec.description ?: ''),
+                    epic            : epic?.key,
+                    epicName        : epic?.epicName,
+                    epicTitle       : epic?.title,
+                    epicDescription : epic?.description,
                 ]
             }
 
@@ -143,10 +144,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
                 index = index + 1
                 [
-                        epicName : req.value.epicName.first(),
-                        key : req.key,
-                        epicIndex : index,
-                        stories : req.value
+                        epicName        : req.value.epicName.first(),
+                        epicTitle       : req.value.epicTitle.first(),
+                        epicDescription : req.value.epicDescription.first(),
+                        key             : req.key,
+                        epicIndex       : index,
+                        stories         : req.value,
                 ]
             }
             def output = [
