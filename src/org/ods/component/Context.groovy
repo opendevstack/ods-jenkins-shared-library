@@ -499,11 +499,13 @@ class Context implements IContext {
 
     String getOpenshiftApplicationDomain () {
         if (!config.environment) {
+            logger.debug('Could not get application domain, as no environment is available')
             return ''
         }
         if (!this.appDomain) {
             logger.startClocked("${config.componentId}-get-oc-app-domain")
-            this.appDomain = ServiceRegistry.instance.get(OpenShiftService).applicationDomain
+            this.appDomain = ServiceRegistry.instance.get(OpenShiftService).
+                getApplicationDomain(config.targetProject)
             logger.debugClocked("${config.componentId}-get-oc-app-domain")
         }
         this.appDomain
