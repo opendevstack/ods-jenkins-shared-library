@@ -67,6 +67,8 @@ repositories:
 
 This type designates ODS components designed for _code development_. Such repositories are based on quickstarters whose names start with `be-`, `ds-`, or `fe-`, for _backend_, _data science_, and _frontend_, respectively. This is the default type.
 
+If you use this type ODS expects to find JUnit XML test results. If you do not have any test results the pipeline will fail. If you are deploying something where JUnit XML test results are not available consider using <<Repository Type: ods-service>>.
+
 ==== Repository Type: ods-service
 
 This type designates ODS components designed for _running some service_. Examples include repositories based on the `airflow-cluster` quickstarter.
