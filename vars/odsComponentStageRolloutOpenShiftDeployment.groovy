@@ -13,6 +13,17 @@ def call(IContext context, Map config = [:]) {
     if (!logger) {
         logger = new Logger (this, !!env.DEBUG)
     }
+    // ODS 3.x allowed to specify resourceName, which is no longer possible.
+    // Fail if the option is still given to inform about this breaking change.
+    if (config.resourceName) {
+        error(
+            "The config option 'resourceName' has been removed from odsComponentStageRolloutOpenShiftDeployment. " +
+            "Instead, all resources with a common label are rollout out together. " +
+            "If you need separate rollouts, consider specifying additional labels " +
+            "and target those via the 'selector' config option."
+        )
+        return
+    }
     return new RolloutOpenShiftDeploymentStage(
         this,
         context,

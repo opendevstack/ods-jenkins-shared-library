@@ -192,6 +192,20 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     assertJobStatusFailure()
   }
 
+  def "fail when resourceName is given"() {
+    given:
+    IContext context = new Context(null, [:], logger)
+
+    when:
+    def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
+    script.call(context, [resourceName: 'foo'])
+
+    then:
+    printCallStack()
+    assertCallStackContains("The config option 'resourceName' has been removed from odsComponentStageRolloutOpenShiftDeployment")
+    assertJobStatusFailure()
+  }
+
   def "skip when no environment given"() {
     given:
     def config = [environment: null, gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e', openshiftRolloutTimeoutRetries: 5]
