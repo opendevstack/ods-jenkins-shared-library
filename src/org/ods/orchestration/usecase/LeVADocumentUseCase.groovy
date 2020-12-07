@@ -1121,6 +1121,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType)) {
             suffix += "-" + capability.GAMPCategory
         }
+        
+        this.steps.echo("XXX Template Suffix '${suffix}' '${documentType}'")
 
         return documentType + suffix
     }
