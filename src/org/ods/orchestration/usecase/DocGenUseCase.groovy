@@ -72,6 +72,7 @@ abstract class DocGenUseCase {
             if (repo) {
               repo.data.documents[documentType] = pdfName
             }
+            this.steps.echo "XXX createDocument - Assign pdfName ${pdfName}"
         }
 
         // Store the archive as an artifact in Nexus
