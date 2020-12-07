@@ -32,9 +32,9 @@ abstract class DocGenUseCase {
         this.jenkins = jenkins
     }
 
-    String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String documentTypeEmbedded = null, String watermarkText = null) {
+    String createDocument(String documentType, Map repo, Map data, Map<String, byte[]> files = [:], Closure modifier = null, String templateName = null, String watermarkText = null) {
         // Create a PDF document via the DocGen service
-        def document = this.docGen.createDocument(documentType, this.getDocumentTemplatesVersion(), data)
+        def document = this.docGen.createDocument(templateName ?: documentType, this.getDocumentTemplatesVersion(), data)
 
         // Apply PDF document modifications, if provided
         if (modifier) {
@@ -46,7 +46,7 @@ abstract class DocGenUseCase {
             document = this.pdf.addWatermarkText(document, watermarkText)
         }
 
-        def basename = this.getDocumentBasename(documentTypeEmbedded ?: documentType, this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
+        def basename = this.getDocumentBasename(documentType, this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
 
         def pdfName = "${basename}.pdf"
         // Create an archive with the document and raw data
@@ -57,19 +57,21 @@ abstract class DocGenUseCase {
         artifacts << files.collectEntries { path, contents ->
             [ path, contents ]
         }
+        this.steps.echo "XXX createDocument - DocType / TName ${documentType} / ${templateName} "
+        def doCreateArtifact = shouldCreateArtifact(documentType, repo)
 
-        def doArchive = isArchivalRelevant(documentType);
-
-        def archive = this.util.createZipArtifact(
+        def artifact = this.util.createZipArtifact(
             "${basename}.zip",
             artifacts,
-            doArchive
+            doCreateArtifact
         )
 
-        // dtr / tir for single repo
-        if (!doArchive) {
+        // Concerns DTR/TIR for a single repo
+        if (!doCreateArtifact) {
             this.util.createAndStashArtifact(pdfName, document)
-            repo.data.documents[documentType] = pdfName
+            if (repo) {
+              repo.data.documents[documentType] = pdfName
+            }
         }
 
         // Store the archive as an artifact in Nexus
@@ -77,7 +79,7 @@ abstract class DocGenUseCase {
             this.project.services.nexus.repository.name,
             "${this.project.key.toLowerCase()}-${this.project.buildParams.version}",
             "${basename}.zip",
-            archive,
+            artifact,
             "application/zip"
         )
 
@@ -85,23 +87,25 @@ abstract class DocGenUseCase {
         if (repo) {
             message += " for ${repo.id}"
         }
-        message += " uploaded @ ${uri.toString()}"
+        message += " uploaded @ ${uri}"
         this.steps.echo message
         return uri.toString()
     }
 
     @SuppressWarnings(['JavaIoPackageAccess'])
-    String createOverallDocument(String coverType, String documentType, Map metadata,Closure visitor = null, String watermarkText = null) {
+    String createOverallDocument(String templateName, String documentType, Map metadata, Closure visitor = null, String watermarkText = null) {
         def documents = []
         def sections = []
 
         this.project.repositories.each { repo ->
-            def documentName = repo.data.documents[documentType]
 
+            this.steps.echo "XXX createOverallDocument - Repo.data       ${repo.data} "
+            
+            def documentName = repo.data.documents[documentType]
             if (documentName) {
                 def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"
                 jenkins.unstashFilesIntoPath(documentName, path, documentType)
-                // writeFile and bytes does not work :(
+
                 documents << new File("${path}/${documentName}").readBytes()
 
                 sections << [
@@ -128,7 +132,7 @@ abstract class DocGenUseCase {
             return this.pdf.merge(documents)
         }
 
-        def result = this.createDocument(coverType, null, data, [:], modifier, documentType, watermarkText)
+        def result = this.createDocument(documentType, null, data, [:], modifier, templateName, watermarkText)
 
         // Clean up previously stored documents
         this.project.repositories.each { repo ->
@@ -197,7 +201,8 @@ abstract class DocGenUseCase {
         if (stash) {
             this.util.createAndStashArtifact(contentFileName, resurrectedDocAsBytes)
         }
-        if (!isArchivalRelevant(documentType)) {
+
+        if (!shouldCreateArtifact(documentType, repo)) {
             repo.data.documents[documentType] = contentFileName
         }
 
@@ -221,9 +226,9 @@ abstract class DocGenUseCase {
 
     abstract String getDocumentTemplatesVersion()
 
+    abstract Map getFiletypeForDocumentType (String documentType)
+
     abstract List<String> getSupportedDocuments()
 
-    abstract boolean isArchivalRelevant (String documentType)
-
-    abstract Map getFiletypeForDocumentType (String documentType)
+    abstract boolean shouldCreateArtifact (String documentType, Map repo)
 }

@@ -316,7 +316,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -399,7 +399,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.")
         return uri
     }
@@ -430,7 +430,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -551,7 +551,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), repo, data_, files, modifier, documentType, watermarkText)
+        def uri = this.createDocument(documentType, repo, data_, files, modifier, getDocumentTemplateName(documentType), watermarkText)
         return uri
     }
 
@@ -595,7 +595,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -682,7 +682,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -754,7 +754,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ["raw/${file.getName()}", file.getBytes()]
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -807,7 +807,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -898,7 +898,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -946,7 +946,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -1017,7 +1017,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ["raw/${file.getName()}", file.getBytes()]
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -1096,18 +1096,33 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], modifier, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
 
-    String getDocumentTemplateName(String documentType) {
+    String getDocumentTemplateName(String documentType, Map repo = null) {
         def capability = this.project.getCapability("LeVADocs")
         if (!capability) {
             return documentType
         }
 
-        return this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType) ? documentType + "-" + capability.GAMPCategory : documentType
+        def suffix = ""
+        // compute suffix based on repository type
+        if (repo != null) {
+            if (repo.type.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                if (documentType == DocumentType.TIR as String) {
+                    suffix += "-infra"
+                }
+            }
+        }
+
+        // compute suffix based on gamp category
+        if (this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType)) {
+            suffix += "-" + capability.GAMPCategory
+        }
+
+        return documentType + suffix
     }
 
     String createTIP(Map repo = null, Map data = null) {
@@ -1134,7 +1149,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone)
         return uri
     }
@@ -1142,6 +1157,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
+
+        def installationTestData = data?.tests?.installation
 
         def sections = this.jiraUseCase.getDocumentChapterData(documentType)
         if (!sections) {
@@ -1164,14 +1181,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def data_ = [
-            metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
-            deployNote   : deploynoteData,
+            metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
+            deployNote: deploynoteData,
             openShiftData: [
-                builds     : repo.data.openshift.builds ?: '',
+                builds: repo.data.openshift.builds ?: '',
                 deployments: repo.data.openshift.deployments ?: ''
             ],
+            testResults: [
+                installation: installationTestData?.testResults
+            ],
             data: [
-                repo    : repo,
+                repo: repo,
                 sections: sections
             ]
         ]
@@ -1194,7 +1214,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(getDocumentTemplateName(documentType), repo, data_, [:], modifier, documentType, watermarkText)
+        return this.createDocument(documentType, repo, data_, [:], modifier, getDocumentTemplateName(documentType, repo), watermarkText)
     }
 
     String createTRC(Map repo, Map data) {
@@ -1249,7 +1269,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, "A new ${DOCUMENT_TYPE_NAMES[documentType]} has been generated and is available at: ${uri}.", sectionsNotDone + testIssuesWip)
         return uri
     }
@@ -1423,12 +1443,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return capability.templatesVersion
     }
 
-    boolean isArchivalRelevant (String documentType) {
-        List notArchiveDocTypes = [
+    boolean shouldCreateArtifact (String documentType, Map repo) {
+        List nonArtifactDocTypes = [
             DocumentType.TIR as String,
             DocumentType.DTR as String
         ]
-        return !(documentType && notArchiveDocTypes.contains(documentType))
+
+        return !(documentType && nonArtifactDocTypes.contains(documentType) && repo)
     }
 
     Map getFiletypeForDocumentType (String documentType) {

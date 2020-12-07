@@ -213,6 +213,12 @@ class Project {
         static final String UNIT = 'Unit'
     }
 
+    class LogReportType {
+        static final String CHANGES = 'changes'
+        static final String TARGET = 'target'
+        static final String STATE = 'state'
+    }
+
     class GampTopic {
         static final String AVAILABILITY_REQUIREMENT = 'Availability Requirement'
         static final String CONSTRAINT = 'Constraint'
@@ -810,7 +816,7 @@ class Project {
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
-            rePromote: rePromote,
+            rePromote: rePromote
         ]
     }
 
@@ -863,7 +869,7 @@ class Project {
                 name: jiraBug.fields.summary,
                 assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
                 dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
-                status: jiraBug.fields.status.name,
+                status: jiraBug.fields.status.name
             ]
 
             def testKeys = []
@@ -919,7 +925,7 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
-                ],
+                ]
             ]
         }
     }
@@ -943,7 +949,7 @@ class Project {
                                 name: value.name,
                             ]
                         ]
-                    },
+                    }
                 ]
             ]
         }
