@@ -123,7 +123,7 @@ class FinalizeOdsComponent {
         def odsBuiltDeploymentInformation = repo.data.openshift.deployments ?: [:]
         def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
         def allComponentDeployments = os.getResourcesForComponent(
-            project.targetProject, OpenShiftService.DEPLOYMENTCONFIG_KIND, componentSelector
+            project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND], componentSelector
         )
         def allComponentDeploymentNames = allComponentDeployments[OpenShiftService.DEPLOYMENTCONFIG_KIND]
         logger.debug(
