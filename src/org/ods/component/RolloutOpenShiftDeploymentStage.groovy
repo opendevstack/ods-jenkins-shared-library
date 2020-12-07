@@ -98,7 +98,18 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         return rollout(deploymentResources, originalDeploymentVersions)
     }
 
-    private Map<String,List<Map>> rollout(
+    // rollout returns something like this:
+    // [
+    //    DeploymentConfig: [
+    //      foo: [[podName: 'foo-a'], [podName: 'foo-b']],
+    //      bar: [[podName: 'bar-a']]
+    //    ],
+    //    Deployment: [
+    //      baz: [[podName: 'baz-a']]
+    //    ],
+    // ]
+    // TODO: Change this from map/list to a typed structure.
+    private Map<String, Map<String, List<Map>>> rollout(
         Map<String, List<String>> deploymentResources,
         Map<String, Map<String, Integer>> originalVersions) {
         def rolloutData = [:]
