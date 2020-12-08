@@ -78,10 +78,13 @@ interface IContext {
     // Project ID, e.g. "foo".
     String getProjectId()
 
-    // Component ID, e.g. "be-auth-service".
+    // Component ID, e.g. "be-auth".
     String getComponentId()
 
-    // Repository name, e.g. "foo-be-auth-service".
+    // Selector common to all resources of component, e.g. "app=foo-be-auth"
+    String getSelector()
+
+    // Repository name, e.g. "foo-be-auth".
     String getRepoName()
 
     // Git URL of repository

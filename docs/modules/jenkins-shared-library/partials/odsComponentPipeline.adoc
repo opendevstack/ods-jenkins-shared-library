@@ -62,7 +62,7 @@ Available options are:
 | Project ID, e.g. `foo`.
 
 | componentId
-| Component ID, e.g. `be-auth-service`.
+| Component ID, e.g. `be-auth`.
 
 | environmentLimit
 | Number of environments to allow when auto-cloning environments.
@@ -145,7 +145,10 @@ The `context` object contains the following properties:
 | Project ID, e.g. `foo`.
 
 | componentId
-| Component ID, e.g. `be-auth-service`.
+| Component ID, e.g. `be-auth`.
+
+| selector
+| Selector common to all resources of component, defaults to `app=${projectId}-${componentID}` (e.g. `app=foo-be-auth`).
 
 | gitUrl
 | Git URL of repository

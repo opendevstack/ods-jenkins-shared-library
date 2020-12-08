@@ -283,6 +283,11 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getSelector() {
+        "app=${config.projectId}-${config.componentId}"
+    }
+
+    @NonCPS
     String getRepoName() {
         config.repoName
     }

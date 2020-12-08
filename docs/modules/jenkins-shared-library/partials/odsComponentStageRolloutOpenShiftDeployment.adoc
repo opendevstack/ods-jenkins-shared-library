@@ -12,7 +12,7 @@ Available options:
 | Option | Description
 
 | selector
-| Selector scope used to determine which resources are part of a component (defaults to `app=<PROJECT>-<COMPONENT>`).
+| Selector scope used to determine which resources are part of a component (defaults to `context.selector`).
 
 | imageTag
 | Image tag on which to apply the `latest` tag (defaults to `context.shortGitCommit`).
