@@ -55,7 +55,8 @@ class ScanWithSnykStage extends Stage {
             "projectName=${config.projectName}, " +
             "buildFile=${config.buildFile}, " +
             "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
-            "severityThreshold=${config.severityThreshold}."
+            "severityThreshold=${config.severityThreshold}, " +
+            "additionalFlags=${config.additionalFlags ? config.additionalFlags.toListString() : ''}."
 
         boolean noVulnerabilitiesFound
 
@@ -68,7 +69,10 @@ class ScanWithSnykStage extends Stage {
         ]
         script.withEnv(envVariables) {
             logger.startClocked("${config.projectName}-snyk-scan")
-            noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
+            noVulnerabilitiesFound = snyk.test(config.organisation,
+                config.buildFile,
+                config.severityThreshold,
+                config.additionalFlags)
             if (noVulnerabilitiesFound) {
                 logger.info 'No vulnerabilities detected.'
             } else {
@@ -77,7 +81,7 @@ class ScanWithSnykStage extends Stage {
             logger.debugClocked("${config.projectName}-snyk-scan")
 
             logger.startClocked("${config.projectName}-snyk-monitor")
-            if (!snyk.monitor(config.organisation, config.buildFile)) {
+            if (!snyk.monitor(config.organisation, config.buildFile, config.additionalFlags)) {
                 script.error 'Snyk monitor failed'
             }
             logger.debugClocked("${config.projectName}-snyk-monitor")
