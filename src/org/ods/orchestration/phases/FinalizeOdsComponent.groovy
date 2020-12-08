@@ -122,13 +122,13 @@ class FinalizeOdsComponent {
         // Verify that all DCs are managed by ODS
         def odsBuiltDeploymentInformation = repo.data.openshift.deployments ?: [:]
         def odsBuiltDeployments = odsBuiltDeploymentInformation.keySet()
-        def allComponentDeployments = os.getResourcesForComponent(
+        def allComponentDeploymentsByKind = os.getResourcesForComponent(
             project.targetProject, [OpenShiftService.DEPLOYMENTCONFIG_KIND], componentSelector
         )
-        def allComponentDeploymentNames = allComponentDeployments[OpenShiftService.DEPLOYMENTCONFIG_KIND]
+        def allComponentDeployments = allComponentDeploymentsByKind[OpenShiftService.DEPLOYMENTCONFIG_KIND]
         logger.debug(
             "ODS created deployments for ${repo.id}: " +
-            "${odsBuiltDeployments}, all deployments: ${allComponentDeploymentNames}"
+            "${odsBuiltDeployments}, all deployments: ${allComponentDeployments}"
         )
 
         odsBuiltDeployments.each { odsBuiltDeploymentName ->
