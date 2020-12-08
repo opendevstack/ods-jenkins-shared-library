@@ -137,6 +137,15 @@ class GitService {
             $class: 'GitSCM',
             branches: [[name: gitCommit]],
             doGenerateSubmoduleConfigurations: false,
+            extensions: [[
+                    $class: 'SubmoduleOption',
+                    disableSubmodules: false,
+                    parentCredentials: true,
+                    recursiveSubmodules: true,
+                    reference: '',
+                    trackingSubmodules: false],
+                   [$class: 'CleanBeforeCheckout'],
+                   [$class: 'CleanCheckout']],
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs,
         ]
