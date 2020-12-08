@@ -20,7 +20,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         ILogger logger) {
         super(script, context, config, logger)
         if (!config.selector) {
-            config.selector = "app=${context.projectId}-${context.componentId}"
+            config.selector = context.selector
         }
         if (!config.imageTag) {
             config.imageTag = context.shortGitCommit
@@ -96,6 +96,13 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             context.targetProject, deploymentKinds, config.selector
         )
         return rollout(deploymentResources, originalDeploymentVersions)
+    }
+
+    protected String stageLabel() {
+        if (config.selector != context.selector) {
+            return "${STAGE_NAME} (${config.selector})"
+        }
+        STAGE_NAME
     }
 
     // rollout returns something like this:
