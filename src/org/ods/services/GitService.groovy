@@ -150,9 +150,7 @@ class GitService {
             userRemoteConfigs: userRemoteConfigs,
         ]
         if (isAgentNodeGitLfsEnabled()) {
-            gitParams.extensions = [
-                [$class: 'GitLFSPull']
-            ]
+            gitParams.extensions << [$class: 'GitLFSPull']
         }
         script.checkout(gitParams)
     }
