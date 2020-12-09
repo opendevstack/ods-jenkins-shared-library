@@ -100,7 +100,7 @@ class Stage {
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
         def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         if (type != 'unit') {
-            testReportsStashName = "${type}-${testReportsStashName}"
+        // XXX    testReportsStashName = "${type}-${testReportsStashName}"
         }
 
         def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
