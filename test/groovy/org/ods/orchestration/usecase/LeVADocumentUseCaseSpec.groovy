@@ -1505,7 +1505,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentSections(_) >> docChapters2
         1 * project.getSystemRequirements() >> requirements
-        3 * usecase.convertImages(_)
+        4 * usecase.convertImages(_)
         3 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
         1 * usecase.createDocument(*_) >> ''
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
