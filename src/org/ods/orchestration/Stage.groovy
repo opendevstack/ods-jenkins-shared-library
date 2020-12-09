@@ -98,7 +98,8 @@ class Stage {
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
-        def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
+        // XXX blah 
+        def testReportsStashName = "test-reports-junit-xml-${repo.id}-blah-${steps.env.BUILD_ID}"
         if (type != 'unit') {
         // XXX    testReportsStashName = "${type}-${testReportsStashName}"
         }
