@@ -36,6 +36,9 @@ def call(IContext context, Map config = [:], Closure block) {
             "Image '${config.resourceName}:${config.imageTag}' exists already in '${context.cdProject}'. " +
             "The 'orElse' block will not be executed."
         )
+        def imageReference = openShift.getImageReference(context.cdProject, config.resourceName, config.imageTag)
+        def info = [image: imageReference]
+        context.addBuildToArtifactURIs(config.resourceName, info)
         return
     }
 
