@@ -98,11 +98,13 @@ class Stage {
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
-        // XXX blah 
+        
         def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         if (type != 'unit') {
             testReportsStashName = "${type}-${testReportsStashName}"
         }
+
+        logger.info("XXX logInfo '${repo.id} / ${type} / ${testReportsStashName}'")
 
         def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
