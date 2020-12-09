@@ -133,6 +133,28 @@ class OpenShiftService {
         getApiUrl(steps)
     }
 
+    // helmUpgrade installs given "release" into "project" from the chart
+    // located in the working directory.
+    void helmUpgrade(
+        String project,
+        String release,
+        List<String> valuesFiles,
+        Map<String, String> values,
+        List<String> additionalFlags) {
+        def valuesFilesFlags = valuesFiles.collect { f -> "-f ${f}" }
+        def setFlags = values.collect { k, v -> "--set ${k}=${v}" }
+        steps.sh(
+            script: """helm \
+                -n ${project} \
+                upgrade --install --wait \
+                ${valuesFilesFlags.join(' ')} \
+                ${setFlags.join(' ')} \
+                ${additionalFlags.join(' ')} \
+                ${release} ./""",
+            label: "Upgrade Helm release ${release} in ${project}"
+        )
+    }
+
     @SuppressWarnings(['LineLength', 'ParameterCount'])
     void tailorApply(String project, Map<String, String> target, String paramFile, List<String> params, List<String> preserve, String tailorPrivateKeyFile, boolean verify) {
         def verifyFlag = verify ? '--verify' : ''

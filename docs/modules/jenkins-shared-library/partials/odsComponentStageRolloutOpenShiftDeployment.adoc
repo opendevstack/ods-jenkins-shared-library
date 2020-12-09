@@ -23,6 +23,21 @@ Available options:
 | deployTimeoutRetries
 | Adjust retries to wait for the pod during a rollout (defaults to 5). 
 
+| chartDir
+| Directory of Helm chart (defaults to `chart`).
+
+| helmReleaseName
+| Name of the Helm release (defaults to `context.componentId`). Change this value if you want to install separate instances of the Helm chart in the same namespace. In that case, make sure to use `{{ .Release.Name }}` in resource names to avoid conflicts.
+
+| helmValues
+| Map of key/value pairs to pass as values (by default, the key `imageTag` is set to the config option `imageTag`).
+
+| helmValuesFiles
+| List of paths to values files (empty by default).
+
+| helmAdditionalFlags
+| List of additional flags to be passed verbatim to the `helm` binary (empty by default).
+
 | openshiftDir
 | Directory with OpenShift templates (defaults to `openshift`).
 
