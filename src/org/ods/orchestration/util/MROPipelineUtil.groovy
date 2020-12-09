@@ -94,6 +94,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
 
             def job
+            def env = []
             env.addAll(this.project.getMainReleaseManagerEnv())
             env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
             this.steps.withEnv (env) {
