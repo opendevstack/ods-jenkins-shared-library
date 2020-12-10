@@ -431,7 +431,7 @@ class OpenShiftService {
         def items = steps.sh(
             script: """oc -n ${project} get ${kinds.join(',')} \
                 -l ${selector} \
-                -o jsonpath='{range .items[*]}{@.kind}:{@.metadata.name} {end}'""",
+                -o template='{{range .items}}{{.kind}}:{{.metadata.name}} {{end}}'""",
             returnStdout: true,
             label: "Getting all ${kinds.join(',')} names for selector '${selector}'"
         ).toString().trim().tokenize(' ')
