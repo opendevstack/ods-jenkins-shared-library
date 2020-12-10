@@ -105,46 +105,6 @@ class Pipeline implements Serializable {
                         if (this.localCheckoutEnabled) {
                             registry.clear()
                         }
-
-                        // if we run in another context there is a good chance
-                        // services have been already registered
-                        if (!registry.get(GitService)) {
-                            logger.debug 'Registering GitService'
-                            registry.add(GitService, new GitService(script, logger))
-                        }
-                        this.gitService = registry.get(GitService)
-
-                        if (!registry.get(BitbucketService)) {
-                            logger.debug 'Registering BitbucketService'
-                            registry.add(BitbucketService, new BitbucketService(
-                                script,
-                                context.bitbucketUrl,
-                                context.projectId,
-                                context.credentialsId,
-                                logger
-                            ))
-                        }
-                        this.bitbucketService = registry.get(BitbucketService)
-
-                        if (!registry.get(OpenShiftService)) {
-                            logger.debug 'Registering OpenShiftService'
-                            registry.add(OpenShiftService, new OpenShiftService(
-                                steps, logger
-                            ))
-                        }
-                        this.openShiftService = registry.get(OpenShiftService)
-
-                        if (!registry.get(JenkinsService)) {
-                            logger.debug 'Registering JenkinsService'
-                            registry.add(JenkinsService, new JenkinsService(script, logger))
-                        }
-                        this.jenkinsService = registry.get(JenkinsService)
-
-                        if (!registry.get(NexusService)) {
-                            logger.debug 'Registering NexusService'
-                            registry.add(NexusService, new NexusService(
-                                context.nexusUrl, context.nexusUsername, context.nexusPassword))
-                        }
                     }
 
                     skipCi = isCiSkip()
