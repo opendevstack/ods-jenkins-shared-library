@@ -660,7 +660,13 @@ class OpenShiftService {
                 kind: ImageStreamTag
                 name: ${name}:${tag}
             postCommit: {}
-            resources: {}
+            resources:
+              limits:
+                cpu: '1'
+                memory: '2Gi'
+              requests:
+                cpu: '200m'
+                memory: '1Gi'
             runPolicy: Serial
             source:
               type: Binary
