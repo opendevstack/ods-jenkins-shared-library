@@ -167,10 +167,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     script.error "Helm cannot be used in the orchestration pipeline yet."
                     return
                 }
-                helmUpgrade(context.targetProject)
+                script.withEnv(["TARGET=${targetName}"]) {
+                    helmUpgrade(context.targetProject)
+                }
                 refreshResources = true
             } else if (script.fileExists(config.openshiftDir)) {
-                tailorApply(context.targetProject)
+                script.withEnv(["TARGET=${targetName}"]) {
+                    tailorApply(context.targetProject)
+                }
                 refreshResources = true
             }
 
