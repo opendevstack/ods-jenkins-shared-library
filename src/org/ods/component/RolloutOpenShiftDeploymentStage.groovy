@@ -12,6 +12,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
 
+    @SuppressWarnings('CyclomaticComplexity')
     RolloutOpenShiftDeploymentStage(
         def script,
         IContext context,
@@ -44,6 +45,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
         if (!config.containsKey('helmValuesFiles')) {
             config.helmValuesFiles = []
+        }
+        if (!config.containsKey('helmDefaultFlags')) {
+            config.helmDefaultFlags = ['--install', '--atomic']
         }
         if (!config.containsKey('helmAdditionalFlags')) {
             config.helmAdditionalFlags = []
@@ -146,6 +150,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 config.helmReleaseName,
                 config.helmValuesFiles,
                 config.helmValues,
+                config.helmDefaultFlags,
                 config.helmAdditionalFlags
             )
         }
