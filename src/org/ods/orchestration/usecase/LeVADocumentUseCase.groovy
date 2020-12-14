@@ -1,5 +1,7 @@
 package org.ods.orchestration.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
+
 import java.time.LocalDateTime
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
@@ -791,8 +793,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
-        def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
-            .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
+        def keysInDoc = computeDocumentKeys(integrationTestIssues, acceptanceTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
@@ -1075,6 +1076,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         return this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType) ? documentType + "-" + capability.GAMPCategory : documentType
+    }
+
+    @NonCPS
+    private def computeDocumentKeys(integrationTestIssues, acceptanceTestIssues) {
+        return (integrationTestIssues + acceptanceTestIssues)
+            .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
 
     List<String> getSupportedDocuments() {
