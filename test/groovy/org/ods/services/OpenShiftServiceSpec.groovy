@@ -100,11 +100,11 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         1 * steps.sh(
-            script: 'helm -n foo diff upgrade --install --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --no-color bar ./',
+            script: 'helm -n foo secrets diff upgrade --install --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --no-color bar ./',
             label: 'Show diff explaining what helm upgrade would change for release bar in foo'
         )
         1 * steps.sh(
-            script: 'helm -n foo upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb bar ./',
+            script: 'helm -n foo secrets upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb bar ./',
             label: 'Upgrade Helm release bar in foo'
         )
     }

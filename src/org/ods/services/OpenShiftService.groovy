@@ -153,12 +153,12 @@ class OpenShiftService {
             def diffFlags = upgradeFlags.findAll { it != '--atomic' }
             diffFlags << '--no-color'
             steps.sh(
-                script: "helm -n ${project} diff upgrade ${diffFlags.join(' ')} ${release} ./",
+                script: "helm -n ${project} secrets diff upgrade ${diffFlags.join(' ')} ${release} ./",
                 label: "Show diff explaining what helm upgrade would change for release ${release} in ${project}"
             )
         }
         steps.sh(
-            script: "helm -n ${project} upgrade ${upgradeFlags.join(' ')} ${release} ./",
+            script: "helm -n ${project} secrets upgrade ${upgradeFlags.join(' ')} ${release} ./",
             label: "Upgrade Helm release ${release} in ${project}"
         )
     }

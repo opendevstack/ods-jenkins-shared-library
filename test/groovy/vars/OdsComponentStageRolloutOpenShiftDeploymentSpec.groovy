@@ -148,6 +148,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
     openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    JenkinsService jenkinsService = Stub(JenkinsService.class)
+    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
+    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')

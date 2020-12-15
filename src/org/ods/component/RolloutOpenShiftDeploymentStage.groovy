@@ -55,6 +55,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('helmDiff')) {
             config.helmDiff = true
         }
+        if (!config.helmPrivateKeyCredentialsId) {
+            config.helmPrivateKeyCredentialsId = "${context.projectId}-cd-helm-private-key"
+        }
         // Tailor options
         if (!config.openshiftDir) {
             config.openshiftDir = 'openshift'
@@ -147,16 +150,21 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
     private void helmUpgrade(String targetProject) {
         script.dir(config.chartDir) {
-            config.helmValues.imageTag = config.imageTag
-            openShift.helmUpgrade(
-                targetProject,
-                config.helmReleaseName,
-                config.helmValuesFiles,
-                config.helmValues,
-                config.helmDefaultFlags,
-                config.helmAdditionalFlags,
-                config.helmDiff
-            )
+            jenkins.maybeWithPrivateKeyCredentials(config.helmPrivateKeyCredentialsId) { pkeyFile ->
+                if (pkeyFile) {
+                    script.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
+                }
+                config.helmValues.imageTag = config.imageTag
+                openShift.helmUpgrade(
+                    targetProject,
+                    config.helmReleaseName,
+                    config.helmValuesFiles,
+                    config.helmValues,
+                    config.helmDefaultFlags,
+                    config.helmAdditionalFlags,
+                    config.helmDiff
+                )
+            }
         }
     }
 
