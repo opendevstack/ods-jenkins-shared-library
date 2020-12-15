@@ -134,7 +134,8 @@ class OpenShiftService {
     }
 
     // helmUpgrade installs given "release" into "project" from the chart
-    // located in the working directory.
+    // located in the working directory. If "withDiff" is true, a diff is
+    // performed beforehand.
     @SuppressWarnings(['ParameterCount', 'LineLength'])
     void helmUpgrade(
         String project,
@@ -142,11 +143,22 @@ class OpenShiftService {
         List<String> valuesFiles,
         Map<String, String> values,
         List<String> defaultFlags,
-        List<String> additionalFlags) {
-        def valuesFilesFlags = valuesFiles.collect { f -> "-f ${f}" }
-        def setFlags = values.collect { k, v -> "--set ${k}=${v}" }
+        List<String> additionalFlags,
+        boolean withDiff) {
+        def upgradeFlags = defaultFlags.collect { it }
+        additionalFlags.collect { upgradeFlags << it }
+        valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
+        values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
+        if (withDiff) {
+            def diffFlags = upgradeFlags.findAll { it != '--atomic' }
+            diffFlags << '--no-color'
+            steps.sh(
+                script: "helm -n ${project} diff upgrade ${diffFlags.join(' ')} ${release} ./",
+                label: "Show diff explaining what helm upgrade would change for release ${release} in ${project}"
+            )
+        }
         steps.sh(
-            script: "helm -n ${project} upgrade ${defaultFlags.join(' ')} ${valuesFilesFlags.join(' ')} ${setFlags.join(' ')} ${additionalFlags.join(' ')} ${release} ./",
+            script: "helm -n ${project} upgrade ${upgradeFlags.join(' ')} ${release} ./",
             label: "Upgrade Helm release ${release} in ${project}"
         )
     }

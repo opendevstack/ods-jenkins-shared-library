@@ -36,10 +36,13 @@ Available options:
 | List of paths to values files (empty by default).
 
 | helmDefaultFlags
-| List of default flags to be passed verbatim to the `helm` binary (defaults to `['--install', '--atomic']`). Typically these should not be modified - if you want to pass more flags, use `helmAdditionalFlags` instead.
+| List of default flags to be passed verbatim to to `helm upgrade` (defaults to `['--install', '--atomic']`). Typically these should not be modified - if you want to pass more flags, use `helmAdditionalFlags` instead.
 
 | helmAdditionalFlags
-| List of additional flags to be passed verbatim to the `helm` binary (empty by default).
+| List of additional flags to be passed verbatim to to `helm upgrade` (empty by default).
+
+| helmDiff
+| Whether to show diff explaining changes to the release before running `helm upgrade` (`true` by default).
 
 | openshiftDir
 | Directory with OpenShift templates (defaults to `openshift`).

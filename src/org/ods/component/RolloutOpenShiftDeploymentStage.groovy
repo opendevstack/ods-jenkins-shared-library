@@ -52,6 +52,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('helmAdditionalFlags')) {
             config.helmAdditionalFlags = []
         }
+        if (!config.containsKey('helmDiff')) {
+            config.helmDiff = true
+        }
         // Tailor options
         if (!config.openshiftDir) {
             config.openshiftDir = 'openshift'
@@ -151,7 +154,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 config.helmValuesFiles,
                 config.helmValues,
                 config.helmDefaultFlags,
-                config.helmAdditionalFlags
+                config.helmAdditionalFlags,
+                config.helmDiff
             )
         }
     }
