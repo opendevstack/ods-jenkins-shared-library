@@ -145,12 +145,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     openShiftService.getResourcesForComponent('foo-dev', ['Deployment', 'DeploymentConfig'], 'app=foo-bar') >> [DeploymentConfig: ['bar']]
     openShiftService.getRevision(*_) >> 123
     openShiftService.rollout(*_) >> "${config.componentId}-124"
-    openShiftService.getPodDataForDeployment(*_) >> [[ deploymentId: "${config.componentId}-124" ]]
+    openShiftService.getPodDataForDeployment(*_) >> [new PodData([ deploymentId: "${config.componentId}-124" ])]
     openShiftService.getImagesOfDeployment(*_) >> [[ repository: 'foo', name: 'bar' ]]
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
-    JenkinsService jenkinsService = Stub(JenkinsService.class)
-    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
-    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
 
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
@@ -162,15 +159,15 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     then:
     printCallStack()
     assertJobStatusSuccess()
-    deploymentInfo['DeploymentConfig']['bar'][0].deploymentId == "bar-124"
+    deploymentInfo['DeploymentConfig/bar'][0].deploymentId == "bar-124"
 
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
     buildArtifacts.deployments.containsKey(config.componentId)
-    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['DeploymentConfig']['bar'][0].deploymentId
+    buildArtifacts.deployments[config.componentId].deploymentId == deploymentInfo['DeploymentConfig/bar'][0].deploymentId
 
-    1 * openShiftService.helmUpgrade('foo-dev', 'bar', [], [imageTag: 'cd3e9082'], ['--install', '--atomic'], [])
+    1 * openShiftService.helmUpgrade('foo-dev', 'bar', [], [imageTag: 'cd3e9082'], ['--install', '--atomic'], [], true)
   }
 
   @Unroll
