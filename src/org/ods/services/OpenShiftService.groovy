@@ -6,6 +6,7 @@ import groovy.transform.TypeCheckingMode
 
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+import org.ods.util.PodData
 import java.security.SecureRandom
 
 @SuppressWarnings('MethodCount')
@@ -413,7 +414,7 @@ class OpenShiftService {
     // Returns data about the pods (replicas) of the deployment.
     // If not all pods are running until the retries are exhausted,
     // an exception is thrown.
-    List<Map> getPodDataForDeployment(String project, String kind, String podManagerName, int retries) {
+    List<PodData> getPodDataForDeployment(String project, String kind, String podManagerName, int retries) {
         def label = getPodLabelForPodManager(project, kind, podManagerName)
         for (def i = 0; i < retries; i++) {
             def podData = checkForPodData(project, label)
@@ -556,7 +557,7 @@ class OpenShiftService {
                 )
                 // TODO: Once the orchestration pipeline can deal with multiple replicas,
                 // update this to return multiple pods.
-                pod = podData[0]
+                pod = podData[0].toMap()
             }
             pods[name] = pod
         }
@@ -606,7 +607,8 @@ class OpenShiftService {
     // checkForPodData returns a subset of information from every pod, once
     // all pods matching the label are "running". If this is not the case,
     // it returns an empty list.
-    private List<Map> checkForPodData(String project, String label) {
+    private List<PodData> checkForPodData(String project, String label) {
+        List<PodData> pods = []
         def stdout = steps.sh(
             script: "oc -n ${project} get pod -l ${label} -o json",
             returnStdout: true,
@@ -614,9 +616,9 @@ class OpenShiftService {
         ).toString().trim()
         def podJson = new JsonSlurperClassic().parseText(stdout)
         if (podJson && podJson.items.collect { it.status?.phase?.toLowerCase() }.every { it == 'running' }) {
-            return extractPodData(podJson)
+            pods = extractPodData(podJson)
         }
-        []
+        pods
     }
 
     private String getPodManagerName(String project, String kind, String name, int revision) {
@@ -833,8 +835,8 @@ class OpenShiftService {
 
     @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
     @TypeChecked(TypeCheckingMode.SKIP)
-    private List<Map> extractPodData(Map podJson) {
-        def podData = []
+    private List<PodData> extractPodData(Map podJson) {
+        List<PodData> pods = []
         podJson.items.each { podOCData ->
             def pod = [:]
             // Only set needed data on "pod"
@@ -857,9 +859,9 @@ class OpenShiftService {
                     }
                 }
             }
-            podData << pod
+            pods << new PodData(pod)
         }
-        podData
+        pods
     }
 
     private String tailorVerboseFlag() {
