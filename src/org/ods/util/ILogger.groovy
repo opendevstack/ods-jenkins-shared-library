@@ -15,7 +15,7 @@ interface ILogger {
 
     boolean getDebugMode ()
 
-    String getOCPDebugFlag ()
+    String getOcDebugFlag ()
     String getShellScriptDebugFlag ()
 
 }

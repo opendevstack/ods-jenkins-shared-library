@@ -15,7 +15,7 @@ class LoggerSpec extends PipelineSpockTestBase {
 
         when:
         def logLevel = logger.debugMode
-        String ocpLogLevel = logger.OCPDebugFlag
+        String ocpLogLevel = logger.ocDebugFlag
         String shellLogFlag = logger.shellScriptDebugFlag
 
         then:

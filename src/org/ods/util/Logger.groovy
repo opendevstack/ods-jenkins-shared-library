@@ -46,7 +46,7 @@ class Logger implements ILogger, Serializable {
         debugOn
     }
 
-    String getOCPDebugFlag () {
+    String getOcDebugFlag () {
         return debugOn ? '--loglevel=5' : ''
     }
 

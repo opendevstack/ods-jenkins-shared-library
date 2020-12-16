@@ -61,7 +61,7 @@ class SonarQubeService {
             script.sh(
                 label: 'Generate CNES Report',
                 script: """
-                ${logger.OCPDebugFlag}
+                ${logger.shellScriptDebugFlag}
                 java -jar /usr/local/cnes/cnesreport.jar \
                     -s ${hostUrl} \
                     -t ${authToken} \

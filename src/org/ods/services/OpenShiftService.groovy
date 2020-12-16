@@ -301,7 +301,7 @@ class OpenShiftService {
 
     int startBuild(String project, String name, String dir) {
         steps.sh(
-            script: "oc -n ${project} start-build ${name} --from-dir ${dir} ${logger.OCPDebugFlag}",
+            script: "oc -n ${project} start-build ${name} --from-dir ${dir} ${logger.ocDebugFlag}",
             label: "Start Openshift build ${name}",
             returnStdout: true
         ).toString().trim()
@@ -388,7 +388,7 @@ class OpenShiftService {
         }
 
         steps.sh(
-            script: """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(',')}]' ${logger.OCPDebugFlag} """,
+            script: """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(',')}]' ${logger.ocDebugFlag} """,
             label: "Patch BuildConfig ${name}"
         )
     }
@@ -792,7 +792,7 @@ class OpenShiftService {
     private void restartRollout(String project, String name, int version) {
         try {
             steps.sh(
-                script: "oc -n ${project} rollout restart deployment/${name} ${logger.OCPDebugFlag}",
+                script: "oc -n ${project} rollout restart deployment/${name} ${logger.ocDebugFlag}",
                 label: "Rollout restart of deployment/${name}"
             )
         } catch (ex) {
@@ -857,7 +857,7 @@ class OpenShiftService {
               oc -n ${project} import-image ${targetImageRef} \
                 --from=${sourceImageFull} \
                 --confirm \
-                ${logger.OCPDebugFlag}
+                ${logger.ocDebugFlag}
             """,
             label: "Import image ${sourceImageFull} into ${project}/${targetImageRef}"
         )
