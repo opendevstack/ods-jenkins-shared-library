@@ -9,6 +9,9 @@ import org.ods.util.PodData
 class RolloutOpenShiftDeploymentStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy to OpenShift'
+    private final List<String> DEPLOYMENT_KINDS = [
+        OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
+    ]
     private final OpenShiftService openShift
     private final JenkinsService jenkins
 
@@ -56,14 +59,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             config.helmDiff = true
         }
         if (!config.helmPrivateKeyCredentialsId) {
-            config.helmPrivateKeyCredentialsId = "${context.projectId}-cd-helm-private-key"
+            config.helmPrivateKeyCredentialsId = "${context.cdProject}-helm-private-key"
         }
         // Tailor options
         if (!config.openshiftDir) {
             config.openshiftDir = 'openshift'
         }
         if (!config.tailorPrivateKeyCredentialsId) {
-            config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
+            config.tailorPrivateKeyCredentialsId = "${context.cdProject}-tailor-private-key"
         }
         if (!config.tailorSelector) {
             config.tailorSelector = config.selector
@@ -92,10 +95,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             logger.warn 'Skipping because of empty (target) environment ...'
             return
         }
-        def deploymentKinds = [OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND]
 
         def deploymentResources = openShift.getResourcesForComponent(
-            context.targetProject, deploymentKinds, config.selector
+            context.targetProject, DEPLOYMENT_KINDS, config.selector
         )
         if (context.triggeredByOrchestrationPipeline
             && deploymentResources.containsKey(OpenShiftService.DEPLOYMENT_KIND)) {
@@ -103,6 +105,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             return
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
+
+        // Tag images which have been built in this pipeline from cd project into target project
+        def imageStreams = context.buildArtifactURIs.builds.keySet()
+        retagImages(context.targetProject, imageStreams)
 
         def refreshResources = false
         if (script.fileExists("${config.chartDir}/Chart.yaml")) {
@@ -119,7 +125,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
 
         if (refreshResources) {
             deploymentResources = openShift.getResourcesForComponent(
-                context.targetProject, deploymentKinds, config.selector
+                context.targetProject, DEPLOYMENT_KINDS, config.selector
             )
         }
         return rollout(deploymentResources, originalDeploymentVersions)
@@ -165,6 +171,23 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                     config.helmDiff
                 )
             }
+        }
+    }
+
+    private void retagImages(String targetProject, Set<String> images) {
+        images.each { image ->
+            findOrCreateImageStream(targetProject, image)
+            openShift.importImageTagFromProject(
+                targetProject, image, context.cdProject, config.imageTag, config.imageTag
+            )
+        }
+    }
+
+    private findOrCreateImageStream(String targetProject, String image) {
+        try {
+            openShift.findOrCreateImageStream(targetProject, image)
+        } catch (Exception ex) {
+            script.error "Could not find/create ImageStream ${image} in ${targetProject}. Error was: ${ex}"
         }
     }
 

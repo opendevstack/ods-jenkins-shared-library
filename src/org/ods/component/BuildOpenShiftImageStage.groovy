@@ -20,6 +20,11 @@ class BuildOpenShiftImageStage extends Stage {
         JenkinsService jenkins,
         ILogger logger) {
         super(script, context, config, logger)
+        // If user did not explicitly define which branches to build images for,
+        // build images for all branches which are mapped (deployed) to an environment.
+        if (!config.containsKey('branches') && !config.containsKey('branch')) {
+            config.branches = context.branchToEnvironmentMapping.keySet().toList()
+        }
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
@@ -41,97 +46,36 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
-        if (!config.openshiftDir) {
-            config.openshiftDir = 'openshift'
-        }
-        if (!config.tailorPrivateKeyCredentialsId) {
-            config.tailorPrivateKeyCredentialsId = "${context.projectId}-cd-tailor-private-key"
-        }
-        if (!config.tailorSelector) {
-            config.tailorSelector = "app=${context.projectId}-${context.componentId}"
-        }
-        if (!config.containsKey('tailorVerify')) {
-            config.tailorVerify = false
-        }
-        if (!config.containsKey('tailorInclude')) {
-            config.tailorInclude = 'bc,is'
-        }
-        if (!config.containsKey('tailorParamFile')) {
-            config.tailorParamFile = '' // none apart the automatic param file
-        }
-        if (!config.containsKey('tailorPreserve')) {
-            config.tailorPreserve = ['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name']
-        }
-        if (!config.containsKey('tailorParams')) {
-            config.tailorParams = []
-        }
         this.openShift = openShift
         this.jenkins = jenkins
         this.logger = logger
     }
 
     protected run() {
-        if (!context.environment) {
-            logger.warn 'Skipping because of empty (target) environment ...'
-            return [:]
-        }
-
-        if (script.fileExists(config.openshiftDir)) {
-            script.dir(config.openshiftDir) {
-                jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
-                    openShift.tailorApply(
-                        context.targetProject,
-                        [selector: config.tailorSelector, include: config.tailorInclude],
-                        config.tailorParamFile,
-                        config.tailorParams,
-                        config.tailorPreserve,
-                        pkeyFile,
-                        config.tailorVerify
-                    )
-                }
-            }
-        }
+        findOrCreateBuildConfig()
+        findOrCreateImageStream()
 
         def imageLabels = assembleImageLabels()
         writeReleaseFile(imageLabels, config)
 
-        if (!buildConfigExists()) {
-            script.error "BuildConfig '${config.resourceName}' does not exist. " +
-                'Verify that you have setup the OpenShift resource correctly ' +
-                'and/or set the "resourceName" option of the pipeline stage appropriately.'
-        }
         patchBuildConfig(imageLabels)
 
-        // Start and follow build of container image.
-        int buildVersion = 0
-        script.timeout(time: config.buildTimeoutMinutes) {
-            logger.startClocked("${config.resourceName}-build")
-            buildVersion = startBuild()
-            logger.info followBuild(buildVersion)
-            logger.debugClocked("${config.resourceName}-build")
-        }
+        def buildVersion = startAndFollowBuild()
+        def buildId = "${config.resourceName}-${buildVersion}"
 
         // Retrieve build status.
-        def buildId = "${config.resourceName}-${buildVersion}"
         def buildStatus = getBuildStatus(buildId)
         if (buildStatus != 'complete') {
             script.error "OpenShift Build #${buildVersion} was not successful - status is '${buildStatus}'."
         }
+
         def imageReference = getImageReference()
         logger.info "Build #${buildVersion} of '${config.resourceName}' has produced image: ${imageReference}."
 
-        context.addBuildToArtifactURIs(
-            config.resourceName,
-            [
-                buildId: buildId,
-                image: imageReference,
-            ]
-        )
+        def info = [buildId: buildId, image: imageReference]
+        context.addBuildToArtifactURIs(config.resourceName, info)
 
-        return [
-            buildId: buildId,
-            image: imageReference,
-        ]
+        return info
     }
 
     protected String stageLabel() {
@@ -141,29 +85,48 @@ class BuildOpenShiftImageStage extends Stage {
         STAGE_NAME
     }
 
-    private boolean buildConfigExists() {
-        openShift.resourceExists(context.targetProject, 'BuildConfig', config.resourceName)
+    private int startAndFollowBuild() {
+        int buildVersion = 0
+        script.timeout(time: config.buildTimeoutMinutes) {
+            logger.startClocked("${config.resourceName}-build")
+            buildVersion = openShift.startBuild(
+                context.cdProject, config.resourceName, config.dockerDir
+            )
+            logger.info openShift.followBuild(
+                context.cdProject, config.resourceName, buildVersion
+            )
+            logger.debugClocked("${config.resourceName}-build")
+        }
+        buildVersion
+    }
+
+    private void findOrCreateBuildConfig() {
+        try {
+            openShift.findOrCreateBuildConfig(context.cdProject, config.resourceName)
+        } catch (Exception ex) {
+            script.error "Could not find/create BuildConfig ${config.resourceName}. Error was: ${ex}"
+        }
+    }
+
+    private void findOrCreateImageStream() {
+        try {
+            openShift.findOrCreateImageStream(context.cdProject, config.resourceName)
+        } catch (Exception ex) {
+            script.error "Could not find/create ImageStream ${config.resourceName}. Error was: ${ex}"
+        }
     }
 
     private String getImageReference() {
-        openShift.getImageReference(context.targetProject, config.resourceName, config.imageTag)
-    }
-
-    private int startBuild() {
-        openShift.startBuild(context.targetProject, config.resourceName, config.dockerDir)
-    }
-
-    private String followBuild(int version) {
-        openShift.followBuild(context.targetProject, config.resourceName, version)
+        openShift.getImageReference(context.cdProject, config.resourceName, config.imageTag)
     }
 
     private String getBuildStatus(String build) {
-        openShift.getBuildStatus(context.targetProject, build)
+        openShift.getBuildStatus(context.cdProject, build)
     }
 
     private String patchBuildConfig(Map imageLabels) {
         openShift.patchBuildConfig(
-            context.targetProject,
+            context.cdProject,
             config.resourceName,
             config.imageTag,
             config.buildArgs,

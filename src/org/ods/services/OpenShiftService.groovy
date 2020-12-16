@@ -1,5 +1,6 @@
 package org.ods.services
 
+import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
@@ -9,7 +10,7 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
 import java.security.SecureRandom
 
-@SuppressWarnings('MethodCount')
+@SuppressWarnings(['ClassSize', 'MethodCount'])
 @TypeChecked
 class OpenShiftService {
 
@@ -96,7 +97,7 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    static String imageExists(IPipelineSteps steps, String project, String name, String tag) {
+    boolean imageExists(String project, String name, String tag) {
         steps.sh(
             returnStatus: true,
             script: "oc -n ${project} get istag ${name}:${tag} &> /dev/null",
@@ -592,6 +593,91 @@ class OpenShiftService {
         }
         logger.debug("Container '${containerName}' is using defined image '${definedImageSha}'.")
         true
+    }
+
+    // findOrCreateBuildConfig searches for a BuildConfig with "name" in "project",
+    // and if none is found, it creates one.
+    void findOrCreateBuildConfig(String project, String name, Map<String, String> labels = [:], String tag = "latest") {
+        if (!resourceExists(project, 'BuildConfig', name)) {
+            createBuildConfig(project, name, labels, tag)
+        }
+    }
+
+    // findOrCreateImageStream searches for a ImageStream with "name" in "project",
+    // and if none is found, it creates one.
+    void findOrCreateImageStream(String project, String name, Map<String, String> labels = [:]) {
+        if (!resourceExists(project, 'ImageStream', name)) {
+            createImageStream(project, name, labels)
+        }
+    }
+
+    private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {
+        logger.info "Creating BuildConfig ${name} in ${project} ... "
+        def bcYml = buildConfigBinaryYml(name, labels, tag)
+        createResource(project, bcYml)
+    }
+
+    private void createImageStream(String project, String name, Map<String, String> labels) {
+        logger.info "Creating ImageStream ${name} in ${project} ... "
+        def isYml = imageStreamYml(name, labels)
+        createResource(project, isYml)
+    }
+
+    @NonCPS
+    private String buildConfigBinaryYml(String name, Map<String,String> labels, String tag) {
+        """\
+          apiVersion: v1
+          kind: BuildConfig
+          metadata:
+            labels: {${labels.collect { k, v -> "${k}: '${v}'" }.join(', ')}}
+            name: ${name}
+          spec:
+            failedBuildsHistoryLimit: 5
+            nodeSelector: null
+            output:
+              to:
+                kind: ImageStreamTag
+                name: ${name}:${tag}
+            postCommit: {}
+            resources:
+              limits:
+                cpu: '1'
+                memory: '2Gi'
+              requests:
+                cpu: '200m'
+                memory: '1Gi'
+            runPolicy: Serial
+            source:
+              type: Binary
+              binary: {}
+            strategy:
+              type: Docker
+              dockerStrategy: {}
+            successfulBuildsHistoryLimit: 5
+        """.stripIndent()
+    }
+
+    @NonCPS
+    private String imageStreamYml(String name, Map<String,String> labels) {
+        """\
+          apiVersion: v1
+          kind: ImageStream
+          metadata:
+            labels: {${labels.collect { k, v -> "${k}: '${v}'" }.join(', ')}}
+            name: ${name}
+          spec:
+            lookupPolicy:
+              local: false
+        """.stripIndent()
+    }
+
+    private String createResource(String project, String yml) {
+        def filename = ".${UUID.randomUUID().toString()}.yml"
+        steps.writeFile(file: filename, text: yml)
+        steps.sh """
+            oc -n ${project} create -f ${filename};
+            rm ${filename}
+        """
     }
 
     private String getJSONPath(String project, String kind, String name, String jsonPath) {
