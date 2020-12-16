@@ -1,0 +1,27 @@
+{
+    "apiVersion": "v1",
+    "imagePullSecrets": [
+        {
+            "name": "bar-dockercfg-q239j"
+        }
+    ],
+    "kind": "ServiceAccount",
+    "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2020-09-01T07:17:54Z",
+        "labels": {},
+        "name": "bar",
+        "namespace": "foo-cd",
+        "resourceVersion": "418936176",
+        "selfLink": "/api/v1/namespaces/foo-cd/serviceaccounts/bar",
+        "uid": "40ed4ede-ec23-12ea-94ce-0a20b7cbe558"
+    },
+    "secrets": [
+        {
+            "name": "bar-token-j6gp5"
+        },
+        {
+            "name": "bar-dockercfg-q239j"
+        }
+    ]
+}

@@ -212,4 +212,48 @@ class OpenShiftServiceSpec extends SpecHelper {
         result == 'complete'
     }
 
+    @Unroll
+    def "getRegistryAccessInfo"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = new Logger(steps, false)
+        def service = Spy(OpenShiftService, constructorArgs: [steps, logger])
+        def file = new FixtureHelper().getResource(jsonFile)
+        def jsonMap = new JsonSlurperClassic().parseText(file.text)
+        service.invokeMethod('getJSON', ['foo', 'Secret', 'bar']) >> jsonMap
+
+        when:
+        def result = service.getRegistryAccessInfo('foo', 'bar')
+
+        then:
+        result.toMap() == [host: host, username: username, password: password]
+
+        where:
+        jsonFile                       || host              | username            | password
+        'secret-dockercfg.json'        || 'example-cfg.com' | 'max'               | 'ZXlKaGJHYy4uLmlHR2VmMWc='
+        'secret-dockerconfigjson.json' || 'example.com'     | 'cd/cd-integration' | 'ZXlKaGJHYy4uLmlHR2VmMGc='
+    }
+
+    @Unroll
+    def "getRegistrySecretOfServiceAccount"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = new Logger(steps, false)
+        def service = Spy(OpenShiftService, constructorArgs: [steps, logger])
+        def file = new FixtureHelper().getResource(jsonFile)
+        def jsonMap = new JsonSlurperClassic().parseText(file.text)
+        service.invokeMethod('getJSON', ['foo', 'ServiceAccount', 'bar']) >> jsonMap
+
+        when:
+        def result = service.getRegistrySecretOfServiceAccount('foo', 'bar')
+
+        then:
+        result == secretName
+
+        where:
+        jsonFile               || secretName
+        'sa-dockercfg.json'    || 'bar-dockercfg-q239j'
+        'sa-no-dockercfg.json' || null
+    }
+
 }

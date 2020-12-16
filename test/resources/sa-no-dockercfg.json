@@ -1,0 +1,19 @@
+{
+    "apiVersion": "v1",
+    "kind": "ServiceAccount",
+    "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2020-09-01T07:17:54Z",
+        "labels": {},
+        "name": "robot",
+        "namespace": "foo-cd",
+        "resourceVersion": "418936176",
+        "selfLink": "/api/v1/namespaces/foo-cd/serviceaccounts/robot",
+        "uid": "40ed4ede-ec23-12ea-94ce-0a20b7cbe558"
+    },
+    "secrets": [
+        {
+            "name": "robot-token-j6gp5"
+        }
+    ]
+}

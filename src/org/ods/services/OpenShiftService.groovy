@@ -8,6 +8,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
+import org.ods.util.RegistryAccessInfo
 import java.security.SecureRandom
 
 @SuppressWarnings(['ClassSize', 'MethodCount'])
@@ -151,8 +152,9 @@ class OpenShiftService {
         def excludeFlag = target.exclude ? "--exclude ${target.exclude}" : ''
         def includeArg = target.include ?: ''
         def paramFileFlag = paramFile ? "--param-file ${paramFile}" : ''
-        params << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain(project)}".toString()
-        def paramFlags = params.collect { "--param ${it}" }.join(' ')
+        def internalParams = params.collect() // copy params to avoid changing at the source
+        internalParams << "ODS_OPENSHIFT_APP_DOMAIN=${getApplicationDomain(project)}".toString()
+        def paramFlags = internalParams.collect { "--param ${it}" }.join(' ')
         def preserveFlags = preserve.collect { "--preserve ${it}" }.join(' ')
         doTailorApply(project, "${selectorFlag} ${excludeFlag} ${paramFlags} ${preserveFlags} ${paramFileFlag} ${tailorPrivateKeyFlag} ${verifyFlag} --ignore-unknown-parameters ${includeArg}")
     }
@@ -421,6 +423,26 @@ class OpenShiftService {
         )
     }
 
+    // pushImage pushes srcImage (e.g. docker;//example.com/foo/bar:latest)
+    // to destImage (e.g. docker;//example.com/foo/bar:latest) using "skopeo copy".
+    // It requires srcCreds (e.g. user:token) and destCreds (e.g. user:token).
+    void pushImage(
+        String srcImage,
+        String destImage,
+        String srcCreds,
+        String destCreds,
+        List<String> skopeoFlags) {
+        def maskedCredentials = "--src-creds **** --dest-creds ****"
+        def realCredentials = "--src-creds ${srcCreds} --dest-creds ${destCreds}"
+        def cmd = "skopeo copy ${srcImage} ${destImage} ${maskedCredentials} ${skopeoFlags.join(' ')}"
+        logger.info(cmd)
+        steps.sh(
+            script: """set +x
+            ${cmd.replace(maskedCredentials, realCredentials)}""",
+            label: "Push image ${srcImage} to ${destImage}"
+        )
+    }
+
     // Returns data about the pods (replicas) of the deployment.
     // If not all pods are running until the retries are exhausted,
     // an exception is thrown.
@@ -609,6 +631,74 @@ class OpenShiftService {
         if (!resourceExists(project, 'ImageStream', name)) {
             createImageStream(project, name, labels)
         }
+    }
+
+    // getConfigMapDataKey returns the content of given key. If key does not
+    // exist, an empty string is returned (standard behavior of "oc").
+    String getConfigMapDataKey(String project, String name, String key) {
+        getJSONPath(project, "ConfigMap", name, "{.data.${key}}")
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    String getRegistrySecretOfServiceAccount(String project, String saName) {
+        def sa = getJSON(project, 'ServiceAccount', saName)
+        sa.secrets.find { it.name.startsWith("${saName}-dockercfg-") }?.name
+    }
+
+    // getRegistryAccessInfo extracts access information (host + creds) from "secretName".
+    // If registryHost is given, it retrieves credentials relating to that host, otherwise
+    // it requires only one host to be configured, and returns credentials for that one.
+    @TypeChecked(TypeCheckingMode.SKIP)
+    RegistryAccessInfo getRegistryAccessInfo(String project, String secretName, String registryHost = '') {
+        def secret = getJSON(project, 'Secret', secretName)
+        String dataPath
+        if (secret.type == 'kubernetes.io/dockerconfigjson') {
+            dataPath = '.dockerconfigjson'
+        } else if (secret.type == 'kubernetes.io/dockercfg') {
+            dataPath = '.dockercfg'
+        } else {
+            throw new RuntimeException(
+                "Secret '${secretName}' has unsupported secret type '${secret.type}'. " +
+                "Type must be either 'kubernetes.io/dockerconfigjson' or 'kubernetes.io/dockercfg'."
+            )
+        }
+        def encodedJson = secret.data[dataPath]
+        if (!encodedJson) {
+            throw new RuntimeException(
+                "Secret '${secretName}' has no content at '.data.${dataPath}'."
+            )
+        }
+        byte[] decodedJson = encodedJson.decodeBase64()
+        def registryAccessInfoJson = new String(decodedJson)
+        // Example kubernetes.io/dockerconfigjson:
+        // {"auths":{"registry.example.com":{"username":"max","password":"eyJhbGciOi...",auth: "Y2QvY2QtaW50..."}}
+        // Example kubernetes.io/dockercfg:
+        // {"registry.example.com":{"username":"max","password":"eyJhbGciOi...",auth: "Y2QvY2QtaW50..."}
+        def auths = new JsonSlurperClassic().parseText(registryAccessInfoJson)
+        if (auths.containsKey('auths')) {
+            auths = auths.auths
+        }
+
+        String host
+        if (registryHost) {
+            if (!auths.containsKey(registryHost)) {
+                throw new RuntimeException(
+                    "Secret '${secretName}' does not specify auth for host '${registryHost}'."
+                )
+            }
+            host = registryHost
+        } else {
+            def authKeys = auths.keySet()
+            if (authKeys.size() > 1) {
+                logger.debug(
+                    "Secret '${secretName}' specifies more than one host, but none is selected. " +
+                    "Taking the first entry."
+                )
+            }
+            host = authKeys.first()
+        }
+        def auth = auths[host]
+        new RegistryAccessInfo([host: host, username: auth.username, password: auth.password])
     }
 
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {
