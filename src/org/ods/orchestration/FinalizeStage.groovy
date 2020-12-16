@@ -22,7 +22,7 @@ class FinalizeStage extends Stage {
         super(script, project, repos)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric'])
+    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -199,7 +199,7 @@ class FinalizeStage extends Stage {
         def envState = [
             version: project.buildParams.version,
             changeId: project.buildParams.changeId,
-            repositories: gitHeads
+            repositories: gitHeads,
         ]
         steps.writeFile(
             file: project.envStateFileName,
