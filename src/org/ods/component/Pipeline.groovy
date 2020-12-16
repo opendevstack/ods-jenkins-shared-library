@@ -240,7 +240,7 @@ class Pipeline implements Serializable {
                                     throw err
                                 }
                                 return this
-                            } 
+                            }
                             throw err
                         }
                     } finally {
