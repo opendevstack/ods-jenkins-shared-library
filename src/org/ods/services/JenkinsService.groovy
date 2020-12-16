@@ -23,10 +23,9 @@ class JenkinsService {
         }
 
         logger.debug "Collecting (applicable) testresults from location: '${xUnitResultDir}'"
-        def logCommand = logger.debugMode ? '' : 'set +x'
         script.sh(
             script: """
-                ${logCommand}
+                ${logger.shellScriptDebugFlag}
                 mkdir -p ${XUNIT_SYSTEM_RESULT_DIR} ${xUnitResultDir} &&
                 cp -rf ${xUnitResultDir}/* ${XUNIT_SYSTEM_RESULT_DIR} | true
             """,
@@ -35,7 +34,7 @@ class JenkinsService {
 
         def foundTests = script.sh(
             script: """
-                ${logCommand}
+                ${logger.shellScriptDebugFlag}
                 ls -la ${XUNIT_SYSTEM_RESULT_DIR}/*.xml | wc -l
             """,
             returnStdout: true,

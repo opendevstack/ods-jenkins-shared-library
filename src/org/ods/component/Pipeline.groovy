@@ -200,7 +200,7 @@ class Pipeline implements Serializable {
                 containers: config.podContainers,
                 volumes: config.podVolumes,
                 serviceAccount: config.podServiceAccount,
-                slaveConnectTimeout: 240 // in seconds
+                slaveConnectTimeout: 240, // in seconds
             ) {
                 script.node(config.podLabel) {
                     try {
@@ -240,9 +240,8 @@ class Pipeline implements Serializable {
                                     throw err
                                 }
                                 return this
-                            } else {
-                                throw err
                             }
+                            throw err
                         }
                     } finally {
                         jenkinsService.stashTestResults(
@@ -282,6 +281,22 @@ class Pipeline implements Serializable {
         config.bitbucketNotificationEnabled = !!script.env.NOTIFY_BB_BUILD
     }
 
+    @SuppressWarnings('Instanceof')
+    def updateBuildStatus(String status) {
+        if (this.displayNameUpdateEnabled) {
+            // @ FIXME ? groovy.lang.MissingPropertyException: No such property: result for class: java.lang.String
+            if (script.currentBuild instanceof String) {
+                script.currentBuild = status
+            } else {
+                script.currentBuild.result = status
+            }
+        }
+    }
+
+    Map<String, Object> getBuildArtifactURIs() {
+        return context.getBuildArtifactURIs()
+    }
+
     private void setBitbucketBuildStatus(String state) {
         if (!this.bitbucketNotificationEnabled) {
             return
@@ -305,22 +320,6 @@ class Pipeline implements Serializable {
             replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
             to: recipients
         )
-    }
-
-    @SuppressWarnings('Instanceof')
-    def updateBuildStatus(String status) {
-        if (this.displayNameUpdateEnabled) {
-            // @ FIXME ? groovy.lang.MissingPropertyException: No such property: result for class: java.lang.String
-            if (script.currentBuild instanceof String) {
-                script.currentBuild = status
-            } else {
-                script.currentBuild.result = status
-            }
-        }
-    }
-
-    Map<String, Object> getBuildArtifactURIs() {
-        return context.getBuildArtifactURIs()
     }
 
     // Whether the build should be skipped, based on the Git commit message.

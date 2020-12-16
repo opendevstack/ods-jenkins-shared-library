@@ -10,7 +10,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
 
-@SuppressWarnings('MethodCount')
+@SuppressWarnings(['MethodCount', 'UnnecessaryObjectReferences'])
 class Context implements IContext {
 
     final List excludeFromContextDebugConfig = ['nexusPassword', 'nexusUsername']
