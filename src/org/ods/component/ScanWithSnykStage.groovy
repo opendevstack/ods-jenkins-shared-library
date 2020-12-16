@@ -50,7 +50,11 @@ class ScanWithSnykStage extends Stage {
             script.error 'Snyk auth failed'
         }
         if (logger.debugMode) {
-            config.additionalFlags += '-d'
+            if (config.additionalFlags) {
+                config.additionalFlags += '-d'
+            } else {
+                config.additionalFlags = ['-d']
+            }
         }
         logger.info 'Scanning for vulnerabilities with ' +
             "organisation=${config.organisation}, " +
