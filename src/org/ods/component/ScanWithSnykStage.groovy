@@ -56,7 +56,8 @@ class ScanWithSnykStage extends Stage {
             "buildFile=${config.buildFile}, " +
             "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
             "severityThreshold=${config.severityThreshold}, " +
-            "additionalFlags=${config.additionalFlags ? config.additionalFlags.toListString() : ''}."
+            "additionalFlags=${config.additionalFlags ? config.additionalFlags.toListString() : ''}." +
+            "${logger.debugMode ? '-d' : ''}"
 
         boolean noVulnerabilitiesFound
 

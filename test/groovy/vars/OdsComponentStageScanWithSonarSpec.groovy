@@ -88,8 +88,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
         branch: 'feature/foo',
         baseBranch: 'master'
       ],
-        "developer",
-      false
+      "developer"
     )
     assertJobStatusSuccess()
   }
