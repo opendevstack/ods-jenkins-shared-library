@@ -133,6 +133,36 @@ class OpenShiftService {
         getApiUrl(steps)
     }
 
+    // helmUpgrade installs given "release" into "project" from the chart
+    // located in the working directory. If "withDiff" is true, a diff is
+    // performed beforehand.
+    @SuppressWarnings(['ParameterCount', 'LineLength'])
+    void helmUpgrade(
+        String project,
+        String release,
+        List<String> valuesFiles,
+        Map<String, String> values,
+        List<String> defaultFlags,
+        List<String> additionalFlags,
+        boolean withDiff) {
+        def upgradeFlags = defaultFlags.collect { it }
+        additionalFlags.collect { upgradeFlags << it }
+        valuesFiles.collect { upgradeFlags << "-f ${it}".toString() }
+        values.collect { k, v -> upgradeFlags << "--set ${k}=${v}".toString() }
+        if (withDiff) {
+            def diffFlags = upgradeFlags.findAll { it != '--atomic' }
+            diffFlags << '--no-color'
+            steps.sh(
+                script: "helm -n ${project} secrets diff upgrade ${diffFlags.join(' ')} ${release} ./",
+                label: "Show diff explaining what helm upgrade would change for release ${release} in ${project}"
+            )
+        }
+        steps.sh(
+            script: "helm -n ${project} secrets upgrade ${upgradeFlags.join(' ')} ${release} ./",
+            label: "Upgrade Helm release ${release} in ${project}"
+        )
+    }
+
     @SuppressWarnings(['LineLength', 'ParameterCount'])
     void tailorApply(String project, Map<String, String> target, String paramFile, List<String> params, List<String> preserve, String tailorPrivateKeyFile, boolean verify) {
         def verifyFlag = verify ? '--verify' : ''

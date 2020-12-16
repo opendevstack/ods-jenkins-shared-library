@@ -82,6 +82,33 @@ class OpenShiftServiceSpec extends SpecHelper {
         ]
     }
 
+    def "helm upgrade"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = new OpenShiftService(steps, new Logger(steps, false))
+
+        when:
+        service.helmUpgrade(
+            'foo',
+            'bar',
+            ['values.yml', 'values-dev.yml'],
+            [imageTag: '6f8db5fb'],
+            ['--install', '--atomic'],
+            ['--force'],
+            true
+        )
+
+        then:
+        1 * steps.sh(
+            script: 'helm -n foo secrets diff upgrade --install --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb --no-color bar ./',
+            label: 'Show diff explaining what helm upgrade would change for release bar in foo'
+        )
+        1 * steps.sh(
+            script: 'helm -n foo secrets upgrade --install --atomic --force -f values.yml -f values-dev.yml --set imageTag=6f8db5fb bar ./',
+            label: 'Upgrade Helm release bar in foo'
+        )
+    }
+
     // test implementation to prove as much as possible without actually
     // running against a real cluster.
     def "rollout: just watch if triggered already"() {

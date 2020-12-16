@@ -12,6 +12,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
     private final OpenShiftService openShift
     private final JenkinsService jenkins
 
+    @SuppressWarnings('CyclomaticComplexity')
     RolloutOpenShiftDeploymentStage(
         def script,
         IContext context,
@@ -32,6 +33,32 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.deployTimeoutRetries) {
             config.deployTimeoutRetries = context.openshiftRolloutTimeoutRetries ?: 5
         }
+        // Helm options
+        if (!config.chartDir) {
+            config.chartDir = 'chart'
+        }
+        if (!config.containsKey('helmReleaseName')) {
+            config.helmReleaseName = context.componentId
+        }
+        if (!config.containsKey('helmValues')) {
+            config.helmValues = [:]
+        }
+        if (!config.containsKey('helmValuesFiles')) {
+            config.helmValuesFiles = []
+        }
+        if (!config.containsKey('helmDefaultFlags')) {
+            config.helmDefaultFlags = ['--install', '--atomic']
+        }
+        if (!config.containsKey('helmAdditionalFlags')) {
+            config.helmAdditionalFlags = []
+        }
+        if (!config.containsKey('helmDiff')) {
+            config.helmDiff = true
+        }
+        if (!config.helmPrivateKeyCredentialsId) {
+            config.helmPrivateKeyCredentialsId = "${context.projectId}-cd-helm-private-key"
+        }
+        // Tailor options
         if (!config.openshiftDir) {
             config.openshiftDir = 'openshift'
         }
@@ -77,25 +104,24 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
-        if (script.fileExists(config.openshiftDir)) {
-            script.dir(config.openshiftDir) {
-                jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
-                    openShift.tailorApply(
-                        context.targetProject,
-                        [selector: config.tailorSelector, exclude: config.tailorExclude],
-                        config.tailorParamFile,
-                        config.tailorParams,
-                        config.tailorPreserve,
-                        pkeyFile,
-                        config.tailorVerify
-                    )
-                }
+        def refreshResources = false
+        if (script.fileExists("${config.chartDir}/Chart.yaml")) {
+            if (context.triggeredByOrchestrationPipeline) {
+                script.error "Helm cannot be used in the orchestration pipeline yet."
+                return
             }
+            helmUpgrade(context.targetProject)
+            refreshResources = true
+        } else if (script.fileExists(config.openshiftDir)) {
+            tailorApply(context.targetProject)
+            refreshResources = true
         }
 
-        deploymentResources = openShift.getResourcesForComponent(
-            context.targetProject, deploymentKinds, config.selector
-        )
+        if (refreshResources) {
+            deploymentResources = openShift.getResourcesForComponent(
+                context.targetProject, deploymentKinds, config.selector
+            )
+        }
         return rollout(deploymentResources, originalDeploymentVersions)
     }
 
@@ -104,6 +130,42 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             return "${STAGE_NAME} (${config.selector})"
         }
         STAGE_NAME
+    }
+
+    private void tailorApply(String targetProject) {
+        script.dir(config.openshiftDir) {
+            jenkins.maybeWithPrivateKeyCredentials(config.tailorPrivateKeyCredentialsId) { pkeyFile ->
+                openShift.tailorApply(
+                    targetProject,
+                    [selector: config.tailorSelector, exclude: config.tailorExclude],
+                    config.tailorParamFile,
+                    config.tailorParams,
+                    config.tailorPreserve,
+                    pkeyFile,
+                    config.tailorVerify
+                )
+            }
+        }
+    }
+
+    private void helmUpgrade(String targetProject) {
+        script.dir(config.chartDir) {
+            jenkins.maybeWithPrivateKeyCredentials(config.helmPrivateKeyCredentialsId) { pkeyFile ->
+                if (pkeyFile) {
+                    script.sh(script: "gpg --import ${pkeyFile}", label: 'Import private key into keyring')
+                }
+                config.helmValues.imageTag = config.imageTag
+                openShift.helmUpgrade(
+                    targetProject,
+                    config.helmReleaseName,
+                    config.helmValuesFiles,
+                    config.helmValues,
+                    config.helmDefaultFlags,
+                    config.helmAdditionalFlags,
+                    config.helmDiff
+                )
+            }
+        }
     }
 
     // rollout returns a map like this:
