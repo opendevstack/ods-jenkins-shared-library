@@ -1488,6 +1488,30 @@ class Project {
             return left
         }
 
+        def updateLinks = { data, index ->
+            data.collectEntries { issueType, content ->
+                if(JiraDataItem.TYPES.contains(issueType)) {
+                    def updatedIssues = content.collectEntries { String issueKey, Map issue ->
+                        def updatedIssue = issue.collectEntries { String type, value ->
+                            if(JiraDataItem.TYPES.contains(type)) {
+                                def newLinks = value.collect { link ->
+                                    def newLink = index[link]
+                                    newLink?:link
+                                }.unique()
+                                [(type): newLinks]
+                            } else {
+                                [(type): value]
+                            }
+                        }
+                        [(issueKey): updatedIssue]
+                    }
+                    [(issueType): updatedIssues]
+                } else {
+                    [(issueType): content]
+                }
+            }
+        }
+
         if (!oldData || oldData.isEmpty()) {
             newData
         } else {
@@ -1501,15 +1525,17 @@ class Project {
 
             // Update data from previous version
             def oldDataWithUpdatedLinks = updateIssues(oldData, newDataExpanded)
-            def obsoleteKeys = discontinuations + getPreceededKeys(newDataExpanded)
+            def successorIndex = getSuccessorIndex(newDataExpanded)
+            def newDataExpandedWithUpdatedLinks = updateLinks(newDataExpanded, successorIndex)
+            def obsoleteKeys = discontinuations + successorIndex.keySet()
             def oldDataWithoutObsoletes = removeObsoleteIssues(oldDataWithUpdatedLinks, obsoleteKeys)
 
             // merge old component data to new for the existing components
-            newDataExpanded[JiraDataItem.TYPE_COMPONENTS] = newDataExpanded[JiraDataItem.TYPE_COMPONENTS]
+            newDataExpandedWithUpdatedLinks[JiraDataItem.TYPE_COMPONENTS] = newDataExpandedWithUpdatedLinks[JiraDataItem.TYPE_COMPONENTS]
                 .collectEntries { compN, v ->
                     [ (compN): (oldDataWithoutObsoletes[JiraDataItem.TYPE_COMPONENTS][compN] ?: v)]
                 }
-            mergeMaps(oldDataWithoutObsoletes, newDataExpanded)
+            mergeMaps(oldDataWithoutObsoletes, newDataExpandedWithUpdatedLinks)
         }
     }
 
@@ -1632,6 +1658,24 @@ class Project {
                 [(issue.expandedPredecessors ?: []).collect { it.key }]
             }
         }.flatten().unique()
+    }
+
+    /**
+     * Expected format is:
+     *   issueType.issue."expandedPredecessors" -> [key:"", version:""]
+     *   Note that an issue can only have a single successor in a single given version.
+     *   An issue can only have multiple successors if they belong to different succeeding versions.
+     * @param jiraData map of jira data
+     * @return a Map with the issue keys as values and their respective predecessor keys as keys
+     */
+    private static Map getSuccessorIndex(Map jiraData) {
+        def index = [:]
+        jiraData.findAll { JiraDataItem.TYPES.contains(it.key) }.values().each { issueGroup ->
+            issueGroup.values().each { issue ->
+                (issue.expandedPredecessors ?: []).each { index[it.key] = issue.key }
+            }
+        }
+        return index
     }
 
     /**
