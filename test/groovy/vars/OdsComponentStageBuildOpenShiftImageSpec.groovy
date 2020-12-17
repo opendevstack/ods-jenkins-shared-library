@@ -22,6 +22,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       gitCommitAuthor: "John O'Hare",
       gitCommitTime: '2020-03-23 12:27:08 +0100',
       gitBranch: 'master',
+      branchToEnvironmentMapping: ['master': 'dev'],
       buildUrl: 'https://jenkins.example.com/job/foo-cd/job/foo-cd-bar-master/11/console',
       buildTime: '2020-03-23 12:27:08 +0100',
       odsSharedLibVersion: '2.x',
@@ -29,7 +30,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       componentId: 'bar'
   ]
 
-  def "run successfully without Tailor"() {
+  def "run successfully"() {
     given:
     def c = config + [environment: 'dev', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
@@ -79,51 +80,6 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     buildArtifacts.builds.containsKey('bar')
     buildArtifacts.builds.bar.buildId == buildInfo.buildId
     buildArtifacts.builds.bar.image == buildInfo.image
-
-    0 * openShiftService.tailorApply(*_)
-  }
-
-  def "run successfully with Tailor"() {
-    given:
-    def c = config + [environment: 'dev', projectId: 'foo', targetProject: 'foo-dev']
-    IContext context = new Context(null, c, logger)
-    OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.resourceExists(*_) >> true
-    openShiftService.getLastBuildVersion(*_) >> 123
-    openShiftService.startBuild(*_) >> 123
-    openShiftService.getBuildStatus(*_) >> 'complete'
-    openShiftService.getImageReference(*_) >> '0daecc05'
-    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
-    JenkinsService jenkinsService = Stub(JenkinsService.class)
-    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
-    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
-
-    when:
-    def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
-    String fileContent
-    helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> fileContent = args.text }
-    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-      true
-    }
-    def buildInfo = script.call(context)
-
-    then:
-    printCallStack()
-    assertCallStackContains('''Build #123 of 'bar' has produced image: 0daecc05.''')
-    assertJobStatusSuccess()
-    // test immediate return
-    buildInfo.buildId == 'bar-123'
-    buildInfo.image == "0daecc05"
-
-    1 * openShiftService.tailorApply(
-      'foo-dev',
-      [selector: 'app=foo-bar', include: 'bc,is'],
-      '',
-      [],
-      ['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name'],
-      '/tmp/file',
-      false
-    )
   }
 
   def "run successfully with overwrite component and image labels"() {
@@ -216,19 +172,35 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     'Build foo-123 started' | 123              | 'running'   | '0daecc05'     || 'OpenShift Build #123 was not successful'
   }
 
-  def "skip when no environment given"() {
+  def "skip when branch config does not cover current branch"() {
     given:
-    def config = [environment: null, gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e']
+    def config = [
+      environment: null,
+      gitBranch: gitBranch,
+      gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
+      branchToEnvironmentMapping: branchToEnvironmentMapping
+    ]
     def context = new Context(null, config, logger)
 
     when:
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
-    script.call(context)
+    if (branches != null) {
+      script.call(context, [branches: branches])
+    } else {
+      script.call(context)
+    }
 
     then:
     printCallStack()
-    assertCallStackContains("WARN: Skipping because of empty (target) environment ...")
+    assertCallStackContains("Skipping stage 'Build OpenShift Image'")
     assertJobStatusSuccess()
+
+    where:
+    gitBranch | branchToEnvironmentMapping           | branches
+    'develop' | [:]                                  | []
+    'develop' | [:]                                  | ['master']
+    'develop' | ['master':'dev']                     | null
+    'develop' | ['master':'dev', 'release/': 'test'] | null
   }
 
 }

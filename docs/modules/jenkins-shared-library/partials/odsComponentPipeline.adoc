@@ -70,9 +70,6 @@ Available options are:
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
 
-| imagePromotionSequences
-| Sequence of environments between which images can be promoted in `odsComponentStageImportOpenShiftImageOrElse`. Defaults to `['dev->test', 'test->prod']`.
-
 | sonarQubeBranch
 | Please use option `branch` on `odsComponentStageScanWithSonar`.
 
@@ -138,6 +135,9 @@ The `context` object contains the following properties:
 | targetProject
 | Target project, based on the environment. E.g. `foo-dev`.
 
+| cdProject
+| CD project. E.g. `foo-cd`.
+
 | groupId
 | Group ID, defaults to: org.opendevstack.+++<projectID>+++.+++</projectID>+++
 
@@ -185,9 +185,6 @@ The `context` object contains the following properties:
 
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
-
-| imagePromotionSequences
-| Sequence of environments between which images can be promoted. Used e.g. in `odsComponentStageImportOpenShiftImageOrElse`. Defaults to `['dev->test', 'test->prod']`.
 |===
 
 == Git Workflow / Branch to Environment Mapping

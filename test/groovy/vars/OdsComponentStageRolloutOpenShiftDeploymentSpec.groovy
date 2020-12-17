@@ -26,7 +26,9 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
       buildTime: '2020-03-23 12:27:08 +0100',
       odsSharedLibVersion: '2.x',
       projectId: 'foo',
-      componentId: 'bar'
+      componentId: 'bar',
+      cdProject: 'foo-cd',
+      artifactUriStore: [builds: [bar: [:]]]
   ]
 
   def "run successfully without Tailor [DeploymentConfig]"() {

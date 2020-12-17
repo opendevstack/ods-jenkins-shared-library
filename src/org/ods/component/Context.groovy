@@ -89,8 +89,8 @@ class Context implements IContext {
         }
 
         logger.debug 'Deriving configuration from input ...'
-        config.openshiftProjectId = "${config.projectId}-cd"
-        config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
+        config.cdProject = "${config.projectId}-cd"
+        config.credentialsId = config.cdProject + '-cd-user-with-password'
 
         logger.debug 'Setting defaults ...'
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
@@ -107,9 +107,6 @@ class Context implements IContext {
         }
         if (!config.containsKey('openshiftRolloutTimeoutRetries')) {
             config.openshiftRolloutTimeoutRetries = 5 // retries
-        }
-        if (!config.containsKey('imagePromotionSequences')) {
-            config.imagePromotionSequences = ['dev->test', 'test->prod']
         }
         if (!config.containsKey('emailextRecipients')) {
             config.emailextRecipients = null
@@ -254,11 +251,6 @@ class Context implements IContext {
         config.branchToEnvironmentMapping
     }
 
-    @NonCPS
-    List<String> getImagePromotionSequences() {
-        config.imagePromotionSequences
-    }
-
     String getEnvironment() {
         config.environment
     }
@@ -314,8 +306,14 @@ class Context implements IContext {
         config.gitCommitTime
     }
 
+    @NonCPS
     String getTargetProject() {
         config.targetProject
+    }
+
+    @NonCPS
+    String getCdProject() {
+        config.cdProject
     }
 
     @NonCPS
@@ -596,10 +594,10 @@ class Context implements IContext {
     private String retrieveGitBranch() {
         def branch
         if (this.localCheckoutEnabled) {
-            def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
+            def pipelinePrefix = "${config.cdProject}/${config.cdProject}-"
             def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
-            def n = config.openshiftProjectId
+            def n = config.cdProject
             branch = script.sh(
                 returnStdout: true,
                 label: 'getting GIT branch to build',
