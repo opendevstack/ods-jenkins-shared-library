@@ -834,7 +834,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def componentsMetadata = SortUtil.sortIssuesByKey(this.computeComponentMetadata(documentType).values())
         def systemDesignSpecifications = this.project.getTechnicalSpecifications()
-            .findAll { it.systemDesignSpec }
+            .findAll { it.systemDesignSpec || !it.softwareDesignSpec }
             .collect { techSpec ->
                 [
                     key        : techSpec.key,
@@ -888,7 +888,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.pdf.merge(documents)
         }
 
-        def keysInDoc = (this.project.getTechnicalSpecifications().findAll { it.systemDesignSpec }
+        def keysInDoc = (this.project.getTechnicalSpecifications()
             .collect { it.subMap(['key', 'requirements']).values() }.flatten()
         + componentsMetadata.collect { it.key }
         + modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten())
@@ -1209,7 +1209,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         tests.collect { testIssue ->
             def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications()
-                .findAll { it.softwareDesignSpec }.collect { it.key }
+                .findAll { it.softwareDesignSpec }
+                .collect { it.key }
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
@@ -1298,7 +1299,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def metadata = repo_.metadata
 
             def sowftwareDesignSpecs = component.getResolvedTechnicalSpecifications()
-                .findAll { it.softwareDesignSpec }
+                .findAll { it.softwareDesignSpec || !it.systemDesignSpec }
                 .collect { [key: it.key, softwareDesignSpec: this.convertImages(it.softwareDesignSpec)] }
 
             return [
