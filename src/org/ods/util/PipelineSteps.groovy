@@ -17,12 +17,20 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.archiveArtifacts(artifacts)
     }
 
+    void archiveArtifacts(Map args) {
+        this.context.archiveArtifacts(args)
+    }
+
     def checkout(Map config) {
         return this.context.checkout(config)
     }
 
     void dir(String path, Closure block) {
         this.context.dir(path, block)
+    }
+
+    void error(String message) {
+        this.context.error(message)
     }
 
     void echo(String message) {

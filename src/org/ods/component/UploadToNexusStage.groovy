@@ -1,56 +1,70 @@
 package org.ods.component
 
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import org.ods.services.NexusService
 import org.ods.util.ILogger
 
+@TypeChecked
 class UploadToNexusStage extends Stage {
 
     public final String STAGE_NAME = 'Upload to Nexus'
 
-    final String repository
-    final String repositoryType
-    final String distFile
-    final NexusService nexus
+    private final NexusService nexus
+    private final UploadToNexusOptions options
 
-    UploadToNexusStage(def script, IContext context, Map config, NexusService nexus,
+    @TypeChecked(TypeCheckingMode.SKIP)
+    UploadToNexusStage(
+        def script,
+        IContext context,
+        Map<String, Object> config,
+        NexusService nexus,
         ILogger logger) {
-        super(script, context, config, logger)
-        this.repository = config.repository ?: 'candidates'
-        this.repositoryType = config.repositoryType ?: 'maven2'
-        this.distFile = config.distributionFile ?: "${context.componentId}-${context.tagversion}.tar.gz"
+        super(script, context, logger)
+        if (!config.repository) {
+            config.repository = 'candidates'
+        }
+        if (!config.repositoryType) {
+            config.repositoryType = 'maven2'
+        }
+        if (!config.distributionFile) {
+            config.distributionFile = "${context.componentId}-${context.tagversion}.tar.gz"
+        }
+
+        this.options = new UploadToNexusOptions(config)
         this.nexus = nexus
     }
 
     protected run() {
-        if (!script.fileExists(distFile)) {
-            script.error("Could not upload file ${distFile} - it does NOT exist!")
+        if (!steps.fileExists(options.distributionFile)) {
+            steps.error("Could not upload file ${options.distributionFile} - it does NOT exist!")
             return
         }
 
         Map nexusParams = [:]
 
-        if (repositoryType == 'maven2') {
-            nexusParams << ['maven2.groupId': (config.groupId ?: context.groupId.replace('.', '/'))]
-            nexusParams << ['maven2.artifactId': (config.artifactId ?: context.componentId)]
-            nexusParams << ['maven2.version': (config.version ?: context.tagversion)]
-            def assetExt = distFile[(distFile.lastIndexOf('.') + 1)..-1]
+        if (options.repositoryType == 'maven2') {
+            nexusParams << ['maven2.groupId': (options.groupId ?: context.groupId.replace('.', '/'))]
+            nexusParams << ['maven2.artifactId': (options.artifactId ?: context.componentId)]
+            nexusParams << ['maven2.version': (options.version ?: context.tagversion)]
+            def assetExt = options.distributionFile[(options.distributionFile.lastIndexOf('.') + 1)..-1]
             nexusParams << ['maven2.asset1.extension': assetExt]
-        } else if (repositoryType == 'raw') {
-            nexusParams << ['raw.asset1.filename': distFile]
-            nexusParams << ['raw.directory': (config.targetDirectory ?: context.projectId)]
+        } else if (options.repositoryType == 'raw') {
+            nexusParams << ['raw.asset1.filename': options.distributionFile]
+            nexusParams << ['raw.directory': (options.targetDirectory ?: context.projectId)]
         }
 
-        def data = script.readFile(file: distFile, encoding: 'Base64').getBytes()
+        def data = steps.readFile(file: options.distributionFile, encoding: 'Base64').toString().getBytes()
         logger.debug("Nexus upload params: ${nexusParams}, " +
-            "file: ${distFile} to repo ${nexus.baseURL}/${repository}")
+            "file: ${options.distributionFile} to repo ${nexus.baseURL}/${options.repository}")
         def uploadUri = nexus.storeComplextArtifact(
-            repository,
+            options.repository,
             Base64.getDecoder().decode(data),
             'application/octet-stream',
-            repositoryType,
+            options.repositoryType,
             nexusParams
         )
-        logger.info("Uploaded '${distFile}' to '${uploadUri}'")
+        logger.info("Uploaded '${options.distributionFile}' to '${uploadUri}'")
         uploadUri
     }
 

@@ -1,20 +1,25 @@
 package org.ods.component
 
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 
+@TypeChecked
 class ImportOpenShiftImageStage extends Stage {
 
     public final String STAGE_NAME = 'Import OpenShift image'
     private final OpenShiftService openShift
+    private final ImportOpenShiftImageOptions options
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     ImportOpenShiftImageStage(
         def script,
         IContext context,
-        Map config,
+        Map<String, Object> config,
         OpenShiftService openShift,
         ILogger logger) {
-        super(script, context, config, logger)
+        super(script, context, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
@@ -24,6 +29,8 @@ class ImportOpenShiftImageStage extends Stage {
         if (!config.targetTag) {
             config.targetTag = config.sourceTag
         }
+
+        this.options = new ImportOpenShiftImageOptions(config)
         this.openShift = openShift
     }
 
@@ -33,38 +40,38 @@ class ImportOpenShiftImageStage extends Stage {
             return
         }
 
-        if (!config.sourceProject) {
-            script.error '''Param 'sourceProject' is required'''
+        if (!options.sourceProject) {
+            steps.error '''Param 'sourceProject' is required'''
             return
         }
 
-        if (config.imagePullerSecret) {
+        if (options.imagePullerSecret) {
             openShift.importImageTagFromSourceRegistry(
                 context.targetProject,
-                config.resourceName,
-                config.imagePullerSecret,
-                config.sourceProject,
-                config.sourceTag,
-                config.targetTag
+                options.resourceName,
+                options.imagePullerSecret,
+                options.sourceProject,
+                options.sourceTag,
+                options.targetTag
             )
         } else {
             openShift.importImageTagFromProject(
                 context.targetProject,
-                config.resourceName,
-                config.sourceProject,
-                config.sourceTag,
-                config.targetTag
+                options.resourceName,
+                options.sourceProject,
+                options.sourceTag,
+                options.targetTag
             )
         }
         logger.info(
-            "Imported image '${config.sourceProject}/${config.resourceName}:${config.sourceTag}' into " +
-            "'${context.targetProject}/${config.resourceName}:${config.targetTag}'."
+            "Imported image '${options.sourceProject}/${options.resourceName}:${options.sourceTag}' into " +
+            "'${context.targetProject}/${options.resourceName}:${options.targetTag}'."
         )
     }
 
     protected String stageLabel() {
-        if (config.resourceName != context.componentId) {
-            return "${STAGE_NAME} (${config.resourceName})"
+        if (options.resourceName != context.componentId) {
+            return "${STAGE_NAME} (${options.resourceName})"
         }
         STAGE_NAME
     }
