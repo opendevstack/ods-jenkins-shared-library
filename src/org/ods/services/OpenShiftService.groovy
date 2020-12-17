@@ -884,7 +884,7 @@ class OpenShiftService {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
         def success = steps.sh(
             script: """
-               ${logger.ShellScriptDebugFlag}
+               ${logger.shellScriptDebugFlag}
                 oc login ${kubeUrl} --insecure-skip-tls-verify=true \
                 --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
             """,
