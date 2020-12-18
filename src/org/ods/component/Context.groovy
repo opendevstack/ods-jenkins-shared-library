@@ -182,6 +182,7 @@ class Context implements IContext {
         config.buildTime
     }
 
+    @NonCPS
     String getGitBranch() {
         config.gitBranch
     }
