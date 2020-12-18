@@ -1954,6 +1954,148 @@ class ProjectSpec extends SpecHelper {
         issueListIsEquals(tstResult.getResolvedRisks(), [rsk2])
     }
 
+    def "merge modification of a requirement and related issues"() {
+        given:
+        def firstVersion = '1.0'
+        def secondVersion = '2.0'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
+
+        def req1 = req('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def tst2 = tst('2', firstVersion)
+        def ts1 = ts('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def mit1 = mit('1', firstVersion)
+        def req2 = req('2', secondVersion)
+        def tst3 = tst('3', secondVersion)
+        def tst4 = tst('4', secondVersion)
+        def ts2 = ts('2', secondVersion)
+        def rsk2 = rsk('2', secondVersion)
+        def mit2 = mit('2', secondVersion)
+
+        req1 << [tests: [tst1.key, tst2.key], techSpecs: [ts1.key], risks: [rsk1.key], mitigations: [mit1.key]]
+        tst1 << [requirements: [req1.key], techSpecs: [ts1.key]]
+        tst2 << [requirements: [req1.key], techSpecs: [ts1.key]]
+        ts1 << [requirements: [req1.key], tests: [tst1.key, tst2.key]]
+        rsk1 << [requirements: [req1.key], mitigations: [mit1.key]]
+        mit1 << [requirements: [req1.key], risks: [rsk1.key]]
+        req2 << [predecessors: [req1.key], tests: [tst4.key]]
+        tst3 << [predecessors: [tst1.key]]
+        tst4 << [requirements: [req2.key]]
+        rsk2 << [predecessors: [rsk1.key], requirements: [req1.key]]
+        mit2 << [predecessors: [mit1.key], requirements: [req1.key], risks: [rsk1.key]]
+        ts2 << [predecessors: [ts1.key]]
+
+        def req2Updated = req2.clone() + [tests: [tst4.key, tst3.key, tst2.key], techSpecs: [ts2.key], risks: [rsk2.key], mitigations: [mit2.key]]
+        req2Updated  << [expandedPredecessors: [[key: req1.key, versions: req1.versions]]]
+        def tst2Updated = tst2.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
+        def tst3Updated = tst3.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
+        tst3Updated << [expandedPredecessors: [[key: tst1.key, versions: tst1.versions]]]
+        def rsk2Updated = rsk2.clone() + [requirements: [req2.key], mitigations: [mit2.key]]
+        rsk2Updated << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
+        def mit2Updated = mit2.clone() + [requirements: [req2.key], risks: [rsk2.key]]
+        mit2Updated << [expandedPredecessors: [[key: mit1.key, versions: mit1.versions]]]
+        def ts2Updated = ts2.clone() + [requirements: [req2.key], tests: [tst3.key, tst2.key]]
+        ts2Updated  << [expandedPredecessors: [[key: ts1.key, versions: ts1.versions]]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [(mit1.key): mit1],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1, (tst2.key): tst2],
+            techSpecs   : [(ts1.key): ts1],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [(mit2.key):mit2],
+            requirements: [(req2.key):req2],
+            risks       : [(rsk2.key):rsk2],
+            tests       : [(tst3.key):tst3, (tst4.key):tst4],
+            techSpecs   : [(ts2.key):ts2],
+            docs        : [:]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [(mit2Updated.key): mit2Updated],
+            requirements: [(req2Updated.key): req2Updated],
+            risks       : [(rsk2Updated.key): rsk2Updated],
+            tests       : [(tst3Updated.key): tst3Updated, (tst4.key): tst4, (tst2Updated.key): tst2Updated],
+            techSpecs   : [(ts2Updated.key): ts2Updated],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.tests == req2Updated.tests
+        reqResult.techSpecs == req2Updated.techSpecs
+        reqResult.risks == req2Updated.risks
+        reqResult.mitigations == req2Updated.mitigations
+        issueListIsEquals(reqResult.getResolvedTests(), [tst4, tst3Updated, tst2Updated])
+        issueListIsEquals(reqResult.getResolvedTechnicalSpecifications(), [ts2Updated])
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk2Updated])
+        issueListIsEquals(reqResult.getResolvedMitigations(), [mit2Updated])
+
+        def tstResult = project.tests.first()
+        tstResult.requirements == tst3Updated.requirements
+        tstResult.techSpecs == tst3Updated.techSpecs
+        issueListIsEquals(tstResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(tstResult.getResolvedTechnicalSpecifications(), [ts2Updated])
+
+        def tsResult = project.getTechnicalSpecifications().last()
+        tsResult.requirements == ts2Updated.requirements
+        tsResult.tests == ts2Updated.tests
+        issueListIsEquals(tsResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(tsResult.getResolvedTests(), [tst3Updated, tst2Updated])
+
+        def rskResult = project.risks.first()
+        rskResult.requirements == rsk2Updated.requirements
+        rskResult.mitigations == rsk2Updated.mitigations
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(rskResult.getResolvedMitigations(), [mit2Updated])
+
+        def mitResult = project.mitigations.first()
+        mitResult.requirements == mit2Updated.requirements
+        mitResult.risks == mit2Updated.risks
+        issueListIsEquals(mitResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(mitResult.getResolvedRisks(), [rsk2Updated])
+    }
+
     def "merge deletion of a test"() {
         given:
         def firstVersion = '1'
