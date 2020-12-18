@@ -18,7 +18,7 @@ class SonarQubeService {
         def sonarQubeService = ServiceRegistry.instance.get(SonarQubeService)
         if (!sonarQubeService) {
             logger.debug 'Registering SonarQubeService'
-            sonarQubeService = new SonarQubeService(script, 'SonarServerConfig')
+            sonarQubeService = new SonarQubeService(script, logger, 'SonarServerConfig')
             ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
         }
         return sonarQubeService
