@@ -142,6 +142,35 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     buildArtifacts.builds.overwrite.image == buildInfo.image
   }
 
+  def "run in orchestration pipeline regardless of branch config"() {
+    given:
+    def c = config + [
+      environment: 'dev',
+      targetProject: 'foo-dev',
+      gitBranch: 'release/1',
+      triggeredByOrchestrationPipeline: true
+    ]
+    IContext context = new Context(null, c, logger)
+    OpenShiftService openShiftService = Mock(OpenShiftService.class)
+    openShiftService.resourceExists(*_) >> true
+    openShiftService.startBuild(*_) >> 123
+    openShiftService.getLastBuildVersion(*_) >> 123
+    openShiftService.getBuildStatus(*_) >> 'complete'
+    openShiftService.getImageReference(*_) >> '0daecc05'
+    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+    when:
+    def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
+    helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> }
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args -> false }
+    def buildInfo = script.call(context)
+
+    then:
+    printCallStack()
+    assertCallStackContains('''Build #123 of 'bar' has produced image: 0daecc05.''')
+    assertJobStatusSuccess()
+  }
+
   @Unroll
   def "fails when build info cannot be retrieved"() {
     given:
