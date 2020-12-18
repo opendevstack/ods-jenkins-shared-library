@@ -51,6 +51,17 @@ class BitbucketService {
         this.logger = logger
     }
 
+    static BitbucketService getOrCreate(def script, String projectId, String credentialsId, ILogger logger) {
+        def bitbucketService = ServiceRegistry.instance.get(BitbucketService)
+        if (!bitbucketService) {
+            logger.debug 'Registering BitbucketService'
+            String bitbucketUrl = readConfigFromEnv(script.env).bitbucketUrl
+            bitbucketService = new BitbucketService(script, bitbucketUrl, projectId, credentialsId, logger)
+            ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+        }
+        return bitbucketService
+    }
+
     static BitbucketService newFromEnv(
         def script,
         def env,

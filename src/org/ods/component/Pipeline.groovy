@@ -5,22 +5,16 @@ import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
-import org.ods.util.PipelineSteps
-import org.ods.services.JenkinsService
-import org.ods.services.NexusService
 import groovy.json.JsonOutput
 
 class Pipeline implements Serializable {
 
     private GitService gitService
-    private OpenShiftService openShiftService
-    private JenkinsService jenkinsService
     private BitbucketService bitbucketService
+    private OpenShiftService openShiftService
 
     private final ILogger logger
     private final def script
-    private final IPipelineSteps steps
     private IContext context
     private boolean notifyNotGreen = true
     private boolean ciSkipEnabled = true
@@ -30,8 +24,9 @@ class Pipeline implements Serializable {
 
     Pipeline(def script, ILogger logger) {
         this.script = script
-        this.steps = new PipelineSteps(script)
         this.logger = logger
+        this.gitService = GitService.getOrCreate(script, logger)
+        this.openShiftService = OpenShiftService.getOrCreate(script, logger)
     }
 
     // Main entry point.
@@ -72,6 +67,8 @@ class Pipeline implements Serializable {
         logger.infoClocked("${config.componentId}", "***** Starting ODS Component Pipeline *****")
         context = new Context(script, config, logger, this.localCheckoutEnabled)
 
+        this.bitbucketService = BitbucketService.getOrCreate(script, context.projectId, context.credentialsId, logger)
+
         boolean skipCi = false
         def bootstrap = {
             try {
@@ -104,46 +101,6 @@ class Pipeline implements Serializable {
                         // Jenkinsfile with e.g. differing OpenShift target projects.
                         if (this.localCheckoutEnabled) {
                             registry.clear()
-                        }
-
-                        // if we run in another context there is a good chance
-                        // services have been already registered
-                        if (!registry.get(GitService)) {
-                            logger.debug 'Registering GitService'
-                            registry.add(GitService, new GitService(script, logger))
-                        }
-                        this.gitService = registry.get(GitService)
-
-                        if (!registry.get(BitbucketService)) {
-                            logger.debug 'Registering BitbucketService'
-                            registry.add(BitbucketService, new BitbucketService(
-                                script,
-                                context.bitbucketUrl,
-                                context.projectId,
-                                context.credentialsId,
-                                logger
-                            ))
-                        }
-                        this.bitbucketService = registry.get(BitbucketService)
-
-                        if (!registry.get(OpenShiftService)) {
-                            logger.debug 'Registering OpenShiftService'
-                            registry.add(OpenShiftService, new OpenShiftService(
-                                steps, logger
-                            ))
-                        }
-                        this.openShiftService = registry.get(OpenShiftService)
-
-                        if (!registry.get(JenkinsService)) {
-                            logger.debug 'Registering JenkinsService'
-                            registry.add(JenkinsService, new JenkinsService(script, logger))
-                        }
-                        this.jenkinsService = registry.get(JenkinsService)
-
-                        if (!registry.get(NexusService)) {
-                            logger.debug 'Registering NexusService'
-                            registry.add(NexusService, new NexusService(
-                                context.nexusUrl, context.nexusUsername, context.nexusPassword))
                         }
                     }
 
@@ -245,7 +202,7 @@ class Pipeline implements Serializable {
                             }
                         }
                     } finally {
-                        jenkinsService.stashTestResults(
+                        context.getJenkinsService().stashTestResults(
                             context.testResults,
                             "${context.componentId}-${context.buildNumber}"
                         ).each { resultKey, resultValue ->
@@ -370,15 +327,14 @@ class Pipeline implements Serializable {
         def block = {
             def origin
             try {
-                origin = new GitService(script, this.logger).getOriginUrl()
+                origin = gitService.getOriginUrl()
                 logger.debug("Retrieved Git origin URL from filesystem: ${origin}")
             } catch (err) {
                 logger.debug("Could not retrieve git origin from filesystem: ${err}")
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = (new OpenShiftService(steps, logger))
-                    .getOriginUrlFromBuildConfig(projectName, bcName)
+                origin = openShiftService.getOriginUrlFromBuildConfig(projectName, bcName)
                 logger.debug("Retrieved Git origin URL from build config: ${origin}")
             }
 

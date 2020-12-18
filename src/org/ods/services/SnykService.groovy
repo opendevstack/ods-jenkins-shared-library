@@ -1,5 +1,7 @@
 package org.ods.services
 
+import org.ods.util.ILogger
+
 class SnykService {
 
     private final def script
@@ -8,6 +10,16 @@ class SnykService {
     SnykService(def script, String reportFile) {
         this.script = script
         this.reportFile = reportFile
+    }
+
+    static SnykService getOrCreate(def script, ILogger logger) {
+        def snykService = ServiceRegistry.instance.get(SnykService)
+        if (!snykService) {
+            logger.debug 'Registering SnykService'
+            snykService = new SnykService(script, 'snyk-report.txt')
+            ServiceRegistry.instance.add(SnykService, snykService)
+        }
+        return snykService
     }
 
     String getReportFile() {

@@ -5,7 +5,6 @@ import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.util.PipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
 
@@ -19,7 +18,6 @@ class DeployStage extends Stage {
 
     @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
@@ -83,11 +81,7 @@ class DeployStage extends Stage {
                             passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
                         )
                     ]) {
-                        OpenShiftService.loginToExternalCluster(
-                            steps,
-                            project.openShiftTargetApiUrl,
-                            script.EXTERNAL_OCP_API_TOKEN
-                        )
+                        os.loginToExternalCluster(project.openShiftTargetApiUrl, script.EXTERNAL_OCP_API_TOKEN)
                     }
                 }
 

@@ -8,8 +8,7 @@ class ScanWithSnykStage extends Stage {
     public final String STAGE_NAME = 'Snyk Security Scan'
     private final SnykService snyk
 
-    ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk,
-        ILogger logger) {
+    ScanWithSnykStage(def script, IContext context, Map config, ILogger logger) {
         super(script, context, config, logger)
         if (!config.containsKey('failOnVulnerabilities')) {
             config.failOnVulnerabilities = context.failOnSnykScanVulnerabilities
@@ -29,7 +28,7 @@ class ScanWithSnykStage extends Stage {
             // low is the default, it is equal to not providing the option to snyk
             config.severityThreshold = 'low'
         }
-        this.snyk = snyk
+        this.snyk = context.getSnykService()
     }
 
     protected run() {

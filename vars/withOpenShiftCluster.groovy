@@ -1,6 +1,5 @@
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
-import org.ods.util.PipelineSteps
 
 // You may use withOpenShiftCluster to execute code against another OpenShift cluster.
 // It is required to pass the API url (can be retrieved via "oc whoami --show-server")
@@ -33,15 +32,14 @@ def call(IContext context, Map config = [:], Closure block) {
     if (!!env.MULTI_REPO_BUILD) {
         error('withOpenShiftCluster is not supported within an orchestration pipeline context.')
     }
-
     if (!config.apiUrl) {
         error('''Param 'apiUrl' is required''')
     }
     if (!config.credentialsId) {
         error('''Param 'credentialsId' is required''')
     }
-    def steps = new PipelineSteps(this)
-    def jenkinsClusterApiUrl = OpenShiftService.getApiUrl(steps)
+    OpenShiftService openShift = context.getOpenShiftService()
+    def jenkinsClusterApiUrl = openShift.getApiUrl()
     withCredentials([
         usernamePassword(
             credentialsId: config.credentialsId,
@@ -49,14 +47,12 @@ def call(IContext context, Map config = [:], Closure block) {
             passwordVariable: 'EXTERNAL_OPENSHIFT_API_TOKEN'
         )
     ]) {
-        def occuredException
+        def occurredException
         try {
-            OpenShiftService.loginToExternalCluster(
-                steps, config.apiUrl, EXTERNAL_OPENSHIFT_API_TOKEN
-            )
+            openShift.loginToExternalCluster(config.apiUrl, EXTERNAL_OPENSHIFT_API_TOKEN)
             block(context)
         } catch (ex) {
-            occuredException = ex
+            occurredException = ex
         } finally {
             sh(
                 script: """
@@ -68,8 +64,8 @@ def call(IContext context, Map config = [:], Closure block) {
                 label: "Login to OpenShift cluster of Jenkins instance"
             )
         }
-        if (occuredException) {
-            throw occuredException
+        if (occurredException) {
+            throw occurredException
         }
     }
 }

@@ -1,7 +1,6 @@
 import org.ods.component.ScanWithSnykStage
 import org.ods.component.IContext
 
-import org.ods.services.SnykService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -12,12 +11,7 @@ def call(IContext context, Map config = [:]) {
     if (!logger) {
         logger = new Logger (this, !!env.DEBUG)
     }
-    def snykService = ServiceRegistry.instance.get(SnykService)
-    if (!snykService) {
-        snykService = new SnykService(this, 'snyk-report.txt')
-    }
-    def stage = new ScanWithSnykStage(this, context, config, snykService,
-        logger)
+    def stage = new ScanWithSnykStage(this, context, config, logger)
     stage.execute()
 }
 return this

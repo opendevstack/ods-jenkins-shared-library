@@ -10,14 +10,11 @@ class BuildOpenShiftImageStage extends Stage {
     public final String STAGE_NAME = 'Build OpenShift Image'
     private final OpenShiftService openShift
     private final JenkinsService jenkins
-    private final ILogger logger
 
     BuildOpenShiftImageStage(
         def script,
         IContext context,
         Map config,
-        OpenShiftService openShift,
-        JenkinsService jenkins,
         ILogger logger) {
         super(script, context, config, logger)
         // If user did not explicitly define which branches to build images for,
@@ -46,9 +43,8 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
-        this.openShift = openShift
-        this.jenkins = jenkins
-        this.logger = logger
+        this.openShift = context.getOpenShiftService()
+        this.jenkins = context.getJenkinsService()
     }
 
     protected run() {

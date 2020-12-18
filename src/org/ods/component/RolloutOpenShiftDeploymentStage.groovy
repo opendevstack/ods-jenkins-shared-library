@@ -20,8 +20,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         def script,
         IContext context,
         Map config,
-        OpenShiftService openShift,
-        JenkinsService jenkins,
         ILogger logger) {
         super(script, context, config, logger)
         if (!config.selector) {
@@ -86,8 +84,8 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         if (!config.containsKey('tailorParams')) {
             config.tailorParams = []
         }
-        this.openShift = openShift
-        this.jenkins = jenkins
+        this.openShift = context.getOpenShiftService()
+        this.jenkins = context.getJenkinsService()
     }
 
     protected run() {

@@ -1,5 +1,8 @@
 package org.ods.component
 
+import org.ods.services.JenkinsService
+import org.ods.services.SnykService
+import org.ods.services.SonarQubeService
 import org.ods.util.Logger
 import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
@@ -148,6 +151,34 @@ class Context implements IContext {
         }
 
         logger.debug "Assembled configuration: ${debugConfig}"
+    }
+
+    BitbucketService getBitbucketService() {
+        return BitbucketService.getOrCreate(script, projectId, credentialsId, logger)
+    }
+
+    GitService getGitService() {
+        return GitService.getOrCreate(script, logger)
+    }
+
+    JenkinsService getJenkinsService() {
+        return JenkinsService.getOrCreate(script, logger)
+    }
+
+    NexusService getNexusService() {
+        return NexusService.getOrCreate(script, logger)
+    }
+
+    OpenShiftService getOpenShiftService() {
+        return OpenShiftService.getOrCreate(script, logger)
+    }
+
+    SnykService getSnykService() {
+        return SnykService.getOrCreate(script, logger)
+    }
+
+    SonarQubeService getSonarQubeService() {
+        return SonarQubeService.getOrCreate(script, logger)
     }
 
     boolean getDebug() {

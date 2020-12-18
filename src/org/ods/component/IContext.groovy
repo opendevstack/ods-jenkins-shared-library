@@ -1,5 +1,13 @@
 package org.ods.component
 
+import org.ods.services.BitbucketService
+import org.ods.services.GitService
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
+import org.ods.services.SnykService
+import org.ods.services.SonarQubeService
+
 @SuppressWarnings('MethodCount')
 interface IContext {
 
@@ -186,5 +194,19 @@ interface IContext {
 
     // get the rollout retry
     int getOpenshiftRolloutTimeoutRetries ()
+
+    BitbucketService getBitbucketService()
+
+    GitService getGitService()
+
+    JenkinsService getJenkinsService()
+
+    NexusService getNexusService()
+
+    OpenShiftService getOpenShiftService()
+
+    SnykService getSnykService()
+
+    SonarQubeService getSonarQubeService()
 
 }

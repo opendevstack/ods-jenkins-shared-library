@@ -1,6 +1,6 @@
 import org.ods.component.IContext
 import org.ods.component.UploadToNexusStage
-import org.ods.services.NexusService
+
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.Logger
@@ -12,13 +12,7 @@ def call(IContext context, Map config = [:]) {
     if (!logger) {
         logger = new Logger (this, !!env.DEBUG)
     }
-    def stage = new UploadToNexusStage(
-        this,
-        context,
-        config,
-        ServiceRegistry.instance.get(NexusService),
-        logger
-    )
+    def stage = new UploadToNexusStage(this, context, config, logger)
     return stage.execute()
 }
 return this

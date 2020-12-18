@@ -5,6 +5,7 @@ package org.ods.services
 import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
 import org.apache.http.client.utils.URIBuilder
+import org.ods.util.ILogger
 
 class NexusService {
 
@@ -37,6 +38,16 @@ class NexusService {
 
         this.username = username
         this.password = password
+    }
+
+    static NexusService getOrCreate(def script, ILogger logger) {
+        def nexusService = ServiceRegistry.instance.get(NexusService)
+        if (!nexusService) {
+            logger.debug 'Registering NexusService'
+            nexusService = newFromEnv(script.env)
+            ServiceRegistry.instance.add(NexusService, nexusService)
+        }
+        return nexusService
     }
 
     static NexusService newFromEnv(def env) {

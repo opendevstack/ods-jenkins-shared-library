@@ -7,11 +7,11 @@ import org.ods.util.ILogger
 
 def call(IContext context, Map config = [:], Closure block) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    OpenShiftService openShift = ServiceRegistry.instance.get(OpenShiftService)
     // this is only for testing, because we need access to the script context :(
     if (!logger) {
         logger = new Logger (this, !!env.DEBUG)
     }
+    OpenShiftService openShift = context.getOpenShiftService()
 
     if (context.triggeredByOrchestrationPipeline) {
         logger.info(

@@ -8,6 +8,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
+import org.ods.util.PipelineSteps
 import java.security.SecureRandom
 
 @SuppressWarnings(['ClassSize', 'MethodCount'])
@@ -28,26 +29,21 @@ class OpenShiftService {
         this.logger = logger
     }
 
+    static OpenShiftService getOrCreate(def script, ILogger logger) {
+        def openshiftService = ServiceRegistry.instance.get(OpenShiftService)
+        if (!openshiftService) {
+            logger.debug 'Registering OpenShiftService'
+            openshiftService = new OpenShiftService(new PipelineSteps(script), logger)
+            ServiceRegistry.instance.add(OpenShiftService, openshiftService)
+        }
+        return openshiftService
+    }
+
     static void createProject(IPipelineSteps steps, String name) {
         steps.sh(
             script: "oc new-project ${name}",
             label: "Create new OpenShift project ${name}"
         )
-    }
-
-    static void loginToExternalCluster(IPipelineSteps steps, String apiUrl, String apiToken) {
-        steps.sh(
-            script: "oc login ${apiUrl} --token=${apiToken} >& /dev/null",
-            label: "login to external cluster (${apiUrl})"
-        )
-    }
-
-    static String getApiUrl(IPipelineSteps steps) {
-        steps.sh(
-            script: 'oc whoami --show-server',
-            label: 'Get OpenShift API server URL',
-            returnStdout: true
-        ).toString().trim()
     }
 
     static boolean tooManyEnvironments(IPipelineSteps steps, String projectId, Integer limit) {
@@ -110,7 +106,18 @@ class OpenShiftService {
     }
 
     String getApiUrl() {
-        getApiUrl(steps)
+        steps.sh(
+            script: 'oc whoami --show-server',
+            label: 'Get OpenShift API server URL',
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    void loginToExternalCluster(String apiUrl, String apiToken) {
+        steps.sh(
+            script: "oc login ${apiUrl} --token=${apiToken} >& /dev/null",
+            label: "login to external cluster (${apiUrl})"
+        )
     }
 
     // helmUpgrade installs given "release" into "project" from the chart

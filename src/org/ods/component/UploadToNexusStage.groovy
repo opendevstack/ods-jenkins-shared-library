@@ -12,13 +12,12 @@ class UploadToNexusStage extends Stage {
     final String distFile
     final NexusService nexus
 
-    UploadToNexusStage(def script, IContext context, Map config, NexusService nexus,
-        ILogger logger) {
+    UploadToNexusStage(def script, IContext context, Map config, ILogger logger) {
         super(script, context, config, logger)
         this.repository = config.repository ?: 'candidates'
         this.repositoryType = config.repositoryType ?: 'maven2'
         this.distFile = config.distributionFile ?: "${context.componentId}-${context.tagversion}.tar.gz"
-        this.nexus = nexus
+        this.nexus = context.getNexusService()
     }
 
     protected run() {

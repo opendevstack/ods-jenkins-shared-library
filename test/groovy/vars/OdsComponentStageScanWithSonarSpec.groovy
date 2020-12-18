@@ -1,5 +1,6 @@
 package vars
 
+import org.ods.PipelineScript
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.BitbucketService
@@ -11,6 +12,7 @@ import spock.lang.*
 
 class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
+  private PipelineScript script = new PipelineScript()
   private Logger logger = Mock(Logger)
 
   @Shared
@@ -36,7 +38,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
   def "run successfully"() {
     given:
     def c = config + [environment: 'dev']
-    IContext context = new Context(null, c, logger)
+    IContext context = new Context(script, c, logger)
     BitbucketService bitbucketService = Stub(BitbucketService.class)
     bitbucketService.findPullRequest(*_) >> [:]
     ServiceRegistry.instance.add(BitbucketService, bitbucketService)
@@ -59,7 +61,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
   def "run successfully with PR analysis"() {
     given:
     def c = config + [environment: 'dev', gitBranch: 'feature/foo']
-    IContext context = new Context(null, c, logger)
+    IContext context = new Context(script, c, logger)
     BitbucketService bitbucketService = Stub(BitbucketService.class)
     bitbucketService.withTokenCredentials(*_) >> { Closure block -> block('user', 's3cr3t') }
     bitbucketService.findPullRequest(*_) >> [key: 1, base: 'master']
@@ -98,7 +100,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
   def "checks quality gate"() {
     given:
     def c = config + [sonarQubeBranch: '*', debug: false, componentId: 'bar', buildNumber: '42']
-    IContext context = new Context(null, c, logger)
+    IContext context = new Context(script, c, logger)
     SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
     sonarQubeService.scan(*_) >> null
@@ -136,7 +138,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
       branchToEnvironmentMapping: ['master': 'dev', 'release/': 'test'],
       gitBranch: 'feature/foo'
     ]
-    def context = new Context(null, config, logger)
+    def context = new Context(script, config, logger)
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')

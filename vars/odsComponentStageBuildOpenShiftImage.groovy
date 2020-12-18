@@ -1,8 +1,6 @@
 import org.ods.component.BuildOpenShiftImageStage
 import org.ods.component.IContext
 
-import org.ods.services.OpenShiftService
-import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -17,8 +15,6 @@ def call(IContext context, Map config = [:]) {
         this,
         context,
         config,
-        ServiceRegistry.instance.get(OpenShiftService),
-        ServiceRegistry.instance.get(JenkinsService),
         logger
     )
     return stage.execute()
