@@ -947,6 +947,11 @@ class OpenShiftService {
             pod.podStatus = podOCData.status?.phase ?: 'N/A'
             pod.podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
             pod.containers = [:]
+            // We need to get the image SHA from the containerStatuses, and not
+            // from the pod spec because the pod spec image field is optional
+            // and may not contain an image SHA, but e.g. a tag, depending on
+            // the pod manager (e.g. ReplicationController, ReplicaSet). See
+            // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#container-v1-core.
             podOCData.spec?.containers?.each { container ->
                 podOCData.status?.containerStatuses?.each { containerStatus ->
                     if (containerStatus.name == container.name) {
