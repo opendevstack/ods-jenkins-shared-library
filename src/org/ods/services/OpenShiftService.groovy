@@ -288,7 +288,7 @@ class OpenShiftService {
 
     int startBuild(String project, String name, String dir) {
         steps.sh(
-            script: "oc -n ${project} start-build ${name} --from-dir ${dir}",
+            script: "oc -n ${project} start-build ${name} --from-dir ${dir} ${logger.ocDebugFlag}",
             label: "Start Openshift build ${name}",
             returnStdout: true
         ).toString().trim()
@@ -375,7 +375,7 @@ class OpenShiftService {
         }
 
         steps.sh(
-            script: """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(',')}]'""",
+            script: """oc -n ${project} patch bc ${name} --type=json --patch '[${patches.join(',')}]' ${logger.ocDebugFlag} """,
             label: "Patch BuildConfig ${name}"
         )
     }
@@ -864,7 +864,7 @@ class OpenShiftService {
     private void restartRollout(String project, String name, int version) {
         try {
             steps.sh(
-                script: "oc -n ${project} rollout restart deployment/${name}",
+                script: "oc -n ${project} rollout restart deployment/${name} ${logger.ocDebugFlag}",
                 label: "Rollout restart of deployment/${name}"
             )
         } catch (ex) {
@@ -889,10 +889,9 @@ class OpenShiftService {
 
     private void reloginToCurrentClusterIfNeeded() {
         def kubeUrl = steps.env.KUBERNETES_MASTER ?: 'https://kubernetes.default:443'
-        def logDetails = logger.debugMode ? '' : 'set +x'
         def success = steps.sh(
             script: """
-                ${logDetails}
+               ${logger.shellScriptDebugFlag}
                 oc login ${kubeUrl} --insecure-skip-tls-verify=true \
                 --token=\$(cat /run/secrets/kubernetes.io/serviceaccount/token) &> /dev/null
             """,
@@ -929,7 +928,8 @@ class OpenShiftService {
             script: """
               oc -n ${project} import-image ${targetImageRef} \
                 --from=${sourceImageFull} \
-                --confirm
+                --confirm \
+                ${logger.ocDebugFlag}
             """,
             label: "Import image ${sourceImageFull} into ${project}/${targetImageRef}"
         )
@@ -954,6 +954,11 @@ class OpenShiftService {
             pod.podStatus = podOCData.status?.phase ?: 'N/A'
             pod.podStartupTimeStamp = podOCData.status?.startTime ?: 'N/A'
             pod.containers = [:]
+            // We need to get the image SHA from the containerStatuses, and not
+            // from the pod spec because the pod spec image field is optional
+            // and may not contain an image SHA, but e.g. a tag, depending on
+            // the pod manager (e.g. ReplicationController, ReplicaSet). See
+            // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#container-v1-core.
             podOCData.spec?.containers?.each { container ->
                 podOCData.status?.containerStatuses?.each { containerStatus ->
                     if (containerStatus.name == container.name) {

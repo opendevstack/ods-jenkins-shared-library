@@ -3,8 +3,6 @@ being built.
 
 The resulting image is tagged with `context.shortGitCommit`.
 
-If the directory referenced by `openshiftDir` exists, the templates in there will be applied using https://github.com/opendevstack/tailor[Tailor]. In addition to the configuration options below, one can use e.g. a `Tailorfile` to adjust the behaviour of Tailor as needed.
-
 Available options:
 
 [cols="1,2"]

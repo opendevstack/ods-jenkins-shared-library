@@ -11,29 +11,34 @@ class Logger implements ILogger, Serializable {
         this.debugOn = debug
     }
 
-    void debug(String message) {
+    String debug(String message) {
         if (debugOn) {
-            script.echo ("DEBUG: ${message}")
+            message = "DEBUG: ${message}"
+            info (message)
+        } else {
+            return ''
         }
     }
 
-    void info(String message) {
+    String info(String message) {
         script.echo message
+        message
     }
 
-    void warn(String message) {
-        info ("WARN: ${message}")
+    String warn(String message) {
+        message = "WARN: ${message}"
+        info (message)
     }
 
-    void debugClocked(String component, String message = null) {
+    String debugClocked(String component, String message = null) {
         debug(timedCall(component, message))
     }
 
-    void infoClocked(String component, String message = null) {
+    String infoClocked(String component, String message = null) {
         info(timedCall(component, message))
     }
 
-    void warnClocked(String component, String message = null) {
+    String warnClocked(String component, String message = null) {
         warn(timedCall(component, message))
     }
 
@@ -41,7 +46,15 @@ class Logger implements ILogger, Serializable {
         debugOn
     }
 
-    void startClocked(String component) {
+    String getOcDebugFlag () {
+        return debugOn ? '--loglevel=5' : ''
+    }
+
+    String getShellScriptDebugFlag () {
+        return debugOn ? '' : 'set +x'
+    }
+
+    String startClocked(String component) {
         timedCall (component)
     }
 

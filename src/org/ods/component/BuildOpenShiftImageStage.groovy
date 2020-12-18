@@ -19,8 +19,13 @@ class BuildOpenShiftImageStage extends Stage {
         super(script, context, config, logger)
         // If user did not explicitly define which branches to build images for,
         // build images for all branches which are mapped (deployed) to an environment.
+        // In orchestration pipelines, always build the image.
         if (!config.containsKey('branches') && !config.containsKey('branch')) {
-            config.branches = context.branchToEnvironmentMapping.keySet().toList()
+            if (context.triggeredByOrchestrationPipeline) {
+                config.branch = context.gitBranch
+            } else {
+                config.branches = context.branchToEnvironmentMapping.keySet().toList()
+            }
         }
         if (!config.resourceName) {
             config.resourceName = context.componentId
