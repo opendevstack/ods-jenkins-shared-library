@@ -1,5 +1,6 @@
 package org.ods.services
 
+import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 
 @SuppressWarnings('MethodCount')
@@ -15,6 +16,16 @@ class GitService {
     GitService(script, logger) {
         this.script = script
         this.logger = logger
+    }
+
+    static GitService getOrCreate(def script, ILogger logger) {
+        def gitService = ServiceRegistry.instance.get(GitService)
+        if (!gitService) {
+            logger.debug 'Registering GitService'
+            gitService = new GitService(script, logger)
+            ServiceRegistry.instance.add(GitService, gitService)
+        }
+        return gitService
     }
 
     // mergedIssueId gets the issue ID from the merged branch.
@@ -316,6 +327,22 @@ class GitService {
             returnStdout: true,
             label: "list tags for version ${version}-${changeId}-*-${previousEnvToken}"
         ).trim()
+    }
+
+    void configureCredentials(String credentialsId, String gitServerUrl) {
+        script.withCredentials(
+            [script.usernamePassword(
+                credentialsId: credentialsId,
+                usernameVariable: 'USER',
+                passwordVariable: 'PASS'
+            )]
+        ) {
+            GitCredentialStore.configureAndStore(
+                script,
+                gitServerUrl as String,
+                script.env.USER as String,
+                script.env.PASS as String)
+        }
     }
 
     private boolean isAgentNodeGitLfsEnabled() {

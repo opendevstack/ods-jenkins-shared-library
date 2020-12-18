@@ -156,69 +156,32 @@ class Context implements IContext {
         logger.debug "Assembled configuration: ${debugConfig}"
     }
 
-
     BitbucketService getBitbucketService() {
-        def bitbucketService = ServiceRegistry.instance.get(BitbucketService)
-        if (!bitbucketService) {
-            logger.debug 'Registering BitbucketService'
-            bitbucketService = new BitbucketService(script, bitbucketUrl, projectId, credentialsId, logger)
-            ServiceRegistry.instance.add(BitbucketService, bitbucketService)
-        }
-        return bitbucketService
+        return BitbucketService.getOrCreate(script, projectId, credentialsId, logger)
     }
 
     GitService getGitService() {
-        def gitService = ServiceRegistry.instance.get(GitService)
-        if (!gitService) {
-            logger.debug 'Registering GitService'
-            gitService = new GitService(script, logger)
-            ServiceRegistry.instance.add(GitService, gitService)
-        }
-        return gitService
+        return GitService.getOrCreate(script, logger)
     }
 
     JenkinsService getJenkinsService() {
-        def jenkinsService = ServiceRegistry.instance.get(JenkinsService)
-        if (!jenkinsService) {
-            logger.debug 'Registering JenkinsService'
-            jenkinsService = new JenkinsService(script, logger)
-            ServiceRegistry.instance.add(JenkinsService, jenkinsService)
-        }
-        return jenkinsService
+        return JenkinsService.getOrCreate(script, logger)
     }
 
     NexusService getNexusService() {
-        def nexusService = ServiceRegistry.instance.get(NexusService)
-        if (!nexusService) {
-            logger.debug 'Registering NexusService'
-            nexusService = new NexusService(nexusUrl, nexusUsername, nexusPassword)
-            ServiceRegistry.instance.add(NexusService, nexusService)
-        }
-        return nexusService
+        return NexusService.getOrCreate(script, logger)
     }
 
     OpenShiftService getOpenShiftService() {
-        def openshiftService = ServiceRegistry.instance.get(OpenShiftService)
-        if (!openshiftService) {
-            logger.debug 'Registering OpenShiftService'
-            openshiftService = new OpenShiftService(script, logger)
-            ServiceRegistry.instance.add(OpenShiftService, openshiftService)
-        }
-        return openshiftService
+        return OpenShiftService.getOrCreate(script, logger)
     }
 
     SnykService getSnykService() {
-        def snykService = ServiceRegistry.instance.get(SnykService)
-        if (!snykService) {
-            logger.debug 'Registering SnykService'
-            snykService = new SnykService(script, 'snyk-report.txt')
-            ServiceRegistry.instance.add(SnykService, snykService)
-        }
-        return snykService
+        return SnykService.getOrCreate(script, logger)
     }
 
     SonarQubeService getSonarQubeService() {
-
+        return SonarQubeService.getOrCreate(script, logger)
     }
 
     boolean getDebug() {

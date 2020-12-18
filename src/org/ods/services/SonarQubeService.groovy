@@ -1,5 +1,7 @@
 package org.ods.services
 
+import org.ods.util.ILogger
+
 class SonarQubeService {
 
     private final def script
@@ -8,6 +10,16 @@ class SonarQubeService {
     SonarQubeService(def script, String sonarQubeEnv) {
         this.script = script
         this.sonarQubeEnv = sonarQubeEnv
+    }
+
+    static SonarQubeService getOrCreate(def script, ILogger logger) {
+        def sonarQubeService = ServiceRegistry.instance.get(SonarQubeService)
+        if (!sonarQubeService) {
+            logger.debug 'Registering SonarQubeService'
+            sonarQubeService = new SonarQubeService(script, 'SonarServerConfig')
+            ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
+        }
+        return sonarQubeService
     }
 
     def readProperties(String filename = 'sonar-project.properties') {

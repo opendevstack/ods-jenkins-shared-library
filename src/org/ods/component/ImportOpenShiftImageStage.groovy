@@ -12,7 +12,6 @@ class ImportOpenShiftImageStage extends Stage {
         def script,
         IContext context,
         Map config,
-        OpenShiftService openShift,
         ILogger logger) {
         super(script, context, config, logger)
         if (!config.resourceName) {
@@ -24,7 +23,7 @@ class ImportOpenShiftImageStage extends Stage {
         if (!config.targetTag) {
             config.targetTag = config.sourceTag
         }
-        this.openShift = openShift
+        this.openShift = context.getOpenShiftService()
     }
 
     protected run() {

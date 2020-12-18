@@ -15,8 +15,6 @@ class ScanWithSonarStage extends Stage {
         def script,
         IContext context,
         Map config,
-        BitbucketService bitbucket,
-        SonarQubeService sonarQube,
         ILogger logger) {
         super(script, context, config, logger)
         // If user did not explicitly define which branches to scan,
@@ -44,8 +42,8 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
-        this.bitbucket = bitbucket
-        this.sonarQube = sonarQube
+        this.bitbucket = context.getBitbucketService()
+        this.sonarQube = context.getSonarQubeService()
     }
 
     protected run() {

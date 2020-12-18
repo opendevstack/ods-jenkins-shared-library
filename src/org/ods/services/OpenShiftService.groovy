@@ -6,6 +6,8 @@ import groovy.transform.TypeCheckingMode
 
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
+
 import java.security.SecureRandom
 
 @SuppressWarnings('MethodCount')
@@ -24,6 +26,16 @@ class OpenShiftService {
     OpenShiftService(IPipelineSteps steps, ILogger logger) {
         this.steps = steps
         this.logger = logger
+    }
+
+    static OpenShiftService getOrCreate(def script, ILogger logger) {
+        def openshiftService = ServiceRegistry.instance.get(OpenShiftService)
+        if (!openshiftService) {
+            logger.debug 'Registering OpenShiftService'
+            openshiftService = new OpenShiftService(new PipelineSteps(script), logger)
+            ServiceRegistry.instance.add(OpenShiftService, openshiftService)
+        }
+        return openshiftService
     }
 
     static void createProject(IPipelineSteps steps, String name) {

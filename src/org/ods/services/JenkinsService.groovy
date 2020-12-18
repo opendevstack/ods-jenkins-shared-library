@@ -14,6 +14,16 @@ class JenkinsService {
         this.logger = logger
     }
 
+    static JenkinsService getOrCreate(def script, ILogger logger) {
+        def jenkinsService = ServiceRegistry.instance.get(JenkinsService)
+        if (!jenkinsService) {
+            logger.debug 'Registering JenkinsService'
+            jenkinsService = new JenkinsService(script, logger)
+            ServiceRegistry.instance.add(JenkinsService, jenkinsService)
+        }
+        return jenkinsService
+    }
+
     def stashTestResults(String customXunitResultsDir, String stashNamePostFix = 'stash') {
         def contextresultMap = [:]
         def xUnitResultDir = XUNIT_SYSTEM_RESULT_DIR
