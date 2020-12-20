@@ -149,7 +149,7 @@ class FinalizeOdsComponent {
         def imagesFromOtherProjectsFail = []
         // All images in *-cd are also present in *-dev, *-test, etc. so even
         // if the underlying image points to *-cd, we can continue.
-        def excludedProjects = MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT + ["${project.key}-cd"]
+        def excludedProjects = MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT + ["${project.key}-cd".toString()]
         odsBuiltDeploymentInformation.each { String odsBuiltDeploymentName, Map odsBuiltDeployment ->
             odsBuiltDeployment.containers?.each { String containerName, String containerImage ->
                 def owningProject = os.imageInfoWithShaForImageStreamUrl(containerImage).repository
