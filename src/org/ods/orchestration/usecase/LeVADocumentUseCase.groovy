@@ -881,13 +881,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def codeRepos = this.project.repositories. findAll { it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
         def codeReviewReports = obtainCodeReviewReport(codeRepos)
 
-        def modifier = { document ->
-            List documents = [document]
-            documents += codeReviewReports
-            // Merge the current document with the code review report
-            return this.pdf.merge(documents)
-        }
-
         def keysInDoc = (this.project.getTechnicalSpecifications()
             .collect { it.subMap(['key', 'requirements']).values() }.flatten()
         + componentsMetadata.collect { it.key }
@@ -901,9 +894,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], modifier, documentType, watermarkText)
+        def uri = this.createDocumentWithModifier(getDocumentTemplateName(documentType), data_, codeReviewReports, documentType, watermarkText)
+
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
+    }
+
+    String createDocumentWithModifier(String documentTemplateName,
+                                      Map data,
+                                      List modifiers = null,
+                                      String documentType = null,
+                                      String watermarkText = null) {
+        def modifier = { document ->
+            List documents = [document]
+            documents += modifiers
+            // Merge the current document with the code review report
+            return this.pdf.merge(documents)
+        }
+
+        this.createDocument(documentTemplateName, data, [:], null, modifier, documentType, watermarkText)
     }
 
     String createTIP(Map repo = null, Map data = null) {
