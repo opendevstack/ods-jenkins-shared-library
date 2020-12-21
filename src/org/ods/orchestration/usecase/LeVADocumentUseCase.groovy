@@ -236,6 +236,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def tests = testIssues.collect { testIssue ->
+            def description = testIssue.name ?: ""
+            if (description && testIssue.description) {
+                description += ": "
+            }
+            description += testIssue.description
+
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
@@ -244,9 +250,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def softwareDesignSpecs = testIssue.getResolvedTechnicalSpecifications()
                 .findAll { it.softwareDesignSpec }
                 .collect { it.key }
+
             [
                 key               : testIssue.key,
-                description       : testIssue.description ?: "N/A",
+                description       : description ?: "N/A",
                 systemRequirement : testIssue.requirements.join(", "),
                 success           : testIssue.isSuccess ? "Y" : "N",
                 remarks           : testIssue.isUnexecuted ? "Not executed" : "N/A",
@@ -461,10 +468,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!acceptanceTestIssues.isEmpty()) {
             data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
+                def description = testIssue.name ?: ""
+                if (description && testIssue.description) {
+                    description += ": "
+                }
+                description += testIssue.description
+
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: testIssue.description ?: "",
+                    description: description ?: "N/A",
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
@@ -475,10 +488,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!integrationTestIssues.isEmpty()) {
             data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
+                def description = testIssue.name ?: ""
+                if (description && testIssue.description) {
+                    description += ": "
+                }
+                description += testIssue.description
+
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: testIssue.description ?: "",
+                    description: description ?: "N/A",
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
