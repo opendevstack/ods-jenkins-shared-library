@@ -435,6 +435,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    @SuppressWarnings('CyclomaticComplexity')
     String createCFTR(Map repo, Map data) {
         def documentType = DocumentType.CFTR as String
 
