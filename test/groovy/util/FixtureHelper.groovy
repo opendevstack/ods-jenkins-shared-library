@@ -63,6 +63,7 @@ class FakeProject extends Project {
 
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undone.docChapters = [:]
+        this.data.jira[Project.JiraDataItem.TYPE_DOCS] = this.loadDocs()
 
         this.data.documents = [:]
         this.data.openshift = [:]
@@ -123,6 +124,19 @@ class FakeProject extends Project {
     void setRepositories(List repos) {
         this.data.metadata.repositories = repos
     }
+
+    Map loadDocs(){
+        return ["doc1": [
+                    "key": "DOC-1",
+                    "version": "1.0",
+                    "name": "name",
+                    "number": "1",
+                    "documents":["SSDS"],
+                    "section": "sec1",
+                    "content": "myContent"
+                ]]
+    }
+
 }
 
 class FixtureHelper {

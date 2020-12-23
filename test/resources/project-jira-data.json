@@ -289,17 +289,6 @@
             ]
         }
     },
-    "docs": {
-        "doc1": {
-            "key": "DOC-1",
-            "version": "1.0",
-            "name": "name",
-            "number": "1",
-            "documents":["SSDS"],
-            "section": "sec1",
-            "content": "myContent"
-        }
-    },
     "tests": {
         "NET-127": {
             "key": "NET-127",
