@@ -14,7 +14,7 @@ class SonarQubeService {
         this.sonarQubeEnv = sonarQubeEnv
     }
 
-    def readProperties(String filename = 'sonar-project.properties') {
+    Map<String, Object> readProperties(String filename = 'sonar-project.properties') {
         script.readProperties(file: filename)
     }
 

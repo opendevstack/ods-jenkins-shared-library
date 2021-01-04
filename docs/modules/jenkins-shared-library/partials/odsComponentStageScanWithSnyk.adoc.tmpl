@@ -1,0 +1,28 @@
+The "Snyk Security Scan" stage performs two tasks:
+
+. It uploads your 3rd party dependencies including their licenses for monitoring. Snyk will then notify developers about new vulnerabilities per email once they are reported to the Snyk Vulnerability Database.
+. It analyses your 3rd party dependencies including their licenses and breaks the build if vulnerable versions are found.
+
+To get started, setup an organisation in https://snyk.io[snyk.io] with exactly the same name as your ODS project name. Under "Settings", create a service account for this organisation and make a note of the displayed token. Edit your `Jenkinsfile` and add the Snyk stage:
+----
+) { context ->
+    ...
+    odsComponentStageScanWithSnyk(context, [snykAuthenticationCode: <your token>])
+    ...
+}
+----
+
+It is recommended to read your authentication token dynamically, e.g. from an environment variable or a credential in your Jenkins master.
+
+== Options
+
+[cols="1,2"]
+|===
+| Option | Description
+{{range .Options}}
+
+| *{{.Name}}* +
+_{{.Type}}_
+|{{.Description}}
+{{end}}
+|===

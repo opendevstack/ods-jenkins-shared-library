@@ -8,6 +8,24 @@ import spock.lang.*
 
 class StageSpec extends PipelineSpockTestBase {
 
+    class TestStage extends Stage {
+        public final String STAGE_NAME = 'Test'
+        protected Map<String, Object> options
+        public boolean ran
+        TestStage(def script, IContext context, Map<String, Object> config, ILogger logger) {
+            super(script, context, logger)
+            this.script = script
+            this.context = context
+            this.logger = logger
+            this.options = config
+            this.ran = false
+        }
+        // empty "run" that just records it has been called
+        def run() {
+            this.ran = true
+        }
+    }
+
     @Unroll
     def "when gitBranch=#gitBranch and configBranch=#configBranch and configBranches=#configBranches then run should=#expectedRan"(gitBranch, configBranch, configBranches, expectedRan, expectedLogLine) {
         given:
@@ -21,23 +39,17 @@ class StageSpec extends PipelineSpockTestBase {
         def script = loadScript('vars/withStage.groovy')
 
         when:
-        def ran = false
         Logger logger = new Logger (script, true)
         IContext context = new Context(script, [gitBranch: gitBranch], logger)
-        def stage = new Stage(script, context, config, logger) {
-            public final String STAGE_NAME = 'Test'
-            def run() {
-                ran = true
-            }
-        }
-        stage.execute()
+        def testStage = new TestStage(script, context, config, logger)
+        testStage.execute()
 
         then:
         if (expectedLogLine) {
             assertCallStackContains(expectedLogLine)
         }
         assertJobStatusSuccess()
-        ran == expectedRan
+        testStage.ran == expectedRan
 
         where:
         gitBranch             | configBranch        | configBranches         || expectedRan | expectedLogLine

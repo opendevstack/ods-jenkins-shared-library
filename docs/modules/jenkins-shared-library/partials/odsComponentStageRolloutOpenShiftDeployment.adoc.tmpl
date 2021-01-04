@@ -1,0 +1,19 @@
+Triggers (and follows) a rollout of the `DeploymentConfig` related to the repository
+being built.
+
+It achieves this by tagging the image built in `odsComponentStageBuildOpenShiftImage` with `latest`. This might already trigger a rollout based on an existing `ImageTrigger`. If none is set, the stage will start a manual rollout.
+
+If the directory referenced by `openshiftDir` exists, the templates in there will be applied using https://github.com/opendevstack/tailor[Tailor]. In this case, it is recommended to remove any image triggers to avoid duplicate rollouts (one when configuration changes due to a config trigger and one when the image is tagged to `latest`). In addition to the configuration options below, one can use e.g. a `Tailorfile` to adjust the behaviour of Tailor as needed.
+
+== Options
+
+[cols="1,2"]
+|===
+| Option | Description
+{{range .Options}}
+
+| *{{.Name}}* +
+_{{.Type}}_
+|{{.Description}}
+{{end}}
+|===

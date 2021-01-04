@@ -16,12 +16,18 @@ class PipelineSteps implements IPipelineSteps {
     void archiveArtifacts(String artifacts) {
     }
 
+    void archiveArtifacts(Map args) {
+    }
+
     def checkout(Map config) {
         return [:]
     }
 
     void dir(String path, Closure block) {
         block()
+    }
+
+    void error(String message) {
     }
 
     void echo(String message) {
