@@ -382,7 +382,7 @@ ruleset {
     UnnecessaryCallToSubstring
     UnnecessaryCast
     UnnecessaryCatchBlock
-    UnnecessaryCollectCall
+    UnnecessaryCollectCall(enabled: false)
     UnnecessaryCollectionCall
     UnnecessaryConstructor
     UnnecessaryDefInFieldDeclaration(enabled: false)

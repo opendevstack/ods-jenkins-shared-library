@@ -10,7 +10,6 @@ import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.phases.DeployOdsComponent
 import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.yaml.snakeyaml.Yaml
@@ -20,6 +19,7 @@ import org.yaml.snakeyaml.Yaml
 class MROPipelineUtil extends PipelineUtil {
 
     class PipelineConfig {
+
         // TODO: deprecate .pipeline-config.yml in favor of release-manager.yml
         static final List FILE_NAMES = ["release-manager.yml", ".pipeline-config.yml"]
 
@@ -32,17 +32,21 @@ class MROPipelineUtil extends PipelineUtil {
 
         static final List PHASE_EXECUTOR_TYPES = [
             PHASE_EXECUTOR_TYPE_MAKEFILE,
-            PHASE_EXECUTOR_TYPE_SHELLSCRIPT
+            PHASE_EXECUTOR_TYPE_SHELLSCRIPT,
         ]
+
     }
 
     class PipelineEnvs {
+
         static final String DEV = "dev"
         static final String QA = "qa"
         static final String PROD = "prod"
+
     }
 
     class PipelinePhases {
+
         static final String BUILD = "Build"
         static final String DEPLOY = "Deploy"
         static final String FINALIZE = "Finalize"
@@ -51,13 +55,16 @@ class MROPipelineUtil extends PipelineUtil {
         static final String TEST = "Test"
 
         static final List ALWAYS_PARALLEL = []
+
     }
 
     enum PipelinePhaseLifecycleStage {
+
         POST_START,
         PRE_EXECUTE_REPO,
         POST_EXECUTE_REPO,
         PRE_END
+
     }
 
     static final String COMPONENT_METADATA_FILE_NAME = 'metadata.yml'
@@ -275,7 +282,7 @@ class MROPipelineUtil extends PipelineUtil {
                         }
                     }
                 }
-            }
+            },
         ]
     }
 
@@ -296,7 +303,7 @@ class MROPipelineUtil extends PipelineUtil {
             "*/${branch}",
             [
                 [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ],
-                [ $class: 'LocalBranch', localBranch: "**" ]
+                [ $class: 'LocalBranch', localBranch: "**" ],
             ],
             [[ credentialsId: credentialsId, url: repo.url ]]
         )
@@ -365,7 +372,7 @@ class MROPipelineUtil extends PipelineUtil {
                         postExecute(this.steps, repo)
                     }
                 }
-            }
+            },
         ]
     }
 
@@ -488,7 +495,7 @@ class MROPipelineUtil extends PipelineUtil {
                 OpenShiftService.DEPLOYMENTCONFIG_KIND,
                 deploymentDescriptor.deploymentNames
             )
-        } catch(ex) {
+        } catch (ex) {
             logger.info(
                 "Resurrection of previous build for '${repo.id}' not possible as " +
                 "not all deployments could be retrieved: ${ex.message}"
@@ -518,4 +525,5 @@ class MROPipelineUtil extends PipelineUtil {
         repo.data.openshift.deployments = deployments
         logger.debug("Data from previous Jenkins build:\r${repo.data.openshift}")
     }
+
 }
