@@ -1,19 +1,20 @@
 package org.ods.orchestration
 
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
+
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
-import org.ods.util.PipelineSteps
-import org.ods.util.IPipelineSteps
-import org.ods.util.Logger
-import org.ods.util.ILogger
 
 import groovy.json.JsonOutput
 
+@TypeChecked
 class FinalizeStage extends Stage {
 
     public final String STAGE_NAME = 'Finalize'
@@ -22,23 +23,40 @@ class FinalizeStage extends Stage {
         super(script, project, repos)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
+    @SuppressWarnings(['AbcMetric', 'MethodSize', 'CyclomaticComplexity'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def bitbucket = ServiceRegistry.instance.get(BitbucketService)
         def git = ServiceRegistry.instance.get(GitService)
-        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.FINALIZE
 
-        def preExecuteRepo = { steps_, repo ->
+        Closure preExecuteRepo = { Map repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
-        def postExecuteRepo = { steps_, repo ->
+        Closure executeRepo = { Map repo ->
+            switch (util.repoType(repo)) {
+                case MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE:
+                case MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE:
+                    if (this.project.isAssembleMode) {
+                        new FinalizeOdsComponent(this.project, this.steps, git, this.logger).run(repo)
+                    } else {
+                        util.logRepoSkip(phase, repo)
+                    }
+                    break
+                case MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST:
+                    util.logRepoSkip(phase, repo)
+                    break
+                default:
+                    util.runCustomInstructionsForPhaseOrSkip(phase, repo)
+                    break
+            }
+        }
+
+        Closure postExecuteRepo = { Map repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
         }
 
@@ -54,39 +72,32 @@ class FinalizeStage extends Stage {
 
         def agentCondition = project.isAssembleMode && repos.size() > 0
         runOnAgentPod(agentCondition) {
-            // Execute phase for each repository - here in parallel, all repos
-            Map repoFinalizeTasks = [ : ]
-            util.prepareExecutePhaseForReposNamedJob(
-                phase, repos, preExecuteRepo, postExecuteRepo).each { group ->
-                repoFinalizeTasks << group
-            }
-            repoFinalizeTasks.failFast = true
-            script.parallel(repoFinalizeTasks)
+            util.executeRepoGroups(repos, executeRepo, preExecuteRepo, postExecuteRepo)
 
             if (project.isAssembleMode && !project.isWorkInProgress) {
-                integrateIntoMainBranch(steps, git)
+                integrateIntoMainBranch(git)
             }
 
-            gatherCreatedExecutionCommits(steps, git)
+            gatherCreatedExecutionCommits(git)
 
             if (!project.buildParams.rePromote) {
-                pushRepos(steps, git)
-                recordAndPushEnvState(steps, logger, git)
+                pushRepos(git)
+                recordAndPushEnvState(git)
             }
 
             // add the tag commit that was created for traceability ..
-            logger.debug "Current release manager commit: ${project.gitData.commit}"
+            this.logger.debug "Current release manager commit: ${project.gitData.commit}"
             project.gitData.createdExecutionCommit = git.commitSha
         }
 
         if (project.isAssembleMode && !project.isWorkInProgress) {
-            logger.warn('!!! CAUTION: Any future changes that should affect version ' +
+            this.logger.warn('!!! CAUTION: Any future changes that should affect version ' +
                 "'${project.buildParams.version}' " +
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
         // Dump a representation of the project
-        logger.debug("---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
+        this.logger.debug("---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
@@ -109,8 +120,11 @@ class FinalizeStage extends Stage {
             message += '.'
 
             if (!project.isWorkInProgress) {
-                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                    'FAILED', "Release Manager for commit: ${project.gitData.commit}")
+                bitbucket.setBuildStatus(
+                    this.steps.env.BUILD_URL as String,
+                    project.gitData.commit as String,
+                    'FAILED', "Release Manager for commit: ${project.gitData.commit}",
+                )
             }
 
             util.failBuild(message)
@@ -118,18 +132,22 @@ class FinalizeStage extends Stage {
         } else {
             project.reportPipelineStatus()
             if (!project.isWorkInProgress) {
-                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                    "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
+                bitbucket.setBuildStatus(
+                    this.steps.env.BUILD_URL as String,
+                    project.gitData.commit as String,
+                    "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}",
+                )
             }
         }
     }
 
-    private void pushRepos(IPipelineSteps steps, GitService git) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void pushRepos(GitService git) {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = flattenedRepos.collectEntries { repo ->
             [
                 (repo.id): {
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                    this.steps.dir("${this.steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         if (project.isWorkInProgress) {
                             git.pushRef(repo.branch)
                         } else if (project.isAssembleMode) {
@@ -144,34 +162,39 @@ class FinalizeStage extends Stage {
             ]
         }
         repoPushTasks.failFast = true
-        script.parallel(repoPushTasks)
+        this.steps.parallel(repoPushTasks)
     }
 
-    private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void gatherCreatedExecutionCommits(GitService git) {
         def flattenedRepos = repos.flatten()
         def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
             [
                 (repo.id): {
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                    this.steps.dir("${this.steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                        if (!repo.data.git) {
+                            repo.data.git = [:]
+                        }
                         repo.data.git.createdExecutionCommit = git.commitSha
                     }
                 }
             ]
         }
         gatherCommitTasks.failFast = true
-        script.parallel(gatherCommitTasks)
+        this.steps.parallel(gatherCommitTasks)
     }
 
-    private void integrateIntoMainBranch(IPipelineSteps steps, GitService git) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void integrateIntoMainBranch(GitService git) {
         def flattenedRepos = repos.flatten()
         def repoIntegrateTasks = flattenedRepos
             .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }
             .collectEntries { repo ->
                 [
                     (repo.id): {
-                        steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                            def filesToCheckout = []
-                            if (steps.fileExists('openshift')) {
+                        this.steps.dir("${this.steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                            List<String> filesToCheckout = []
+                            if (this.steps.fileExists('openshift')) {
                                 filesToCheckout = ['openshift/ods-deployments.json']
                             } else {
                                 filesToCheckout = [
@@ -179,29 +202,34 @@ class FinalizeStage extends Stage {
                                     'openshift-exported/template.yml'
                                 ]
                             }
-                            git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
+                            git.mergeIntoMainBranch(
+                                project.gitReleaseBranch,
+                                repo.branch as String,
+                                filesToCheckout,
+                            )
                         }
                     }
                 ]
         }
         repoIntegrateTasks.failFast = true
-        script.parallel(repoIntegrateTasks)
+        this.steps.parallel(repoIntegrateTasks)
     }
 
-    private void recordAndPushEnvState(IPipelineSteps steps, ILogger logger, GitService git) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void recordAndPushEnvState(GitService git) {
         // record release manager repo state
-        logger.debug "Finalize: Recording HEAD commits from repos ..."
-        logger.debug "On release manager commit ${git.commitSha}"
+        this.logger.debug "Finalize: Recording HEAD commits from repos ..."
+        this.logger.debug "On release manager commit ${git.commitSha}"
         def gitHeads = repos.flatten().collectEntries { repo ->
-            logger.debug "HEAD of repo '${repo.id}': ${repo.data.git.createdExecutionCommit}"
-            [(repo.id): (repo.data.git.createdExecutionCommit ?: '')]
+            this.logger.debug "HEAD of repo '${repo.id}': ${repo.data.git?.createdExecutionCommit}"
+            [(repo.id): (repo.data.git?.createdExecutionCommit ?: '')]
         }
         def envState = [
             version: project.buildParams.version,
             changeId: project.buildParams.changeId,
             repositories: gitHeads,
         ]
-        steps.writeFile(
+        this.steps.writeFile(
             file: project.envStateFileName,
             text: JsonOutput.prettyPrint(JsonOutput.toJson(envState))
         )

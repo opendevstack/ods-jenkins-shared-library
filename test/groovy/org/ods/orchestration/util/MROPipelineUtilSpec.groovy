@@ -579,4 +579,34 @@ class MROPipelineUtilSpec extends SpecHelper {
         then:
         noExceptionThrown() // pipeline does not stop here
     }
+
+    def "execute repos in groups"() {
+        given:
+        Set<Map> repoGroupA = [ [id: 'x', type: 'ods'], [id: 'y', type: 'ods'] ]
+        Set<Map> repoGroupB = [ [id: 'z', type: 'ods'] ]
+        List<Set<Map>> repoGroups = [ repoGroupA, repoGroupB ]
+        Closure preRepoExecute = { Map repo -> logger.info("preRepoExecute: ${repo.id}") }
+        Closure repoExecute = { Map repo -> logger.info("repoExecute: ${repo.id}") }
+        Closure postRepoExecute = { Map repo -> logger.info("postRepoExecute: ${repo.id}") }
+        def repoBaseDir = "${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}"
+
+        when:
+        util.executeRepoGroups(repoGroups, repoExecute, preRepoExecute, postRepoExecute)
+
+        then:
+        1 * logger.debug("Executing repo group consisting of: [x, y]")
+        1 * logger.debug("Executing repo group consisting of: [z]")
+        1 * logger.info("preRepoExecute: x")
+        1 * steps.dir("${repoBaseDir}/x", _)
+        1 * logger.info("repoExecute: x")
+        1 * logger.info("postRepoExecute: x")
+        1 * logger.info("preRepoExecute: y")
+        1 * steps.dir("${repoBaseDir}/y", _)
+        1 * logger.info("repoExecute: y")
+        1 * logger.info("postRepoExecute: y")
+        1 * logger.info("preRepoExecute: z")
+        1 * steps.dir("${repoBaseDir}/z", _)
+        1 * logger.info("repoExecute: z")
+        1 * logger.info("postRepoExecute: z")
+    }
 }

@@ -10,8 +10,6 @@ import org.ods.orchestration.dependency.DependencyGraph
 import org.ods.orchestration.dependency.Node
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.orchestration.phases.DeployOdsComponent
-import org.ods.orchestration.phases.FinalizeOdsComponent
 import org.yaml.snakeyaml.Yaml
 
 @InheritConstructors
@@ -92,34 +90,32 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private void executeODSComponent(Map repo, String baseDir) {
-        this.steps.dir(baseDir) {
-            if (repo.data.openshift.resurrectedBuild) {
-                logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
-                return
-            }
+    void executeODSComponent(Map repo) {
+        if (repo.data.openshift.resurrectedBuild) {
+            logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
+            return
+        }
 
-            def job
-            List<String> mainEnv = this.project.getMainReleaseManagerEnv()
-            mainEnv << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
-            this.steps.withEnv (mainEnv) {
-                job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+        def job
+        List<String> mainEnv = this.project.getMainReleaseManagerEnv()
+        mainEnv << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
+        this.steps.withEnv (mainEnv) {
+            job = this.loadGroovySourceFile("${repoBaseDir(repo)}/Jenkinsfile")
+        }
+        // Collect ODS build artifacts for repo.
+        // We get a map with at least two keys ("build" and "deployments").
+        def buildArtifacts = job.getBuildArtifactURIs()
+        buildArtifacts.each { k, v ->
+            if (k != 'failedStage') {
+                repo.data.openshift[k] = v
             }
-            // Collect ODS build artifacts for repo.
-            // We get a map with at least two keys ("build" and "deployments").
-            def buildArtifacts = job.getBuildArtifactURIs()
-            buildArtifacts.each { k, v ->
-                if (k != 'failedStage') {
-                    repo.data.openshift[k] = v
-                }
-            }
-            def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
-            repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR] = versionAndBuild
-            this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
+        }
+        def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
+        repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR] = versionAndBuild
+        this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
 
-            if (buildArtifacts.failedStage) {
-                throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
-            }
+        if (buildArtifacts.failedStage) {
+            throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
         }
     }
 
@@ -309,84 +305,68 @@ class MROPipelineUtil extends PipelineUtil {
         )
     }
 
-    Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
-        return [
-            repo.id,
-            {
-                this.executeBlockAndFailBuild {
-                    def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
-                    def targetEnvToken = this.project.buildParams.targetEnvironmentToken
+    void runCustomInstructionsForPhaseOrSkip(String phase, Map repo) {
+        def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[phase] : null
+        if (phaseConfig) {
+            def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+            def scriptLabel = "${repo.id} (${repo.url})"
 
-                    if (preExecute) {
-                        preExecute(this.steps, repo)
-                    }
-
-                    if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
-                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                            executeODSComponent(repo, baseDir)
-                        } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
-                            new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
-                            new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Code Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                        }
-                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
-                        if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
-                            executeODSComponent(repo, baseDir)
-                        } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
-                            new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else if (this.project.isAssembleMode && PipelinePhases.FINALIZE) {
-                            new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                        }
-                    } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
-                        if (name == PipelinePhases.TEST) {
-                            executeODSComponent(repo, baseDir)
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                        }
-                    } else {
-                        def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
-                        if (phaseConfig) {
-                            def label = "${repo.id} (${repo.url})"
-
-                            if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
-                                this.steps.dir(baseDir) {
-                                    def steps = "make ${phaseConfig.target}"
-                                    this.steps.sh script: steps, label: label
-                                }
-                            } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
-                                this.steps.dir(baseDir) {
-                                    def steps = "./scripts/${phaseConfig.steps}"
-                                    this.steps.sh script: steps, label: label
-                                }
-                            }
-                        } else {
-                            this.logger.debug("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
-                        }
-                    }
-
-                    if (postExecute) {
-                        postExecute(this.steps, repo)
-                    }
+            if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
+                this.steps.dir(baseDir) {
+                    def steps = "make ${phaseConfig.target}"
+                    this.steps.sh(script: steps, label: scriptLabel)
                 }
-            },
-        ]
+            } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
+                this.steps.dir(baseDir) {
+                    def steps = "./scripts/${phaseConfig.steps}"
+                    this.steps.sh(script: steps, label: scriptLabel)
+                }
+            }
+        } else {
+            logRepoSkip(phase, repo)
+        }
     }
 
-    List<Set<Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure preExecute = null, Closure postExecute = null) {
-        // In some phases, we can run all repos in parallel
-        if (PipelinePhases.ALWAYS_PARALLEL.contains(name)) {
-            repos = [repos.flatten() as Set<Map>]
-        }
+    String logRepoSkip(String phase, Map repo) {
+        def targetEnvToken = this.project.buildParams.targetEnvironmentToken
+        this.logger.info("Repo '${repo.id}' is of type '${repo.type}'. Nothing to do in phase '${phase}' for target environment '${targetEnvToken}'.")
+    }
 
-        repos.collect { group ->
-            group.collectEntries { repo ->
-                prepareExecutePhaseForRepoNamedJob(name, repo, preExecute, postExecute)
+    void executeRepoGroups(List<Set<Map>> repoGroups, Closure repoExecute, Closure preRepoExecute = null, Closure postRepoExecute = null) {
+        repoGroups.each { repoGroup ->
+            def reposInGroup = repoGroup.collect { it.id }
+            this.logger.debug("Executing repo group consisting of: ${reposInGroup}")
+            Map<String, Closure> parallelTasks = repoGroup.collectEntries { repo ->
+                [
+                    repo.id,
+                    {
+                        this.executeBlockAndFailBuild {
+                            if (preRepoExecute) {
+                                preRepoExecute(repo)
+                            }
+                            if (repoExecute) {
+                                this.steps.dir(repoBaseDir(repo)) {
+                                    repoExecute(repo)
+                                }
+                            }
+                            if (postRepoExecute) {
+                                postRepoExecute(repo)
+                            }
+                        }
+                    },
+                ]
             }
+            parallelTasks.failFast = true
+            this.steps.parallel(parallelTasks)
         }
+    }
+
+    String repoType(Map repo) {
+        repo.type?.toString()?.toLowerCase()
+    }
+
+    String repoBaseDir(Map repo) {
+        "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
     }
 
     void warnBuildAboutUnexecutedJiraTests(List unexecutedJiraTests) {

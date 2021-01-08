@@ -1,10 +1,13 @@
 package org.ods.orchestration
 
+import groovy.transform.TypeChecked
+
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 
+@TypeChecked
 class ReleaseStage extends Stage {
 
     public final String STAGE_NAME = 'Release'
@@ -13,18 +16,21 @@ class ReleaseStage extends Stage {
         super(script, project, repos)
     }
 
-    @SuppressWarnings('ParameterName')
     def run() {
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
 
         def phase = MROPipelineUtil.PipelinePhases.RELEASE
 
-        def preExecuteRepo = { steps_, repo ->
+        Closure preExecuteRepo = { Map repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
-        def postExecuteRepo = { steps_, repo ->
+        Closure executeRepo = { Map repo ->
+            util.runCustomInstructionsForPhaseOrSkip(phase, repo)
+        }
+
+        Closure postExecuteRepo = { Map repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
         }
 
@@ -32,15 +38,11 @@ class ReleaseStage extends Stage {
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
         }
 
-        // Execute phase for each repository
-        Closure executeRepos = {
-            util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-                .each { group ->
-                    group.failFast = true
-                    script.parallel(group)
-                }
+        Closure executeRepoGroups = {
+            util.executeRepoGroups(repos, executeRepo, preExecuteRepo, postExecuteRepo)
         }
-        executeInParallel(executeRepos, generateDocuments)
+
+        executeInParallel(executeRepoGroups, generateDocuments)
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }

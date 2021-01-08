@@ -61,7 +61,11 @@ class PipelineSteps implements IPipelineSteps, Serializable {
     }
 
     def node(String name, Closure block) {
-        this.context.node (name, block)
+        this.context.node(name, block)
+    }
+
+    def node(Closure block) {
+        this.context.node(block)
     }
 
     def sh(def args) {
@@ -142,6 +146,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
 
     def withCredentials(List credentialsList, Closure block) {
         this.context.withCredentials(credentialsList, block)
+    }
+
+    def parallel(Map<String, Closure> tasks) {
+        this.context.parallel(tasks)
     }
 
     def unwrap() {

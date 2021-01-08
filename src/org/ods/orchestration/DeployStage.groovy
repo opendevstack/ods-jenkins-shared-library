@@ -1,14 +1,16 @@
 package org.ods.orchestration
 
+import groovy.transform.TypeChecked
+
 import org.ods.services.ServiceRegistry
 import org.ods.services.OpenShiftService
+import org.ods.services.GitService
+import org.ods.orchestration.phases.DeployOdsComponent
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.util.PipelineSteps
-import org.ods.util.Logger
-import org.ods.util.ILogger
 
+@TypeChecked
 class DeployStage extends Stage {
 
     public final String STAGE_NAME = 'Deploy'
@@ -17,26 +19,25 @@ class DeployStage extends Stage {
         super(script, project, repos, startMROStageName)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
+    @SuppressWarnings(['AbcMetric', 'MethodSize'])
     def run() {
-        def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def os = ServiceRegistry.instance.get(OpenShiftService)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        ILogger logger = ServiceRegistry.instance.get(Logger)
+        def git = ServiceRegistry.instance.get(GitService)
 
         def phase = MROPipelineUtil.PipelinePhases.DEPLOY
 
-        def standardWorkspace = script.env.WORKSPACE
+        def standardWorkspace = this.steps.env.WORKSPACE
         def agentPodCondition = project.isPromotionMode
 
-        def preExecuteRepo = { steps_, repo ->
+        Closure preExecuteRepo = { Map repo ->
             // In case we run the phase on an agent node, we need to make sure that
             // the levaDocScheduler.run is executed on the master node, as it does
             // not work on agent nodes yet.
             if (agentPodCondition) {
-                script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
+                this.steps.node {
+                    this.steps.sh "cp -r ${standardWorkspace}/docs ${this.steps.env.WORKSPACE}/docs"
                     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
                 }
             } else {
@@ -44,18 +45,37 @@ class DeployStage extends Stage {
             }
         }
 
-        def postExecuteRepo = { steps_, repo ->
+        Closure executeRepo = { Map repo ->
+            switch (util.repoType(repo)) {
+                case MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE:
+                case MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE:
+                    if (this.project.isPromotionMode) {
+                        new DeployOdsComponent(this.project, this.steps, git, this.logger).run(repo)
+                    } else {
+                        util.logRepoSkip(phase, repo)
+                    }
+                    break
+                case MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST:
+                    util.logRepoSkip(phase, repo)
+                    break
+                default:
+                    util.runCustomInstructionsForPhaseOrSkip(phase, repo)
+                    break
+            }
+        }
+
+        Closure postExecuteRepo = { Map repo ->
             // In case we run the phase on an agent node, we need to make sure that
             // the levaDocScheduler.run is executed on the master node, as it does
             // not work on agent nodes yet.
             if (agentPodCondition) {
-                script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
+                this.steps.node {
+                    this.steps.sh "cp -r ${standardWorkspace}/docs ${this.steps.env.WORKSPACE}/docs"
                     levaDocScheduler.run(
                         phase,
                         MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                         repo,
-                        repo.data
+                        repo.data as Map
                     )
                 }
             } else {
@@ -63,7 +83,7 @@ class DeployStage extends Stage {
                     phase,
                     MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                     repo,
-                    repo.data
+                    repo.data as Map
                 )
             }
         }
@@ -72,21 +92,21 @@ class DeployStage extends Stage {
             if (project.isPromotionMode) {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject
-                logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'")
+                this.logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'")
 
                 if (project.targetClusterIsExternal) {
-                    logger.info("Target cluster is external, logging into ${project.openShiftTargetApiUrl}")
-                    script.withCredentials([
-                        script.usernamePassword(
+                    this.logger.info("Target cluster is external, logging into ${project.openShiftTargetApiUrl}")
+                    this.steps.withCredentials([
+                        this.steps.usernamePassword(
                             credentialsId: project.environmentConfig.credentialsId,
                             usernameVariable: 'EXTERNAL_OCP_API_SA',
                             passwordVariable: 'EXTERNAL_OCP_API_TOKEN'
                         )
                     ]) {
                         OpenShiftService.loginToExternalCluster(
-                            steps,
+                            this.steps,
                             project.openShiftTargetApiUrl,
-                            script.EXTERNAL_OCP_API_TOKEN
+                            this.steps.env.EXTERNAL_OCP_API_TOKEN as String
                         )
                     }
                 }
@@ -104,15 +124,11 @@ class DeployStage extends Stage {
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
             }
 
-            // Execute phase for each repository
-            Closure executeRepos = {
-                util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
-                    .each { group ->
-                        group.failFast = true
-                        script.parallel(group)
-                    }
+            Closure executeRepoGroups = {
+                util.executeRepoGroups(repos, executeRepo, preExecuteRepo, postExecuteRepo)
             }
-            executeInParallel(executeRepos, generateDocuments)
+
+            executeInParallel(executeRepoGroups, generateDocuments)
         }
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)

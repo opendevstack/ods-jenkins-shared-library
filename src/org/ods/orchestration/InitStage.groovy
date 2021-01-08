@@ -16,8 +16,6 @@ import org.ods.orchestration.util.MROPipelineUtil
 
 import org.ods.util.GitCredentialStore
 import org.ods.util.PipelineSteps
-import org.ods.util.Logger
-import org.ods.util.ILogger
 
 @SuppressWarnings('AbcMetric')
 class InitStage extends Stage {
@@ -30,8 +28,6 @@ class InitStage extends Stage {
 
     @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey', 'LineLength'])
     def run() {
-        ILogger logger = ServiceRegistry.instance.get(Logger)
-        def steps = new PipelineSteps(script)
         def git = new GitService(steps, logger)
 
         // load build params
@@ -41,7 +37,7 @@ class InitStage extends Stage {
         // Read the environment state on main branch. We do not want to read
         // the state file on a release branch, as that might be stale (e.g. due
         // to concurrent releases).
-        def envState = loadEnvState(logger, buildParams.targetEnvironment)
+        def envState = loadEnvState(buildParams.targetEnvironment)
 
         logger.startClocked("git-releasemanager-${STAGE_NAME}")
         // git checkout
@@ -90,7 +86,6 @@ class InitStage extends Stage {
         def registry = ServiceRegistry.instance
         registry.add(GitService, git)
         registry.add(PDFUtil, new PDFUtil())
-        registry.add(PipelineSteps, steps)
         def util = new MROPipelineUtil(project, steps, git, logger)
         registry.add(MROPipelineUtil, util)
         registry.add(Project, project)
@@ -407,15 +402,15 @@ class InitStage extends Stage {
         ])
     }
 
-    private Map loadEnvState(ILogger logger, String targetEnvironment) {
+    private Map loadEnvState(String targetEnvironment) {
         def envStateFile = "${Project.envStateFileName(targetEnvironment)}"
-        logger.info "Load env state from ${envStateFile}"
+        this.logger.info "Load env state from ${envStateFile}"
         script.sh("mkdir -p ${MROPipelineUtil.ODS_STATE_DIR}")
         if (!script.fileExists(envStateFile)) {
-            logger.debug "No env state ${envStateFile} found, initializing ..."
+            this.logger.debug "No env state ${envStateFile} found, initializing ..."
             return [:]
         }
-        logger.debug "Env state ${envStateFile} found"
+        this.logger.debug "Env state ${envStateFile} found"
         script.readJSON(file: envStateFile)
     }
 

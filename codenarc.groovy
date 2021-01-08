@@ -275,7 +275,7 @@ ruleset {
     UseCollectNested
 
     // rulesets/imports.xml
-    DuplicateImport
+    DuplicateImport(priority: 1)
     ImportFromSamePackage
     ImportFromSunPackages
     MisorderedStaticImports
