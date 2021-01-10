@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
-
+import groovy.json.JsonSlurper
+import spock.lang.Unroll
 import java.nio.file.Files
 
 import org.ods.services.JenkinsService
@@ -56,9 +57,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.getDocumentTrackingIssuesForHistory(_) >> [[key: 'ID-01', status: 'TODO']]
 
 
-        docHistory = new DocumentHistory(steps, logger, 'D', 'someDocument')
+        docHistory = new DocumentHistory(steps, logger, 'D', 'SSD')
         docHistory.load(project.data.jira, [])
         usecase.getAndStoreDocumentHistory(*_) >> docHistory
+        jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
+        sq.loadReportsFromPath(_) >> [new FixtureHelper().getResource("Test.docx")]
     }
 
     def "compute test discrepancies"() {
@@ -914,67 +917,123 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         xmlFile.delete()
     }
 
-    def "create SSDS"() {
+    @Unroll
+    def "create SSDS #scenario"() {
         given:
+        // Data from project-jira-data.json#techSpecs[NET-128]
+        project.data.jira.techSpecs["NET-128"] = new JsonSlurper().parseText(techSpecsParam)
+
+        def expectedSpecifications = ["key":"NET-128",
+                                      "req_key":"NET-125",
+                                      "description":project.data.jira.techSpecs["NET-128"]["systemDesignSpec"]]
+        def expectedComponents = ["key":"Technology-demo-app-catalogue",
+                                  "nameOfSoftware":"demo-app-catalogue",
+                                  "componentType":"ODS Component",
+                                  "componentId":"N/A - part of this application",
+                                  "description":"Some description for demo-app-catalogue",
+                                  "supplier":"https://github.com/microservices-demo/",
+                                  "version":"WIP",
+                                  "references":"N/A"]
+        def expectedModules = ["key":"Technology-demo-app-catalogue",
+                               "componentName":"Technology-demo-app-catalogue",
+                               "componentId":"N/A - part of this application",
+                               "componentType":"ODS Component",
+                               "odsRepoType":"ods",
+                               "description":"Some description for demo-app-catalogue",
+                               "nameOfSoftware":"demo-app-catalogue",
+                               "references":"N/A",
+                               "supplier":"https://github.com/microservices-demo/",
+                               "version":"WIP",
+                               "requirements":[
+                                   ["gampTopic":"performance requirements",
+                                    "requirementsofTopic":[
+                                        ["key":"NET-125",
+                                         "name":"As a user I want my payments to be processed quickly",
+                                         "reqDescription":"Payments have to be conducted quickly to keep up with the elevated expectations of customers",
+                                         "gampTopic":"performance requirements"]]]],
+                               "requirementKeys":["NET-125"],
+                               "softwareDesignSpecKeys":["NET-128"],
+                               "softwareDesignSpec":[
+                                   ["key":"NET-128",
+                                    "softwareDesignSpec":"Implement the system using a loosely coupled micro services architecture for improved extensibility and maintainability."
+                                   ]]]
+        def expectedDocs =  ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent"]
+        // TODO add 'discontinuationsPerType'to project-jira-data.json in order to do functional test of the "history"
+        def expectedCodeReviewReports = [null, null]
+
+        def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
+        def uri = "http://nexus"
+
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
-
-        steps.env.BUILD_ID = "0815"
-
-        // Test Parameters
-        def repo = project.repositories.first()
-
-        // Argument Constraints
-        def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
-        def sqReportsPath = "sonarqube/${repo.id}"
-        def sqReportsStashName = "scrr-report-${repo.id}-${steps.env.BUILD_ID}"
-
-        // Stubbed Method Responses
-        def chapterData = ["sec1": [content: "myContent", status: "DONE"]]
-        def uri = "http://nexus"
-        def documentIssue = createJiraDocumentIssues().first()
-        def sqReportFiles = [new FixtureHelper().getResource("Test.docx")]
-        def requirement = [key: "REQ-1", name: "This is the req 1", gampTopic: "roles"]
-        def techSpec = [key: "TS-1", softwareDesignSpec: "This is the software design spec for TS-1", name: "techSpec 1"]
-        def compMetadata = [
-            "demo-app-front-end": [
-                key           : "Front-key",
-                componentName : "demo-app-front-end",
-                componentId   : "front",
-                componentType : "ODS Component",
-                odsRepoType   : "ods",
-                description   : "Example description",
-                nameOfSoftware: "Stock Shop frontend",
-                references    : "N/A",
-                supplier      : "N/A",
-                version       : "0.1",
-                requirements  : [requirement],
-                techSpecs     : [techSpec]
-            ]
-        ]
-        def documentTemplate = "template"
-        def watermarkText = "WATERMARK"
+        usecase.createDocument(*_) >> uri
 
         when:
-        usecase.createSSDS()
+        def answer = usecase.createSSDS()
 
         then:
-        1 * usecase.getDocumentSections(documentType) >> chapterData
-        0 * levaFiles.getDocumentChapterData(documentType)
-        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
-
-        then:
-        1 * usecase.computeComponentMetadata(documentType) >> compMetadata
-        2 * project.getTechnicalSpecifications()
-        jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
-        sq.loadReportsFromPath(_) >> sqReportFiles
-
-        then:
-        1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], null)
-        1 * usecase.createDocument(documentTemplate, null, _, _, _, documentType, watermarkText) >> uri
-        1 * usecase.getSectionsNotDone(documentType) >> []
+        answer == uri
+        1 * usecase.createDocumentWithModifier(
+            "SSDS-5",
+            {
+                assert it.data.sections.sec1 == expectedDocs
+                assert it.data.sections.sec3s1.specifications[0] == expectedSpecifications
+                assert it.data.sections.sec5s1.components[0] == expectedComponents
+                assert it.data.sections.sec10.modules[0] == expectedModules
+            },
+            expectedCodeReviewReports,
+            documentType,
+            LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK
+        ) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
+
+        where:
+        scenario << ["Neither  systemDesignSpec nor softwareDesignSpec",
+                     "Only systemDesignSpec",
+                     "Both softwareDesignSpec & systemDesignSpec"]
+        techSpecsParam << ['''
+          {
+            "key": "NET-128",
+            "id": "128",
+            "version": "1.0",
+            "name": "Containerized Infrastructure",
+            "description": "The system should be set up as containerized infrastructure in the openshift cluster.",
+            "status": "IN DESIGN",
+            "components": ["Technology-demo-app-catalogue"],
+            "requirements": ["NET-125"],
+            "risks": ["NET-126"],
+            "tests": ["NET-127"]
+        }''',
+                     '''
+          {
+            "key": "NET-128",
+            "id": "128",
+            "version": "1.0",
+            "name": "Containerized Infrastructure",
+            "description": "The system should be set up as containerized infrastructure in the openshift cluster.",
+            "status": "IN DESIGN",
+            "systemDesignSpec": "Use containerized infrastructure to support quick and easy provisioning of a multitude of micro services that do one thing only and one thing right and fast.",
+            "components": ["Technology-demo-app-catalogue"],
+            "requirements": ["NET-125"],
+            "risks": ["NET-126"],
+            "tests": ["NET-127"]
+        }''',
+                     '''
+          {
+            "key": "NET-128",
+            "id": "128",
+            "version": "1.0",
+            "name": "Containerized Infrastructure",
+            "description": "The system should be set up as containerized infrastructure in the openshift cluster.",
+            "status": "IN DESIGN",
+            "systemDesignSpec": "Use containerized infrastructure to support quick and easy provisioning of a multitude of micro services that do one thing only and one thing right and fast.",
+            "softwareDesignSpec": "Implement the system using a loosely coupled micro services architecture for improved extensibility and maintainability.",
+            "components": ["Technology-demo-app-catalogue"],
+            "requirements": ["NET-125"],
+            "risks": ["NET-126"],
+            "tests": ["NET-127"]
+        }''']
+
     }
 
     def "create RA"() {
