@@ -1,8 +1,8 @@
 == Pipeline Options
 
-`odsQuickstgarterPipeline` can be customized by passing configuration options like this:
+`odsQuickstarterPipeline` can be customized by passing configuration options like this:
 ----
-odsQuickstgarterPipeline(
+odsQuickstarterPipeline(
   imageStreamTag: 'ods/jenkins-agent-golang:3.x'
 )
 ----
@@ -55,7 +55,7 @@ Available options are:
 
 == Pipeline Context
 
-When you write custom stages inside the closure passed to `odsQuickstgarterPipeline`, you have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsQuickstgarterPipeline`, see <<_pipeline_options,Pipeline Options>>.
+When you write custom stages inside the closure passed to `odsQuickstarterPipeline`, you have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsQuickstarterPipeline`, see <<_pipeline_options,Pipeline Options>>.
 
 The `context` object contains the following properties:
 
@@ -73,7 +73,7 @@ The `context` object contains the following properties:
 | Value of BUILD_URL. The URL where the results of the build can be found (e.g. `http://buildserver/jenkins/job/MyJobName/123/`)
 
 | buildTime
-| Time of the build, collected when the odsQuickstgarterPipeline starts.
+| Time of the build, collected when the odsQuickstarterPipeline starts.
 
 | cdUserCredentialsId
 | Credentials identifier (Credentials are created and named automatically by the OpenShift Jenkins plugin).
@@ -137,7 +137,7 @@ To completely control the container(s) within the pod, set `podContainers`
 
 Configuring of a customized agent container in a `Jenkinsfile`:
 ----
-odsQuickstgarterPipeline(
+odsQuickstarterPipeline(
   projectId: projectId,
   podContainers: [
     containerTemplate(
