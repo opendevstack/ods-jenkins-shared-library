@@ -923,9 +923,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // Data from project-jira-data.json#techSpecs[NET-128]
         project.data.jira.techSpecs["NET-128"] = new JsonSlurper().parseText(techSpecsParam)
 
-        def expectedSpecifications = ["key":"NET-128",
+        def systemDesignSpec = project.data.jira.techSpecs["NET-128"]["systemDesignSpec"]
+        def expectedSpecifications = systemDesignSpec
+                                    ? ["key":"NET-128",
                                       "req_key":"NET-125",
-                                      "description":project.data.jira.techSpecs["NET-128"]["systemDesignSpec"]]
+                                      "description":systemDesignSpec]
+                                    : null
         def expectedComponents = ["key":"Technology-demo-app-catalogue",
                                   "nameOfSoftware":"demo-app-catalogue",
                                   "componentType":"ODS Component",
