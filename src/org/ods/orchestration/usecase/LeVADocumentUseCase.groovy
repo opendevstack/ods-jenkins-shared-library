@@ -932,7 +932,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.pdf.merge(documents)
         }
 
-        this.createDocument(documentTemplateName, data, [:], null, modifier, documentType, watermarkText)
+        this.createDocument(documentTemplateName, null, data, [:], modifier, documentType, watermarkText)
     }
 
     String createTIP(Map repo = null, Map data = null) {
