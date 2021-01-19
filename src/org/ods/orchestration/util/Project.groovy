@@ -357,6 +357,24 @@ class Project {
             this.addCommentInReleaseStatus(message)
         }
 
+        if(this.jiraUseCase.jira){
+            logger.debug("Verify that each unit test in Jira project ${project.key} has exactly one component assigned.")
+            def faultMap = [:]
+            this.data.jira.tests
+                .findAll{it.value.get("testType") == "Unit"}
+                .each{entry ->
+                    if(entry.value.get("components").size() != 1){
+                        faultMap.put(entry.key, entry.value.get("components").size())
+                    }
+                }
+            if(faultMap.size() != 0){
+                def faultyTestIssues = faultMap.keySet()
+                    .collect{key -> key + ": " + faultMap.get(key) + "; "}
+                    .inject(""){temp, val -> temp + val}
+                throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
+            }
+        }
+
         this.data.documents = [:]
         this.data.openshift = [:]
 
@@ -987,6 +1005,7 @@ class Project {
     }
 
     protected String getVersionFromReleaseStatusIssue() {
+        // TODO review if it's possible to use Project.getVersionName()?
         return this.jiraUseCase.getVersionFromReleaseStatusIssue()
     }
 

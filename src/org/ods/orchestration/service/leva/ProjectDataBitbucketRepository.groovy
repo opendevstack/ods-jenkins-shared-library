@@ -34,7 +34,7 @@ class ProjectDataBitbucketRepository {
                 data = new JsonSlurperClassic().parseText(savedData) ?: [:]
             } else {
                 throw new RuntimeException(
-                    'Error: unable to load saved information prom the previous version. ' +
+                    'Error: unable to load saved information from the previous version. ' +
                         "File '${BASE_DIR}/${fileName}.json' could not be read."
                 )
             }
