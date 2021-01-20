@@ -1,8 +1,11 @@
 package org.ods.orchestration.usecase
 
 import groovy.json.JsonSlurper
+import groovy.util.logging.Log
+import org.apache.commons.io.FileUtils
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
-import java.nio.file.Files
 
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
@@ -11,12 +14,18 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+import java.nio.file.Files
+import java.nio.file.Paths
 
 import static util.FixtureHelper.*
 
 import util.*
 
+@Log
 class LeVADocumentUseCaseSpec extends SpecHelper {
+
+    @Rule
+    public TemporaryFolder tempFolder
 
     Project project
     IPipelineSteps steps
@@ -61,7 +70,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         docHistory.load(project.data.jira, [])
         usecase.getAndStoreDocumentHistory(*_) >> docHistory
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
-        sq.loadReportsFromPath(_) >> [new FixtureHelper().getResource("Test.docx")]
     }
 
     def "compute test discrepancies"() {
@@ -961,34 +969,54 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                                     "softwareDesignSpec":"Implement the system using a loosely coupled micro services architecture for improved extensibility and maintainability."
                                    ]]]
         def expectedDocs =  ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent"]
-        // TODO add 'discontinuationsPerType'to project-jira-data.json in order to do functional test of the "history"
-        def expectedCodeReviewReports = [null, null]
+
+        log.info "Using temporal folder:${tempFolder.getRoot()}"
+        steps.env.BUILD_ID = "1"
+        steps.env.WORKSPACE = tempFolder.getRoot().absolutePath
+        FileUtils.copyDirectory(new FixtureHelper().getResource("Test-1.pdf").parentFile, tempFolder.getRoot());
+        def pdfDoc = new FixtureHelper().getResource("Test-1.pdf").bytes
+        def sqReportFile = new FixtureHelper().getResource("Test-2.pdf")
+        sq.loadReportsFromPath(_) >> [sqReportFile]
 
         def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
-        def uri = "http://nexus"
-
+        def uri = new URI("http://nexus")
+        def pdfUtil = new PDFUtil()
         jiraUseCase = Spy(new JiraUseCase(project, steps, util, Mock(JiraService), logger))
-        usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
-        usecase.createDocument(*_) >> uri
+        util = Spy(new MROPipelineUtil(project, steps, null, logger))
+        usecase = Spy(
+            new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdfUtil, sq)
+        )
 
         when:
         def answer = usecase.createSSDS()
 
         then:
-        answer == uri
-        1 * usecase.createDocumentWithModifier(
+        answer == uri.toString()
+
+        1 * nexus.storeArtifact(
+            "leva-documentation",
+            "net-WIP",
+            "SCRR-MD-net-demo-app-catalogue-WIP-1.pdf",
+            !null,
+            'application/pdf')
+        1 * docGen.createDocument(
             "SSDS-5",
+            "1.0",
             {
                 assert it.data.sections.sec1 == expectedDocs
                 assert it.data.sections.sec3s1.specifications[0] == expectedSpecifications
                 assert it.data.sections.sec5s1.components[0] == expectedComponents
                 assert it.data.sections.sec10.modules[0] == expectedModules
-            },
-            expectedCodeReviewReports,
-            documentType,
-            LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK
+            }
+        ) >> pdfDoc // TODO replace this pdf with the real expected one
+        1 * nexus.storeArtifact("leva-documentation",
+            "net-WIP",
+            "SSDS-net-WIP-1.zip",
+            !null,
+            "application/zip"
         ) >> uri
-        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
+        1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri.toString(), "${docHistory.getVersion()}")
+        // TODO compare the pdf result with the expected one (https://github.com/vinsguru/pdf-util)
 
         where:
         scenario << ["Neither  systemDesignSpec nor softwareDesignSpec",
