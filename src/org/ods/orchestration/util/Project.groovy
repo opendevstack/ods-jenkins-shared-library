@@ -61,6 +61,16 @@ class Project {
             TYPE_DOCS,
         ]
 
+        static final List TYPES_TO_BE_CLOSED = [
+            TYPE_EPICS,
+            TYPE_MITIGATIONS,
+            TYPE_REQUIREMENTS,
+            TYPE_RISKS,
+            TYPE_TECHSPECS,
+            TYPE_TESTS,
+            TYPE_DOCS,
+        ]
+
         static final String ISSUE_STATUS_DONE = 'done'
         static final String ISSUE_STATUS_CANCELLED = 'cancelled'
 
@@ -358,7 +368,7 @@ class Project {
         }
 
         if(this.jiraUseCase.jira){
-            logger.debug("Verify that each unit test in Jira project ${project.key} has exactly one component assigned.")
+            logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
             def faultMap = [:]
             this.data.jira.tests
                 .findAll{it.value.get("testType") == "Unit"}
@@ -393,9 +403,18 @@ class Project {
         return !values.isEmpty()
     }
 
+    boolean isProjectReadyToFreeze(Map data) {
+        def result = true
+        JiraDataItem.TYPES_TO_BE_CLOSED.each { type ->
+            if (data.containsKey(type)) {
+                result = result & (data[type].find { k, v -> issueIsWIP(v) } == null)
+            }
+        }
+        return result
+    }
+
     protected Map<String, List> computeWipJiraIssues(Map data) {
         def result = [:]
-
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
             if (data.containsKey(type)) {
                 result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
