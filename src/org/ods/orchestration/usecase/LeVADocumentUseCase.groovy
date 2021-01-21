@@ -170,6 +170,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if(project.data?.jira?.discontinuationsPerType) {
             keysInDoc += project.data.jira.discontinuationsPerType.requirements*.key
+            keysInDoc += project.data.jira.discontinuationsPerType.epics*.key
         }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
