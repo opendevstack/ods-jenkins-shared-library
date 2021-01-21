@@ -124,12 +124,17 @@ class GitService {
         ).trim()
     }
 
-    /** Looks in commit message for string '[ci skip]', '[ciskip]', '[ci-skip]' and '[ci_skip]'. */
+    /** Looks in commit message for the following strings
+     *  '[ci skip]', '[ciskip]', '[ci-skip]', '[ci_skip]',
+     *  '[skip ci]', '[skipci]', '[skip-ci]', '[skip_ci]',
+     *  '***NO_CI***', '***NO CI***', '***NOCI***', '***NO-CI***'
+     */
     boolean isCiSkipInCommitMessage() {
-        return script.sh(
+        def gitCommitMessage = script.sh(
             returnStdout: true, script: 'git show --pretty=%s%b -s',
             label: 'check skip CI?'
-        ).toLowerCase().replaceAll('[\\s\\-\\_]', '').contains('[ciskip]')
+        ).toLowerCase().replaceAll('[\\s\\-\\_]', '')
+        return gitCommitMessage.contains('[ciskip]') || gitCommitMessage.contains('[skipci]') || gitCommitMessage.contains('***noci***')
     }
 
     void checkout(String gitCommit, def userRemoteConfigs) {
