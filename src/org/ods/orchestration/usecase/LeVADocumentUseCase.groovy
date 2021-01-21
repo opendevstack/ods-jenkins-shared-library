@@ -164,7 +164,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
-        def keysInDoc = requirementsForDocument.values().collect{it.noepics*.key + it.epics*.key}.flatten()
+        def keysInDoc = requirementsForDocument.values().collect{
+            it.noepics*.key +
+                it.epics*.key +
+                it.epics.collect{it.stories*.key}
+        }.flatten()
 
 
         if(project.data?.jira?.discontinuationsPerType) {
