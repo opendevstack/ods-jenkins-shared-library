@@ -131,7 +131,7 @@ class GitService {
      */
     boolean isCiSkipInCommitMessage() {
         def gitCommitMessage = script.sh(
-            returnStdout: true, script: 'git show --pretty=%s%b -s',
+            returnStdout: true, script: 'git show --pretty=%s -s',
             label: 'check skip CI?'
         ).toLowerCase().replaceAll('[\\s\\-\\_]', '')
         return gitCommitMessage.contains('[ciskip]') || gitCommitMessage.contains('[skipci]') || gitCommitMessage.contains('***noci***')
