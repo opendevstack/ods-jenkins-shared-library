@@ -921,6 +921,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { it.subMap(['key', 'requirements']).values() }.flatten()
         + componentsMetadata.collect { it.key }
         + modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten())
+
+        if(this.project.data.jira.discontinuationsPerType) {
+            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
