@@ -773,6 +773,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
+        if(this.project.data.jira.discontinuationsPerType) {
+            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -1108,6 +1112,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getSystemRequirements()
             .collect { it.subMap(['key', 'risks', 'tests']).values()  }
             .flatten()
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
