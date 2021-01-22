@@ -418,16 +418,12 @@ If the subject of the built commit message contains `[ci skip]`, `[skip ci]` or 
 [source,sh]
 skip
 ----
-# skips pipeline (one-line)
+# skip pipeline (one-line commit)
 $ git commit -m "docs: update README [ci skip]"
 
-# skips pipeline (multi-line)
-$ git commit -m "docs: update README [ci skip]
-- add section installation
-"
-
-# run pipeline (multi-line) as it is not part of the subject
+# run pipeline (multi-line commit) as it is not part of the subject
 $ git commit -m "docs: update README
+
 - add section installation
 - [ci skip]"
 ----
