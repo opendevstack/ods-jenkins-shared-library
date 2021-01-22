@@ -200,6 +200,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = modules.collect { 'Technology-' + it.id } + tests
             .collect {[it.key, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
+
+        if(this.project.data.jira.discontinuationsPerType) {
+            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
