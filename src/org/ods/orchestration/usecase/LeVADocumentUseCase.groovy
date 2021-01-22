@@ -199,7 +199,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modules = this.getReposWithUnitTestsInfo(unitTests)
 
         def keysInDoc = modules.collect { 'Technology-' + it.id } + tests
-            .collect {[it.key, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
+            .collect {[it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
 
         if(this.project.data.jira.discontinuationsPerType) {
             keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
