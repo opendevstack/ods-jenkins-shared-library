@@ -18,7 +18,7 @@ def call(IContext context, Map config = [:]) {
     if (config.resourceName) {
         error(
             "The config option 'resourceName' has been removed from odsComponentStageRolloutOpenShiftDeployment. " +
-            "Instead, all resources with a common label are rollout out together. " +
+            "Instead, all resources with a common label are rolled out together. " +
             "If you need separate rollouts, consider specifying additional labels " +
             "and target those via the 'selector' config option."
         )
