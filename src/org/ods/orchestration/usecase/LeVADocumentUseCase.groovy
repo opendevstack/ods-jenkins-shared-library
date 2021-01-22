@@ -830,6 +830,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
         def keysInDoc = computeDocumentKeys(integrationTestIssues, acceptanceTestIssues)
+        if(this.project.data.jira.discontinuationsPerType) {
+            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
