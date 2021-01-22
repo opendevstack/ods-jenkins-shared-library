@@ -201,9 +201,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = modules.collect { 'Technology-' + it.id } + tests
             .collect {[it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
 
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
@@ -413,9 +413,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key']).values() }.flatten()
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
@@ -464,9 +464,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key']).values() }.flatten()
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -597,9 +597,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getRisks()
             .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values()  }
             .flatten()
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -773,9 +773,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
@@ -834,9 +834,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
         def keysInDoc = computeDocumentKeys(integrationTestIssues, acceptanceTestIssues)
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
@@ -930,9 +930,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         + componentsMetadata.collect { it.key }
         + modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten())
 
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
@@ -1112,6 +1112,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getSystemRequirements()
             .collect { it.subMap(['key', 'risks', 'tests']).values()  }
             .flatten()
+//        if(this.project.data.jira.discontinuationsPerType) {
+//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
@@ -1527,7 +1530,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }.collect { it.key }
     }
 
-    protected DocumentHistory getAndStoreDocumentHistory(String documentName, List<String> keysInDoc = null) {
+    protected DocumentHistory getAndStoreDocumentHistory(String documentName, List<String> keysInDoc = []) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
@@ -1535,6 +1538,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return this.project.getHistoryForDocument(documentName)
         } else {
+            if (this.project.data.jira.discontinuationsPerType) {
+                keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+            }
             def documentType = documentName.split('-').first()
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
