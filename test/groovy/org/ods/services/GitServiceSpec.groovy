@@ -19,7 +19,7 @@ class GitServiceSpec extends SpecHelper {
         releaseBranch == "release/0.0.1"
     }
 
-    def "git commit with skip patern: [ci skip]"() {
+    def "git commit with skip pattern: [ci skip]"() {
         given:
         def gitCommitMessage = "docs: update README [ci skip]"
         def script = new PipelineScript()
@@ -32,7 +32,7 @@ class GitServiceSpec extends SpecHelper {
         isSkippingCommitMessage == true
     }
 
-    def "git commit with skip patern: [skip ci]"() {
+    def "git commit with skip pattern: [skip ci]"() {
         given:
         def gitCommitMessage = "docs: update README [skip ci]"
         def script = new PipelineScript()
@@ -45,7 +45,7 @@ class GitServiceSpec extends SpecHelper {
         isSkippingCommitMessage == true
     }
 
-    def "git commit with skip patern: ***NO_CI***"() {
+    def "git commit with skip pattern: ***NO_CI***"() {
         given:
         def gitCommitMessage = "docs: update README ***NO_CI***"
         def script = new PipelineScript()
@@ -58,7 +58,7 @@ class GitServiceSpec extends SpecHelper {
         isSkippingCommitMessage == true
     }
 
-    def "git commit without skip patern"() {
+    def "git commit without skip pattern"() {
         given:
         def gitCommitMessage = "docs: update README"
         def script = new PipelineScript()
