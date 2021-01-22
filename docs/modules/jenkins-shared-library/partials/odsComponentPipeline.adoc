@@ -414,4 +414,22 @@ def sayHello(def context) {
 
 === Skipping pipeline runs
 
-If the message of the built commit contains `[ci skip]`, `[skip ci]` or `***NO_CI***`, the pipeline is skipped. The Jenkins build status will be set to `NOT_BUILT`, the Bitbucket build status to `SUCCESSFUL` (as there is no "skipped" state). The pipeline will start to execute initially, but abort before launching any agent nodes or starting any of the stages defined in the `Jenkinsfile`.
+If the subject of the built commit message contains `[ci skip]`, `[skip ci]` or `\\***NO_CI***`, the pipeline is skipped.
+[source,sh]
+skip
+----
+# skips pipeline (one-line)
+$ git commit -m "docs: update README [ci skip]"
+
+# skips pipeline (multi-line)
+$ git commit -m "docs: update README [ci skip]
+- add section installation
+"
+
+# run pipeline (multi-line) as it is not part of the subject
+$ git commit -m "docs: update README
+- add section installation
+- [ci skip]"
+----
+
+The Jenkins build status will be set to `NOT_BUILT`, the Bitbucket build status to `SUCCESSFUL` (as there is no "skipped" state). The pipeline will start to execute initially, but abort before launching any agent nodes or starting any of the stages defined in the `Jenkinsfile`.
