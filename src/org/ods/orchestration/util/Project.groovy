@@ -168,9 +168,17 @@ class Project {
         @NonCPS
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
         private List<JiraDataItem> getResolvedReferences(String type) {
-            // Reference this within jiraResolved (contains readily resolved references to other entities)
+            Project.this.steps.echo("XXX ")
+            Project.this.steps.echo(" Type: " + type)
+            Project.this.steps.echo(" this.type: " + this.type)
+            Project.this.steps.echo(" this.key:  " + this.key)
+            Project.this.steps.echo(" Data:      " + Project.this.data)
+
+          // Reference this within jiraResolved (contains readily resolved references to other entities)
             def item = Project.this.data.jiraResolved[this.type][this.key]
-            return item[type] ?: []
+            Project.this.steps.echo(" Item :      " + item)
+          
+          return item[type] ?: []
         }
 
         List<JiraDataItem> getResolvedBugs() {
