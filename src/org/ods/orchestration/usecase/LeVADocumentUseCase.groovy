@@ -164,12 +164,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
-        def keysInDoc = requirementsForDocument.values().collect{it.noepics*.key + it.epics*.key}.flatten()
-
+        def keysInDoc = this.project.getRequirements()
+            .collect { it.subMap(['key', 'epics']).values()  }
+            .flatten().unique()
 
         if(project.data?.jira?.discontinuationsPerType) {
             keysInDoc += project.data.jira.discontinuationsPerType.requirements*.key
+            keysInDoc += project.data.jira.discontinuationsPerType.epics*.key
         }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
@@ -196,7 +199,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def modules = this.getReposWithUnitTestsInfo(unitTests)
 
         def keysInDoc = modules.collect { 'Technology-' + it.id } + tests
-            .collect {[it.key, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
+            .collect {[it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -402,8 +406,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
+
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
-            .collect { it.subMap(['key', 'requirements', 'risks']).values() }.flatten()
+            .collect { it.subMap(['key']).values() }.flatten()
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -450,7 +456,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
-            .collect { it.subMap(['key', 'requirements', 'risks']).values() }.flatten()
+            .collect { it.subMap(['key']).values() }.flatten()
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -581,9 +588,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getRisks()
             .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values()  }
             .flatten()
-        if(this.project.data.jira.discontinuationsPerType) {
-            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -757,6 +762,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -814,6 +820,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
         def keysInDoc = computeDocumentKeys(integrationTestIssues, acceptanceTestIssues)
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
@@ -905,6 +912,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { it.subMap(['key', 'requirements']).values() }.flatten()
         + componentsMetadata.collect { it.key }
         + modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten())
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1083,6 +1091,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getSystemRequirements()
             .collect { it.subMap(['key', 'risks', 'tests']).values()  }
             .flatten()
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -1497,7 +1506,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }.collect { it.key }
     }
 
-    protected DocumentHistory getAndStoreDocumentHistory(String documentName, List<String> keysInDoc = null) {
+    protected DocumentHistory getAndStoreDocumentHistory(String documentName, List<String> keysInDoc = []) {
         if (!this.jiraUseCase) return
         if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
@@ -1505,6 +1514,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return this.project.getHistoryForDocument(documentName)
         } else {
+            if (this.project.data.jira.discontinuationsPerType) {
+                keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
+            }
             def documentType = documentName.split('-').first()
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)

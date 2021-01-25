@@ -802,6 +802,10 @@ class Project {
         return this.data.metadata.repositories
     }
 
+    List<JiraDataItem> getRequirements() {
+        return this.data.jira.requirements.values() as List
+    }
+
     Map getEnvironments() {
         return this.data.metadata.environments
     }
