@@ -201,10 +201,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = modules.collect { 'Technology-' + it.id } + tests
             .collect {[it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
 
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
-
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -413,9 +409,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key']).values() }.flatten()
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
@@ -464,9 +457,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key']).values() }.flatten()
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -597,9 +588,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getRisks()
             .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values()  }
             .flatten()
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
+
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -773,9 +762,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
             .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
@@ -834,9 +820,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
         def keysInDoc = computeDocumentKeys(integrationTestIssues, acceptanceTestIssues)
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
@@ -929,10 +912,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { it.subMap(['key', 'requirements']).values() }.flatten()
         + componentsMetadata.collect { it.key }
         + modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten())
-
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
@@ -1112,9 +1091,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.project.getSystemRequirements()
             .collect { it.subMap(['key', 'risks', 'tests']).values()  }
             .flatten()
-//        if(this.project.data.jira.discontinuationsPerType) {
-//            keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-//        }
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
