@@ -134,7 +134,9 @@ class GitService {
             returnStdout: true, script: 'git show --pretty=%s -s',
             label: 'check skip CI?'
         ).toLowerCase().replaceAll('[\\s\\-\\_]', '')
-        return gitCommitMessage.contains('[ciskip]') || gitCommitMessage.contains('[skipci]') || gitCommitMessage.contains('***noci***')
+        return (gitCommitMessage.contains('[ciskip]')
+                 || gitCommitMessage.contains('[skipci]')
+                 || gitCommitMessage.contains('***noci***'))
     }
 
     void checkout(String gitCommit, def userRemoteConfigs) {
