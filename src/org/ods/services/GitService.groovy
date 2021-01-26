@@ -141,10 +141,7 @@ class GitService {
         def gitCommitSubject = ''
         if (gitCommit) {
             def indexEndOfLine = gitCommit.indexOf('\n')
-            if (indexEndOfLine == -1) {
-                indexEndOfLine = gitCommit.length()
-            }
-            gitCommitSubject = gitCommit.substring(0, indexEndOfLine)
+            gitCommitSubject = gitCommit[0..indexEndOfLine]
         } else {
             gitCommitSubject = getCommitSubject()
         }
