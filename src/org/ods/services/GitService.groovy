@@ -108,6 +108,14 @@ class GitService {
         ).trim()
     }
 
+    String getCommitSubject() {
+        script.sh(
+            returnStdout: true,
+            script: 'git show --pretty=%s -s',
+            label: 'Get Git commit subject'
+        ).trim()
+    }
+
     String getCommitMessage() {
         script.sh(
             returnStdout: true,
@@ -129,11 +137,20 @@ class GitService {
      *  '[skip ci]', '[skipci]', '[skip-ci]', '[skip_ci]',
      *  '***NO_CI***', '***NO CI***', '***NOCI***', '***NO-CI***'
      */
-    boolean isCiSkipInCommitMessage() {
-        def gitCommitMessage = script.sh(
-            returnStdout: true, script: 'git show --pretty=%s -s',
-            label: 'check skip CI?'
-        ).toLowerCase().replaceAll('[\\s\\-\\_]', '')
+    boolean isCiSkipInCommitMessage(String gitCommit = '') {
+        def gitCommitSubject = ''
+        if(gitCommit) {
+            def indexEndOfLine = gitCommit.indexOf('\n')
+            if(indexEndOfLine == -1) {
+                indexEndOfLine = gitCommit.length()
+            }
+            gitCommitSubject = gitCommit.substring(0, indexEndOfLine)
+        } else {
+            gitCommitSubject = getCommitSubject()
+        }
+
+        gitCommitSubject = gitCommitSubject.toLowerCase().replaceAll('[\\s\\-\\_]', '')
+
         return (gitCommitMessage.contains('[ciskip]')
                  || gitCommitMessage.contains('[skipci]')
                  || gitCommitMessage.contains('***noci***'))
