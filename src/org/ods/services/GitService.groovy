@@ -139,9 +139,9 @@ class GitService {
      */
     boolean isCiSkipInCommitMessage(String gitCommit = '') {
         def gitCommitSubject = ''
-        if(gitCommit) {
+        if (gitCommit) {
             def indexEndOfLine = gitCommit.indexOf('\n')
-            if(indexEndOfLine == -1) {
+            if (indexEndOfLine == -1) {
                 indexEndOfLine = gitCommit.length()
             }
             gitCommitSubject = gitCommit.substring(0, indexEndOfLine)
