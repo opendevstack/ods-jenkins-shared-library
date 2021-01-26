@@ -148,9 +148,9 @@ class GitService {
 
         gitCommitSubject = gitCommitSubject.toLowerCase().replaceAll('[\\s\\-\\_]', '')
 
-        return (gitCommitMessage.contains('[ciskip]')
-                 || gitCommitMessage.contains('[skipci]')
-                 || gitCommitMessage.contains('***noci***'))
+        return (gitCommitSubject.contains('[ciskip]')
+                 || gitCommitSubject.contains('[skipci]')
+                 || gitCommitSubject.contains('***noci***'))
     }
 
     void checkout(String gitCommit, def userRemoteConfigs) {
