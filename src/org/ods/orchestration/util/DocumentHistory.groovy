@@ -41,16 +41,16 @@ class DocumentHistory {
     }
 
     DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys) {
-        this.latestVersionId = (savedVersionId ?: 0L) + 1L
-        if (savedVersionId && savedVersionId != 0L) {
-            def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
-            def projectVersion = jiraData.version
-
-            if (projectVersion == docHistories.first().getProjectVersion()) {
-                latestVersionId = docHistories.first().getEntryId()
-
-                docHistories.removeAt(0)
-            }
+        def projectVersion = jiraData.version
+        def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
+        def existing = docHistories.find {entry -> projectVersion == entry.getProjectVersion() }
+        if (existing) {
+            def version = existing.getEntryId()
+            throw new IllegalStateException("Documentation for project version $projectVersion already exists with version $version")
+        }
+        this.latestVersionId = 1L
+        if (docHistories) {
+            this.latestVersionId = docHistories.first().getEntryId() + 1L
             this.data = docHistories
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
