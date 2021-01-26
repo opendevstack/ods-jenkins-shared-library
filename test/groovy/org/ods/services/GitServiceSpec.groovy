@@ -70,4 +70,21 @@ class GitServiceSpec extends SpecHelper {
         then:
         isSkippingCommitMessage == false
     }
+
+    def "git commit multiline including skip pattern"() {
+        given:
+        def gitCommitMessage = """docs: update README
+
+        - typo
+        - [ci skip]
+        """
+        def script = new PipelineScript()
+        def service = new GitService(script, new Logger(script, false))
+
+        when:
+        def isSkippingCommitMessage = service.isCiSkipInCommitMessage(gitCommitMessage)
+
+        then:
+        isSkippingCommitMessage == false
+    }
 }
