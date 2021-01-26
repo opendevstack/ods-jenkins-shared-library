@@ -46,10 +46,10 @@ class DocumentHistory {
             def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
             def projectVersion = jiraData.version
 
-            if (projectVersion == docHistories.get(0).projectVersion) {
-                latestVersionId = docHistories.get(0).entryId
+            if (projectVersion == docHistories.first().getProjectVersion()) {
+                latestVersionId = docHistories.first().getEntryId()
 
-                docHistories.remove(0)
+                docHistories.removeAt(0)
             }
             this.data = docHistories
         }

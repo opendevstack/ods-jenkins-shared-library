@@ -185,11 +185,11 @@ class DocumentHistorySpec extends SpecHelper {
             discontinuationsPerType : [:]
         ]
 
-        this.jiraData20Alt = [
+        this.jiraData20Alt = this.jiraData20 + [
             epics       : [(epc2.key):epc2]
-        ] + this.jiraData20
+        ]
 
-            this.entries20 = [new DocumentHistoryEntry([
+        this.entries20 = [new DocumentHistoryEntry([
             bugs        : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
@@ -205,7 +205,7 @@ class DocumentHistorySpec extends SpecHelper {
             bugs        : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
             components  : [],
-            epics       : [[key: epc2.key, action: 'add', predecessors: epc2.predecessors]],
+            epics       : [[key: epc2.key, action: 'add']],
             mitigations : [],
             requirements: [[key: req3.key, action: 'change', predecessors: req3.predecessors]],
             risks       : [],
