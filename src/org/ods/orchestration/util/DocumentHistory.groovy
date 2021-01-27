@@ -51,8 +51,9 @@ class DocumentHistory {
                     this.latestVersionId = docHistories.first().getEntryId() + 1L
                     this.data = docHistories
                 }
-            } catch(NoSuchFileException e) {
-                this.logger.warn("No saved history found for savedVersionId $savedVersionId. Exception was: ${e.message}")
+            } catch (NoSuchFileException e) {
+                this.logger.warn("No saved history found for savedVersionId $savedVersionId. \
+                                    Exception message: ${e.message}")
             }
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
