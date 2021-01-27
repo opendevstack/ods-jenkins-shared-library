@@ -211,7 +211,7 @@ class DocumentHistorySpec extends SpecHelper {
             risks       : [],
             tests       : [],
             techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
-            "Modifications for project version '${fourthProjectVersion}'.")] + entries11_second
+            "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '5'.")] + entries20
     }
 
     protected List<String> computeIssuesDoc(List<DocumentHistoryEntry> dhe) {
