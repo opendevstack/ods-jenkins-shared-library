@@ -210,7 +210,7 @@ class DocumentHistorySpec extends SpecHelper {
             requirements: [[key: req3.key, action: 'change', predecessors: req3.predecessors]],
             risks       : [],
             tests       : [],
-            techSpecs   : []], 5L, fourthProjectVersion, secondProjectVersion,
+            techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
             "Modifications for project version '${fourthProjectVersion}'.")] + entries11_second
     }
 
@@ -285,7 +285,7 @@ class DocumentHistorySpec extends SpecHelper {
         1 * history.loadSavedDocHistoryData(savedVersionId) >> savedData
 
         then:
-        history.latestVersionId == 5L
+        history.latestVersionId == 6L
         assert entryListIsEquals(history.data, versionEntries)
         history.data == versionEntries
     }
