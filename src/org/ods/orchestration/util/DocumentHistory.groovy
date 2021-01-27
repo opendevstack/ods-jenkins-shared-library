@@ -50,8 +50,10 @@ class DocumentHistory {
                     latestVersionId = docHistories.first().getEntryId()
                     docHistories.removeAt(0)
                 }
-                this.latestVersionId = docHistories.first().getEntryId() + 1L
-                this.data = docHistories
+                if (docHistories) {
+                    this.latestVersionId = docHistories.first().getEntryId() + 1L
+                    this.data = docHistories
+                }
             }
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
