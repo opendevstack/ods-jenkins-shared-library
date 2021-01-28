@@ -1071,6 +1071,34 @@ class Project {
     protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
         def result = [:]
         def newData = this.loadVersionJiraData(projectKey, versionName)
+        /* FIXME: This is a workaround for NPE bugs resulting from being unable to resolve a reference to an issue belonging
+        *  to a previous version. As a workaround, the deltadocgen report contains the full information of all references.
+        *  Here we will strip data information and store it aside for the use of the resolution algorithm.
+        *  The NPE's must be fixed in the future, and this workaround and the deltadocgen report workaround have to be
+        *  rolled back. */
+        // FIXME: Start of the workaround
+        def typesOfInterest = [
+            JiraDataItem.TYPE_EPICS,
+            JiraDataItem.TYPE_REQUIREMENTS,
+            JiraDataItem.TYPE_TECHSPECS,
+            JiraDataItem.TYPE_RISKS,
+            JiraDataItem.TYPE_MITIGATIONS,
+            JiraDataItem.TYPE_TESTS
+        ] as Set
+        def olderIssues = [:]
+        newData = newData.collectEntries {
+            type, issues ->
+                if(typesOfInterest.contains(type)) {
+                    def filteredIssues = issues.findAll {
+                        key, Map issue -> issue.versions[0] == versionName
+                    }
+                    olderIssues.putAll(filteredIssues)
+                    return [(type): filteredIssues]
+                }
+                return [(type): issues]
+        }
+        result.olderIssues = olderIssues
+        // FIXME: End of the workaround.
 
         // Get more info of the versions from Jira
         def predecessors = newData.precedingVersions ?: []
@@ -1363,7 +1391,13 @@ class Project {
                         result[type][key][referenceType] = []
 
                         item[referenceType].eachWithIndex { referenceKey, index ->
-                            result[type][key][referenceType][index] = data[referenceType][referenceKey]
+                            /* FIXME: This is a workaround for NPE bugs resulting from being unable to resolve a reference to an issue belonging
+                            *  to a previous version. As a workaround, the deltadocgen report contains the full information of all references.
+                            *  Here, whenever an issue cannot be resolved, we use an auxiliar olderIssues map
+                            *  containing the referenced issues belonging to previous versions.
+                            *  The NPE's must be fixed in the future, and this workaround and the deltadocgen report workaround have to be
+                            *  rolled back. */
+                            result[type][key][referenceType][index] = data[referenceType][referenceKey]?:data.olderIssues[referenceKey]
                         }
                     }
                 }
