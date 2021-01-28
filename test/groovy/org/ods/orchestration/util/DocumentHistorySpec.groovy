@@ -15,12 +15,14 @@ class DocumentHistorySpec extends SpecHelper {
     Map jiraDataFix
     Map jiraData11_second
     Map jiraData20
+    Map jiraData20Alt
 
     List<DocumentHistoryEntry> entries10
     List<DocumentHistoryEntry> entries11_first
     List<DocumentHistoryEntry> entriesFix
     List<DocumentHistoryEntry> entries11_second
     List<DocumentHistoryEntry> entries20
+    List<DocumentHistoryEntry> entries20Alt
 
     def setup() {
         steps = Mock(PipelineSteps) {
@@ -45,6 +47,7 @@ class DocumentHistorySpec extends SpecHelper {
         def cmp1 = cmp('frontend', firstProjectVersion )
         def cmp2 = cmp('backend', firstProjectVersion)
         def epc1 = epc('1', secondProjectVersion)
+        def epc2 = epc('2', fourthProjectVersion)
         def req1 = req('1', firstProjectVersion)
         def req2 = req('2', secondProjectVersion)
         def req3 = req('3', fourthProjectVersion) + [predecessors: [req1.key]]
@@ -182,6 +185,10 @@ class DocumentHistorySpec extends SpecHelper {
             discontinuationsPerType : [:]
         ]
 
+        this.jiraData20Alt = this.jiraData20 + [
+            epics       : [(epc2.key):epc2]
+        ]
+
         this.entries20 = [new DocumentHistoryEntry([
             bugs        : [],
             (Project.JiraDataItem.TYPE_DOCS): [],
@@ -193,6 +200,18 @@ class DocumentHistorySpec extends SpecHelper {
             tests       : [],
             techSpecs   : []], 5L, fourthProjectVersion, secondProjectVersion,
             "Modifications for project version '${fourthProjectVersion}'.")] + entries11_second
+
+        this.entries20Alt = [new DocumentHistoryEntry([
+            bugs        : [],
+            (Project.JiraDataItem.TYPE_DOCS): [],
+            components  : [],
+            epics       : [[key: epc2.key, action: 'add']],
+            mitigations : [],
+            requirements: [[key: req3.key, action: 'change', predecessors: req3.predecessors]],
+            risks       : [],
+            tests       : [],
+            techSpecs   : []], 6L, fourthProjectVersion, secondProjectVersion,
+            "Modifications for project version '${fourthProjectVersion}'. This document version invalidates the changes done in document version '5'.")] + entries20
     }
 
     protected List<String> computeIssuesDoc(List<DocumentHistoryEntry> dhe) {
@@ -244,6 +263,29 @@ class DocumentHistorySpec extends SpecHelper {
 
         then:
         history.latestVersionId == 2L
+        assert entryListIsEquals(history.data, versionEntries)
+        history.data == versionEntries
+    }
+
+    def "builds anomalous docHistory with a failed attempt to freeze a version"() {
+        given:
+        def jiraData = jiraData20Alt
+        def targetEnvironment = 'D'
+        def savedVersionId = 5L
+        def savedData = entries20
+
+        def versionEntries = entries20Alt
+        def docContent = computeIssuesDoc(versionEntries)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+
+        when:
+        history.load(jiraData, savedVersionId, docContent)
+
+        then:
+        1 * history.loadSavedDocHistoryData(savedVersionId) >> savedData
+
+        then:
+        history.latestVersionId == 6L
         assert entryListIsEquals(history.data, versionEntries)
         history.data == versionEntries
     }

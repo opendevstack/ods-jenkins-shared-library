@@ -6,6 +6,8 @@ import org.ods.orchestration.util.Project.JiraDataItem
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
+import java.nio.file.NoSuchFileException
+
 /**
  * This class contains the logic for keeping a consistent document version.
  */
@@ -41,17 +43,18 @@ class DocumentHistory {
     }
 
     DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys) {
-        this.latestVersionId = (savedVersionId ?: 0L) + 1L
-        if (savedVersionId && savedVersionId != 0L) {
-            def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
-            def projectVersion = jiraData.version
-
-            if (projectVersion == docHistories.get(0).projectVersion) {
-                latestVersionId = docHistories.get(0).entryId
-
-                docHistories.remove(0)
+        this.latestVersionId = 1L
+        if (savedVersionId) {
+            try {
+                def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
+                if (docHistories) {
+                    this.latestVersionId = docHistories.first().getEntryId() + 1L
+                    this.data = docHistories
+                }
+            } catch (NoSuchFileException e) {
+                this.logger.warn("No saved history found for savedVersionId $savedVersionId. \
+                                    Exception message: ${e.message}")
             }
-            this.data = docHistories
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
         if (this.allIssuesAreValid) {
