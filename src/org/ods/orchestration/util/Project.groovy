@@ -1089,10 +1089,10 @@ class Project {
         newData = newData.collectEntries {
             type, issues ->
                 if(typesOfInterest.contains(type)) {
+                    olderIssues.putAll(issues)
                     def filteredIssues = issues.findAll {
                         key, Map issue -> issue.versions[0] == versionName
                     }
-                    olderIssues.putAll(filteredIssues)
                     return [(type): filteredIssues]
                 }
                 return [(type): issues]
