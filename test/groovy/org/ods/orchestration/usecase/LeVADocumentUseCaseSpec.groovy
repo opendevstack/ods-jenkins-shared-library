@@ -601,7 +601,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
+        1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}")
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
@@ -653,7 +653,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getWatermarkText(documentType, _) >> watermarkText
 
         then:
-        1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
+        1 * usecase.getDocumentTemplateName(documentType, repo) >> documentTemplate
         1 * project.getAutomatedTestsTypeUnit("Technology-${repo.id}") >> testIssues
         1 * usecase.computeTestDiscrepancies("Development Tests", testIssues, testResults)
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], repo)
