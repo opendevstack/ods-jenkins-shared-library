@@ -183,7 +183,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -213,7 +213,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -298,8 +298,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), repo, data_, files, modifier, documentType, watermarkText)
-        return uri
+        return this.createDocument(documentType, repo, data_, files, modifier, getDocumentTemplateName(documentType, repo), watermarkText)
     }
 
     String createOverallDTR(Map repo = null, Map data = null) {
@@ -393,7 +392,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri)
         return uri
     }
@@ -436,7 +435,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -518,7 +517,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ["raw/${file.getName()}", file.getBytes()]
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -599,7 +598,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -649,7 +648,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             documentHistory: docHistory.getDocGenFormat(),
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -717,7 +716,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ["raw/${file.getName()}", file.getBytes()]
         }
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, files, null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -805,7 +804,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -848,7 +847,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -908,6 +907,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def codeRepos = this.project.repositories. findAll { it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
         def codeReviewReports = obtainCodeReviewReport(codeRepos)
 
+        def modifier = { document ->
+            List documents = [document]
+            documents += codeReviewReports
+            // Merge the current document with the code review report
+            return this.pdf.merge(documents)
+        }
+
         def keysInDoc = (this.project.getTechnicalSpecifications()
             .collect { it.subMap(['key', 'requirements']).values() }.flatten()
         + componentsMetadata.collect { it.key }
@@ -922,25 +928,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocumentWithModifier(getDocumentTemplateName(documentType), data_, codeReviewReports, documentType, watermarkText)
-
+        def uri = this.createDocument(documentType, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
-    }
-
-    String createDocumentWithModifier(String documentTemplateName,
-                                      Map data,
-                                      List modifiers = null,
-                                      String documentType = null,
-                                      String watermarkText = null) {
-        def modifier = { document ->
-            List documents = [document]
-            documents += modifiers
-            // Merge the current document with the code review report
-            return this.pdf.merge(documents)
-        }
-
-        this.createDocument(documentTemplateName, null, data, [:], modifier, documentType, watermarkText)
     }
 
     String createTIP(Map repo = null, Map data = null) {
@@ -962,7 +952,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
@@ -970,6 +960,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
         def documentType = DocumentType.TIR as String
+
+        def installationTestData = data?.tests?.installation
 
         def sections = this.getDocumentSectionsFileOptional(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
@@ -991,6 +983,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             openShiftData: [
                 builds     : repo.data.openshift.builds ?: '',
                 deployments: repo.data.openshift.deployments ?: ''
+            ],
+            testResults: [
+                installation: installationTestData?.testResults
             ],
             data: [
                 repo    : repo,
@@ -1017,7 +1012,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        return this.createDocument(getDocumentTemplateName(documentType), repo, data_, [:], modifier, documentType, watermarkText)
+        return this.createDocument(documentType, repo, data_, [:], modifier, getDocumentTemplateName(documentType, repo), watermarkText)
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {
@@ -1102,18 +1097,33 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(getDocumentTemplateName(documentType), null, data_, [:], null, documentType, watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
         return uri
     }
 
-    String getDocumentTemplateName(String documentType) {
+    String getDocumentTemplateName(String documentType, Map repo = null) {
         def capability = this.project.getCapability("LeVADocs")
         if (!capability) {
             return documentType
         }
 
-        return this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType) ? documentType + "-" + capability.GAMPCategory : documentType
+        def suffix = ""
+        // compute suffix based on repository type
+        if (repo != null) {
+            if (repo.type.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                if (documentType == DocumentType.TIR as String) {
+                    suffix += "-infra"
+                }
+            }
+        }
+
+        // compute suffix based on gamp category
+        if (this.GAMP_CATEGORY_SENSITIVE_DOCS.contains(documentType)) {
+            suffix += "-" + capability.GAMPCategory
+        }
+
+        return documentType + suffix
     }
 
     @NonCPS
@@ -1131,12 +1141,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return capability.templatesVersion
     }
 
-    boolean isArchivalRelevant (String documentType) {
-        List notArchiveDocTypes = [
+    boolean shouldCreateArtifact (String documentType, Map repo) {
+        List nonArtifactDocTypes = [
             DocumentType.TIR as String,
             DocumentType.DTR as String
         ]
-        return !(documentType && notArchiveDocTypes.contains(documentType))
+
+        return !(documentType && nonArtifactDocTypes.contains(documentType) && repo)
     }
 
     Map getFiletypeForDocumentType (String documentType) {

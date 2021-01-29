@@ -118,6 +118,9 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.DTR as String): null,
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA): [
+            (LeVADocumentUseCase.DocumentType.TIR as String): null
+        ],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],

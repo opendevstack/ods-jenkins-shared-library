@@ -16,6 +16,7 @@ import org.ods.services.GitService
 class PipelineUtil {
 
     static final String ARTIFACTS_BASE_DIR = 'artifacts'
+    static final String LOGS_BASE_DIR = 'logs'
     static final String SONARQUBE_BASE_DIR = 'sonarqube'
     static final String XUNIT_DOCUMENTS_BASE_DIR = 'xunit'
 
@@ -74,7 +75,7 @@ class PipelineUtil {
         return dir
     }
 
-    byte[] createZipArtifact(String name, Map<String, byte[]> files, boolean archive = true) {
+    byte[] createZipArtifact(String name, Map<String, byte[]> files, boolean doCreateArtifact = true) {
         if (!name?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
         }
@@ -85,7 +86,7 @@ class PipelineUtil {
 
         def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
         def result = this.createZipFile(path, files)
-        if (archive) {
+        if (doCreateArtifact) {
             this.archiveArtifact(path, result)
         }
 
