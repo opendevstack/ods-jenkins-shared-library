@@ -47,8 +47,8 @@ abstract class DocGenUseCase {
         }
 
         def basename = this.getDocumentBasename(documentType, this.project.buildParams.version, this.steps.env.BUILD_ID, repo)
-
         def pdfName = "${basename}.pdf"
+
         // Create an archive with the document and raw data
         def artifacts = [
             "${pdfName}": document,
@@ -57,9 +57,8 @@ abstract class DocGenUseCase {
         artifacts << files.collectEntries { path, contents ->
             [ path, contents ]
         }
-        this.steps.echo "XXX createDocument - DocType / TName ${documentType} / ${templateName} "
-        def doCreateArtifact = shouldCreateArtifact(documentType, repo)
 
+        def doCreateArtifact = shouldCreateArtifact(documentType, repo)
         def artifact = this.util.createZipArtifact(
             "${basename}.zip",
             artifacts,
@@ -72,7 +71,6 @@ abstract class DocGenUseCase {
             if (repo) {
               repo.data.documents[documentType] = pdfName
             }
-            this.steps.echo "XXX createDocument - Assign pdfName ${pdfName}"
         }
 
         // Store the archive as an artifact in Nexus
@@ -99,9 +97,6 @@ abstract class DocGenUseCase {
         def sections = []
 
         this.project.repositories.each { repo ->
-
-            this.steps.echo "XXX createOverallDocument - Repo.data       ${repo.data} "
-            
             def documentName = repo.data.documents[documentType]
             if (documentName) {
                 def path = "${this.steps.env.WORKSPACE}/reports/${repo.id}"

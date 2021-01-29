@@ -1122,8 +1122,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             suffix += "-" + capability.GAMPCategory
         }
 
-        this.steps.echo("XXX Template Suffix '${suffix}' '${documentType}'")
-
         return documentType + suffix
     }
 
@@ -1450,8 +1448,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
             DocumentType.TIR as String,
             DocumentType.DTR as String
         ]
-
-        this.steps.echo "XXX isArchivalRelevant -  ${!(documentType && nonArtifactDocTypes.contains(documentType))} / ${documentType}"
 
         return !(documentType && nonArtifactDocTypes.contains(documentType) && repo)
     }

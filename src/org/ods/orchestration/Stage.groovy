@@ -104,8 +104,6 @@ class Stage {
             testReportsStashName = "${type}-${testReportsStashName}"
         }
 
-        logger.info("XXX logInfo '${repo.id} / ${type} / ${testReportsStashName}'")
-
         def testReportsUnstashPath = "${steps.env.WORKSPACE}/${testReportsPath}"
         def hasStashedTestReports = jenkins.unstashFilesIntoPath(
             testReportsStashName,
