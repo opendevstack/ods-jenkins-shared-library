@@ -165,7 +165,8 @@ class FinalizeStage extends Stage {
     private void integrateIntoMainBranch(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
         def repoIntegrateTasks = flattenedRepos
-            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }
+            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST && 
+              it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA }
             .collectEntries { repo ->
                 [
                     (repo.id): {
