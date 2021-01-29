@@ -241,9 +241,9 @@ class Project {
     }
 
     class LogReportType {
-         static final String CHANGES = 'changes'
-         static final String TARGET = 'target'
-         static final String STATE = 'state'
+        static final String CHANGES = 'changes'
+        static final String TARGET = 'target'
+        static final String STATE = 'state'
      }
 
     class GampTopic {
