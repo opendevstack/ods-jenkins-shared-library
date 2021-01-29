@@ -551,7 +551,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return document
         }
 
-        def uri = this.createDocument(documentType, repo, data_, files, modifier, getDocumentTemplateName(documentType), watermarkText)
+        def uri = this.createDocument(documentType, repo, data_, files, modifier, getDocumentTemplateName(documentType, repo), watermarkText)
         return uri
     }
 
