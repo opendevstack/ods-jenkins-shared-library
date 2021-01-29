@@ -4,9 +4,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.services.JenkinsService
 import org.ods.util.PipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
