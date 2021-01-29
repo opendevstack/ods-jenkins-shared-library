@@ -2,17 +2,17 @@ package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonOutput
-import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
-
-import java.nio.file.Paths
-
 import org.apache.http.client.utils.URIBuilder
-import org.ods.orchestration.usecase.*
+import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.yaml.snakeyaml.Yaml
+
+import java.nio.file.Paths
 
 @SuppressWarnings(['LineLength',
         'AbcMetric',
@@ -1088,14 +1088,14 @@ class Project {
         def olderIssues = [:]
         newData = newData.collectEntries {
             type, issues ->
-                if(typesOfInterest.contains(type)) {
-                    olderIssues.putAll(issues)
-                    def filteredIssues = issues.findAll {
-                        key, Map issue -> issue.versions[0] == versionName
-                    }
-                    return [(type): filteredIssues]
+            if (typesOfInterest.contains(type)) {
+                olderIssues.putAll(issues)
+                def filteredIssues = issues.findAll {
+                    key, Map issue -> issue.versions[0] == versionName
                 }
-                return [(type): issues]
+                return [(type): filteredIssues]
+            }
+            return [(type): issues]
         }
         result.olderIssues = olderIssues
         // FIXME: End of the workaround.
