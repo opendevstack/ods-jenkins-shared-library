@@ -415,8 +415,8 @@ def sayHello(def context) {
 === Skipping pipeline runs
 
 If the subject of the built commit message contains `[ci skip]`, `[skip ci]` or `\\***NO_CI***`, the pipeline is skipped.
+
 [source,sh]
-skip
 ----
 # skip pipeline (one-line commit)
 $ git commit -m "docs: update README [ci skip]"
