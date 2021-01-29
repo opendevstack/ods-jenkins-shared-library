@@ -69,7 +69,7 @@ abstract class DocGenUseCase {
         if (!doCreateArtifact) {
             this.util.createAndStashArtifact(pdfName, document)
             if (repo) {
-              repo.data.documents[documentType] = pdfName
+                repo.data.documents[documentType] = pdfName
             }
         }
 

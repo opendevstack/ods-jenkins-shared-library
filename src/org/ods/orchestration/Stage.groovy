@@ -98,7 +98,7 @@ class Stage {
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
-        
+
         def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         if (type != 'unit') {
             testReportsStashName = "${type}-${testReportsStashName}"
@@ -110,7 +110,7 @@ class Stage {
             testReportsUnstashPath,
             'JUnit XML Report'
         )
-        
+
         if (!hasStashedTestReports) {
             throw new RuntimeException(
                 "Error: unable to unstash JUnit XML reports, type '${type}' for repo '${repo.id}' " +

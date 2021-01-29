@@ -62,7 +62,7 @@ class DeployStage extends Stage {
                 repo.data.logs << [state: getLogReports(steps, repo, Project.LogReportType.STATE)]
                 repo.data.logs.state.content = JsonOutput.prettyPrint(repo.data.logs.state.content[0])
             }
-            
+
             if (agentPodCondition) {
                 script.node {
                     script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
