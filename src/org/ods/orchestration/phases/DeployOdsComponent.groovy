@@ -1,5 +1,8 @@
 package org.ods.orchestration.phases
 
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
+
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.services.GitService
@@ -12,6 +15,7 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
+@TypeChecked
 class DeployOdsComponent {
 
     private Project project
@@ -27,6 +31,7 @@ class DeployOdsComponent {
         this.logger = logger
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     public void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
@@ -45,18 +50,27 @@ class DeployOdsComponent {
 
             applyTemplates(openShiftDir, "app=${project.key}-${repo.id}")
 
-            deploymentDescriptor.deployments.each { deploymentName, deployment ->
+            deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
 
-                importImages(deployment, deploymentName, computeSourceProject())
+                importImages(deployment, deploymentName, project.sourceProject)
 
                 def replicationController = os.rollout(
+                    project.targetProject,
+                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
                     deploymentName,
                     originalDeploymentVersions[deploymentName],
                     project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
                 )
 
-                def pod = os.getPodDataForDeployment(replicationController,
-                    project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10)
+                def podData = os.getPodDataForDeployment(
+                    project.targetProject,
+                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                    replicationController,
+                    project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+                )
+                // TODO: Once the orchestration pipeline can deal with multiple replicas,
+                // update this to deal with multiple pods.
+                def pod = podData[0].toMap()
 
                 verifyImageShas(deployment, pod.containers)
 
@@ -78,19 +92,17 @@ class DeployOdsComponent {
         openShiftDir
     }
 
-    private void computeSourceProject() {
-        def sourceEnv = Project.getConcreteEnvironment(
-            project.sourceEnv,
-            project.buildParams.version,
-            project.versionedDevEnvsEnabled
-        )
-        "${project.key}-${sourceEnv}"
-    }
-
-    private Map gatherOriginalDeploymentVersions(Map deployments) {
+    private Map gatherOriginalDeploymentVersions(Map<String, Object> deployments) {
         deployments.collectEntries { deploymentName, deployment ->
-            def dcExists = os.resourceExists('DeploymentConfig', deploymentName)
-            def latestVersion = dcExists ? os.getLatestVersion(deploymentName) : 0
+            def dcExists = os.resourceExists(
+                project.targetProject, OpenShiftService.DEPLOYMENTCONFIG_KIND, deploymentName
+            )
+            def latestVersion = 0
+            if (dcExists) {
+                latestVersion = os.getRevision(
+                    project.targetProject, OpenShiftService.DEPLOYMENTCONFIG_KIND, deploymentName
+                )
+            }
             [(deploymentName): latestVersion]
         }
     }
@@ -102,8 +114,9 @@ class DeployOdsComponent {
                 "Applying desired OpenShift state defined in " +
                 "${openShiftDir}@${project.baseTag} to ${project.targetProject}."
             )
-            def applyFunc = { pkeyFile ->
+            def applyFunc = { String pkeyFile ->
                 os.tailorApply(
+                        project.targetProject,
                         [selector: componentSelector, exclude: 'bc'],
                         project.environmentParamsFile,
                         [], // no params
@@ -112,21 +125,20 @@ class DeployOdsComponent {
                         true // verify
                     )
             }
-            jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { pkeyFile ->
+            jenkins.maybeWithPrivateKeyCredentials(project.tailorPrivateKeyCredentialsId) { String pkeyFile ->
                 applyFunc(pkeyFile)
             }
         }
     }
 
     private void importImages(Map deployment, String deploymentName, String sourceProject) {
-        deployment.containers?.each {containerName, imageRaw ->
+        deployment.containers?.each { String containerName, String imageRaw ->
             importImage(deploymentName, containerName, imageRaw, sourceProject)
         }
     }
 
     private void importImage(String deploymentName, String containerName, String imageRaw, String sourceProject) {
         // skip excluded images from defined image streams!
-        //def imageInfo = os.imageInfoWithShaForImageStreamUrl(imageRaw)
         logger.info(
             "Importing images - deployment: ${deploymentName}, " +
             "container: ${containerName}, image: ${imageRaw}, source: ${sourceProject}"
@@ -134,7 +146,7 @@ class DeployOdsComponent {
         def imageParts = imageRaw.split('/')
         if (MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT.contains(imageParts.first())) {
             logger.debug(
-                "Skipping import of '${imageInfo.name}', " +
+                "Skipping import of '${imageRaw}', " +
                 "because it is defined as excluded: ${MROPipelineUtil.EXCLUDE_NAMESPACES_FROM_IMPORT}"
             )
         } else {
@@ -143,6 +155,7 @@ class DeployOdsComponent {
             def imageSha = imageInfo.last()
             if (project.targetClusterIsExternal) {
                 os.importImageShaFromSourceRegistry(
+                    project.targetProject,
                     imageName,
                     project.sourceRegistrySecretName,
                     sourceProject,
@@ -151,6 +164,7 @@ class DeployOdsComponent {
                 )
             } else {
                 os.importImageShaFromProject(
+                    project.targetProject,
                     imageName,
                     sourceProject,
                     imageSha,
@@ -158,13 +172,13 @@ class DeployOdsComponent {
                 )
             }
             // tag with latest, which might trigger rollout
-            os.setImageTag(imageName, project.targetTag, 'latest')
+            os.setImageTag(project.targetProject, imageName, project.targetTag, 'latest')
         }
     }
 
     private void verifyImageShas(Map deployment, Map podContainers) {
-        deployment.containers?.each { containerName, imageRaw ->
-            if (!os.verifyImageSha(containerName, imageRaw, podContainers[containerName])) {
+        deployment.containers?.each { String containerName, String imageRaw ->
+            if (!os.verifyImageSha(containerName, imageRaw, podContainers[containerName].toString())) {
                 throw new RuntimeException("Error: Image verification for container '${containerName}' failed.")
             }
         }

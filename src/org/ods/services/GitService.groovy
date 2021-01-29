@@ -6,7 +6,8 @@ import org.ods.util.ILogger
 class GitService {
 
     @SuppressWarnings('NonFinalPublicField')
-    public static String ODS_GIT_TAG_BRANCH_PREFIX = 'ods-generated-'
+    public static String ODS_GIT_TAG_PREFIX = 'ods-generated-'
+    public final static String ODS_GIT_BRANCH_PREFIX = 'release/'
 
     private final def script
     private final ILogger logger
@@ -80,7 +81,7 @@ class GitService {
     }
 
     static String getReleaseBranch(String version) {
-        "release/${ODS_GIT_TAG_BRANCH_PREFIX}${version}"
+        "${ODS_GIT_BRANCH_PREFIX}${version}"
     }
 
     String getOriginUrl() {
@@ -107,6 +108,14 @@ class GitService {
         ).trim()
     }
 
+    String getCommitSubject() {
+        script.sh(
+            returnStdout: true,
+            script: 'git show --pretty=%s -s',
+            label: 'Get Git commit subject'
+        ).trim()
+    }
+
     String getCommitMessage() {
         script.sh(
             returnStdout: true,
@@ -123,12 +132,25 @@ class GitService {
         ).trim()
     }
 
-    /** Looks in commit message for string '[ci skip]', '[ciskip]', '[ci-skip]' and '[ci_skip]'. */
-    boolean isCiSkipInCommitMessage() {
-        return script.sh(
-            returnStdout: true, script: 'git show --pretty=%s%b -s',
-            label: 'check skip CI?'
-        ).toLowerCase().replaceAll('[\\s\\-\\_]', '').contains('[ciskip]')
+    /** Looks in commit message for the following strings
+     *  '[ci skip]', '[ciskip]', '[ci-skip]', '[ci_skip]',
+     *  '[skip ci]', '[skipci]', '[skip-ci]', '[skip_ci]',
+     *  '***NO_CI***', '***NO CI***', '***NOCI***', '***NO-CI***'
+     */
+    boolean isCiSkipInCommitMessage(String gitCommit = '') {
+        def gitCommitSubject = ''
+        if (gitCommit) {
+            def indexEndOfLine = gitCommit.indexOf('\n')
+            gitCommitSubject = gitCommit[0..indexEndOfLine]
+        } else {
+            gitCommitSubject = getCommitSubject()
+        }
+
+        gitCommitSubject = gitCommitSubject.toLowerCase().replaceAll('[\\s\\-\\_]', '')
+
+        return (gitCommitSubject.contains('[ciskip]')
+                 || gitCommitSubject.contains('[skipci]')
+                 || gitCommitSubject.contains('***noci***'))
     }
 
     void checkout(String gitCommit, def userRemoteConfigs) {
@@ -136,13 +158,20 @@ class GitService {
             $class: 'GitSCM',
             branches: [[name: gitCommit]],
             doGenerateSubmoduleConfigurations: false,
+            extensions: [[
+                    $class: 'SubmoduleOption',
+                    disableSubmodules: false,
+                    parentCredentials: true,
+                    recursiveSubmodules: true,
+                    reference: '',
+                    trackingSubmodules: false],
+                   [$class: 'CleanBeforeCheckout'],
+                   [$class: 'CleanCheckout']],
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs,
         ]
         if (isAgentNodeGitLfsEnabled()) {
-            gitParams.extensions = [
-                [$class: 'GitLFSPull']
-            ]
+            gitParams.extensions << [$class: 'GitLFSPull']
         }
         script.checkout(gitParams)
     }
@@ -302,7 +331,7 @@ class GitService {
         if (envToken == 'P') {
             previousEnvToken = 'Q'
         }
-        def tagPattern = "${ODS_GIT_TAG_BRANCH_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
+        def tagPattern = "${ODS_GIT_TAG_PREFIX}v${version}-${changeId}-*-${previousEnvToken}"
         script.sh(
             script: "git tag --list '${tagPattern}'",
             returnStdout: true,

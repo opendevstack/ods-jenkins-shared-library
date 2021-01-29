@@ -1,0 +1,35 @@
+== Jenkins Shared Library
+
+=== What's new?
+
+==== `Deployment` resources
+
+ODS has had support for the OpenShift-specific `DeploymentConfig` resources (controlled by ReplicationControllers) only so far. Now, Kubernetes-native `Deployment` resources (controlled by ReplicaSets) can be used as well in the component pipeline. `Deployment` resources are recommended by OpenShift going forward, see https://docs.openshift.com/container-platform/latest/applications/deployments/what-deployments-are.html.
+
+==== Helm
+https://helm.sh[Helm 3] is supported now in the component pipeline. This means that Helm (with plugins https://github.com/databus23/helm-diff[helm-diff] and https://github.com/jkroepke/helm-secrets[helm-secrets]) can be used as an alternative to Tailor (OpenShift Templates) to define Kubernetes resources in your repository. Helm has some limitations in OpenShift 3.11, but it is the recommended way forward on OpenShift 4. Tailor will be phased out at some point in the future when OpenShift 3.11 is no longer supported by ODS. If you do not author Kubernetes resources in your repository, now is a great time to start with Helm. If you already define OpenShift Templates in your repository and want to switch to Helm, read the https://github.com/opendevstack/tailor/wiki/Migrating-from-Tailor-to-Helm[migration guide from Tailor to Helm].
+
+==== `branch`/`branches` options for all stages
+
+* All ODS component stages understand the `branch`/`branches` options now. Those options allow pipeline authors to control for which branches a specific stage should run. As with the `branchToEnvironmentMapping` option, three types of branch references are supported:
+
+1. exact match (e.g. `master`, `develop` - matching branches named `master`, `develop`)
+2. prefix match (e.g. `release/`, 'feature/' - matching branches named `release/1`, `feature/foobar`)
+3. wildcard match (`*` - matching all branches)
+
+==== Support of gitmodules
+
+If you use Git submodules in your repository, the submodules will now be checked out by Jenkins. This is done automatically when a `.gitmodules` file is present.
+
+
+=== Required changes to adopt 4.x
+
+* Update `@Library('ods-jenkins-shared-library@3.x') _` to `@Library('ods-jenkins-shared-library@4.x') _` and point to agent images with the `4.x` tag, e.g. change `imageStreamTag: 'ods/jenkins-agent-golang:3.x'` to `imageStreamTag: 'ods/jenkins-agent-golang:4.x'`.
+* Application images are built in your `*-cd` project now. Previously they were built in your `*-dev` and `*-test` project. While the update itself should be completely automatic, there are two consequences:
+  1. You can delete `BuildConfig` and `ImageStream` resources from your OpenShift templates (in fact `odsComponentStageBuildOpenShiftImage` does not run `tailor apply` anymore).
+  2. If you made modifications to a `BuildConfig` you'll need to re-apply those changes in your `*-cd` project once the `BuildConfig` has been migrated there by a pipeline run.
+  3. ODS 3.x introduced `odsComponentStageImportOpenShiftImageOrElse`, which allowed to execute some stages only if a container image could not be imported from another namespace or already existed in the current namespace. In ODS 4.x, the check for existing images is only performed in the `*-cd` namespace. To reflect this, `odsComponentStageImportOpenShiftImageOrElse` has been deprecated, and is now aliased to the new method, `odsComponentFindOpenShiftImageOrElse`. The pipeline option `imagePromotionSequences` has been removed as it is not applicable anymore.
+* `odsComponentStageRolloutOpenShiftDeployment` rolls out all deployment resources together now. If you had multiple `DeploymentConfig` resources previously, you had to target each one by specifying the config option `resourceName`. This is no longer possible - instead the stage iterates over all `DeploymentConfig` resources with the component label (`app=${projectId}-${componentId}`). Changes must be made to pipelines that have multiple deployments, such as components based on the `ds-jupyter-notebook` and `ds-rshiny` quickstarter.
+* The auto-cloning feature has been removed. If you used this to create ad-hoc namespaces per Jira issue, this is no longer possible now. Changes must be made if your pipeline configured `autoCloneEnvironmentsFromSourceMapping`. Please see https://github.com/opendevstack/ods-jenkins-shared-library/issues/374 for more information.
+* Versioned development environments in orchestration pipeline are not created automatically anymore. Note that it is still possible to use separate development environments per version, but the namespaces have to be created manually upfront. Take this into account if your pipeline configures `versionedDevEnvs: true`. Please see https://github.com/opendevstack/ods-jenkins-shared-library/pull/513 for more information.
+* `odsComponentStageRolloutOpenShiftDeployment` changed its return type because it now supports `Deployment` resources, as well as multiple deployment resources. Therefore, it returns a map now, where the keys are `<kind>/<name>`, e.g. `Deployment/foo` and `DeploymentConfig/bar`. This only affects pipelines that make use of this return value, such as components based on the `ds-ml-service` and `be-fe-mono-repo-plain` quickstarter.

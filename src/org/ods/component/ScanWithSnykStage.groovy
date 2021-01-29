@@ -1,16 +1,25 @@
 package org.ods.component
 
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import org.ods.services.SnykService
 import org.ods.util.ILogger
 
+@TypeChecked
 class ScanWithSnykStage extends Stage {
 
     public final String STAGE_NAME = 'Snyk Security Scan'
     private final SnykService snyk
+    private final ScanWithSnykOptions options
 
-    ScanWithSnykStage(def script, IContext context, Map config, SnykService snyk,
+    @TypeChecked(TypeCheckingMode.SKIP)
+    ScanWithSnykStage(
+        def script,
+        IContext context,
+        Map<String, Object> config,
+        SnykService snyk,
         ILogger logger) {
-        super(script, context, config, logger)
+        super(script, context, logger)
         if (!config.containsKey('failOnVulnerabilities')) {
             config.failOnVulnerabilities = context.failOnSnykScanVulnerabilities
         }
@@ -23,100 +32,102 @@ class ScanWithSnykStage extends Stage {
         if (!config.buildFile) {
             config.buildFile = 'build.gradle'
         }
-        if (config.branch) {
-            config.eligibleBranches = config.branch.split(',')
-        } else {
-            config.eligibleBranches = ['*']
-        }
         if (config.severityThreshold) {
             config.severityThreshold = config.severityThreshold.trim().toLowerCase()
         } else {
             // low is the default, it is equal to not providing the option to snyk
             config.severityThreshold = 'low'
         }
+
+        this.options = new ScanWithSnykOptions(config)
         this.snyk = snyk
     }
 
     protected run() {
-        if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
-            logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
-            return
-        }
-
-        if (!config.snykAuthenticationCode) {
-            script.error "Option 'snykAuthenticationCode' is not set!"
+        if (!options.snykAuthenticationCode) {
+            steps.error "Option 'snykAuthenticationCode' is not set!"
         }
         def allowedSeverityThresholds = ['low', 'medium', 'high']
-        if (!allowedSeverityThresholds.contains(config.severityThreshold)) {
-            script.error "'${config.severityThreshold}' is not a valid value " +
+        if (!allowedSeverityThresholds.contains(options.severityThreshold)) {
+            steps.error "'${options.severityThreshold}' is not a valid value " +
                 "for option 'severityThreshold'! Please use one of ${allowedSeverityThresholds}."
         }
 
         if (!snyk.version()) {
-            script.error 'Snyk binary is not in $PATH'
+            steps.error 'Snyk binary is not in $PATH'
         }
 
-        if (!snyk.auth(config.snykAuthenticationCode)) {
-            script.error 'Snyk auth failed'
+        if (!snyk.auth(options.snykAuthenticationCode)) {
+            steps.error 'Snyk auth failed'
         }
-
+        if (logger.debugMode) {
+            if (options.additionalFlags) {
+                options.additionalFlags += '-d'
+            } else {
+                options.additionalFlags = ['-d']
+            }
+        }
         logger.info 'Scanning for vulnerabilities with ' +
-            "organisation=${config.organisation}, " +
-            "projectName=${config.projectName}, " +
-            "buildFile=${config.buildFile}, " +
-            "failOnVulnerabilities=${config.failOnVulnerabilities}, " +
-            "severityThreshold=${config.severityThreshold}."
+            "organisation=${options.organisation}, " +
+            "projectName=${options.projectName}, " +
+            "buildFile=${options.buildFile}, " +
+            "failOnVulnerabilities=${options.failOnVulnerabilities}, " +
+            "severityThreshold=${options.severityThreshold}, " +
+            "additionalFlags=${options.additionalFlags ? options.additionalFlags.toListString() : ''}."
 
         boolean noVulnerabilitiesFound
 
         // Nexus credentials are provided as env variables because Snyk may need to
         // execute the build file (e.g. build.gradle) to figure out dependencies.
-        def envVariables = [
-            "NEXUS_HOST=${context.nexusHost}",
-            "NEXUS_USERNAME=${context.nexusUsername}",
-            "NEXUS_PASSWORD=${context.nexusPassword}",
+        List<String> envVariables = [
+            "NEXUS_HOST=${context.nexusHost}".toString(),
+            "NEXUS_USERNAME=${context.nexusUsername}".toString(),
+            "NEXUS_PASSWORD=${context.nexusPassword}".toString(),
         ]
-        script.withEnv(envVariables) {
-            logger.startClocked("${config.projectName}-snyk-scan")
-            noVulnerabilitiesFound = snyk.test(config.organisation, config.buildFile, config.severityThreshold)
+        steps.withEnv(envVariables) {
+            logger.startClocked("${options.projectName}-snyk-scan")
+            noVulnerabilitiesFound = snyk.test(options.organisation,
+                options.buildFile,
+                options.severityThreshold,
+                options.additionalFlags)
             if (noVulnerabilitiesFound) {
                 logger.info 'No vulnerabilities detected.'
             } else {
                 logger.warn 'Snyk test detected vulnerabilities.'
             }
-            logger.debugClocked("${config.projectName}-snyk-scan")
+            logger.debugClocked("${options.projectName}-snyk-scan", (null as String))
 
-            logger.startClocked("${config.projectName}-snyk-monitor")
-            if (!snyk.monitor(config.organisation, config.buildFile)) {
-                script.error 'Snyk monitor failed'
+            logger.startClocked("${options.projectName}-snyk-monitor")
+            if (!snyk.monitor(options.organisation, options.buildFile, options.additionalFlags)) {
+                steps.error 'Snyk monitor failed'
             }
-            logger.debugClocked("${config.projectName}-snyk-monitor")
+            logger.debugClocked("${options.projectName}-snyk-monitor", (null as String))
         }
 
-        generateAndArchiveReport(context.localCheckoutEnabled)
+        generateAndArchiveReport(!context.triggeredByOrchestrationPipeline)
 
-        if (!noVulnerabilitiesFound && config.failOnVulnerabilities) {
-            script.error 'Snyk scan stage failed. See snyk report for details.'
+        if (!noVulnerabilitiesFound && options.failOnVulnerabilities) {
+            steps.error 'Snyk scan stage failed. See snyk report for details.'
         }
     }
 
     private generateAndArchiveReport(boolean archive) {
         def targetReport = "SCSR-${context.projectId}-${context.componentId}-${snyk.reportFile}"
-        script.sh(
+        steps.sh(
             label: 'Create artifacts dir',
             script: 'mkdir -p artifacts/SCSR'
         )
-        script.sh(
+        steps.sh(
             label: 'Rename report to SCSR',
             script: "mv ${snyk.reportFile} artifacts/${targetReport}"
         )
         if (archive) {
-            script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
+            steps.archiveArtifacts(artifacts: 'artifacts/SCSR*')
         }
         def snykScanStashPath = "scsr-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('snykScanStashPath', snykScanStashPath)
 
-        script.stash(
+        steps.stash(
             name: "${snykScanStashPath}",
             includes: 'artifacts/SCSR*',
             allowEmpty: true

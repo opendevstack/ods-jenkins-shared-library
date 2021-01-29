@@ -41,31 +41,34 @@ class SnykService {
         ) == 0
     }
 
-    boolean test(String organisation, String buildFile, String severityThreshold) {
+    boolean test(String organisation, String buildFile, String severityThreshold, List<String> additionalFlags) {
+        def flags = "--org=${organisation} " +
+            "--file=${buildFile} " +
+            "--severity-threshold=${severityThreshold}"
+        additionalFlags.each { flag ->
+            flags += " " + flag
+        }
         script.sh(
             script: """
               set -e
               set -o pipefail
-              snyk test \
-              --org=${organisation} \
-              --file=${buildFile} \
-              --all-sub-projects \
-              --severity-threshold=${severityThreshold} | tee -a ${reportFile}
+              snyk test ${flags} | tee -a ${reportFile}
             """,
             returnStatus: true,
             label: 'Run Snyk test'
         ) == 0
     }
 
-    boolean monitor(String organisation, String buildFile) {
+    boolean monitor(String organisation, String buildFile, List<String> additionalFlags) {
+        def flags = "--org=${organisation} --file=${buildFile}"
+        additionalFlags.each { flag ->
+            flags += " " + flag
+        }
         script.sh(
             script: """
               set -e
               set -o pipefail
-              snyk monitor \
-              --org=${organisation} \
-              --file=${buildFile} \
-              --all-sub-projects | tee -a ${reportFile}
+              snyk monitor ${flags} | tee -a ${reportFile}
             """,
             returnStatus: true,
             label: 'Start monitoring in snyk.io'

@@ -1,0 +1,26 @@
+The "SonarQube Analysis" stage scans your source code and reports findings to
+SonarQube. The configuration of the scan happens via the
+`sonar-project.properties` file in the repository being built.
+
+If your SonarQube server edition allows to scan multiple branches (any
+commercial edition does), then this stage will automatically decorate pull
+requests in Bitbucket with feedback from SonarQube (if the PR already exists
+at the time of the Jenkins pipeline run).
+
+In debug mode, the `sonar-scanner` binary is started with the `-X` flag.
+
+If no `sonar.projectVersion` is specified in `sonar-project.properties`, it is
+set to the shortened Git SHA.
+
+== Options
+
+[cols="1,2"]
+|===
+| Option | Description
+{{range .Options}}
+
+| *{{.Name}}* +
+_{{.Type}}_
+|{{.Description}}
+{{end}}
+|===

@@ -27,6 +27,7 @@ def call(IContext context, Map config = [:]) {
     if (!sonarQubeService) {
         sonarQubeService = new SonarQubeService(
             this,
+            logger,
             'SonarServerConfig'
         )
     }

@@ -1,20 +1,24 @@
 package org.ods.services
 
+import org.ods.util.ILogger
+
 class SonarQubeService {
 
     private final def script
     private final String sonarQubeEnv
+    private final ILogger logger
 
-    SonarQubeService(def script, String sonarQubeEnv) {
+    SonarQubeService(def script, ILogger logger, String sonarQubeEnv) {
         this.script = script
+        this.logger = logger
         this.sonarQubeEnv = sonarQubeEnv
     }
 
-    def readProperties(String filename = 'sonar-project.properties') {
+    Map<String, Object> readProperties(String filename = 'sonar-project.properties') {
         script.readProperties(file: filename)
     }
 
-    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], boolean debug = false) {
+    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
@@ -23,10 +27,13 @@ class SonarQubeService {
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
             ]
+            if (sonarQubeEdition != 'community') {
+                scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
+            }
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
             }
-            if (debug) {
+            if (logger.debugMode) {
                 scannerParams << '-X'
             }
             if (pullRequestInfo) {
@@ -48,16 +55,19 @@ class SonarQubeService {
         }
     }
 
-    def generateCNESReport(String projectKey, String author) {
+    def generateCNESReport(String projectKey, String author, String sonarBranch, String sonarQubeEdition) {
         withSonarServerConfig { hostUrl, authToken ->
+            def branchParam = sonarQubeEdition == 'community' ? '' : "-b ${sonarBranch}"
             script.sh(
                 label: 'Generate CNES Report',
                 script: """
+                ${logger.shellScriptDebugFlag}
                 java -jar /usr/local/cnes/cnesreport.jar \
                     -s ${hostUrl} \
                     -t ${authToken} \
                     -p ${projectKey} \
-                    -a ${author}
+                    -a ${author} \
+                    ${branchParam}
                 """
             )
         }

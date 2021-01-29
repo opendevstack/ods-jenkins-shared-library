@@ -1,0 +1,17 @@
+Triggers (and follows) a build in the `BuildConfig` related to the repository
+being built.
+
+The resulting image is tagged with `context.shortGitCommit`.
+
+== Options
+
+[cols="1,2"]
+|===
+| Option | Description
+{{range .Options}}
+
+| *{{.Name}}* +
+_{{.Type}}_
+|{{.Description}}
+{{end}}
+|===

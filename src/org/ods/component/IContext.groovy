@@ -61,22 +61,6 @@ interface IContext {
     // Define which branches are deployed to which environments.
     Map<String, String> getBranchToEnvironmentMapping()
 
-    // Define which environments are cloned from which source environments.
-    String getAutoCloneEnvironmentsFromSourceMapping()
-
-    List<String> getImagePromotionSequences()
-
-    // The environment which was chosen as the clone source.
-    String getCloneSourceEnv()
-
-    // Set the environment to clone
-    void setCloneSourceEnv( String cloneSourceEnv)
-
-    // The branch in which the clone-project.sh script is used
-    String getCloneProjectScriptBranch()
-
-    Map<String, String> getCloneProjectScriptUrls()
-
     // The environment which was chosen as the deployment target, e.g. "dev".
     String getEnvironment()
 
@@ -86,16 +70,22 @@ interface IContext {
     // Target project, based on the environment. E.g. "foo-dev".
     String getTargetProject()
 
+    // Name of the CD project
+    String getCdProject()
+
     // Group ID, defaults to: org.opendevstack.<projectID>.
     String getGroupId()
 
     // Project ID, e.g. "foo".
     String getProjectId()
 
-    // Component ID, e.g. "be-auth-service".
+    // Component ID, e.g. "be-auth".
     String getComponentId()
 
-    // Repository name, e.g. "foo-be-auth-service".
+    // Selector common to all resources of component, e.g. "app=foo-be-auth"
+    String getSelector()
+
+    // Repository name, e.g. "foo-be-auth".
     String getRepoName()
 
     // Git URL of repository
@@ -136,6 +126,9 @@ interface IContext {
 
     // snyk behaviour configuration in case it reports vulnerabilities
     boolean getFailOnSnykScanVulnerabilities()
+
+    // Whether the pipeline run has been triggered by the orchestration pipeline
+    boolean getTriggeredByOrchestrationPipeline()
 
     String getIssueId()
 

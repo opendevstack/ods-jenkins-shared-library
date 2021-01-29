@@ -1,5 +1,7 @@
 package vars
 
+import org.codehaus.groovy.runtime.typehandling.GroovyCastException
+import groovy.lang.MissingPropertyException
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
@@ -46,7 +48,6 @@ class OdsComponentStageImportOpenShiftImageSpec extends PipelineSpockTestBase {
     printCallStack()
     assertCallStackContains('''Imported image 'foo-dev/bar:cd3e9082' into 'foo-test/bar:cd3e9082'.''')
     assertJobStatusSuccess()
-    //1 * openShiftService.importImageTagFromProject(*_)
   }
 
   def "skip when no environment given"() {
@@ -62,6 +63,30 @@ class OdsComponentStageImportOpenShiftImageSpec extends PipelineSpockTestBase {
     printCallStack()
     assertCallStackContains("WARN: Skipping image import because of empty (target) environment ...")
     assertJobStatusSuccess()
+  }
+
+  def "fails on incorrect options"() {
+    given:
+    def config = [
+      environment: null,
+      gitBranch: 'master',
+      gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
+      branchToEnvironmentMapping: [:]
+    ]
+    def context = new Context(null, config, logger)
+
+    when:
+    def script = loadScript('vars/odsComponentStageImportOpenShiftImage.groovy')
+    script.call(context, options)
+
+    then:
+    def exception = thrown(wantEx)
+    exception.message == wantExMessage
+
+    where:
+    options           || wantEx                   | wantExMessage
+    [branches: 'abc'] || GroovyCastException      | "Cannot cast object 'abc' with class 'java.lang.String' to class 'java.util.List'"
+    [foobar: 'abc']   || MissingPropertyException | "No such property: foobar for class: org.ods.component.ImportOpenShiftImageOptions"
   }
 
 }

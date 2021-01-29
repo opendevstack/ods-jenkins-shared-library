@@ -1,0 +1,23 @@
+Checks if an image for the current commit exists already, otherwise executes the given closure.
+
+Example:
+[source,groovy]
+----
+odsComponentFindOpenShiftImageOrElse(context) {
+  stage('Build') {
+    // custom stage to build your application package
+  }
+  odsComponentStageBuildOpenShiftImage(context)
+}
+----
+
+The step can be customized using the options `resourceName` and `imageTag`.
+
+Using this step in your `Jenkinsfile` allows you to avoid building a container image for the same Git commit multiple times, reducing build times and increasing reliability as you can promote the exact same image from one environment to another.
+
+Keep in mind that image lookup works by finding an image tagged with the current Git commit. If you merge a branch into another using a merge commit, the current Git commit SHA will differ from the previously built image tag, even if the actual contents of the repository are the same. To ensure image importing kicks in, use the https://git-scm.com/docs/git-merge#Documentation/git-merge.txt---ff[--ff-only] option on `git merge` (this can also be enabled for pull requests in Bitbucket under "Merge strategies"). There are a few consequences when doing so, which should be kept in mind:
+
+* No merge commit is created, which has the downside that you do not see when a PR was merged, and that the merge commit is a convenient way to find the associated PR. Further, if the latest commit on a branch which you want to merge contains `[ci skip]`, beware that the build on the target branch will also be skipped. That siad, having no merge commit has the upside that your Git history is not polluted by merge commits.
+* Enforcing a fast-forward merge prevents you from merging a branch which is not up-to-date with the target branch. This has the downside that before merging, you may need to rebase your branch or merge the target branch into your branch if someone else updated the target branch in the meantime. While this may cause extra work, it has the upside that you cannot accidentally break the target branch (e.g. tests on your branch may work based on the outdated target branch, but fail after the merge).
+
+In summary, using `git merge --ff-only` provides safety, a clean history and allows to promote the exact same image between environments.
