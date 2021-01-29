@@ -36,7 +36,8 @@ class BuildStage extends Stage {
             // dependency and an explicit repository constraint.
             // We should turn the last argument 'data' of the scheduler into a
             // closure that return data.
-            if (project.isAssembleMode && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
+            if (project.isAssembleMode
+                && repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) {
                 def data = [ : ]
                 def resultsResurrected = !!repo.data.openshift.resurrectedBuild
                 if (!resultsResurrected) {
