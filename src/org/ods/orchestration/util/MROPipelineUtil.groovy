@@ -98,8 +98,6 @@ class MROPipelineUtil extends PipelineUtil {
             env.addAll(this.project.getMainReleaseManagerEnv())
             env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
             this.steps.withEnv (env) {
-                // @ fixme !!!
-                this.steps.sh("pwd && ls ${baseDir}")
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
             // Collect ODS build artifacts for repo.
@@ -331,7 +329,7 @@ class MROPipelineUtil extends PipelineUtil {
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_INFRA) {
                         if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
-                        } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
+                        } else if (this.project.isPromotionMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
