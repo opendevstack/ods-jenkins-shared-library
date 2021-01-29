@@ -332,7 +332,7 @@ class MROPipelineUtil extends PipelineUtil {
                         } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
                             executeODSComponent(repo, baseDir)
                         } else {
-                            this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
+                            this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_SERVICE) {
                         if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
