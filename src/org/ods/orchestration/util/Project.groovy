@@ -1010,6 +1010,8 @@ class Project {
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
+            // FIXME: getVersionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
+            // than once. However, it's also called via this.project.versionFromReleaseStatusIssue in JiraUseCase.groovy.
             def currentVersion = this.getVersionFromReleaseStatusIssue() // TODO why is param.version not sufficient here?
 
             this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)

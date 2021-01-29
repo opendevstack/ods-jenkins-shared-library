@@ -116,6 +116,8 @@ class JiraUseCase {
         if (!this.jira) return
 
         testFailures.each { failure ->
+            // FIXME: this.project.versionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
+            // than once. However, it's also called via this.getVersionFromReleaseStatusIssue in Project.groovy.
             def bug = this.jira.createIssueTypeBug(
                 this.project.jiraProjectKey, failure.type, failure.text, this.project.versionFromReleaseStatusIssue)
 
