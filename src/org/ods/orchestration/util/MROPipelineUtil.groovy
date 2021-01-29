@@ -98,6 +98,8 @@ class MROPipelineUtil extends PipelineUtil {
             env.addAll(this.project.getMainReleaseManagerEnv())
             env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
             this.steps.withEnv (env) {
+                // @ fixme !!!
+                this.steps.sh("pwd && ls ${baseDir}")
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
             }
             // Collect ODS build artifacts for repo.
