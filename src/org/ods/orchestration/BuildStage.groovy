@@ -47,6 +47,9 @@ class BuildStage extends Stage {
                         [Project.TestType.UNIT],
                         data.tests.unit.testResults
                     )
+                    // we warn in any case ... (largely because the above call will
+                    // return immediatly when no jira adapter is configured.
+                    util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
                 } else {
                     logger.info("[${repo.id}] Resurrected tests from run " +
                         "${repo.data.openshift.resurrectedBuild} " +
@@ -76,6 +79,12 @@ class BuildStage extends Stage {
         }
         executeInParallel(executeRepos, generateDocuments)
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+
+        // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
+        // failed unit tests as possible
+        if (project.isAssembleMode && project.isWorkInProgress && project.hasFailingTests) {
+            util.failBuild ("Unit tests failed, please look for repositoriy errors!")
+        }
     }
 
 }
