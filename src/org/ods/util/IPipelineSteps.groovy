@@ -27,6 +27,8 @@ interface IPipelineSteps {
 
     def node(String name, Closure block)
 
+    def node(Closure block)
+
     def sh(def args)
 
     void stage(String name, Closure block)
@@ -66,6 +68,8 @@ interface IPipelineSteps {
     def sshUserPrivateKey(Map credentialsData)
 
     def withCredentials(List credentialsList, Closure block)
+
+    def parallel(Map<String, Closure> tasks)
 
     def unwrap()
 

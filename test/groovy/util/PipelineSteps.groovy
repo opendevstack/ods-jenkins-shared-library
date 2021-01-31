@@ -148,7 +148,15 @@ class PipelineSteps implements IPipelineSteps {
       return [:]
     }
 
-    def node (String name, Closure block) {
-      block ()
+    def node(Closure block) {
+      block()
+    }
+
+    def node(String name, Closure block) {
+      block()
+    }
+
+    def parallel(Map<String, Closure> tasks) {
+        tasks.findAll { name, _ -> name != "failFast" }.each { name, block -> block() }
     }
 }

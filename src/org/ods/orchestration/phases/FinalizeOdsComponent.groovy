@@ -8,7 +8,6 @@ import org.ods.util.ILogger
 import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
@@ -17,10 +16,10 @@ import org.ods.orchestration.util.MROPipelineUtil
 @TypeChecked
 class FinalizeOdsComponent {
 
-    private Project project
-    private IPipelineSteps steps
-    private GitService git
-    private ILogger logger
+    private final Project project
+    private final IPipelineSteps steps
+    private final GitService git
+    private final ILogger logger
     private OpenShiftService os
 
     FinalizeOdsComponent(Project project, IPipelineSteps steps, GitService git, ILogger logger) {
@@ -30,7 +29,7 @@ class FinalizeOdsComponent {
         this.logger = logger
     }
 
-    public void run(Map repo, String baseDir) {
+    void run(Map repo) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
         def componentSelector = "app=${project.key}-${repo.id}"
@@ -40,39 +39,37 @@ class FinalizeOdsComponent {
         def envParamsFile = project.environmentParamsFile
         def envParams = project.getEnvironmentParams(envParamsFile)
 
-        steps.dir(baseDir) {
-            def openshiftDir = findOrCreateOpenShiftDir()
-            steps.dir(openshiftDir) {
-                def filesToStage = []
-                def commitMessage = ''
-                if (openshiftDir == 'openshift-exported') {
-                    commitMessage = 'ODS: Export OpenShift configuration ' +
-                        "\r${commitBuildReference()}"
-                    logger.debugClocked(
-                        "export-ocp-${repo.id}",
-                        "Exporting current OpenShift state to folder '${openshiftDir}'."
-                    )
-                    os.tailorExport(
-                        project.targetProject,
-                        componentSelector,
-                        envParams,
-                        OpenShiftService.EXPORTED_TEMPLATE_FILE
-                    )
-                    filesToStage << OpenShiftService.EXPORTED_TEMPLATE_FILE
-                    logger.debugClocked("export-ocp-${repo.id}", (null as String))
-                } else {
-                    commitMessage = "ODS: Export Openshift deployment state " +
-                        "\r${commitBuildReference()}"
-                    // TODO: Display drift?
-                }
-
-                writeDeploymentDescriptor(repo)
-
-                logger.debugClocked("export-ocp-git-${repo.id}", (null as String))
-                filesToStage << DeploymentDescriptor.FILE_NAME
-                git.commit(filesToStage, "${commitMessage} [ci skip]")
-                logger.debugClocked("export-ocp-git-${repo.id}", (null as String))
+        def openshiftDir = findOrCreateOpenShiftDir()
+        steps.dir(openshiftDir) {
+            def filesToStage = []
+            def commitMessage = ''
+            if (openshiftDir == 'openshift-exported') {
+                commitMessage = 'ODS: Export OpenShift configuration ' +
+                    "\r${commitBuildReference()}"
+                logger.debugClocked(
+                    "export-ocp-${repo.id}",
+                    "Exporting current OpenShift state to folder '${openshiftDir}'."
+                )
+                os.tailorExport(
+                    project.targetProject,
+                    componentSelector,
+                    envParams,
+                    OpenShiftService.EXPORTED_TEMPLATE_FILE
+                )
+                filesToStage << OpenShiftService.EXPORTED_TEMPLATE_FILE
+                logger.debugClocked("export-ocp-${repo.id}", (null as String))
+            } else {
+                commitMessage = "ODS: Export Openshift deployment state " +
+                    "\r${commitBuildReference()}"
+                // TODO: Display drift?
             }
+
+            writeDeploymentDescriptor(repo)
+
+            logger.debugClocked("export-ocp-git-${repo.id}", (null as String))
+            filesToStage << DeploymentDescriptor.FILE_NAME
+            git.commit(filesToStage, "${commitMessage} [ci skip]")
+            logger.debugClocked("export-ocp-git-${repo.id}", (null as String))
         }
     }
 
@@ -174,4 +171,5 @@ class FinalizeOdsComponent {
         }
         logger.debugClocked("export-ocp-verify-${repo.id}", (null as String))
     }
+
 }

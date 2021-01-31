@@ -275,7 +275,7 @@ ruleset {
     UseCollectNested
 
     // rulesets/imports.xml
-    DuplicateImport
+    DuplicateImport(priority: 1)
     ImportFromSamePackage
     ImportFromSunPackages
     MisorderedStaticImports
@@ -382,7 +382,7 @@ ruleset {
     UnnecessaryCallToSubstring
     UnnecessaryCast
     UnnecessaryCatchBlock
-    UnnecessaryCollectCall
+    UnnecessaryCollectCall(enabled: false)
     UnnecessaryCollectionCall
     UnnecessaryConstructor
     UnnecessaryDefInFieldDeclaration(enabled: false)

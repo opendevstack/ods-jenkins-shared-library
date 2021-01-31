@@ -9,7 +9,6 @@ import org.ods.services.GitService
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
@@ -18,10 +17,10 @@ import org.ods.orchestration.util.Project
 @TypeChecked
 class DeployOdsComponent {
 
-    private Project project
-    private IPipelineSteps steps
-    private GitService git
-    private ILogger logger
+    private final Project project
+    private final IPipelineSteps steps
+    private final GitService git
+    private final ILogger logger
     private OpenShiftService os
 
     DeployOdsComponent(Project project, IPipelineSteps steps, GitService git, ILogger logger) {
@@ -32,55 +31,52 @@ class DeployOdsComponent {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    public void run(Map repo, String baseDir) {
+    void run(Map repo) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
 
-        steps.dir(baseDir) {
-            def openShiftDir = computeOpenShiftDir()
+        def openShiftDir = computeOpenShiftDir()
 
-            DeploymentDescriptor deploymentDescriptor
-            steps.dir(openShiftDir) {
-                deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
-            }
-            if (!repo.data.openshift.deployments) {
-                repo.data.openshift.deployments = [:]
-            }
+        DeploymentDescriptor deploymentDescriptor
+        steps.dir(openShiftDir) {
+            deploymentDescriptor = DeploymentDescriptor.readFromFile(steps)
+        }
+        if (!repo.data.openshift.deployments) {
+            repo.data.openshift.deployments = [:]
+        }
 
-            def originalDeploymentVersions = gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
+        def originalDeploymentVersions = gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
-            applyTemplates(openShiftDir, "app=${project.key}-${repo.id}")
+        applyTemplates(openShiftDir, "app=${project.key}-${repo.id}")
 
-            deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+        deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
+            importImages(deployment, deploymentName, project.sourceProject)
 
-                importImages(deployment, deploymentName, project.sourceProject)
+            def replicationController = os.rollout(
+                project.targetProject,
+                OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                deploymentName,
+                originalDeploymentVersions[deploymentName],
+                project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
+            )
 
-                def replicationController = os.rollout(
-                    project.targetProject,
-                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                    deploymentName,
-                    originalDeploymentVersions[deploymentName],
-                    project.environmentConfig?.openshiftRolloutTimeoutMinutes ?: 10
-                )
+            def podData = os.getPodDataForDeployment(
+                project.targetProject,
+                OpenShiftService.DEPLOYMENTCONFIG_KIND,
+                replicationController,
+                project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
+            )
+            // TODO: Once the orchestration pipeline can deal with multiple replicas,
+            // update this to deal with multiple pods.
+            def pod = podData[0].toMap()
 
-                def podData = os.getPodDataForDeployment(
-                    project.targetProject,
-                    OpenShiftService.DEPLOYMENTCONFIG_KIND,
-                    replicationController,
-                    project.environmentConfig?.openshiftRolloutTimeoutRetries ?: 10
-                )
-                // TODO: Once the orchestration pipeline can deal with multiple replicas,
-                // update this to deal with multiple pods.
-                def pod = podData[0].toMap()
+            verifyImageShas(deployment, pod.containers)
 
-                verifyImageShas(deployment, pod.containers)
+            repo.data.openshift.deployments << [(deploymentName): pod]
+        }
 
-                repo.data.openshift.deployments << [(deploymentName): pod]
-            }
-
-            if (deploymentDescriptor.createdByBuild) {
-                def createdByBuildKey = DeploymentDescriptor.CREATED_BY_BUILD_STR
-                repo.data.openshift[createdByBuildKey] = deploymentDescriptor.createdByBuild
-            }
+        if (deploymentDescriptor.createdByBuild) {
+            def createdByBuildKey = DeploymentDescriptor.CREATED_BY_BUILD_STR
+            repo.data.openshift[createdByBuildKey] = deploymentDescriptor.createdByBuild
         }
     }
 
@@ -183,4 +179,5 @@ class DeployOdsComponent {
             }
         }
     }
+
 }

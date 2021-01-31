@@ -9,6 +9,7 @@ import org.ods.services.GitService
 import org.ods.services.JenkinsService
 
 import org.ods.util.GitCredentialStore
+import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 
 import org.ods.util.Logger
@@ -16,10 +17,13 @@ import org.ods.util.ILogger
 
 class Stage {
 
-    protected def script
-    protected Project project
-    protected List<Set<Map>> repos
-    String startAgentStageName
+    protected final def script
+    protected final Project project
+    protected final List<Set<Map>> repos
+    protected final String startAgentStageName
+
+    protected IPipelineSteps steps
+    protected ILogger logger
 
     public final String STAGE_NAME = 'NOT SET'
 
@@ -31,9 +35,10 @@ class Stage {
     }
 
     def execute() {
-        ILogger logger = ServiceRegistry.instance.get(Logger)
-        script.stage(STAGE_NAME) {
-            logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
+        setServices()
+
+        this.steps.stage(STAGE_NAME) {
+            this.logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
             try {
                 return this.run()
             } catch (e) {
@@ -46,56 +51,54 @@ class Stage {
                     ).initCause(e)
                 }
 
-                logger.warn("Error occured within the orchestration pipeline: ${e.message}")
+                this.logger.warn("Error occured within the orchestration pipeline: ${e.message}")
 
                 try {
                     project.reportPipelineStatus(eThrow.message, true)
                 } catch (reportError) {
-                    logger.warn("Error: unable to report pipeline status because of: ${reportError.message}.")
+                    this.logger.warn("Error: unable to report pipeline status because of: ${reportError.message}.")
                     reportError.initCause(e)
                     throw reportError
                 }
 
                 throw eThrow
             } finally {
-                logger.infoClocked ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
+                this.logger.infoClocked ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
             }
         }
     }
 
     @SuppressWarnings('GStringAsMapKey')
     def executeInParallel (Closure block1, Closure block2) {
-        ILogger logger = ServiceRegistry.instance.get(Logger)
         Map executors = [
             "${STAGE_NAME}": {
                 block1()
             },
             'orchestration': {
                 block2()
-                logger.debug("Current stage: '${STAGE_NAME}' -> " +
+                this.logger.debug("Current stage: '${STAGE_NAME}' -> " +
                     "start agent stage: '${startAgentStageName}'")
                 if (startAgentStageName.equalsIgnoreCase(STAGE_NAME)) {
-                    def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
-                    logger.debugClocked(podLabel)
-                    script.node (podLabel) {
-                        logger.debugClocked(podLabel)
+                    def podLabel = "mro-jenkins-agent-${this.steps.env.BUILD_NUMBER}"
+                    this.logger.debugClocked(podLabel)
+                    this.steps.node(podLabel) {
+                        this.logger.debugClocked(podLabel)
                     }
                 }
             },
         ]
         executors.failFast = true
-        script.parallel (executors)
+        this.steps.parallel(executors)
     }
 
     Map getTestResults(def steps, Map repo, String type = 'unit') {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
-        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         type = type.toLowerCase()
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
-        logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
+        this.logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
         def testReportsStashName = "test-reports-junit-xml-${repo.id}-${steps.env.BUILD_ID}"
         if (type != 'unit') {
             testReportsStashName = "${type}-${testReportsStashName}"
@@ -123,35 +126,49 @@ class Stage {
         ]
     }
 
+    // Retrieve services from ServiceRegistry.
+    // This is not in the constructor because of Jenkins limitations,
+    // see https://www.jenkins.io/doc/book/pipeline/cps-method-mismatches/.
+    protected void setServices() {
+        def s = ServiceRegistry.instance.get(PipelineSteps)
+        if (!s) {
+            s = new PipelineSteps(this.script)
+            ServiceRegistry.instance.add(PipelineSteps, s)
+        }
+        this.steps = s
+        this.logger = ServiceRegistry.instance.get(Logger)
+    }
+
     protected def runOnAgentPod(boolean condition, Closure block) {
-        ILogger logger = ServiceRegistry.instance.get(Logger)
         if (condition) {
             def bitbucket = ServiceRegistry.instance.get(BitbucketService)
             def git = ServiceRegistry.instance.get(GitService)
-            logger.startClocked("${project.key}-${STAGE_NAME}-stash")
-            script.dir(script.env.WORKSPACE) {
-                script.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
+            this.logger.startClocked("${project.key}-${STAGE_NAME}-stash")
+            this.steps.dir(this.steps.env.WORKSPACE) {
+                this.steps.stash(name: 'wholeWorkspace', includes: '**/*,**/.git', useDefaultExcludes: false)
             }
-            logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
-            def podLabel = "mro-jenkins-agent-${script.env.BUILD_NUMBER}"
-            logger.debugClocked(podLabel, 'Starting orchestration pipeline agent pod')
-            script.node(podLabel) {
-                logger.debugClocked(podLabel)
+            this.logger.debugClocked("${project.key}-${STAGE_NAME}-stash")
+            def podLabel = "mro-jenkins-agent-${this.steps.env.BUILD_NUMBER}"
+            this.logger.debugClocked(podLabel, 'Starting orchestration pipeline agent pod')
+            this.steps.node(podLabel) {
+                this.logger.debugClocked(podLabel)
                 git.configureUser()
-                logger.startClocked("${project.key}-${STAGE_NAME}-unstash")
-                script.unstash('wholeWorkspace')
-                logger.debugClocked("${project.key}-${STAGE_NAME}-unstash")
-                script.withCredentials(
-                    [script.usernamePassword(
+                this.logger.startClocked("${project.key}-${STAGE_NAME}-unstash")
+                this.steps.unstash('wholeWorkspace')
+                this.logger.debugClocked("${project.key}-${STAGE_NAME}-unstash")
+                this.steps.withCredentials(
+                    [this.steps.usernamePassword(
                         credentialsId: bitbucket.passwordCredentialsId,
                         usernameVariable: 'BITBUCKET_USER',
                         passwordVariable: 'BITBUCKET_PW'
                     )]
                 ) {
                     GitCredentialStore.configureAndStore(
-                        script, bitbucket.url as String,
-                        script.env.BITBUCKET_USER as String,
-                        script.env.BITBUCKET_PW as String)
+                        script,
+                        bitbucket.url as String,
+                        this.steps.env.BITBUCKET_USER as String,
+                        this.steps.env.BITBUCKET_PW as String,
+                    )
                 }
                 block()
             }
