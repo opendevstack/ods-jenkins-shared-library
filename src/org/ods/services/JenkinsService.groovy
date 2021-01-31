@@ -84,6 +84,7 @@ class JenkinsService {
         this.script.dir(path) {
             try {
                 this.script.unstash(name)
+                logger.debug("Unstashed '${name}' successfully into '${path}'")
             } catch (e) {
                 logger.info ("Could not find any files of type '${type}' to unstash for name '${name}'")
                 result = false
