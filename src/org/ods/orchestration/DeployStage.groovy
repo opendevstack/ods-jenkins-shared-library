@@ -52,8 +52,10 @@ class DeployStage extends Stage {
                 script.node {
                     script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
                     if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                        fetchOdsInfraLogs(repo, agentPodCondition)
+                        logger.info("Loading ODS Infrastructure/Configuration Management component type data for '${repo.id}' - on agent")
+                        loadOdsInfraTypeData(repo)
                     }
+
                     levaDocScheduler.run(
                         phase,
                         MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
@@ -63,8 +65,10 @@ class DeployStage extends Stage {
                 }
             } else {
                 if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                    fetchOdsInfraLogs(repo, agentPodCondition)
+                    logger.info("Loading ODS Infrastructure/Configuration Management component type data for '${repo.id}' - on master")
+                    loadOdsInfraTypeData(repo)
                 }
+
                 levaDocScheduler.run(
                     phase,
                     MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
@@ -124,12 +128,11 @@ class DeployStage extends Stage {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
 
-    def fetchOdsInfraLogs (Map repo, boolean runOnAgent) {
+    private void loadOdsInfraTypeData (Map repo) {
         if (repo.data == null) { repo.data = [:] }
         ILogger logger = ServiceRegistry.instance.get(Logger)
         def steps = ServiceRegistry.instance.get(PipelineSteps)
 
-        logger.info("Collecting logs for '${repo.id}' - on agent? ${runOnAgent}")
         // collect test results
         if (repo.data.tests == null) { repo.data.tests = [:] }
         repo.data.tests << [installation: getTestResults(steps, repo, Project.TestType.INSTALLATION)]
@@ -139,7 +142,7 @@ class DeployStage extends Stage {
         repo.data.logs << [created: getLogReports(steps, repo, Project.LogReportType.CHANGES)]
         repo.data.logs << [target: getLogReports(steps, repo, Project.LogReportType.TARGET)]
         repo.data.logs << [state: getLogReports(steps, repo, Project.LogReportType.STATE)]
-        if (repo.data.logs.state.content?.size > 0) {
+        if (repo.data.logs.state.content) {
             repo.data.logs.state.content = JsonOutput.prettyPrint(repo.data.logs.state.content[0])
         } else {
             logger.warn("No log state for ${repo.data} found!")
