@@ -111,6 +111,7 @@ class MROPipelineUtil extends PipelineUtil {
             this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
 
             if (buildArtifacts.failedStage) {
+                repo.data << ['failedStage', buildArtifacts.failedStage]
                 if (failfast) {
                     throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
                 } else {

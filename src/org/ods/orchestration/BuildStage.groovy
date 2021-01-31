@@ -47,8 +47,9 @@ class BuildStage extends Stage {
                         [Project.TestType.UNIT],
                         data.tests.unit.testResults
                     )
-                    // we warn in any case ... (largely because the above call will
-                    // return immediatly when no jira adapter is configured.
+                    // we check in any case ... (largely because the above call will
+                    // return immediatly when no jira adapter is configured).
+                    // this  will set failedTests if any xunit tests have failed
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
                 } else {
                     logger.info("[${repo.id}] Resurrected tests from run " +
@@ -82,8 +83,12 @@ class BuildStage extends Stage {
 
         // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
         // failed unit tests as possible
-        if (project.isAssembleMode && project.isWorkInProgress && project.hasFailingTests) {
-            util.failBuild ("Unit tests failed, please look for repositoriy errors!")
+        // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
+        // the build will have failed beforehand
+        def failedRepos = repos.flatten().findAll { it.data?.failedStage }
+        if (project.isAssembleMode && project.isWorkInProgress &&
+            (project.hasFailingTests || failedRepos.size > 0)) {
+            util.failBuild ("Failing build as repositoies contain errors!\nFailed: ${failedRepos}")
         }
     }
 
