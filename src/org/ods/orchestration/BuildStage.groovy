@@ -17,7 +17,7 @@ class BuildStage extends Stage {
         super(script, project, repos, startMROStageName)
     }
 
-    @SuppressWarnings('ParameterName')
+    @SuppressWarnings(['ParameterName', 'AbcMetric'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
