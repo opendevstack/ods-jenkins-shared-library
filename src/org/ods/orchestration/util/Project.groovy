@@ -240,6 +240,12 @@ class Project {
 
     }
 
+    class LogReportType {
+        static final String CHANGES = 'changes'
+        static final String TARGET = 'target'
+        static final String STATE = 'state'
+     }
+
     class GampTopic {
 
         static final String AVAILABILITY_REQUIREMENT = 'Availability Requirement'
@@ -976,7 +982,7 @@ class Project {
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
-            rePromote: rePromote,
+            rePromote: rePromote
         ]
     }
 
@@ -1068,7 +1074,6 @@ class Project {
             return docChapters
         }
     }
-
 
     protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
         def result = [:]
@@ -1227,7 +1232,7 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
-                ],
+                ]
             ]
         }
     }
@@ -1252,7 +1257,7 @@ class Project {
                             ]
                         ]
                     }
-                ],
+                ]
             ]
         }
     }
