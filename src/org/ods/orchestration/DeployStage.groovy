@@ -18,7 +18,7 @@ class DeployStage extends Stage {
         super(script, project, repos, startMROStageName)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
+    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize', 'LineLength'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -50,25 +50,15 @@ class DeployStage extends Stage {
             // In case we run the phase on an agent node, we need to make sure that
             // the levaDocScheduler.run is executed on the master node, as it does
             // not work on agent nodes yet.
-            if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                if (repo.data == null) { repo.data = [:] }
-
-                // collect test results
-                if (repo.data.tests == null) { repo.data.tests = [:] }
-                repo.data.tests << [installation: getTestResults(steps, repo, Project.TestType.INSTALLATION)]
-
-                // collect log data
-                if (repo.data.logs == null) { repo.data.logs = [:] }
-                repo.data.logs << [created: getLogReports(steps, repo, Project.LogReportType.CHANGES)]
-                repo.data.logs << [target: getLogReports(steps, repo, Project.LogReportType.TARGET)]
-                repo.data.logs << [state: getLogReports(steps, repo, Project.LogReportType.STATE)]
-                repo.data.logs.state.content = JsonOutput.prettyPrint(repo.data.logs.state.content[0])
-            }
-
             if (agentPodCondition) {
                 script.node {
                     script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}"
                     script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE}"
+                    if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                        logger.info("Loading ODS Infrastructure/Configuration Management component type data for '${repo.id}' - on agent")
+                        loadOdsInfraTypeData(repo)
+                    }
+
                     levaDocScheduler.run(
                         phase,
                         MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
@@ -77,6 +67,11 @@ class DeployStage extends Stage {
                     )
                 }
             } else {
+                if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                    logger.info("Loading ODS Infrastructure/Configuration Management component type data for '${repo.id}' - on master")
+                    loadOdsInfraTypeData(repo)
+                }
+
                 levaDocScheduler.run(
                     phase,
                     MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
@@ -136,4 +131,24 @@ class DeployStage extends Stage {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
 
+    private void loadOdsInfraTypeData (Map repo) {
+        if (repo.data == null) { repo.data = [:] }
+        ILogger logger = ServiceRegistry.instance.get(Logger)
+        def steps = ServiceRegistry.instance.get(PipelineSteps)
+
+        // collect test results
+        if (repo.data.tests == null) { repo.data.tests = [:] }
+        repo.data.tests << [installation: getTestResults(steps, repo, Project.TestType.INSTALLATION)]
+
+        // collect log data
+        if (repo.data.logs == null) { repo.data.logs = [:] }
+        repo.data.logs << [created: getLogReports(steps, repo, Project.LogReportType.CHANGES)]
+        repo.data.logs << [target: getLogReports(steps, repo, Project.LogReportType.TARGET)]
+        repo.data.logs << [state: getLogReports(steps, repo, Project.LogReportType.STATE)]
+        if (repo.data.logs.state.content) {
+            repo.data.logs.state.content = JsonOutput.prettyPrint(repo.data.logs.state.content[0])
+        } else {
+            logger.warn("No log state for ${repo.data} found!")
+        }
+    }
 }
