@@ -37,9 +37,6 @@ class DeployStage extends Stage {
             if (agentPodCondition) {
                 script.node {
                     script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
-                    if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                        script.sh "cp -r ${standardWorkspace}/logs/${repo.id} ${script.env.WORKSPACE}/logs/${repo.id} | true"
-                    }
                     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
                 }
             } else {
@@ -55,8 +52,7 @@ class DeployStage extends Stage {
                 script.node {
                     script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
                     if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                        script.sh "cp -r ${standardWorkspace}/logs/${repo.id} ${script.env.WORKSPACE}/logs/${repo.id} | true"
-                        fetchOdsInfraLogs(repo)
+                        fetchOdsInfraLogs(repo, agentPodCondition)
                     }
                     levaDocScheduler.run(
                         phase,
@@ -67,7 +63,7 @@ class DeployStage extends Stage {
                 }
             } else {
                 if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
-                    fetchOdsInfraLogs(repo)
+                    fetchOdsInfraLogs(repo, agentPodCondition)
                 }
                 levaDocScheduler.run(
                     phase,
@@ -128,9 +124,11 @@ class DeployStage extends Stage {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
 
-    private fetchOdsInfraLogs (Map repo) {
+    def fetchOdsInfraLogs (Map repo, boolean runOnAgent) {
         if (repo.data == null) { repo.data = [:] }
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
+        logger.info("Collecting logs for '${repo.id}' - on agent? ${runOnAgent}")
         // collect test results
         if (repo.data.tests == null) { repo.data.tests = [:] }
         repo.data.tests << [installation: getTestResults(steps, repo, Project.TestType.INSTALLATION)]
