@@ -146,6 +146,12 @@ class Stage {
         }
 
         def logFiles = loadLogFilesFromPath(logsUnstashPath)
+        if (logFiles.isEmpty()) {
+            throw new RuntimeException(
+                "Error: unable to load Log reports, type '${type}' for repo '${repo.id}'" +
+                " from stash '${logsUnstashPath}'."
+            )
+        }
         def logs = logFiles.collect { file ->
             file ? file.text : ""
         }
