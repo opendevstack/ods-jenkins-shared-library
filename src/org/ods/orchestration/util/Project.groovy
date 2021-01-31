@@ -1075,7 +1075,6 @@ class Project {
         }
     }
 
-
     protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
         def result = [:]
         def newData = this.loadVersionJiraData(projectKey, versionName)
