@@ -1,4 +1,3 @@
-
 package org.ods.orchestration.util
 
 @Grab('com.vladsch.flexmark:flexmark-all:0.60.2')
@@ -13,7 +12,8 @@ import com.vladsch.flexmark.pdf.converter.PdfConverterExtension
 import com.vladsch.flexmark.ext.tables.TablesExtension
 
 class MarkdownUtil {
-    private def CSS_STYLE = """
+
+    private final String CSS_STYLE = """
     <style>
         @page landscapeA4 {
             size: A4 landscape;
@@ -89,7 +89,6 @@ class MarkdownUtil {
        .set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create()))
        .setFrom(ParserEmulationProfile.MARKDOWN)
 
-
     @NonCPS
     String toHtml(String markdownText) {
         def parser = Parser.builder(this.OPTIONS).build()
@@ -101,14 +100,11 @@ class MarkdownUtil {
     @NonCPS
     byte[] toPDF(String markdownText, Boolean landscape = false) {
         def parsedMarkdown = this.toHtml(markdownText)
-        def landscapeContent = (landscape)? "class=\"landscape\"":""
+        def landscapeContent = (landscape) ? "class=\"landscape\"" : ""
         def html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">\n" +
-                "" +  // add your stylesheets, scripts styles etc.
-                // uncomment line below for adding style for custom embedded fonts
-                // nonLatinFonts +
                 this.CSS_STYLE +
                 "</head><body ${landscapeContent}>" + parsedMarkdown + "\n" +
-                "</body></html>";
+                "</body></html>"
 
         def os = new ByteArrayOutputStream()
         PdfConverterExtension.exportToPdf(os, html, "", this.OPTIONS)

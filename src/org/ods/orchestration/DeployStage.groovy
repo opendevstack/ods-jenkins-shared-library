@@ -36,7 +36,8 @@ class DeployStage extends Stage {
             // not work on agent nodes yet.
             if (agentPodCondition) {
                 script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
+                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}"
+                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE}"
                     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
                 }
             } else {
@@ -50,7 +51,8 @@ class DeployStage extends Stage {
             // not work on agent nodes yet.
             if (agentPodCondition) {
                 script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
+                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}"
+                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE}"
                     levaDocScheduler.run(
                         phase,
                         MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,

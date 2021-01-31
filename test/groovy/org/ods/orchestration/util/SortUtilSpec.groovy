@@ -34,4 +34,26 @@ class SortUtilSpec extends SpecHelper {
         [ [ key: "KEY-2", key_2: "KEY-2" ], [ key: "KEY-1", key_2: "KEY-20" ] ] | ["key", "key_2"] || [ [ key: "KEY-1", key_2: "KEY-20" ], [ key: "KEY-2", key_2: "KEY-2" ] ]
     }
 
+    def "sort issues by key"() {
+        expect:
+        SortUtil.sortIssuesByKey(issues) == findResult
+
+        where:
+        issues                                                   || findResult
+        [ [ key: "KEY-1" ], [ key: "KEY-2" ], [ key: "KEY-12"] ] || [ [ key: "KEY-1" ], [ key: "KEY-2" ], [ key: "KEY-12" ] ]
+        [ [ key: "KEY-12"], [ key: "KEY-2" ], [ key: "KEY-1" ] ] || [ [ key: "KEY-1" ], [ key: "KEY-2" ], [ key: "KEY-12" ] ]
+    }
+
+    def "sort list of issue keys by numeric part of jira keys"() {
+        expect:
+        SortUtil.sortHeadingNumbers(issues, properties) == findResult
+
+        where:
+        issues                                                | properties || findResult
+        [ [ key: "1.1" ], [ key: "2.3.2" ], [ key: "11"] ]    | "key"      || [ [ key: "1.1" ], [ key: "2.3.2" ], [ key: "11" ] ]
+        [ [ key: "11"], [ key: "2.3.2" ], [ key: "1.1" ] ]    | "key"      || [ [ key: "1.1" ], [ key: "2.3.2" ], [ key: "11" ] ]
+        [ [ key: "2.4"], [ key: "2.3.2" ], [ key: "2.3.1" ] ] | "key"      || [ [ key: "2.3.1" ], [ key: "2.3.2" ], [ key: "2.4" ] ]
+
+    }
+
 }
