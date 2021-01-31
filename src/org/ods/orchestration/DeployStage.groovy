@@ -127,6 +127,7 @@ class DeployStage extends Stage {
     def fetchOdsInfraLogs (Map repo, boolean runOnAgent) {
         if (repo.data == null) { repo.data = [:] }
         ILogger logger = ServiceRegistry.instance.get(Logger)
+        def steps = ServiceRegistry.instance.get(PipelineSteps)
 
         logger.info("Collecting logs for '${repo.id}' - on agent? ${runOnAgent}")
         // collect test results
