@@ -485,7 +485,7 @@ class DocumentHistorySpec extends SpecHelper {
 
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'doc1'])
         history.loadSavedDocHistoryData(savedVersionId) >> [new DocumentHistoryEntry([:], 1L, '1.0', '', 'Initial document version.')]
-        history.load(base_saved_data, savedVersionId, [])
+        history.load(base_saved_data, savedVersionId, ['added1', 'added2', 'otherDocCh', 'changed1', 'discontinued'])
 
         when:
         def result = history.getDocGenFormat()
