@@ -308,7 +308,10 @@ class DocumentHistory {
 
     private Map computeIssuesThatAreNotInDocumentAnymore(
         List<String> previousDocIssues, Map versionActions, List<String> issuesInDoc) {
-        if (!issuesInDoc) { return versionActions }
+        if (!issuesInDoc) {
+            issuesInDoc = []
+            //return versionActions
+        }
 
         def issuesNotInDocAnymore = previousDocIssues - issuesInDoc
         logger.info("??????????????????????? computeIssuesThatAreNotInDocumentAnymore issuesNotInDocAnymore " + issuesNotInDocAnymore)
