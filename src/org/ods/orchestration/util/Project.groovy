@@ -277,6 +277,8 @@ class Project {
             hasFailingTests: false,
             hasUnexecutedJiraTests: false,
         ]
+
+        this.data.documentHistories = [:]
     }
 
     Project init() {
@@ -937,10 +939,7 @@ class Project {
     }
 
     DocumentHistory getHistoryForDocument(String document) {
-        // FIXME getAt with safe-navigation operator is necessary, since
-        // this.data.documentHistories can be null. Should be initialized
-        // in the load() method or before.
-        return this.data.documentHistories?.getAt(document)
+        return this.data.documentHistories[document]
     }
 
     DocumentHistory findHistoryForDocumentType(String documentType) {
@@ -950,7 +949,6 @@ class Project {
     }
 
     void setHistoryForDocument(DocumentHistory docHistory, String document) {
-        if (!this.data.documentHistories) this.data.documentHistories = [:]
         this.data.documentHistories[document] = docHistory
     }
 
