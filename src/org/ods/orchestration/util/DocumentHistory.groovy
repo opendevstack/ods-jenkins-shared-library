@@ -43,7 +43,6 @@ class DocumentHistory {
     }
 
     DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys) {
-        logger.info("??????????????????????? load filterKeys " + filterKeys)
         this.latestVersionId = 1L
         if (savedVersionId) {
             try {
@@ -58,7 +57,6 @@ class DocumentHistory {
             }
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
-        logger.info("??????????????????????? load newDocDocumentHistoryEntry " + newDocDocumentHistoryEntry)
 
         if (this.allIssuesAreValid) {
             newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
@@ -276,7 +274,6 @@ class DocumentHistory {
 
     private DocumentHistoryEntry parseJiraDataToDocumentHistoryEntry(Map jiraData, List<String> keysInDocument) {
         logger.debug("Parsing jira data to document history")
-        logger.info("??????????????????????? parseJiraDataToDocumentHistoryEntry keysInDocument " + keysInDocument)
 
         def projectVersion = jiraData.version
         def previousProjectVersion = jiraData.previousVersion ?: ''
@@ -287,21 +284,15 @@ class DocumentHistory {
     }
 
     private Map computeEntryData(Map jiraData, String projectVersion, List<String> keysInDocument) {
-        logger.info("??????????????????????? computeEntryData keysInDocument " + keysInDocument)
-
         def previousDocumentIssues = this.getDocumentKeys()
         def additionsAndUpdates = this.computeAdditionsAndUpdates(jiraData, projectVersion)
         def discontinuations = computeDiscontinuations(jiraData, previousDocumentIssues)
-        logger.info("??????????????????????? computeEntryData previousDocumentIssues " + previousDocumentIssues)
-        logger.info("??????????????????????? computeEntryData additionsAndUpdates " + additionsAndUpdates)
-        logger.info("??????????????????????? computeEntryData additionsAndUpdates " + additionsAndUpdates)
 
         def addUpdDisc = JiraDataItem.TYPES.collectEntries { String issueType ->
             [(issueType): (additionsAndUpdates[issueType] ?: [])
                 + (discontinuations[issueType] ?: [])
             ]
         } as Map
-        logger.info("??????????????????????? computeEntryData addUpdDisc " + addUpdDisc)
 
         return this.computeIssuesThatAreNotInDocumentAnymore(previousDocumentIssues, addUpdDisc, keysInDocument)
     }
@@ -314,7 +305,6 @@ class DocumentHistory {
         }
 
         def issuesNotInDocAnymore = (previousDocIssues - issuesInDoc) as Set
-        logger.info("??????????????????????? computeIssuesThatAreNotInDocumentAnymore issuesNotInDocAnymore " + issuesNotInDocAnymore)
 
         def issues = versionActions.collectEntries { issueType, actions ->
             def typeResult = actions.collect { Map a ->
@@ -334,7 +324,6 @@ class DocumentHistory {
             }
             [(issueType): typeResult.flatten()]
         }
-        logger.info("??????????????????????? computeIssuesThatAreNotInDocumentAnymore issues " + issues)
 
         return issues
     }
