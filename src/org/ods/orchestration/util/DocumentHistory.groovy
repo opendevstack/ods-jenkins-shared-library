@@ -58,6 +58,8 @@ class DocumentHistory {
             }
         }
         def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
+        logger.info("??????????????????????? load newDocDocumentHistoryEntry " + newDocDocumentHistoryEntry)
+
         if (this.allIssuesAreValid) {
             newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
             this.data.add(0, newDocDocumentHistoryEntry)
