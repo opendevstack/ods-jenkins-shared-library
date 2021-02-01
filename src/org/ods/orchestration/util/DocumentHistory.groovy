@@ -320,15 +320,18 @@ class DocumentHistory {
             def typeResult = actions.collect { Map a ->
                 if (issuesInDoc.contains(a.key)) {
                     a
-                } else if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors ?: [])) {
-                    a.predecessors.collect { computeIssueContent(issueType, DELETE, [key: it]) }
-                } else if (a.type == DELETE) {
-                    a
                 } else {
-                    null
+                    def ret = []
+                    if (a.type == DELETE) {
+                        ret << a
+                    }
+                    if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors ?: [])) {
+                        ret += a.predecessors.collect { computeIssueContent(issueType, DELETE, [key: it]) }
+                    }
+                    ret
                 }
             }
-            [(issueType): typeResult.flatten() - [null]]
+            [(issueType): typeResult.flatten()]
         }
         logger.info("??????????????????????? computeIssuesThatAreNotInDocumentAnymore issues " + issues)
 
