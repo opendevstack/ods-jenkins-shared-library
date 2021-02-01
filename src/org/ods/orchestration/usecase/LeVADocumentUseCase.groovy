@@ -1525,9 +1525,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return this.project.getHistoryForDocument(documentName)
         } else {
-            if (this.project.data.jira.discontinuationsPerType) {
-                keysInDoc += this.project.data.jira.discontinuationsPerType.collect { it.value*.key }.flatten()
-            }
             def documentType = documentName.split('-').first()
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
