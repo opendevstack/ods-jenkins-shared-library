@@ -106,6 +106,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.sq = sq
     }
 
+    @SuppressWarnings('CyclomaticComplexity')
     String createCSD(Map repo = null, Map data = null) {
         def documentType = DocumentType.CSD as String
 
