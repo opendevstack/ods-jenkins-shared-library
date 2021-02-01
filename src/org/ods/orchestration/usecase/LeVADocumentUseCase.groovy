@@ -179,12 +179,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 sections    : sections,
                 requirements: requirementsForDocument,
-                documentHistory: docHistory.getDocGenFormat()
+                documentHistory: docHistory?.getDocGenFormat() ?: []
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -209,12 +209,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 sections: sections,
                 tests: tests,
                 modules: modules,
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -286,7 +286,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
                 ],
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
@@ -310,7 +310,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
         def docHistory = this.project.findHistoryForDocumentType(documentType)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -431,12 +431,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
                     ]
                 },
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -469,7 +469,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     summary  : discrepancies.conclusion.summary,
                     statement: discrepancies.conclusion.statement
                 ],
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
@@ -518,7 +518,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -594,12 +594,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: metadata,
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -645,11 +645,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testsOdsService: testsOfRepoTypeOdsService,
                 testsOdsCode   : testsOfRepoTypeOdsCode
             ],
-            documentHistory: docHistory.getDocGenFormat(),
+            documentHistory: docHistory?.getDocGenFormat() ?: [],
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -709,7 +709,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testsOdsService   : testsOfRepoTypeOdsService,
                 testsOdsCode      : testsOfRepoTypeOdsCode
             ],
-            documentHistory: docHistory.getDocGenFormat(),
+            documentHistory: docHistory?.getDocGenFormat() ?: [],
         ]
 
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
@@ -717,7 +717,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -800,12 +800,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTestFiles : SortUtil.sortIssuesByProperties(acceptanceTestData.testReportFiles.collect { file ->
                     [name: file.name, path: file.path, text: file.text]
                 } ?: [], ["name"]),
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -843,12 +843,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         steps       : testIssue.steps
                     ]
                 }),
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -924,12 +924,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -948,12 +948,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 project_key : this.project.key,
                 repositories: this.project.repositories,
                 sections    : sections,
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -990,7 +990,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data: [
                 repo    : repo,
                 sections: sections,
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
@@ -1042,7 +1042,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
         def docHistory = this.project.findHistoryForDocumentType(documentType)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
@@ -1093,12 +1093,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
             data    : [
                 sections: sections,
-                documentHistory: docHistory.getDocGenFormat(),
+                documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory.getVersion() as String)
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
 
