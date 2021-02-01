@@ -939,7 +939,7 @@ class Project {
     }
 
     DocumentHistory getHistoryForDocument(String document) {
-        return this.data.documentHistories.getAt(document)
+        return this.data.documentHistories[document]
     }
 
     DocumentHistory findHistoryForDocumentType(String documentType) {
