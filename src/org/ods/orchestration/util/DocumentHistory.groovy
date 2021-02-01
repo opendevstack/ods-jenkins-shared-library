@@ -313,7 +313,7 @@ class DocumentHistory {
             //return versionActions
         }
 
-        def issuesNotInDocAnymore = previousDocIssues - issuesInDoc
+        def issuesNotInDocAnymore = (previousDocIssues - issuesInDoc) as Set
         logger.info("??????????????????????? computeIssuesThatAreNotInDocumentAnymore issuesNotInDocAnymore " + issuesNotInDocAnymore)
 
         def issues = versionActions.collectEntries { issueType, actions ->
@@ -322,11 +322,12 @@ class DocumentHistory {
                     a
                 } else {
                     def ret = []
-                    if (a.type == DELETE) {
+                    if (DELETE.equalsIgnoreCase(a.action)) {
                         ret << a
                     }
-                    if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors ?: [])) {
-                        ret += a.predecessors.collect { computeIssueContent(issueType, DELETE, [key: it]) }
+                    if (this.latestVersionId != 1L) {
+                        ret += (a.predecessors ?: []).findAll { issuesNotInDocAnymore.contains(it) }
+                            .collect { computeIssueContent(issueType, DELETE, [key: it]) }
                     }
                     ret
                 }
