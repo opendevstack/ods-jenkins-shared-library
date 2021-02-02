@@ -95,7 +95,6 @@ class MROPipelineUtil extends PipelineUtil {
             def currentNodeBaseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
             this.steps.sh "cp -rf ${baseDir} ${currentNodeBaseDir} | true"
             this.steps.dir(currentNodeBaseDir) {
-
                 if (repo.data.openshift.resurrectedBuild) {
                     logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
                     return
