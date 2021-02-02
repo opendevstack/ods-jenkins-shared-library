@@ -332,7 +332,7 @@ class DocumentHistory {
                 def ret = []
                 // If it is a discontinuation, add it unconditionally.
                 if (DELETE.equalsIgnoreCase(action.action)) {
-                    ret << a
+                    ret << action
                 }
                 // If this is not the first version, let's treat the predecessors of the current issue.
                 // As the current issue won't be in the document anymore, the predecessors may need to disappear, too.
