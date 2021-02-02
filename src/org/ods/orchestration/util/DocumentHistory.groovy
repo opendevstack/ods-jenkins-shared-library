@@ -293,13 +293,13 @@ class DocumentHistory {
             ]
         } as Map
 
-        return this.computeActionsThatBelongToTheCurrentHistoryEntryData(previousDocumentIssues, addUpdDisc, keysInDocument)
+        return this.computeActionsThatBelongToTheCurrentHistoryData(previousDocumentIssues, addUpdDisc, keysInDocument)
     }
 
     /**
      * From the set of all issues that belong to the current project version, <code>versionActions</code>,
-     * determine the actual set of issues and actions to be included in the current document history entry being generated.
-     * This is done based on the issues in the previous version of the same document history, <code>previousDocIssues</code>,
+     * determine the actual set of issues and actions to be included in the current document history being generated.
+     * This is done based on the issues in the previous version of the same history, <code>previousDocIssues</code>,
      * and the list of issues that should go into the current version, <code>issuesInDoc</code>.
      * These are generated in function of the document type and sometimes also in the concrete component.
      *
@@ -312,7 +312,7 @@ class DocumentHistory {
      * @param issuesInDoc list of the keys of the issues that should be included in the current document version.
      * @return the map with all the issues and actions to be included in the current document history entry, by type.
      */
-    private Map computeActionsThatBelongToTheCurrentHistoryEntryData (
+    private Map computeActionsThatBelongToTheCurrentHistoryData (
         List<String> previousDocIssues, Map versionActions, List<String> issuesInDoc) {
         // Guard against the possibility that a null issuesInDoc is provided
         if (issuesInDoc == null) {
