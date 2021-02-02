@@ -293,28 +293,60 @@ class DocumentHistory {
             ]
         } as Map
 
-        return this.computeIssuesThatAreNotInDocumentAnymore(previousDocumentIssues, addUpdDisc, keysInDocument)
+        return this.computeActionsThatBelongToTheCurrentHistoryData(previousDocumentIssues, addUpdDisc, keysInDocument)
     }
 
-    private Map computeIssuesThatAreNotInDocumentAnymore(
+    /**
+     * From the set of all issues that belong to the current project version, <code>versionActions</code>,
+     * determine the actual set of issues and actions to be included in the current document history being generated.
+     * This is done based on the issues in the previous version of the same history, <code>previousDocIssues</code>,
+     * and the list of issues that should go into the current version, <code>issuesInDoc</code>.
+     * These are generated in function of the document type and sometimes also in the concrete component.
+     *
+     * The resulting set of issues is not in general a subset of <code>versionActions</code>,
+     * because some discontinuations must be added.
+     * These are discontinuations to issues that are not listed in <code>issuesInDoc</code>.
+     *
+     * @param previousDocIssues list of issue keys that were in the previous document version.
+     * @param versionActions map with all the issues that belong to the current project version by issue type.
+     * @param issuesInDoc list of the keys of the issues that should be included in the current document version.
+     * @return the map with all the issues and actions to be included in the current document history entry, by type.
+     */
+    private Map computeActionsThatBelongToTheCurrentHistoryData (
         List<String> previousDocIssues, Map versionActions, List<String> issuesInDoc) {
-        if (!issuesInDoc) { return versionActions }
-
-        def issuesNotInDocAnymore = previousDocIssues - issuesInDoc
-        versionActions.collectEntries { issueType, actions ->
-            def typeResult = actions.collect { Map a ->
-                if (issuesInDoc.contains(a.key)) {
-                    a
-                } else if (this.latestVersionId != 1L && issuesNotInDocAnymore?.containsAll(a.predecessors ?: [])) {
-                    a.predecessors.collect { computeIssueContent(issueType, DELETE, [key: it]) }
-                } else if (a.type == DELETE) {
-                    a
-                } else {
-                    null
-                }
-            }
-            [(issueType): typeResult.flatten() - [null]]
+        // Guard against the possibility that a null issuesInDoc is provided
+        if (issuesInDoc == null) {
+            issuesInDoc = []
         }
+
+        // Traverse the collection of all the issues that belong to the current project version,
+        // in order to determine which of them are to be included in the current history data.
+        def issues = versionActions.collectEntries { issueType, actions ->
+            def typeResult = actions.collect { Map action ->
+                // If the key belongs to the current history data, include it regardless of the action
+                if (issuesInDoc.contains(action.key)) {
+                    return action
+                }
+                // If we are here, the current issue doesn't belong to the current document history entry,
+                // but we still need to add discontinuations for some of these issues.
+                def ret = []
+                // If it is a discontinuation, add it unconditionally.
+                if (DELETE.equalsIgnoreCase(action.action)) {
+                    ret << action
+                }
+                // If this is not the first version, let's treat the predecessors of the current issue.
+                // As the current issue won't be in the document anymore, the predecessors may need to disappear, too.
+                if (this.latestVersionId != 1L) {
+                    // Any predecessors that were in the previous document history are discontinued.
+                    // Note that there will never be more than one predecessor, but it's still a list.
+                    ret += (action.predecessors ?: []).findAll { previousDocIssues.contains(it) }
+                        .collect { computeIssueContent(issueType, DELETE, [key: it]) }
+                }
+                return ret
+            }
+            [(issueType): typeResult.flatten()]
+        }
+        return issues
     }
 
     private Map computeAdditionsAndUpdates(Map jiraData, String projectVersion) {
