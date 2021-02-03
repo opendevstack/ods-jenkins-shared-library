@@ -83,7 +83,7 @@ dependencies {
     testImplementation "org.objenesis:objenesis:3.1"
     testImplementation "cglib:cglib-nodep:3.3.0"                      // for mocking classes
     testImplementation "com.github.stefanbirkner:system-rules:1.19.0" // for managing environment variables
-    testImplementation "com.github.tomakehurst:wiremock:2.26.0"       // for mocking HTTP server reponses
+    testImplementation "com.github.tomakehurst:wiremock:2.27.2"       // for mocking HTTP server reponses
     testImplementation "org.hamcrest:hamcrest:2.1"
 }
 

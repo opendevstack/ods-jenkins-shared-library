@@ -1,0 +1,605 @@
+{
+  "project" : {
+    "name" : "t4",
+    "description" : "",
+    "key" : "T4",
+    "jiraBaseUrl" : "http://172.17.0.1:18080/T4",
+    "projectProperties" : {
+      "PROJECT.POO_CAT.HIGH" : "Frequency of the usage of the related function is >10 times per week.",
+      "PROJECT.POO_CAT.LOW" : "Frequency of the usage of the related function is <10 times per year.",
+      "WEBHOOK_PROXY.URL" : "https://webhook-proxy-T4-cd.ocp.odsbox.lan/build?trigger_secret=645de6c7-0c3b-42c0-b23a-4dde364cda1d",
+      "RM.REPOSITORY" : "t4-demo-app-release-manager",
+      "RM.BRANCH" : "master",
+      "PROJECT.POO_CAT.MEDIUM" : "Frequency of the usage of the related function is <10 times per week.",
+      "PROJECT.USES_POO" : "false",
+      "PROJECT.IS_EDP_PROJECT" : "true",
+      "PROJECT.CONFIG_ITEM" : "BI-IT-DEVSTACK"
+    },
+    "gampTopics" : [ "operational requirements", "functional requirements", "data requirements", "technical requirements", "interface requirements", "environment requirements", "performance requirements", "availability requirements", "security requirements", "maintenance requirements", "regulatory requirements", "roles", "compatibility", "procedural constraints", "overarching requirements" ],
+    "enumDictionary" : {
+      "ProbabilityOfDetection" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Immediate",
+          "short" : "I"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Before Impact",
+          "short" : "B"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "After Impact",
+          "short" : "A"
+        }
+      },
+      "SeverityOfImpact" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Low",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Medium",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "High",
+          "short" : "H"
+        }
+      },
+      "ProbabilityOfOccurrence" : {
+        "1" : {
+          "value" : 1,
+          "text" : "LOW",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "HIGH",
+          "short" : "H"
+        }
+      },
+      "RiskPriority" : {
+        "0" : {
+          "value" : 0,
+          "text" : "N/A",
+          "short" : "N"
+        },
+        "1" : {
+          "value" : 1,
+          "text" : "HIGH",
+          "short" : "H"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "LOW",
+          "short" : "L"
+        }
+      },
+      "GxPRelevance" : {
+        "R2" : {
+          "value" : 2,
+          "text" : "Relevant",
+          "short" : "R2"
+        },
+        "N0" : {
+          "value" : 0,
+          "text" : "Not relevant/ZERO",
+          "short" : "N0"
+        },
+        "N1" : {
+          "value" : 1,
+          "text" : "Not relevant/LESS",
+          "short" : "N1"
+        },
+        "N2" : {
+          "value" : 2,
+          "text" : "Not relevant/EQUAL",
+          "short" : "N2"
+        }
+      }
+    },
+    "versions" : [ "1.0", "2.0" ],
+    "id" : "10103"
+  },
+  "components" : {
+    "Technology-test" : {
+      "name" : "Technology-test",
+      "description" : "Technology component t4-test stored at http://bitbucket.odsbox.lan:7990/projects/T4/repos/t4-test/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    },
+    "Technology-demo-app-backend" : {
+      "name" : "Technology-demo-app-backend",
+      "description" : "Technology component t4-demo-app-backend stored at http://bitbucket.odsbox.lan:7990/projects/T4/repos/t4-demo-app-backend/browse",
+      "requirements" : [ "T4-187", "T4-189", "T4-202", "T4-201" ],
+      "techSpecs" : [ "T4-206", "T4-193", "T4-197" ],
+      "risks" : [ "T4-198", "T4-207" ],
+      "epics" : [ "T4-200" ],
+      "tests" : [ "T4-190", "T4-191", "T4-192", "T4-196", "T4-203", "T4-204", "T4-205", "T4-209" ],
+      "mitigations" : [ "T4-199", "T4-208" ]
+    },
+    "Technology-demo-app-release-manager" : {
+      "name" : "Technology-demo-app-release-manager",
+      "description" : "Technology component t4-demo-app-release-manager stored at http://bitbucket.odsbox.lan:7990/projects/T4/repos/t4-demo-app-release-manager/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    }
+  },
+  "releaseState" : "Change Ready for Implementation",
+  "version" : "2.0",
+  "epics" : {
+    "T4-200" : {
+      "key" : "T4-200",
+      "description" : "<p>descafdf</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "epicName" : "Epic Release 2",
+      "predecessors" : [ ],
+      "title" : "Epic Release 2",
+      "requirements" : [ "T4-202", "T4-201" ]
+    }
+  },
+  "requirements" : {
+    "T4-187" : {
+      "key" : "T4-187",
+      "name" : "New story in release 2.0",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : null,
+      "configSpec" : {
+        "name" : "N/A",
+        "description" : ""
+      },
+      "funcSpec" : {
+        "name" : "N/A",
+        "description" : "",
+        "acceptanceCriteria" : "N/A"
+      },
+      "components" : [ "Technology-demo-app-backend" ],
+      "epics" : [ ],
+      "risks" : [ "T4-198" ],
+      "tests" : [ "T4-196" ],
+      "techSpecs" : [ "T4-197" ],
+      "bugs" : [ ],
+      "mitigations" : [ "T4-199" ],
+      "predecessors" : [ ]
+    },
+    "T4-189" : {
+      "key" : "T4-189",
+      "name" : "Story 1 - Release 1 - create succesor (from T4-127)",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : null,
+      "configSpec" : {
+        "name" : "N/A",
+        "description" : ""
+      },
+      "funcSpec" : {
+        "name" : "adfaf",
+        "description" : "<p>adsfaf</p>",
+        "acceptanceCriteria" : "N/A"
+      },
+      "components" : [ "Technology-demo-app-backend" ],
+      "epics" : [ ],
+      "risks" : [ ],
+      "tests" : [ ],
+      "techSpecs" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ "T4-127" ]
+    },
+    "T4-201" : {
+      "key" : "T4-201",
+      "name" : "Story Release 2",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "functional requirements",
+      "acceptanceCriteria" : "asdfsafd",
+      "configSpec" : {
+        "name" : "N/A",
+        "description" : ""
+      },
+      "funcSpec" : {
+        "name" : "adf",
+        "description" : "<p>adsf</p>",
+        "acceptanceCriteria" : "adfaf"
+      },
+      "components" : [ "Technology-demo-app-backend" ],
+      "epics" : [ "T4-200" ],
+      "risks" : [ "T4-207" ],
+      "tests" : [ "T4-204", "T4-203", "T4-205", "T4-209" ],
+      "techSpecs" : [ "T4-206" ],
+      "bugs" : [ ],
+      "mitigations" : [ "T4-208" ],
+      "predecessors" : [ ]
+    },
+    "T4-202" : {
+      "key" : "T4-202",
+      "name" : "Other story",
+      "description" : "<p>adsf</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : null,
+      "acceptanceCriteria" : "asdfsafd",
+      "configSpec" : {
+        "name" : "N/A",
+        "description" : ""
+      },
+      "funcSpec" : {
+        "name" : "adf",
+        "description" : "<p>adsf</p>",
+        "acceptanceCriteria" : "adfaf"
+      },
+      "components" : [ "Technology-demo-app-backend" ],
+      "epics" : [ "T4-200" ],
+      "risks" : [ ],
+      "tests" : [ ],
+      "techSpecs" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "risks" : {
+    "T4-194" : {
+      "key" : "T4-194",
+      "name" : "RA - to modify (from T4-143)",
+      "description" : "<p>afd</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : null,
+      "probabilityOfOccurrence" : null,
+      "severityOfImpact" : null,
+      "probabilityOfDetection" : null,
+      "riskPriorityNumber" : null,
+      "riskPriority" : null,
+      "mitigations" : [ ],
+      "requirements" : [ "T4-126" ],
+      "techSpecs" : [ ],
+      "tests" : [ ],
+      "predecessors" : [ "T4-143" ],
+      "riskComment" : null
+    },
+    "T4-198" : {
+      "key" : "T4-198",
+      "name" : "New RA in Releaes 2",
+      "description" : "<p>asfd</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : null,
+      "probabilityOfOccurrence" : null,
+      "severityOfImpact" : null,
+      "probabilityOfDetection" : null,
+      "riskPriorityNumber" : null,
+      "riskPriority" : null,
+      "mitigations" : [ "T4-199" ],
+      "requirements" : [ "T4-187" ],
+      "techSpecs" : [ ],
+      "tests" : [ ],
+      "predecessors" : [ ],
+      "riskComment" : "asf"
+    },
+    "T4-207" : {
+      "key" : "T4-207",
+      "name" : "RA",
+      "description" : "<p>afds</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : null,
+      "probabilityOfOccurrence" : null,
+      "severityOfImpact" : null,
+      "probabilityOfDetection" : null,
+      "riskPriorityNumber" : null,
+      "riskPriority" : null,
+      "mitigations" : [ "T4-208" ],
+      "requirements" : [ "T4-201" ],
+      "techSpecs" : [ ],
+      "tests" : [ "T4-209" ],
+      "predecessors" : [ ],
+      "riskComment" : "adf"
+    }
+  },
+  "tests" : {
+    "T4-190" : {
+      "id" : "11546",
+      "key" : "T4-190",
+      "name" : "Unit test - to modify (from T4-130)",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "To Do",
+      "resolution" : null,
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ "T4-130" ],
+      "execLabel" : "Succeeded"
+    },
+    "T4-191" : {
+      "id" : "11547",
+      "key" : "T4-191",
+      "name" : "Acceptance Test - to modify (from T4-134)",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ "T4-134" ],
+      "execLabel" : "Succeeded"
+    },
+    "T4-192" : {
+      "id" : "11548",
+      "key" : "T4-192",
+      "name" : "Integration Test - to modify (from T4-137)",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ "T4-137" ],
+      "execLabel" : "Succeeded"
+    },
+    "T4-196" : {
+      "id" : "11552",
+      "key" : "T4-196",
+      "name" : "unit New Test in Release 2",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Unit",
+      "executionType" : "Manual",
+      "requirements" : [ "T4-187" ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : null
+    },
+    "T4-203" : {
+      "id" : "11559",
+      "key" : "T4-203",
+      "name" : "Unit Test",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ "T4-201" ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "T4-204" : {
+      "id" : "11560",
+      "key" : "T4-204",
+      "name" : "Acceptance Test",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ "T4-201" ],
+      "techSpecs" : [ "T4-206" ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "T4-205" : {
+      "id" : "11561",
+      "key" : "T4-205",
+      "name" : "Integration Test",
+      "description" : "<p>sadfafd</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ "T4-201" ],
+      "techSpecs" : [ "T4-206" ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "T4-209" : {
+      "id" : "11565",
+      "key" : "T4-209",
+      "name" : "TEst of RA",
+      "description" : "<p>asdf</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ "T4-201" ],
+      "techSpecs" : [ ],
+      "risks" : [ "T4-207" ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    }
+  },
+  "mitigations" : {
+    "T4-195" : {
+      "key" : "T4-195",
+      "name" : "Mitigation - to modify (from T4-146)",
+      "description" : "<p>afsafd</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "risks" : [ ],
+      "components" : [ ],
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "predecessors" : [ "T4-146" ]
+    },
+    "T4-199" : {
+      "key" : "T4-199",
+      "name" : "New Mitigation in Release 2",
+      "description" : "<p>af</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "risks" : [ "T4-198" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "requirements" : [ "T4-187" ],
+      "techSpecs" : [ ],
+      "predecessors" : [ ]
+    },
+    "T4-208" : {
+      "key" : "T4-208",
+      "name" : "Mitigation",
+      "description" : "<p>asdf</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "risks" : [ "T4-207" ],
+      "components" : [ "Technology-demo-app-backend" ],
+      "requirements" : [ "T4-201" ],
+      "techSpecs" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "techSpecs" : {
+    "T4-193" : {
+      "key" : "T4-193",
+      "name" : "TST - to modify (from T4-140)",
+      "description" : "<p>adfa</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p>adfadfsaf</p>",
+      "softwareDesignSpec" : "<p>afdaf</p>",
+      "components" : [ "Technology-demo-app-backend" ],
+      "requirements" : [ ],
+      "risks" : [ ],
+      "tests" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ "T4-140" ]
+    },
+    "T4-197" : {
+      "key" : "T4-197",
+      "name" : "New TST in releaes 2",
+      "description" : "<p>afd</p>",
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p>asdf</p>",
+      "softwareDesignSpec" : "",
+      "components" : [ "Technology-demo-app-backend" ],
+      "requirements" : [ "T4-187" ],
+      "risks" : [ ],
+      "tests" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    },
+    "T4-206" : {
+      "key" : "T4-206",
+      "name" : "TST",
+      "description" : null,
+      "versions" : [ "2.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p>adf</p>",
+      "softwareDesignSpec" : "<p>af</p>",
+      "components" : [ "Technology-demo-app-backend" ],
+      "requirements" : [ "T4-201" ],
+      "risks" : [ ],
+      "tests" : [ ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "bugs" : { },
+  "notesAndHints" : [ ],
+  "precedingVersions" : [ "1.0" ],
+  "continuedKeys" : [ "T4-1", "T4-2", "T4-3", "T4-4", "T4-5", "T4-6", "T4-7", "T4-8", "T4-9", "T4-10", "T4-11", "T4-12", "T4-13", "T4-14", "T4-15", "T4-16", "T4-17", "T4-18", "T4-19", "T4-20", "T4-21", "T4-22", "T4-23", "T4-24", "T4-25", "T4-26", "T4-27", "T4-28", "T4-29", "T4-30", "T4-31", "T4-32", "T4-33", "T4-34", "T4-35", "T4-36", "T4-37", "T4-38", "T4-39", "T4-40", "T4-41", "T4-42", "T4-43", "T4-44", "T4-45", "T4-46", "T4-47", "T4-48", "T4-49", "T4-50", "T4-51", "T4-52", "T4-53", "T4-54", "T4-55", "T4-56", "T4-57", "T4-58", "T4-59", "T4-60", "T4-61", "T4-62", "T4-63", "T4-64", "T4-65", "T4-66", "T4-67", "T4-68", "T4-69", "T4-70", "T4-71", "T4-72", "T4-73", "T4-74", "T4-75", "T4-76", "T4-77", "T4-78", "T4-79", "T4-80", "T4-81", "T4-82", "T4-83", "T4-84", "T4-85", "T4-86", "T4-87", "T4-88", "T4-89", "T4-90", "T4-91", "T4-92", "T4-93", "T4-94", "T4-95", "T4-96", "T4-97", "T4-98", "T4-99", "T4-100", "T4-101", "T4-102", "T4-103", "T4-104", "T4-105", "T4-106", "T4-107", "T4-108", "T4-109", "T4-110", "T4-111", "T4-112", "T4-113", "T4-114", "T4-115", "T4-116", "T4-117", "T4-118", "T4-119", "T4-120", "T4-121", "T4-122", "T4-124", "T4-125", "T4-126", "T4-127", "T4-129", "T4-130", "T4-132", "T4-133", "T4-134", "T4-136", "T4-137", "T4-139", "T4-140", "T4-142", "T4-143", "T4-145", "T4-146", "T4-147", "T4-148", "T4-188" ],
+  "discontinuedKeys" : [ "T4-138", "T4-144", "T4-141", "T4-135", "T4-128", "T4-131" ]
+}

@@ -1,0 +1,16 @@
+{
+    "fields": [
+        "key",
+        "status",
+        "summary",
+        "labels",
+        "issuelinks",
+        "customfield_10209",
+        "customfield_10201"
+    ],
+    "jql": "project = net AND issuetype = 'Documentation Chapter'",
+    "expand": [
+        "renderedFields"
+    ],
+    "maxResults": 1000
+}

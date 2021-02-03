@@ -1,0 +1,166 @@
+{
+    "expand": "description,lead,url,projectKeys",
+    "self": "http://jira.odsbox.lan:8080/rest/api/2/project/10103",
+    "id": "10103",
+    "key": "T4",
+    "description": "",
+    "lead": {
+        "self": "http://jira.odsbox.lan:8080/rest/api/2/user?username=project-admin",
+        "key": "JIRAUSER10103",
+        "name": "project-admin",
+        "avatarUrls": {
+            "48x48": "https://www.gravatar.com/avatar/a92cadf1cd5fcbf7f5b9996670ad0617?d=mm&s=48",
+            "24x24": "https://www.gravatar.com/avatar/a92cadf1cd5fcbf7f5b9996670ad0617?d=mm&s=24",
+            "16x16": "https://www.gravatar.com/avatar/a92cadf1cd5fcbf7f5b9996670ad0617?d=mm&s=16",
+            "32x32": "https://www.gravatar.com/avatar/a92cadf1cd5fcbf7f5b9996670ad0617?d=mm&s=32"
+        },
+        "displayName": "project admin",
+        "active": true
+    },
+    "components": [
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/component/10109",
+            "id": "10109",
+            "name": "Technology-demo-app-backend",
+            "description": "Technology component t4-demo-app-backend stored at http://bitbucket.odsbox.lan:7990/projects/T4/repos/t4-demo-app-backend/browse",
+            "isAssigneeTypeValid": false
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/component/10107",
+            "id": "10107",
+            "name": "Technology-demo-app-release-manager",
+            "description": "Technology component t4-demo-app-release-manager stored at http://bitbucket.odsbox.lan:7990/projects/T4/repos/t4-demo-app-release-manager/browse",
+            "isAssigneeTypeValid": false
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/component/10108",
+            "id": "10108",
+            "name": "Technology-test",
+            "description": "Technology component t4-test stored at http://bitbucket.odsbox.lan:7990/projects/T4/repos/t4-test/browse",
+            "isAssigneeTypeValid": false
+        }
+    ],
+    "issueTypes": [
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10206",
+            "id": "10206",
+            "description": "The issue for technical specification",
+            "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10605&avatarType=issuetype",
+            "name": "Technical Specification Task",
+            "subtask": false,
+            "avatarId": 10605
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10205",
+            "id": "10205",
+            "description": "The issue for definition of a risk mitigation",
+            "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10604&avatarType=issuetype",
+            "name": "Mitigation",
+            "subtask": false,
+            "avatarId": 10604
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10000",
+            "id": "10000",
+            "description": "Created by Jira Software - do not edit or delete. Issue type for a big user story that needs to be broken down.",
+            "iconUrl": "http://jira.odsbox.lan:8080/images/icons/issuetypes/epic.svg",
+            "name": "Epic",
+            "subtask": false
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10200",
+            "id": "10200",
+            "description": "This Issue Type is used to create Zephyr Test within Jira.",
+            "iconUrl": "http://jira.odsbox.lan:8080/download/resources/com.thed.zephyr.je/images/icons/COLOR_zephyr_feather_20x20.svg",
+            "name": "Test",
+            "subtask": false
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10001",
+            "id": "10001",
+            "description": "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+            "iconUrl": "http://jira.odsbox.lan:8080/images/icons/issuetypes/story.svg",
+            "name": "Story",
+            "subtask": false
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10202",
+            "id": "10202",
+            "description": "Document part",
+            "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10601&avatarType=issuetype",
+            "name": "Documentation Chapter",
+            "subtask": false,
+            "avatarId": 10601
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10102",
+            "id": "10102",
+            "description": "A problem which impairs or prevents the functions of the product.",
+            "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype",
+            "name": "Bug",
+            "subtask": false,
+            "avatarId": 10303
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10201",
+            "id": "10201",
+            "description": "Release status of project",
+            "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10600&avatarType=issuetype",
+            "name": "Release Status",
+            "subtask": false,
+            "avatarId": 10600
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10204",
+            "id": "10204",
+            "description": "The issue for risk definition",
+            "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10603&avatarType=issuetype",
+            "name": "Risk Assessment",
+            "subtask": true,
+            "avatarId": 10603
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10203",
+            "id": "10203",
+            "description": "Tracker for a document",
+            "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10602&avatarType=issuetype",
+            "name": "Documentation",
+            "subtask": false,
+            "avatarId": 10602
+        }
+    ],
+    "assigneeType": "PROJECT_LEAD",
+    "versions": [
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10025",
+            "id": "10025",
+            "name": "1.0",
+            "archived": false,
+            "released": false,
+            "projectId": 10103
+        },
+        {
+            "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10026",
+            "id": "10026",
+            "name": "2.0",
+            "archived": false,
+            "released": false,
+            "projectId": 10103
+        }
+    ],
+    "name": "t4",
+    "roles": {
+        "Administrators": "http://jira.odsbox.lan:8080/rest/api/2/project/10103/role/10002",
+        "Project Administrators": "http://jira.odsbox.lan:8080/rest/api/2/project/10103/role/10101",
+        "Stakeholders": "http://jira.odsbox.lan:8080/rest/api/2/project/10103/role/10102",
+        "Team Members": "http://jira.odsbox.lan:8080/rest/api/2/project/10103/role/10100"
+    },
+    "avatarUrls": {
+        "48x48": "http://jira.odsbox.lan:8080/secure/projectavatar?avatarId=10324",
+        "24x24": "http://jira.odsbox.lan:8080/secure/projectavatar?size=small&avatarId=10324",
+        "16x16": "http://jira.odsbox.lan:8080/secure/projectavatar?size=xsmall&avatarId=10324",
+        "32x32": "http://jira.odsbox.lan:8080/secure/projectavatar?size=medium&avatarId=10324"
+    },
+    "projectTypeKey": "software",
+    "archived": false
+}

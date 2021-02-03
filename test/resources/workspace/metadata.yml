@@ -1,0 +1,32 @@
+---
+id: net
+name: Sock Shop
+description: A socks-selling e-commerce demo application.
+
+services:
+  bitbucket:
+    credentials:
+      id: net-cd-cd-user-with-password
+  jira:
+    credentials:
+      id: net-cd-cd-user-with-password
+  nexus:
+    repository:
+      name: leva-documentation
+
+repositories:
+  - id: demo-app-carts
+    type: ods-service
+  - id: demo-app-catalogue
+    type: ods
+  - id: demo-app-front-end
+    type: ods
+  - id: demo-app-tests
+    type: ods-test
+
+capabilities:
+  - LeVADocs:
+      GAMPCategory: "5"
+      templatesVersion: "1.0"
+
+environments: {}

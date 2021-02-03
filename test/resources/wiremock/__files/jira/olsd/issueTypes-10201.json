@@ -1,0 +1,372 @@
+{
+    "maxResults": 50,
+    "startAt": 0,
+    "total": 16,
+    "isLast": true,
+    "values": [
+        {
+            "required": false,
+            "schema": {
+                "type": "user",
+                "system": "assignee"
+            },
+            "name": "Assignee",
+            "fieldId": "assignee",
+            "autoCompleteUrl": "http://jira.odsbox.lan:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
+            "hasDefaultValue": true,
+            "operations": [
+                "set"
+            ],
+            "defaultValue": {
+                "name": "-1"
+            }
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "option",
+                "custom": "org.opendevstack.jira.plugins.projecttemplate:precedingversions",
+                "customId": 10205
+            },
+            "name": "Preceding Versions",
+            "fieldId": "customfield_10205",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ],
+            "allowedValues": []
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "version",
+                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:version",
+                "customId": 10222
+            },
+            "name": "ProductRelease Version",
+            "fieldId": "customfield_10222",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ],
+            "allowedValues": [
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10025",
+                    "id": "10025",
+                    "description": "",
+                    "name": "1.0",
+                    "archived": false,
+                    "released": false
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10026",
+                    "id": "10026",
+                    "description": "",
+                    "name": "2.0",
+                    "archived": false,
+                    "released": false
+                }
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "string",
+                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:readonlyfield",
+                "customId": 10223
+            },
+            "name": "Branch Id",
+            "fieldId": "customfield_10223",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "string",
+                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+                "customId": 10230
+            },
+            "name": "Release Build",
+            "fieldId": "customfield_10230",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "option",
+                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+                "customId": 10236
+            },
+            "name": "Release Manager Status",
+            "fieldId": "customfield_10236",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ],
+            "allowedValues": [
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/customFieldOption/10345",
+                    "value": "Running",
+                    "id": "10345"
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/customFieldOption/10346",
+                    "value": "Failed",
+                    "id": "10346"
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/customFieldOption/10347",
+                    "value": "Successful",
+                    "id": "10347"
+                }
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "string",
+                "system": "description"
+            },
+            "name": "Description",
+            "fieldId": "description",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "array",
+                "items": "version",
+                "system": "fixVersions"
+            },
+            "name": "Fix Version/s",
+            "fieldId": "fixVersions",
+            "hasDefaultValue": false,
+            "operations": [
+                "set",
+                "add",
+                "remove"
+            ],
+            "allowedValues": [
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10025",
+                    "id": "10025",
+                    "name": "1.0",
+                    "archived": false,
+                    "released": false,
+                    "projectId": 10103
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10026",
+                    "id": "10026",
+                    "name": "2.0",
+                    "archived": false,
+                    "released": false,
+                    "projectId": 10103
+                }
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "array",
+                "items": "issuelinks",
+                "system": "issuelinks"
+            },
+            "name": "Linked Issues",
+            "fieldId": "issuelinks",
+            "autoCompleteUrl": "http://jira.odsbox.lan:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+            "hasDefaultValue": false,
+            "operations": [
+                "add"
+            ]
+        },
+        {
+            "required": true,
+            "schema": {
+                "type": "issuetype",
+                "system": "issuetype"
+            },
+            "name": "Issue Type",
+            "fieldId": "issuetype",
+            "hasDefaultValue": false,
+            "operations": [],
+            "allowedValues": [
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/issuetype/10201",
+                    "id": "10201",
+                    "description": "Release status of project",
+                    "iconUrl": "http://jira.odsbox.lan:8080/secure/viewavatar?size=xsmall&avatarId=10600&avatarType=issuetype",
+                    "name": "Release Status",
+                    "subtask": false,
+                    "avatarId": 10600
+                }
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "array",
+                "items": "string",
+                "system": "labels"
+            },
+            "name": "Labels",
+            "fieldId": "labels",
+            "autoCompleteUrl": "http://jira.odsbox.lan:8080/rest/api/1.0/labels/suggest?query=",
+            "hasDefaultValue": false,
+            "operations": [
+                "add",
+                "set",
+                "remove"
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "priority",
+                "system": "priority"
+            },
+            "name": "Priority",
+            "fieldId": "priority",
+            "hasDefaultValue": true,
+            "operations": [
+                "set"
+            ],
+            "allowedValues": [
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/priority/1",
+                    "iconUrl": "http://jira.odsbox.lan:8080/images/icons/priorities/highest.svg",
+                    "name": "Highest",
+                    "id": "1"
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/priority/2",
+                    "iconUrl": "http://jira.odsbox.lan:8080/images/icons/priorities/high.svg",
+                    "name": "High",
+                    "id": "2"
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/priority/3",
+                    "iconUrl": "http://jira.odsbox.lan:8080/images/icons/priorities/medium.svg",
+                    "name": "Medium",
+                    "id": "3"
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/priority/4",
+                    "iconUrl": "http://jira.odsbox.lan:8080/images/icons/priorities/low.svg",
+                    "name": "Low",
+                    "id": "4"
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/priority/5",
+                    "iconUrl": "http://jira.odsbox.lan:8080/images/icons/priorities/lowest.svg",
+                    "name": "Lowest",
+                    "id": "5"
+                }
+            ],
+            "defaultValue": {
+                "self": "http://jira.odsbox.lan:8080/rest/api/2/priority/3",
+                "iconUrl": "http://jira.odsbox.lan:8080/images/icons/priorities/medium.svg",
+                "name": "Medium",
+                "id": "3"
+            }
+        },
+        {
+            "required": true,
+            "schema": {
+                "type": "project",
+                "system": "project"
+            },
+            "name": "Project",
+            "fieldId": "project",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ],
+            "allowedValues": [
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/project/10103",
+                    "id": "10103",
+                    "key": "T4",
+                    "name": "t4",
+                    "projectTypeKey": "software",
+                    "avatarUrls": {
+                        "48x48": "http://jira.odsbox.lan:8080/secure/projectavatar?avatarId=10324",
+                        "24x24": "http://jira.odsbox.lan:8080/secure/projectavatar?size=small&avatarId=10324",
+                        "16x16": "http://jira.odsbox.lan:8080/secure/projectavatar?size=xsmall&avatarId=10324",
+                        "32x32": "http://jira.odsbox.lan:8080/secure/projectavatar?size=medium&avatarId=10324"
+                    }
+                }
+            ]
+        },
+        {
+            "required": true,
+            "schema": {
+                "type": "user",
+                "system": "reporter"
+            },
+            "name": "Reporter",
+            "fieldId": "reporter",
+            "autoCompleteUrl": "http://jira.odsbox.lan:8080/rest/api/latest/user/search?username=",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ]
+        },
+        {
+            "required": true,
+            "schema": {
+                "type": "string",
+                "system": "summary"
+            },
+            "name": "Summary",
+            "fieldId": "summary",
+            "hasDefaultValue": false,
+            "operations": [
+                "set"
+            ]
+        },
+        {
+            "required": false,
+            "schema": {
+                "type": "array",
+                "items": "version",
+                "system": "versions"
+            },
+            "name": "Affects Version/s",
+            "fieldId": "versions",
+            "hasDefaultValue": false,
+            "operations": [
+                "set",
+                "add",
+                "remove"
+            ],
+            "allowedValues": [
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10025",
+                    "id": "10025",
+                    "name": "1.0",
+                    "archived": false,
+                    "released": false,
+                    "projectId": 10103
+                },
+                {
+                    "self": "http://jira.odsbox.lan:8080/rest/api/2/version/10026",
+                    "id": "10026",
+                    "name": "2.0",
+                    "archived": false,
+                    "released": false,
+                    "projectId": 10103
+                }
+            ]
+        }
+    ]
+}
