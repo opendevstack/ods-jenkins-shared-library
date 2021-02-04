@@ -250,6 +250,35 @@ class BitbucketService {
         }
     }
 
+    // https://docs.atlassian.com/bitbucket-server/rest/7.10.0/bitbucket-git-rest.html
+    // Creates a tag in the specified repository.
+    //The authenticated user must have an effective REPO_WRITE permission to call this resource.
+    //
+    //'LIGHTWEIGHT' and 'ANNOTATED' are the two type of tags that can be created.
+    // The 'startPoint' can either be a ref or a 'commit'.
+    void postTag(String repo, String startPoint, String tag, Boolean force = true, String message = "") {
+        withTokenCredentials { username, token ->
+            def payload = """{
+                                     "force": "${force}",
+                                     "message": "${message}",
+                                     "name": "${tag}",
+                                     "startPoint": "${startPoint}",
+                                     "type": ${message == '' ? 'LIGHTWEIGHT' : 'ANNOTATED'}
+                                 }"""
+            script.sh(
+                label: "Post git tag to branch",
+                script: """curl \\
+                      --fail \\
+                      -sS \\
+                      --request POST \\
+                      --header \"Authorization: Bearer ${token}\" \\
+                      --header \"Content-Type: application/json\" \\
+                      --data '${payload}' \\
+                      ${bitbucketUrl}/api/1.0/projects/${project}/repos/${repo}/tags"""
+            )
+        }
+    }
+
     @SuppressWarnings('LineLength')
     void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
         logger.debugClocked("buildstatus-${buildName}-${state}",
