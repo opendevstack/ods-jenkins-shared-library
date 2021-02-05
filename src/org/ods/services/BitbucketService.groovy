@@ -105,7 +105,7 @@ class BitbucketService {
                 label: 'Get pullrequests via API',
                 script: """curl \\
                   --fail \\
-                  --silent \\
+                  -sS \\
                   --header \"Authorization: Bearer ${token}\" \\
                   ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests?state=${state}""",
                 returnStdout: true
@@ -153,7 +153,7 @@ class BitbucketService {
                 label: "Post comment to PR#${pullRequestId}",
                 script: """curl \\
                   --fail \\
-                  --silent \\
+                  -sS \\
                   --request POST \\
                   --header \"Authorization: Bearer ${token}\" \\
                   --header \"Content-Type: application/json\" \\
@@ -177,7 +177,7 @@ class BitbucketService {
                         label: 'Set bitbucket build status via API',
                         script: """curl \\
                             --fail \\
-                            --silent \\
+                            -sS \\
                             --request POST \\
                             --header \"Authorization: Bearer ${token}\" \\
                             --header \"Content-Type: application/json\" \\
@@ -269,7 +269,7 @@ class BitbucketService {
                 returnStdout: true,
                 script: """set +x; curl \\
                   --fail \\
-                  --silent \\
+                  -sS \\
                   --request PUT \\
                   --header \"Content-Type: application/json\" \\
                   --header \"${AuthUtil.header(AuthUtil.SCHEME_BASIC, username, password)}\" \\
