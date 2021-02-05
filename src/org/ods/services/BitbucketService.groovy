@@ -1,5 +1,6 @@
 package org.ods.services
 
+import groovy.transform.Synchronized
 import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
@@ -208,7 +209,8 @@ class BitbucketService {
         }
     }
 
-    private synchronized void createUserTokenIfMissing() {
+    @Synchronized('tokenCredentialsId')
+    private void createUserTokenIfMissing() {
         def credentialsId = "${openShiftCdProject}-${tokenSecretName}"
 
         if (basicAuthCredentialsIdExists(credentialsId)) {
