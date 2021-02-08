@@ -86,32 +86,41 @@ class MROPipelineUtil extends PipelineUtil {
     }
 
     private void executeODSComponent(Map repo, String baseDir) {
-        this.steps.dir(baseDir) {
-            if (repo.data.openshift.resurrectedBuild) {
-                logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
-                return
-            }
-
-            def job
-            List<String> mainEnv = this.project.getMainReleaseManagerEnv()
-            mainEnv << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
-            this.steps.withEnv (mainEnv) {
-                job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
-            }
-            // Collect ODS build artifacts for repo.
-            // We get a map with at least two keys ("build" and "deployments").
-            def buildArtifacts = job.getBuildArtifactURIs()
-            buildArtifacts.each { k, v ->
-                if (k != 'failedStage') {
-                    repo.data.openshift[k] = v
+        // force this to happen on master - if an agent is needed, the closure has to
+        // take care about it. The reason for this is the closure to have access to files
+        // from the component, e.g. jenkinsfile, shell scripts,...
+        this.steps.node {
+            // when a node switch happens, jenkins creates a new dir workspace@xxx
+            // so we need to copy.
+            def currentNodeBaseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+            this.steps.sh "cp -rf ${baseDir} ${currentNodeBaseDir} | true"
+            this.steps.dir(currentNodeBaseDir) {
+                if (repo.data.openshift.resurrectedBuild) {
+                    logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
+                    return
                 }
-            }
-            def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
-            repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR] = versionAndBuild
-            this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
 
-            if (buildArtifacts.failedStage) {
-                throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
+                def job
+                List<String> mainEnv = this.project.getMainReleaseManagerEnv()
+                mainEnv << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
+                this.steps.withEnv (mainEnv) {
+                    job = this.loadGroovySourceFile("${currentNodeBaseDir}/Jenkinsfile")
+                }
+                // Collect ODS build artifacts for repo.
+                // We get a map with at least two keys ("build" and "deployments").
+                def buildArtifacts = job.getBuildArtifactURIs()
+                buildArtifacts.each { k, v ->
+                    if (k != 'failedStage') {
+                        repo.data.openshift[k] = v
+                    }
+                }
+                def versionAndBuild = "${this.project.buildParams.version}/${this.steps.env.BUILD_NUMBER}"
+                repo.data.openshift[DeploymentDescriptor.CREATED_BY_BUILD_STR] = versionAndBuild
+                this.logger.debug("Collected ODS build artifacts for repo '${repo.id}': ${repo.data.openshift}")
+
+                if (buildArtifacts.failedStage) {
+                    throw new RuntimeException("Error: aborting due to previous errors in repo '${repo.id}'.")
+                }
             }
         }
     }
@@ -344,16 +353,19 @@ class MROPipelineUtil extends PipelineUtil {
                         def phaseConfig = repo.pipelineConfig.phases ? repo.pipelineConfig.phases[name] : null
                         if (phaseConfig) {
                             def label = "${repo.id} (${repo.url})"
-
-                            if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
-                                this.steps.dir(baseDir) {
-                                    def steps = "make ${phaseConfig.target}"
-                                    this.steps.sh script: steps, label: label
-                                }
-                            } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
-                                this.steps.dir(baseDir) {
-                                    def steps = "./scripts/${phaseConfig.steps}"
-                                    this.steps.sh script: steps, label: label
+                            this.steps.node {
+                                // when a node switch happens, jenkins creates a new dir workspace@xxx
+                                // so we need to copy.
+                                def currentNodeBaseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
+                                this.steps.sh "cp -rf ${baseDir} ${currentNodeBaseDir} | true"
+                                this.steps.dir(currentNodeBaseDir) {
+                                    if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_MAKEFILE) {
+                                        def steps = "make ${phaseConfig.target}"
+                                        this.steps.sh script: steps, label: label
+                                    } else if (phaseConfig.type == PipelineConfig.PHASE_EXECUTOR_TYPE_SHELLSCRIPT) {
+                                        def steps = "./scripts/${phaseConfig.steps}"
+                                        this.steps.sh script: steps, label: label
+                                    }
                                 }
                             }
                         } else {
