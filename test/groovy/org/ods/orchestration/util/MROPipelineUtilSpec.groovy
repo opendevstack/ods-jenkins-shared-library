@@ -550,7 +550,7 @@ class MROPipelineUtilSpec extends SpecHelper {
         util.warnBuildIfTestResultsContainFailure(testResults)
 
         then:
-        project.hasFailingTests() == true
+        project.getHasFailingTests() == true
 
         then:
         steps.currentBuild.result == "UNSTABLE"
