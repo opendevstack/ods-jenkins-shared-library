@@ -765,7 +765,7 @@ class Project {
         return this.capabilities.collect(collector).contains(name.toLowerCase())
     }
 
-    boolean hasFailingTests() {
+    boolean getHasFailingTests() {
         return this.data.build.hasFailingTests
     }
 
