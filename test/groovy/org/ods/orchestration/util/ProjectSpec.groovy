@@ -2096,6 +2096,102 @@ class ProjectSpec extends SpecHelper {
         issueListIsEquals(mitResult.getResolvedRisks(), [rsk2Updated])
     }
 
+    def "merge requirement with risk succeeded and test discontinued"() {
+        given:
+        def firstVersion = '1.0'
+        def secondVersion = '2.0'
+
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def req2 = req('2', secondVersion)
+        def rsk2 = rsk('2', secondVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+        req2 << [predecessors: [req1.key], risks: [rsk2.key]]
+        rsk2 << [predecessors: [rsk1.key], requirements: [req2.key]]
+
+        def req2Updated = req2.clone()
+        req2Updated  << [expandedPredecessors: [[key: req1.key, versions: req1.versions]]]
+        def rsk2Updated = rsk2.clone()
+        rsk2Updated  << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req2.key): req2],
+            risks       : [(rsk2.key): rsk2],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuedKeys: [tst1.key]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req2Updated.key): req2Updated],
+            risks       : [(rsk2Updated.key): rsk2Updated],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: [tst1.key]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.tests == req2Updated.tests
+        reqResult.risks == req2Updated.risks
+        //issueListIsEquals(reqResult.getResolvedTests(), [])
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk2Updated])
+
+        def rskResult = project.risks.first()
+        rskResult.requirements == rsk2Updated.requirements
+        rskResult.tests == rsk2Updated.tests
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req2Updated])
+        //issueListIsEquals(rskResult.getResolvedTests(), [])
+    }
+
     def "merge deletion of a test"() {
         given:
         def firstVersion = '1'
