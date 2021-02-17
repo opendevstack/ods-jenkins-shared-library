@@ -109,7 +109,7 @@ class DocumentHistory {
     }
 
     List<Map> getDocGenFormat() {
-        def issueTypes = JiraDataItem.TYPES - JiraDataItem.TYPE_DOCS
+        def issueTypes = JiraDataItem.TYPES
         def transformEntry =  { DocumentHistoryEntry e ->
             if (e.getEntryId() == 1L) {
                 return [
@@ -125,7 +125,7 @@ class DocumentHistory {
                 def changed = issues.findAll { it.action == CHANGE }.clone()
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
-                [ type: type,
+                [ type: type=='docs'?'documentation chapters':type,
                   (ADDED): SortUtil.sortIssuesByKey(issues.findAll { it.action == ADD }),
                   (CHANGED): SortUtil.sortIssuesByKey(changed),
                   (DELETED): SortUtil.sortIssuesByKey(issues.findAll { it.action == DELETE }),
@@ -134,7 +134,7 @@ class DocumentHistory {
 
             return [entryId: e.getEntryId(),
                     rational: e.getRational(),
-                    issueType: formatedIssues + computeDocChaptersOfDocument(e)
+                    issueType: formatedIssues
             ]
         }
         sortDocHistories(this.data).collect { transformEntry(it) }
@@ -155,7 +155,7 @@ class DocumentHistory {
 
     protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
         def docIssues = SortUtil.sortHeadingNumbers(entry[JiraDataItem.TYPE_DOCS] ?: [], 'number')
-            .collect { [action: it.action, key: "${it.number} ${it.name}"] }
+            .collect { [action: it.action, key: "${it.number} ${it.summary}"] }
         return [ type: 'document sections',
                  (ADDED): docIssues.findAll { it.action == ADD },
                  (CHANGED): docIssues.findAll { it.action == CHANGE },

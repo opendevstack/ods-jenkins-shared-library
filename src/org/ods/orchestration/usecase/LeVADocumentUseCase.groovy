@@ -1531,7 +1531,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def environment = this.computeSavedDocumentEnvironment(documentType)
             def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
-            docHistory.load(jiraData, latestValidVersionId, keysInDoc)
+            def docChapters = this.project.getDocumentChaptersForDocument(documentName)
+            def docChapterKeys = docChapters.collect { chapter ->
+                chapter.key
+            }
+            docHistory.load(jiraData, latestValidVersionId, (keysInDoc + docChapterKeys).unique())
 
             // Save the doc history to project class, so it can be persisted when considered
             this.project.setHistoryForDocument(docHistory, documentName)
