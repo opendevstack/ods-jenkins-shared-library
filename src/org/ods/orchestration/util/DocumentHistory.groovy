@@ -109,7 +109,7 @@ class DocumentHistory {
     }
 
     List<Map> getDocGenFormat() {
-        def issueTypes = JiraDataItem.TYPES - JiraDataItem.TYPE_DOCS
+        def issueTypes = JiraDataItem.TYPES //- JiraDataItem.TYPE_DOCS
         def transformEntry =  { DocumentHistoryEntry e ->
             if (e.getEntryId() == 1L) {
                 return [
@@ -134,7 +134,7 @@ class DocumentHistory {
 
             return [entryId: e.getEntryId(),
                     rational: e.getRational(),
-                    issueType: formatedIssues + computeDocChaptersOfDocument(e)
+                    issueType: formatedIssues //+ computeDocChaptersOfDocument(e)
             ]
         }
         sortDocHistories(this.data).collect { transformEntry(it) }
