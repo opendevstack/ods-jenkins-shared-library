@@ -125,7 +125,7 @@ class DocumentHistory {
                 def changed = issues.findAll { it.action == CHANGE }.clone()
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
-                [ type: type,
+                [ type: type=='docs'?'documentation chapters':type,
                   (ADDED): SortUtil.sortIssuesByKey(issues.findAll { it.action == ADD }),
                   (CHANGED): SortUtil.sortIssuesByKey(changed),
                   (DELETED): SortUtil.sortIssuesByKey(issues.findAll { it.action == DELETE }),
