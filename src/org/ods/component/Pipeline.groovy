@@ -66,7 +66,10 @@ class Pipeline implements Serializable {
         if (!config.componentId) {
             script.error "Param 'componentId' is required"
         }
-        config.repoName = "${config.projectId}-${config.componentId}"
+        // allow to overwrite in case NOT ods std (e.g. from a migration)
+        if (!config.repoName) {
+            config.repoName = "${config.projectId}-${config.componentId}"
+        }
 
         prepareAgentPodConfig(config)
         logger.infoClocked("${config.componentId}", "***** Starting ODS Component Pipeline *****")
@@ -387,7 +390,7 @@ class Pipeline implements Serializable {
             if (!config.projectId) {
                 config.projectId = project
             }
-            def repoName = splittedOrigin.last().replace('.git', '')
+            config.repoName = splittedOrigin.last().replace('.git', '')
             if (!config.componentId) {
                 config.componentId = repoName - ~/^${project}-/
             }
