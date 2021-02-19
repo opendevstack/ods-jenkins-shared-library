@@ -392,7 +392,7 @@ class Pipeline implements Serializable {
             }
             config.repoName = splittedOrigin.last().replace('.git', '')
             if (!config.componentId) {
-                config.componentId = repoName - ~/^${project}-/
+                config.componentId = config.repoName - ~/^${project}-/
             }
             logger.debug(
                 "Project- / component-name config: ${config.projectId} / ${config.componentId}"
