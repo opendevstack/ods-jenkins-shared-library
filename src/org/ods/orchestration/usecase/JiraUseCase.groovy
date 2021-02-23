@@ -211,7 +211,7 @@ class JiraUseCase {
                 .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}
             if (documentTypes.size() == 0) {
                 throw new IllegalArgumentException("Error: issue '${issue.key}' of type " +
-                    "'${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' contains '${documentType.size()}' " +
+                    "'${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' contains no " +
                     "document labels. There should be at least one label starting with '${LabelPrefix.DOCUMENT}'")
             }
 
