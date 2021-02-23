@@ -160,46 +160,18 @@ class JiraUseCase {
         }
     }
 
-    /**
-     * Obtains all document chapter data attached attached to a given version
-     * @param versionName the version name from jira
-     * @return Map (key: issue) with all the document chapter issues and its relevant content
-     */
-    @SuppressWarnings(['AbcMetric'])
-    Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
-        if (!this.jira) return [:]
-
-        def docChapterIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER)
-        def contentField = docChapterIssueFields[CustomIssueFields.CONTENT].id
-        def headingNumberField = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER]?.id
-
-        def jql = "project = ${projectKey} " +
-            "AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'"
-        def fields = ['key', 'status', 'summary', 'labels', 'issuelinks', contentField]
-
-        if (versionName) {
-            if (!headingNumberField) {
-                throw new IllegalStateException("Documentation chapters do not have an EDP Heading Number field defined.")
-            }
-            fields << headingNumberField
-            jql = jql + " AND fixVersion = '${versionName}'"
+    private getHeadingNumberFieldId(docChapterIssueFields, version) {
+        def field = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER]
+        if (version && !field) {
+            throw new IllegalStateException("Documentation chapters do not have an EDP Heading Number field defined.")
         }
+        return field?.id
+    }
 
-        def jqlQuery = [
-            fields: fields,
-            jql: jql,
-            expand: ['renderedFields'],
-        ]
-
-        def result = this.jira.searchByJQLQuery(jqlQuery)
-        if (!result || result.total == 0) {
-            this.logger.warn("There are no document chapters assigned to this version. Using JQL query: '${jqlQuery}'.")
-            return [:]
-        }
-
-        return result.issues.collectEntries { issue ->
+    private collectIssues(issues, versionName, contentField, headingNumberField) {
+        return issues.collectEntries { issue ->
             def number = null
-            if (versionName) {
+            if (headingNumberField) {
                 number = issue.fields.find { field ->
                     headingNumberField == field.key && field.value
                 }
@@ -229,23 +201,63 @@ class JiraUseCase {
                 .collect{ it.outwardIssue.key }
 
             def issueContent = [
-                heading     : issue.fields.summary,
-                documents   : documentTypes,
-                content     : content?.replaceAll("\u00a0", " ") ?: "",
-                status      : issue.fields.status.name,
-                key         : issue.key as String,
+                heading: issue.fields.summary,
+                documents: documentTypes,
+                content: content?.replaceAll("\u00a0", " ") ?: "",
+                status: issue.fields.status.name,
+                key: issue.key as String,
                 predecessors: predecessorLinks.isEmpty() ? [] : predecessorLinks,
-                versions    : versionName ? [versionName] : [],
+                versions: versionName ? [versionName] : [],
             ]
             if (number) {
                 issueContent += [
                     section: "sec${number.replaceAll(/\./, "s")}".toString(),
-                    number : number
+                    number: number
                 ]
             }
 
             return [(issue.key as String): issueContent]
         }
+    }
+
+    /**
+     * Obtains all document chapter data attached attached to a given version
+     * @param versionName the version name from jira
+     * @return Map (key: issue) with all the document chapter issues and its relevant content
+     */
+    @SuppressWarnings(['AbcMetric'])
+    Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
+        if (!this.jira) return [:]
+
+        def docChapterIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER)
+        def contentField = docChapterIssueFields[CustomIssueFields.CONTENT].id
+        def headingNumberField = getHeadingNumberFieldId(docChapterIssueFields, versionName)
+
+        def jql = "project = ${projectKey} " +
+            "AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'"
+
+        if (versionName) {
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
+
+        def fields = ['key', 'status', 'summary', 'labels', 'issuelinks', contentField]
+        if (headingNumberField) {
+            fields << headingNumberField
+        }
+
+        def jqlQuery = [
+            fields: fields,
+            jql: jql,
+            expand: ['renderedFields'],
+        ]
+
+        def result = this.jira.searchByJQLQuery(jqlQuery)
+        if (!result || result.total == 0) {
+            this.logger.warn("There are no document chapters assigned to this version. Using JQL query: '${jqlQuery}'.")
+            return [:]
+        }
+
+        return collectIssues(result.issues, versionName, contentField, headingNumberField)
     }
 
     String getVersionFromReleaseStatusIssue() {
