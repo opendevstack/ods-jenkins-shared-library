@@ -389,7 +389,10 @@ class Project {
                 def faultyTestIssues = faultMap.keySet()
                     .collect{key -> key + ": " + faultMap.get(key) + "; "}
                     .inject(""){temp, val -> temp + val}
-                throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
+                if (this.isVersioningEnabled) {
+                    throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
+                }
+                logger.warn("Warning: unit tests should have exactly 1 component assigned. Following unit tests have an abnormal number of components: ${faultyTestIssues}")
             }
         }
 
