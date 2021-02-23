@@ -2,11 +2,11 @@ package org.ods.orchestration.usecase
 
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
@@ -171,17 +171,22 @@ class JiraUseCase {
 
         def docChapterIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER)
         def contentField = docChapterIssueFields[CustomIssueFields.CONTENT].id
-        def headingNumberField = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER].id
+        def headingNumberField = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER]?.id
 
         def jql = "project = ${projectKey} " +
             "AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'"
+        def fields = ['key', 'status', 'summary', 'labels', 'issuelinks', contentField]
 
         if (versionName) {
+            if (!headingNumberField) {
+                throw new IllegalStateException("Documentation chapters do not have an EDP Heading Number field defined.")
+            }
+            fields << headingNumberField
             jql = jql + " AND fixVersion = '${versionName}'"
         }
 
         def jqlQuery = [
-            fields: ['key', 'status', 'summary', 'labels', 'issuelinks', contentField, headingNumberField],
+            fields: fields,
             jql: jql,
             expand: ['renderedFields'],
         ]
@@ -193,13 +198,16 @@ class JiraUseCase {
         }
 
         return result.issues.collectEntries { issue ->
-            def number = issue.fields.find { field ->
-                headingNumberField == field.key && field.value
+            def number = null
+            if (versionName) {
+                number = issue.fields.find { field ->
+                    headingNumberField == field.key && field.value
+                }
+                if (!number) {
+                    throw new IllegalArgumentException("Error: could not find heading number for issue '${issue.key}'.")
+                }
+                number = number.getValue().trim()
             }
-            if (!number) {
-                throw new IllegalArgumentException("Error: could not find heading number for issue '${issue.key}'.")
-            }
-            number = number.getValue().trim()
 
             def content = issue.renderedFields.find { field ->
                 contentField == field.key && field.value
@@ -220,18 +228,23 @@ class JiraUseCase {
                 .findAll { it.type.name == "Succeeds" && it.outwardIssue?.key }
                 .collect{ it.outwardIssue.key }
 
-            return [(issue.key as String): [
-                    section: "sec${number.replaceAll(/\./, "s")}".toString(),
-                    number: number,
-                    heading: issue.fields.summary,
-                    documents: documentTypes,
-                    content: content?.replaceAll("\u00a0", " ") ?: "",
-                    status: issue.fields.status.name,
-                    key: issue.key as String,
-                    predecessors: predecessorLinks.isEmpty()? [] : predecessorLinks,
-                    versions: versionName? [versionName] : [],
-                ]
+            def issueContent = [
+                heading     : issue.fields.summary,
+                documents   : documentTypes,
+                content     : content?.replaceAll("\u00a0", " ") ?: "",
+                status      : issue.fields.status.name,
+                key         : issue.key as String,
+                predecessors: predecessorLinks.isEmpty() ? [] : predecessorLinks,
+                versions    : versionName ? [versionName] : [],
             ]
+            if (number) {
+                issueContent += [
+                    section: "sec${number.replaceAll(/\./, "s")}".toString(),
+                    number : number
+                ]
+            }
+
+            return [(issue.key as String): issueContent]
         }
     }
 
