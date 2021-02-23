@@ -2,11 +2,11 @@ package org.ods.orchestration.usecase
 
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
@@ -242,8 +242,10 @@ class JiraUseCase {
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
         def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
-        if(!productReleaseVersionField) {
-            throw new IllegalStateException("Release status issue with key ${releaseStatusIssueKey} does not have a product release vesion field.")
+        if (!productReleaseVersionField) {
+            // The project does not use versioning or is malformed.
+            // The decision on whether to throw an exception is left for the caller.
+            return null
         }
         def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
         if (!versionField || !versionField[productReleaseVersionField.id]?.name) {

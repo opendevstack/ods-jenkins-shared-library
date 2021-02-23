@@ -992,6 +992,7 @@ class Project {
      * @ true if versioning is enabled
      */
     boolean checkIfVersioningIsEnabled(String projectKey, String versionName) {
+        if (!versionName) return false
         if (!this.jiraUseCase) return false
         if (!this.jiraUseCase.jira) return false
         def levaDocsCapability = this.getCapability('LeVADocs')
