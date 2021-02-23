@@ -242,6 +242,9 @@ class JiraUseCase {
         def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
 
         def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
+        if(!productReleaseVersionField) {
+            throw new IllegalStateException("Release status issue with key ${releaseStatusIssueKey} does not have a product release vesion field.")
+        }
         def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
         if (!versionField || !versionField[productReleaseVersionField.id]?.name) {
             throw new IllegalArgumentException('Unable to obtain version name from release status issue' +
