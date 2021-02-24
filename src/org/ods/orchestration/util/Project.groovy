@@ -392,7 +392,14 @@ class Project {
                 if (this.isVersioningEnabled) {
                     throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
                 }
-                logger.warn("Warning: unit tests should have exactly 1 component assigned. Following unit tests have an abnormal number of components: ${faultyTestIssues}")
+                def filteredFaultMap = faultMap.findAll { key, size -> size > 1 }
+                if (!filteredFaultMap.isEmpty()) {
+                    faultyTestIssues = filteredFaultMap
+                        .collect { key, value -> key + ": " + value + "; " }
+                        .inject("") { temp, val -> temp + val }
+                    throw new IllegalArgumentException("Error: unit tests must have at most 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
+                }
+                logger.warn("Warning: unit tests should have exactly 1 component assigned. Following unit tests do not have components: ${faultyTestIssues}")
             }
         }
 
