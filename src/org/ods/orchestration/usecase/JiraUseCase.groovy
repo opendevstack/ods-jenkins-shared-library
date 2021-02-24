@@ -2,11 +2,11 @@ package org.ods.orchestration.usecase
 
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {
@@ -160,6 +160,16 @@ class JiraUseCase {
         }
     }
 
+    def getIssues(result, versionName) {
+        def issues = result.issues
+        if (!versionName) {
+            issues = result.issues.findAll { issue ->
+                (issue.fields.labels ?: []).find { String l -> l.startsWith(LabelPrefix.DOCUMENT) }
+            }
+        }
+        return issues
+    }
+
     /**
      * Obtains all document chapter data attached attached to a given version
      * @param versionName the version name from jira
@@ -192,7 +202,7 @@ class JiraUseCase {
             return [:]
         }
 
-        return result.issues.collectEntries { issue ->
+        return getIssues(result, versionName).collectEntries { issue ->
             def number = issue.fields.find { field ->
                 headingNumberField == field.key && field.value
             }
