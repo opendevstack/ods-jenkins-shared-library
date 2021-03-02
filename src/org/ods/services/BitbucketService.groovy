@@ -164,13 +164,19 @@ class BitbucketService {
     }
 
     @SuppressWarnings('LineLength')
-    void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
+    void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName, String description=null) {
         logger.debugClocked("buildstatus-${buildName}-${state}",
             "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
-            def payload = "{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}"
+            def desc = description ? ",\"description\":\"${description}\"" : ""
+            def payload = "{" +
+                "\"state\":\"${state}\"," +
+                "\"key\":\"${buildName}\"," +
+                "\"name\":\"${buildName}\"," +
+                "\"url\":\"${buildUrl}\"" +
+                "${desc}"
             while (retries++ < maxAttempts) {
                 try {
                     script.sh(

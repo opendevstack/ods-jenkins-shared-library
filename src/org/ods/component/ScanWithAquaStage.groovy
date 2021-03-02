@@ -1,14 +1,17 @@
 package org.ods.component
 
 import org.ods.services.AquaService
+import org.ods.services.BitbucketService
 import org.ods.util.ILogger
 
 class ScanWithAquaStage extends Stage {
 
     public final String STAGE_NAME = 'Aqua Security Scan'
     private final AquaService aqua
+    private final BitbucketService bitbucket
 
-    ScanWithAquaStage(def script, IContext context, Map config, AquaService aqua,
+    @SuppressWarnings('ParameterCount')
+    ScanWithAquaStage(def script, IContext context, Map config, AquaService aqua, BitbucketService bitbucket,
                       ILogger logger) {
         super(script, context, config, logger)
         if (!config.organisation) {
@@ -22,26 +25,14 @@ class ScanWithAquaStage extends Stage {
         } else {
             config.eligibleBranches = ['*']
         }
-        // TODO: find better name than scanMode
+        // TODO: find better name for scanMode
         if (!config.scanMode) {
             config.scanMode = 'cli'
         } else {
             config.scanMode = config.scanMode.trim().toLowerCase()
         }
-        /*
-        if (!config.containsKey('failOnVulnerabilities')) {
-            config.failOnVulnerabilities = context.failOnSnykScanVulnerabilities
-        }
-         */
-        /*
-        if (config.severityThreshold) {
-            config.severityThreshold = config.severityThreshold.trim().toLowerCase()
-        } else {
-            // low is the default, it is equal to not providing the option to snyk
-            config.severityThreshold = 'low'
-        }
-         */
         this.aqua = aqua
+        this.bitbucket = bitbucket
     }
 
     protected run() {
@@ -49,28 +40,18 @@ class ScanWithAquaStage extends Stage {
             logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
-        // TODO: find better name for 'checkApiQueueBeforeCli'
-        def possibleScanModes = ['cli', 'api', 'checkapiqueuebeforecli']
+
+        def possibleScanModes = ['cli', 'api']
         if (!possibleScanModes.contains(config.scanMode)) {
             script.error "'${config.scanMode}' is not a valid value " +
                 "for option 'scanMode'! Please use one of ${possibleScanModes}."
         }
-
-        // TODO: check possible severity thresholds for aqua
-        /*
-        def allowedSeverityThresholds = ['low', 'medium', 'high']
-        if (!allowedSeverityThresholds.contains(config.severityThreshold)) {
-            script.error "'${config.severityThreshold}' is not a valid value " +
-                "for option 'severityThreshold'! Please use one of ${allowedSeverityThresholds}."
-        }
-         */
 
         // TODO: improve receiving of image reference
         // take exact image ref
         //String imageRef = context.getBuildArtifactURIs().get("OCP Docker image").substring(imageRef.indexOf("/") + 1)
         // take latest image, e.g. "aqua-test/be-spring-aqua:latest"
         String imageRef = config.organisation + "//" + config.projectName + ":latest"
-
 
         switch(config.scanMode) {
             case 'api':
@@ -79,46 +60,37 @@ class ScanWithAquaStage extends Stage {
             case 'cli':
                 scanViaCli(imageRef)
                 break
-            case 'checkapiqueuebeforecli':
-                // TODO: not implemented yet, idea would be to first check queue
-                // of ongoing api scans and if to loaded, to it via cli..
-                // int queueCount = aqua.retrieveQueueCount()
-                // if (queueCount <= 5) {
-                //     scanViaApi(imageRef)
-                // } else {
-                //     scanViaCli(imageRef)
-                // }
-                break
         }
 
+        updateBitbucketBuildStatusForCommit()
         archiveReport(context.localCheckoutEnabled)
-
-        // TODO: check options for aqua to let pipeline stop when vulnerabilities were found
-        /*
-        if (!noVulnerabilitiesFound && config.failOnVulnerabilities) {
-            script.error 'Snyk scan stage failed. See snyk report for details.'
-        }
-         */
     }
 
     private scanViaApi(String imageRef) {
         String token = aqua.getApiToken()
         logger.startClocked("${config.projectName}-aqua-scan")
-        // TODO: consider adding severity thresholds to stop pipeline or send warning etc.
         logger.info aqua.scanViaApi(token, imageRef)
         logger.debugClocked("${config.projectName}-aqua-scan")
 
         logger.startClocked("${config.projectName}-aqua-scan")
-        // TODO: consider piping the json result into a report file to be able to upload it to other places
+        // TODO: pipe the json result into ${reportFile}
         logger.info aqua.retrieveScanResultViaApi(token, imageRef)
         logger.debugClocked("${config.projectName}-aqua-scan")
     }
 
     private scanViaCli(String imageRef) {
         logger.startClocked("${config.projectName}-aqua-scan")
-        // TODO: consider adding severity thresholds to stop pipeline or send warning etc.
         logger.info aqua.scanViaCli(imageRef)
         logger.debugClocked("${config.projectName}-aqua-scan")
+    }
+
+    private updateBitbucketBuildStatusForCommit() {
+        // for now, we set the build status always to successful in the aqua stage
+        def state = "SUCCESSFUL"
+        def buildName = "${context.gitCommit.take(8)}"
+        // TODO: improve description and change context.buildUrl to aqua scan url
+        def description = "Build status from Aqua Security stage!"
+        bitbucket.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName, description)
     }
 
     private archiveReport(boolean archive) {
