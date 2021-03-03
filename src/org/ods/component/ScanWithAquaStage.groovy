@@ -26,10 +26,15 @@ class ScanWithAquaStage extends Stage {
             config.eligibleBranches = ['*']
         }
         // TODO: find better name for scanMode
-        if (!config.scanMode) {
-            config.scanMode = 'cli'
-        } else {
+        if (config.scanMode) {
             config.scanMode = config.scanMode.trim().toLowerCase()
+        } else {
+            config.scanMode = 'cli'
+        }
+        // Name of the credentials which stores the username/password of
+        // a user with access to the Aqua server identified by "aquaUrl".
+        if (!config.credentialsId) {
+            config.credentialsId = context.projectId + '-cd-aqua'
         }
         this.aqua = aqua
         this.bitbucket = bitbucket
@@ -40,11 +45,18 @@ class ScanWithAquaStage extends Stage {
             logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
-
         def possibleScanModes = ['cli', 'api']
         if (!possibleScanModes.contains(config.scanMode)) {
             script.error "'${config.scanMode}' is not a valid value " +
                 "for option 'scanMode'! Please use one of ${possibleScanModes}."
+        }
+        // Base URL of Aqua server.
+        if (!config.aquaUrl) {
+            script.error "Please provide the URL of the Aqua platform!"
+        }
+        // Name in Aqua of the registry that contains the image we want to scan
+        if (!config.registry) {
+            script.error "Please provide the name of the registry that contains the image of interest!"
         }
 
         // TODO: improve receiving of image reference
@@ -53,7 +65,7 @@ class ScanWithAquaStage extends Stage {
         // take latest image, e.g. "aqua-test/be-spring-aqua:latest"
         String imageRef = config.organisation + "//" + config.projectName + ":latest"
 
-        switch(config.scanMode) {
+        switch (config.scanMode) {
             case 'api':
                 scanViaApi(imageRef)
                 break
@@ -66,22 +78,19 @@ class ScanWithAquaStage extends Stage {
         archiveReport(context.localCheckoutEnabled)
     }
 
-    private scanViaApi(String imageRef) {
-        String token = aqua.getApiToken()
-        logger.startClocked("${config.projectName}-aqua-scan")
-        logger.info aqua.scanViaApi(token, imageRef)
-        logger.debugClocked("${config.projectName}-aqua-scan")
-
-        logger.startClocked("${config.projectName}-aqua-scan")
+    private scanViaApi(String aquaUrl, String registry, String imageRef, String credentialsId) {
+        String token = aqua.getApiToken(aquaUrl, credentialsId)
+        logger.startClocked(config.projectName, "start of aqua scan (via API)")
+        logger.info aqua.scanViaApi(aquaUrl, registry, token, imageRef)
         // TODO: pipe the json result into ${reportFile}
-        logger.info aqua.retrieveScanResultViaApi(token, imageRef)
-        logger.debugClocked("${config.projectName}-aqua-scan")
+        logger.info aqua.retrieveScanResultViaApi(aquaUrl, registry, token, imageRef)
+        logger.debugClocked(config.projectName, "end of aqua scan (via API)")
     }
 
-    private scanViaCli(String imageRef) {
-        logger.startClocked("${config.projectName}-aqua-scan")
-        logger.info aqua.scanViaCli(imageRef)
-        logger.debugClocked("${config.projectName}-aqua-scan")
+    private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId) {
+        logger.startClocked(config.projectName, "start of aqua scan (via CLI)")
+        aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId)
+        logger.debugClocked(config.projectName, "start of aqua scan (via CLI)")
     }
 
     private updateBitbucketBuildStatusForCommit() {

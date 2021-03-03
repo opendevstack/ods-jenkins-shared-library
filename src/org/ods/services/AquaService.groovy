@@ -8,29 +8,19 @@ class AquaService {
     private final def script
     private final ILogger logger
 
-    // Base URL of Aqua server.
-    private final String aquaUrl
-    // Name of the credentials which stores the username/password of
-    // a user with access to the Aqua server identified by "aquaUrl".
-    private final String credentialsId
-    // Name in Aqua of the registry that keeps the image to scan
-    private final String registry
     // Name of the report file that contains the scan result
     private final String reportFile
 
-    AquaService(def script, String aquaUrl, String credentialsId, String registry, String reportFile, ILogger logger) {
+    AquaService(def script, String reportFile, ILogger logger) {
         this.script = script
-        this.aquaUrl = aquaUrl
-        this.credentialsId = credentialsId
-        this.registry = registry
         this.reportFile = reportFile
         this.logger = logger
     }
 
-    String scanViaCli(String imageRef) {
+    void scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId) {
         logger.info "Starting to scan via Aqua CLI..."
         int status = 0
-        withCredentials { username, password ->
+        withCredentials(credentialsId) { username, password ->
             status = script.sh(
                 label: 'Scan via Aqua CLI',
                 returnStatus: true,
@@ -56,7 +46,7 @@ class AquaService {
         }
     }
 
-    String scanViaApi(String token, String imageRef) {
+    String scanViaApi(String aquaUrl, String registry, String token, String imageRef) {
         logger.info "Starting to scan via Aqua API..."
         return script.sh(
             label: 'Scan via Aqua API',
@@ -76,9 +66,9 @@ class AquaService {
      *
      * @return the generated session token as a string
      */
-    String getApiToken() {
+    String getApiToken(String aquaUrl, String credentialsId) {
         String res
-        withCredentials { username, password ->
+        withCredentials(credentialsId) { username, password ->
             res = script.sh(
                 label: 'Get Aqua API token',
                 returnStdout: true,
@@ -99,11 +89,11 @@ class AquaService {
         return null
     }
 
-    String retrieveScanResultViaApi(String token, String imageRef) {
+    String retrieveScanResultViaApi(String aquaUrl, String registry, String token, String imageRef) {
         logger.info "Retrieving Aqua scan result via API..."
         def index = 5
         while (index > 0) {
-            if (getScanStatusViaApi(aquaUrl, token, registry, imageRef) == "Scanned") {
+            if (getScanStatusViaApi(aquaUrl, registry, token, imageRef) == "Scanned") {
                 return script.sh(
                     label: 'Get scan result via API',
                     returnStdout: true,
@@ -121,7 +111,7 @@ class AquaService {
         return ""
     }
 
-    String getScanStatusViaApi(String token, String imageRef) {
+    String getScanStatusViaApi(String aquaUrl, String registry, String token, String imageRef) {
         def res = script.sh(
             label: 'Get scan status via API',
             returnStdout: true,
@@ -140,7 +130,7 @@ class AquaService {
         return null
     }
 
-    def withCredentials(Closure block) {
+    def withCredentials(String credentialsId, Closure block) {
         script.withCredentials([
             script.usernamePassword(
                 credentialsId: credentialsId,
