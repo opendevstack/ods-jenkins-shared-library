@@ -176,7 +176,7 @@ class BitbucketService {
                 "\"key\":\"${buildName}\"," +
                 "\"name\":\"${buildName}\"," +
                 "\"url\":\"${buildUrl}\"" +
-                "${desc}"
+                "${desc}}"
             while (retries++ < maxAttempts) {
                 try {
                     script.sh(

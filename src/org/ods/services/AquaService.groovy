@@ -1,5 +1,6 @@
 package org.ods.services
 
+import groovy.json.JsonOutput
 import org.ods.util.ILogger
 
 @SuppressWarnings('ParameterCount')
@@ -8,19 +9,15 @@ class AquaService {
     private final def script
     private final ILogger logger
 
-    // Name of the report file that contains the scan result
-    private final String reportFile
-
-    AquaService(def script, String reportFile, ILogger logger) {
+    AquaService(def script, ILogger logger) {
         this.script = script
-        this.reportFile = reportFile
         this.logger = logger
     }
 
-    void scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId) {
+    void scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
         logger.info "Starting to scan via Aqua CLI..."
         int status = 0
-        withCredentials(credentialsId) { username, password ->
+        withCredentials(credentialsId) {username, password ->
             status = script.sh(
                 label: 'Scan via Aqua CLI',
                 returnStatus: true,
@@ -28,7 +25,7 @@ class AquaService {
                   scannercli scan ${imageRef} \
                   --dockerless \
                   --register \
-                  --jsonfile ${reportFile} \
+                  --jsonfile '${reportFile}' \
                   -U ${username} \
                   -P ${password} \
                   -H ${aquaUrl} \
@@ -37,6 +34,9 @@ class AquaService {
             )
         }
         // see possible status codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
+        if (status == 0) {
+            logger.info "Finished scan via Aqua CLI successfully!"
+        }
         if (status == 1) {
             script.error "An error occurred in processing the scan request " +
                 "(e.g. invalid command line options, image not pulled, operational error)."
@@ -46,9 +46,14 @@ class AquaService {
         }
     }
 
-    String scanViaApi(String aquaUrl, String registry, String token, String imageRef) {
+
+    /**
+     * Starts the scan process on a remote scanner by using the Aqua API.
+     */
+    void initiateScanViaApi(String aquaUrl, String registry, String token, String imageRef) {
+        imageRef = imageRef.replace("/", "%2F")
         logger.info "Starting to scan via Aqua API..."
-        return script.sh(
+        String response = script.sh(
             label: 'Scan via Aqua API',
             returnStdout: true,
             script: """
@@ -57,6 +62,7 @@ class AquaService {
               --header 'Authorization: Bearer ${token}'
             """
         ).trim()
+        logger.info(response)
     }
 
     /**
@@ -67,9 +73,9 @@ class AquaService {
      * @return the generated session token as a string
      */
     String getApiToken(String aquaUrl, String credentialsId) {
-        String res
+        String response
         withCredentials(credentialsId) { username, password ->
-            res = script.sh(
+            response = script.sh(
                 label: 'Get Aqua API token',
                 returnStdout: true,
                 script: """
@@ -81,7 +87,7 @@ class AquaService {
             ).trim()
         }
         try {
-            def js = script.readJSON(text: res)
+            def js = script.readJSON(text: response)
             return js['token']
         } catch (Exception ex) {
             logger.warn "Could not understand API response. Error was: ${ex}"
@@ -89,12 +95,14 @@ class AquaService {
         return null
     }
 
-    String retrieveScanResultViaApi(String aquaUrl, String registry, String token, String imageRef) {
+    void getScanResultViaApi(String aquaUrl, String registry, String token, String imageRef, String reportFile) {
+        imageRef = imageRef.replace("/", "%2F")
         logger.info "Retrieving Aqua scan result via API..."
-        def index = 5
-        while (index > 0) {
+        int requestAttempts = 5
+        int millisecondsBetweenAttempts = 5000
+        while (requestAttempts > 0) {
             if (getScanStatusViaApi(aquaUrl, registry, token, imageRef) == "Scanned") {
-                return script.sh(
+                String response = script.sh(
                     label: 'Get scan result via API',
                     returnStdout: true,
                     script: """
@@ -103,15 +111,22 @@ class AquaService {
                       --header 'Authorization: Bearer ${token}'
                     """
                 ).trim()
+                script.writeFile(
+                    file: reportFile,
+                    text: JsonOutput.prettyPrint(JsonOutput.toJson(response))
+                )
+                return
             }
-            sleep(5)
-            index--
+            sleep(millisecondsBetweenAttempts)
+            requestAttempts--
         }
-        logger.warn "Aqua scan result did not come back early enough from server!"
-        return ""
+        String timePassed = String.valueOf(requestAttempts * millisecondsBetweenAttempts)
+        logger.warn "Aqua scan result did not come back early enough from server " +
+            "(waited for " + timePassed + " milliseconds)!"
     }
 
     String getScanStatusViaApi(String aquaUrl, String registry, String token, String imageRef) {
+        imageRef = imageRef.replace("/", "%2F")
         def res = script.sh(
             label: 'Get scan status via API',
             returnStdout: true,
@@ -140,10 +155,6 @@ class AquaService {
         ]) {
             block(script.env.USERNAME, script.env.PASSWORD)
         }
-    }
-
-    String getReportFile() {
-        reportFile
     }
 
 }

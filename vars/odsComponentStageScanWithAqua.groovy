@@ -15,7 +15,7 @@ def call(IContext context, Map config = [:]) {
     }
     def aquaService = ServiceRegistry.instance.get(AquaService)
     if (!aquaService) {
-        aquaService = new AquaService(this, 'aqua-report.txt', logger)
+        aquaService = new AquaService(this, logger)
         ServiceRegistry.instance.add(AquaService, aquaService)
     }
     def bitbucketService = ServiceRegistry.instance.get(BitbucketService)

@@ -25,16 +25,17 @@ class ScanWithAquaStage extends Stage {
         } else {
             config.eligibleBranches = ['*']
         }
-        // TODO: find better name for scanMode
-        if (config.scanMode) {
-            config.scanMode = config.scanMode.trim().toLowerCase()
-        } else {
-            config.scanMode = 'cli'
-        }
-        // Name of the credentials which stores the username/password of
+        // we support only the 'cli' way to scan for now
+        config.scanMethod = 'api'
+        // name of the credentials that stores the username/password of
         // a user with access to the Aqua server identified by "aquaUrl".
         if (!config.credentialsId) {
             config.credentialsId = context.projectId + '-cd-aqua'
+        }
+        // BuildOpenShiftImageStage puts the imageRef into a map with the
+        // resourceName as key, to get the imageRef we need this key
+        if (!config.resourceName) {
+            config.resourceName = context.componentId
         }
         this.aqua = aqua
         this.bitbucket = bitbucket
@@ -45,72 +46,86 @@ class ScanWithAquaStage extends Stage {
             logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
-        def possibleScanModes = ['cli', 'api']
-        if (!possibleScanModes.contains(config.scanMode)) {
-            script.error "'${config.scanMode}' is not a valid value " +
-                "for option 'scanMode'! Please use one of ${possibleScanModes}."
+        def possibleScanMethods = ['cli', 'api']
+        if (!possibleScanMethods.contains(config.scanMethod)) {
+            script.error "'${config.scanMethod}' is not a valid value " +
+                "for option 'scanMethod'! Please use one of ${possibleScanMethods}."
         }
-        // Base URL of Aqua server.
+        // base URL of Aqua server.
         if (!config.aquaUrl) {
             script.error "Please provide the URL of the Aqua platform!"
         }
-        // Name in Aqua of the registry that contains the image we want to scan
+        // name in Aqua of the registry that contains the image we want to scan
         if (!config.registry) {
             script.error "Please provide the name of the registry that contains the image of interest!"
         }
 
-        // TODO: improve receiving of image reference
-        // take exact image ref
-        //String imageRef = context.getBuildArtifactURIs().get("OCP Docker image").substring(imageRef.indexOf("/") + 1)
-        // take latest image, e.g. "aqua-test/be-spring-aqua:latest"
-        String imageRef = config.organisation + "//" + config.projectName + ":latest"
+        String imageRef = getImageRef()
+        String reportFile = "aqua-report.json"
 
-        switch (config.scanMode) {
+        switch (config.scanMethod) {
             case 'api':
-                scanViaApi(imageRef)
+                scanViaApi(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
                 break
             case 'cli':
-                scanViaCli(imageRef)
+                scanViaCli(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
                 break
+            default:
+                return
         }
 
-        updateBitbucketBuildStatusForCommit()
-        archiveReport(context.localCheckoutEnabled)
+        updateBitbucketBuildStatusForCommit(config.aquaUrl, config.registry, imageRef)
+        archiveReport(context.localCheckoutEnabled, reportFile)
     }
 
-    private scanViaApi(String aquaUrl, String registry, String imageRef, String credentialsId) {
+    private String getImageRef() {
+        // take the image ref of the image that is being build in the image build stage
+        Map<String, String> buildInfo = context.getBuildArtifactURIs().builds.get(config.resourceName)
+        if (buildInfo) {
+            String imageRef = buildInfo.image
+            return imageRef.substring(imageRef.indexOf("/") + 1)
+        } else {
+            // if no imageRef could be received, take latest image, e.g. "foo-test/be-bar:latest"
+            logger.warn("imageRef could not be retrieved - please ensure this Aqua stage runs " +
+                "after the image build stage and that they both have the same resourceName " +
+                "value set! Continuing with " + config.projectName + ":latest ...")
+            // TODO currently hardcoded to 'dev' as environment since config.environment is null here?
+            return config.organisation + "-" + "dev" + "/" + config.projectName + ":latest"
+        }
+    }
+
+    private scanViaApi(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
+        logger.startClocked(config.projectName)
         String token = aqua.getApiToken(aquaUrl, credentialsId)
-        logger.startClocked(config.projectName, "start of aqua scan (via API)")
-        logger.info aqua.scanViaApi(aquaUrl, registry, token, imageRef)
-        // TODO: pipe the json result into ${reportFile}
-        logger.info aqua.retrieveScanResultViaApi(aquaUrl, registry, token, imageRef)
-        logger.debugClocked(config.projectName, "end of aqua scan (via API)")
+        aqua.initiateScanViaApi(aquaUrl, registry, token, imageRef)
+        aqua.getScanResultViaApi(aquaUrl, registry, token, imageRef, reportFile)
+        logger.infoClocked(config.projectName, "Aqua scan (via API)")
     }
 
-    private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId) {
-        logger.startClocked(config.projectName, "start of aqua scan (via CLI)")
-        aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId)
-        logger.debugClocked(config.projectName, "start of aqua scan (via CLI)")
+    private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
+        logger.startClocked(config.projectName)
+        aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
+        logger.infoClocked(config.projectName, "Aqua scan (via CLI)")
     }
 
-    private updateBitbucketBuildStatusForCommit() {
+    private updateBitbucketBuildStatusForCommit(String aquaUrl, String registry, String imageRef) {
+        String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/risk"
         // for now, we set the build status always to successful in the aqua stage
-        def state = "SUCCESSFUL"
-        def buildName = "${context.gitCommit.take(8)}"
-        // TODO: improve description and change context.buildUrl to aqua scan url
-        def description = "Build status from Aqua Security stage!"
-        bitbucket.setBuildStatus(context.buildUrl, context.gitCommit, state, buildName, description)
+        String state = "SUCCESSFUL"
+        String buildName = "${context.gitCommit.take(8)}-aqua-scan"
+        String description = "Build status from Aqua Security stage!"
+        bitbucket.setBuildStatus(aquaScanUrl, context.gitCommit, state, buildName, description)
     }
 
-    private archiveReport(boolean archive) {
-        String targetReport = "SCSR-${context.projectId}-${context.componentId}-${aqua.reportFile}"
+    private archiveReport(boolean archive, String reportFile) {
+        String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
         script.sh(
             label: 'Create artifacts dir',
-            script: 'mkdir -p artifacts/SCSR'
+            script: 'mkdir -p artifacts'
         )
         script.sh(
             label: 'Rename report to SCSR',
-            script: "mv ${aqua.reportFile} artifacts/${targetReport}"
+            script: "mv ${reportFile} artifacts/${targetReport}"
         )
         if (archive) {
             script.archiveArtifacts(artifacts: 'artifacts/SCSR*')
