@@ -1605,7 +1605,7 @@ class Project {
                 this.getComponentDiscontinuations(oldData, newData)
             newData.discontinuations = discontinuations
             // Expand some information from old saved data
-            def newDataExpanded = expandPredecessorInformation (oldData, newData)
+            def newDataExpanded = expandPredecessorInformation (oldData, newData, discontinuations)
             newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
 
             // Update data from previous version
@@ -1639,12 +1639,21 @@ class Project {
         }
     }
 
-    private static mergeJiraItemLinks(Map oldItem, Map newItem) {
-        (oldItem.keySet() + newItem.keySet()).collectEntries { String type ->
-            if (JiraDataItem.TYPES.contains(type)) {
-                [(type): ((newItem[type] ?: []) +  (oldItem[type] ?: [])).unique()]
+    private static mergeJiraItemLinks(Map oldItem, Map newItem, List discontinuations = []) {
+        Map oldItemWithCurrentLinks = oldItem.collectEntries { key, value ->
+            if (JiraDataItem.TYPES.contains(key)) {
+                [(key): value - discontinuations]
             } else {
-                [(type): newItem[type] ?: oldItem[type]]
+                [(key): value]
+            }
+        }.findAll { key, value ->
+            !JiraDataItem.TYPES.contains(key) || value
+        }
+        (oldItemWithCurrentLinks.keySet() + newItem.keySet()).collectEntries { String type ->
+            if (JiraDataItem.TYPES.contains(type)) {
+                [(type): ((newItem[type] ?: []) + (oldItemWithCurrentLinks[type] ?: [])).unique()]
+            } else {
+                [(type): newItem[type] ?: oldItemWithCurrentLinks[type]]
             }
         }
     }
@@ -1756,7 +1765,7 @@ class Project {
      * @param newData data for the current version
      * @return Map new data with the issue predecessors expanded
      */
-    private static Map expandPredecessorInformation(Map savedData, Map newData) {
+    private static Map expandPredecessorInformation(Map savedData, Map newData, List discontinuations) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
             def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]
             if (!predecessorIssue) {
@@ -1785,7 +1794,7 @@ class Project {
                         }.flatten()
                         // Get old links from predecessor (just one allowed)
                         def predecessorIssue = savedData.get(issueType).get(predecessors.first())
-                        def updatedIssue = mergeJiraItemLinks(predecessorIssue, issue)
+                        def updatedIssue = mergeJiraItemLinks(predecessorIssue, issue, discontinuations)
 
                         [(issueKey): (updatedIssue + [expandedPredecessors: expandedPredecessors])]
                     }
