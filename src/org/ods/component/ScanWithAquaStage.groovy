@@ -26,7 +26,7 @@ class ScanWithAquaStage extends Stage {
             config.eligibleBranches = ['*']
         }
         // we support only the 'cli' way to scan for now
-        config.scanMethod = 'api'
+        config.scanMethod = 'cli'
         // name of the credentials that stores the username/password of
         // a user with access to the Aqua server identified by "aquaUrl".
         if (!config.credentialsId) {

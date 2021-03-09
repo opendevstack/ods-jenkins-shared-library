@@ -100,7 +100,8 @@ class AquaService {
         logger.info "Retrieving Aqua scan result via API..."
         int requestAttempts = 5
         int millisecondsBetweenAttempts = 5000
-        while (requestAttempts > 0) {
+        int attemptCount = requestAttempts
+        while (attemptCount > 0) {
             if (getScanStatusViaApi(aquaUrl, registry, token, imageRef) == "Scanned") {
                 String response = script.sh(
                     label: 'Get scan result via API',
@@ -118,11 +119,10 @@ class AquaService {
                 return
             }
             sleep(millisecondsBetweenAttempts)
-            requestAttempts--
+            attemptCount--
         }
-        String timePassed = String.valueOf(requestAttempts * millisecondsBetweenAttempts)
         logger.warn "Aqua scan result did not come back early enough from server " +
-            "(waited for " + timePassed + " milliseconds)!"
+            "(waited for " + (requestAttempts * millisecondsBetweenAttempts) + " milliseconds)!"
     }
 
     String getScanStatusViaApi(String aquaUrl, String registry, String token, String imageRef) {
