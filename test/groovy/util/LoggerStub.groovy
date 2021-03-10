@@ -1,6 +1,5 @@
 package util
 
-import groovy.util.logging.Slf4j
 import org.ods.util.ILogger
 
 class LoggerStub implements ILogger, Serializable {
@@ -14,34 +13,30 @@ class LoggerStub implements ILogger, Serializable {
         this.debugOn = debug
     }
 
-    String debug(String message) {
+
+    void debug(String message) {
         if (debugOn) {
-            message = "DEBUG: ${message}"
-            info (message)
-        } else {
-            return ''
+            script.debug ("DEBUG: ${message}")
         }
     }
 
-    String info(String message) {
+    void info(String message) {
         script.info message
-        message
     }
 
-    String warn(String message) {
-        message = "WARN: ${message}"
-        info (message)
+    void warn(String message) {
+        info ("WARN: ${message}")
     }
 
-    String debugClocked(String component, String message = null) {
+    void debugClocked(String component, String message = null) {
         debug(timedCall(component, message))
     }
 
-    String infoClocked(String component, String message = null) {
+    void infoClocked(String component, String message = null) {
         info(timedCall(component, message))
     }
 
-    String warnClocked(String component, String message = null) {
+    void warnClocked(String component, String message = null) {
         warn(timedCall(component, message))
     }
 
@@ -49,15 +44,7 @@ class LoggerStub implements ILogger, Serializable {
         debugOn
     }
 
-    String getOcDebugFlag () {
-        return debugOn ? '--loglevel=5' : ''
-    }
-
-    String getShellScriptDebugFlag () {
-        return debugOn ? '' : 'set +x'
-    }
-
-    String startClocked(String component) {
+    void startClocked(String component) {
         timedCall (component)
     }
 

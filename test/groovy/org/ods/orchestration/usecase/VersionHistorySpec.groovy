@@ -1,8 +1,11 @@
 package org.ods.orchestration.usecase
 
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer
 import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
@@ -32,7 +35,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*
 class VersionHistorySpec  extends Specification {
     public static final String LOCALHOST = "http://localhost"
     public static final String WIREMOCK_FILES = "test/resources/wiremock"
-
+    private static final String PROJECT_KEY = "TES89"
     @Rule
     EnvironmentVariables env = new EnvironmentVariables()
 
@@ -71,6 +74,7 @@ class VersionHistorySpec  extends Specification {
     SonarQubeUseCase sq
     LeVADocumentUseCase usecase
     ILogger logger
+    WireMockServer wireMockServer
 
     def setup() {
         log.info "Using temporal folder:${tempFolder.getRoot()}"
@@ -83,10 +87,10 @@ class VersionHistorySpec  extends Specification {
         loadJiraData()
 
         // TODO do asserts
-        jiraServer.stubFor(post(urlEqualTo("/rest/api/2/issue/NET-123/comment"))
+        jiraServer.stubFor(post(urlEqualTo("/rest/api/2/issue/${PROJECT_KEY}-123/comment"))
                 .willReturn(aResponse().withStatus(200)));
 
-        jiraServer.stubFor(put(urlEqualTo("/rest/api/2/issue/NET-123"))
+        jiraServer.stubFor(put(urlEqualTo("/rest/api/2/issue/${PROJECT_KEY}-123"))
                 .willReturn(aResponse().withStatus(204)))
 
         System.setProperty("java.io.tmpdir", tempFolder.getRoot().absolutePath)
@@ -94,12 +98,19 @@ class VersionHistorySpec  extends Specification {
 
         steps = new PipelineSteps()
         pdfUtil = new PDFUtil()
-        logger = new LoggerStub(logger, true)
+        logger = new LoggerStub(log, true)
 
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
         project = buildProject()
+        def docGenUrl =  "http://docgen.${project.key}-cd.svc:8080"
+        docGen = new DocGenService(docGenUrl)
+        wireMockServer = new WireMockServer();
+        wireMockServer.start();
+        wireMockServer.startRecording(docGenUrl)
+
+        //docGen = new DocGenService("${LOCALHOST}:${docGenServer.port()}")
+
         util = new MROPipelineUtil(project, steps, null, logger)
-        docGen = new DocGenService("${LOCALHOST}:${docGenServer.port()}")
         junit = new JUnitTestReportsUseCase(project, steps)
         levaFiles = new LeVADocumentChaptersFileService(steps)
         def jiraService = new JiraService("${LOCALHOST}:${jiraServer.port()}", "username", "password")
@@ -108,13 +119,18 @@ class VersionHistorySpec  extends Specification {
         project.load(Mock(GitService), jiraUseCase)
     }
 
+    def cleanup() {
+        List<StubMapping> recordedMappings = wireMockServer.stopRecording();
+        println(recordedMappings)
+    }
+
     private void loadJiraData() {
         // load issuetypes definitions
-        jiraServer.stubFor(get(urlEqualTo("/rest/api/2/issue/createmeta/NET/issuetypes"))
+        jiraServer.stubFor(get(urlEqualTo("/rest/api/2/issue/createmeta/${PROJECT_KEY}/issuetypes"))
                 .willReturn(aResponse().withStatus(200).withBodyFile("jira/getIssueTypes.json")));
 
         // load issuetypes
-        jiraServer.stubFor(get(urlPathMatching("/rest/api/2/issue/createmeta/NET/issuetypes/.*"))
+        jiraServer.stubFor(get(urlPathMatching("/rest/api/2/issue/createmeta/${PROJECT_KEY}/issuetypes/.*"))
                 .willReturn(aResponse().withStatus(200)
                         .withBodyFile("jira/getIssueTypeMetadata-{{request.pathSegments.[7]}}.json")
                         .withTransformers("response-template")))
@@ -127,7 +143,7 @@ class VersionHistorySpec  extends Specification {
                         .withTransformers("response-template")))
 
         // getDocGenData
-        jiraServer.stubFor(get(urlEqualTo("/rest/platform/1.0/docgenreports/NET"))
+        jiraServer.stubFor(get(urlEqualTo("/rest/platform/1.0/docgenreports/${PROJECT_KEY}"))
                 .willReturn(aResponse().withStatus(200).withBodyFile("jira/getDocGenData.json")));
 
         // searchByJQLQuery
@@ -135,7 +151,7 @@ class VersionHistorySpec  extends Specification {
                 .willReturn(aResponse().withStatus(200).withBodyFile("jira/searchByJQLQuery.json")));
 
         // getProjectVersions
-        jiraServer.stubFor(get(urlEqualTo("/rest/api/2/project/NET/versions"))
+        jiraServer.stubFor(get(urlEqualTo("/rest/api/2/project/${PROJECT_KEY}/versions"))
                 .willReturn(aResponse().withStatus(200).withBodyFile("jira/getProjectVersions.json")));
     }
 
@@ -144,11 +160,12 @@ class VersionHistorySpec  extends Specification {
         steps.env.WORKSPACE = "${tempFolder.getRoot().absolutePath}/workspace"
 
         def project = new Project(steps, new Logger(steps, true), [:]).init()
+        project.data.metadata.id = PROJECT_KEY
         project.data.buildParams = [:]
         project.data.buildParams.targetEnvironment = "dev"
         project.data.buildParams.targetEnvironmentToken = "D"
         project.data.buildParams.version = "WIP"
-        project.data.buildParams.releaseStatusJiraIssueKey = "NET-123"
+        project.data.buildParams.releaseStatusJiraIssueKey = "${PROJECT_KEY}-123"
         project.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
         return project
     }
