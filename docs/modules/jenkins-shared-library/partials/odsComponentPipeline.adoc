@@ -263,16 +263,12 @@ To completely control the container(s) within the pod, set `podContainers`
 
 Configuring of a customized agent container in a `Jenkinsfile`:
 ----
-node {
-  dockerRegistry = env.DOCKER_REGISTRY
-}
-// ...
 odsComponentPipeline(
   branchToEnvironmentMapping: [:],
   podContainers: [
     containerTemplate(
       name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
-      image: "${dockerRegistry}/foo-cd/jenkins-agent-custom",
+      image: "${env.DOCKER_REGISTRY}/foo-cd/jenkins-agent-custom",
       workingDir: '/tmp',
       resourceRequestCpu: '100m',
       resourceLimitCpu: '500m',
