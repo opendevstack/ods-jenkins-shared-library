@@ -364,7 +364,7 @@ class Pipeline implements Serializable {
             config.resourceLimitCpu = '1'
         }
         if (!config.containsKey('podLabel')) {
-            config.podLabel = "pod-${UUID.randomUUID().toString()}"
+            config.podLabel = "pod-${UUID.randomUUID()}"
         }
     }
 

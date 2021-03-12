@@ -111,6 +111,9 @@ class Context implements IContext {
         if (!config.containsKey('emailextRecipients')) {
             config.emailextRecipients = null
         }
+        if (!config.containsKey('emailextRecipients')) {
+            config.emailextRecipients = null
+        }
         if (!config.groupId) {
             config.groupId = "org.opendevstack.${config.projectId}"
         }

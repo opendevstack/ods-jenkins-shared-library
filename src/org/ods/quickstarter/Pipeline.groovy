@@ -130,7 +130,7 @@ class Pipeline implements Serializable {
             ]
         }
 
-        def podLabel = "qs-${UUID.randomUUID().toString()}"
+        def podLabel = "qs-${UUID.randomUUID()}"
 
         script.podTemplate(
             label: podLabel,

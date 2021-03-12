@@ -39,3 +39,4 @@ class GitServiceSpec extends SpecHelper {
         'docs: update README\n\n- typo\n- [ci skip]' || false
     }
 }
+

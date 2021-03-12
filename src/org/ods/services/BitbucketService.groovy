@@ -324,7 +324,8 @@ class BitbucketService {
         }
     }
 
-    private void createUserTokenIfMissing() {
+    @SuppressWarnings('SynchronizedMethod')
+    private synchronized void createUserTokenIfMissing() {
         def credentialsId = "${openShiftCdProject}-${tokenSecretName}"
 
         if (basicAuthCredentialsIdExists(credentialsId)) {
