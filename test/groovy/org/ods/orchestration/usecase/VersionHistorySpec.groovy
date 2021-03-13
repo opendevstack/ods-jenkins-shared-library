@@ -164,8 +164,6 @@ class VersionHistorySpec  extends Specification {
         jiraServer.stubFor(put(urlEqualTo("/rest/api/2/issue/${releaseStatusV1}"))
                 .withRequestBody(equalToJson("{\"update\":{\"customfield_10329\":[{\"set\":\"WIP-null\"}]}}"))
                 .willReturn(aResponse().withStatus(204)))
-
-
     }
 
     def buildProject() {
@@ -184,7 +182,7 @@ class VersionHistorySpec  extends Specification {
     }
 
     def "create CFTP"() {
-        given:
+        given: "I have a project"
         usecase = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdfUtil, sq)
 
         def uri = "nexus_url"
@@ -204,10 +202,10 @@ class VersionHistorySpec  extends Specification {
 
         jiraServer.stubFor(post(urlPathMatching("/rest/api/2/issue/TES89-.*/comment"))
                 .willReturn(aResponse().withStatus(204)))
-        when:
+        when: "I create a CFTP document"
         usecase.createCFTP()
 
-        then:
+        then: "I can review the CFTP document"
         true
     /*    1 * nexus.storeArtifact(
                 "this.project.services.nexus.repository.name",
