@@ -175,6 +175,7 @@ class MROPipelineUtil extends PipelineUtil {
 
         def file = Paths.get(path, COMPONENT_METADATA_FILE_NAME).toFile()
         if (!file.exists()) {
+             this.logger.debug("Path is set to: ${path}")
             throw new IllegalArgumentException("Error: unable to parse component metadata. Required file '${COMPONENT_METADATA_FILE_NAME}' does not exist in repository '${repo.id}'.")
         }
 
