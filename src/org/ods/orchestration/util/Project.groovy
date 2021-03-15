@@ -1,29 +1,29 @@
 package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import groovy.json.JsonOutput
+import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.usecase.LeVADocumentUseCase
+import org.ods.services.GitService
+import org.ods.services.NexusService
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
+import org.yaml.snakeyaml.Yaml
 
 import java.nio.file.Paths
 
-import org.apache.http.client.utils.URIBuilder
-import org.ods.orchestration.usecase.*
-import org.yaml.snakeyaml.Yaml
-import org.ods.services.GitService
-import org.ods.services.NexusService
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
-
 @SuppressWarnings(['LineLength',
-    'AbcMetric',
-    'IfStatementBraces',
-    'Instanceof',
-    'CyclomaticComplexity',
-    'GStringAsMapKey',
-    'ImplementationAsType',
-    'UseCollectMany',
-    'MethodCount',
-    'PublicMethodsBeforeNonPublicMethods'])
+        'AbcMetric',
+        'IfStatementBraces',
+        'Instanceof',
+        'CyclomaticComplexity',
+        'GStringAsMapKey',
+        'ImplementationAsType',
+        'UseCollectMany',
+        'MethodCount',
+        'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
     class JiraDataItem implements Map, Serializable {
@@ -36,6 +36,7 @@ class Project {
         static final String TYPE_TECHSPECS = 'techSpecs'
         static final String TYPE_TESTS = 'tests'
         static final String TYPE_DOCS = 'docs'
+        static final String TYPE_DOCTRACKING = 'docTrackings'
 
         static final List TYPES = [
             TYPE_BUGS,
@@ -46,6 +47,7 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_DOCS,
         ]
 
         static final List TYPES_WITH_STATUS = [
@@ -56,6 +58,17 @@ class Project {
             TYPE_RISKS,
             TYPE_TECHSPECS,
             TYPE_TESTS,
+            TYPE_DOCS,
+        ]
+
+        static final List TYPES_TO_BE_CLOSED = [
+            TYPE_EPICS,
+            TYPE_MITIGATIONS,
+            TYPE_REQUIREMENTS,
+            TYPE_RISKS,
+            TYPE_TECHSPECS,
+            TYPE_TESTS,
+            TYPE_DOCS,
         ]
 
         static final String ISSUE_STATUS_DONE = 'done'
@@ -165,59 +178,81 @@ class Project {
             return result
         }
 
-        @NonCPS
         // FIXME: why can we not invoke derived methods in short form, e.g. .resolvedBugs?
+        // Reason: that is because when you do this.resolvedBugs it goes to the get method for delegate dictionary
+        // and does deletage.resolvedBugs  And we have no entry there
+        // An option would be to put some logic for this in the get() method of this class
+        @NonCPS
         private List<JiraDataItem> getResolvedReferences(String type) {
             // Reference this within jiraResolved (contains readily resolved references to other entities)
             def item = Project.this.data.jiraResolved[this.type][this.key]
-            return item[type] ?: []
+            return item && item[type] ? item[type] : []
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedBugs() {
             return this.getResolvedReferences(TYPE_BUGS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedComponents() {
             return this.getResolvedReferences(TYPE_COMPONENTS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedEpics() {
             return this.getResolvedReferences(TYPE_EPICS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedMitigations() {
             return this.getResolvedReferences(TYPE_MITIGATIONS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedSystemRequirements() {
             return this.getResolvedReferences(TYPE_REQUIREMENTS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedRisks() {
             return this.getResolvedReferences(TYPE_RISKS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedTechnicalSpecifications() {
             return this.getResolvedReferences(TYPE_TECHSPECS)
         }
 
+        @NonCPS
         List<JiraDataItem> getResolvedTests() {
             return this.getResolvedReferences(TYPE_TESTS)
         }
+
     }
 
     class TestType {
+
         static final String ACCEPTANCE = 'Acceptance'
         static final String INSTALLATION = 'Installation'
         static final String INTEGRATION = 'Integration'
         static final String UNIT = 'Unit'
+
     }
 
+    class LogReportType {
+        static final String CHANGES = 'changes'
+        static final String TARGET = 'target'
+        static final String STATE = 'state'
+     }
+
     class GampTopic {
+
         static final String AVAILABILITY_REQUIREMENT = 'Availability Requirement'
         static final String CONSTRAINT = 'Constraint'
         static final String FUNCTIONAL_REQUIREMENT = 'Functional Requirement'
         static final String INTERFACE_REQUIREMENT = 'Interface Requirement'
+
     }
 
     protected static final String BUILD_PARAM_VERSION_DEFAULT = 'WIP'
@@ -230,6 +265,7 @@ class Project {
     protected ILogger logger
     protected Map config
     protected String targetProject
+    protected Boolean isVersioningEnabled = false
 
     protected Map data = [:]
 
@@ -240,8 +276,10 @@ class Project {
 
         this.data.build = [
             hasFailingTests: false,
-            hasUnexecutedJiraTests: false
+            hasUnexecutedJiraTests: false,
         ]
+
+        this.data.documentHistories = [:]
     }
 
     Project init() {
@@ -288,7 +326,7 @@ class Project {
             targetTag: targetTag ? targetTag.toString() : '',
             author: git.getCommitAuthor(),
             message: git.getCommitMessage(),
-            time: git.getCommitTime()
+            time: git.getCommitTime(),
         ]
         this.logger.debug "Using release manager commit: ${this.data.git.commit}"
     }
@@ -297,23 +335,37 @@ class Project {
         this.git = git
         this.jiraUseCase = jiraUseCase
 
-        this.data.jira = [:]
-        this.data.jira = this.loadJiraData(this.jiraProjectKey)
-        this.data.jira.project.version = this.loadJiraDataProjectVersion()
-        this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
+        // FIXME: the quality of this function degraded with ODS 3.1 and needs a cleanup
+        // with a clear concept for versioning (scattered across various places)
+        this.data.jira = [project: [ : ]]
+        this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
+        this.data.jira << this.loadJiraData(this.jiraProjectKey)
+
+        // Get more info of the versions from Jira
+        this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
+
+        def version = null
+        if (this.isVersioningEnabled) {
+            version = this.getVersionName()
+        }
+
+        // FIXME: contrary to the comment below, the bug data from this method is still relevant
+        // implementation needs to be cleaned up and bug data should be delivered through plugin's
+        // REST endpoint, not plain Jira
+        this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests, version) // TODO removeme when endpoint is updated
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.docs = this.loadJiraDataDocs()
-        this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
-
+        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(version)
+        this.data.jira.trackingDocsForHistory = this.loadJiraDataTrackingDocs()
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
-        this.data.jira.undone.docChapters = [:]
+        this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
         if (this.hasWipJiraIssues()) {
             def message = 'Pipeline-generated documents are watermarked ' +
-                "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
-                'since the following issues are work in progress: '
+                    "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
+                    'since the following issues are work in progress: '
+
             this.getWipJiraIssues().each { type, keys ->
                 def values = keys instanceof Map ? keys.values().flatten() : keys
                 if (!values.isEmpty()) {
@@ -322,6 +374,24 @@ class Project {
             }
 
             this.addCommentInReleaseStatus(message)
+        }
+
+        if(this.jiraUseCase.jira){
+            logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
+            def faultMap = [:]
+            this.data.jira.tests
+                .findAll{it.value.get("testType") == "Unit"}
+                .each{entry ->
+                    if(entry.value.get("components").size() != 1){
+                        faultMap.put(entry.key, entry.value.get("components").size())
+                    }
+                }
+            if(faultMap.size() != 0){
+                def faultyTestIssues = faultMap.keySet()
+                    .collect{key -> key + ": " + faultMap.get(key) + "; "}
+                    .inject(""){temp, val -> temp + val}
+                throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
+            }
         }
 
         this.data.documents = [:]
@@ -342,36 +412,61 @@ class Project {
         return !values.isEmpty()
     }
 
-    protected Map<String, List> computeWipJiraIssues(Map data) {
-        def result = [:]
-
-        JiraDataItem.TYPES_WITH_STATUS.each { type ->
+    boolean isProjectReadyToFreeze(Map data) {
+        def result = true
+        JiraDataItem.TYPES_TO_BE_CLOSED.each { type ->
             if (data.containsKey(type)) {
-                result[type] = data[type]
-                    .findAll { key, issue ->
-                        issue.status != null &&
-                        !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
-                        !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
-                    }
-                    .collect { key, issue ->
-                        return key
-                    }
+                result = result & (data[type].find { k, v -> issueIsWIP(v) } == null)
             }
         }
-
         return result
+    }
+
+    protected Map<String, List> computeWipJiraIssues(Map data) {
+        def result = [:]
+        JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            if (data.containsKey(type)) {
+                result[type] = data[type].findAll { k, v -> issueIsWIP(v) }.keySet() as List<String>
+            }
+        }
+        return result
+    }
+
+    /**
+     * Gets the document chapter issues and puts in a format ready to query from levadocumentusecase when retrieving
+     * the sections not done
+     * @param data jira data
+     * @return dict with map documentTypes -> sectionsNotDoneKeys
+     */
+    protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
+        (data[JiraDataItem.TYPE_DOCS] ?: [:])
+            .values()
+            .findAll { issueIsWIP(it) }
+            .collect { chapter ->
+                chapter.documents.collect { [doc: it, key: chapter.key] }
+            }.flatten()
+            .groupBy { it.doc }
+            .collectEntries { doc, issues ->
+                [(doc as String): issues.collect { it.key } as List<String>]
+            }
+    }
+
+    protected boolean issueIsWIP(Map issue) {
+        issue.status != null &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
+            !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
     }
 
     protected Map convertJiraDataToJiraDataItems(Map data) {
         JiraDataItem.TYPES.each { type ->
-            if (data[type] == null) {
-                throw new IllegalArgumentException(
-                    "Error: Jira data does not include references to items of type '${type}'.")
-            }
-
-            data[type] = data[type].collectEntries { key, item ->
-                return [key, new JiraDataItem(item, type)]
-            }
+            if (data.containsKey(type)) {
+                data[type] = data[type].collectEntries { key, item ->
+                    [key, new JiraDataItem(item, type)]
+                }
+            } //else {
+                //throw new IllegalArgumentException(
+                //    "Error: Jira data does not include references to items of type '${type}'.")
+            //}
         }
 
         return data
@@ -379,13 +474,12 @@ class Project {
 
     List<JiraDataItem> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { key, testIssue ->
-            def result = testIssue.status.toLowerCase() == JiraDataItem.ISSUE_STATUS_DONE &&
-                testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
+            def result = testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
 
             if (result && componentName) {
                 result = testIssue.getResolvedComponents()
-                    .collect { it.name.toLowerCase() }
-                    .contains(componentName.toLowerCase())
+                        .collect { it.name.toLowerCase() }
+                        .contains(componentName.toLowerCase())
             }
 
             if (result && testTypes) {
@@ -428,6 +522,10 @@ class Project {
         !getIsPromotionMode()
     }
 
+    boolean getIsVersioningEnabled() {
+        isVersioningEnabled
+    }
+
     static boolean isPromotionMode(String targetEnvironmentToken) {
         ['Q', 'P'].contains(targetEnvironmentToken)
     }
@@ -438,7 +536,7 @@ class Project {
 
     boolean isDeveloperPreviewMode() {
         return BUILD_PARAM_VERSION_DEFAULT.equalsIgnoreCase(this.data.buildParams.version) &&
-            this.data.buildParams.targetEnvironmentToken == "D"
+                this.data.buildParams.targetEnvironmentToken == "D"
     }
 
     static boolean isWorkInProgress(String version) {
@@ -473,7 +571,7 @@ class Project {
             envParams = params.collectEntries {
                 if (it.trim().size() > 0 && !it.trim().startsWith('#')) {
                     def vals = it.split('=')
-                    [vals.first().trim(), vals[1..vals.size()-1].join('=').trim()]
+                    [vals.first().trim(), vals[1..vals.size() - 1].join('=').trim()]
                 } else {
                     [:]
                 }
@@ -556,7 +654,7 @@ class Project {
             "RELEASE_PARAM_CHANGE_DESC=${params.changeDescription}",
             "RELEASE_PARAM_CONFIG_ITEM=${params.configItem}",
             "RELEASE_PARAM_VERSION=${params.version}",
-            "RELEASE_STATUS_JIRA_ISSUE_KEY=${params.releaseStatusJiraIssueKey}"
+            "RELEASE_STATUS_JIRA_ISSUE_KEY=${params.releaseStatusJiraIssueKey}",
         ]
     }
 
@@ -586,13 +684,32 @@ class Project {
     }
 
     List<Map> getDocumentTrackingIssues() {
-        return this.data.jira.docs.values() as List
+        return this.data.jira.trackingDocs.values() as List
     }
 
     List<Map> getDocumentTrackingIssues(List<String> labels) {
         def result = []
 
         def issues = this.getDocumentTrackingIssues()
+        labels.each { label ->
+            issues.each { issue ->
+                if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
+                    result << [key: issue.key, status: issue.status]
+                }
+            }
+        }
+
+        return result.unique()
+    }
+
+    List<Map> getDocumentTrackingIssuesForHistory() {
+        return this.data.jira.trackingDocsForHistory.values() as List
+    }
+
+    List<Map> getDocumentTrackingIssuesForHistory(List<String> labels) {
+        def result = []
+
+        def issues = this.getDocumentTrackingIssuesForHistory()
         labels.each { label ->
             issues.each { issue ->
                 if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
@@ -631,9 +748,9 @@ class Project {
 
         this.steps.dir(path) {
             result = this.steps.sh(
-                label: "Get Git URL for repository at path '${path}' and origin '${remote}'",
-                script: "git config --get remote.${remote}.url",
-                returnStdout: true
+                    label: "Get Git URL for repository at path '${path}' and origin '${remote}'",
+                    script: "git config --get remote.${remote}.url",
+                    returnStdout: true
             ).trim()
         }
 
@@ -644,6 +761,10 @@ class Project {
         return this.data.jira.epics.values() as List
     }
 
+    Map<String, DocumentHistory> getDocumentHistories() {
+        return this.data.documentHistories ?: [:]
+    }
+
     String getId() {
         return this.data.jira.project.id
     }
@@ -652,8 +773,21 @@ class Project {
         return this.data.jira.project.version
     }
 
+    String getVersionName() {
+        return this.data.jira.version
+    }
+
+    String getPreviousVersionId() {
+        return this.data.jira.project.previousVersion?.id
+    }
+
+    /**
+     * Obtains the mapping of Jira fields for a given issue type from the saved data
+     * @param issueTypeName Jira issue type
+     * @return Map containing [id: "customfield_XYZ", name:"name shown in jira"]
+     */
     Map getJiraFieldsForIssueType(String issueTypeName) {
-        return this.data.jira.issueTypes[issueTypeName]?.fields ?: [:]
+        return this.data.jira?.issueTypes[issueTypeName]?.fields ?: [:]
     }
 
     String getKey() {
@@ -681,6 +815,10 @@ class Project {
         return this.data.metadata.repositories
     }
 
+    List<JiraDataItem> getRequirements() {
+        return this.data.jira.requirements.values() as List
+    }
+
     Map getEnvironments() {
         return this.data.metadata.environments
     }
@@ -699,7 +837,7 @@ class Project {
 
             if (result && componentName) {
                 result = req.getResolvedComponents().collect { it.name.toLowerCase() }.
-                    contains(componentName.toLowerCase())
+                        contains(componentName.toLowerCase())
             }
 
             if (result && gampTopics) {
@@ -732,7 +870,7 @@ class Project {
 
             if (result && componentName) {
                 result = techSpec.getResolvedComponents().collect { it.name.toLowerCase() }.
-                    contains(componentName.toLowerCase())
+                        contains(componentName.toLowerCase())
             }
 
             return result
@@ -741,6 +879,20 @@ class Project {
 
     List<JiraDataItem> getTests() {
         return this.data.jira.tests.values() as List
+    }
+
+    List<JiraDataItem> getDocumentChaptersForDocument(String document) {
+        def docs = this.data.jira[JiraDataItem.TYPE_DOCS] ?: [:]
+        return docs.findAll { k, v -> v.documents && v.documents.contains(document) }.values() as List
+    }
+
+    List<String> getWIPDocChaptersForDocument(String documentType) {
+        def docs = this.getWIPDocChapters()
+        return docs[documentType] ?: []
+    }
+
+    Map getWIPDocChapters() {
+        return this.data.jira.undoneDocChapters ?: [:]
     }
 
     Map getEnvironmentConfig() {
@@ -780,7 +932,7 @@ class Project {
     }
 
     String getGitReleaseBranch() {
-        GitService.getReleaseBranch(buildParams.version)
+        return GitService.getReleaseBranch(buildParams.version)
     }
 
     String getTargetProject() {
@@ -791,11 +943,29 @@ class Project {
         this.targetProject = proj
     }
 
+    boolean historyForDocumentExists(String document) {
+        return this.getHistoryForDocument(document) ? true : false
+    }
+
+    DocumentHistory getHistoryForDocument(String document) {
+        return this.data.documentHistories[document]
+    }
+
+    DocumentHistory findHistoryForDocumentType(String documentType) {
+        // All docHistories for DTR and TIR should have the same version
+        def key = this.data.documentHistories.keySet().find { it.startsWith(documentType) }
+        return this.getHistoryForDocument(key)
+    }
+
+    void setHistoryForDocument(DocumentHistory docHistory, String document) {
+        this.data.documentHistories[document] = docHistory
+    }
+
     static Map loadBuildParams(IPipelineSteps steps) {
         def releaseStatusJiraIssueKey = steps.env.releaseStatusJiraIssueKey?.trim()
         if (isTriggeredByChangeManagementProcess(steps) && !releaseStatusJiraIssueKey) {
             throw new IllegalArgumentException(
-                "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
+                    "Error: unable to load build param 'releaseStatusJiraIssueKey': undefined")
         }
 
         def version = steps.env.version?.trim() ?: BUILD_PARAM_VERSION_DEFAULT
@@ -823,49 +993,171 @@ class Project {
         ]
     }
 
+    /**
+     * Checks if the JIRA version supports the versioning feature
+     * If jira or JiraUsecase is not enabled -> false
+     * If templates version is 1.0 -> false
+     * Otherwise, check from Jira
+     * @ true if versioning is enabled
+     */
+    boolean checkIfVersioningIsEnabled(String projectKey, String versionName) {
+        if (!this.jiraUseCase) return false
+        if (!this.jiraUseCase.jira) return false
+        def levaDocsCapability = this.getCapability('LeVADocs')
+        if (levaDocsCapability.templatesVersion == '1.0') {
+            return false
+        }
+        return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
+    }
+
     protected Map loadJiraData(String projectKey) {
         def result = [
-            components: [:],
-            epics: [:],
-            mitigations: [:],
-            project: [:],
-            requirements: [:],
-            risks: [:],
-            techSpecs: [:],
-            tests: [:],
+                components: [:],
+                epics: [:],
+                mitigations: [:],
+                project: [:],
+                requirements: [:],
+                risks: [:],
+                techSpecs: [:],
+                tests: [:],
         ]
 
-        if (!this.jiraUseCase) return result
-        if (!this.jiraUseCase.jira) return result
+        if (this.jiraUseCase && this.jiraUseCase.jira) {
+            // FIXME: getVersionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
+            // than once. However, it's also called via this.project.versionFromReleaseStatusIssue in JiraUseCase.groovy.
+            def currentVersion = this.getVersionFromReleaseStatusIssue() // TODO why is param.version not sufficient here?
 
-        result = this.jiraUseCase.jira.getDocGenData(projectKey)
-        if (result?.project?.id == null) {
-            throw new IllegalArgumentException(
-                "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
-        }
-
-        // FIXME: fix data types that should be sent correctly by the REST endpoint
-        result.project.id = result.project.id as String
-
-        result.tests.each { key, test ->
-            test.id = test.id as String
-            test.bugs = test.bugs ?: []
+            this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)
+            if (this.isVersioningEnabled) {
+                // We detect the correct version even if the build is WIP
+                logger.info("Project has versioning enabled.")
+                result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
+            } else {
+                // TODO remove in ODS 4.0 version
+                logger.info("Versioning not supported for this release")
+                result = this.loadFullJiraData(projectKey)
+            }
         }
 
         return result
     }
 
-    protected Map loadJiraDataBugs(Map tests) {
+    protected String getVersionFromReleaseStatusIssue() {
+        // TODO review if it's possible to use Project.getVersionName()?
+        return this.jiraUseCase.getVersionFromReleaseStatusIssue()
+    }
+
+    protected Map loadFullJiraData(String projectKey) {
+        def result = this.jiraUseCase.jira.getDocGenData(projectKey)
+        if (result?.project?.id == null) {
+            throw new IllegalArgumentException(
+                    "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
+        }
+        def docChapterData = this.getDocumentChapterData(projectKey)
+        result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
+        return result
+    }
+
+    protected Map loadVersionJiraData(String projectKey, String versionName) {
+        def result = this.jiraUseCase.jira.getDeltaDocGenData(projectKey, versionName)
+        if (result?.project?.id == null) {
+            throw new IllegalArgumentException(
+                "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
+        }
+
+        def docChapterData = this.getDocumentChapterData(projectKey, versionName)
+        result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
+        return result
+    }
+
+    protected Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
+        def docChapters = this.jiraUseCase.getDocumentChapterData(projectKey, versionName)
+        if (docChapters.isEmpty() && !this.isVersioningEnabled) {
+            //TODO remove for ODS 4.0
+            //If versioning is not enabled, the query should always return results. If not, there is an issue with
+            // the jira project itself.
+            throw new IllegalStateException("Error: could not find document chapters for project ${projectKey}.")
+        } else {
+            return docChapters
+        }
+    }
+
+    protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
+        def result = [:]
+        def newData = this.loadVersionJiraData(projectKey, versionName)
+        /* FIXME: This is a workaround for NPE bugs resulting from being unable to resolve a reference to an issue belonging
+        *  to a previous version. As a workaround, the deltadocgen report contains the full information of all references.
+        *  Here we will strip data information and store it aside for the use of the resolution algorithm.
+        *  The NPE's must be fixed in the future, and this workaround and the deltadocgen report workaround have to be
+        *  rolled back. */
+        // FIXME: Start of the workaround
+        def typesOfInterest = [
+            JiraDataItem.TYPE_EPICS,
+            JiraDataItem.TYPE_REQUIREMENTS,
+            JiraDataItem.TYPE_TECHSPECS,
+            JiraDataItem.TYPE_RISKS,
+            JiraDataItem.TYPE_MITIGATIONS,
+            JiraDataItem.TYPE_TESTS
+        ] as Set
+        def olderIssues = [:]
+        newData = newData.collectEntries {
+            type, issues ->
+            if (typesOfInterest.contains(type)) {
+                olderIssues.putAll(issues)
+                def filteredIssues = issues.findAll {
+                    key, Map issue -> issue.versions[0] == versionName
+                }
+                return [(type): filteredIssues]
+            }
+            return [(type): issues]
+        }
+        result.olderIssues = olderIssues
+        // FIXME: End of the workaround.
+
+        // Get more info of the versions from Jira
+        def predecessors = newData.precedingVersions ?: []
+        def previousVersionId = null
+        if (predecessors && ! predecessors.isEmpty()) {
+            previousVersionId = predecessors.first()
+        }
+
+        if (previousVersionId) {
+            logger.info("Found a predecessor project version with ID '${previousVersionId}'. Loading its data.")
+            def savedDataFromOldVersion = this.loadSavedJiraData(previousVersionId)
+            def mergedData = this.mergeJiraData(savedDataFromOldVersion, newData)
+            result << this.addKeyAndVersionToComponentsWithout(mergedData)
+            result.previousVersion = previousVersionId
+        } else {
+            logger.info("No predecessor project version found. Loading only data from Jira.")
+            result << this.addKeyAndVersionToComponentsWithout(newData)
+        }
+
+        // Get more info of the versions from Jira
+        result.project << [previousVersion: this.loadVersionDataFromJira(previousVersionId)]
+
+        return result
+    }
+
+    protected Map loadJiraDataBugs(Map tests, String versionName = null) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
+        def fields = ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+        def jql = "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done"
+
+        if (versionName) {
+            fields << 'fixVersions'
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
+
         def jqlQuery = [
-            jql: "project = ${this.jiraProjectKey} AND issuetype = Bug AND status != Done",
-            expand: [],
-            fields: ['assignee', 'duedate', 'issuelinks', 'status', 'summary']
+            fields: fields,
+            jql: jql,
+            expand: []
         ]
 
         def jiraBugs = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery) ?: []
+
         return jiraBugs.collectEntries { jiraBug ->
             def bug = [
                 key: jiraBug.key,
@@ -873,13 +1165,15 @@ class Project {
                 assignee: jiraBug.fields.assignee ? [jiraBug.fields.assignee.displayName, jiraBug.fields.assignee.name, jiraBug.fields.assignee.emailAddress].find { it != null } : "Unassigned",
                 dueDate: '', // TODO: currently unsupported for not being enabled on a Bug issue
                 status: jiraBug.fields.status.name,
+                versions: jiraBug.fields.fixVersions.collect { it.name }
             ]
 
             def testKeys = []
             if (jiraBug.fields.issuelinks) {
                 testKeys = jiraBug.fields.issuelinks.findAll {
                     it.type.name == 'Blocks' && it.outwardIssue &&
-                    it.outwardIssue.fields.issuetype.name == 'Test' }.collect { it.outwardIssue.key }
+                            it.outwardIssue.fields.issuetype.name == 'Test'
+                }.collect { it.outwardIssue.key }
             }
 
             // Add relations from bug to tests
@@ -898,25 +1192,42 @@ class Project {
         }
     }
 
-    protected Map loadJiraDataProjectVersion() {
+    protected Map loadCurrentVersionDataFromJira() {
+        loadVersionDataFromJira(this.buildParams.version)
+    }
+
+    protected Map loadVersionDataFromJira(String versionName) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
         return this.jiraUseCase.jira.getVersionsForProject(this.jiraProjectKey).find { version ->
-            this.buildParams.version == version.value
+            versionName == version.name
         }
     }
 
-    protected Map loadJiraDataDocs() {
+    protected Map loadJiraDataTrackingDocs(String versionName = null) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def jqlQuery = [jql: "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"]
+        def jql = "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"
+
+        if (versionName) {
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
+
+        def jqlQuery = [
+            jql: jql
+        ]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
-            throw new IllegalArgumentException(
-                "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCS}'.")
+            def message = "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}'"
+            if (versionName) {
+                message += " for version '${versionName}'"
+            }
+            message += "."
+
+            throw new IllegalArgumentException(message)
         }
 
         return jiraIssues.collectEntries { jiraIssue ->
@@ -992,12 +1303,12 @@ class Project {
             // Check for existence of required attribute 'repositories[i].id'
             if (!repo.id?.trim()) {
                 throw new IllegalArgumentException(
-                    "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
+                        "Error: unable to parse project meta data. Required attribute 'repositories[${index}].id' is undefined.")
             }
 
             repo.data = [
                 openshift: [:],
-                documents: [:]
+                documents: [:],
             ]
 
             // Set repo type, if not provided
@@ -1008,7 +1319,7 @@ class Project {
             // Resolve repo URL, if not provided
             if (!repo.url?.trim()) {
                 this.logger.debug("Could not determine Git URL for repo '${repo.id}' " +
-                    'from project meta data. Attempting to resolve automatically...')
+                        'from project meta data. Attempting to resolve automatically...')
 
                 def gitURL = this.getGitURLFromPath(this.steps.env.WORKSPACE, 'origin')
                 if (repo.name?.trim()) {
@@ -1024,7 +1335,7 @@ class Project {
             // Resolve repo branch, if not provided
             if (!repo.branch?.trim()) {
                 this.logger.debug("Could not determine Git branch for repo '${repo.id}' " +
-                    "from project meta data. Assuming 'master'.")
+                        "from project meta data. Assuming 'master'.")
                 repo.branch = 'master'
             }
         }
@@ -1033,12 +1344,11 @@ class Project {
             result.capabilities = []
         }
 
-        // TODO move me to the LeVA documents plugin
         def levaDocsCapabilities = result.capabilities.findAll { it instanceof Map && it.containsKey('LeVADocs') }
         if (levaDocsCapabilities) {
             if (levaDocsCapabilities.size() > 1) {
                 throw new IllegalArgumentException(
-                    "Error: unable to parse project metadata. More than one 'LeVADoc' capability has been defined.")
+                        "Error: unable to parse project metadata. More than one 'LeVADoc' capability has been defined.")
             }
 
             def levaDocsCapability = levaDocsCapabilities.first()
@@ -1046,12 +1356,12 @@ class Project {
             def gampCategory = levaDocsCapability.LeVADocs?.GAMPCategory
             if (!gampCategory) {
                 throw new IllegalArgumentException(
-                    "Error: 'LeVADocs' capability has been defined but contains no 'GAMPCategory'.")
+                        "Error: 'LeVADocs' capability has been defined but contains no 'GAMPCategory'.")
             }
 
             def templatesVersion = levaDocsCapability.LeVADocs?.templatesVersion
             if (!templatesVersion) {
-                levaDocsCapability.LeVADocs.templatesVersion = '1.0'
+                levaDocsCapability.LeVADocs.templatesVersion = '1.1'
             }
         }
 
@@ -1072,12 +1382,16 @@ class Project {
         this.jiraUseCase.addCommentInReleaseStatus(message)
     }
 
-    @NonCPS
     protected Map resolveJiraDataItemReferences(Map data) {
+        this.resolveJiraDataItemReferences(data, JiraDataItem.TYPES)
+    }
+
+    @NonCPS
+    protected Map resolveJiraDataItemReferences(Map data, List<String> jiraTypes) {
         def result = [:]
 
         data.each { type, values ->
-            if (!JiraDataItem.TYPES.contains(type)) {
+            if (!jiraTypes.contains(type)) {
                 return
             }
 
@@ -1086,12 +1400,18 @@ class Project {
             values.each { key, item ->
                 result[type][key] = [:]
 
-                JiraDataItem.TYPES.each { referenceType ->
+                jiraTypes.each { referenceType ->
                     if (item.containsKey(referenceType)) {
                         result[type][key][referenceType] = []
 
                         item[referenceType].eachWithIndex { referenceKey, index ->
-                            result[type][key][referenceType][index] = data[referenceType][referenceKey]
+                            /* FIXME: This is a workaround for NPE bugs resulting from being unable to resolve a reference to an issue belonging
+                            *  to a previous version. As a workaround, the deltadocgen report contains the full information of all references.
+                            *  Here, whenever an issue cannot be resolved, we use an auxiliar olderIssues map
+                            *  containing the referenced issues belonging to previous versions.
+                            *  The NPE's must be fixed in the future, and this workaround and the deltadocgen report workaround have to be
+                            *  rolled back. */
+                            result[type][key][referenceType][index] = data[referenceType][referenceKey]?:data.olderIssues[referenceKey]
                         }
                     }
                 }
@@ -1120,25 +1440,25 @@ class Project {
         return JsonOutput.prettyPrint(JsonOutput.toJson(result))
     }
 
-    List<String> getMainReleaseManagerEnv () {
+    List<String> getMainReleaseManagerEnv() {
         def mroSharedLibVersion = this.steps.sh(
-            script: "env | grep 'library.ods-mro-jenkins-shared-library.version' | cut -d= -f2",
-            returnStdout: true,
-            label: 'getting ODS shared lib version'
+                script: "env | grep 'library.ods-mro-jenkins-shared-library.version' | cut -d= -f2",
+                returnStdout: true,
+                label: 'getting ODS shared lib version'
         ).trim()
 
         return [
-            "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
-            "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
-            "ods.build.rm.${getKey()}.repo.commit.msg=${gitData.message}",
-            "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
-            "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
-            "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
-            "ods.build.orchestration.lib.version=${mroSharedLibVersion}",
+                "ods.build.rm.${getKey()}.repo.url=${gitData.url}",
+                "ods.build.rm.${getKey()}.repo.commit.sha=${gitData.commit}",
+                "ods.build.rm.${getKey()}.repo.commit.msg=${gitData.message}",
+                "ods.build.rm.${getKey()}.repo.commit.timestamp=${gitData.time}",
+                "ods.build.rm.${getKey()}.repo.commit.author=${gitData.author}",
+                "ods.build.rm.${getKey()}.repo.branch=${gitData.baseTag}",
+                "ods.build.orchestration.lib.version=${mroSharedLibVersion}",
         ]
     }
 
-    String getReleaseManagerBitbucketHostUrl () {
+    String getReleaseManagerBitbucketHostUrl() {
         return steps.env.BITBUCKET_URL ?: "https://${steps.env.BITBUCKET_HOST}"
     }
 
@@ -1153,11 +1473,346 @@ class Project {
 
     boolean getForceGlobalRebuild() {
         return (this.data.metadata.allowPartialRebuild &&
-            this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
+                this.config.get(NexusService.NEXUS_REPO_EXISTS_KEY, false)) ? false : true
     }
 
-    void addConfigSetting (def key, def value) {
+    void addConfigSetting(def key, def value) {
         this.config.put(key, value)
+    }
+
+    protected Map loadSavedJiraData(String savedVersion) {
+        new ProjectDataBitbucketRepository(steps).loadFile(savedVersion)
+    }
+
+
+    /**
+     * Saves the project data to the
+     * @return filenames saved
+     */
+    List<String> saveProjectData() {
+        def bitbucketRepo = new ProjectDataBitbucketRepository(steps)
+        def fileNames = []
+        if (this.isAssembleMode) {
+            fileNames.add(this.saveVersionData(bitbucketRepo))
+        }
+        fileNames.addAll(this.getDocumentHistories().collect { docName, dh ->
+            dh.saveDocHistoryData(bitbucketRepo)
+        })
+        return fileNames
+    }
+
+    /**
+     * Saves the materialized jira data for this and old versions
+     * @return File name created
+     */
+    String saveVersionData(ProjectDataBitbucketRepository repository) {
+        def savedEntities = ['components',
+                             'mitigations',
+                             'requirements',
+                             'risks',
+                             'tests',
+                             'techSpecs',
+                             'epics',
+                             'version',
+                              'docs',
+                             'precedingVersions',]
+        def dataToSave = this.data.jira.findAll { savedEntities.contains(it.key) }
+        logger.debug('Saving Jira data for the version ' + JsonOutput.toJson(this.getVersionName()))
+
+        repository.save(dataToSave, this.getVersionName())
+    }
+
+    Map mergeJiraData(Map oldData, Map newData) {
+        def mergeMaps = { Map left, Map right ->
+            def keys = (left.keySet() + right.keySet()).toSet()
+            keys.collectEntries { key ->
+                if (JiraDataItem.TYPES.contains(key)) {
+                    if (!left[key] || left[key].isEmpty()) {
+                        [(key): right[key]]
+                    } else if (!right[key] || right[key].isEmpty()) {
+                        [(key): left[key]]
+                    } else {
+                        [(key): left[key] + right[key]]
+                    }
+                } else {
+                    [(key): right[key]]
+                }
+            }
+        }
+
+        // Here we update the existing links in 3 ways:
+        // - Deleting links of removing issues
+        // - Adding links to new issues
+        // - Updating links for changes in issues (changing key 1 for key 2)
+        def updateIssues = { Map<String,Map> left, Map<String,Map> right ->
+            def updateLink = { String issueType, String issueToUpdateKey, Map link ->
+                if (! left[issueType][issueToUpdateKey][link.linkType]) {
+                    left[issueType][issueToUpdateKey][link.linkType] = []
+                }
+                if (link.action == 'add') {
+                    left[issueType][issueToUpdateKey][link.linkType] << link.origin
+                } else if (link.action == 'discontinue') {
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link.origin }
+                } else if (link.action == 'change') {
+                    left[issueType][issueToUpdateKey][link.linkType] << link.origin
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link."replaces" }
+                }
+                // Remove potential duplicates in place
+                left[issueType][issueToUpdateKey][link.linkType].unique(true)
+            }
+
+            def reverseLinkIndex = buildChangesInLinks(left, right)
+            left.findAll { JiraDataItem.TYPES.contains(it.key) }.each { issueType, issues ->
+                issues.values().each { Map issueToUpdate ->
+                    def linksToUpdate = reverseLinkIndex[issueToUpdate.key] ?: []
+                    linksToUpdate.each { Map link ->
+                        try {
+                            updateLink(issueType, issueToUpdate.key, link)
+                        } catch (Exception e) {
+                            throw new IllegalStateException("Error found when updating link ${link} for issue " +
+                                "${issueToUpdate.key} from a previous version. Error message: ${e.message}", e)
+                        }
+                    }
+                }
+            }
+            return left
+        }
+
+        def updateIssueLinks = { issue, index ->
+            issue.collectEntries { String type, value ->
+                if(JiraDataItem.TYPES.contains(type)) {
+                    def newLinks = value.collect { link ->
+                        def newLink = index[link]
+                        newLink?:link
+                    }.unique()
+                    [(type): newLinks]
+                } else {
+                    [(type): value]
+                }
+            }
+        }
+
+        def updateLinks = { data, index ->
+            data.collectEntries { issueType, content ->
+                if(JiraDataItem.TYPES.contains(issueType)) {
+                    def updatedIssues = content.collectEntries { String issueKey, Map issue ->
+                        def updatedIssue = updateIssueLinks(issue, index)
+                        [(issueKey): updatedIssue]
+                    }
+                    [(issueType): updatedIssues]
+                } else {
+                    [(issueType): content]
+                }
+            }
+        }
+
+        if (!oldData || oldData.isEmpty()) {
+            newData
+        } else {
+            oldData[JiraDataItem.TYPE_COMPONENTS] = this.mergeComponentsLinks(oldData, newData)
+            def discontinuations = (newData.discontinuedKeys ?: []) +
+                this.getComponentDiscontinuations(oldData, newData)
+            newData.discontinuations = discontinuations
+            // Expand some information from old saved data
+            def newDataExpanded = expandPredecessorInformation (oldData, newData, discontinuations)
+            newDataExpanded << [discontinuationsPerType: discontinuationsPerType(oldData, discontinuations)]
+
+            // Update data from previous version
+            def oldDataWithUpdatedLinks = updateIssues(oldData, newDataExpanded)
+            def successorIndex = getSuccessorIndex(newDataExpanded)
+            def newDataExpandedWithUpdatedLinks = updateLinks(newDataExpanded, successorIndex)
+            def obsoleteKeys = discontinuations + successorIndex.keySet()
+            def oldDataWithoutObsoletes = removeObsoleteIssues(oldDataWithUpdatedLinks, obsoleteKeys)
+
+            // merge old component data to new for the existing components
+            newDataExpandedWithUpdatedLinks[JiraDataItem.TYPE_COMPONENTS] = newDataExpandedWithUpdatedLinks[JiraDataItem.TYPE_COMPONENTS]
+                .collectEntries { compN, v ->
+                    [ (compN): (oldDataWithoutObsoletes[JiraDataItem.TYPE_COMPONENTS][compN] ?: v)]
+                }
+            mergeMaps(oldDataWithoutObsoletes, newDataExpandedWithUpdatedLinks)
+        }
+    }
+
+    /**
+     * Return old components with the links coming from the new data. This is because we are not receiving all
+     * the old links from the docgen reports for the components. and we need a special merge.
+     * @param oldComponents components of the saved data
+     * @param newComponents components for the new data
+     * @return merged components with all the links
+     */
+    private Map mergeComponentsLinks(Map oldComponents, Map newComponents) {
+        oldComponents[JiraDataItem.TYPE_COMPONENTS].collectEntries { compName, oldComp ->
+            def newComp = newComponents[JiraDataItem.TYPE_COMPONENTS][compName] ?: [:]
+            def updatedComp = mergeJiraItemLinks(oldComp, newComp)
+            [(compName): updatedComp]
+        }
+    }
+
+    private static mergeJiraItemLinks(Map oldItem, Map newItem, List discontinuations = []) {
+        Map oldItemWithCurrentLinks = oldItem.collectEntries { key, value ->
+            if (JiraDataItem.TYPES.contains(key)) {
+                [(key): value - discontinuations]
+            } else {
+                [(key): value]
+            }
+        }.findAll { key, value ->
+            !JiraDataItem.TYPES.contains(key) || value
+        }
+        (oldItemWithCurrentLinks.keySet() + newItem.keySet()).collectEntries { String type ->
+            if (JiraDataItem.TYPES.contains(type)) {
+                [(type): ((newItem[type] ?: []) + (oldItemWithCurrentLinks[type] ?: [])).unique()]
+            } else {
+                [(type): newItem[type] ?: oldItemWithCurrentLinks[type]]
+            }
+        }
+    }
+
+    private Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
+        savedData.findAll { JiraDataItem.TYPES.contains(it.key) }
+            .collectEntries { String issueType, Map issues ->
+                def discontinuationsPerType = issues.values().findAll { discontinuations.contains(it.key) }
+                [(issueType): discontinuationsPerType]
+            }
+    }
+
+    private List<String> getComponentDiscontinuations(Map oldData, Map newData) {
+        def oldComponents = (oldData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).keySet()
+        def newComponents = (newData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).keySet()
+        (oldComponents - newComponents) as List
+    }
+
+    private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
+        def currentVersion = jiraData.version
+        (jiraData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).each { k, component ->
+            jiraData[JiraDataItem.TYPE_COMPONENTS][k].key = k
+            if (! component.versions) {
+                jiraData[JiraDataItem.TYPE_COMPONENTS][k].versions = [currentVersion]
+            }
+        }
+        jiraData
+    }
+
+    private static List getDiscontinuedLinks(Map savedData, List<String> discontinuations) {
+        savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect {
+            issueType, Map issues ->
+            def discontinuedLinks = issues.findAll { discontinuations.contains(it.key) }
+                .collect { key, issue ->
+                    def issueLinks = issue.findAll { JiraDataItem.TYPES.contains(it.key) }
+                    issueLinks.collect { String linkType, List linkedIssues ->
+                        linkedIssues.collect { targetKey ->
+                            [origin: issue.key, target: targetKey, linkType: issueType, action: 'discontinue']
+                        }
+                    }.flatten()
+                }.flatten()
+            return discontinuedLinks
+        }.flatten()
+    }
+
+    private static Map<String, List> buildChangesInLinks(Map oldData, Map updates) {
+        def discontinuedLinks = getDiscontinuedLinks(oldData, (updates.discontinuations ?: []))
+        def additionsAndChanges = getAdditionsAndChangesInLinks(updates)
+
+        return (discontinuedLinks + additionsAndChanges).groupBy { it.target }
+    }
+
+    private static List getAdditionsAndChangesInLinks(Map newData) {
+        def getLink = { String issueType, Map issue, String targetKey, Boolean isAnUpdate ->
+            if (isAnUpdate) {
+                issue.predecessors.collect {
+                    [origin: issue.key, target: targetKey, linkType: issueType, action: 'change', replaces: it]
+                }
+            } else {
+                [origin: issue.key, target: targetKey, linkType: issueType, action: 'add']
+            }
+        }
+
+        newData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect { issueType, issues ->
+            issues.collect { String issueKey, Map issue ->
+                def isAnUpdate = ! (issue.predecessors ?: []).isEmpty()
+
+                def issueLinks = issue.findAll { JiraDataItem.TYPES.contains(it.key) }
+                issueLinks.collect { String linkType, List linkedIssues ->
+                    linkedIssues.collect { getLink(issueType, issue, it, isAnUpdate) }.flatten()
+                }
+            }
+        }.flatten()
+    }
+
+    private static Map removeObsoleteIssues(Map jiraData, List<String> keysToRemove) {
+        def result = jiraData.collectEntries { issueType, content ->
+            if (JiraDataItem.TYPES.contains(issueType)) {
+                [(issueType): content.findAll { ! keysToRemove.contains(it.key) } ]
+            } else {
+                [(issueType): content]
+            }
+        }
+        return result
+    }
+
+    /**
+     * Expected format is:
+     *   issueType.issue."expandedPredecessors" -> [key:"", version:""]
+     *   Note that an issue can only have a single successor in a single given version.
+     *   An issue can only have multiple successors if they belong to different succeeding versions.
+     * @param jiraData map of jira data
+     * @return a Map with the issue keys as values and their respective predecessor keys as keys
+     */
+    private static Map getSuccessorIndex(Map jiraData) {
+        def index = [:]
+        jiraData.findAll { JiraDataItem.TYPES.contains(it.key) }.values().each { issueGroup ->
+            issueGroup.values().each { issue ->
+                (issue.expandedPredecessors ?: []).each { index[it.key] = issue.key }
+            }
+        }
+        return index
+    }
+
+    /**
+     * Recover the information about "preceding" issues for all the new ones that are an update on previously
+     * released ones. That way we can provide all the changes in the documents
+     * @param savedData data from old versions retrieved by the pipeline
+     * @param newData data for the current version
+     * @return Map new data with the issue predecessors expanded
+     */
+    private static Map expandPredecessorInformation(Map savedData, Map newData, List discontinuations) {
+        def expandPredecessor = { String issueType, String issueKey, String predecessor ->
+            def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]
+            if (!predecessorIssue) {
+                throw new RuntimeException("Error: new issue '${issueKey}' references key '${predecessor}' " +
+                    "of type '${issueType}' that cannot be found in the saved data for version '${savedData.version}'." +
+                    "Existing issue list is '[${(savedData[issueType] ?: [:]).keySet().join(', ')}]'")
+            }
+            def existingPredecessors = (predecessorIssue.expandedPredecessors ?: [:])
+            def result = [[key: predecessorIssue.key, versions: predecessorIssue.versions]]
+
+            if (existingPredecessors) {
+                result << existingPredecessors
+            }
+            result.flatten()
+        }
+
+        newData.collectEntries { issueType, content ->
+            if (JiraDataItem.TYPES.contains(issueType)) {
+                def updatedIssues = content.collectEntries { String issueKey, Map issue ->
+                    def predecessors = issue.predecessors ?: []
+                    if (predecessors.isEmpty()) {
+                        [(issueKey): issue]
+                    } else {
+                        def expandedPredecessors = predecessors.collect { predecessor ->
+                            expandPredecessor(issueType, issueKey, predecessor)
+                        }.flatten()
+                        // Get old links from predecessor (just one allowed)
+                        def predecessorIssue = savedData.get(issueType).get(predecessors.first())
+                        def updatedIssue = mergeJiraItemLinks(predecessorIssue, issue, discontinuations)
+
+                        [(issueKey): (updatedIssue + [expandedPredecessors: expandedPredecessors])]
+                    }
+                }
+                [(issueType): updatedIssues]
+            } else {
+                [(issueType): content]
+            }
+        }
     }
 
 }

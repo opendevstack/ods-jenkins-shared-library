@@ -45,15 +45,23 @@ class ProjectSpec extends SpecHelper {
         }
 
         if (mixins.containsKey("loadJiraDataDocs")) {
-            project.loadJiraDataDocs(*_) >> { mixins["loadJiraDataDocs"]() }
+            project.loadJiraDataTrackingDocs(*_) >> { mixins["loadJiraDataDocs"]() }
         } else {
-            project.loadJiraDataDocs(*_) >> { return createProjectJiraDataDocs() }
+            project.loadJiraDataTrackingDocs(*_) >> { return createProjectJiraDataDocs() }
         }
 
         if (mixins.containsKey("loadJiraDataIssueTypes")) {
             project.loadJiraDataIssueTypes(*_) >> { mixins["loadJiraDataIssueTypes"]() }
         } else {
             project.loadJiraDataIssueTypes(*_) >> { return createProjectJiraDataIssueTypes() }
+        }
+
+        if (mixins.containsKey("loadJiraData")) {
+            project.loadJiraData(*_) >> { mixins["loadJiraData"]() }
+        }
+
+        if (mixins.containsKey("getDocumentChapterData")) {
+            project.getDocumentChapterData(*_) >> { mixins["getDocumentChapterData"]() }
         }
 
         return project
@@ -376,7 +384,7 @@ class ProjectSpec extends SpecHelper {
             [
                 "LeVADocs": [
                     GAMPCategory: 5,
-                    templatesVersion: "1.0"
+                    templatesVersion: "1.1"
                 ]
             ]
         ]
@@ -412,7 +420,7 @@ class ProjectSpec extends SpecHelper {
         then:
         project.getCapability("LeVADocs") == [
             GAMPCategory: 5,
-            templatesVersion: "1.0"
+            templatesVersion: "1.1"
         ]
 
         when:
@@ -607,13 +615,16 @@ class ProjectSpec extends SpecHelper {
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             data[type] = [
                 "${type}-1": [
-                    status: "TODO"
+                    status: "TODO",
+                    key: "${type}-1",
                 ],
                 "${type}-2": [
-                    status: "DOING"
+                    status: "DOING",
+                    key: "${type}-2",
                 ],
                 "${type}-3": [
-                    status: "DONE"
+                    status: "DONE",
+                    key: "${type}-3",
                 ]
             ]
         }
@@ -637,7 +648,7 @@ class ProjectSpec extends SpecHelper {
             data[type] = [:]
         }
 
-        def expected = [docChapters: [:]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = []
         }
@@ -679,7 +690,7 @@ class ProjectSpec extends SpecHelper {
             ]
         }
 
-        def expected = [docChapters: [:]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = []
         }
@@ -731,7 +742,7 @@ class ProjectSpec extends SpecHelper {
             ]
         }
 
-        def expected = [docChapters: [:]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
             expected[type] = [ "${type}-1", "${type}-2" ]
         }
@@ -773,14 +784,39 @@ class ProjectSpec extends SpecHelper {
 
     def "get wip Jira issues for a collection of document chapters"() {
         setup:
+        def document = 'myDocumentType'
         def data = [project: [:], components: [:]]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
-            data[type] = [:]
+            if (type != Project.JiraDataItem.TYPE_DOCS) {
+                data[type] = [:]
+            } else {
+                data[type] = [
+                    "${type}-1": [
+                        status: "TODO",
+                        key: "${type}-1",
+                        documents: [document],
+                    ],
+                    "${type}-2": [
+                        status: "DOING",
+                        key: "${type}-2",
+                        documents: [document],
+                    ],
+                    "${type}-3": [
+                        status: "DONE",
+                        key: "${type}-3",
+                        documents: [document],
+                    ]
+                ]
+            }
         }
 
-        def expected = [docChapters: ["myDocumentType": ["docChapters-1", "docChapters-2"]]]
+        def expected = [:]
         Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
-            expected[type] = []
+            if (type != Project.JiraDataItem.TYPE_DOCS) {
+                expected[type] = []
+            } else {
+                expected[type] = ["${type}-1", "${type}-2"]
+            }
         }
 
         project = createProject([
@@ -795,16 +831,16 @@ class ProjectSpec extends SpecHelper {
         when:
         project.load(git, jiraUseCase)
 
-        project.data.jira.undone.docChapters["myDocumentType"] = ["docChapters-1", "docChapters-2"]
-
         then:
         project.hasWipJiraIssues()
 
         then:
         project.getWipJiraIssues() == expected
+        project.getWIPDocChapters() == [(document): [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]]
+        project.getWIPDocChaptersForDocument(document) == [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]
     }
 
-    def "load"() {
+    def "load initial version"() {
         given:
         def component1 = [key: "CMP-1", name: "Component 1"]
         def epic1 = [key: "EPC-1", name: "Epic 1", status: "OPEN"]
@@ -856,7 +892,7 @@ class ProjectSpec extends SpecHelper {
 
         then:
         1 * project.loadJiraData(_) >> [
-            project     : [name: "my-project"],
+            project     : [name: "my-project", id:'0'],
             bugs        : [],
             components  : [(component1.key): component1],
             epics       : [(epic1.key): epic1],
@@ -870,8 +906,8 @@ class ProjectSpec extends SpecHelper {
 
         1 * project.convertJiraDataToJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
-        1 * project.loadJiraDataBugs(_) >> createProjectJiraDataBugs()
-        1 * project.loadJiraDataDocs() >> createProjectJiraDataDocs()
+        1 * project.loadJiraDataBugs(*_) >> createProjectJiraDataBugs()
+        2 * project.loadJiraDataTrackingDocs(*_) >> createProjectJiraDataDocs()
         1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
         1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
@@ -1086,15 +1122,37 @@ class ProjectSpec extends SpecHelper {
         setup:
         def docGenData
 
+        // Stubbed Method Responses limitation of not being able to spy/mock JiraUseCase for projectObj
+        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
+        jiraIssue1.fields["0"] = "1.0"
+        jiraIssue1.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "CSD"]
+        jiraIssue1.renderedFields = [:]
+        jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
+        jiraIssue1.renderedFields.description = "<html>1-description</html>"
+
         def jira = Mock(JiraService) {
             getDocGenData(_) >> {
                 return docGenData
             }
+            isVersionEnabledForDelta(*_) >> { return false }
+            searchByJQLQuery(*_) >> { return [ issues: [jiraIssue1]]}
+            getTextFieldsOfIssue(*_) >> { return [field_0: [name: "1"]]}
         }
 
         def projectObj = new Project(steps, logger)
         projectObj.git = git
         projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira, logger)
+        projectObj.data.buildParams = createProjectBuildParams()
+        projectObj.data.jira = [issueTypes: [
+            (JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER): [ fields: [
+                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
+                (JiraUseCase.CustomIssueFields.CONTENT): [id: "1"],
+            ]],
+            (JiraUseCase.IssueTypes.RELEASE_STATUS): [ fields: [
+                (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
+            ]]
+        ]]
+        projectObj.data.metadata = [capabilities:[[LeVADocs:[GAMPCategory: 5,templatesVersion: "1.1"]]]]
 
         def projectKey = "DEMO"
 
@@ -1139,13 +1197,6 @@ class ProjectSpec extends SpecHelper {
         when:
         docGenData = [project: [id: "4711"]]
         def result = project.loadJiraData(projectKey)
-
-        then:
-        result.project.id == "4711"
-
-        when:
-        docGenData = [project: [id: 4711]]
-        result = project.loadJiraData(projectKey)
 
         then:
         result.project.id == "4711"
@@ -1392,7 +1443,7 @@ class ProjectSpec extends SpecHelper {
         def result = project.init()
 
         then:
-        result.getCapability("LeVADocs").templatesVersion == "1.0"
+        result.getCapability("LeVADocs").templatesVersion == "1.1"
 
         cleanup:
         metadataFile.delete()
@@ -1449,5 +1500,1198 @@ class ProjectSpec extends SpecHelper {
 
         cleanup:
         metadataFile.delete()
+    }
+
+    def "use old docGen report when version is not enabled for the feature"() {
+        setup:
+        def versionEnabled
+        def jiraServiceStubs = { JiraService it ->
+            it.isVersionEnabledForDelta(*_) >> {
+                return versionEnabled
+            }
+            it.getDocGenData(*_) >> { return [project:[id:"1"]] }
+            it.getDeltaDocGenData(*_) >> { return [project:[id:"1"]] }
+            it.getTextFieldsOfIssue(*_) >> { return [field_0: [name: "1"]]}
+        }
+        project = setupWithJiraService(jiraServiceStubs)
+        project.data.jira = [issueTypes: [
+            (JiraUseCase.IssueTypes.RELEASE_STATUS): [ fields: [
+                (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
+            ]]
+        ]]
+
+        when:
+        versionEnabled = false
+        project.loadJiraData("projectKey")
+
+        then:
+        1 * project.getDocumentChapterData(_) >> [:]
+        1 * project.getVersionFromReleaseStatusIssue()
+        0 * project.loadJiraDataForCurrentVersion(*_)
+        1 * project.loadFullJiraData(_)
+
+        when:
+        versionEnabled = true
+        project.loadJiraData("DEMO")
+
+        then:
+        1 * project.getVersionFromReleaseStatusIssue() >> '1'
+
+        then:
+        1 * project.loadJiraDataForCurrentVersion(*_)
+        1 * project.getDocumentChapterData(*_) >> [:]
+        0 * project.loadFullJiraData(_)
+
+    }
+
+    def "load saved data from the previousVersion"() {
+        setup:
+        def firstVersion = '1'
+        def secondVersion = '2'
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+
+        then:
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+        1 * project.loadSavedJiraData(firstVersion) >> [:]
+
+    }
+
+    def "load only new data for initial release"() {
+        given:
+        def firstVersion = '1'
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: firstVersion,
+            precedingVersions: [],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", firstVersion)
+
+        then:
+        1 * project.loadVersionJiraData(*_) >>  newVersionData
+
+        then:
+        0 * project.loadJiraDataForCurrentVersion(_)
+    }
+
+    def "do initial load if no previousVersion information is listed"() {
+        given:
+        def firstVersion = '1'
+        def noPreviousReleases1 = [
+            project     : [name: "my-project", id:'0'],
+            version: firstVersion,
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.loadJiraDataForCurrentVersion("KEY", firstVersion)
+
+        then:
+        1 * project.loadVersionJiraData(*_) >> noPreviousReleases1
+
+        then:
+        0 * project.loadSavedJiraData(_)
+
+    }
+    def "do initial load if no previousVersions information is empty"() {
+        given:
+        def firstVersion = '1'
+
+        def noPreviousReleases1 = [
+            project     : [name: "my-project", id:'0'],
+            version: firstVersion,
+            precedingVersions: [],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.loadJiraDataForCurrentVersion("KEY", firstVersion)
+
+        then:
+        1 * project.loadVersionJiraData(*_) >> noPreviousReleases1
+
+        then:
+        0 * project.loadSavedJiraData(_)
+
+    }
+
+    def "merge new test added"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def tst2 = tst('2', secondVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        tst2 << [requirements: [req1.key], risks: [rsk1.key]]
+        def req1Updated = req1.clone() + [tests: [tst1.key, tst2.key]]
+        def rsk1Updated = rsk1.clone() + [tests: [tst1.key, tst2.key]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [(tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+            ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated ],
+            risks       : [(rsk1Updated.key): rsk1Updated],
+            tests       : [(tst1.key): tst1,
+                (tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components , mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        reqResult.tests == req1Updated.tests
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk1Updated])
+        issueListIsEquals(reqResult.getResolvedTests(), [tst1, tst2])
+
+        def rskResult = project.getRisks().first()
+        rskResult.requirements == rsk1Updated.requirements
+        rskResult.tests == rsk1Updated.tests
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req1Updated])
+        issueListIsEquals(rskResult.getResolvedTests(), [tst1, tst2])
+    }
+
+    def "merge new risk and test added"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def rsk2 = rsk('addedRisk', secondVersion)
+        def tst2 = tst('addedTest', secondVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        rsk2 << [requirements: [req1.key], tests: [tst2.key]]
+        tst2 << [requirements: [req1.key], risks: [rsk2.key]]
+        def req1Updated = req1.clone() + [risks: [rsk1.key, rsk2.key], tests: [tst1.key, tst2.key]]
+
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [(rsk2.key): rsk2],
+            tests       : [(tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated ],
+            risks       : [(rsk1.key): rsk1,
+                           (rsk2.key): rsk2],
+            tests       : [(tst1.key): tst1,
+                           (tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        reqResult.tests == req1Updated.tests
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk1, rsk2])
+        issueListIsEquals(reqResult.getResolvedTests(), [tst1, tst2])
+    }
+
+    def "merge modification of a risk"() {
+        given:
+        def betaVersion = '0.1'
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
+
+        def req0 = req('betaReq', betaVersion)
+        def req1 = req('1', firstVersion)
+        def req2 = req('midReq', firstVersion)
+        def req3 = req('newerReq', secondVersion)
+        def rsk1 = rsk('toModify', firstVersion)
+        def tst1 = tst('1', secondVersion)
+        def rsk2 = rsk('modification', secondVersion)
+
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        req2 << [predecessors: [req0.key], expandedPredecessors: [[key: req0.key, versions: req0.versions]]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        rsk2 << [requirements: [req1.key], tests: [tst1.key], predecessors: [rsk1.key],
+                 expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
+        req3 << [predecessors: [req2.key]]
+        def req1Updated = req1.clone() + [risks: [rsk2.key]]
+        def tst1Updated = tst1.clone() + [risks: [rsk2.key]]
+        def rsk2WithDetails = rsk2.clone()
+        rsk2WithDetails << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
+        def req3withDetails = req3.clone()
+        req3withDetails << [expandedPredecessors: [[key: req2.key, versions: req2.versions],
+                                                   [key: req0.key, versions: req0.versions]]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1, (req2.key): req2],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req3.key):req3],
+            risks       : [(rsk2.key): rsk2],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated, (req3withDetails.key): req3withDetails],
+            risks       : [(rsk2WithDetails.key): rsk2WithDetails],
+            tests       : [(tst1Updated.key): tst1Updated],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk2])
+
+        def tstResult = project.tests.first()
+        tstResult.risks == tst1Updated.risks
+        issueListIsEquals(tstResult.getResolvedRisks(), [rsk2])
+    }
+
+    def "merge modification of a requirement and related issues"() {
+        given:
+        def firstVersion = '1.0'
+        def secondVersion = '2.0'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
+
+        def req1 = req('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def tst2 = tst('2', firstVersion)
+        def ts1 = ts('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def mit1 = mit('1', firstVersion)
+        def req2 = req('2', secondVersion)
+        def tst3 = tst('3', secondVersion)
+        def tst4 = tst('4', secondVersion)
+        def ts2 = ts('2', secondVersion)
+        def rsk2 = rsk('2', secondVersion)
+        def mit2 = mit('2', secondVersion)
+
+        req1 << [tests: [tst1.key, tst2.key], techSpecs: [ts1.key], risks: [rsk1.key], mitigations: [mit1.key]]
+        tst1 << [requirements: [req1.key], techSpecs: [ts1.key]]
+        tst2 << [requirements: [req1.key], techSpecs: [ts1.key]]
+        ts1 << [requirements: [req1.key], tests: [tst1.key, tst2.key]]
+        rsk1 << [requirements: [req1.key], mitigations: [mit1.key]]
+        mit1 << [requirements: [req1.key], risks: [rsk1.key]]
+        req2 << [predecessors: [req1.key], tests: [tst4.key]]
+        tst3 << [predecessors: [tst1.key]]
+        tst4 << [requirements: [req2.key]]
+        rsk2 << [predecessors: [rsk1.key], requirements: [req1.key]]
+        mit2 << [predecessors: [mit1.key], requirements: [req1.key], risks: [rsk1.key]]
+        ts2 << [predecessors: [ts1.key]]
+
+        def req2Updated = req2.clone() + [tests: [tst4.key, tst3.key, tst2.key], techSpecs: [ts2.key], risks: [rsk2.key], mitigations: [mit2.key]]
+        req2Updated  << [expandedPredecessors: [[key: req1.key, versions: req1.versions]]]
+        def tst2Updated = tst2.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
+        def tst3Updated = tst3.clone() + [requirements: [req2.key], techSpecs: [ts2.key]]
+        tst3Updated << [expandedPredecessors: [[key: tst1.key, versions: tst1.versions]]]
+        def rsk2Updated = rsk2.clone() + [requirements: [req2.key], mitigations: [mit2.key]]
+        rsk2Updated << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
+        def mit2Updated = mit2.clone() + [requirements: [req2.key], risks: [rsk2.key]]
+        mit2Updated << [expandedPredecessors: [[key: mit1.key, versions: mit1.versions]]]
+        def ts2Updated = ts2.clone() + [requirements: [req2.key], tests: [tst3.key, tst2.key]]
+        ts2Updated  << [expandedPredecessors: [[key: ts1.key, versions: ts1.versions]]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [(mit1.key): mit1],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1, (tst2.key): tst2],
+            techSpecs   : [(ts1.key): ts1],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [(mit2.key):mit2],
+            requirements: [(req2.key):req2],
+            risks       : [(rsk2.key):rsk2],
+            tests       : [(tst3.key):tst3, (tst4.key):tst4],
+            techSpecs   : [(ts2.key):ts2],
+            docs        : [:]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [(mit2Updated.key): mit2Updated],
+            requirements: [(req2Updated.key): req2Updated],
+            risks       : [(rsk2Updated.key): rsk2Updated],
+            tests       : [(tst3Updated.key): tst3Updated, (tst4.key): tst4, (tst2Updated.key): tst2Updated],
+            techSpecs   : [(ts2Updated.key): ts2Updated],
+            docs        : [:]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.tests == req2Updated.tests
+        reqResult.techSpecs == req2Updated.techSpecs
+        reqResult.risks == req2Updated.risks
+        reqResult.mitigations == req2Updated.mitigations
+        issueListIsEquals(reqResult.getResolvedTests(), [tst4, tst3Updated, tst2Updated])
+        issueListIsEquals(reqResult.getResolvedTechnicalSpecifications(), [ts2Updated])
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk2Updated])
+        issueListIsEquals(reqResult.getResolvedMitigations(), [mit2Updated])
+
+        def tstResult = project.tests.first()
+        tstResult.requirements == tst3Updated.requirements
+        tstResult.techSpecs == tst3Updated.techSpecs
+        issueListIsEquals(tstResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(tstResult.getResolvedTechnicalSpecifications(), [ts2Updated])
+
+        def tsResult = project.getTechnicalSpecifications().last()
+        tsResult.requirements == ts2Updated.requirements
+        tsResult.tests == ts2Updated.tests
+        issueListIsEquals(tsResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(tsResult.getResolvedTests(), [tst3Updated, tst2Updated])
+
+        def rskResult = project.risks.first()
+        rskResult.requirements == rsk2Updated.requirements
+        rskResult.mitigations == rsk2Updated.mitigations
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(rskResult.getResolvedMitigations(), [mit2Updated])
+
+        def mitResult = project.mitigations.first()
+        mitResult.requirements == mit2Updated.requirements
+        mitResult.risks == mit2Updated.risks
+        issueListIsEquals(mitResult.getResolvedSystemRequirements(), [req2Updated])
+        issueListIsEquals(mitResult.getResolvedRisks(), [rsk2Updated])
+    }
+
+    def "merge requirement with risk succeeded and test discontinued"() {
+        given:
+        def firstVersion = '1.0'
+        def secondVersion = '2.0'
+
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def req2 = req('2', secondVersion)
+        def rsk2 = rsk('2', secondVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+        req2 << [predecessors: [req1.key], risks: [rsk2.key]]
+        rsk2 << [predecessors: [rsk1.key], requirements: [req2.key]]
+
+        def req2Updated = req2.clone()
+        req2Updated  << [expandedPredecessors: [[key: req1.key, versions: req1.versions]]]
+        def rsk2Updated = rsk2.clone()
+        rsk2Updated  << [expandedPredecessors: [[key: rsk1.key, versions: rsk1.versions]]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req2.key): req2],
+            risks       : [(rsk2.key): rsk2],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuedKeys: [tst1.key]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req2Updated.key): req2Updated],
+            risks       : [(rsk2Updated.key): rsk2Updated],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: [tst1.key]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraDataForCurrentVersion("KEY", secondVersion)
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.tests == req2Updated.tests
+        reqResult.risks == req2Updated.risks
+        //issueListIsEquals(reqResult.getResolvedTests(), [])
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk2Updated])
+
+        def rskResult = project.risks.first()
+        rskResult.requirements == rsk2Updated.requirements
+        rskResult.tests == rsk2Updated.tests
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req2Updated])
+        //issueListIsEquals(rskResult.getResolvedTests(), [])
+    }
+
+    def "merge deletion of a test"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
+        def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
+        def tst = {  name, String version = null ->  [key: "TST-${name}" as String, description:name, versions:[version]] }
+        def mit = {  name, String version = null ->  [key: "MIT-${name}" as String, description:name, versions:[version]] }
+
+        def req1 = req('1', firstVersion)
+        def rsk1 = rsk('1', firstVersion)
+        def tst1 = tst('1', firstVersion)
+        def tst2 = tst('toDelete', firstVersion)
+
+        req1 << [risks: [rsk1.key], tests: [tst1.key, tst2.key]]
+        rsk1 << [requirements: [req1.key], tests: [tst1.key, tst2.key]]
+        tst1 << [requirements: [req1.key], risks: [rsk1.key]]
+        tst2 << [requirements: [req1.key], risks: [rsk1.key]]
+
+        def req1Updated = req1.clone() + [tests: [tst1.key]]
+        def rsk1Updated = rsk1.clone() + [tests: [tst1.key]]
+
+        def storedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [(rsk1.key): rsk1],
+            tests       : [(tst1.key): tst1, (tst2.key): tst2],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuedKeys: [tst2.key]
+        ]
+
+        def mergedData = [
+            components  : [:],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1Updated.key): req1Updated ],
+            risks       : [(rsk1Updated.key): rsk1Updated],
+            tests       : [(tst1.key): tst1],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: [tst2.key]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraData("my-project")
+        project.data.jira = project.convertJiraDataToJiraDataItems(project.data.jira)
+        project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
+
+        then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+        1 * project.loadSavedJiraData(_) >> storedData
+
+        then:
+        1 * project.mergeJiraData(storedData, newVersionData)
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.mitigations, mergedData.mitigations.values() as List)
+        issueListIsEquals(project.getTechnicalSpecifications(), mergedData.techSpecs.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+        issueListIsEquals(project.risks, mergedData.risks.values() as List)
+        issueListIsEquals(project.tests, mergedData.tests.values() as List)
+
+        def reqResult = project.getSystemRequirements().first()
+        reqResult.risks == req1Updated.risks
+        reqResult.tests == req1Updated.tests
+        issueListIsEquals(reqResult.getResolvedRisks(), [rsk1Updated])
+        issueListIsEquals(reqResult.getResolvedTests(), [tst1])
+
+        def rskResult = project.getRisks().first()
+        rskResult.requirements == rsk1Updated.requirements
+        rskResult.tests == rsk1Updated.tests
+        issueListIsEquals(rskResult.getResolvedSystemRequirements(), [req1Updated])
+        issueListIsEquals(rskResult.getResolvedTests(), [tst1])
+    }
+
+    def "assign versions to components"() {
+        given:
+        def firstVersion = '1'
+
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
+        def cmp1 = cmp('front')
+
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: firstVersion,
+            precedingVersions: [],
+            bugs        : [:],
+            components  : [(cmp1.key):cmp1],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp1.key):cmp1 + [versions: [firstVersion]]],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraData("my-project")
+
+        then:
+        1 * project.getVersionFromReleaseStatusIssue() >> firstVersion
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        def component = project.getComponents().first()
+        component.version == mergedData.components[cmp1.key].version
+    }
+
+    def "merge a new component"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
+        def cmp1 = cmp('front')
+        def cmp2 = cmp('new')
+
+        def cmp1wv = cmp1.clone() + [versions: [firstVersion]]
+        def cmp2wv = cmp2.clone() + [versions: [secondVersion]]
+
+        def storedData = [
+            components  : [(cmp1wv.key):cmp1wv],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [(cmp1.key):cmp1, (cmp2.key):cmp2],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp1wv.key):cmp1wv, (cmp2wv.key):cmp2wv],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraData("my-project")
+
+        then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+    }
+
+    def "merge the links of a component"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def req1 = req('1', firstVersion)
+        def req2 = req('2', firstVersion)
+        def req3 = req('3', secondVersion)
+
+        def cmp1 = cmp('front')
+        def cmp2 = cmp('new')
+
+        req1 << [components: [cmp1.key]]
+        req2 << [components: [cmp2.key]]
+        req3 << [components: [cmp1.key]]
+
+        def cmp1wv = cmp1.clone() + [versions: [firstVersion]]
+        def cmp2wv = cmp2.clone() + [versions: [secondVersion]]
+
+        def storedData = [
+            components  : [(cmp1wv.key):cmp1wv + [requirements: [req1.key]], (cmp2wv.key):cmp2wv + [requirements: [req2.key]]],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1, (req2.key): req2],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id:'0'],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [(cmp1.key):cmp1 + [requirements: [req3.key]], (cmp2.key):cmp2],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req3.key): req3],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp1wv.key):cmp1wv + [requirements: [req1.key, req3.key]], (cmp2wv.key):cmp2wv+ [requirements: [req2.key]]],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1, (req2.key): req2, (req3.key): req3],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraData("my-project")
+
+        then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
+        1 * project.loadSavedJiraData(_) >> storedData
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+    }
+
+    def "merge a discontinued component"() {
+        given:
+        def firstVersion = '1'
+        def secondVersion = '2'
+        def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
+        def req1 = req('1', firstVersion) + [components: []]
+        def cmp = { name, List<String> versions = []-> [key: "CMP-${name}" as String, name: name, versions: versions]}
+        def cmp1wv = cmp('front') + [versions:[firstVersion], requirements: [req1.key]]
+        def cmp2 = cmp('new')
+        def cmp2Updated = cmp2.clone() + [versions: [secondVersion]]
+
+        def storedData = [
+            components  : [(cmp1wv.key):cmp1wv],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1 + [components: [cmp1wv.key]]],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:]
+        ]
+        def newVersionData = [
+            project     : [name: "my-project", id: "0"],
+            version: secondVersion,
+            precedingVersions: [firstVersion],
+            bugs        : [:],
+            components  : [(cmp2.key):cmp2],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [:],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: []
+        ]
+
+        def mergedData = [
+            components  : [(cmp2Updated.key):cmp2Updated],
+            epics       : [:],
+            mitigations : [:],
+            requirements: [(req1.key): req1],
+            risks       : [:],
+            tests       : [:],
+            techSpecs   : [:],
+            docs        : [:],
+            discontinuations: [cmp1wv.key]
+        ]
+        project = setupWithJiraService()
+
+        when:
+        project.data.jira = project.loadJiraData("my-project")
+
+        then:
+        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
+        1 * project.loadVersionJiraData(*_) >> newVersionData
+        1 * project.loadSavedJiraData(_) >> storedData
+
+        then:
+        issueListIsEquals(project.components, mergedData.components.values() as List)
+        issueListIsEquals(project.getSystemRequirements(), mergedData.requirements.values() as List)
+    }
+
+    Boolean issueIsEquals(Map issueA, Map issueB) {
+        issueA == issueB
+    }
+
+    Boolean issueListIsEquals(List issuesA, List issuesB) {
+        if (issuesA.size() != issuesB.size()) return false
+        def issuesBKeys = issuesB.collect{it.key}
+        def areEquals = issuesA.collect{ issueA ->
+            if (! issuesBKeys.contains(issueA.key)) return false
+            def correspondentIssueB = issuesB.find{it.key == issueA.key}
+            issueIsEquals(issueA, correspondentIssueB)
+        }
+        return areEquals.isEmpty() || areEquals.contains(true)
+    }
+
+    Project setupWithJiraService(Closure jiraMockedMethods = null) {
+        def jiraMockedM = jiraMockedMethods ?: { JiraService it ->
+            it.isVersionEnabledForDelta(*_) >> { return true }
+        }
+        def projectObj = new Project(steps, logger)
+        projectObj.git = git
+        def jira = Mock(JiraService) { jiraMockedM(it) }
+        JiraUseCase jiraUseCase = Spy(JiraUseCase, constructorArgs: [projectObj, steps, Mock(MROPipelineUtil), jira, logger])
+        jiraUseCase.updateJiraReleaseStatusBuildNumber(*_) >> null
+        projectObj.jiraUseCase = jiraUseCase
+        projectObj.data.buildParams = createProjectBuildParams()
+        def projectKey = "DEMO"
+
+        Project spied =  Spy(projectObj)
+        spied.getJiraProjectKey() >> projectKey
+        spied.loadVersionDataFromJira(_) >> {String versionName -> [id: 1, name: versionName] }
+        spied.getCapability('LeVADocs') >> [templatesVersion: '1.1']
+        return spied
+    }
+
+    def "returns document chapters for a document"() {
+        given:
+        def document = 'myDocumentType'
+        def nodoc = [
+            nodoc1: [key:'nodoc1', documents:[]],
+            nodoc2: [key:'nodoc2'],
+        ]
+        def onedoc = [onedoc: [key:'onedoc', documents:[document]]]
+        def twodoc = [twodoc: [key:'twodoc', documents:[document,'anotherdoc']]]
+        def otherdoc = [otherdoc: [key:'otherdoc', documents:['anotherdoc']]]
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = onedoc
+        def result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 1
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = twodoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 1
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = onedoc + twodoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 2
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = nodoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 0
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = otherdoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 0
+
+        when:
+        project.data.jira[Project.JiraDataItem.TYPE_DOCS] = onedoc + twodoc + nodoc + otherdoc
+        result = project.getDocumentChaptersForDocument(document)
+
+        then:
+        result.size() == 2
+    }
+
+    def "compute WIP document chapters per document"() {
+        def issue = { String key, String status, List<String> docs ->
+            [(key): [ documents: docs, status: status, key: key ]]
+        }
+
+        def data = [(Project.JiraDataItem.TYPE_DOCS):
+            issue('done1', Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD', 'SSDS']) +
+                issue('done2', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
+                issue('canceled', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
+                issue('undone1', 'WORK IN PROGress', ['CSD', 'SSDS']) +
+                issue('undone2', 'Some custom status', ['SSDS']) +
+                issue('undone3', 'TO DO', ['DTP'])
+        ]
+        def expected = [ CSD: ['undone1'], SSDS: ['undone1', 'undone2'], DTP: ['undone3']]
+
+        when:
+        def result = project.computeWipDocChapterPerDocument(data)
+
+        then:
+        result == expected
+    }
+
+    def "assert if versioning is enabled for the project"() {
+        given:
+        def versionEnabled
+        def jiraServiceStubs = { JiraService it ->
+            it.isVersionEnabledForDelta(*_) >> {
+                return versionEnabled
+            }
+        }
+        def project = setupWithJiraService( jiraServiceStubs )
+
+        when:
+        versionEnabled = true
+        def result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        result
+
+        when:
+        versionEnabled = false
+        result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        !result
+
+        when:
+        versionEnabled = false
+        result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        project.getCapability('LeVADocs') >> [templatesVersion: '1.0']
+
+        then:
+        !result
+
+        when:
+        versionEnabled = true
+        result = project.checkIfVersioningIsEnabled('project', 'version')
+
+        then:
+        project.getCapability('LeVADocs') >> [templatesVersion: '1.0']
+
+        then:
+        !result
+
+
+
     }
 }
