@@ -199,6 +199,52 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
+    void createCodeInsightReport(String aquaScanUrl, String repo, String gitCommit, String buildName, String details=null) {
+        withTokenCredentials { username, token ->
+            def maxAttempts = 3
+            def retries = 0
+            //details = details ? ",\"details\":\"${details}\"" : ""
+
+            def payload = "{" +
+                "\"details\":\"This is the details of the report, it can be a longer string describing the report\"," +
+                "\"title\":\"aqua-scan of ${buildName}\"," +
+                "\"reporter\":\"Reporter/tool that produced this report\"," +
+                "\"createdDate\": 1615318764812," +
+                "\"link\":\"${aquaScanUrl}\"," +
+                "\"logoUrl\":\"http://insight.host.com/logo\"," +
+                "\"result\":\"PASS\"," +
+                "\"data\": [" +
+                    "{" +
+                        "\"title\":\"Some title\"," +
+                        "\"value\":\"Some value\"," +
+                        "\"type\":\"TEXT\"" +
+                    "}" +
+                "]" +
+            "}"
+
+            def insightKey = buildName
+
+            while (retries++ < maxAttempts) {
+                try {
+                    script.sh(
+                        label: 'Set bitbucket build status via API',
+                        script: """curl \\
+                            --fail \\
+                            -sS \\
+                            --request POST \\
+                            --header \"Authorization: Bearer ${token}\" \\
+                            --header \"Content-Type: application/json\" \\
+                            --data '${payload}' \\
+                            ${bitbucketUrl}/rest/projects/${project}/repos/${repo}/commits/${gitCommit}/reports/${insightKey}"""
+                    )
+                    return
+                } catch (err) {
+                    logger.warn("Could not create Bitbucket Code Insight report due to: ${err}")
+                }
+            }
+        }
+    }
+
     def withTokenCredentials(Closure block) {
         if (!tokenCredentialsId) {
             createUserTokenIfMissing()

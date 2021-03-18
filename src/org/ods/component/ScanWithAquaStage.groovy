@@ -74,7 +74,8 @@ class ScanWithAquaStage extends Stage {
                 return
         }
 
-        updateBitbucketBuildStatusForCommit(config.aquaUrl, config.registry, imageRef)
+        //updateBitbucketBuildStatusForCommit(config.aquaUrl, config.registry, imageRef)
+        createBitbucketCodeInsightReport(config.aquaUrl, config.registry, imageRef)
         archiveReport(context.localCheckoutEnabled, reportFile)
     }
 
@@ -115,6 +116,14 @@ class ScanWithAquaStage extends Stage {
         String buildName = "${context.gitCommit.take(8)}-aqua-scan"
         String description = "Build status from Aqua Security stage!"
         bitbucket.setBuildStatus(aquaScanUrl, context.gitCommit, state, buildName, description)
+    }
+
+    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef) {
+        String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/risk"
+        // for now, we set the build status always to successful in the aqua stage
+        String buildName = "${context.gitCommit.take(8)}-aqua-scan"
+        String description = "Build status from Aqua Security stage!"
+        bitbucket.createCodeInsightReport(aquaScanUrl, context.repoName, context.gitCommit, buildName, description)
     }
 
     private archiveReport(boolean archive, String reportFile) {
