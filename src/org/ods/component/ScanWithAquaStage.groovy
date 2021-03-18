@@ -25,8 +25,6 @@ class ScanWithAquaStage extends Stage {
         } else {
             config.eligibleBranches = ['*']
         }
-        // we support only the 'cli' way to scan for now
-        config.scanMethod = 'cli'
         // name of the credentials that stores the username/password of
         // a user with access to the Aqua server identified by "aquaUrl".
         if (!config.credentialsId) {
@@ -46,11 +44,6 @@ class ScanWithAquaStage extends Stage {
             logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
             return
         }
-        def possibleScanMethods = ['cli', 'api']
-        if (!possibleScanMethods.contains(config.scanMethod)) {
-            script.error "'${config.scanMethod}' is not a valid value " +
-                "for option 'scanMethod'! Please use one of ${possibleScanMethods}."
-        }
         // base URL of Aqua server.
         if (!config.aquaUrl) {
             script.error "Please provide the URL of the Aqua platform!"
@@ -62,20 +55,8 @@ class ScanWithAquaStage extends Stage {
 
         String imageRef = getImageRef()
         String reportFile = "aqua-report.json"
-
-        switch (config.scanMethod) {
-            case 'api':
-                scanViaApi(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
-                break
-            case 'cli':
-                scanViaCli(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
-                break
-            default:
-                return
-        }
-
-        //updateBitbucketBuildStatusForCommit(config.aquaUrl, config.registry, imageRef)
-        createBitbucketCodeInsightReport(config.aquaUrl, config.registry, imageRef)
+        scanViaCli(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
+        createBitbucketCodeInsightReport(config.aquaUrl, config.registry, imageRef, reportFile)
         archiveReport(context.localCheckoutEnabled, reportFile)
     }
 
@@ -95,35 +76,19 @@ class ScanWithAquaStage extends Stage {
         }
     }
 
-    private scanViaApi(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
-        logger.startClocked(config.projectName)
-        String token = aqua.getApiToken(aquaUrl, credentialsId)
-        aqua.initiateScanViaApi(aquaUrl, registry, token, imageRef)
-        aqua.getScanResultViaApi(aquaUrl, registry, token, imageRef, reportFile)
-        logger.infoClocked(config.projectName, "Aqua scan (via API)")
-    }
-
     private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
         logger.startClocked(config.projectName)
         aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
         logger.infoClocked(config.projectName, "Aqua scan (via CLI)")
     }
 
-    private updateBitbucketBuildStatusForCommit(String aquaUrl, String registry, String imageRef) {
-        String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/risk"
-        // for now, we set the build status always to successful in the aqua stage
-        String state = "SUCCESSFUL"
-        String buildName = "${context.gitCommit.take(8)}-aqua-scan"
-        String description = "Build status from Aqua Security stage!"
-        bitbucket.setBuildStatus(aquaScanUrl, context.gitCommit, state, buildName, description)
-    }
-
-    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef) {
-        String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/risk"
-        // for now, we set the build status always to successful in the aqua stage
-        String buildName = "${context.gitCommit.take(8)}-aqua-scan"
-        String description = "Build status from Aqua Security stage!"
-        bitbucket.createCodeInsightReport(aquaScanUrl, context.repoName, context.gitCommit, buildName, description)
+    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef, String reportFile) {
+        String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
+        String title = "Aqua Security"
+        String details = "Please visit the following link to review the Aqua Security scan report:"
+        // for now, we set the result always to successful in the aqua stage
+        String result = "PASS"
+        bitbucket.createCodeInsightReport(aquaScanUrl, context.repoName, context.gitCommit, title, details, result)
     }
 
     private archiveReport(boolean archive, String reportFile) {

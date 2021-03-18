@@ -164,19 +164,13 @@ class BitbucketService {
     }
 
     @SuppressWarnings('LineLength')
-    void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName, String description=null) {
+    void setBuildStatus(String buildUrl, String gitCommit, String state, String buildName) {
         logger.debugClocked("buildstatus-${buildName}-${state}",
             "Setting Bitbucket build status to '${state}' on commit '${gitCommit}' / '${buildUrl}'")
         withTokenCredentials { username, token ->
             def maxAttempts = 3
             def retries = 0
-            def desc = description ? ",\"description\":\"${description}\"" : ""
-            def payload = "{" +
-                "\"state\":\"${state}\"," +
-                "\"key\":\"${buildName}\"," +
-                "\"name\":\"${buildName}\"," +
-                "\"url\":\"${buildUrl}\"" +
-                "${desc}}"
+            def payload = "{\"state\":\"${state}\",\"key\":\"${buildName}\",\"name\":\"${buildName}\",\"url\":\"${buildUrl}\"}"
             while (retries++ < maxAttempts) {
                 try {
                     script.sh(
@@ -199,48 +193,46 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
-    void createCodeInsightReport(String aquaScanUrl, String repo, String gitCommit, String buildName, String details=null) {
+    /**
+     * Creates a code insight report in bitbucket via API.
+     * For further information visit https://developer.atlassian.com/server/bitbucket/how-tos/code-insights/
+     *
+     * @param result One of: PASS, FAIL
+     */
+    @SuppressWarnings('ParameterCount')
+    void createCodeInsightReport(String link, String repo, String gitCommit, String title, String details,
+                                 String result) {
         withTokenCredentials { username, token ->
-            def maxAttempts = 3
-            def retries = 0
-            //details = details ? ",\"details\":\"${details}\"" : ""
-
             def payload = "{" +
-                "\"details\":\"This is the details of the report, it can be a longer string describing the report\"," +
-                "\"title\":\"aqua-scan of ${buildName}\"," +
-                "\"reporter\":\"Reporter/tool that produced this report\"," +
-                "\"createdDate\": 1615318764812," +
-                "\"link\":\"${aquaScanUrl}\"," +
-                "\"logoUrl\":\"http://insight.host.com/logo\"," +
-                "\"result\":\"PASS\"," +
+                "\"title\":\"${title}\"," +
+                "\"reporter\":\"OpenDevStack\"," +
+                "\"createdDate\":${System.currentTimeMillis()}," +
+                "\"details\":\"${details}\"," +
+                "\"result\":\"${result}\"," +
                 "\"data\": [" +
                     "{" +
-                        "\"title\":\"Some title\"," +
-                        "\"value\":\"Some value\"," +
-                        "\"type\":\"TEXT\"" +
+                        "\"title\":\"Link\"," +
+                        "\"value\":{\"linktext\":\"${link}\",\"href\":\"${link}\"}," +
+                        "\"type\":\"LINK\"" +
                     "}" +
                 "]" +
             "}"
-
-            def insightKey = buildName
-
-            while (retries++ < maxAttempts) {
-                try {
-                    script.sh(
-                        label: 'Set bitbucket build status via API',
-                        script: """curl \\
-                            --fail \\
-                            -sS \\
-                            --request POST \\
-                            --header \"Authorization: Bearer ${token}\" \\
-                            --header \"Content-Type: application/json\" \\
-                            --data '${payload}' \\
-                            ${bitbucketUrl}/rest/projects/${project}/repos/${repo}/commits/${gitCommit}/reports/${insightKey}"""
-                    )
-                    return
-                } catch (err) {
-                    logger.warn("Could not create Bitbucket Code Insight report due to: ${err}")
-                }
+            try {
+                script.sh(
+                    label: 'Create Bitbucket Code Insight report via API',
+                    script: """curl \\
+                        --fail \\
+                        -sS \\
+                        --request PUT \\
+                        --header \"Authorization: Bearer ${token}\" \\
+                        --header \"Content-Type: application/json\" \\
+                        --data '${payload}' \\
+                        ${bitbucketUrl}/rest/insights/latest/projects/${project}/\
+repos/${repo}/commits/${gitCommit}/reports/${gitCommit}"""
+                )
+                return
+            } catch (err) {
+                logger.warn("Could not create Bitbucket Code Insight report due to: ${err}")
             }
         }
     }
