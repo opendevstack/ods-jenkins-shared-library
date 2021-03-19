@@ -56,7 +56,7 @@ class ScanWithAquaStage extends Stage {
         String imageRef = getImageRef()
         String reportFile = "aqua-report.json"
         scanViaCli(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
-        createBitbucketCodeInsightReport(config.aquaUrl, config.registry, imageRef, reportFile)
+        createBitbucketCodeInsightReport(config.aquaUrl, config.registry, imageRef)
         archiveReport(context.localCheckoutEnabled, reportFile)
     }
 
@@ -66,14 +66,13 @@ class ScanWithAquaStage extends Stage {
         if (buildInfo) {
             String imageRef = buildInfo.image
             return imageRef.substring(imageRef.indexOf("/") + 1)
-        } else {
-            // if no imageRef could be received, take latest image, e.g. "foo-test/be-bar:latest"
-            logger.warn("imageRef could not be retrieved - please ensure this Aqua stage runs " +
-                "after the image build stage and that they both have the same resourceName " +
-                "value set! Continuing with " + config.projectName + ":latest ...")
-            // TODO currently hardcoded to 'dev' as environment since config.environment is null here?
-            return config.organisation + "-" + "dev" + "/" + config.projectName + ":latest"
         }
+        // if no imageRef could be received, take latest image, e.g. "foo-test/be-bar:latest"
+        logger.warn("imageRef could not be retrieved - please ensure this Aqua stage runs " +
+            "after the image build stage and that they both have the same resourceName " +
+            "value set! Continuing with " + config.projectName + ":latest ...")
+        // TODO currently hardcoded to 'dev' as environment since config.environment is null here?
+        return config.organisation + "-" + "dev" + "/" + config.projectName + ":latest"
     }
 
     private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
@@ -82,7 +81,7 @@ class ScanWithAquaStage extends Stage {
         logger.infoClocked(config.projectName, "Aqua scan (via CLI)")
     }
 
-    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef, String reportFile) {
+    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
         String details = "Please visit the following link to review the Aqua Security scan report:"
