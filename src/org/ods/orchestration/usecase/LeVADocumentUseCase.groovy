@@ -947,7 +947,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 project_key : this.project.key,
-                repositories: this.project.repositories,
+                repositories: this.project.repositories.collect {
+                    it << [ doInstall: repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+                },
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
