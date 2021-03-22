@@ -2,25 +2,24 @@ package util.wiremock
 
 enum WiremockFactory {
     BITBUCKET {
-        WiremockFacade  build() {
-            String defaultURL =  "http://172.30.234.65:8080"
-            new WiremockFacade("${WIREMOCK_FILES}/bitbucket/${scenario}", null)
+        WiremockManager  build() {
+            String defaultURL =  "http://bitbucket.odsbox.lan:7990"
+            new WiremockManager("bitbucket", defaultURL)
         }
     },
     JIRA {
-        WiremockFacade  build() {
-            String defaultURL =  "http://172.30.234.65:8080"
-            new WiremockFacade("${WIREMOCK_FILES}/jira", defaultURL)
+        WiremockManager  build() {
+            String defaultURL =   "http://jira.odsbox.lan:8080/"
+            new WiremockManager("jira", defaultURL)
         }
     },
     DOC_GEN {
-        WiremockFacade  build() {
+        WiremockManager  build() {
             String defaultURL =  "http://172.30.234.65:8080"
-            new WiremockFacade("${WIREMOCK_FILES}/docgen", defaultURL)
+            new WiremockManager("docgen", defaultURL)
         }
     }
 
-    private static final String WIREMOCK_FILES = "test/resources/wiremock/bitbucket"
-    abstract WiremockFacade build();
+    abstract WiremockManager build();
 }
 

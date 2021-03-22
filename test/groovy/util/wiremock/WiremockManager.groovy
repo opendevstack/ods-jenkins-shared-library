@@ -12,31 +12,36 @@ import static com.github.tomakehurst.wiremock.core.WireMockApp.MAPPINGS_ROOT
 import static com.github.tomakehurst.wiremock.core.WireMockApp.FILES_ROOT
 
 @Slf4j
-class WiremockFacade {
-    private final WireMockServer wireMockServer
-    private final String defaultURL
-    private String pathToFiles
-    private boolean recording
+class WiremockManager {
+    private static final String WIREMOCK_FILES = "test/resources/wiremock"
 
-    WiremockFacade (String pathToRootFile, String defaultURL = null) {
-        this.pathToFiles = pathToRootFile
+    private WireMockServer wireMockServer
+    private boolean recording
+    private String pathToFiles
+
+    private final String serverType
+    private final String defaultURL
+
+    WiremockManager(String serverType, String defaultURL = null) {
+        this.serverType = serverType
         this.defaultURL = defaultURL
-        this.wireMockServer = new WireMockServer(
-            WireMockConfiguration
-                .wireMockConfig()
-                .usingFilesUnderDirectory(pathToRootFile)
-                .dynamicPort()
-                .extensions(new ResponseTemplateTransformer(false))
-        )
     }
 
-    WiremockFacade withScenario(String scenario){
-        this.pathToFiles = "${pathToFiles}/${scenario}"
+    WiremockManager withScenario(String scenario){
+        this.pathToFiles = "${WIREMOCK_FILES}/${scenario}/${serverType}"
         return this
     }
 
-    WiremockFacade startServer(boolean recording = false, String targetURLParam = null) {
+    WiremockManager startServer(boolean recording = false, String targetURLParam = null) {
+        wireMockServer = new WireMockServer(
+            WireMockConfiguration
+                .wireMockConfig()
+                .usingFilesUnderDirectory(pathToFiles)
+                .dynamicPort()
+                .extensions(new ResponseTemplateTransformer(false))
+        )
         wireMockServer.start()
+
         if (recording) {
             String targetURL = getTargetURL(targetURLParam)
             cleanExistingRecords()
@@ -47,11 +52,15 @@ class WiremockFacade {
         return this
     }
 
+    WireMockServer mock(){
+        return wireMockServer
+    }
+
     void tearDown() {
         log.info("tearDown")
 
         wireMockServer.stop();
-        if (isRecording()) {
+        if (this.recording) {
             try {
                 SnapshotRecordResult recording = wireMockServer.stopRecording()
                 log.info("record files:[{}]", recording.stubMappings)
@@ -65,12 +74,12 @@ class WiremockFacade {
     private void cleanExistingRecords() {
         wireMockServer.resetAll()
         try {
-            FileUtils.cleanDirectory(new File(pathToFiles));
-        } catch (IOException ex) {
+            FileUtils.cleanDirectory(new File(serverType));
+        } catch (Exception ex) {
             log.warn("Exception deleting Files: " + ex);
         }
-        new File("${pathToFiles}/${MAPPINGS_ROOT}").mkdirs()
-        new File("${pathToFiles}/${FILES_ROOT}").mkdirs()
+        new File("${serverType}/${MAPPINGS_ROOT}").mkdirs()
+        new File("${serverType}/${FILES_ROOT}").mkdirs()
     }
 
     private String getTargetURL(String targetURLParam) {

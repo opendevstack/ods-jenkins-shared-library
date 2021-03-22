@@ -1,10 +1,7 @@
 package org.ods.orchestration.usecase
 
-import com.github.tomakehurst.wiremock.verification.LoggedRequest
-import de.redsix.pdfcompare.CompareResult
 import de.redsix.pdfcompare.PdfComparator
 import groovy.util.logging.Slf4j
-import org.apache.poi.ss.formula.functions.LookupUtils
 import org.junit.Rule
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.rules.TemporaryFolder
@@ -15,14 +12,29 @@ import org.ods.services.OpenShiftService
 import spock.lang.Specification
 import util.FixtureHelper
 import util.wiremock.LeVADocumentUseCaseProxy
-import util.wiremock.WiremockManager
 import util.wiremock.WiremockFactory
+import util.wiremock.WiremockManager
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import static com.github.tomakehurst.wiremock.client.WireMock.containing
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
+import static com.github.tomakehurst.wiremock.client.WireMock.post
+import static com.github.tomakehurst.wiremock.client.WireMock.post
+import static com.github.tomakehurst.wiremock.client.WireMock.put
+import static com.github.tomakehurst.wiremock.client.WireMock.put
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 
 @Slf4j
-class VersionHistorySpec  extends Specification {
+class LeVADocumentUseCaseTest extends Specification {
     private static final String PROJECT_KEY = "TES89"
+    private static final boolean RECORD = true
 
     @Rule
     EnvironmentVariables env = new EnvironmentVariables()
@@ -42,8 +54,8 @@ class VersionHistorySpec  extends Specification {
     def setup() {
         log.info "Using temporal folder:${tempFolder.getRoot()}"
 
-        docGenServer = WiremockFactory.DOC_GEN.build().withScenario(this.class.simpleName).startServer()
-        jiraServer = WiremockFactory.JIRA.build().withScenario(this.class.simpleName).startServer()
+        docGenServer = WiremockFactory.DOC_GEN.build().withScenario(this.class.simpleName).startServer(RECORD)
+        jiraServer = WiremockFactory.JIRA.build().withScenario(this.class.simpleName).startServer(RECORD)
 
         jenkins = Mock(JenkinsService)
         nexus = Mock(NexusService)
@@ -72,20 +84,6 @@ class VersionHistorySpec  extends Specification {
     def "create CFTP"() {
         given: "I have a project"
         def useCase = useCaseProxy.createLeVADocumentUseCase(buildParams())
-        def traceabilityMatrixDC = "TES89-108"
-        def traceabilityMatrixDCComment = "A new Combined Functional and Requirements Testing Plan has been generated and is available at: null. Attention: this document is work in progress!"
-
-        jiraServer.mock().stubFor(put(urlPathMatching("/rest/api/2/issue/.*"))
-                .willReturn(aResponse().withStatus(204)))
-        jiraServer.mock().stubFor(put(urlEqualTo("/rest/api/2/issue/${traceabilityMatrixDC}"))
-                .withRequestBody(equalToJson("{\"update\":{\"customfield_10312\":[{\"set\":\"1\"}]}}"))
-                .willReturn(aResponse().withStatus(204)))
-        jiraServer.mock().stubFor(post(urlEqualTo("/rest/api/2/issue/${traceabilityMatrixDC}/comment"))
-                .withRequestBody(matchingJsonPath("\$.body", containing(traceabilityMatrixDCComment)))
-                .willReturn(aResponse().withStatus(204)))
-
-        jiraServer.mock().stubFor(post(urlPathMatching("/rest/api/2/issue/TES89-.*/comment"))
-                .willReturn(aResponse().withStatus(204)))
 
         when: "I create a CFTP document"
         useCase.createCFTP()
@@ -105,11 +103,11 @@ class VersionHistorySpec  extends Specification {
 
         and: "Nexus stored the artifact"
         1 * nexus.storeArtifact(
-                "leva-documentation",
-                "tes89-WIP",
-                "CFTP-TES89-WIP-1.zip",
-                _,
-                "application/zip")
+            "leva-documentation",
+            "tes89-WIP",
+            "CFTP-TES89-WIP-1.zip",
+            _,
+            "application/zip")
 
     }
 

@@ -5,19 +5,15 @@ import org.ods.util.ILogger
 class LoggerStub implements ILogger, Serializable {
 
     private final Object script
-    private final boolean debugOn
     private final Map clockStore = [ : ]
 
-    LoggerStub(script, debug) {
+    LoggerStub(script) {
         this.script = script
-        this.debugOn = debug
     }
 
 
     void debug(String message) {
-        if (debugOn) {
-            script.debug ("DEBUG: ${message}")
-        }
+        script.debug ("DEBUG: ${message}")
     }
 
     void info(String message) {
@@ -41,7 +37,7 @@ class LoggerStub implements ILogger, Serializable {
     }
 
     boolean getDebugMode () {
-        debugOn
+        true
     }
 
     void startClocked(String component) {
