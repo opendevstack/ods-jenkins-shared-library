@@ -37,8 +37,8 @@ class DeployStage extends Stage {
             // not work on agent nodes yet.
             if (agentPodCondition) {
                 script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}"
-                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE}"
+                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE} | true"
+                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE} | true"
                     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
                 }
             } else {
@@ -52,8 +52,8 @@ class DeployStage extends Stage {
             // not work on agent nodes yet.
             if (agentPodCondition) {
                 script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}"
-                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE}"
+                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE} | true"
+                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE} | true"
                     if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
                         logger.info("Loading ODS Infrastructure/Configuration Management component type data for '${repo.id}' - on agent")
                         loadOdsInfraTypeData(repo)
