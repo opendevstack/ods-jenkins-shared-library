@@ -23,7 +23,7 @@ class AquaService {
                   scannercli scan ${imageRef} \
                   --dockerless \
                   --register \
-                  --jsonfile '${reportFile}' \
+                  --htmlfile '${reportFile}' \
                   -U ${username} \
                   -P ${password} \
                   -H ${aquaUrl} \
