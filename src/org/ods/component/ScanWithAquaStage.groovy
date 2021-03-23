@@ -54,7 +54,7 @@ class ScanWithAquaStage extends Stage {
         }
 
         String imageRef = getImageRef()
-        String reportFile = "aqua-report.json"
+        String reportFile = "aqua-report.html"
         scanViaCli(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
         createBitbucketCodeInsightReport(config.aquaUrl, config.registry, imageRef)
         archiveReport(context.localCheckoutEnabled, reportFile)
