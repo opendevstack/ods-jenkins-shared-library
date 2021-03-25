@@ -14,6 +14,7 @@ import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.services.GitService
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -30,6 +31,7 @@ def call(Map config) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
+    def git = new GitService(steps, logger)
 
     def odsImageTag = config.odsImageTag
     if (!odsImageTag) {
@@ -66,13 +68,12 @@ def call(Map config) {
         }
 
         // checkout local branch
-        checkout([
-            $class: 'GitSCM',
-            branches: scmBranches,
-            doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-            extensions: [[$class: 'LocalBranch', localBranch: '**']],
-            userRemoteConfigs: scm.userRemoteConfigs,
-        ])
+        git.checkout(
+            scmBranches,
+            [[$class: 'LocalBranch', localBranch: '**']],
+            scm.userRemoteConfigs,
+            scm.doGenerateSubmoduleConfigurations
+            )
         logger.debugClocked('pipeline-git-releasemanager')
 
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
