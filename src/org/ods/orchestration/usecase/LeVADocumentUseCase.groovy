@@ -96,14 +96,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private LeVADocumentChaptersFileService levaFiles
     private OpenShiftService os
     private SonarQubeUseCase sq
+    private BitbucketTraceabilityUseCase bbt
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
+    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt) {
         super(project, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
         this.levaFiles = levaFiles
         this.os = os
         this.sq = sq
+        this.bbt = bbt
     }
 
     @SuppressWarnings('CyclomaticComplexity')
@@ -855,6 +857,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
+
+        this.bbt.generateSourceCodeReviewFile()
 
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
