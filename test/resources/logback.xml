@@ -1,0 +1,24 @@
+<configuration debug="true"> <!-- debug attr enables status data dump -->
+
+    <timestamp key="sec" datePattern="yyyyMMdd_HHmmss"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>[%date] %highlight([%level]) [%logger{10}] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- TRACE < DEBUG < INFO <  WARN < ERROR -->
+    <!-- Read Chapter 2 Architecture of logback doc for effective
+       level (level inheritance) and accumulation (appender additivity) -->
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <logger name="org.ods" level="trace" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+</configuration>

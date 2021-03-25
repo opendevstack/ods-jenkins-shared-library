@@ -1,10 +1,12 @@
 package org.ods.services
 
+import groovy.json.JsonSlurperClassic
+import kong.unirest.Unirest
 import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
 
-@SuppressWarnings(['PublicMethodsBeforeNonPublicMethods', 'ParameterCount'])
+@SuppressWarnings('PublicMethodsBeforeNonPublicMethods')
 class BitbucketService {
 
     // file name used to write token secret yaml
@@ -97,93 +99,6 @@ class BitbucketService {
         passwordCredentialsId
     }
 
-    String getDefaultReviewerConditions(String repo) {
-        String res
-        withTokenCredentials { username, token ->
-            res = script.sh(
-                label: 'Get default reviewer conditions via API',
-                script: """curl \\
-                  --fail \\
-                  -sS \\
-                  --request GET \\
-                  --header \"Authorization: Bearer ${token}\" \\
-                  ${bitbucketUrl}/rest/default-reviewers/1.0/projects/${project}/repos/${repo}/conditions""",
-                returnStdout: true
-            ).trim()
-        }
-        return res
-    }
-
-    // Returns a list of bitbucket user names (not display names)
-    // that are listed as the default reviewers of the given repo.
-    List<String> getDefaultReviewers(String repo) {
-        List reviewerConditions
-        try {
-            reviewerConditions = script.readJSON(text: getDefaultReviewerConditions(repo))
-        }
-        catch (Exception ex) {
-            logger.warn "Could not understand API response. Error was: ${ex}"
-            return []
-        }
-        List<String> reviewers = []
-        for (condition in reviewerConditions) {
-            for (reviewer in condition['reviewers']) {
-                reviewers.add(reviewer['name'])
-            }
-        }
-        return reviewers
-    }
-
-    // Creates pull request in "repo" from branch "fromRef" to "toRef". "reviewers" is a list of bitbucket user names.
-    String createPullRequest(String repo, String fromRef, String toRef, String title, String description,
-                             List<String> reviewers) {
-        String res
-        def payload = """{
-                "title": "${title}",
-                "description": "${description}",
-                "state": "OPEN",
-                "open": true,
-                "closed": false,
-                "fromRef": {
-                    "id": "refs/heads/${fromRef}",
-                    "repository": {
-                        "slug": "${repo}",
-                        "name": null,
-                        "project": {
-                            "key": "${project}"
-                        }
-                    }
-                },
-                "toRef": {
-                    "id": "refs/heads/${toRef}",
-                    "repository": {
-                        "slug": "${repo}",
-                        "name": null,
-                        "project": {
-                            "key": "${project}"
-                        }
-                    }
-                },
-                "locked": false,
-                "reviewers": [${reviewers ? reviewers.collect { "{\"user\": { \"name\": \"${it}\" }}" }.join(',') : ''}]
-            }"""
-        withTokenCredentials { username, token ->
-            res = script.sh(
-                label: 'Create pull request via API',
-                script: """curl \\
-                  --fail \\
-                  -sS \\
-                  --request POST \\
-                  --header \"Authorization: Bearer ${token}\" \\
-                  --header \"Content-Type: application/json\" \\
-                  --data '${payload}' \\
-                  ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests""",
-                returnStdout: true
-            ).trim()
-        }
-        res
-    }
-
     // Get pull requests of "repo" in given "state" (can be OPEN, DECLINED or MERGED).
     String getPullRequests(String repo, String state = 'OPEN') {
         String res
@@ -246,35 +161,6 @@ class BitbucketService {
                   --header \"Content-Type: application/json\" \\
                   --data '${payload}' \\
                   ${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/pull-requests/${pullRequestId}/comments"""
-            )
-        }
-    }
-
-    // https://docs.atlassian.com/bitbucket-server/rest/7.10.0/bitbucket-git-rest.html
-    // Creates a tag in the specified repository.
-    //The authenticated user must have an effective REPO_WRITE permission to call this resource.
-    //
-    //'LIGHTWEIGHT' and 'ANNOTATED' are the two type of tags that can be created.
-    // The 'startPoint' can either be a ref or a 'commit'.
-    void postTag(String repo, String startPoint, String tag, Boolean force = true, String message = "") {
-        withTokenCredentials { username, token ->
-            def payload = """{
-                                     "force": "${force}",
-                                     "message": "${message}",
-                                     "name": "${tag}",
-                                     "startPoint": "${startPoint}",
-                                     "type": ${message == '' ? 'LIGHTWEIGHT' : 'ANNOTATED'}
-                                 }"""
-            script.sh(
-                label: "Post git tag to branch",
-                script: """curl \\
-                      --fail \\
-                      -sS \\
-                      --request POST \\
-                      --header \"Authorization: Bearer ${token}\" \\
-                      --header \"Content-Type: application/json\" \\
-                      --data '${payload}' \\
-                      ${bitbucketUrl}/api/1.0/projects/${project}/repos/${repo}/tags"""
             )
         }
     }
@@ -407,6 +293,51 @@ class BitbucketService {
         return tokenMap
     }
 
+    @NonCPS
+    String getToken() {
+        withTokenCredentials { username, token -> return token}
+    }
+
+    @NonCPS
+    Map getCommitsForMainBranch(String token, String repo, int limit, int nextPageStart){
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
+        return queryRepo(token, request, limit, nextPageStart)
+    }
+
+    @NonCPS
+    Map getPRforMergedCommit(String token, String repo, String commit) {
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}" +
+            "/repos/${repo}/commits/${commit}/pull-requests"
+        return queryRepo(token, request, 0, 0)
+    }
+
+    private Map queryRepo(String token, String request, int limit, int nextPageStart) {
+        Map<String, String> headers = buildHeaders(token)
+        def httpRequest = Unirest.get(request).headers(headers)
+        if (limit>0) {
+            httpRequest.queryString("limit", limit)
+        }
+        if (nextPageStart>0) {
+            httpRequest.queryString("start", nextPageStart)
+        }
+        def response = httpRequest.asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to get data from Bitbucket responded with code: ' +
+                    "'${response.getStatus()}' and message: '${response.getBody()}'."
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    private Map<String, String> buildHeaders(String token) {
+        Map<String, String> headers = [:]
+        headers.put("accept", "application/json")
+        headers.put("Authorization", "Bearer ".concat(token))
+        return headers
+    }
+
     private void createUserTokenSecret(String username, String password) {
         String secretYml = userTokenSecretYml(tokenSecretName, username, password)
         script.writeFile(
@@ -438,5 +369,4 @@ class BitbucketService {
             false
         }
     }
-
 }
