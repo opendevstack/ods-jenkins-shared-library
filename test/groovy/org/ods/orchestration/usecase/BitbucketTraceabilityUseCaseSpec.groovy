@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import groovy.util.logging.Slf4j
+import net.sf.json.groovy.JsonSlurper
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -14,16 +15,16 @@ import util.LoggerStub
 import util.PipelineSteps
 import util.wiremock.BitbucketServiceMock
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*
 
 @Slf4j
 class BitbucketTraceabilityUseCaseSpec extends Specification {
     private static final String EXPECTED_BITBUCKET_CSV = "expected/bitbucket.csv"
+    private static final String EXPECTED_BITBUCKET_JSON = "expected/bitbucket.json"
 
     // Change for local development or CI testing
     private static final Boolean RECORD_WIREMOCK = false
     private static final String BB_URL_TO_RECORD = "http://bitbucket.odsbox.lan:7990/"
-    // project-readonly-user
     private static final String BB_TOKEN = ""
     private static final String PROJECT_KEY = "EDPT3"
 
@@ -86,6 +87,23 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         reportInfo "Generated csv file:<br/>${readSomeLines(actualFile)}"
         def expectedFile = new FixtureHelper().getResource(EXPECTED_BITBUCKET_CSV)
         assertThat(new File(actualFile)).exists().isFile().hasSameTextualContentAs(expectedFile);
+    }
+
+    def "Read the csv source code review file"() {
+        given: "There are two Bitbucket repositories"
+        def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
+
+        when: "the source code review file is generated"
+        def data = useCase.readSourceCodeReviewFile(
+            new FixtureHelper().getResource(EXPECTED_BITBUCKET_CSV).getAbsolutePath())
+
+        then: "the data contains the csv info"
+        def expectedFile = new FixtureHelper().getResource(EXPECTED_BITBUCKET_JSON)
+        def jsonSlurper = new JsonSlurper()
+        def expected = jsonSlurper.parse(expectedFile)
+
+        //TODO Pending assert
+
     }
 
     private String readSomeLines(String filePath){

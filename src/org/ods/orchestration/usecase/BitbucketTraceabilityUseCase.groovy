@@ -6,6 +6,9 @@ import org.ods.util.IPipelineSteps
 
 import java.text.SimpleDateFormat
 
+@groovy.lang.Grab('com.xlson.groovycsv:groovycsv:1.3')
+import com.xlson.groovycsv.CsvParser
+
 class BitbucketTraceabilityUseCase {
 
     private static final String CSV_FILE = "source-code-review.csv"
@@ -40,6 +43,35 @@ class BitbucketTraceabilityUseCase {
             processRepo(token, it, file)
         }
         return file.absolutePath
+    }
+
+    List<Map> readSourceCodeReviewFile(String filePath) {
+        def file = new File(filePath)
+        def result = []
+        def data = processCsv(file.text, Record.CSV,
+            ['commitDate','author','reviewers', 'pullRequestUrl', 'commitSHA', 'component'])
+
+        for (info in data) {
+            def authorInfo = processCsvDeveloper(info.author)
+            def reviewers = []
+            info.reviewers.split(Record.REVIEWERS_DELIMITER).each {
+                def reviewerInfo = processCsvDeveloper(it)
+                reviewers << [reviewerName: reviewerInfo.name, reviewerEmail: reviewerInfo.email]
+            }
+
+            def commitInfo = [
+                date: info.commitDate,
+                authorName: authorInfo.name,
+                authorEmail: authorInfo.email,
+                reviewers: reviewers,
+                url: info.pullRequestUrl,
+                commit: info.commitSHA,
+                component: info.component
+            ]
+            result << commitInfo
+        }
+
+        return result
     }
 
     private void processRepo(String token, Map repo, File file) {
@@ -126,6 +158,17 @@ class BitbucketTraceabilityUseCase {
     private String getDateWithFormat(Long timestamp) {
         Date dateObj =  new Date(timestamp)
         return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
+    }
+
+    private Iterator processCsv(String data, String separator, List<String> columnNames) {
+        return new CsvParser().parse(data,
+            separator: separator,
+            readFirstLine: true,
+            columnNames: columnNames)
+    }
+
+    private Object processCsvDeveloper(String data) {
+        return processCsv(data, Developer.FIELD_SEPARATOR, ['name','email']).next()
     }
 
     private class Record {
