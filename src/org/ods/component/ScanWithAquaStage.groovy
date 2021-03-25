@@ -3,6 +3,7 @@ package org.ods.component
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
 import org.ods.util.ILogger
+import static groovy.json.JsonOutput.*
 
 class ScanWithAquaStage extends Stage {
 
@@ -52,8 +53,15 @@ class ScanWithAquaStage extends Stage {
         if (!config.registry) {
             script.error "Please provide the name of the registry that contains the image of interest!"
         }
-
         String imageRef = getImageRef()
+        if (!imageRef) {
+            logger.info "Skipping as imageRef could not be retrieved. Possible reasons are:\n" +
+                "-> The aqua stage runs before the image build stage and hence no new image was created yet.\n" +
+                "-> The image build stage was not executed because the image was imported.\n" +
+                "-> The aqua stage and the image build stage have different values for 'resourceName' set."
+            return
+        }
+
         String reportFile = "aqua-report.html"
         scanViaCli(config.aquaUrl, config.registry, imageRef, config.credentialsId, reportFile)
         createBitbucketCodeInsightReport(config.aquaUrl, config.registry, imageRef)
@@ -67,12 +75,7 @@ class ScanWithAquaStage extends Stage {
             String imageRef = buildInfo.image
             return imageRef.substring(imageRef.indexOf("/") + 1)
         }
-        // if no imageRef could be received, take latest image, e.g. "foo-test/be-bar:latest"
-        logger.warn("imageRef could not be retrieved - please ensure this Aqua stage runs " +
-            "after the image build stage and that they both have the same resourceName " +
-            "value set! Continuing with " + config.projectName + ":latest ...")
-        // TODO currently hardcoded to 'dev' as environment since config.environment is null here?
-        return config.organisation + "-" + "dev" + "/" + config.projectName + ":latest"
+        return null
     }
 
     private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
