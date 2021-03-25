@@ -27,9 +27,6 @@ class SonarQubeService {
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
             ]
-            if (sonarQubeEdition != 'community') {
-                scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
-            }
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
             }
@@ -47,6 +44,8 @@ class SonarQubeService {
                     "-Dsonar.pullrequest.branch=${pullRequestInfo.branch}",
                     "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}",
                 ].each { scannerParams << it }
+            } else if (sonarQubeEdition != 'community') {
+                scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
             }
             script.sh(
                 label: 'Run SonarQube scan',
