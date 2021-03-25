@@ -25,9 +25,9 @@ class AquaService {
                   --register \
                   --text \
                   --htmlfile '${reportFile}' \
-                  -U ${username} \
-                  -P ${password} \
-                  -H ${aquaUrl} \
+                  -U '${username}' \
+                  -P '${password}' \
+                  -H '${aquaUrl}' \
                   --registry '${registry}'
                 """
             )
