@@ -26,10 +26,10 @@ class ScanWithAquaStage extends Stage {
         } else {
             config.eligibleBranches = ['*']
         }
-        // name of the credentials that stores the username/password of
-        // a user with access to the Aqua server identified by "aquaUrl".
+        // name of the credentials that stores the username/password of a user with access
+        // to the Aqua server identified by "aquaUrl", defaults to the cd-user
         if (!config.credentialsId) {
-            config.credentialsId = context.projectId + '-cd-aqua'
+            config.credentialsId = context.credentialsId
         }
         // BuildOpenShiftImageStage puts the imageRef into a map with the
         // resourceName as key, to get the imageRef we need this key
