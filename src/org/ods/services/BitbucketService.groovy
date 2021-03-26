@@ -309,6 +309,50 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
+    /**
+     * Creates a code insight report in bitbucket via API.
+     * For further information visit https://developer.atlassian.com/server/bitbucket/how-tos/code-insights/
+     *
+     * @param result One of: PASS, FAIL
+     */
+    @SuppressWarnings('ParameterCount')
+    void createCodeInsightReport(String link, String repo, String gitCommit, String title, String details,
+                                 String result) {
+        withTokenCredentials { username, token ->
+            def payload = "{" +
+                "\"title\":\"${title}\"," +
+                "\"reporter\":\"OpenDevStack\"," +
+                "\"createdDate\":${System.currentTimeMillis()}," +
+                "\"details\":\"${details}\"," +
+                "\"result\":\"${result}\"," +
+                "\"data\": [" +
+                "{" +
+                "\"title\":\"Link\"," +
+                "\"value\":{\"linktext\":\"${link}\",\"href\":\"${link}\"}," +
+                "\"type\":\"LINK\"" +
+                "}" +
+                "]" +
+                "}"
+            try {
+                script.sh(
+                    label: 'Create Bitbucket Code Insight report via API',
+                    script: """curl \\
+                        --fail \\
+                        -sS \\
+                        --request PUT \\
+                        --header \"Authorization: Bearer ${token}\" \\
+                        --header \"Content-Type: application/json\" \\
+                        --data '${payload}' \\
+                        ${bitbucketUrl}/rest/insights/latest/projects/${project}/\
+repos/${repo}/commits/${gitCommit}/reports/${gitCommit}"""
+                )
+                return
+            } catch (err) {
+                logger.warn("Could not create Bitbucket Code Insight report due to: ${err}")
+            }
+        }
+    }
+
     def withTokenCredentials(Closure block) {
         if (!tokenCredentialsId) {
             createUserTokenIfMissing()
