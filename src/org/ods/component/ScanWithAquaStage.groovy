@@ -31,7 +31,7 @@ class ScanWithAquaStage extends Stage {
     }
 
     protected run() {
-        Map connectionData = openShift.getConfigMapData(context.projectId, "aqua")
+        Map connectionData = openShift.getConfigMapData(context.cdProject, "aqua")
         // base URL of Aqua server.
         String aquaUrl = connectionData['aqua.url']
         if (!aquaUrl) {
