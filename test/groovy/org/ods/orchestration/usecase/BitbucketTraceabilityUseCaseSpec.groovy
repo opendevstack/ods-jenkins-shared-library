@@ -1,8 +1,11 @@
 package org.ods.orchestration.usecase
 
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor
 import groovy.util.logging.Slf4j
 import net.sf.json.groovy.JsonSlurper
+import net.sf.json.test.JSONAssert
 import org.apache.commons.io.FileUtils
+import org.json.JSONArray
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.orchestration.util.Project
@@ -93,16 +96,17 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         given: "There are two Bitbucket repositories"
         def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
 
-        when: "the source code review file is generated"
+        when: "the source code review file is readed"
         def data = useCase.readSourceCodeReviewFile(
             new FixtureHelper().getResource(EXPECTED_BITBUCKET_CSV).getAbsolutePath())
+        JSONArray result = new JSONArray(data)
 
-        then: "the data contains the csv info"
+        then: "the data contains the same csv info"
         def expectedFile = new FixtureHelper().getResource(EXPECTED_BITBUCKET_JSON)
         def jsonSlurper = new JsonSlurper()
         def expected = jsonSlurper.parse(expectedFile)
 
-        //TODO Pending assert
+        JSONAssert.assertJsonEquals(expected.toString(), result.toString())
 
     }
 

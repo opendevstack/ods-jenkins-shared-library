@@ -45,11 +45,19 @@ class BitbucketTraceabilityUseCase {
         return file.absolutePath
     }
 
+
+    /**
+     * Read an existing csv file and parse the info to obtaing an structured List of data.
+     *
+     * @param filePath The csv
+     * @return List of commits
+     */
+    @SuppressWarnings(['JavaIoPackageAccess'])
     List<Map> readSourceCodeReviewFile(String filePath) {
         def file = new File(filePath)
         def result = []
         def data = processCsv(file.text, Record.CSV,
-            ['commitDate','author','reviewers', 'pullRequestUrl', 'commitSHA', 'component'])
+            ['commitDate', 'author', 'reviewers', 'pullRequestUrl', 'commitSHA', 'component'])
 
         for (info in data) {
             def authorInfo = processCsvDeveloper(info.author)
@@ -66,7 +74,7 @@ class BitbucketTraceabilityUseCase {
                 reviewers: reviewers,
                 url: info.pullRequestUrl,
                 commit: info.commitSHA,
-                component: info.component
+                component: info.component,
             ]
             result << commitInfo
         }
@@ -90,7 +98,7 @@ class BitbucketTraceabilityUseCase {
 
     private List<Map> getRepositories() {
         List<Map> result = []
-        this.project.getRepositories().each {repository ->
+        this.project.getRepositories().each { repository ->
             result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}", branch: repository.branch]
         }
         return result
@@ -123,7 +131,7 @@ class BitbucketTraceabilityUseCase {
         file << record.author.FIELD_SEPARATOR
         file << record.author.mail
         file << record.CSV
-        record.reviewers.each {reviewer ->
+        record.reviewers.each { reviewer ->
             file << reviewer.name
             file << reviewer.FIELD_SEPARATOR
             file << reviewer.mail
@@ -164,11 +172,11 @@ class BitbucketTraceabilityUseCase {
         return new CsvParser().parse(data,
             separator: separator,
             readFirstLine: true,
-            columnNames: columnNames)
+            columnNames: columnNames, )
     }
 
     private Object processCsvDeveloper(String data) {
-        return processCsv(data, Developer.FIELD_SEPARATOR, ['name','email']).next()
+        return processCsv(data, Developer.FIELD_SEPARATOR, ['name', 'email']).next()
     }
 
     private class Record {
