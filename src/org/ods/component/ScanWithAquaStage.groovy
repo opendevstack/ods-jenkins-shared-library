@@ -20,7 +20,7 @@ class ScanWithAquaStage extends Stage {
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithAquaStage(def script, IContext context, Map config, AquaService aqua, BitbucketService bitbucket,
                       OpenShiftService openShift, ILogger logger) {
-        super(script, context, config, logger)
+        super(script, context, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
         }
