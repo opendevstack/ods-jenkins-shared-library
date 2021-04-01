@@ -44,7 +44,7 @@ dependencies:
   - A
 ```
 
-The library supports the following repository types: `ods`, `ods-infra`, `ods-service`, `ods-ext-service`, and `ods-test`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
+The library supports the following repository types: `ods`, `ods-infra`, `ods-service`, `ods-saas-service`, and `ods-test`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
 
 ```
 id: PHOENIX
