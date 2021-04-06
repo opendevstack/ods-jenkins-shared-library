@@ -64,8 +64,8 @@ class ScanWithAquaStage extends Stage {
         }
 
         String reportFile = "aqua-report.html"
-        scanViaCli(url, registry, imageRef, credentialsId, reportFile)
-        createBitbucketCodeInsightReport(url, registry, imageRef)
+        int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
+        createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
         archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
     }
 
@@ -80,11 +80,11 @@ class ScanWithAquaStage extends Stage {
         return null
     }
 
-    private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
+    private int scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
         logger.startClocked(options.resourceName)
-        int status = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
-        // see possible status codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
-        switch (status) {
+        int returnCode = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
+        // see possible return codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
+        switch (returnCode) {
             case 0:
                 logger.info "Finished scan via Aqua CLI successfully!"
                 break
@@ -93,20 +93,21 @@ class ScanWithAquaStage extends Stage {
                     "(e.g. invalid command line options, image not pulled, operational error)."
                 break
             case 4:
-                steps.error "The image scanned failed at least one of the Image Assurance Policies specified."
+                logger.info "The image scanned failed at least one of the Image Assurance Policies specified."
                 break
             default:
-                steps.error "An unknown status code was returned!"
+                steps.error "An unknown return code was returned: ${returnCode}"
         }
         logger.infoClocked(options.resourceName, "Aqua scan (via CLI)")
+        return returnCode
     }
 
-    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef) {
+    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef, int returnCode) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
         String details = "Please visit the following link to review the Aqua Security scan report:"
         // for now, we set the result always to successful in the aqua stage
-        String result = "PASS"
+        String result = returnCode == 0 ? "PASS" : "FAIL"
         bitbucket.createCodeInsightReport(aquaScanUrl, context.repoName, context.gitCommit, title, details, result)
     }
 

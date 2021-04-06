@@ -343,7 +343,7 @@ class BitbucketService {
                         --header \"Authorization: Bearer ${token}\" \\
                         --header \"Content-Type: application/json\" \\
                         --data '${payload}' \\
-                        ${bitbucketUrl}/rest/insights/latest/projects/${project}/\
+                        ${bitbucketUrl}/rest/insights/1.0/projects/${project}/\
 repos/${repo}/commits/${gitCommit}/reports/${gitCommit}"""
                 )
                 return
