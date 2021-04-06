@@ -33,22 +33,22 @@ class ScanWithAquaStage extends Stage {
     protected run() {
         Map connectionData = openShift.getConfigMapData(context.cdProject, "aqua")
         // base URL of Aqua server.
-        String aquaUrl = connectionData['aqua.url']
-        if (!aquaUrl) {
+        String url = connectionData['url']
+        if (!url) {
             steps.error "Please provide the URL of the Aqua platform!"
         }
         // name in Aqua of the registry that contains the image we want to scan
-        String registry = connectionData['aqua.registry']
+        String registry = connectionData['registry']
         if (!registry) {
             steps.error "Please provide the name of the registry that contains the image of interest!"
         }
         // name of the credentials that stores the username/password of a user with access
         // to the Aqua server identified by "aquaUrl", defaults to the cd-user
-        String secretName = connectionData['aqua.secretName']
+        String secretName = connectionData['secretName']
         String credentialsId = context.cdProject + "-"
         if (!secretName) {
             credentialsId = context.credentialsId
-            logger.info("No custom secretName was specified, continuing with default " +
+            logger.info("No custom secretName was specified in the aqua ConfigMap, continuing with default " +
                 "credentialsId '" + credentialsId + "'...")
         } else {
             credentialsId += secretName
@@ -64,8 +64,8 @@ class ScanWithAquaStage extends Stage {
         }
 
         String reportFile = "aqua-report.html"
-        scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
-        createBitbucketCodeInsightReport(aquaUrl, registry, imageRef)
+        scanViaCli(url, registry, imageRef, credentialsId, reportFile)
+        createBitbucketCodeInsightReport(url, registry, imageRef)
         archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
     }
 
@@ -82,7 +82,22 @@ class ScanWithAquaStage extends Stage {
 
     private scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
         logger.startClocked(options.resourceName)
-        aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
+        int status = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
+        // see possible status codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
+        switch (status) {
+            case 0:
+                logger.info "Finished scan via Aqua CLI successfully!"
+                break
+            case 1:
+                steps.error "An error occurred in processing the scan request " +
+                    "(e.g. invalid command line options, image not pulled, operational error)."
+                break
+            case 4:
+                steps.error "The image scanned failed at least one of the Image Assurance Policies specified."
+                break
+            default:
+                steps.error "An unknown status code was returned!"
+        }
         logger.infoClocked(options.resourceName, "Aqua scan (via CLI)")
     }
 

@@ -18,9 +18,15 @@ def call(IContext context, Map config = [:]) {
 
     ServiceRegistry registry = ServiceRegistry.instance
 
+    PipelineSteps steps = registry.get(PipelineSteps)
+    if (!steps) {
+        steps = new PipelineSteps(this)
+        registry.add(PipelineSteps, steps)
+    }
+
     AquaService aquaService = registry.get(AquaService)
     if (!aquaService) {
-        aquaService = new AquaService(this, logger)
+        aquaService = new AquaService(steps, logger)
         registry.add(AquaService, aquaService)
     }
 
@@ -38,11 +44,6 @@ def call(IContext context, Map config = [:]) {
 
     OpenShiftService openShiftService = registry.get(OpenShiftService)
     if (!openShiftService) {
-        PipelineSteps steps = registry.get(PipelineSteps)
-        if (!steps) {
-            steps = new PipelineSteps(this)
-            registry.add(PipelineSteps, steps)
-        }
         openShiftService = new OpenShiftService(steps, logger)
         registry.add(OpenShiftService, openShiftService)
     }
