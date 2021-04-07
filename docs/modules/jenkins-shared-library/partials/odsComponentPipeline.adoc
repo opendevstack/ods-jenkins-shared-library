@@ -127,7 +127,7 @@ The `context` object contains the following properties:
 | Nexus URL, including username and password as BasicAuth. `nexusHostWithBasicAuth` is an alias for `nexusUrlWithBasicAuth`.
 
 | sonarQubeEdition
-| Edition of SonarQube in use, determined by `SONARQUBE_EDITION` (defaults to `community`).
+| Edition of SonarQube in use, determined by `SONAR_EDITION` (defaults to `community`).
 
 | environment
 | The environment which was chosen as the deployment target, e.g. `dev`.

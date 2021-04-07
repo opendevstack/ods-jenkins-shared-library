@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-
+- Fixed environment value of SonarQube edition ([#618](https://github.com/opendevstack/ods-jenkins-shared-library/issues/618))
 
 ## [3.0] - 2020-08-11
 
