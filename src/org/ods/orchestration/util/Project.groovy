@@ -394,6 +394,10 @@ class Project {
             }
         }
 
+        if(!this.isWorkInProgress && this.hasWipJiraIssues()){
+            throw new Exception("Error: Build fail as it has open issues, please check previous comment.")
+        }
+
         this.data.documents = [:]
         this.data.openshift = [:]
 
