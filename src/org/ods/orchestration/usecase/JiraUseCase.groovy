@@ -225,7 +225,7 @@ class JiraUseCase {
                     number: number,
                     heading: issue.fields.summary,
                     documents: documentTypes,
-                    content: content?.replaceAll("\u00a0", " ") ?: "",
+                    content: content?.replaceAll("\u00a0", " ") ?: " ",
                     status: issue.fields.status.name,
                     key: issue.key as String,
                     predecessors: predecessorLinks.isEmpty()? [] : predecessorLinks,
