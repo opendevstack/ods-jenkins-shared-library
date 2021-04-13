@@ -241,11 +241,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def tests = testIssues.collect { testIssue ->
-            def description = testIssue.name ?: ""
-            if (description && testIssue.description) {
-                description += ": "
-            }
-            description += testIssue.description
+            def description = testIssue.description ?: "N/A"
 
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
