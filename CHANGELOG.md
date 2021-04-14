@@ -2,6 +2,7 @@
 
 ## Unreleased
 - Fixed environment value of SonarQube edition ([#618](https://github.com/opendevstack/ods-jenkins-shared-library/issues/618))
+- Fixed Test name/summary in DTP/DTR documents.
 
 ## [3.0] - 2020-08-11
 
