@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Fixed the Document History of the IVP & IVR is not being generated ([#627](https://github.com/opendevstack/ods-jenkins-shared-library/pull/627))
+
 ## [3.0] - 2020-08-11
 
 ### Added
