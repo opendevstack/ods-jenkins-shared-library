@@ -1,19 +1,19 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-
-import java.time.LocalDateTime
+import groovy.xml.XmlUtil
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.service.DocGenService
+import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.util.*
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.service.*
-import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
-import groovy.xml.XmlUtil
+import java.time.LocalDateTime
 
 @SuppressWarnings(['IfStatementBraces',
     'LineLength',
@@ -644,9 +644,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     ]
                 }),
                 testsOdsService: testsOfRepoTypeOdsService,
-                testsOdsCode   : testsOfRepoTypeOdsCode
-            ],
-            documentHistory: docHistory?.getDocGenFormat() ?: [],
+                testsOdsCode   : testsOfRepoTypeOdsCode,
+                documentHistory: docHistory?.getDocGenFormat() ?: []
+            ]
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
@@ -708,9 +708,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
-                testsOdsCode      : testsOfRepoTypeOdsCode
-            ],
-            documentHistory: docHistory?.getDocGenFormat() ?: [],
+                testsOdsCode      : testsOfRepoTypeOdsCode,
+                documentHistory   : docHistory?.getDocGenFormat() ?: []
+            ]
         ]
 
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
