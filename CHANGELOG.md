@@ -2,7 +2,8 @@
 
 ## Unreleased
 - Fixed environment value of SonarQube edition ([#618](https://github.com/opendevstack/ods-jenkins-shared-library/issues/618))
-- Fixed Test name/summary in DTP/DTR documents.
+- Fixed the Document History of the IVP & IVR is not being generated ([#627](https://github.com/opendevstack/ods-jenkins-shared-library/pull/627))
+- Fixed Test name/summary in DTP/DTR documents ([#625](https://github.com/opendevstack/ods-jenkins-shared-library/pull/625)).
 
 ## [3.0] - 2020-08-11
 
