@@ -977,8 +977,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         steps.env.WORKSPACE = tempFolder.getRoot().absolutePath
         FileUtils.copyDirectory(new FixtureHelper().getResource("Test-1.pdf").parentFile, tempFolder.getRoot());
         def pdfDoc = new FixtureHelper().getResource("Test-1.pdf").bytes
-        def sqReportFile = new FixtureHelper().getResource("Test-2.pdf")
-        sq.loadReportsFromPath(_) >> [sqReportFile]
 
         def documentType = LeVADocumentUseCase.DocumentType.SSDS as String
         def uri = new URI("http://nexus")
@@ -995,12 +993,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         answer == uri.toString()
 
-        1 * nexus.storeArtifact(
-            "leva-documentation",
-            "net-WIP",
-            "SCRR-MD-net-demo-app-catalogue-WIP-1.pdf",
-            !null,
-            'application/pdf')
         1 * docGen.createDocument(
             "SSDS-5",
             "1.0",
