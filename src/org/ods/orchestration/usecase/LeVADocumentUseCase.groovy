@@ -1,19 +1,19 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.xml.XmlUtil
-import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.service.DocGenService
-import org.ods.orchestration.service.LeVADocumentChaptersFileService
-import org.ods.orchestration.util.*
+
+import java.time.LocalDateTime
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.service.*
+import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
-import java.time.LocalDateTime
+import groovy.xml.XmlUtil
 
 @SuppressWarnings(['IfStatementBraces',
     'LineLength',
@@ -241,11 +241,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def tests = testIssues.collect { testIssue ->
-            def description = testIssue.name ?: ""
-            if (description && testIssue.description) {
-                description += ": "
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
             }
-            description += testIssue.description
 
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
@@ -644,9 +645,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     ]
                 }),
                 testsOdsService: testsOfRepoTypeOdsService,
-                testsOdsCode   : testsOfRepoTypeOdsCode,
-                documentHistory: docHistory?.getDocGenFormat() ?: []
-            ]
+                testsOdsCode   : testsOfRepoTypeOdsCode
+            ],
+            documentHistory: docHistory?.getDocGenFormat() ?: [],
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
@@ -708,9 +709,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
-                testsOdsCode      : testsOfRepoTypeOdsCode,
-                documentHistory   : docHistory?.getDocGenFormat() ?: []
-            ]
+                testsOdsCode      : testsOfRepoTypeOdsCode
+            ],
+            documentHistory: docHistory?.getDocGenFormat() ?: [],
         ]
 
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
@@ -1265,11 +1266,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
             }
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
+            }
 
             [
                 moduleName: testIssue.components.join(", "),
                 testKey: testIssue.key,
-                description: testIssue.description ?: "N/A",
+                description: description ?: "N/A",
                 systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                 softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
                 riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
