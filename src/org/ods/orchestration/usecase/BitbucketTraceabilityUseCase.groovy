@@ -47,7 +47,7 @@ class BitbucketTraceabilityUseCase {
 
 
     /**
-     * Read an existing csv file and parse the info to obtaing an structured List of data.
+     * Read an existing csv file and parse the info to obtaining an structured List of data.
      *
      * @param filePath The csv
      * @return List of commits
