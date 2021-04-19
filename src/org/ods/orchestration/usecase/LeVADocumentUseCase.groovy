@@ -241,11 +241,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def tests = testIssues.collect { testIssue ->
-            def description = testIssue.name ?: ""
-            if (description && testIssue.description) {
-                description += ": "
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
             }
-            description += testIssue.description
 
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
@@ -1265,11 +1266,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
             }
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
+            }
 
             [
                 moduleName: testIssue.components.join(", "),
                 testKey: testIssue.key,
-                description: testIssue.description ?: "N/A",
+                description: description ?: "N/A",
                 systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                 softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
                 riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
