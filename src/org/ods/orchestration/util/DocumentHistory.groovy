@@ -361,7 +361,7 @@ class DocumentHistory {
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentType) }
+            issues = issues.findAll { it.value.documents.contains(this.documentType.split('-').first()) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }
