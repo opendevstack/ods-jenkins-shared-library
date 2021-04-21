@@ -1538,7 +1538,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def environment = this.computeSavedDocumentEnvironment(documentType)
             def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
-            def docChapters = this.project.getDocumentChaptersForDocument(documentName)
+            def docChapters = this.project.getDocumentChaptersForDocument(documentType)
             def docChapterKeys = docChapters.collect { chapter ->
                 chapter.key
             }
