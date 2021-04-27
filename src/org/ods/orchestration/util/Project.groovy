@@ -1196,7 +1196,7 @@ class Project {
         loadVersionDataFromJira(this.buildParams.version)
     }
 
-    protected Map loadVersionDataFromJira(String versionName) {
+    Map loadVersionDataFromJira(String versionName) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 

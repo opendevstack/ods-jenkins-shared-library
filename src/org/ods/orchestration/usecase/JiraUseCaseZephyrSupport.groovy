@@ -26,17 +26,11 @@ class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
         if (!testIssues?.isEmpty()) {
             def buildParams = this.project.buildParams
 
-            def versionId = this.project.version?.id ?: '-1'
+            def versionId = this.project.version?.id ?: project.loadVersionDataFromJira(buildParams.changeId)?.id
             def testCycles = this.zephyr.getTestCycles(this.project.id, versionId)
 
             // Zephyr test cycle properties
-            def name
-            if (buildParams.version == 'WIP') {
-                name = "Preview ${buildParams.changeId}: Build "
-            } else {
-                buildParams.targetEnvironmentToken + ': Build '
-            }
-            name += this.steps.env.BUILD_ID
+            def name = (buildParams.version == 'WIP'? "Preview: Build ": "${buildParams.targetEnvironmentToken}: Build ") + this.steps.env.BUILD_ID
             def build = this.steps.env.BUILD_URL
             def environment = buildParams.targetEnvironment
 
