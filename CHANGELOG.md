@@ -5,6 +5,7 @@
 - Early stop on opened Jira issues before deploy to dev environment ([#626](https://github.com/opendevstack/ods-jenkins-shared-library/pull/626))
 - Fixed the Document History of the IVP & IVR is not being generated ([#627](https://github.com/opendevstack/ods-jenkins-shared-library/pull/627))
 - Fixed Test name/summary in DTP/DTR documents ([#625](https://github.com/opendevstack/ods-jenkins-shared-library/pull/625)).
+- Fix A "null" string is added in the Section 3.1 of the CFTR when the Description of the Zephyr Unit Test doesn't has a Description ([#634](https://github.com/opendevstack/ods-jenkins-shared-library/pull/634))
 
 ## [3.0] - 2020-08-11
 
