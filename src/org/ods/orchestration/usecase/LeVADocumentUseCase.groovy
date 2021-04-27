@@ -770,7 +770,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps,
+                        steps       : testIssue.steps?.sort { it.orderId },
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -783,7 +783,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps,
+                        steps       : testIssue.steps?.sort { it.orderId },
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -826,7 +826,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps
+                        steps       : testIssue.steps?.sort { it.orderId }
                     ]
                 }),
                 acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
@@ -835,7 +835,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps
+                        steps       : testIssue.steps?.sort { it.orderId }
                     ]
                 }),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
