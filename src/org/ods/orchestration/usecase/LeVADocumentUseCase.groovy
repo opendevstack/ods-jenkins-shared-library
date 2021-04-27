@@ -478,10 +478,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!acceptanceTestIssues.isEmpty()) {
             data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
                 def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
+                if (testIssue.description) {
+                    if (description) {
+                        description += ": "
+                    }
+                    description += testIssue.description
                 }
-                description += testIssue.description
 
                 [
                     key        : testIssue.key,
@@ -498,10 +500,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!integrationTestIssues.isEmpty()) {
             data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
                 def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
+                if (testIssue.description) {
+                    if (description) {
+                        description += ": "
+                    }
+                    description += testIssue.description
                 }
-                description += testIssue.description
 
                 [
                     key        : testIssue.key,
