@@ -477,16 +477,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!acceptanceTestIssues.isEmpty()) {
             data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
-                def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
-                }
-                description += testIssue.description
-
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: description ?: "N/A",
+                    description: getTestDescription(testIssue),
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
@@ -497,16 +491,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!integrationTestIssues.isEmpty()) {
             data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
-                def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
-                }
-                description += testIssue.description
-
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: description ?: "N/A",
+                    description: getTestDescription(testIssue),
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
@@ -522,6 +510,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    //TODO Use this method to generate the test description everywhere
+    def getTestDescription(testIssue) {
+        return testIssue.description ?: testIssue.name ?: 'N/A'
     }
 
     String createRA(Map repo = null, Map data = null) {
