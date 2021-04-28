@@ -109,7 +109,7 @@ class DocumentHistory {
     }
 
     List<Map> getDocGenFormat() {
-        def issueTypes = JiraDataItem.TYPES
+        def issueTypes = JiraDataItem.TYPES - JiraDataItem.TYPE_DOCS
         def transformEntry =  { DocumentHistoryEntry e ->
             if (e.getEntryId() == 1L) {
                 return [
@@ -125,7 +125,7 @@ class DocumentHistory {
                 def changed = issues.findAll { it.action == CHANGE }.clone()
                     .collect { [key: it.key, predecessors: it.predecessors.join(", ")] }
 
-                [ type: type=='docs'?'documentation chapters':type,
+                [ type: type,
                   (ADDED): SortUtil.sortIssuesByKey(issues.findAll { it.action == ADD }),
                   (CHANGED): SortUtil.sortIssuesByKey(changed),
                   (DELETED): SortUtil.sortIssuesByKey(issues.findAll { it.action == DELETE }),
@@ -134,7 +134,7 @@ class DocumentHistory {
 
             return [entryId: e.getEntryId(),
                     rational: e.getRational(),
-                    issueType: formatedIssues
+                    issueType: formatedIssues + computeDocChaptersOfDocument(e)
             ]
         }
         sortDocHistories(this.data).collect { transformEntry(it) }
@@ -155,8 +155,14 @@ class DocumentHistory {
 
     protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
         def docIssues = SortUtil.sortHeadingNumbers(entry[JiraDataItem.TYPE_DOCS] ?: [], 'number')
-            .collect { [action: it.action, key: "${it.number} ${it.summary}"] }
-        return [ type: 'document sections',
+            .collect {
+                def issue = [action: it.action, key: "${it.key}", details: "${it.number} ${it.heading}"]
+                if (it.action == CHANGE) {
+                    issue.predecessors = it.predecessors.join(", ")
+                }
+                return issue
+            }
+        return [ type: 'documentation chapters',
                  (ADDED): docIssues.findAll { it.action == ADD },
                  (CHANGED): docIssues.findAll { it.action == CHANGE },
                  (DELETED): docIssues.findAll { it.action == DELETE },
@@ -200,7 +206,7 @@ class DocumentHistory {
     private static Map computeIssueContent(String issueType, String action, Map issue) {
         def result = [key: issue.key, action: action]
         if (JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
-            result << issue.subMap(['documents', 'number', 'name'])
+            result << issue.subMap(['documents', 'number', 'heading'])
         }
         if (action.equalsIgnoreCase(CHANGE)) {
             result << [predecessors: issue.predecessors]
@@ -361,7 +367,7 @@ class DocumentHistory {
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentType) }
+            issues = issues.findAll { it.value.documents.contains(this.documentType.split('-').first()) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }
