@@ -848,7 +848,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     def sortTestSteps(steps) {
-        return ((List) steps)?.sort(false) { it.orderId }
+        return steps?.sort(false) { it.orderId }
     }
 
     String createSSDS(Map repo = null, Map data = null) {
