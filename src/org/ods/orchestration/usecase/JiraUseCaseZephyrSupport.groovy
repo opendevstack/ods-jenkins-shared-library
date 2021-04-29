@@ -5,7 +5,7 @@ import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 
-@SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof'])
+@SuppressWarnings(['IfStatementBraces', 'LineLength', 'AbcMetric', 'Instanceof', 'CyclomaticComplexity'])
 class JiraUseCaseZephyrSupport extends AbstractJiraUseCaseSupport {
 
     private JiraZephyrService zephyr
