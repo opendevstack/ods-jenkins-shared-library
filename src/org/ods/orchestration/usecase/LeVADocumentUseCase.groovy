@@ -241,11 +241,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def tests = testIssues.collect { testIssue ->
-            def description = testIssue.name ?: ""
-            if (description && testIssue.description) {
-                description += ": "
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
             }
-            description += testIssue.description
 
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
@@ -476,16 +477,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!acceptanceTestIssues.isEmpty()) {
             data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
-                def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
-                }
-                description += testIssue.description
-
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: description ?: "N/A",
+                    description: getTestDescription(testIssue),
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
@@ -496,16 +491,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!integrationTestIssues.isEmpty()) {
             data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
-                def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
-                }
-                description += testIssue.description
-
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: description ?: "N/A",
+                    description: getTestDescription(testIssue),
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
@@ -521,6 +510,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    //TODO Use this method to generate the test description everywhere
+    def getTestDescription(testIssue) {
+        return testIssue.description ?: testIssue.name ?: 'N/A'
     }
 
     String createRA(Map repo = null, Map data = null) {
@@ -776,7 +770,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps,
+                        steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -789,7 +783,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps,
+                        steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -832,7 +826,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps
+                        steps       : sortTestSteps(testIssue.steps)
                     ]
                 }),
                 acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
@@ -841,7 +835,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps
+                        steps       : sortTestSteps(testIssue.steps)
                     ]
                 }),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
@@ -851,6 +845,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    @NonCPS
+    def sortTestSteps(steps) {
+        return steps?.sort(false) { it.orderId }
     }
 
     String createSSDS(Map repo = null, Map data = null) {
@@ -1265,11 +1264,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
             }
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
+            }
 
             [
                 moduleName: testIssue.components.join(", "),
                 testKey: testIssue.key,
-                description: testIssue.description ?: "N/A",
+                description: description ?: "N/A",
                 systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                 softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
                 riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
@@ -1531,7 +1536,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def environment = this.computeSavedDocumentEnvironment(documentType)
             def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
-            def docChapters = this.project.getDocumentChaptersForDocument(documentName)
+            def docChapters = this.project.getDocumentChaptersForDocument(documentType)
             def docChapterKeys = docChapters.collect { chapter ->
                 chapter.key
             }

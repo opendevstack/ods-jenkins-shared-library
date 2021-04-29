@@ -840,6 +840,68 @@ class ProjectSpec extends SpecHelper {
         project.getWIPDocChaptersForDocument(document) == [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]
     }
 
+    def "fail build with open issues"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-1": [
+                    status: "TODO"
+                ],
+                "${type}-2": [
+                    status: "DOING"
+                ],
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        def expected = [:]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
+        }
+
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-1": [
+                        status: "TODO"
+                    ],
+                    "bugs-2": [
+                        status: "DOING"
+                    ],
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
+
+        and:
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            !expectedMessage.find("${type}-3")
+        }
+    }
+
     def "load initial version"() {
         given:
         def component1 = [key: "CMP-1", name: "Component 1"]
