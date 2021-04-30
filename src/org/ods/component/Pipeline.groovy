@@ -213,6 +213,7 @@ class Pipeline implements Serializable {
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
                                 context.gitCommit,
+                                [],
                                 [[credentialsId: context.credentialsId, url: context.gitUrl]]
                             )
                             if (this.displayNameUpdateEnabled) {
