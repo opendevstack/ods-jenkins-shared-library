@@ -1,5 +1,7 @@
 package org.ods.quickstarter
 
+import org.ods.orchestration.service.JiraService
+
 class CreateOpenShiftResourcesStage extends Stage {
 
     protected String STAGE_NAME = 'Create OpenShift resources'
@@ -18,6 +20,9 @@ class CreateOpenShiftResourcesStage extends Stage {
     }
 
     def run() {
+        def jiraService = new JiraService()
+        def project = jiraService.getProject(context.projectId, 'lead')
+        def leadUser = project.lead.name
         ['dev', 'test'].each { env ->
             def namespace = "${context.projectId}-${env}"
 
@@ -29,6 +34,9 @@ class CreateOpenShiftResourcesStage extends Stage {
                 "--param=COMPONENT=${context.componentId}",
                 "--param=ENV=${env}",
                 "--param=DOCKER_REGISTRY=${context.dockerRegistry}",
+                "--param=GIT_URL=${context.gitUrlHttp}",
+                "--param=ODS_GIT_REF=${context.odsGitRef}",
+                "--param=OWNER=${leadUser}",
             ]
 
             if (script.fileExists(config.envFile)) {

@@ -48,7 +48,7 @@ class DeployOdsComponent {
 
             def originalDeploymentVersions = gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
-            applyTemplates(openShiftDir, "app=${project.key}-${repo.id}")
+            updateOpenshiftResources(openShiftDir, "app=${project.key}-${repo.id}")
 
             deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
 
@@ -107,7 +107,7 @@ class DeployOdsComponent {
         }
     }
 
-    private void applyTemplates(String openShiftDir, String componentSelector) {
+    private void updateOpenshiftResources(String openShiftDir, String componentSelector) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(openShiftDir) {
             logger.info(
@@ -129,6 +129,9 @@ class DeployOdsComponent {
                 applyFunc(pkeyFile)
             }
         }
+        def labels =  "app.opendevstack.org/config-item=${project.buildParams.configItem}"
+                   + " app.opendevstack.org/change-id=${project.buildParams.changeId}"
+        os.labelResources(project.targetProject, 'all', labels, componentSelector)
     }
 
     private void importImages(Map deployment, String deploymentName, String sourceProject) {

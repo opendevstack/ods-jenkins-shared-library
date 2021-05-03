@@ -4,10 +4,10 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
+
 import java.security.SecureRandom
 
 @SuppressWarnings(['ClassSize', 'MethodCount'])
@@ -609,6 +609,42 @@ class OpenShiftService {
         if (!resourceExists(project, 'ImageStream', name)) {
             createImageStream(project, name, labels)
         }
+    }
+
+    /**
+     * Apply labels provided in <code>labels</code> to resources given in <code>resources</code> (format kind/name).
+     * The selection can be restricted to a project and also with a label selector given in <code>selector</code>.
+     * You can apply labels to all object kinds with <code>resources=all</code> and using a selector.
+     * If the label already exists, it will be overwritten.
+     *
+     * The selector can be:
+     * <code>label=value</code>
+     * <code>label!=value</code>
+     *
+     * @param project the project to apply the operation to. The current project, if null.
+     * @param resources the resources to apply the labels to, with format <code>kind[/name]</code>.
+     * @param labels the space-separated list of label definitions.
+     * @param selector an optional label selector.
+     * @return the output of the shell script running the OpenShift client command.
+     */
+    String labelResources(String project, String resources, String labels, String selector = null) {
+        def script = "oc label --overwrite ${resources} "
+        if (selector) {
+            script += "-l ${selector} "
+        }
+        if (project) {
+            script += "-n ${project} "
+        }
+        script += labels
+        def scriptLabel = "Set labels ${labels} to ${resources}"
+        if (selector) {
+            scriptLabel += " with labels ${selector}"
+        }
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
     }
 
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {
