@@ -20,7 +20,11 @@ class CreateOpenShiftResourcesStage extends Stage {
     }
 
     def run() {
-        def jiraService = new JiraService()
+        def jiraService = new JiraService(
+            script.env.JIRA_URL,
+            script.env.JIRA_USERNAME,
+            script.env.JIRA_PASSWORD
+        )
         def project = jiraService.getProject(context.projectId, 'lead')
         def leadUser = project.lead.name
         ['dev', 'test'].each { env ->
