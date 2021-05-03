@@ -38,5 +38,22 @@ class GitServiceSpec extends SpecHelper {
         'docs: update README'                        || false
         'docs: update README\n\n- typo\n- [ci skip]' || false
     }
+
+    def "merged branch"() {
+        given:
+        def script = new PipelineScript()
+        def service = new GitService(script, new Logger(script, false))
+
+        when:
+        def result = service.mergedBranch("odm", "odm-components", gitCommitMessage)
+
+        then:
+        result == mergedBranch
+
+        where:
+        gitCommitMessage                                                                 || mergedBranch
+        'Merge pull request #62 in ODM/odm-components from bugfix/ODM-509-foo to master' || 'bugfix/ODM-509-foo'
+        "Merge branch 'bugfix/ODM-509-foo' to master"                                    || 'bugfix/ODM-509-foo'
+    }
 }
 

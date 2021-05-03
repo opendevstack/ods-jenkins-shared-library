@@ -106,6 +106,9 @@ interface IContext {
     // Git commit message.
     String getGitCommitMessage()
 
+    // Git commit raw message.
+    String getGitCommitRawMessage()
+
     // Git commit time in RFC 3399.
     String getGitCommitTime()
 
