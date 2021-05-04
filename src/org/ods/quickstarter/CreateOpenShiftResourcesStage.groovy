@@ -23,6 +23,7 @@ class CreateOpenShiftResourcesStage extends Stage {
         def leadUser = 'project-admin'
         def quickStarterType = 'service'
         def quickStarter = context.sourceDir
+        logger.info("Quickstarter: ${quickStarter}, type: ${quickStarterType}")
         if (quickStarter.contains('mono-repo')) {
             quickStarterType = 'mono-repo'
         } else if (quickStarter.startsWith('fe-')) {
@@ -40,6 +41,7 @@ class CreateOpenShiftResourcesStage extends Stage {
         } else if (quickStarter == 'release-manager') {
             quickStarterType = 'opendevstack'
         }
+        logger.info("Quickstarter: ${quickStarter}, detected type: ${quickStarterType}")
         ['dev', 'test'].each { env ->
             def namespace = "${context.projectId}-${env}"
 
