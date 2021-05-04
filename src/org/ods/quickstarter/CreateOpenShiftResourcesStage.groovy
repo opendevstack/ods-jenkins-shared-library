@@ -54,7 +54,10 @@ class CreateOpenShiftResourcesStage extends Stage {
                 "--param=GIT_URL=${context.gitUrlHttp}",
                 "--param=ODS_GIT_REF=${context.odsGitRef}",
                 "--param=OWNER=${leadUser}",
-                "--param=QUICKSTARTER_TYPE=${quickStarterType}",
+                "--param=COMPONENT_TYPE=${quickStarterType}",
+                "--param=NAME=${context.componentId}",
+                "--param=INSTANCE=${context.componentId}",
+                "--param=PART_OF=${context.projectId}",
             ]
 
             if (script.fileExists(config.envFile)) {
