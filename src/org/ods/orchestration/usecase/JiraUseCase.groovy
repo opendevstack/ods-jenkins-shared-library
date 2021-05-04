@@ -20,6 +20,12 @@ class JiraUseCase {
     class CustomIssueFields {
         static final String CONTENT = 'EDP Content'
         static final String HEADING_NUMBER = 'EDP Heading Number'
+        static final String DOCUMENT_VERSION = 'Document Version'
+        static final String RELEASE_VERSION = 'ProductRelease Version'
+    }
+
+    class LabelPrefix {
+        static final String DOCUMENT = 'Doc:'
     }
 
     enum TestIssueLabels {
@@ -93,10 +99,10 @@ class JiraUseCase {
             testCase.name.startsWith("${issueKeyClean}_")
     }
 
-    private String convertHTMLImageSrcIntoBase64Data(String html) {
+    String convertHTMLImageSrcIntoBase64Data(String html) {
         def server = this.jira.baseURL
 
-        def pattern = ~/src="(${server}.*\.(?:gif|GIF|jpg|JPG|jpeg|JPEG|png|PNG))"/
+        def pattern = ~/src="(${server}.*?\.(?:gif|GIF|jpg|JPG|jpeg|JPEG|png|PNG))"/
         def result = html.replaceAll(pattern) { match ->
             def src = match[1]
             def img = this.jira.getFileFromJira(src)
@@ -110,7 +116,10 @@ class JiraUseCase {
         if (!this.jira) return
 
         testFailures.each { failure ->
-            def bug = this.jira.createIssueTypeBug(this.project.jiraProjectKey, failure.type, failure.text)
+            // FIXME: this.project.versionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
+            // than once. However, it's also called via this.getVersionFromReleaseStatusIssue in Project.groovy.
+            def bug = this.jira.createIssueTypeBug(
+                this.project.jiraProjectKey, failure.type, failure.text, this.project.versionFromReleaseStatusIssue)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -118,6 +127,9 @@ class JiraUseCase {
                 // Find the testcases within the current failure that corresponds to a Jira test issue
                 if (isMatch) {
                     // Add a reference to the current bug to the Jira test issue
+                    if (null == testIssue.bugs) {
+                        testIssue.bugs = []
+                    }
                     testIssue.bugs << bug.key
 
                     // Add a link to the current bug on the Jira test issue (within Jira)
@@ -148,58 +160,97 @@ class JiraUseCase {
         }
     }
 
-    Map getDocumentChapterData(String documentType) {
+    /**
+     * Obtains all document chapter data attached attached to a given version
+     * @param versionName the version name from jira
+     * @return Map (key: issue) with all the document chapter issues and its relevant content
+     */
+    @SuppressWarnings(['AbcMetric'])
+    Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
         if (!this.jira) return [:]
 
-        def jiraDocumentChapterLabel = this.getDocumentChapterIssueLabelForDocumentType(documentType)
+        def docChapterIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER)
+        def contentField = docChapterIssueFields[CustomIssueFields.CONTENT].id
+        def headingNumberField = docChapterIssueFields[CustomIssueFields.HEADING_NUMBER].id
+
+        def jql = "project = ${projectKey} " +
+            "AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}'"
+
+        if (versionName) {
+            jql = jql + " AND fixVersion = '${versionName}'"
+        }
 
         def jqlQuery = [
-            jql: "project = ${this.project.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' AND labels = ${jiraDocumentChapterLabel}",
-            expand: ['names', 'renderedFields']
+            fields: ['key', 'status', 'summary', 'labels', 'issuelinks', contentField, headingNumberField],
+            jql: jql,
+            expand: ['renderedFields'],
         ]
 
         def result = this.jira.searchByJQLQuery(jqlQuery)
         if (!result || result.total == 0) {
-            throw new IllegalStateException("Error: could not find document chapter data for document '${documentType}' using JQL query: '${jqlQuery}'.")
+            this.logger.warn("There are no document chapters assigned to this version. Using JQL query: '${jqlQuery}'.")
+            return [:]
         }
-
-        // TODO: rewrite using Project.getJiraFieldsForIssueType(issueTypeName)
-        def numberKeys = result.names.findAll { it.value == CustomIssueFields.HEADING_NUMBER }.collect { it.key }
-        def contentFieldKeys = result.names.findAll { it.value == CustomIssueFields.CONTENT }.collect { it.key }
 
         return result.issues.collectEntries { issue ->
             def number = issue.fields.find { field ->
-                numberKeys.contains(field.key) && field.value
+                headingNumberField == field.key && field.value
             }
             if (!number) {
-                throw new IllegalArgumentException("Error: could not find heading number for document '${documentType}' and issue '${issue.key}'.")
+                throw new IllegalArgumentException("Error: could not find heading number for issue '${issue.key}'.")
             }
             number = number.getValue().trim()
 
             def content = issue.renderedFields.find { field ->
-                contentFieldKeys.contains(field.key) && field.value
+                contentField == field.key && field.value
             }
             content = content ? content.getValue() : ""
 
-            if (content.contains("<img")) {
-                content = this.convertHTMLImageSrcIntoBase64Data(content)
+            def documentTypes = (issue.fields.labels ?: [])
+                .findAll{String l -> l.startsWith(LabelPrefix.DOCUMENT)}
+                .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}
+            if (documentTypes.size() == 0) {
+                throw new IllegalArgumentException("Error: issue '${issue.key}' of type " +
+                    "'${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' contains no " +
+                    "document labels. There should be at least one label starting with '${LabelPrefix.DOCUMENT}'")
             }
 
-            return [
-                "sec${number.replaceAll(/\./, "s")}".toString(),
-                [
+
+            def predecessorLinks = issue.fields.issuelinks
+                .findAll { it.type.name == "Succeeds" && it.outwardIssue?.key }
+                .collect{ it.outwardIssue.key }
+
+            return [(issue.key as String): [
+                    section: "sec${number.replaceAll(/\./, "s")}".toString(),
                     number: number,
                     heading: issue.fields.summary,
-                    content: content?.replaceAll("\u00a0", " ") ?: "",
+                    documents: documentTypes,
+                    content: content?.replaceAll("\u00a0", " ") ?: " ",
                     status: issue.fields.status.name,
-                    key: issue.key
+                    key: issue.key as String,
+                    predecessors: predecessorLinks.isEmpty()? [] : predecessorLinks,
+                    versions: versionName? [versionName] : [],
                 ]
             ]
         }
     }
 
-    private String getDocumentChapterIssueLabelForDocumentType(String documentType) {
-        return "Doc:${documentType}"
+    String getVersionFromReleaseStatusIssue() {
+        if (!this.jira) return ""
+
+        def releaseStatusIssueKey = this.project.buildParams.releaseStatusJiraIssueKey as String
+        def releaseStatusIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.RELEASE_STATUS)
+
+        def productReleaseVersionField = releaseStatusIssueFields[CustomIssueFields.RELEASE_VERSION]
+        def versionField = this.jira.getTextFieldsOfIssue(releaseStatusIssueKey, [productReleaseVersionField.id])
+        if (!versionField || !versionField[productReleaseVersionField.id]?.name) {
+            throw new IllegalArgumentException('Unable to obtain version name from release status issue' +
+                " ${releaseStatusIssueKey}. Please check that field with name" +
+                " '${productReleaseVersionField.name}' and id '${productReleaseVersionField.id}' " +
+                'has a correct version value.')
+        }
+
+        return versionField[productReleaseVersionField.id].name
     }
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
@@ -307,6 +358,34 @@ class JiraUseCase {
             this.jira.appendCommentToIssue(releaseStatusIssueKey, "${message}\n\nSee: ${this.steps.env.RUN_DISPLAY_URL}")
         }
 
+    }
+
+    Long getLatestDocVersionId(List<Map> trackingIssues) {
+        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
+        def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
+
+        // We will use the biggest ID available
+        def versionList = trackingIssues.collect { issue ->
+            def versionNumber = 0L
+
+            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
+            if (version) {
+                try {
+                    versionNumber = version.toLong()
+                } catch (NumberFormatException _) {
+                    this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
+                        "version. It contains value '${version}'.")
+                }
+            }
+
+            return versionNumber
+        }
+
+        def result = versionList.max()
+        logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
+            "${trackingIssues.collect { it.key } }")
+
+        return result
     }
 
     private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {

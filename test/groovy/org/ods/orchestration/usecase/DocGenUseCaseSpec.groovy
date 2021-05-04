@@ -29,12 +29,12 @@ class DocGenUseCaseSpec extends SpecHelper {
             return "0.1"
         }
 
-        boolean isArchivalRelevant (String documentType) {
-            return true
-        }
-        
         Map getFiletypeForDocumentType (String documentType) {
             return [storage: 'zip', content: 'pdf']
+        }
+
+        boolean shouldCreateArtifact (String documentType, Map repo) {
+            return true
         }
     }
 
@@ -157,7 +157,7 @@ class DocGenUseCaseSpec extends SpecHelper {
         1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID,repo)
 
         then:
-        1 * usecase.isArchivalRelevant(documentType) >> false
+        1 * usecase.shouldCreateArtifact(documentType, repo) >> false
 
         then:
         1 * util.createZipArtifact(
@@ -301,30 +301,30 @@ class DocGenUseCaseSpec extends SpecHelper {
         1 * nexus.storeArtifact(*_) >> nexusUri
     }
 
-    def "create document with documentTypeEmbedded"() {
+    def "create document with templateName"() {
         given:
         // Test Parameters
         def documentType = "myDocumentType"
         def version = project.buildParams.version
         def repo = project.repositories.first()
         def data = [ a: 1, b: 2, c: 3 ]
-        def documentTypeEmbedded = "myEmbeddedDocumentType"
+        def templateName = "myTemplateName"
 
         // Argument Constraints
-        def basename = "${documentTypeEmbedded}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
+        def basename = "${documentType}-${project.key}-${repo.id}-${version}-${steps.env.BUILD_ID}"
 
         // Stubbed Method Responses
         def document = "PDF".bytes
         def nexusUri = new URI("http://nexus")
 
         when:
-        def result = usecase.createDocument(documentType, repo, data, [:], null, documentTypeEmbedded)
+        def result = usecase.createDocument(documentType, repo, data, [:], null, templateName)
 
         then:
-        1 * docGen.createDocument(*_) >> document
+        1 * docGen.createDocument(templateName, _, _) >> document
 
         then:
-        1 * usecase.getDocumentBasename(documentTypeEmbedded, version, steps.env.BUILD_ID, repo)
+        1 * usecase.getDocumentBasename(documentType, version, steps.env.BUILD_ID, repo)
 
         then:
         1 * util.createZipArtifact(
@@ -342,36 +342,36 @@ class DocGenUseCaseSpec extends SpecHelper {
     def "create overall document"() {
         given:
         // Test Parameters
-        def coverType = "myCoverType"
+        def templateName = "myTemplateName"
         def documentType = "myDocumentType"
         def metadata = [:]
 
         when:
-        usecase.createOverallDocument(coverType, documentType, metadata)
+        usecase.createOverallDocument(templateName, documentType, metadata)
 
         then:
-        1 * usecase.createDocument(coverType, null, _, [:], _, documentType, null)
+        1 * usecase.createDocument(documentType, null, _, [:], _, templateName, null)
     }
 
     def "create overall document with watermark"() {
         given:
         // Test Parameters
-        def coverType = "myCoverType"
+        def templateName = "myTemplateName"
         def documentType = "myDocumentType"
         def metadata = [:]
         def watermarkText = "Watermark"
 
         when:
-        usecase.createOverallDocument(coverType, documentType, metadata, null, watermarkText)
+        usecase.createOverallDocument(templateName, documentType, metadata, null, watermarkText)
 
         then:
-        1 * usecase.createDocument(coverType, null, _, [:], _, documentType, watermarkText)
+        1 * usecase.createDocument(documentType, null, _, [:], _, templateName, watermarkText)
     }
 
     def "create overall document removes previously stored repository-level documents"() {
         given:
         // Test Parameters
-        def coverType = "myCoverType"
+        def templateName = "myTemplateName"
         def documentType = "myDocumentType"
         def docName = "myDocument.pdf"
         project.repositories.first().data.documents[documentType] = docName
@@ -383,10 +383,10 @@ class DocGenUseCaseSpec extends SpecHelper {
         def metadata = [:]
         
         when:
-        usecase.createOverallDocument(coverType, documentType, metadata)
+        usecase.createOverallDocument(templateName, documentType, metadata)
 
         then:
-        1 * usecase.createDocument(coverType, null, _, [:], _, documentType, null)
+        1 * usecase.createDocument(documentType, null, _, [:], _, templateName, null)
 
         then:
         0 * util.createAndStashArtifact(*_)

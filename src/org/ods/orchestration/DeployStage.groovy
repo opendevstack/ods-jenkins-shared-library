@@ -8,6 +8,7 @@ import org.ods.orchestration.util.Project
 import org.ods.util.PipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
+import groovy.json.JsonOutput
 
 class DeployStage extends Stage {
 
@@ -17,7 +18,7 @@ class DeployStage extends Stage {
         super(script, project, repos, startMROStageName)
     }
 
-    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize'])
+    @SuppressWarnings(['ParameterName', 'AbcMetric', 'MethodSize', 'LineLength'])
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
@@ -36,7 +37,8 @@ class DeployStage extends Stage {
             // not work on agent nodes yet.
             if (agentPodCondition) {
                 script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
+                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE} | true"
+                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE} | true"
                     levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
                 }
             } else {
@@ -50,7 +52,13 @@ class DeployStage extends Stage {
             // not work on agent nodes yet.
             if (agentPodCondition) {
                 script.node {
-                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE}/docs"
+                    script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE} | true"
+                    script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE} | true"
+                    if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                        logger.info("Loading ODS Infrastructure/Configuration Management component type data for '${repo.id}' - on agent")
+                        loadOdsInfraTypeData(repo)
+                    }
+
                     levaDocScheduler.run(
                         phase,
                         MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
@@ -59,6 +67,11 @@ class DeployStage extends Stage {
                     )
                 }
             } else {
+                if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA) {
+                    logger.info("Loading ODS Infrastructure/Configuration Management component type data for '${repo.id}' - on master")
+                    loadOdsInfraTypeData(repo)
+                }
+
                 levaDocScheduler.run(
                     phase,
                     MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
@@ -118,4 +131,24 @@ class DeployStage extends Stage {
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
     }
 
+    private void loadOdsInfraTypeData (Map repo) {
+        if (repo.data == null) { repo.data = [:] }
+        ILogger logger = ServiceRegistry.instance.get(Logger)
+        def steps = ServiceRegistry.instance.get(PipelineSteps)
+
+        // collect test results
+        if (repo.data.tests == null) { repo.data.tests = [:] }
+        repo.data.tests << [installation: getTestResults(steps, repo, Project.TestType.INSTALLATION)]
+
+        // collect log data
+        if (repo.data.logs == null) { repo.data.logs = [:] }
+        repo.data.logs << [created: getLogReports(steps, repo, Project.LogReportType.CHANGES)]
+        repo.data.logs << [target: getLogReports(steps, repo, Project.LogReportType.TARGET)]
+        repo.data.logs << [state: getLogReports(steps, repo, Project.LogReportType.STATE)]
+        if (repo.data.logs.state.content) {
+            repo.data.logs.state.content = JsonOutput.prettyPrint(repo.data.logs.state.content[0])
+        } else {
+            logger.warn("No log state for ${repo.data} found!")
+        }
+    }
 }

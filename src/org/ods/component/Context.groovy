@@ -57,7 +57,7 @@ class Context implements IContext {
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 
-        config.sonarQubeEdition = script.env.SONARQUBE_EDITION ?: 'community'
+        config.sonarQubeEdition = script.env.SONAR_EDITION ?: 'community'
 
         config.globalExtensionImageLabels = getExtensionBuildParams()
 

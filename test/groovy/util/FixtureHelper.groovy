@@ -7,7 +7,6 @@ import org.ods.services.GitService
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.ods.orchestration.parser.*
-import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
@@ -54,16 +53,17 @@ class FakeProject extends Project {
 
         this.data.git = [ commit: git.getCommitSha(), url: git.getOriginUrl() ]
         this.data.jira = this.loadJiraData(this.jiraProjectKey)
-        this.data.jira.project.version = this.loadJiraDataProjectVersion()
+        this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
         this.data.jira.bugs = this.loadJiraDataBugs(this.data.jira.tests)
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.docs = this.loadJiraDataDocs()
+        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs()
         this.data.jira.issueTypes = this.loadJiraDataIssueTypes()
 
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undone.docChapters = [:]
+        this.data.jira[Project.JiraDataItem.TYPE_DOCS] = this.loadDocs()
 
         this.data.documents = [:]
         this.data.openshift = [:]
@@ -89,7 +89,7 @@ class FakeProject extends Project {
         return FixtureHelper.createProjectJiraData()
     }
 
-    protected Map loadJiraDataProjectVersion() {
+    protected Map loadCurrentVersionDataFromJira() {
         return [
             "id"  : "11100",
             "name": "0.3"
@@ -113,7 +113,7 @@ class FakeProject extends Project {
         return bugs
     }
 
-    protected Map loadJiraDataDocs() {
+    protected Map loadJiraDataTrackingDocs() {
         return FixtureHelper.createProjectJiraDataDocs()
     }
 
@@ -124,6 +124,19 @@ class FakeProject extends Project {
     void setRepositories(List repos) {
         this.data.metadata.repositories = repos
     }
+
+    Map loadDocs(){
+        return ["doc1": [
+                    "key": "DOC-1",
+                    "version": "1.0",
+                    "name": "name",
+                    "number": "1",
+                    "documents":["SSDS"],
+                    "section": "sec1",
+                    "content": "myContent"
+                ]]
+    }
+
 }
 
 class FixtureHelper {

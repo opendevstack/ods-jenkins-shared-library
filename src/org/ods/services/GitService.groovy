@@ -152,12 +152,28 @@ class GitService {
                  || gitCommitSubject.contains('[skipci]')
                  || gitCommitSubject.contains('***noci***'))
     }
-
-    void checkout(String gitCommit, def userRemoteConfigs) {
+    void checkout(
+        String branch,
+        def extensions,
+        def userRemoteConfigs,
+        boolean doGenerateSubmoduleConfigurations = false) {
+        def branches = [[name: branch]]
+        this.checkout(
+            branches,
+            extensions,
+            userRemoteConfigs,
+            doGenerateSubmoduleConfigurations
+        )
+        }
+    void checkout(
+        def branches,
+        def extensions,
+        def userRemoteConfigs,
+        boolean doGenerateSubmoduleConfigurations = false) {
         def gitParams = [
             $class: 'GitSCM',
-            branches: [[name: gitCommit]],
-            doGenerateSubmoduleConfigurations: false,
+            branches: branches,
+            doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
             extensions: [[
                     $class: 'SubmoduleOption',
                     disableSubmodules: false,
@@ -165,11 +181,15 @@ class GitService {
                     recursiveSubmodules: true,
                     reference: '',
                     trackingSubmodules: false],
-                   [$class: 'CleanBeforeCheckout'],
-                   [$class: 'CleanCheckout']],
+                    [$class: 'CleanBeforeCheckout'],
+                    [$class: 'CleanCheckout']
+                    ],
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs,
         ]
+        if (!extensions.empty) {
+            gitParams.extensions += extensions
+        }
         if (isAgentNodeGitLfsEnabled()) {
             gitParams.extensions << [$class: 'GitLFSPull']
         }
@@ -216,20 +236,6 @@ class GitService {
             script: "git push --tags origin ${name}",
             label: "Push branch ${name} with tags"
         )
-    }
-
-    def checkout(
-        String gitRef,
-        def extensions,
-        def userRemoteConfigs,
-        boolean doGenerateSubmoduleConfigurations = false) {
-        script.checkout([
-            $class: 'GitSCM',
-            branches: [[name: gitRef]],
-            doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
-            extensions: extensions,
-            userRemoteConfigs: userRemoteConfigs,
-        ])
     }
 
     boolean remoteTagExists(String name) {
@@ -305,7 +311,7 @@ class GitService {
 
     void mergeIntoMainBranch(String branchToMerge, String mainBranch, List<String> filesToCheckout) {
         switchToOriginTrackingBranch(mainBranch)
-        checkoutAndCommitFiles(branchToMerge, filesToCheckout, "Checkout ${branchToMerge}")
+        checkoutAndCommitFiles(branchToMerge, filesToCheckout, "ODS RM merge from ${branchToMerge} [ci skip]")
         script.sh("git merge ${branchToMerge}")
         pushRef(mainBranch)
         script.sh("git checkout ${branchToMerge}")

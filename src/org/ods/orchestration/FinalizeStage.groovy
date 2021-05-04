@@ -64,14 +64,14 @@ class FinalizeStage extends Stage {
             script.parallel(repoFinalizeTasks)
 
             if (project.isAssembleMode && !project.isWorkInProgress) {
-                integrateIntoMainBranch(steps, git)
+                integrateIntoMainBranchRepos(steps, git)
             }
 
             gatherCreatedExecutionCommits(steps, git)
 
             if (!project.buildParams.rePromote) {
                 pushRepos(steps, git)
-                recordAndPushEnvState(steps, logger, git)
+                recordAndPushEnvStateForReleaseManager(steps, logger, git)
             }
 
             // add the tag commit that was created for traceability ..
@@ -86,7 +86,7 @@ class FinalizeStage extends Stage {
         }
 
         // Dump a representation of the project
-        logger.debug("---- ODS Project (${project.key}) data ----\r${project.toString()}\r -----")
+        logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
@@ -162,10 +162,11 @@ class FinalizeStage extends Stage {
         script.parallel(gatherCommitTasks)
     }
 
-    private void integrateIntoMainBranch(IPipelineSteps steps, GitService git) {
+    private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
         def repoIntegrateTasks = flattenedRepos
-            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST }
+            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
+               it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA }
             .collectEntries { repo ->
                 [
                     (repo.id): {
@@ -188,7 +189,7 @@ class FinalizeStage extends Stage {
         script.parallel(repoIntegrateTasks)
     }
 
-    private void recordAndPushEnvState(IPipelineSteps steps, ILogger logger, GitService git) {
+    private void recordAndPushEnvStateForReleaseManager(IPipelineSteps steps, ILogger logger, GitService git) {
         // record release manager repo state
         logger.debug "Finalize: Recording HEAD commits from repos ..."
         logger.debug "On release manager commit ${git.commitSha}"
@@ -205,9 +206,18 @@ class FinalizeStage extends Stage {
             file: project.envStateFileName,
             text: JsonOutput.prettyPrint(JsonOutput.toJson(envState))
         )
+
+        def filesToCommit = [project.envStateFileName]
+        def messageToCommit = "ODS: Record commits deployed into ${project.buildParams.targetEnvironmentToken}"
+        if (! project.isWorkInProgress) {
+            def projectDataFileNames =  project.saveProjectData()
+            filesToCommit.addAll(projectDataFileNames)
+            messageToCommit = messageToCommit + " and data of version ${project.getVersionName()}"
+        }
+
         git.commit(
-            [project.envStateFileName],
-            "ODS: Record commits deployed into ${project.buildParams.targetEnvironmentToken}"
+            filesToCommit,
+            messageToCommit
         )
 
         if (project.isWorkInProgress) {
@@ -218,7 +228,7 @@ class FinalizeStage extends Stage {
             git.switchToOriginTrackingBranch('master')
             git.checkoutAndCommitFiles(
                 project.gitReleaseBranch,
-                [project.envStateFileName],
+                filesToCommit,
                 "ODS: Update ${project.buildParams.targetEnvironmentToken} env state"
             )
             git.pushRef('master')
