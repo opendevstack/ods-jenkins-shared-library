@@ -21,6 +21,25 @@ class CreateOpenShiftResourcesStage extends Stage {
 
     def run() {
         def leadUser = 'project-admin'
+        def quickStarterType = 'service'
+        def quickStarter = context.sourceDir
+        if (quickStarter.contains('mono-repo')) {
+            quickStarterType = 'mono-repo'
+        } else if (quickStarter.startsWith('fe-')) {
+            quickStarterType = 'frontend'
+        } else if (quickStarter.startsWith('be-')) {
+            quickStarterType = 'backend'
+        } else if (quickStarter.startsWith('ds-')) {
+            quickStarterType = 'data-science'
+        } else if (quickStarter.startsWith('e2e-')) {
+            quickStarterType = 'test'
+        } else if (quickStarter.startsWith('inf-')) {
+            quickStarterType = 'infrastructure'
+        } else if (quickStarter.startsWith('ods-')) {
+            quickStarterType = 'opendevstack'
+        } else if (quickStarter == 'release-manager') {
+            quickStarterType = 'opendevstack'
+        }
         ['dev', 'test'].each { env ->
             def namespace = "${context.projectId}-${env}"
 
@@ -35,6 +54,7 @@ class CreateOpenShiftResourcesStage extends Stage {
                 "--param=GIT_URL=${context.gitUrlHttp}",
                 "--param=ODS_GIT_REF=${context.odsGitRef}",
                 "--param=OWNER=${leadUser}",
+                "--param=QUICKSTARTER_TYPE=${quickStarterType}",
             ]
 
             if (script.fileExists(config.envFile)) {
