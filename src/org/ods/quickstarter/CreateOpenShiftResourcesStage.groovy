@@ -47,6 +47,13 @@ class CreateOpenShiftResourcesStage extends Stage {
                 '--upsert-only',
                 '--ignore-unknown-parameters',
                 "--selector ${config.selector}",
+            ]
+
+            if (script.fileExists(config.envFile)) {
+                tailorParams << "--param-file ${script.env.WORKSPACE}/${config.envFile}"
+            }
+
+            tailorParams += [
                 "--param=PROJECT=${context.projectId}",
                 "--param=COMPONENT=${context.componentId}",
                 "--param=ENV=${env}",
@@ -59,10 +66,6 @@ class CreateOpenShiftResourcesStage extends Stage {
                 "--param=INSTANCE=${context.componentId}",
                 "--param=PART_OF=${context.projectId}",
             ]
-
-            if (script.fileExists(config.envFile)) {
-                tailorParams << "--param-file ${script.env.WORKSPACE}/${config.envFile}"
-            }
 
             script.dir(config.directory) {
                 script.sh(
