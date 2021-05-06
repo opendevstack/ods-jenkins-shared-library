@@ -63,6 +63,7 @@ class BuildOpenShiftImageStage extends Stage {
         this.logger = logger
     }
 
+    // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
         findOrCreateBuildConfig()
         findOrCreateImageStream()
