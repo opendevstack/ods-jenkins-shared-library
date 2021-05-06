@@ -35,6 +35,7 @@ class UploadToNexusStage extends Stage {
         this.nexus = nexus
     }
 
+    // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
         if (!steps.fileExists(options.distributionFile)) {
             steps.error("Could not upload file ${options.distributionFile} - it does NOT exist!")
