@@ -78,8 +78,7 @@ class OpenShiftResourceMetadata {
     def getComponentMetadata() {
         def metadata = [:]
         if (steps.fileExists('metadata.yml')) {
-            def yaml = steps.load('metadata.yml')
-            metadata = new Yaml().load(yaml)
+            metadata = steps.readYaml(file: 'metadata.yml')
         }
         return metadata
     }

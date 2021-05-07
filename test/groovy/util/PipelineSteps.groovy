@@ -3,6 +3,7 @@ package util
 import org.ods.util.IPipelineSteps
 
 import groovy.json.JsonSlurper
+import org.yaml.snakeyaml.Yaml
 
 class PipelineSteps implements IPipelineSteps {
 
@@ -99,6 +100,16 @@ class PipelineSteps implements IPipelineSteps {
     }
 
     @Override
+    def readYaml(Map args) {
+        new Yaml().load(args.text)
+    }
+
+    @Override
+    def writeYaml(Map args) {
+        return null
+    }
+
+    @Override
     def writeJSON(Map args) {
         return null
     }
@@ -121,7 +132,7 @@ class PipelineSteps implements IPipelineSteps {
     def withEnv(java.util.List env, groovy.lang.Closure block) {
       block()
     }
-    
+
     @Override
     def unstable(String message) {
     }
