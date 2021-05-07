@@ -5,6 +5,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.util.ILogger
+import org.ods.util.OpenShiftResourceMetadata
 import org.ods.util.PodData
 
 @SuppressWarnings('ParameterCount')
@@ -128,6 +129,9 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             tailorApply(context.targetProject)
             refreshResources = true
         }
+        
+        def metadata = new OpenShiftResourceMetadata(script, context, openShift)
+        metadata.setMetadata()
 
         if (refreshResources) {
             deploymentResources = openShift.getResourcesForComponent(
