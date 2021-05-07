@@ -79,7 +79,7 @@ class OpenShiftResourceMetadata {
     }
 
     def setMetadata(metadata) {
-        def labels = metadata.collectEntries { key, value -> [labelMapping[key]: value] }
+        def labels = metadata.collectEntries { key, value -> [(labelMapping[key]): value] }
         openShift.labelResources(context.targetProject, 'all', labels, context.selector)
     }
 
