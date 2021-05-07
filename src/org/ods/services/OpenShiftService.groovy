@@ -623,11 +623,12 @@ class OpenShiftService {
      *
      * @param project the project to apply the operation to. The current project, if null.
      * @param resources the resources to apply the labels to, with format <code>kind[/name]</code>.
-     * @param labels the space-separated list of label definitions.
+     * @param labels a <code>Map</code> containing label keys and values.
      * @param selector an optional label selector.
      * @return the output of the shell script running the OpenShift client command.
      */
-    String labelResources(String project, String resources, String labels, String selector = null) {
+    String labelResources(String project, String resources, Map<String,String> labels, String selector = null) {
+        def labelStr = labels.collect { it }.join(' ')
         def script = "oc label --overwrite ${resources} "
         if (selector) {
             script += "-l ${selector} "
@@ -635,10 +636,10 @@ class OpenShiftService {
         if (project) {
             script += "-n ${project} "
         }
-        script += labels
-        def scriptLabel = "Set labels ${labels} to ${resources}"
+        script += labelStr
+        def scriptLabel = "Set labels to ${resources}"
         if (selector) {
-            scriptLabel += " with labels ${selector}"
+            scriptLabel += " selected by the following labels: ${selector}"
         }
         steps.sh(
             script: script,
