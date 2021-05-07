@@ -628,7 +628,15 @@ class OpenShiftService {
      * @return the output of the shell script running the OpenShift client command.
      */
     String labelResources(String project, String resources, Map<String,String> labels, String selector = null) {
-        def labelStr = labels.collect { it }.join(' ')
+        def labelStr = labels.collect { key, value ->
+            def label = key
+            if (value == null) {
+                label += '-'
+            } else {
+                label += "=${value}"
+            }
+            return label
+        }.join(' ')
         def script = "oc label --overwrite ${resources} "
         if (selector) {
             script += "-l ${selector} "

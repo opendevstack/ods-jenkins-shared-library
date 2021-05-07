@@ -2,10 +2,10 @@ package org.ods.util
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"   >   Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"   >   Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"   >   Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"   >   Helm: Labels and Annotations</a>
+ * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"    >    Kubernetes: Recommended Labels</a>
+ * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"    >    Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"    >    Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"    >    Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
@@ -15,9 +15,9 @@ class OpenShiftResourceMetadata {
     private final steps
     private static final labelMapping = [
         name          : 'app.kubernetes.io/name',
-        componentId   : 'app.kubernetes.io/instance',
+        instance      : 'app.kubernetes.io/instance',
         version       : 'app.kubernetes.io/version',
-        componentRole : 'app.kubernetes.io/component',
+        component     : 'app.kubernetes.io/component',
         partOf        : 'app.kubernetes.io/part-of',
         managedBy     : 'app.kubernetes.io/managed-by',
         runtime       : 'app.openshift.io/runtime',
@@ -26,10 +26,12 @@ class OpenShiftResourceMetadata {
         owner         : 'app.opendevstack.org/project-owner',
         configItem    : 'app.opendevstack.org/config-item',
         changeId      : 'app.opendevstack.org/change-id',
-        gitUri        : 'app.openshift.io/vcs-uri',
-        commitHash    : 'app.openshift.io/vcs-ref',
-        connectsTo    : 'app.openshift.io/connects-to',
-        primaryRoute  : 'console.alpha.openshift.io/overview-app-route',
+    ]
+    private static final annotationMapping = [
+        vcsUri          : 'app.openshift.io/vcs-uri',
+        vcsRef          : 'app.openshift.io/vcs-ref',
+        connectsTo      : 'app.openshift.io/connects-to',
+        overviewAppRoute: 'console.alpha.openshift.io/overview-app-route',
     ]
 
     OpenShiftResourceMetadata(script, context, openShift) {
@@ -49,9 +51,9 @@ class OpenShiftResourceMetadata {
 
     def getForcedMetadata() {
         def metadata = [
-            componentId: context.componentId,
-            managedBy  : 'tailor',
-            owner      : 'project-admin',
+            instance : context.componentId,
+            managedBy: 'tailor',
+            owner    : 'project-admin',
         ]
         return metadata
     }
@@ -79,11 +81,11 @@ class OpenShiftResourceMetadata {
     }
 
     def setMetadata(metadata) {
-        def labels = metadata.collectEntries { key, value -> [(labelMapping[key]): value] }
+        def labels = labelMapping.collectEntries { key, value -> [(value): metadata[key]] }
         openShift.labelResources(context.targetProject, 'all', labels, context.selector)
     }
 
-    def setMetadata() {
+    def updateMetadata() {
         def metadata = getMetadata()
         setMetadata(metadata)
     }
