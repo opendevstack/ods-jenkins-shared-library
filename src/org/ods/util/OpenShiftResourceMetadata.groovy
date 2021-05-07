@@ -81,6 +81,9 @@ class OpenShiftResourceMetadata {
     }
 
     def setMetadata(metadata) {
+        if(metadata == null) {
+            throw new NullPointerException("Metadata cannot be null")
+        }
         def labels = labelMapping.collectEntries { key, value -> [(value): metadata[key]] }
         openShift.labelResources(context.targetProject, 'all', labels, context.selector)
     }
