@@ -74,7 +74,7 @@ class OpenShiftResourceMetadata {
         def metadata = getDefaultMetadata()
         metadata.putAll(getProjectMetadata())
         metadata.putAll(getForcedMetadata())
-        if (metadata.name == context.componentId) {
+        if (metadata.name == metadata.instance) {
             metadata.remove('instance')
         }
         return metadata
