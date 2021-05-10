@@ -2,10 +2,10 @@ package org.ods.util
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"       >       Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"       >       Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"       >       Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"       >       Helm: Labels and Annotations</a>
+ * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"         >         Kubernetes: Recommended Labels</a>
+ * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"         >         Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"         >         Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"         >         Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
@@ -24,6 +24,11 @@ class OpenShiftResourceMetadata {
         runtimeVersion: 'app.openshift.io/runtime-version',
         chart         : 'helm.sh/chart',
         owner         : 'app.opendevstack.org/project-owner',
+    ]
+    private static final releaseManagerLabelKeys = [
+        configItem: 'app.opendevstack.org/config-item',
+        changeId  : 'app.opendevstack.org/change-id',
+        release   : 'app.opendevstack.org/release',
     ]
     private static final annotationKeys = [
         vcsUri          : 'app.openshift.io/vcs-uri',
@@ -44,6 +49,7 @@ class OpenShiftResourceMetadata {
         owner           : 'projectAdmin',
         configItem      : 'configItem',
         changeId        : 'changeId',
+        release         : 'release',
         vcsUri          : 'bitbucketUri',
         vcsRef          : 'bitbucketRef',
         connectsTo      : 'connectsTo',
@@ -71,6 +77,13 @@ class OpenShiftResourceMetadata {
             managedBy   : 'tailor',
             projectAdmin: 'project-admin',
         ]
+        if (context.triggeredByOrchestrationPipeline) {
+            metadata += [
+                configItem: steps.env.BUILD_PARAM_CONFIGITEM,
+                changeId  : steps.env.BUILD_PARAM_CHANGEID,
+                release   : steps.env.BUILD_PARAM_RELEASE,
+            ]
+        }
         return metadata
     }
 
@@ -97,6 +110,11 @@ class OpenShiftResourceMetadata {
             throw new NullPointerException("Metadata cannot be null")
         }
         def labels = labelKeys.collectEntries { key, value -> [(value): metadata[mappings[key]]] }
+        if (context.triggeredByOrchestrationPipeline) {
+            labels += releaseManagerLabelKeys.collectEntries { key, value ->
+                [(value): metadata[mappings[key]]]
+            }
+        }
         openShift.labelResources(context.targetProject, 'all', labels, context.selector)
     }
 
