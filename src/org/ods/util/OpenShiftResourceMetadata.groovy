@@ -81,7 +81,7 @@ class OpenShiftResourceMetadata {
             metadata += [
                 configItem: steps.env.BUILD_PARAM_CONFIGITEM,
                 changeId  : steps.env.BUILD_PARAM_CHANGEID,
-                release   : steps.env.BUILD_PARAM_RELEASE,
+                release   : steps.env.BUILD_PARAM_VERSION,
             ]
         }
         return metadata
