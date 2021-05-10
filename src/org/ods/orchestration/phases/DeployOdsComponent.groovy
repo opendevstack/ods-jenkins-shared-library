@@ -127,12 +127,6 @@ class DeployOdsComponent {
                 applyFunc(pkeyFile)
             }
         }
-//        def labels = [
-//            'app.opendevstack.org/config-item': (String) project.buildParams.configItem,
-//            'app.opendevstack.org/change-id'  : (String) project.buildParams.changeId,
-//            'app.opendevstack.org/release'    : (String) project.buildParams.version,
-//        ]
-//        os.labelResources(project.targetProject, 'all', labels, componentSelector)
     }
 
     private void importImages(Map deployment, String deploymentName, String sourceProject) {

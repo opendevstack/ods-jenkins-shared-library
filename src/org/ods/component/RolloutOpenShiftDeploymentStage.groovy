@@ -118,6 +118,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         retagImages(context.targetProject, getBuiltImages())
 
         def refreshResources = false
+        def managedByHelm = false
         if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
             if (context.triggeredByOrchestrationPipeline) {
                 steps.error "Helm cannot be used in the orchestration pipeline yet."
@@ -125,13 +126,12 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             }
             helmUpgrade(context.targetProject)
             refreshResources = true
+            managedByHelm = true
         } else if (steps.fileExists(options.openshiftDir)) {
             tailorApply(context.targetProject)
             refreshResources = true
         }
-        config.each {key, value -> logger.info("${key}=${value}") }
-        context.properties.each {key, value -> logger.info("${key}=${value}") }
-        def metadata = new OpenShiftResourceMetadata(script, context, openShift)
+        def metadata = new OpenShiftResourceMetadata(script, context, openShift, managedByHelm)
         metadata.updateMetadata()
 
         if (refreshResources) {

@@ -2,10 +2,10 @@ package org.ods.util
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"         >         Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"         >         Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"         >         Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"         >         Helm: Labels and Annotations</a>
+ * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"          >          Kubernetes: Recommended Labels</a>
+ * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"          >          Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"          >          Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"          >          Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
@@ -13,6 +13,7 @@ class OpenShiftResourceMetadata {
     private final context
     private final openShift
     private final steps
+    private final managedByHelm
     private static final labelKeys = [
         name          : 'app.kubernetes.io/name',
         version       : 'app.kubernetes.io/version',
@@ -56,10 +57,11 @@ class OpenShiftResourceMetadata {
         overviewAppRoute: 'primaryRoute',
     ]
 
-    OpenShiftResourceMetadata(script, context, openShift) {
+    OpenShiftResourceMetadata(script, context, openShift, managedByHelm = false) {
         this.script = script
         this.context = context
         this.openShift = openShift
+        this.managedByHelm = managedByHelm
         steps = new PipelineSteps(script)
     }
 
@@ -74,7 +76,7 @@ class OpenShiftResourceMetadata {
     def getForcedMetadata() {
         def metadata = [
             componentId : context.componentId,
-            managedBy   : 'tailor',
+            managedBy   : managedByHelm ? 'helm' : 'tailor',
             projectAdmin: 'project-admin',
         ]
         if (context.triggeredByOrchestrationPipeline) {
