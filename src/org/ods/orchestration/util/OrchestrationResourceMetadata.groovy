@@ -4,18 +4,12 @@ import org.ods.util.OpenShiftResourceMetadata
 
 class OrchestrationResourceMetadata extends OpenShiftResourceMetadata {
     def project
-    OrchestrationResourceMetadata(
-        project,
-        script,
-        context,
-        config,
-        openShift,
-        jenkins,
-        logger) {
-        super(script, context, config, openShift, jenkins, logger)
+    OrchestrationResourceMetadata(script, context, openShift, project) {
+        super(script, context, openShift)
         this.project = project
     }
 
+    @Override
     def getForcedMetadata() {
         def metadata = super.getForcedMetadata()
         metadata.configItem = project.buildParams.configItem

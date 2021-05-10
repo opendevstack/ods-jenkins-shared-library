@@ -1,14 +1,11 @@
 package org.ods.util
-
-import org.yaml.snakeyaml.Yaml
-
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"     >     Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"     >     Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"     >     Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"     >     Helm: Labels and Annotations</a>
+ * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"       >       Kubernetes: Recommended Labels</a>
+ * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"       >       Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"       >       Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"       >       Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
@@ -18,8 +15,8 @@ class OpenShiftResourceMetadata {
     private final steps
     private static final labelKeys = [
         name          : 'app.kubernetes.io/name',
-        instance      : 'app.kubernetes.io/instance',
         version       : 'app.kubernetes.io/version',
+        instance      : 'app.kubernetes.io/instance',
         component     : 'app.kubernetes.io/component',
         partOf        : 'app.kubernetes.io/part-of',
         managedBy     : 'app.kubernetes.io/managed-by',
@@ -27,8 +24,6 @@ class OpenShiftResourceMetadata {
         runtimeVersion: 'app.openshift.io/runtime-version',
         chart         : 'helm.sh/chart',
         owner         : 'app.opendevstack.org/project-owner',
-        configItem    : 'app.opendevstack.org/config-item',
-        changeId      : 'app.opendevstack.org/change-id',
     ]
     private static final annotationKeys = [
         vcsUri          : 'app.openshift.io/vcs-uri',
@@ -36,19 +31,23 @@ class OpenShiftResourceMetadata {
         connectsTo      : 'app.openshift.io/connects-to',
         overviewAppRoute: 'console.alpha.openshift.io/overview-app-route',
     ]
-    private static final labelMappings = [
-        name          : 'name',
-        instance      : 'instance',
-        version       : 'version',
-        component     : 'role',
-        partOf        : 'partOf',
-        managedBy     : 'managedBy',
-        runtime       : 'runtime',
-        runtimeVersion: 'runtimeVersion',
-        chart         : 'chart',
-        owner         : 'owner',
-        configItem    : 'configItem',
-        changeId      : 'changeId',
+    private static final mappings = [
+        name            : 'name',
+        version         : 'version',
+        instance        : 'componentId',
+        component       : 'role',
+        partOf          : 'partOf',
+        managedBy       : 'managedBy',
+        runtime         : 'runtime',
+        runtimeVersion  : 'runtimeVersion',
+        chart           : 'chart',
+        owner           : 'projectAdmin',
+        configItem      : 'configItem',
+        changeId        : 'changeId',
+        vcsUri          : 'bitbucketUri',
+        vcsRef          : 'bitbucketRef',
+        connectsTo      : 'connectsTo',
+        overviewAppRoute: 'primaryRoute',
     ]
 
     OpenShiftResourceMetadata(script, context, openShift) {
@@ -68,9 +67,9 @@ class OpenShiftResourceMetadata {
 
     def getForcedMetadata() {
         def metadata = [
-            instance : context.componentId,
-            managedBy: 'tailor',
-            owner    : 'project-admin',
+            componentId : context.componentId,
+            managedBy   : 'tailor',
+            projectAdmin: 'project-admin',
         ]
         return metadata
     }
@@ -87,8 +86,8 @@ class OpenShiftResourceMetadata {
         def metadata = getDefaultMetadata()
         metadata.putAll(getComponentMetadata())
         metadata.putAll(getForcedMetadata())
-        if (metadata.name == metadata.instance) {
-            metadata.remove('instance')
+        if (metadata.name == metadata.componentId) {
+            metadata.remove('componentId')
         }
         return metadata
     }
@@ -97,7 +96,7 @@ class OpenShiftResourceMetadata {
         if (metadata == null) {
             throw new NullPointerException("Metadata cannot be null")
         }
-        def labels = labelKeys.collectEntries { key, value -> [(value): metadata[labelMappings[key]]] }
+        def labels = labelKeys.collectEntries { key, value -> [(value): metadata[mappings[key]]] }
         openShift.labelResources(context.targetProject, 'all', labels, context.selector)
     }
 
