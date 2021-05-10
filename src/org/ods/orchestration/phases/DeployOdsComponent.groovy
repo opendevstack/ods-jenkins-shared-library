@@ -2,17 +2,15 @@ package org.ods.orchestration.phases
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
-import org.ods.services.GitService
-import org.ods.services.OpenShiftService
-import org.ods.services.JenkinsService
-import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.services.GitService
+import org.ods.services.JenkinsService
+import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
 @TypeChecked
@@ -129,8 +127,8 @@ class DeployOdsComponent {
                 applyFunc(pkeyFile)
             }
         }
-        def labels =  "app.opendevstack.org/config-item=${project.buildParams.configItem}"
-                   + " app.opendevstack.org/change-id=${project.buildParams.changeId}"
+        def labels = ['app.opendevstack.org/config-item': project.buildParams.configItem,
+                      'app.opendevstack.org/change-id'  : project.buildParams.changeId]
         os.labelResources(project.targetProject, 'all', labels, componentSelector)
     }
 
