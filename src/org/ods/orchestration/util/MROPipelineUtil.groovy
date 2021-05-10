@@ -96,6 +96,9 @@ class MROPipelineUtil extends PipelineUtil {
             def job
             def env = []
             env.addAll(this.project.getMainReleaseManagerEnv())
+            env << "configItem=${this.project.buildParams.configItem}"
+            env << "changeId=${this.project.buildParams.changeId}"
+            env << "version=${this.project.buildParams.version}"
             env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
             this.steps.withEnv (env) {
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")

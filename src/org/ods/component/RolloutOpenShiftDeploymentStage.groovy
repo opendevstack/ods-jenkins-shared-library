@@ -133,6 +133,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         context.properties.each {key, value -> logger.info("${key}=${value}") }
         def metadata = new OpenShiftResourceMetadata(script, context, openShift)
         metadata.updateMetadata()
+        if(context.triggeredByOrchestrationPipeline) {
+            def labels = [
+                'app.opendevstack.org/config-item': (String) steps.env.configItem,
+                'app.opendevstack.org/change-id'  : (String) steps.env.changeId,
+                'app.opendevstack.org/release'    : (String) steps.env.version,
+            ]
+            openShift.labelResources(context.targetProject, 'all', labels, context.selector)
+        }
 
         if (refreshResources) {
             deploymentResources = openShift.getResourcesForComponent(
