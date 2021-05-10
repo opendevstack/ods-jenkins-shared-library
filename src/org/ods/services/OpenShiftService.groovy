@@ -616,6 +616,8 @@ class OpenShiftService {
      * The selection can be restricted to a project and also with a label selector given in <code>selector</code>.
      * You can apply labels to all object kinds with <code>resources=all</code> and using a selector.
      * If the label already exists, it will be overwritten.
+     * If the value for one label is the empty string, the label will be set with an empty string as value.
+     * If the value for one label is null, the label will be deleted from the selected resources.
      *
      * The selector can be:
      * <code>label=value</code>
@@ -627,16 +629,13 @@ class OpenShiftService {
      * @param selector an optional label selector.
      * @return the output of the shell script running the OpenShift client command.
      */
-    String labelResources(String project, String resources, Map<String,String> labels, String selector = null) {
+    String labelResources(String project, String resources, Map<String, String> labels, String selector = null) {
         def labelStr = labels.collect { key, value ->
             def label = key
-            if (value == null) {
-                label += '-'
-            } else {
-                label += "=${value}"
-            }
+            label += value == null ? '-' : "=${value}"
             return label
         }.join(' ')
+        logger.info("Setting labels ${labelStr} to resources ${resources} selected by ${selector}")
         def script = "oc label --overwrite ${resources} "
         if (selector) {
             script += "-l ${selector} "
