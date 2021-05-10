@@ -127,8 +127,11 @@ class DeployOdsComponent {
                 applyFunc(pkeyFile)
             }
         }
-        def labels = ['app.opendevstack.org/config-item': project.buildParams.configItem,
-                      'app.opendevstack.org/change-id'  : project.buildParams.changeId]
+        def labels = [
+            'app.opendevstack.org/config-item': (String) project.buildParams.configItem,
+            'app.opendevstack.org/change-id'  : (String) project.buildParams.changeId,
+            'app.opendevstack.org/release'    : (String) project.buildParams.version,
+        ]
         os.labelResources(project.targetProject, 'all', labels, componentSelector)
     }
 

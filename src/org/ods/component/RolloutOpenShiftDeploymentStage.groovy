@@ -129,7 +129,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             tailorApply(context.targetProject)
             refreshResources = true
         }
-
+        logger.info(config.toString())
         def metadata = new OpenShiftResourceMetadata(script, context, openShift)
         metadata.updateMetadata()
 
