@@ -5,10 +5,10 @@ import org.ods.services.OpenShiftService
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"                                >                                Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"                                >                                Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"                                >                                Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"                                >                                Helm: Labels and Annotations</a>
+ * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"                                 >                                 Kubernetes: Recommended Labels</a>
+ * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"                                 >                                 Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"                                 >                                 Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"                                 >                                 Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
@@ -145,8 +145,8 @@ class OpenShiftResourceMetadata {
         def metadata = [:]
         if (steps.fileExists('metadata.yml')) {
             metadata = steps.readYaml(file: 'metadata.yml')
-        } else if (steps.fileExists('files/metadata.yml')) {
-            metadata = steps.readYaml(file: 'files/metadata.yml')
+        } else if (steps.fileExists("${context.componentId}/metadata.yml")) {
+            metadata = steps.readYaml(file: "${context.componentId}/metadata.yml")
         }
         return metadata
     }
