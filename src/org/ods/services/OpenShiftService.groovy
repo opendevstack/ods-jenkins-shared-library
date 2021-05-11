@@ -635,7 +635,7 @@ class OpenShiftService {
             label += value == null ? '-' : "=${value}"
             return label
         }.join(' ')
-        logger.info("Setting labels ${labelStr} to resources ${resources} selected by ${selector}")
+        logger.debug("Setting labels ${labelStr} to resources ${resources} selected by ${selector}")
         def script = "oc label --overwrite ${resources} "
         if (selector) {
             script += "-l ${selector} "
