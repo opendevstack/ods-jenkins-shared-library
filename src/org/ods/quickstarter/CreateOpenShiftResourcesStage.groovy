@@ -22,6 +22,7 @@ class CreateOpenShiftResourcesStage extends Stage {
 
     def run() {
         def leadUser = 'project-admin'
+        def options = config.clone()
         ['dev', 'test'].each { env ->
             def namespace = "${context.projectId}-${env}"
 
@@ -46,7 +47,8 @@ class CreateOpenShiftResourcesStage extends Stage {
                 )
             }
 
-            def metadata = new OpenShiftResourceMetadata(script, context, config, logger)
+            options.environment = env
+            def metadata = new OpenShiftResourceMetadata(script, context, options, logger)
             metadata.updateMetadata()
         }
     }
