@@ -145,6 +145,8 @@ class OpenShiftResourceMetadata {
         def metadata = [:]
         if (steps.fileExists('metadata.yml')) {
             metadata = steps.readYaml(file: 'metadata.yml')
+        } else if (steps.fileExists('files/metadata.yml')) {
+            metadata = steps.readYaml(file: 'files/metadata.yml')
         }
         return metadata
     }
