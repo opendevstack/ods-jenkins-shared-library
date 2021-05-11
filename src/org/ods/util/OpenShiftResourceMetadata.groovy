@@ -35,13 +35,13 @@ class OpenShiftResourceMetadata {
         projectVersionStatus: 'app.opendevstack.org/project-version-status',
     ]
 
-    private static final annotationKeys = [
-        vcsUri          : 'app.openshift.io/vcs-uri',
-        vcsRef          : 'app.openshift.io/vcs-ref',
-        connectsTo      : 'app.openshift.io/connects-to',
-        overviewAppRoute: 'console.alpha.openshift.io/overview-app-route',
-        contactWith     : 'app.opendevstack.org/contact-with'
-    ]
+//    private static final annotationKeys = [
+//        vcsUri          : 'app.openshift.io/vcs-uri',
+//        vcsRef          : 'app.openshift.io/vcs-ref',
+//        connectsTo      : 'app.openshift.io/connects-to',
+//        overviewAppRoute: 'console.alpha.openshift.io/overview-app-route',
+//        contactWith     : 'app.opendevstack.org/contact-with'
+//    ]
 
     private static final mappings = [
         name                : 'appName',
@@ -64,11 +64,11 @@ class OpenShiftResourceMetadata {
         systemName          : 'systemName',
         projectVersion      : 'projectVersion',
         projectVersionStatus: 'projectVersionStatus',
-        vcsUri              : 'bitbucketUri',
-        vcsRef              : 'bitbucketRef',
-        connectsTo          : 'connectsTo',
-        overviewAppRoute    : 'primaryRoute',
-        contactWith         : 'contactWith',
+//        vcsUri              : 'bitbucketUri',
+//        vcsRef              : 'bitbucketRef',
+//        connectsTo          : 'connectsTo',
+//        overviewAppRoute    : 'primaryRoute',
+//        contactWith         : 'contactWith',
     ]
 
     // These are the only metadata entries that can be removed after being set.
@@ -134,7 +134,7 @@ class OpenShiftResourceMetadata {
                 projectVersionStatus: steps.env.BUILD_PARAM_VERSION == 'WIP' ? 'WIP' : 'RELEASE',
             ]
             if (steps.env.BUILD_PARAM_CONFIGITEM.startsWith('mailto:')) {
-                metadata.contactWith = steps.env.BUILD_PARAM_CONFIGITEM
+                //metadata.contactWith = steps.env.BUILD_PARAM_CONFIGITEM
                 metadata.systemName = ''
             }
         }
