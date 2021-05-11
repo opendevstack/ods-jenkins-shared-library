@@ -94,8 +94,8 @@ class OpenShiftResourceMetadata {
     private final openShift
 
     OpenShiftResourceMetadata(script, context, config, logger, openShift = null) {
-        this.context = context
-        this.config = config
+        this.context = context.properties
+        this.config = config.properties
         this.logger = logger
         steps = new PipelineSteps(script)
         this.openShift = openShift ?: new OpenShiftService(steps, logger)
