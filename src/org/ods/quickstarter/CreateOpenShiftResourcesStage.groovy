@@ -47,6 +47,7 @@ class CreateOpenShiftResourcesStage extends Stage {
             }
 
             def metadata = new OpenShiftResourceMetadata(script, context, config, logger)
+            metadata.updateMetadata()
         }
     }
 
