@@ -1,6 +1,7 @@
 package org.ods.quickstarter
 
 import org.ods.orchestration.service.JiraService
+import org.ods.util.OpenShiftResourceMetadata
 
 class CreateOpenShiftResourcesStage extends Stage {
 
@@ -44,6 +45,8 @@ class CreateOpenShiftResourcesStage extends Stage {
                     label: "Create component ${context.componentId} in namespace ${namespace}"
                 )
             }
+
+            def metadata = new OpenShiftResourceMetadata(script, context, config, logger)
         }
     }
 

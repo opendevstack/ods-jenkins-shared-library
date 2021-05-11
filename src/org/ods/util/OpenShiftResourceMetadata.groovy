@@ -1,43 +1,40 @@
 package org.ods.util
+
+import org.ods.services.OpenShiftService
+
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"                             >                             Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"                             >                             Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"                             >                             Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"                             >                             Helm: Labels and Annotations</a>
+ * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"                                >                                Kubernetes: Recommended Labels</a>
+ * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"                                >                                Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"                                >                                Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"                                >                                Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
-    private final script
-    private final context
-    private final options
-    private final openShift
-    private final steps
     private static final labelKeys = [
-        name              : 'app.kubernetes.io/name',
-        version           : 'app.kubernetes.io/version',
-        instance          : 'app.kubernetes.io/instance',
-        component         : 'app.kubernetes.io/component',
-        partOf            : 'app.kubernetes.io/part-of',
-        managedBy         : 'app.kubernetes.io/managed-by',
-        runtime           : 'app.openshift.io/runtime',
-        runtimeVersion    : 'app.openshift.io/runtime-version',
-        chart             : 'helm.sh/chart',
-        owner             : 'app.opendevstack.org/project-owner',
-        baseRuntime       : 'app.opendevstack.org/base-runtime',
-        baseRuntimeVersion: 'app.opendevstack.org/base-runtime-version',
-        odsVersion        : 'app.opendevstack.org/ods-version',
-        project           : 'app.opendevstack.org/project',
-        type              : 'app.opendevstack.org/type',
-        lang              : 'app.opendevstack.org/lang',
-        langVersion       : 'app.opendevstack.org/lang-version',
-    ]
-    private static final releaseManagerLabelKeys = [
+        name                : 'app.kubernetes.io/name',
+        version             : 'app.kubernetes.io/version',
+        instance            : 'app.kubernetes.io/instance',
+        component           : 'app.kubernetes.io/component',
+        partOf              : 'app.kubernetes.io/part-of',
+        managedBy           : 'app.kubernetes.io/managed-by',
+        runtime             : 'app.openshift.io/runtime',
+        runtimeVersion      : 'app.openshift.io/runtime-version',
+        chart               : 'helm.sh/chart',
+        owner               : 'app.opendevstack.org/project-owner',
+        baseRuntime         : 'app.opendevstack.org/base-runtime',
+        baseRuntimeVersion  : 'app.opendevstack.org/base-runtime-version',
+        odsVersion          : 'app.opendevstack.org/ods-version',
+        project             : 'app.opendevstack.org/project',
+        type                : 'app.opendevstack.org/type',
+        lang                : 'app.opendevstack.org/lang',
+        langVersion         : 'app.opendevstack.org/lang-version',
         systemName          : 'app.opendevstack.org/system-name',
         projectVersion      : 'app.opendevstack.org/project-version',
         projectVersionStatus: 'app.opendevstack.org/project-version-status',
     ]
+
     private static final annotationKeys = [
         vcsUri          : 'app.openshift.io/vcs-uri',
         vcsRef          : 'app.openshift.io/vcs-ref',
@@ -45,6 +42,7 @@ class OpenShiftResourceMetadata {
         overviewAppRoute: 'console.alpha.openshift.io/overview-app-route',
         contactWith     : 'app.opendevstack.org/contact-with'
     ]
+
     private static final mappings = [
         name                : 'appName',
         version             : 'appVersion',
@@ -73,12 +71,34 @@ class OpenShiftResourceMetadata {
         contactWith         : 'contactWith',
     ]
 
-    OpenShiftResourceMetadata(script, context, options, openShift) {
-        this.script = script
+    // These are the only metadata entries that can be removed after being set.
+    private static final removableKeys = [
+        'instance',
+        'partOf',
+        'runtime',
+        'runtimeVersion',
+        'chart',
+        'baseRuntime',
+        'baseRuntimeVersion',
+        'lang',
+        'langVersion',
+        'connectsTo',
+        'overviewAppRoute',
+        'contactWith',
+    ] as Set
+
+    private final context
+    private final config
+    private final logger
+    private final steps
+    private final openShift
+
+    OpenShiftResourceMetadata(script, context, config, logger, openShift = null) {
         this.context = context
-        this.options = options
-        this.openShift = openShift
+        this.config = config
+        this.logger = logger
         steps = new PipelineSteps(script)
+        this.openShift = openShift ?: new OpenShiftService(steps, logger)
     }
 
     def getDefaultMetadata() {
@@ -86,11 +106,11 @@ class OpenShiftResourceMetadata {
             appName: context.componentId,
             partOf : context.projectId,
         ]
-        if (context.componentId.startsWith('fe-')) {
+        if (context.sourceDir?.startsWith('fe-')) {
             metadata.role = 'frontend'
-        } else if (context.componentId.startsWith('ds-')) {
+        } else if (context.sourceDir?.startsWith('ds-')) {
             metadata.role = 'subsystem'
-        } else if (context.componentId.startsWith('be-') && !context.componentId.startsWith('be-fe-')) {
+        } else if (context.sourceDir?.startsWith('be-') && !context.sourceDir.startsWith('be-fe-')) {
             metadata.role = 'backend'
         }
         return metadata
@@ -98,14 +118,14 @@ class OpenShiftResourceMetadata {
 
     def getForcedMetadata() {
         def metadata = [
-            componentId : context.componentId,
-            managedBy   : 'tailor',
+            componentId: context.componentId,
+            managedBy  : 'tailor',
             //projectAdmin: 'project-admin',
-            project     : context.projectId,
+            project    : context.projectId,
         ]
-        if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
+        if (config.chartDir && steps.fileExists("${config.chartDir}/Chart.yaml")) {
             metadata.managedBy = 'helm'
-            def chart = steps.readYaml(file: "${options.chartDir}/Chart.yaml")
+            def chart = steps.readYaml(file: "${config.chartDir}/Chart.yaml")
             metadata.chart = "${chart.name}-${chart.version.replace('+' as char, '_' as char)}"
         }
         if (context.triggeredByOrchestrationPipeline) {
@@ -144,21 +164,27 @@ class OpenShiftResourceMetadata {
         if (metadata == null) {
             throw new NullPointerException('Metadata cannot be null')
         }
-        def labels = labelKeys.collectEntries { key, value -> [(value): metadata[mappings[key]]] }
-        if (context.triggeredByOrchestrationPipeline) {
-            // TODO The idea was to let the user specify these labels, while the release manager would override them.
-            // The problem is that we don't want a non-release-manager deployment to override the values previously
-            // set by the RM. This is tricky to solve, so for the moment only the RM sets these labels.
-            labels += releaseManagerLabelKeys
-            // .findAll { metadata[mappings[it.key]] != null }
-                .collectEntries { key, value -> [(value): metadata[mappings[key]]] }
-        }
-        openShift.labelResources(context.targetProject, 'all', labels, options.selector)
+        // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
+        def labels = labelKeys
+            .findAll { key, value -> removableKeys.contains(key) || metadata[mappings[key]] != null }
+            .collectEntries { key, value -> [(value): metadata[mappings[key]]] }
+        openShift.labelResources(getTargetProject(), 'all', labels, config.selector)
     }
 
     def updateMetadata() {
         def metadata = getMetadata()
         setMetadata(metadata)
+    }
+
+    private getTargetProject() {
+        def project = context.targetProject
+        if (!project) {
+            if (!config.environment) {
+                throw new IllegalArgumentException("Unable to guess the target project for project id ${context.projectId}. Environment unknown.")
+            }
+            project = "${context.projectId}-${config.environment}"
+        }
+        return project
     }
 
 }
