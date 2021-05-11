@@ -36,6 +36,7 @@ class BitbucketTraceabilityUseCase {
         if (file.exists()) {
             file.delete()
         }
+        file.getParentFile().mkdirs()
         file.createNewFile()
 
         def token = bitbucketService.getToken()
