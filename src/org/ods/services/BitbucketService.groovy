@@ -415,7 +415,7 @@ class BitbucketService {
     }
 
     @NonCPS
-    Map getCommitsForMainBranch(String token, String repo, int limit, int nextPageStart){
+    Map getCommitsForIntegrationBranch(String token, String repo, int limit, int nextPageStart){
         String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
         return queryRepo(token, request, limit, nextPageStart)
     }

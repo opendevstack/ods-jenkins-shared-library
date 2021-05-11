@@ -87,7 +87,7 @@ class BitbucketTraceabilityUseCase {
         def nextPage = true
         def nextPageStart = 0
         while (nextPage) {
-            def commits = bitbucketService.getCommitsForMainBranch(token, repo.repo, PAGE_LIMIT, nextPageStart)
+            def commits = bitbucketService.getCommitsForIntegrationBranch(token, repo.repo, PAGE_LIMIT, nextPageStart)
             if (commits.isLastPage) {
                 nextPage = false
             } else {
