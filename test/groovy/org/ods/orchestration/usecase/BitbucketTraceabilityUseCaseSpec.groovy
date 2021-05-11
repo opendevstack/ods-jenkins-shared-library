@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils
 import org.json.JSONArray
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.util.ILogger
@@ -45,6 +46,7 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
 
         steps = new PipelineSteps()
         steps.env.WORKSPACE = tempFolder.getRoot().absolutePath
+        new File(tempFolder.getRoot(), BitbucketTraceabilityUseCase.CSV_FOLDER).mkdir()
         logger = new LoggerStub(log)
         project = buildProject(logger)
         bitbucketServiceMock = new BitbucketServiceMock().setUp("csv").startServer(RECORD_WIREMOCK, BB_URL_TO_RECORD)

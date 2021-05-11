@@ -12,6 +12,7 @@ import com.xlson.groovycsv.CsvParser
 class BitbucketTraceabilityUseCase {
 
     private static final String CSV_FILE = "source-code-review.csv"
+    static final String CSV_FOLDER = "review"
     private static final int PAGE_LIMIT = 10
 
     private final BitbucketService bitbucketService
@@ -31,7 +32,7 @@ class BitbucketTraceabilityUseCase {
      */
     @SuppressWarnings(['JavaIoPackageAccess'])
     String generateSourceCodeReviewFile() {
-        def file = new File("${steps.env.WORKSPACE}/${CSV_FILE}")
+        def file = new File("${steps.env.WORKSPACE}/${CSV_FOLDER}/${CSV_FILE}")
         if (file.exists()) {
             file.delete()
         }
