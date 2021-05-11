@@ -104,7 +104,6 @@ class OpenShiftResourceMetadata {
     def getDefaultMetadata() {
         def metadata = [
             appName: context.componentId,
-            partOf : context.projectId,
         ]
         if (context.sourceDir?.startsWith('fe-')) {
             metadata.role = 'frontend'
@@ -154,7 +153,7 @@ class OpenShiftResourceMetadata {
         def metadata = getDefaultMetadata()
         metadata.putAll(getComponentMetadata())
         metadata.putAll(getForcedMetadata())
-        if (metadata.name == metadata.componentId) {
+        if (metadata.appName == metadata.componentId) {
             metadata.remove('componentId')
         }
         return metadata
