@@ -91,11 +91,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
 
-    private JiraUseCase jiraUseCase
-    private JUnitTestReportsUseCase junit
-    private LeVADocumentChaptersFileService levaFiles
-    private OpenShiftService os
-    private SonarQubeUseCase sq
+    private final JiraUseCase jiraUseCase
+    private final JUnitTestReportsUseCase junit
+    private final LeVADocumentChaptersFileService levaFiles
+    private final OpenShiftService os
+    private final SonarQubeUseCase sq
 
     LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
         super(project, steps, util, docGen, nexus, pdf, jenkins)
@@ -112,7 +112,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private def getReqsGroupedByGampTopic(def requirements){
+    private def getReqsGroupedByGampTopic(def requirements) {
         return requirements.findAll { it.gampTopic != null }
             .groupBy { it.gampTopic.toLowerCase() }
     }
@@ -150,8 +150,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ]
             }
 
-            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll{
-                it.epic != null}.groupBy{it.epic}
+            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll {
+                it.epic != null }.groupBy { it.epic }
 
             def index = 0
             def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
@@ -166,7 +166,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ]
             }
             def output = [
-                noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll{ it.epic == null },
+                noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll { it.epic == null },
                 epics  : SortUtil.sortIssuesByKey(reqsGroupByEpicUpdated)
             ]
 
@@ -205,7 +205,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private def computeKeysInDocForDTP(def data, def tests) {
         return data.collect { 'Technology-' + it.id } + tests
-            .collect {[it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }
+            .collect { [it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }
             .flatten()
     }
 
@@ -987,7 +987,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @NonCPS
     private def computeKeysInDocForTIP(def data) {
-        return data.collect {it.key }
+        return data.collect { it.key }
     }
 
     String createTIP(Map repo = null, Map data = null) {
