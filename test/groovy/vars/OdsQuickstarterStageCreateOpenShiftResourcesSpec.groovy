@@ -3,7 +3,6 @@ package vars
 import org.ods.quickstarter.Context
 import org.ods.quickstarter.IContext
 import vars.test_helper.PipelineSpockTestBase
-import spock.lang.*
 
 class OdsQuickstarterStageCreateOpenShiftResourcesSpec extends PipelineSpockTestBase {
 
@@ -19,7 +18,7 @@ class OdsQuickstarterStageCreateOpenShiftResourcesSpec extends PipelineSpockTest
 
     when:
     def script = loadScript('vars/odsQuickstarterStageCreateOpenShiftResources.groovy')
-    helper.registerAllowedMethod("fileExists", [ String ]) { true }
+    helper.registerAllowedMethod("fileExists", [ String ]) { false }
     script.call(context)
 
     then:

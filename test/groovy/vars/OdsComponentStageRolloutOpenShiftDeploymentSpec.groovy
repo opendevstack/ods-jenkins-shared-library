@@ -161,6 +161,8 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       args == 'chart/Chart.yaml'
     }
+    helper.registerAllowedMethod("readYaml", [ Map ]) { Map args -> [:]   }
+
     def deploymentInfo = script.call(context)
 
     then:

@@ -101,7 +101,43 @@ class OpenShiftResourceMetadata {
         this.openShift = openShift ?: new OpenShiftService(steps, logger)
     }
 
-    def getDefaultMetadata() {
+    def updateMetadata() {
+        def metadata = getMetadata()
+        setMetadata(metadata)
+    }
+
+    private def getMetadata() {
+        def metadata = getDefaultMetadata()
+        metadata.putAll(getComponentMetadata())
+        metadata.putAll(getForcedMetadata())
+        if (metadata.appName == metadata.componentId) {
+            metadata.remove('componentId')
+        }
+        if(metadata.runtime == null && metadata.name != null) {
+            metadata.runtime = metadata.name
+            if(metadata.baseRuntimeVersion != null) {
+                metadata.runtimeVersion = metadata.baseRuntimeVersion
+            } else {
+                metadata.remove('runtimeVersion')
+            }
+            metadata.remove('name')
+            metadata.remove('baseRuntimeVersion')
+        }
+        return metadata
+    }
+
+    private def setMetadata(metadata) {
+        if (metadata == null) {
+            throw new NullPointerException('Metadata cannot be null')
+        }
+        // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
+        def labels = labelKeys
+            .findAll { key, value -> removableKeys.contains(key) || metadata[mappings[key]] != null }
+            .collectEntries { key, value -> [(value): metadata[mappings[key]]] }
+        openShift.labelResources(getTargetProject(), 'all', labels, config.selector)
+    }
+
+    private def getDefaultMetadata() {
         def metadata = [
             appName: context.componentId,
         ]
@@ -149,42 +185,6 @@ class OpenShiftResourceMetadata {
             metadata = steps.readYaml(file: "${context.componentId}/metadata.yml")
         }
         return metadata
-    }
-
-    def getMetadata() {
-        def metadata = getDefaultMetadata()
-        metadata.putAll(getComponentMetadata())
-        metadata.putAll(getForcedMetadata())
-        if (metadata.appName == metadata.componentId) {
-            metadata.remove('componentId')
-        }
-        if(metadata.runtime == null && metadata.name != null) {
-            metadata.runtime = metadata.name
-            if(metadata.baseRuntimeVersion != null) {
-                metadata.runtimeVersion = metadata.baseRuntimeVersion
-            } else {
-                metadata.remove('runtimeVersion')
-            }
-            metadata.remove('name')
-            metadata.remove('baseRuntimeVersion')
-        }
-        return metadata
-    }
-
-    def setMetadata(metadata) {
-        if (metadata == null) {
-            throw new NullPointerException('Metadata cannot be null')
-        }
-        // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
-        def labels = labelKeys
-            .findAll { key, value -> removableKeys.contains(key) || metadata[mappings[key]] != null }
-            .collectEntries { key, value -> [(value): metadata[mappings[key]]] }
-        openShift.labelResources(getTargetProject(), 'all', labels, config.selector)
-    }
-
-    def updateMetadata() {
-        def metadata = getMetadata()
-        setMetadata(metadata)
     }
 
     private getTargetProject() {
