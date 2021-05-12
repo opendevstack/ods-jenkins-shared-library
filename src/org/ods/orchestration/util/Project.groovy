@@ -380,20 +380,20 @@ class Project {
             this.addCommentInReleaseStatus(message)
         }
 
-        if(this.jiraUseCase.jira){
+        if(this.jiraUseCase.jira) {
             logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
             def faultMap = [:]
             this.data.jira.tests
-                .findAll{it.value.get("testType") == "Unit"}
-                .each{entry ->
-                    if(entry.value.get("components").size() != 1){
+                .findAll { it.value.get("testType") == "Unit" }
+                .each { entry ->
+                    if(entry.value.get("components").size() != 1) {
                         faultMap.put(entry.key, entry.value.get("components").size())
                     }
                 }
-            if(faultMap.size() != 0){
+            if(faultMap.size() != 0) {
                 def faultyTestIssues = faultMap.keySet()
-                    .collect{key -> key + ": " + faultMap.get(key) + "; "}
-                    .inject(""){temp, val -> temp + val}
+                    .collect { key -> key + ": " + faultMap.get(key) + "; " }
+                    .inject("") { temp, val -> temp + val }
                 throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
             }
         }
@@ -1599,10 +1599,10 @@ class Project {
                 if (link.action == 'add') {
                     left[issueType][issueToUpdateKey][link.linkType] << link.origin
                 } else if (link.action == 'discontinue') {
-                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link.origin }
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll { it == link.origin }
                 } else if (link.action == 'change') {
                     left[issueType][issueToUpdateKey][link.linkType] << link.origin
-                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link."replaces" }
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll { it == link."replaces" }
                 }
                 // Remove potential duplicates in place
                 left[issueType][issueToUpdateKey][link.linkType].unique(true)
