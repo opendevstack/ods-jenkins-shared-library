@@ -1831,7 +1831,7 @@ class Project {
      * @param newData data for the current version
      * @return Map new data with the issue predecessors expanded
      */
-    @NonCPS     
+    @NonCPS
     private static Map expandPredecessorInformation(Map savedData, Map newData, List discontinuations) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
             def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]

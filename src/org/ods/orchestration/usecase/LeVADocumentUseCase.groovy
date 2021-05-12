@@ -190,7 +190,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistory: docHistory?.getDocGenFormat() ?: []
             ]
         ]
-        
+
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
@@ -637,7 +637,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return data
             .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
             .flatten()
-    }    
+    }
 
     String createIVP(Map repo = null, Map data = null) {
         def documentType = DocumentType.IVP as String
@@ -692,7 +692,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return data
             .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
             .flatten()
-    } 
+    }
 
     String createIVR(Map repo, Map data) {
         def documentType = DocumentType.IVR as String
@@ -763,7 +763,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     @NonCPS
     private def computeKeysInDocForTCR(def data) {
         return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
-    } 
+    }
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTCR(Map repo = null, Map data = null) {
@@ -901,10 +901,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @NonCPS
     private def computeKeysInDocForSSDS(def techSpecs, def componentsMetadata, def modules) {
-        return techSpecs.collect { it.subMap(['key', 'requirements']).values() }.flatten()
-            + componentsMetadata.collect { it.key }
-            + modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten()
-    } 
+        def specs = techSpecs.collect { it.subMap(['key', 'requirements']).values() }.flatten()
+        def components = componentsMetadata.collect { it.key }
+        def mods = modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten()
+        return specs + components + mods
+    }
 
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
