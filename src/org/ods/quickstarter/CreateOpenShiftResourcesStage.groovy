@@ -1,7 +1,8 @@
 package org.ods.quickstarter
 
-import org.ods.orchestration.service.JiraService
+
 import org.ods.util.OpenShiftResourceMetadata
+import org.ods.util.PipelineSteps
 
 class CreateOpenShiftResourcesStage extends Stage {
 
@@ -21,7 +22,6 @@ class CreateOpenShiftResourcesStage extends Stage {
     }
 
     def run() {
-        def leadUser = 'project-admin'
         def options = config.clone()
         ['dev', 'test'].each { env ->
             def namespace = "${context.projectId}-${env}"
@@ -48,7 +48,8 @@ class CreateOpenShiftResourcesStage extends Stage {
             }
 
             options.environment = env
-            def metadata = new OpenShiftResourceMetadata(script, context, options, logger)
+            def steps = new PipelineSteps(script)
+            def metadata = new OpenShiftResourceMetadata(steps, context, options, logger)
             metadata.updateMetadata()
         }
     }

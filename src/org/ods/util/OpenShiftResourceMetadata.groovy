@@ -5,70 +5,67 @@ import org.ods.services.OpenShiftService
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"                                 >                                 Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc"                                 >                                 Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://docs.openshift.com/container-platform/4.7/applications/application_life_cycle_management/odc-viewing-application-composition-using-topology-view.html#odc-labels-and-annotations-used-for-topology-view_viewing-application-composition-using-topology-view"                                 >                                 Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/"                                 >                                 Helm: Labels and Annotations</a>
+ * @See <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/">
+ *     Kubernetes: Recommended Labels</a>
+ * @See <a href="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc">
+ *     Guidelines for Labels and Annotations for OpenShift applications</a>
+ * @See <a href="https://helm.sh/docs/chart_best_practices/labels/">Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
     private static final labelKeys = [
-        name                : 'app.kubernetes.io/name',
-        version             : 'app.kubernetes.io/version',
-        instance            : 'app.kubernetes.io/instance',
-        component           : 'app.kubernetes.io/component',
-        partOf              : 'app.kubernetes.io/part-of',
-        managedBy           : 'app.kubernetes.io/managed-by',
-        runtime             : 'app.openshift.io/runtime',
-        runtimeVersion      : 'app.openshift.io/runtime-version',
-        chart               : 'helm.sh/chart',
-        owner               : 'app.opendevstack.org/project-owner',
-        baseRuntime         : 'app.opendevstack.org/base-runtime',
-        baseRuntimeVersion  : 'app.opendevstack.org/base-runtime-version',
-        odsVersion          : 'app.opendevstack.org/ods-version',
-        project             : 'app.opendevstack.org/project',
-        type                : 'app.opendevstack.org/type',
-        lang                : 'app.opendevstack.org/lang',
-        langVersion         : 'app.opendevstack.org/lang-version',
-        systemName          : 'app.opendevstack.org/system-name',
-        projectVersion      : 'app.opendevstack.org/project-version',
+        name:                 'app.kubernetes.io/name',
+        version:              'app.kubernetes.io/version',
+        instance:             'app.kubernetes.io/instance',
+        component:            'app.kubernetes.io/component',
+        partOf:               'app.kubernetes.io/part-of',
+        managedBy:            'app.kubernetes.io/managed-by',
+        runtime:              'app.openshift.io/runtime',
+        runtimeVersion:       'app.openshift.io/runtime-version',
+        chart:                'helm.sh/chart',
+        owner:                'app.opendevstack.org/project-owner',
+        odsVersion:           'app.opendevstack.org/ods-version',
+        project:              'app.opendevstack.org/project',
+        type:                 'app.opendevstack.org/type',
+        lang:                 'app.opendevstack.org/lang',
+        langVersion:          'app.opendevstack.org/lang-version',
+        systemName:           'app.opendevstack.org/system-name',
+        projectVersion:       'app.opendevstack.org/project-version',
         projectVersionStatus: 'app.opendevstack.org/project-version-status',
     ]
 
 //    private static final annotationKeys = [
-//        vcsUri          : 'app.openshift.io/vcs-uri',
-//        vcsRef          : 'app.openshift.io/vcs-ref',
-//        connectsTo      : 'app.openshift.io/connects-to',
+//        vcsUri:           'app.openshift.io/vcs-uri',
+//        vcsRef:           'app.openshift.io/vcs-ref',
+//        connectsTo:       'app.openshift.io/connects-to',
 //        overviewAppRoute: 'console.alpha.openshift.io/overview-app-route',
-//        contactWith     : 'app.opendevstack.org/contact-with'
+//        contactWith:      'app.opendevstack.org/contact-with'
 //    ]
 
     private static final mappings = [
-        name                : 'appName',
-        version             : 'appVersion',
-        instance            : 'componentId',
-        component           : 'role',
-        partOf              : 'partOf',
-        managedBy           : 'managedBy',
-        runtime             : 'runtime',
-        runtimeVersion      : 'runtimeVersion',
-        chart               : 'chart',
-        owner               : 'projectAdmin',
-        baseRuntime         : 'name',
-        baseRuntimeVersion  : 'baseRuntimeVersion',
-        odsVersion          : 'version',
-        project             : 'projectId',
-        type                : 'type',
-        lang                : 'lang',
-        langVersion         : 'langVersion',
-        systemName          : 'systemName',
-        projectVersion      : 'projectVersion',
+        name:                 'id',
+        version:              'version',
+        instance:             'componentId',
+        component:            'role',
+        partOf:               'partOf',
+        managedBy:            'managedBy',
+        runtime:              'runtime',
+        runtimeVersion:       'runtimeVersion',
+        chart:                'chart',
+        owner:                'projectAdmin',
+        odsVersion:           'odsVersion',
+        project:              'projectId',
+        type:                 'type',
+        lang:                 'lang',
+        langVersion:          'langVersion',
+        systemName:           'systemName',
+        projectVersion:       'projectVersion',
         projectVersionStatus: 'projectVersionStatus',
-//        vcsUri              : 'bitbucketUri',
-//        vcsRef              : 'bitbucketRef',
-//        connectsTo          : 'connectsTo',
-//        overviewAppRoute    : 'primaryRoute',
-//        contactWith         : 'contactWith',
+//        vcsUri:               'bitbucketUri',
+//        vcsRef:               'bitbucketRef',
+//        connectsTo:           'connectsTo',
+//        overviewAppRoute:     'primaryRoute',
+//        contactWith:          'contactWith',
     ]
 
     // These are the only metadata entries that can be removed after being set.
@@ -78,8 +75,6 @@ class OpenShiftResourceMetadata {
         'runtime',
         'runtimeVersion',
         'chart',
-        'baseRuntime',
-        'baseRuntimeVersion',
         'lang',
         'langVersion',
         'connectsTo',
@@ -93,17 +88,17 @@ class OpenShiftResourceMetadata {
     private final steps
     private final openShift
 
-    OpenShiftResourceMetadata(script, context, config, logger, openShift = null) {
+    OpenShiftResourceMetadata(steps, context, config, logger, openShift = null) {
+        this.steps = steps
         this.context = context.properties
         this.config = config
         this.logger = logger
-        steps = new PipelineSteps(script)
         this.openShift = openShift ?: new OpenShiftService(steps, logger)
     }
 
     def getDefaultMetadata() {
         def metadata = [
-            appName: context.componentId,
+            id: context.componentId,
         ]
         if (context.sourceDir?.startsWith('fe-')) {
             metadata.role = 'frontend'
@@ -118,9 +113,9 @@ class OpenShiftResourceMetadata {
     def getForcedMetadata() {
         def metadata = [
             componentId: context.componentId,
-            managedBy  : 'tailor',
+            managedBy:   'tailor',
             //projectAdmin: 'project-admin',
-            project    : context.projectId,
+            project:     context.projectId,
         ]
         if (config.chartDir && steps.fileExists("${config.chartDir}/Chart.yaml")) {
             metadata.managedBy = 'helm'
@@ -129,8 +124,8 @@ class OpenShiftResourceMetadata {
         }
         if (context.triggeredByOrchestrationPipeline) {
             metadata += [
-                systemName          : steps.env.BUILD_PARAM_CONFIGITEM,
-                projectVersion      : steps.env.BUILD_PARAM_CHANGEID,
+                systemName:           steps.env.BUILD_PARAM_CONFIGITEM,
+                projectVersion:       steps.env.BUILD_PARAM_CHANGEID,
                 projectVersionStatus: steps.env.BUILD_PARAM_VERSION == 'WIP' ? 'WIP' : 'RELEASE',
             ]
             if (steps.env.BUILD_PARAM_CONFIGITEM.startsWith('mailto:')) {
@@ -155,26 +150,13 @@ class OpenShiftResourceMetadata {
         def metadata = getDefaultMetadata()
         metadata.putAll(getComponentMetadata())
         metadata.putAll(getForcedMetadata())
-        if (metadata.appName == metadata.componentId) {
+        if (metadata.id == metadata.componentId) {
             metadata.remove('componentId')
-        }
-        if(metadata.runtime == null && metadata.name != null) {
-            metadata.runtime = metadata.name
-            if(metadata.baseRuntimeVersion != null) {
-                metadata.runtimeVersion = metadata.baseRuntimeVersion
-            } else {
-                metadata.remove('runtimeVersion')
-            }
-            metadata.remove('name')
-            metadata.remove('baseRuntimeVersion')
         }
         return metadata
     }
 
     def setMetadata(metadata) {
-        if (metadata == null) {
-            throw new NullPointerException('Metadata cannot be null')
-        }
         // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
         def labels = labelKeys
             .findAll { key, value -> removableKeys.contains(key) || metadata[mappings[key]] != null }
@@ -191,7 +173,9 @@ class OpenShiftResourceMetadata {
         def project = context.targetProject
         if (!project) {
             if (!config.environment) {
-                throw new IllegalArgumentException("Unable to guess the target project for project id ${context.projectId}. Environment unknown.")
+                throw new IllegalArgumentException(
+                    "Couldn't guess target project for ${context.projectId}. Unknown environment."
+                )
             }
             project = "${context.projectId}-${config.environment}"
         }
