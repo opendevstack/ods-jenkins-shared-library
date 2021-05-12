@@ -158,6 +158,16 @@ class OpenShiftResourceMetadata {
         if (metadata.appName == metadata.componentId) {
             metadata.remove('componentId')
         }
+        if(metadata.runtime == null && metadata.baseRuntime != null) {
+            metadata.runtime = metadata.baseRuntime
+            if(metadata.baseRuntimeVersion != null) {
+                metadata.runtimeVersion = metadata.baseRuntimeVersion
+            } else {
+                metadata.remove('runtimeVersion')
+            }
+            metadata.remove('baseRuntime')
+            metadata.remove('baseRuntimeVersion')
+        }
         return metadata
     }
 
