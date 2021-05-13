@@ -46,6 +46,10 @@ Example:
 odsComponentStageScanWithSonar(context, [branch: 'production'])
 ----
 
+=== odsComponentFindOpenShiftImageOrElse
+
+include::partial$odsComponentFindOpenShiftImageOrElse.adoc[leveloffset=+2]
+
 === odsComponentStageScanWithSonar
 
 include::partial$odsComponentStageScanWithSonar.adoc[leveloffset=+2]
@@ -61,10 +65,6 @@ include::partial$odsComponentStageBuildOpenShiftImage.adoc[leveloffset=+2]
 === odsComponentStageImportOpenShiftImage
 
 include::partial$odsComponentStageImportOpenShiftImage.adoc[leveloffset=+2]
-
-=== odsComponentStageImportOpenShiftImageOrElse
-
-include::partial$odsComponentStageImportOpenShiftImageOrElse.adoc[leveloffset=+2]
 
 === odsComponentStageRolloutOpenShiftDeployment
 

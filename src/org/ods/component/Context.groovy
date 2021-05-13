@@ -10,7 +10,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
 
-@SuppressWarnings('MethodCount')
+@SuppressWarnings(['MethodCount', 'UnnecessaryObjectReferences'])
 class Context implements IContext {
 
     final List excludeFromContextDebugConfig = ['nexusPassword', 'nexusUsername']
@@ -53,10 +53,11 @@ class Context implements IContext {
         config.openshiftHost = script.env.OPENSHIFT_API_URL
         config << BitbucketService.readConfigFromEnv(script.env)
         config << NexusService.readConfigFromEnv(script.env)
+        config.triggeredByOrchestrationPipeline = !!script.env.MULTI_REPO_BUILD
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 
-        config.sonarQubeEdition = script.env.SONARQUBE_EDITION ?: 'community'
+        config.sonarQubeEdition = script.env.SONAR_EDITION ?: 'community'
 
         config.globalExtensionImageLabels = getExtensionBuildParams()
 
@@ -88,16 +89,10 @@ class Context implements IContext {
         }
 
         logger.debug 'Deriving configuration from input ...'
-        config.openshiftProjectId = "${config.projectId}-cd"
-        config.credentialsId = config.openshiftProjectId + '-cd-user-with-password'
+        config.cdProject = "${config.projectId}-cd"
+        config.credentialsId = config.cdProject + '-cd-user-with-password'
 
         logger.debug 'Setting defaults ...'
-        if (!config.containsKey('autoCloneEnvironmentsFromSourceMapping')) {
-            config.autoCloneEnvironmentsFromSourceMapping = [:]
-        }
-        if (!config.containsKey('cloneProjectScriptBranch')) {
-            config.cloneProjectScriptBranch = 'master'
-        }
         if (!config.containsKey('failOnSnykScanVulnerabilities')) {
             config.failOnSnykScanVulnerabilities = true
         }
@@ -113,9 +108,6 @@ class Context implements IContext {
         if (!config.containsKey('openshiftRolloutTimeoutRetries')) {
             config.openshiftRolloutTimeoutRetries = 5 // retries
         }
-        if (!config.containsKey('imagePromotionSequences')) {
-            config.imagePromotionSequences = ['dev->test', 'test->prod']
-        }
         if (!config.containsKey('emailextRecipients')) {
             config.emailextRecipients = null
         }
@@ -129,6 +121,7 @@ class Context implements IContext {
         config.gitCommit = retrieveGitCommit()
         config.gitCommitAuthor = retrieveGitCommitAuthor()
         config.gitCommitMessage = retrieveGitCommitMessage()
+        config.gitCommitRawMessage = retrieveGitCommitRawMessage()
         config.gitCommitTime = retrieveGitCommitTime()
         config.tagversion = "${config.buildNumber}-${getShortGitCommit()}"
 
@@ -190,6 +183,7 @@ class Context implements IContext {
         config.buildTime
     }
 
+    @NonCPS
     String getGitBranch() {
         config.gitBranch
     }
@@ -259,27 +253,6 @@ class Context implements IContext {
         config.branchToEnvironmentMapping
     }
 
-    @NonCPS
-    List<String> getImagePromotionSequences() {
-        config.imagePromotionSequences
-    }
-
-    String getAutoCloneEnvironmentsFromSourceMapping() {
-        config.autoCloneEnvironmentsFromSourceMapping
-    }
-
-    String getCloneSourceEnv() {
-        config.cloneSourceEnv
-    }
-
-    void setCloneSourceEnv(String cloneSourceEnv) {
-        config.cloneSourceEnv = cloneSourceEnv
-    }
-
-    String getCloneProjectScriptBranch() {
-        config.cloneProjectScriptBranch
-    }
-
     String getEnvironment() {
         config.environment
     }
@@ -301,6 +274,11 @@ class Context implements IContext {
     @NonCPS
     String getComponentId() {
         config.componentId
+    }
+
+    @NonCPS
+    String getSelector() {
+        "app=${config.projectId}-${config.componentId}"
     }
 
     @NonCPS
@@ -326,12 +304,22 @@ class Context implements IContext {
         config.gitCommitMessage
     }
 
+    String getGitCommitRawMessage() {
+        config.gitCommitRawMessage
+    }
+
     String getGitCommitTime() {
         config.gitCommitTime
     }
 
+    @NonCPS
     String getTargetProject() {
         config.targetProject
+    }
+
+    @NonCPS
+    String getCdProject() {
+        config.cdProject
     }
 
     @NonCPS
@@ -351,6 +339,11 @@ class Context implements IContext {
     @NonCPS
     boolean getFailOnSnykScanVulnerabilities() {
         config.failOnSnykScanVulnerabilities
+    }
+
+    @NonCPS
+    boolean getTriggeredByOrchestrationPipeline() {
+        config.triggeredByOrchestrationPipeline
     }
 
     int getEnvironmentLimit() {
@@ -407,7 +400,14 @@ class Context implements IContext {
     }
 
     String getIssueId() {
-        GitService.issueIdFromBranch(config.gitBranch, config.projectId)
+        if (!config.containsKey("issueId")) {
+            config.issueId = GitService.issueIdFromBranch(
+                config.gitBranch, config.projectId
+            ) ?: GitService.issueIdFromCommit(
+                config.gitCommitMessage, config.projectId
+            )
+        }
+        config.issueId
     }
 
     // This logic must be consistent with what is described in README.md.
@@ -426,10 +426,7 @@ class Context implements IContext {
         }
         if (env) {
             config.environment = env
-            config.cloneSourceEnv = environmentExists(env)
-                ? false
-                : config.autoCloneEnvironmentsFromSourceMapping[env]
-            logger.debug("Target env: ${env}, clone src: ${cloneSourceEnv}")
+            logger.debug("Target env: ${env}")
             return
         }
 
@@ -457,22 +454,9 @@ class Context implements IContext {
             return
         }
 
-        logger.info 'No environment to deploy to was determined, returning..\r' +
+        logger.info 'No environment to deploy to was determined.\r' +
             "[gitBranch=${config.gitBranch}, projectId=${config.projectId}]"
         config.environment = ''
-        config.cloneSourceEnv = ''
-    }
-
-    Map<String, String> getCloneProjectScriptUrls() {
-        def scripts = ['clone-project.sh', 'import-project.sh', 'export-project.sh',]
-        def m = [:]
-        def branch = getCloneProjectScriptBranch().replace('/', '%2F')
-        def baseUrl = "${config.bitbucketUrl}/projects/${config.odsBitbucketProject}/repos/ods-core/raw/ocp-scripts"
-        for (script in scripts) {
-            def url = "${baseUrl}/${script}?at=refs%2Fheads%2F${branch}"
-            m.put(script, url)
-        }
-        return m
     }
 
     Map<String, Object> getBuildArtifactURIs() {
@@ -524,11 +508,13 @@ class Context implements IContext {
 
     String getOpenshiftApplicationDomain () {
         if (!config.environment) {
+            logger.debug('Could not get application domain, as no environment is available')
             return ''
         }
         if (!this.appDomain) {
             logger.startClocked("${config.componentId}-get-oc-app-domain")
-            this.appDomain = ServiceRegistry.instance.get(OpenShiftService).applicationDomain
+            this.appDomain = ServiceRegistry.instance.get(OpenShiftService).
+                getApplicationDomain(config.targetProject)
             logger.debugClocked("${config.componentId}-get-oc-app-domain")
         }
         this.appDomain
@@ -575,6 +561,13 @@ class Context implements IContext {
         ).trim()
     }
 
+    private String retrieveGitCommitRawMessage() {
+        script.sh(
+            returnStdout: true, script: "git log -1 --pretty=%B HEAD",
+            label: 'getting raw GIT commit message'
+        ).trim()
+    }
+
     private String retrieveLastSuccessfulCommit() {
         def lastSuccessfulBuild = script.currentBuild.rawBuild.getPreviousSuccessfulBuild()
         if (!lastSuccessfulBuild) {
@@ -614,10 +607,10 @@ class Context implements IContext {
     private String retrieveGitBranch() {
         def branch
         if (this.localCheckoutEnabled) {
-            def pipelinePrefix = "${config.openshiftProjectId}/${config.openshiftProjectId}-"
+            def pipelinePrefix = "${config.cdProject}/${config.cdProject}-"
             def buildConfigName = config.jobName.substring(pipelinePrefix.size())
 
-            def n = config.openshiftProjectId
+            def n = config.cdProject
             branch = script.sh(
                 returnStdout: true,
                 label: 'getting GIT branch to build',
@@ -645,15 +638,12 @@ class Context implements IContext {
     // - the +genericEnv+ without suffix
     private void setMostSpecificEnvironment(String genericEnv, String branchSuffix) {
         def specifcEnv = genericEnv + '-' + branchSuffix
-
         def ticketId = GitService.issueIdFromBranch(config.gitBranch, config.projectId)
         if (ticketId) {
             specifcEnv = genericEnv + '-' + ticketId
         }
 
-        config.cloneSourceEnv = config.autoCloneEnvironmentsFromSourceMapping[genericEnv]
-        def autoCloneEnabled = !!config.cloneSourceEnv
-        if (autoCloneEnabled || environmentExists(specifcEnv)) {
+        if (environmentExists(specifcEnv)) {
             config.environment = specifcEnv
         } else {
             config.environment = genericEnv

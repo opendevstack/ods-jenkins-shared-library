@@ -1,21 +1,24 @@
 package org.ods.services
 
+import org.ods.util.ILogger
+
 class SonarQubeService {
 
     private final def script
     private final String sonarQubeEnv
+    private final ILogger logger
 
-    SonarQubeService(def script, String sonarQubeEnv) {
+    SonarQubeService(def script, ILogger logger, String sonarQubeEnv) {
         this.script = script
+        this.logger = logger
         this.sonarQubeEnv = sonarQubeEnv
     }
 
-    def readProperties(String filename = 'sonar-project.properties') {
+    Map<String, Object> readProperties(String filename = 'sonar-project.properties') {
         script.readProperties(file: filename)
     }
 
-    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition,
-             boolean debug = false) {
+    def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
                 "-Dsonar.host.url=${hostUrl}",
@@ -27,7 +30,7 @@ class SonarQubeService {
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
             }
-            if (debug) {
+            if (logger.debugMode) {
                 scannerParams << '-X'
             }
             if (pullRequestInfo) {
@@ -57,6 +60,7 @@ class SonarQubeService {
             script.sh(
                 label: 'Generate CNES Report',
                 script: """
+                ${logger.shellScriptDebugFlag}
                 java -jar /usr/local/cnes/cnesreport.jar \
                     -s ${hostUrl} \
                     -t ${authToken} \

@@ -1,19 +1,19 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.xml.XmlUtil
-import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.service.DocGenService
-import org.ods.orchestration.service.LeVADocumentChaptersFileService
-import org.ods.orchestration.util.*
+
+import java.time.LocalDateTime
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.service.*
+import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
-import java.time.LocalDateTime
+import groovy.xml.XmlUtil
 
 @SuppressWarnings(['IfStatementBraces',
     'LineLength',
@@ -638,9 +638,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     ]
                 }),
                 testsOdsService: testsOfRepoTypeOdsService,
-                testsOdsCode   : testsOfRepoTypeOdsCode,
-                documentHistory: docHistory?.getDocGenFormat() ?: []
-            ]
+                testsOdsCode   : testsOfRepoTypeOdsCode
+            ],
+            documentHistory: docHistory?.getDocGenFormat() ?: [],
         ]
 
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
@@ -702,9 +702,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     statement: discrepancies.conclusion.statement
                 ],
                 testsOdsService   : testsOfRepoTypeOdsService,
-                testsOdsCode      : testsOfRepoTypeOdsCode,
-                documentHistory   : docHistory?.getDocGenFormat() ?: []
-            ]
+                testsOdsCode      : testsOfRepoTypeOdsCode
+            ],
+            documentHistory: docHistory?.getDocGenFormat() ?: [],
         ]
 
         def files = data.tests.installation.testReportFiles.collectEntries { file ->
@@ -770,7 +770,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps?.sort { it.orderId },
+                        steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -783,7 +783,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps?.sort { it.orderId },
+                        steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -826,7 +826,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps?.sort { it.orderId }
+                        steps       : sortTestSteps(testIssue.steps)
                     ]
                 }),
                 acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
@@ -835,7 +835,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                         description : testIssue.description,
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps?.sort { it.orderId }
+                        steps       : sortTestSteps(testIssue.steps)
                     ]
                 }),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
@@ -845,6 +845,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    @NonCPS
+    def sortTestSteps(steps) {
+        return steps?.sort(false) { it.orderId }
     }
 
     String createSSDS(Map repo = null, Map data = null) {

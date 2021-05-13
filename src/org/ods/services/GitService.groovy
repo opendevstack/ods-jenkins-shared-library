@@ -17,6 +17,8 @@ class GitService {
         this.logger = logger
     }
 
+    // mergedIssueId gets the issue ID from the merged branch.
+    // This only works on merge commits.
     static String mergedIssueId(String project, String repository, String commitMessage) {
         def b = mergedBranch(project, repository, commitMessage)
         if (b) {
@@ -35,6 +37,19 @@ class GitService {
         ''
     }
 
+    // Looks for an issue ID of form "PROJ-123" in the commit message.
+    // If multiple such issue IDs are present, the first one is returned.
+    static String issueIdFromCommit(String commitMessage, String projectId) {
+        def uppercaseProject = projectId.toUpperCase()
+        def msgMatcher = commitMessage =~ /${uppercaseProject}-([0-9]+)/
+        if (msgMatcher) {
+            return msgMatcher[0][1]
+        }
+        return ''
+    }
+
+    // Looks for an issue ID of form "PROJ-123" in the branch name.
+    // If multiple such issue IDs are present, the first one is returned.
     static String issueIdFromBranch(String branchName, String projectId) {
         def tokens = extractBranchCode(branchName).split('-')
         def pId = tokens[0]
@@ -93,6 +108,14 @@ class GitService {
         ).trim()
     }
 
+    String getCommitSubject() {
+        script.sh(
+            returnStdout: true,
+            script: 'git show --pretty=%s -s',
+            label: 'Get Git commit subject'
+        ).trim()
+    }
+
     String getCommitMessage() {
         script.sh(
             returnStdout: true,
@@ -109,26 +132,66 @@ class GitService {
         ).trim()
     }
 
-    /** Looks in commit message for string '[ci skip]', '[ciskip]', '[ci-skip]' and '[ci_skip]'. */
-    boolean isCiSkipInCommitMessage() {
-        return script.sh(
-            returnStdout: true, script: 'git show --pretty=%s%b -s',
-            label: 'check skip CI?'
-        ).toLowerCase().replaceAll('[\\s\\-\\_]', '').contains('[ciskip]')
-    }
+    /** Looks in commit message for the following strings
+     *  '[ci skip]', '[ciskip]', '[ci-skip]', '[ci_skip]',
+     *  '[skip ci]', '[skipci]', '[skip-ci]', '[skip_ci]',
+     *  '***NO_CI***', '***NO CI***', '***NOCI***', '***NO-CI***'
+     */
+    boolean isCiSkipInCommitMessage(String gitCommit = '') {
+        def gitCommitSubject = ''
+        if (gitCommit) {
+            def indexEndOfLine = gitCommit.indexOf('\n')
+            gitCommitSubject = gitCommit[0..indexEndOfLine]
+        } else {
+            gitCommitSubject = getCommitSubject()
+        }
 
-    void checkout(String gitCommit, def userRemoteConfigs) {
+        gitCommitSubject = gitCommitSubject.toLowerCase().replaceAll('[\\s\\-\\_]', '')
+
+        return (gitCommitSubject.contains('[ciskip]')
+                 || gitCommitSubject.contains('[skipci]')
+                 || gitCommitSubject.contains('***noci***'))
+    }
+    void checkout(
+        String branch,
+        def extensions,
+        def userRemoteConfigs,
+        boolean doGenerateSubmoduleConfigurations = false) {
+        def branches = [[name: branch]]
+        this.checkout(
+            branches,
+            extensions,
+            userRemoteConfigs,
+            doGenerateSubmoduleConfigurations
+        )
+        }
+    void checkout(
+        def branches,
+        def extensions,
+        def userRemoteConfigs,
+        boolean doGenerateSubmoduleConfigurations = false) {
         def gitParams = [
             $class: 'GitSCM',
-            branches: [[name: gitCommit]],
-            doGenerateSubmoduleConfigurations: false,
+            branches: branches,
+            doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
+            extensions: [[
+                    $class: 'SubmoduleOption',
+                    disableSubmodules: false,
+                    parentCredentials: true,
+                    recursiveSubmodules: true,
+                    reference: '',
+                    trackingSubmodules: false],
+                    [$class: 'CleanBeforeCheckout'],
+                    [$class: 'CleanCheckout']
+                    ],
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs,
         ]
+        if (!extensions.empty) {
+            gitParams.extensions += extensions
+        }
         if (isAgentNodeGitLfsEnabled()) {
-            gitParams.extensions = [
-                [$class: 'GitLFSPull']
-            ]
+            gitParams.extensions << [$class: 'GitLFSPull']
         }
         script.checkout(gitParams)
     }
@@ -173,20 +236,6 @@ class GitService {
             script: "git push --tags origin ${name}",
             label: "Push branch ${name} with tags"
         )
-    }
-
-    def checkout(
-        String gitRef,
-        def extensions,
-        def userRemoteConfigs,
-        boolean doGenerateSubmoduleConfigurations = false) {
-        script.checkout([
-            $class: 'GitSCM',
-            branches: [[name: gitRef]],
-            doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
-            extensions: extensions,
-            userRemoteConfigs: userRemoteConfigs,
-        ])
     }
 
     boolean remoteTagExists(String name) {

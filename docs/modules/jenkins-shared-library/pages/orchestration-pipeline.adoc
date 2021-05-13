@@ -118,10 +118,9 @@ If no `branch` parameter is provided for a repository, `master` will be assumed.
 
 Instead of merely resolving repositories into a strictly sequential execution model, our library automatically understands which repositories form independent groups and can run in parallel for best time-to-feedback and time-to-delivery.
 
-=== Building of components & partial deployments
+=== Partial rebuilding of components
 
-By default the shared library will rebuild all type `ods` components, no matter which ones changed. In order to allow
-partial building, that is based on changes one has done to the components, the following needs to be configured
+By default the shared library will rebuild all type `ods` components, no matter which ones changed since the last release. In order to build _only_ the components whose source code changed (partial rebuilding as we will call it from now on), the following needs to be configured
 in `metadata.yml`
 ----
 allowPartialRebuild : true
@@ -138,6 +137,8 @@ repositories:
     name: my-repo-B
     forceRebuild : true
 ```
+
+It is important to highlight that, despite having configured partial rebuild, the orchestration pipeline will still deploy all the components (both those which changed and which did not) to the target environment.
 
 === Optimization of runtime performance
 
@@ -244,12 +245,35 @@ This assumes you have the API token credentials stored in a secret of type `kube
 
 TIP: It is also possible to have the PROD environment on the same cluster, then you simply create a `foo-prod` namespace next to `foo-dev` and `foo-test`, and allow the `foo-cd:jenkins` account to admin that project. In that case, you do not need to configure anything in `metadata.yml` as the default configuration assumes the same cluster. The opposite is also possible: you can configure the QA environment to be on a different cluster than the DEV environment - simply follow the instructions above to create a `foo-test` namespace.
 
-As mentioned in the "Source Code Organisation" section, the orchestration pipeline allows to enable separate development environments to isolate different versions. When this mode is enabled, pipeline runs with `version=WIP` will deploy into the `$PROJECT-dev` as usual, but pipeline runs with `version=X` will deploy into `$PROJECT-dev-X`. If `$PROJECT-dev-X` does not exist yet, it will be created on the fly (by cloning `$PROJECT-dev` with its serviceaccounts and rolebindings). For the creation to work, the `jenkins` serviceaccount running the pipeline needs to have `self-provisioner` permissions (which need to be granted by a cluster admin). To enable (up to three) separate development environments, you can set `versionedDevEnvs` to `true` in the config map of your `Jenkinsfile`, like this:
+As mentioned in the "Source Code Organisation" section, the orchestration pipeline allows to enable separate development environments to isolate different versions. When this mode is enabled, pipeline runs with `version=WIP` will deploy into the `$PROJECT-dev` as usual, but pipeline runs with `version=X` will deploy into `$PROJECT-dev-X`. The `$PROJECT-dev-X` environment has to be created beforehand (e.g. by cloning `$PROJECT-dev` with its serviceaccounts and rolebindings). To enable this feature, set `versionedDevEnvs` to `true` in the config of your `Jenkinsfile`, like this:
 
 ```
 def config = [debug: true, odsImageTag: 'x.x', versionedDevEnvs: true]
 ```
 
+=== Customizing the Release Manager configuration
+
+==== Timeouts and retries
+
+If one of your components take longer than 10 minutes (this is the default value) to be promoted from one environment to another, the Release Manager pipeline will exit due to this timeout.
+You can increase this timeout by setting the `openshiftRolloutTimeoutMinutes` per environment in the Release Manager repository in the `metadata.yml` file.
+Similarly, the number of retries is configurable with the `openshiftRolloutTimeoutRetries` property.
+
+The following example establishes a timeout of `120` minutes for both `qa` and `prod` environments with a total number of `3` retries.
+
+```yaml
+...
+environments:
+  prod:
+    apiUrl: https://...
+    credentialsId: ...
+    openshiftRolloutTimeoutMinutes: 120
+    openshiftRolloutTimeoutRetries: 3
+  qa:
+    openshiftRolloutTimeoutMinutes: 120
+    openshiftRolloutTimeoutRetries: 3
+...
+```
 
 === Walkthrough
 

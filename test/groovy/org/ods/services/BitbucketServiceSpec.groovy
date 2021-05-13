@@ -31,6 +31,32 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         'no-pull-requests.json' | 'feature/foo' || [:]
     }
 
+    def "find default reviewers"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        def res = readResource(jsonFixture);
+        service.getDefaultReviewerConditions(*_) >> res
+
+        when:
+        def result = service.getDefaultReviewers('foo-bar')
+
+        then:
+        result == expected
+
+        where:
+        jsonFixture                      | expected
+        'reviewer-conditions.json'       | ['john.doe@example.com', 'jane.doe@example.com']
+        'reviewer-conditions-empty.json' | []
+    }
+
     def "check user token secret yml"() {
         expect:
         BitbucketService.userTokenSecretYml("my-secret", username, password) == expected

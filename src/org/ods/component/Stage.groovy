@@ -1,24 +1,34 @@
 package org.ods.component
 
 import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
+import org.ods.util.PipelineSteps
 
 abstract class Stage {
 
     protected def script
-    protected def context
-    protected Map config
+    protected IContext context
+    protected Map<String, Object> config
     protected ILogger logger
+    protected final IPipelineSteps steps
 
-    public final String STAGE_NAME = 'NOT SET'
-
-    protected Stage(def script, IContext context, Map config, ILogger logger) {
+    protected Stage(def script, IContext context, ILogger logger) {
         this.script = script
         this.context = context
-        this.config = config
         this.logger = logger
+        this.steps = new PipelineSteps(script)
     }
 
     def execute() {
+        // "options" needs to be defined in the concrete stage class
+        setConfiguredBranches(options)
+        if (!isEligibleBranch(options.branches, context.gitBranch)) {
+            logger.info(
+                "Skipping stage '${stageLabel()}' for branch '${context.gitBranch}' " +
+                "as it is not covered by: ${options.branches.collect { "'${it}'" } join(', ')}."
+            )
+            return
+        }
         script.withStage(stageLabel(), context, logger) {
             return this.run()
         }
@@ -28,6 +38,16 @@ abstract class Stage {
 
     protected String stageLabel() {
         STAGE_NAME
+    }
+
+    protected setConfiguredBranches(def opt) {
+        if (opt.branches == null) {
+            if (opt.branch != null) {
+                opt.branches = opt.branch.split(',')
+            } else {
+                opt.branches = ['*']
+            }
+        }
     }
 
     protected boolean isEligibleBranch(def eligibleBranches, String branch) {

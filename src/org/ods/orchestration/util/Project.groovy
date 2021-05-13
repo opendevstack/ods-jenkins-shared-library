@@ -264,6 +264,7 @@ class Project {
     protected JiraUseCase jiraUseCase
     protected ILogger logger
     protected Map config
+    protected String targetProject
     protected Boolean isVersioningEnabled = false
 
     protected Map data = [:]
@@ -361,9 +362,10 @@ class Project {
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
         if (this.hasWipJiraIssues()) {
-            def message = 'Pipeline-generated documents are watermarked ' +
-                    "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
-                    'since the following issues are work in progress: '
+            def message = this.isWorkInProgress ?'Pipeline-generated documents are watermarked ' +
+                "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
+                'since the following issues are work in progress: ':
+                "The pipeline failed since the following issues are work in progress (no documents were generated): "
 
             this.getWipJiraIssues().each { type, keys ->
                 def values = keys instanceof Map ? keys.values().flatten() : keys
@@ -372,6 +374,9 @@ class Project {
                 }
             }
 
+            if(!this.isWorkInProgress){
+                throw new IllegalArgumentException(message)
+            }
             this.addCommentInReleaseStatus(message)
         }
 
@@ -612,7 +617,7 @@ class Project {
         this.data.git.baseTag
     }
 
-    def getTargetTag() {
+    String getTargetTag() {
         this.data.git.targetTag
     }
 
@@ -620,9 +625,13 @@ class Project {
         this.config.get('versionedDevEnvs', false)
     }
 
-    String getConcreteEnvironment() {
-        def versionedDevEnvs = getVersionedDevEnvsEnabled()
-        getConcreteEnvironment(buildParams.targetEnvironment, buildParams.version, versionedDevEnvs)
+    String getSourceProject() {
+        def sEnv = Project.getConcreteEnvironment(
+            getSourceEnv(),
+            buildParams.version.toString(),
+            getVersionedDevEnvsEnabled()
+        )
+        "${getKey()}-${sEnv}"
     }
 
     static String getConcreteEnvironment(String environment, String version, boolean versionedDevEnvsEnabled) {
@@ -912,7 +921,7 @@ class Project {
         return this.capabilities.collect(collector).contains(name.toLowerCase())
     }
 
-    boolean hasFailingTests() {
+    boolean getHasFailingTests() {
         return this.data.build.hasFailingTests
     }
 
@@ -931,7 +940,11 @@ class Project {
     }
 
     String getTargetProject() {
-        return "${getKey()}-${getConcreteEnvironment()}"
+        this.targetProject
+    }
+
+    String setTargetProject(def proj) {
+        this.targetProject = proj
     }
 
     boolean historyForDocumentExists(String document) {
@@ -980,7 +993,7 @@ class Project {
             targetEnvironment: targetEnvironment,
             targetEnvironmentToken: targetEnvironmentToken,
             version: version,
-            rePromote: rePromote
+            rePromote: rePromote,
         ]
     }
 
@@ -1187,7 +1200,7 @@ class Project {
         loadVersionDataFromJira(this.buildParams.version)
     }
 
-    protected Map loadVersionDataFromJira(String versionName) {
+    Map loadVersionDataFromJira(String versionName) {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
@@ -1230,7 +1243,7 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
-                ]
+                ],
             ]
         }
     }
@@ -1254,7 +1267,7 @@ class Project {
                                 name: value.name,
                             ]
                         ]
-                    }
+                    },
                 ]
             ]
         }
@@ -1363,12 +1376,12 @@ class Project {
         return result
     }
 
-    public void reportPipelineStatus(String message = '', boolean isError = false) {
+    void reportPipelineStatus(String message = '', boolean isError = false) {
         if (!this.jiraUseCase) return
         this.jiraUseCase.updateJiraReleaseStatusResult(message, isError)
     }
 
-    public void addCommentInReleaseStatus(String message) {
+    void addCommentInReleaseStatus(String message) {
         if (!this.jiraUseCase) return
         this.jiraUseCase.addCommentInReleaseStatus(message)
     }

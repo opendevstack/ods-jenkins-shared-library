@@ -1,33 +1,42 @@
 package org.ods.component
 
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import org.ods.services.BitbucketService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
 
 @SuppressWarnings('ParameterCount')
+@TypeChecked
 class ScanWithSonarStage extends Stage {
 
     public final String STAGE_NAME = 'SonarQube Analysis'
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
+    private final ScanWithSonarOptions options
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithSonarStage(
         def script,
         IContext context,
-        Map config,
+        Map<String, Object> config,
         BitbucketService bitbucket,
         SonarQubeService sonarQube,
         ILogger logger) {
-        super(script, context, config, logger)
-        if (config.branch) {
-            config.eligibleBranches = config.branch.split(',')
-        } else if (context.sonarQubeBranch) {
-            config.eligibleBranches = context.sonarQubeBranch.split(',')
-        } else if (context.sonarQubeEdition != 'community') {
-            config.eligibleBranches = ['*']
-        } else {
-            config.eligibleBranches = ['master']
+        super(script, context, logger)
+        // If user did not explicitly define which branches to scan,
+        // infer that information from elsewhere.
+        if (!config.containsKey('branches') && !config.containsKey('branch')) {
+            if (context.sonarQubeBranch) {
+                config.branches = context.sonarQubeBranch.split(',')
+            } else if (context.sonarQubeEdition != 'community') {
+                config.branches = ['*']
+            } else {
+                // Community edition can only scan one branch in a meaningful way
+                config.branches = ['master']
+            }
         }
+
         if (!config.containsKey('longLivedBranches')) {
             config.longLivedBranches = context.branchToEnvironmentMapping
                 .keySet()
@@ -40,64 +49,55 @@ class ScanWithSonarStage extends Stage {
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
         }
+
+        this.options = new ScanWithSonarOptions(config)
         this.bitbucket = bitbucket
         this.sonarQube = sonarQube
     }
 
+    // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
-        if (config.eligibleBranches) {
-            logger.info "Scanned branches: ${config.eligibleBranches.join(', ')}"
-        } else {
-            logger.info 'No branches to scan configured.'
-            return
-        }
-
-        if (!isEligibleBranch(config.eligibleBranches, context.gitBranch)) {
-            logger.info "Skipping as branch '${context.gitBranch}' is not covered by the 'branch' option."
-            return
-        }
-
-        if (config.longLivedBranches) {
-            logger.info "Long-lived branches: ${config.longLivedBranches.join(', ')}"
+        if (options.longLivedBranches) {
+            logger.info "Long-lived branches: ${options.longLivedBranches.join(', ')}"
         } else {
             logger.info 'No long-lived branches configured.'
         }
 
         def sonarProperties = sonarQube.readProperties()
 
-        def sonarProjectKey = "${context.projectId}-${context.componentId}"
+        def sonarProjectKey = "${context.projectId}-${context.componentId}".toString()
         sonarProperties['sonar.projectKey'] = sonarProjectKey
         sonarProperties['sonar.projectName'] = sonarProjectKey
         sonarProperties['sonar.branch.name'] = context.gitBranch
 
         logger.startClocked("${sonarProjectKey}-sq-scan")
         scan(sonarProperties)
-        logger.debugClocked("${sonarProjectKey}-sq-scan")
+        logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
 
         generateAndArchiveReports(
             sonarProjectKey,
             context.buildTag,
-            sonarProperties['sonar.branch.name'],
+            sonarProperties['sonar.branch.name'].toString(),
             context.sonarQubeEdition,
-            context.localCheckoutEnabled
+            !context.triggeredByOrchestrationPipeline
         )
 
-        if (config.requireQualityGatePass) {
+        if (options.requireQualityGatePass) {
             def qualityGateResult = getQualityGateResult(sonarProjectKey)
             if (qualityGateResult == 'ERROR') {
-                script.error 'Quality gate failed!'
+                steps.error 'Quality gate failed!'
             } else if (qualityGateResult == 'UNKNOWN') {
-                script.error 'Quality gate unknown!'
+                steps.error 'Quality gate unknown!'
             } else {
-                script.echo 'Quality gate passed.'
+                steps.echo 'Quality gate passed.'
             }
         }
     }
 
     private void scan(Map sonarProperties) {
         def pullRequestInfo = assemblePullRequestInfo()
-        def doScan = { Map prInfo ->
-            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition, context.debug)
+        def doScan = { Map<String, Object> prInfo ->
+            sonarQube.scan(sonarProperties, context.gitCommit, prInfo, context.sonarQubeEdition)
         }
         if (pullRequestInfo) {
             bitbucket.withTokenCredentials { username, token ->
@@ -108,12 +108,12 @@ class ScanWithSonarStage extends Stage {
         }
     }
 
-    private assemblePullRequestInfo() {
-        if (!config.analyzePullRequests) {
+    private Map<String, Object> assemblePullRequestInfo() {
+        if (!options.analyzePullRequests) {
             logger.info 'PR analysis is disabled.'
             return [:]
         }
-        if (config.longLivedBranches.contains(context.gitBranch)) {
+        if (options.longLivedBranches.contains(context.gitBranch)) {
             logger.info "Branch '${context.gitBranch}' is considered to be long-lived. " +
                 'PR analysis will not be performed.'
             return [:]
@@ -132,26 +132,30 @@ class ScanWithSonarStage extends Stage {
             ]
         }
 
-        def longLivedList = config.longLivedBranches.join(', ')
+        def longLivedList = options.longLivedBranches.join(', ')
         logger.info "No open PR found for ${context.gitBranch} " +
             "even though it is not one of the long-lived branches (${longLivedList})."
         return [:]
     }
 
-    private generateAndArchiveReports(String projectKey, String author, String sonarBranch, String sonarQubeEdition,
-                                      boolean archive) {
+    private generateAndArchiveReports(
+        String projectKey,
+        String author,
+        String sonarBranch,
+        String sonarQubeEdition,
+        boolean archive) {
         def targetReport = "SCRR-${projectKey}.docx"
         def targetReportMd = "SCRR-${projectKey}.md"
         sonarQube.generateCNESReport(projectKey, author, sonarBranch, sonarQubeEdition)
-        script.sh(
+        steps.sh(
             label: 'Create artifacts dir',
             script: 'mkdir -p artifacts'
         )
-        script.sh(
+        steps.sh(
             label: 'Move report to artifacts dir',
             script: 'mv *-analysis-report.docx* artifacts/; mv *-analysis-report.md* artifacts/'
         )
-        script.sh(
+        steps.sh(
             label: 'Rename report to SCRR',
             script: """
             mv artifacts/*-analysis-report.docx* artifacts/${targetReport};
@@ -159,13 +163,13 @@ class ScanWithSonarStage extends Stage {
             """
         )
         if (archive) {
-            script.archiveArtifacts(artifacts: 'artifacts/SCRR*')
+            steps.archiveArtifacts(artifacts: 'artifacts/SCRR*')
         }
 
         def sonarqubeStashPath = "scrr-report-${context.componentId}-${context.buildNumber}"
         context.addArtifactURI('sonarqubeScanStashPath', sonarqubeStashPath)
 
-        script.stash(
+        steps.stash(
             name: "${sonarqubeStashPath}",
             includes: 'artifacts/SCRR*',
             allowEmpty: true
@@ -174,14 +178,15 @@ class ScanWithSonarStage extends Stage {
         context.addArtifactURI('SCRR-MD', targetReportMd)
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     private String getQualityGateResult(String sonarProjectKey) {
         def qualityGateJSON = sonarQube.getQualityGateJSON(sonarProjectKey)
         try {
-            def qualityGateResult = script.readJSON(text: qualityGateJSON)
+            def qualityGateResult = steps.readJSON(text: qualityGateJSON)
             def status = qualityGateResult?.projectStatus?.projectStatus ?: 'UNKNOWN'
             return status.toUpperCase()
         } catch (Exception ex) {
-            script.error 'Quality gate status could not be retrieved. ' +
+            steps.error 'Quality gate status could not be retrieved. ' +
                 "Status was: '${qualityGateJSON}'. Error was: ${ex}"
         }
     }

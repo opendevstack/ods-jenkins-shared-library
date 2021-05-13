@@ -5,11 +5,15 @@ interface IPipelineSteps {
 
     void archiveArtifacts(String artifacts)
 
+    void archiveArtifacts(Map args)
+
     def checkout(Map config)
 
     void dir(String path, Closure block)
 
     void echo(String message)
+
+    void error(String message)
 
     def getCurrentBuild()
 

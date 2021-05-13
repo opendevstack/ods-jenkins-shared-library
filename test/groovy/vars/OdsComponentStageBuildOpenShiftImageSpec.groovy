@@ -1,5 +1,7 @@
 package vars
 
+import org.codehaus.groovy.runtime.typehandling.GroovyCastException
+import groovy.lang.MissingPropertyException
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
@@ -22,6 +24,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       gitCommitAuthor: "John O'Hare",
       gitCommitTime: '2020-03-23 12:27:08 +0100',
       gitBranch: 'master',
+      branchToEnvironmentMapping: ['master': 'dev'],
       buildUrl: 'https://jenkins.example.com/job/foo-cd/job/foo-cd-bar-master/11/console',
       buildTime: '2020-03-23 12:27:08 +0100',
       odsSharedLibVersion: '2.x',
@@ -29,17 +32,16 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       componentId: 'bar'
   ]
 
-  def "run successfully without Tailor"() {
+  def "run successfully"() {
     given:
-    def c = config + [environment: 'dev']
+    def c = config + [environment: 'dev', targetProject: 'foo-dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Mock(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
-    openShiftService.startAndFollowBuild(_, _) >> 'bar-123'
-    openShiftService.startBuild(_,_) >> 123
-    openShiftService.getLastBuildVersion(_) >> 123
-    openShiftService.getBuildStatus(_) >> 'complete'
-    openShiftService.getImageReference(_, _) >> '0daecc05'
+    openShiftService.startBuild(*_) >> 123
+    openShiftService.getLastBuildVersion(*_) >> 123
+    openShiftService.getBuildStatus(*_) >> 'complete'
+    openShiftService.getImageReference(*_) >> '0daecc05'
     
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
@@ -80,61 +82,19 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     buildArtifacts.builds.containsKey('bar')
     buildArtifacts.builds.bar.buildId == buildInfo.buildId
     buildArtifacts.builds.bar.image == buildInfo.image
-
-    0 * openShiftService.tailorApply(*_)
-  }
-
-  def "run successfully with Tailor"() {
-    given:
-    def c = config + [environment: 'dev', projectId: 'foo']
-    IContext context = new Context(null, c, logger)
-    OpenShiftService openShiftService = Mock(OpenShiftService.class)
-    openShiftService.resourceExists(*_) >> true
-    openShiftService.startAndFollowBuild(*_) >> 'bar-123'
-    openShiftService.getLastBuildVersion(*_) >> 123
-    openShiftService.startBuild(_,_) >> 123
-    openShiftService.getBuildStatus(*_) >> 'complete'
-    openShiftService.getImageReference(*_) >> '0daecc05'
-    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
-    JenkinsService jenkinsService = Stub(JenkinsService.class)
-    jenkinsService.maybeWithPrivateKeyCredentials(*_) >> { args -> args[1]('/tmp/file') }
-    ServiceRegistry.instance.add(JenkinsService, jenkinsService)
-
-    when:
-    def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
-    String fileContent
-    helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> fileContent = args.text }
-    helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-      true
-    }
-    def buildInfo = script.call(context)
-
-    then:
-    printCallStack()
-    assertCallStackContains('''Build #123 of 'bar' has produced image: 0daecc05.''')
-    assertJobStatusSuccess()
-    // test immediate return
-    buildInfo.buildId == 'bar-123'
-    buildInfo.image == "0daecc05"
-
-    1 * openShiftService.tailorApply(
-      [selector: 'app=foo-bar', include: 'bc,is'],
-      '',
-      [],
-      ['bc:/spec/output/imageLabels', 'bc:/spec/output/to/name'],
-      '/tmp/file',
-      false
-    )
   }
 
   def "run successfully with overwrite component and image labels"() {
     given:
-    def c = config + [environment: 'dev', "globalExtensionImageLabels" : [ "globalext": "extG" ]]
+    def c = config + [
+      environment: 'dev',
+      targetProject: 'foo-dev',
+      globalExtensionImageLabels: [ "globalext": "extG" ]
+    ]
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
     openShiftService.resourceExists(*_) >> true
-    openShiftService.startAndFollowBuild(*_) >> 'overwrite-123'
-    openShiftService.startBuild(_,_) >> 123
+    openShiftService.startBuild(*_) >> 123
     openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
@@ -184,17 +144,45 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     buildArtifacts.builds.overwrite.image == buildInfo.image
   }
 
+  def "run in orchestration pipeline regardless of branch config"() {
+    given:
+    def c = config + [
+      environment: 'dev',
+      targetProject: 'foo-dev',
+      gitBranch: 'release/1',
+      triggeredByOrchestrationPipeline: true
+    ]
+    IContext context = new Context(null, c, logger)
+    OpenShiftService openShiftService = Mock(OpenShiftService.class)
+    openShiftService.resourceExists(*_) >> true
+    openShiftService.startBuild(*_) >> 123
+    openShiftService.getLastBuildVersion(*_) >> 123
+    openShiftService.getBuildStatus(*_) >> 'complete'
+    openShiftService.getImageReference(*_) >> '0daecc05'
+    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+    when:
+    def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
+    helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> }
+    helper.registerAllowedMethod('fileExists', [ String ]) { String args -> false }
+    def buildInfo = script.call(context)
+
+    then:
+    printCallStack()
+    assertCallStackContains('''Build #123 of 'bar' has produced image: 0daecc05.''')
+    assertJobStatusSuccess()
+  }
+
   @Unroll
   def "fails when build info cannot be retrieved"() {
     given:
     def c = config + [environment: 'dev']
     IContext context = new Context(null, c, logger)
     OpenShiftService openShiftService = Stub(OpenShiftService.class)
-    openShiftService.startAndFollowBuild(*_) >> startBuildOutput
     openShiftService.getLastBuildVersion(*_) >> lastBuildVersion
-    openShiftService.startBuild(_,_) >> lastBuildVersion
+    openShiftService.startBuild(*_) >> lastBuildVersion
     openShiftService.getBuildStatus(*_) >> buildStatus
-    openShiftService.getImageReference() >> imageReference
+    openShiftService.getImageReference(*_) >> imageReference
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
@@ -215,19 +203,59 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     'Build foo-123 started' | 123              | 'running'   | '0daecc05'     || 'OpenShift Build #123 was not successful'
   }
 
-  def "skip when no environment given"() {
+  def "skip when branch config does not cover current branch"() {
     given:
-    def config = [environment: null, gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e']
+    def config = [
+      environment: null,
+      gitBranch: gitBranch,
+      gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
+      branchToEnvironmentMapping: branchToEnvironmentMapping
+    ]
     def context = new Context(null, config, logger)
 
     when:
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
-    script.call(context)
+    if (branches != null) {
+      script.call(context, [branches: branches])
+    } else {
+      script.call(context)
+    }
 
     then:
     printCallStack()
-    assertCallStackContains("WARN: Skipping because of empty (target) environment ...")
+    assertCallStackContains("Skipping stage 'Build OpenShift Image'")
     assertJobStatusSuccess()
+
+    where:
+    gitBranch | branchToEnvironmentMapping           | branches
+    'develop' | [:]                                  | []
+    'develop' | [:]                                  | ['master']
+    'develop' | ['master':'dev']                     | null
+    'develop' | ['master':'dev', 'release/': 'test'] | null
+  }
+
+  def "fails on incorrect options"() {
+    given:
+    def config = [
+      environment: null,
+      gitBranch: 'master',
+      gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
+      branchToEnvironmentMapping: [:]
+    ]
+    def context = new Context(null, config, logger)
+
+    when:
+    def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
+    script.call(context, options)
+
+    then:
+    def exception = thrown(wantEx)
+    exception.message == wantExMessage
+
+    where:
+    options           || wantEx                   | wantExMessage
+    [branches: 'abc'] || GroovyCastException      | "Cannot cast object 'abc' with class 'java.lang.String' to class 'java.util.List'"
+    [foobar: 'abc']   || MissingPropertyException | "No such property: foobar for class: org.ods.component.BuildOpenShiftImageOptions"
   }
 
 }

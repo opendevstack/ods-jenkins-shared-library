@@ -2,7 +2,6 @@ package org.ods.orchestration.usecase
 
 import groovy.json.JsonSlurper
 import groovy.util.logging.Log
-import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -22,7 +21,7 @@ import static util.FixtureHelper.*
 
 import util.*
 
-@Slf4j
+@Log
 class LeVADocumentUseCaseSpec extends SpecHelper {
 
     @Rule

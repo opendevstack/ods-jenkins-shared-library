@@ -12,27 +12,27 @@ class LoggerStub implements ILogger, Serializable {
     }
 
 
-    void debug(String message) {
+    String debug(String message) {
         script.debug ("DEBUG: ${message}")
     }
 
-    void info(String message) {
+    String info(String message) {
         script.info message
     }
 
-    void warn(String message) {
+    String warn(String message) {
         info ("WARN: ${message}")
     }
 
-    void debugClocked(String component, String message = null) {
+    String debugClocked(String component, String message = null) {
         debug(timedCall(component, message))
     }
 
-    void infoClocked(String component, String message = null) {
+    String infoClocked(String component, String message = null) {
         info(timedCall(component, message))
     }
 
-    void warnClocked(String component, String message = null) {
+    String warnClocked(String component, String message = null) {
         warn(timedCall(component, message))
     }
 
@@ -40,7 +40,17 @@ class LoggerStub implements ILogger, Serializable {
         true
     }
 
-    void startClocked(String component) {
+    @Override
+    String getOcDebugFlag() {
+        return null
+    }
+
+    @Override
+    String getShellScriptDebugFlag() {
+        return null
+    }
+
+    String startClocked(String component) {
         timedCall (component)
     }
 

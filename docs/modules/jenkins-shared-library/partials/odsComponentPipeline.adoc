@@ -58,23 +58,17 @@ Available options are:
 | branchToEnvironmentMapping
 | Define which branches are deployed to which environments, see <<_git_workflow_branch_to_environment_mapping,Git Workflow / Branch to Environment Mapping>>
 
-| autoCloneEnvironmentsFromSourceMapping
-| Define which environments are cloned from which source environments.
-
 | projectId
 | Project ID, e.g. `foo`.
 
 | componentId
-| Component ID, e.g. `be-auth-service`.
+| Component ID, e.g. `be-auth`.
 
 | environmentLimit
 | Number of environments to allow when auto-cloning environments.
 
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
-
-| imagePromotionSequences
-| Sequence of environments between which images can be promoted in `odsComponentStageImportOpenShiftImageOrElse`. Defaults to `['dev->test', 'test->prod']`.
 
 | sonarQubeBranch
 | Please use option `branch` on `odsComponentStageScanWithSonar`.
@@ -133,16 +127,16 @@ The `context` object contains the following properties:
 | Nexus URL, including username and password as BasicAuth. `nexusHostWithBasicAuth` is an alias for `nexusUrlWithBasicAuth`.
 
 | sonarQubeEdition
-| Edition of SonarQube in use, determined by `SONARQUBE_EDITION` (defaults to `community`).
-
-| cloneSourceEnv
-| The environment which was chosen as the clone source.
+| Edition of SonarQube in use, determined by `SONAR_EDITION` (defaults to `community`).
 
 | environment
 | The environment which was chosen as the deployment target, e.g. `dev`.
 
 | targetProject
 | Target project, based on the environment. E.g. `foo-dev`.
+
+| cdProject
+| CD project. E.g. `foo-cd`.
 
 | groupId
 | Group ID, defaults to: org.opendevstack.+++<projectID>+++.+++</projectID>+++
@@ -151,7 +145,10 @@ The `context` object contains the following properties:
 | Project ID, e.g. `foo`.
 
 | componentId
-| Component ID, e.g. `be-auth-service`.
+| Component ID, e.g. `be-auth`.
+
+| selector
+| Selector common to all resources of component, defaults to `app=${projectId}-${componentID}` (e.g. `app=foo-be-auth`).
 
 | gitUrl
 | Git URL of repository
@@ -169,13 +166,16 @@ The `context` object contains the following properties:
 | Git commit author.
 
 | gitCommitMessage
-| Git commit message.
+| Git commit message (sanitized).
+
+| gitCommitRawMessage
+| Git commit message (raw).
 
 | gitCommitTime
 | Git commit time in RFC 3399.
 
 | issueId
-| Jira issue ID if any present in the branch name (e.g. `123` from branch `feature/FOO-123-bar-baz`).
+| Jira issue ID if any present in either commit message or branch name (e.g. `123` from commit message `FOO-123: Bar` or branch `feature/FOO-123-bar`). If the issue ID is present in both, the branch name has precedence.
 
 | openshiftHost
 | OpenShift host - value taken from `OPENSHIFT_API_URL`.
@@ -188,9 +188,6 @@ The `context` object contains the following properties:
 
 | dockerDir
 | The docker directory to use when building the image in openshift. Defaults to `docker`.
-
-| imagePromotionSequences
-| Sequence of environments between which images can be promoted. Used e.g. in `odsComponentStageImportOpenShiftImageOrElse`. Defaults to `['dev->test', 'test->prod']`.
 |===
 
 == Git Workflow / Branch to Environment Mapping
@@ -359,7 +356,6 @@ With this in place, you can adapt the rollout stage:
 odsComponentStageRolloutOpenShiftDeployment(
   context,
   [
-    resourceName: "${suffixedComponent}",
     tailorSelector: "app=${context.projectId}-${suffixedComponent}",
     tailorParams: ["COMPONENT_SUFFIX=${componentSuffix}"]
   ]
@@ -375,7 +371,7 @@ stage('Cleanup preview resources') {
   if (context.environment != 'dev') {
     echo "Not performing cleanup outside dev environment"; return
   }
-  def mergedIssueId = org.ods.services.GitService.mergedIssueId(context.projectId, context.repoName, context.gitCommitMessage)
+  def mergedIssueId = org.ods.services.GitService.mergedIssueId(context.projectId, context.repoName, context.gitCommitRawMessage)
   if (mergedIssueId) {
     echo "Perform cleanup of suffix '-${mergedIssueId}'"
     sh("oc -n ${context.targetProject} delete all -l app=${context.projectId}-${context.componentId}-${mergedIssueId}")
@@ -389,9 +385,16 @@ stage('Cleanup preview resources') {
 === Interacting with Bitbucket
 
 The shared library already sets the build status of the built commit. It also
-provides three convenience methods on `BitbucketService` to interact with pull
+provides convenience methods on `BitbucketService` to interact with pull
 requests:
 
+- `String createPullRequest(String repo, String fromRef, String toRef, String title, String description, List<String> reviewers)`
+  creates a pull request in `repo` from branch `fromRef` to `toRef`.
+  `reviewers` is a list of bitbucket user names.
+- `List<String> getDefaultReviewers(String repo)` returns a list of bitbucket
+  user names (not display names) that are listed as the default reviewers of the given `repo`.
+- `String getDefaultReviewerConditions(String repo)` returns all default
+  reviewer conditions of the given `repo`, which can be parsed using `readJSON`.
 - `String getPullRequests(String repo, String state = 'OPEN')` returns
   all open pull requests, which can be parsed using `readJSON`.
 - `Map findPullRequest(String repo, String branch, String state = 'OPEN')`
@@ -418,63 +421,18 @@ def sayHello(def context) {
 
 === Skipping pipeline runs
 
-If the message of the built commit contains `[ci skip]`, the pipeline is skipped. The Jenkins build status will be set to `NOT_BUILT`, the Bitbucket build status to `SUCCESSFUL` (as there is no "skipped" state). The pipeline will start to execute initially, but abort before launching any agent nodes or starting any of the stages defined in the `Jenkinsfile`.
+If the subject of the built commit message contains `[ci skip]`, `[skip ci]` or `\\***NO_CI***`, the pipeline is skipped.
 
-=== Automatically cloning environments on the fly
-
-Caution! Cloning environments on-the-fly is an advanced feature and should only be used if you understand OpenShift well, as there are many moving parts and things can go wrong in multiple places.
-
-Example:
-
+[source,sh]
 ----
-autoCloneEnvironmentsFromSourceMapping: [
-  "hotfix": "prod",
-  "review": "dev"
-]
-----
+# skip pipeline (one-line commit)
+$ git commit -m "docs: update README [ci skip]"
 
-Instead of deploying multiple branches to the same environment, individual environments can be created on-the-fly. For example, the mapping `"*": "review"` deploys all branches to the `review` environment. To have one environment per branch / ticket ID, you can add the `review` environment to `autoCloneEnvironmentsFromSourceMapping`, e.g. like this: `"review": "dev"`. This will create individual environments (named e.g. `review-123` or `review-foobar`), each cloned from the `dev` environment.
+# run pipeline (multi-line commit) as it is not part of the subject
+$ git commit -m "docs: update README
 
-==== Examples
-
-If you use git-flow, the following config fits well:
-
-----
-branchToEnvironmentMapping: [
-  'master': 'prod',
-  'develop': 'dev',
-  'release/': 'rel',
-  'hotfix/': 'hotfix',
-  '*': 'preview'
-]
-autoCloneEnvironmentsFromSourceMapping: [
-  'rel': 'dev',
-  'hotfix': 'prod',
-  'preview': 'dev'
-]
+- add section installation
+- [ci skip]"
 ----
 
-If you use GitHub Flow, the following config fits well:
-
-----
-branchToEnvironmentMapping: [
-  'master': 'prod',
-  '*': 'preview'
-]
-autoCloneEnvironmentsFromSourceMapping: [
-  'preview': 'prod'
-]
-----
-
-If you use a custom workflow, the config could look like this:
-
-----
-branchToEnvironmentMapping: [
-  'production': 'prod',
-  'master': 'dev',
-  'staging': 'uat'
-]
-autoCloneEnvironmentsFromSourceMapping: [
-  'uat': 'prod'
-]
-----
+The Jenkins build status will be set to `NOT_BUILT`, the Bitbucket build status to `SUCCESSFUL` (as there is no "skipped" state). The pipeline will start to execute initially, but abort before launching any agent nodes or starting any of the stages defined in the `Jenkinsfile`.

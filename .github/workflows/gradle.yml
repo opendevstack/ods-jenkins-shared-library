@@ -27,6 +27,12 @@ jobs:
               env:
                   NO_NEXUS: true
 
+            - name: Check docs are up-to-date
+              run: |
+                ./.github/workflows/check-docs.sh
+              env:
+                  NO_NEXUS: true
+
             - name: CodeNarc Report
               uses: actions/upload-artifact@v2
               if: ${{ always() }}

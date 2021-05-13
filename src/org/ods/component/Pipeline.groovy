@@ -4,14 +4,12 @@ import org.ods.services.GitService
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
-import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import groovy.json.JsonOutput
-import org.ods.util.AuthUtil
 
 class Pipeline implements Serializable {
 
@@ -68,6 +66,8 @@ class Pipeline implements Serializable {
         if (!config.componentId) {
             script.error "Param 'componentId' is required"
         }
+        // amendProjectAndComponent.. will set the repoName from the origin url
+        // in case componentId or projectId was set hard, we use those to set it
         // allow to overwrite in case NOT ods std (e.g. from a migration)
         if (!config.repoName) {
             config.repoName = "${config.projectId}-${config.componentId}"
@@ -134,9 +134,7 @@ class Pipeline implements Serializable {
                         if (!registry.get(OpenShiftService)) {
                             logger.debug 'Registering OpenShiftService'
                             registry.add(OpenShiftService, new OpenShiftService(
-                                steps,
-                                logger,
-                                context.targetProject
+                                steps, logger
                             ))
                         }
                         this.openShiftService = registry.get(OpenShiftService)
@@ -156,17 +154,11 @@ class Pipeline implements Serializable {
 
                     skipCi = isCiSkip()
                     if (skipCi) {
-                        logger.info 'Skipping build due to [ci skip] in the commit message ...'
+                        logger.info 'Skipping build due to [ci skip], [skip ci] or ***NO_CI***' +
+                            'in the commit message ...'
                         updateBuildStatus('NOT_BUILT')
                         setBitbucketBuildStatus('SUCCESSFUL')
                         return
-                    }
-
-                    if (context.environment) {
-                        def autoCloneEnabled = !!context.cloneSourceEnv
-                        if (autoCloneEnabled) {
-                            createOpenShiftEnvironment(context)
-                        }
                     }
                 }
             } catch (err) {
@@ -214,7 +206,7 @@ class Pipeline implements Serializable {
                 containers: config.podContainers,
                 volumes: config.podVolumes,
                 serviceAccount: config.podServiceAccount,
-                slaveConnectTimeout: 240 // in seconds
+                slaveConnectTimeout: 240, // in seconds
             ) {
                 script.node(config.podLabel) {
                     try {
@@ -223,6 +215,7 @@ class Pipeline implements Serializable {
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
                                 context.gitCommit,
+                                [],
                                 [[credentialsId: context.credentialsId, url: context.gitUrl]]
                             )
                             if (this.displayNameUpdateEnabled) {
@@ -254,9 +247,8 @@ class Pipeline implements Serializable {
                                     throw err
                                 }
                                 return this
-                            } else {
-                                throw err
                             }
+                            throw err
                         }
                     } finally {
                         jenkinsService.stashTestResults(
@@ -296,6 +288,22 @@ class Pipeline implements Serializable {
         config.bitbucketNotificationEnabled = !!script.env.NOTIFY_BB_BUILD
     }
 
+    @SuppressWarnings('Instanceof')
+    def updateBuildStatus(String status) {
+        if (this.displayNameUpdateEnabled) {
+            // @ FIXME ? groovy.lang.MissingPropertyException: No such property: result for class: java.lang.String
+            if (script.currentBuild instanceof String) {
+                script.currentBuild = status
+            } else {
+                script.currentBuild.result = status
+            }
+        }
+    }
+
+    Map<String, Object> getBuildArtifactURIs() {
+        return context.getBuildArtifactURIs()
+    }
+
     private void setBitbucketBuildStatus(String state) {
         if (!this.bitbucketNotificationEnabled) {
             return
@@ -319,108 +327,6 @@ class Pipeline implements Serializable {
             replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
             to: recipients
         )
-    }
-
-    def createOpenShiftEnvironment(def context) {
-        script.stage('Create Openshift Environment') {
-            if (!context.environment) {
-                logger.info 'Skipping for empty environment ...'
-                return
-            }
-
-            if (!!script.env.MULTI_REPO_BUILD) {
-                logger.info 'Orchestration pipeline build - skipping env mapping'
-            } else {
-                def assumedEnvironments = context.branchToEnvironmentMapping.values()
-                def envExists = context.environmentExists(context.targetProject)
-                logger.debug(
-                    "context.environment: ${context.environment}, " +
-                        "context.cloneSourceEnv: ${context.cloneSourceEnv}, " +
-                        "context.targetProject: ${context.targetProject}, " +
-                        "envExists: ${envExists}"
-                )
-                if (assumedEnvironments.contains(context.environment) && (envExists)) {
-                    logger.info "Skipping for ${context.environment} environment based on ${assumedEnvironments} ..."
-                    return
-                }
-            }
-            if (context.environmentExists(context.targetProject)) {
-                logger.info "Target environment $context.targetProject exists already ..."
-                return
-            }
-
-            if (!context.environmentExists("${context.projectId.toLowerCase()}-${context.cloneSourceEnv}")) {
-                logger.info "Source Environment ${context.cloneSourceEnv} DOES NOT EXIST, skipping ..."
-                return
-            }
-
-            if (OpenShiftService.tooManyEnvironments(steps, context.projectId, context.environmentLimit)) {
-                script.error 'Cannot create OC project ' +
-                    "as there are already ${context.environmentLimit} OC projects! " +
-                    'Please clean up and run the pipeline again.'
-            }
-
-            logger.info 'Environment does not exist yet. Creating now ...'
-            script.withCredentials(
-                [script.usernamePassword(
-                    credentialsId: context.credentialsId,
-                    usernameVariable: 'USERNAME',
-                    passwordVariable: 'PASSWORD')
-                ]
-            ) {
-                String branchName = "${script.env.JOB_NAME}-${script.env.BUILD_NUMBER}-${context.cloneSourceEnv}"
-                logger.info "Calculated branch name: ${branchName}"
-                downloadCloneScripts(context)
-                GitCredentialStore.configureAndStore(script, "${context.bitbucketUrl}",
-                    "${script.env.USERNAME}", "${script.env.PASSWORD}")
-                def debugMode = ''
-                if (context.getDebug()) {
-                    debugMode = '--debug'
-                }
-                script.sh(
-                    script: """sh clone-project.sh \
-                        -o ${context.openshiftHost} \
-                        -b ${context.bitbucketHostWithoutScheme} \
-                        -p ${context.projectId} \
-                        -s ${context.cloneSourceEnv} \
-                        -gb ${branchName} \
-                        -t ${context.environment} ${debugMode}
-                    """
-                )
-                logger.info 'Environment created!'
-            }
-        }
-    }
-
-    private void downloadCloneScripts(def context) {
-        def scriptToUrls = context.getCloneProjectScriptUrls()
-        // NOTE: a for loop did not work here due to https://issues.jenkins-ci.org/browse/JENKINS-49732
-        scriptToUrls.each { scriptName, url ->
-            script.echo "curl --fail -s -G '${url}' -d raw -o '${scriptName}'"
-            String authHeader = AuthUtil.header(AuthUtil.SCHEME_BASIC,
-                script.env.USERNAME, script.env.PASSWORD)
-            script.sh(script: """set +x
-                        curl --fail -s \\
-                        --header \"${authHeader}\" \\
-                        -G '${url}' \\
-                        -d raw -o '${scriptName}'""")
-        }
-    }
-
-    @SuppressWarnings('Instanceof')
-    def updateBuildStatus(String status) {
-        if (this.displayNameUpdateEnabled) {
-            // @ FIXME ? groovy.lang.MissingPropertyException: No such property: result for class: java.lang.String
-            if (script.currentBuild instanceof String) {
-                script.currentBuild = status
-            } else {
-                script.currentBuild.result = status
-            }
-        }
-    }
-
-    Map<String, Object> getBuildArtifactURIs() {
-        return context.getBuildArtifactURIs()
     }
 
     // Whether the build should be skipped, based on the Git commit message.
@@ -461,7 +367,7 @@ class Pipeline implements Serializable {
             config.resourceLimitCpu = '1'
         }
         if (!config.containsKey('podLabel')) {
-            config.podLabel = "pod-${UUID.randomUUID()}"
+            config.podLabel = "pod-${UUID.randomUUID().toString()}"
         }
     }
 
@@ -477,8 +383,8 @@ class Pipeline implements Serializable {
                 def jobSplitList = script.env.JOB_NAME.split('/')
                 def projectName = jobSplitList[0]
                 def bcName = jobSplitList[1].replace("${projectName}-", '')
-                origin = (new OpenShiftService(steps, logger, projectName))
-                    .getOriginUrlFromBuildConfig(bcName)
+                origin = (new OpenShiftService(steps, logger))
+                    .getOriginUrlFromBuildConfig(projectName, bcName)
                 logger.debug("Retrieved Git origin URL from build config: ${origin}")
             }
 
@@ -487,6 +393,7 @@ class Pipeline implements Serializable {
             if (!config.projectId) {
                 config.projectId = project
             }
+            // get the repo name from the git url
             config.repoName = splittedOrigin.last().replace('.git', '')
             if (!config.componentId) {
                 config.componentId = config.repoName - ~/^${project}-/
