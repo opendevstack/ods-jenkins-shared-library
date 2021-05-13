@@ -316,7 +316,6 @@ class MROPipelineUtil extends PipelineUtil {
                 this.executeBlockAndFailBuild {
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                     def targetEnvToken = this.project.buildParams.targetEnvironmentToken
-
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }

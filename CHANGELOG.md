@@ -7,7 +7,7 @@
 - Fixed Test name/summary in DTP/DTR documents ([#625](https://github.com/opendevstack/ods-jenkins-shared-library/pull/625)).
 - Fix A "null" string is added in the Section 3.1 of the CFTR when the Description of the Zephyr Unit Test doesn't has a Description ([#634](https://github.com/opendevstack/ods-jenkins-shared-library/pull/634))
 - Change association with the current release in the test cycles of previewed execution ([#638](https://github.com/opendevstack/ods-jenkins-shared-library/pull/638))
-
+- Orchestation pipeline throws a non serializable exeption issue 645 ([#649](https://github.com/opendevstack/ods-jenkins-shared-library/pull/649))
 ## [3.0] - 2020-08-11
 
 ### Added

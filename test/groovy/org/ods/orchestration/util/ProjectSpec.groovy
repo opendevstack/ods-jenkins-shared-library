@@ -1728,7 +1728,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -1824,7 +1824,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2259,7 +2259,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2604,10 +2604,10 @@ class ProjectSpec extends SpecHelper {
 
     Boolean issueListIsEquals(List issuesA, List issuesB) {
         if (issuesA.size() != issuesB.size()) return false
-        def issuesBKeys = issuesB.collect{it.key}
-        def areEquals = issuesA.collect{ issueA ->
+        def issuesBKeys = issuesB.collect { it.key }
+        def areEquals = issuesA.collect { issueA ->
             if (! issuesBKeys.contains(issueA.key)) return false
-            def correspondentIssueB = issuesB.find{it.key == issueA.key}
+            def correspondentIssueB = issuesB.find { it.key == issueA.key }
             issueIsEquals(issueA, correspondentIssueB)
         }
         return areEquals.isEmpty() || areEquals.contains(true)
