@@ -619,23 +619,34 @@ class OpenShiftService {
      * If the value for one label is the empty string, the label will be set with an empty string as value.
      * If the value for one label is null, the label will be deleted from the selected resources.
      *
-     * The selector can be:
+     * Allowed selector conditions are:
      * <code>label=value</code>
+     * <code>label==value</code>
      * <code>label!=value</code>
+     * More than one condition can be specified, separated by commas.
      *
      * @param project the project to apply the operation to. The current project, if null.
      * @param resources the resources to apply the labels to, with format <code>kind[/name]</code>.
      * @param labels a <code>Map</code> containing label keys and values.
-     * @param selector an optional label selector.
+     * @param selector a comma-separated list of label conditions.
      * @return the output of the shell script running the OpenShift client command.
+     * @throws IllegalArgumentException if no <code>resources</code> or no <code>labels</code> are provided.
      */
     String labelResources(String project, String resources, Map<String, String> labels, String selector = null) {
+        if (!resources) {
+            throw new IllegalArgumentException('You must specify the resources to label')
+        }
+        if (!labels) {
+            throw new IllegalArgumentException('At least one label update is required')
+        }
         def labelStr = labels.collect { key, value ->
             def label = key
-            label += value == null ? '-' : "=${value}"
+            label += value == null ? '-' : "='${value}'"
             return label
         }.join(' ')
-        logger.debug("Setting labels ${labelStr} to resources ${resources} selected by ${selector}")
+        if (logger.getDebugMode()) {
+            logger.debug("Setting labels ${labelStr} to resources ${resources} selected by ${selector}")
+        }
         def script = "oc label --overwrite ${resources} "
         if (selector) {
             script += "-l ${selector} "

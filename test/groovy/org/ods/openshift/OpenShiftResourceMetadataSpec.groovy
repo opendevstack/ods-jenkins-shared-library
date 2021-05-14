@@ -1,0 +1,287 @@
+package org.ods.openshift
+
+import org.ods.services.OpenShiftService
+import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
+import spock.lang.Unroll
+import util.PipelineSteps
+import util.SpecHelper
+
+class OpenShiftResourceMetadataSpec extends SpecHelper {
+    private static final metadata0 = '''
+        name: willBeIgnored
+        description: willBeIgnored
+        supplier: willBeIgnored
+    '''
+
+    private static final labels0 = [
+        'app.kubernetes.io/name':           'testComponent',
+        'app.kubernetes.io/managed-by':     'tailor',
+        'app.kubernetes.io/instance':       null,
+        'app.kubernetes.io/part-of':        null,
+        'app.openshift.io/runtime':         null,
+        'app.openshift.io/runtime-version': null,
+        'helm.sh/chart':                    null,
+    ]
+
+    private static final metadata1 = '''
+        version: '5.6'
+        type: ods
+        id: mysql
+        role: someRole
+        partOf: someBigApp
+        runtime: spring-boot
+        runtimeVersion: springBootVersion
+        odsVersion: 3.x
+        systemName: mySystem
+        projectVersion: '1.0'
+        chart: willBeIgnored
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+    '''
+
+    private static final labels1 = [
+        'app.kubernetes.io/name':               'mysql',
+        'app.kubernetes.io/managed-by':         'tailor',
+        'app.kubernetes.io/version':            '5.6',
+        'app.opendevstack.org/type':            'ods',
+        'app.kubernetes.io/component':          'someRole',
+        'app.kubernetes.io/part-of':            'someBigApp',
+        'app.openshift.io/runtime':             'spring-boot',
+        'app.openshift.io/runtime-version':     'springBootVersion',
+        'app.opendevstack.org/ods-version':     '3.x',
+        'app.kubernetes.io/instance':           'testComponent',
+        'helm.sh/chart':                        null,
+        'app.opendevstack.org/system-name':     'mySystem',
+        'app.opendevstack.org/project-version': '1.0',
+    ]
+
+    private static final metadata2 = '''
+        name: testComponent
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+    '''
+
+    private static final labels2 = [
+        'app.kubernetes.io/name':           'testComponent',
+        'app.kubernetes.io/managed-by':     'tailor',
+        'app.kubernetes.io/instance':       null,
+        'app.kubernetes.io/part-of':        null,
+        'app.openshift.io/runtime':         null,
+        'app.openshift.io/runtime-version': null,
+        'helm.sh/chart':                    null,
+    ]
+
+    private static final metadata3 = '''
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+    '''
+
+    private static final labels3 = [
+        'app.kubernetes.io/name':           'testComponent',
+        'app.kubernetes.io/managed-by':     'tailor',
+        'app.kubernetes.io/component':      'frontend',
+        'app.kubernetes.io/instance':       null,
+        'app.kubernetes.io/part-of':        null,
+        'app.openshift.io/runtime':         null,
+        'app.openshift.io/runtime-version': null,
+        'helm.sh/chart':                    null,
+    ]
+
+    private static final metadata4 = '''
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+    '''
+
+    private static final labels4 = [
+        'app.kubernetes.io/name':           'testComponent',
+        'app.kubernetes.io/managed-by':     'tailor',
+        'app.kubernetes.io/instance':       null,
+        'app.kubernetes.io/part-of':        null,
+        'app.openshift.io/runtime':         null,
+        'app.openshift.io/runtime-version': null,
+        'helm.sh/chart':                    null,
+    ]
+
+    private static final metadata5 = '''
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+    '''
+
+    private static final labels5 = [
+        'app.kubernetes.io/name':           'testComponent',
+        'app.kubernetes.io/managed-by':     'tailor',
+        'app.kubernetes.io/component':      'backend',
+        'app.kubernetes.io/instance':       null,
+        'app.kubernetes.io/part-of':        null,
+        'app.openshift.io/runtime':         null,
+        'app.openshift.io/runtime-version': null,
+        'helm.sh/chart':                    null,
+    ]
+
+    private static final metadata6 = '''
+        chart: willBeOverridden
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+    '''
+
+    private static final labels6 = [
+        'app.kubernetes.io/name':           'testComponent',
+        'app.kubernetes.io/managed-by':     'helm',
+        'app.kubernetes.io/instance':       null,
+        'app.kubernetes.io/part-of':        null,
+        'app.openshift.io/runtime':         null,
+        'app.openshift.io/runtime-version': null,
+        'helm.sh/chart':                    'myChart-1.0_10',
+    ]
+
+    private static final metadata7 = '''
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+        systemName: willBeOverridden
+        projectVersion: willBeOverridden
+    '''
+
+    private static final labels7 = [
+        'app.kubernetes.io/name':               'testComponent',
+        'app.kubernetes.io/managed-by':         'tailor',
+        'app.kubernetes.io/instance':           null,
+        'app.kubernetes.io/part-of':            null,
+        'app.openshift.io/runtime':             null,
+        'app.openshift.io/runtime-version':     null,
+        'helm.sh/chart':                        null,
+        'app.opendevstack.org/system-name':     'mySystem',
+        'app.opendevstack.org/project-version': '1.0',
+    ]
+
+    private static final metadata8 = '''
+        chart: willBeOverridden
+        componentId: willBeOverridden
+        managedBy: willBeOverridden
+        systemName: willBeOverridden
+        projectVersion: willBeOverridden
+    '''
+
+    private static final labels8 = [
+        'app.kubernetes.io/name':               'testComponent',
+        'app.kubernetes.io/managed-by':         'helm',
+        'app.kubernetes.io/instance':           null,
+        'app.kubernetes.io/part-of':            null,
+        'app.openshift.io/runtime':             null,
+        'app.openshift.io/runtime-version':     null,
+        'helm.sh/chart':                        'myChart-1.0_10',
+        'app.opendevstack.org/system-name':     'mySystem',
+        'app.opendevstack.org/project-version': '1.0',
+    ]
+
+    @Unroll
+    def "metadata is correctly assigned"(
+        String quickstarter,
+        boolean releaseManager,
+        boolean helm,
+        String metadata,
+        Map<String, String> labels
+    ) {
+        given:
+        def steps = Stub(IPipelineSteps)
+        steps.getEnv() >> [
+            BUILD_PARAM_CONFIGITEM: 'mySystem',
+            BUILD_PARAM_CHANGEID:   '1.0',
+        ]
+        def logger = new Logger(steps, false)
+        def openShift = Mock(OpenShiftService)
+        def projectId = 'testProject'
+        def componentId = 'testComponent'
+        def environment = 'dev'
+        def targetProject = "${projectId}-${environment}".toString()
+        def selector = "app=${projectId}-${componentId}".toString()
+
+        when:
+        def context = {
+            def ctx = [
+                projectId:   projectId,
+                componentId: componentId,
+            ]
+            if (quickstarter) {
+                ctx.sourceDir = quickstarter
+            } else {
+                ctx.triggeredByOrchestrationPipeline = releaseManager
+                ctx.targetProject = targetProject
+            }
+            return ctx
+        }
+        def config = {
+            def cfg = [
+                selector: selector
+            ]
+            if (quickstarter) {
+                cfg.environment = environment
+            } else {
+                cfg.chartDir = 'chart'
+            }
+            return cfg
+        }
+        steps.fileExists(quickstarter ? "${componentId}/metadata.yml" : 'metadata.yml') >> true
+        steps.fileExists('chart/Chart.yaml') >> helm
+        steps.readYaml(file: 'chart/Chart.yaml') >> [ name: 'myChart', version: '1.0+10' ]
+        steps.readYaml(_ as Map) >> { Map args ->
+            def testSteps = new PipelineSteps()
+            return testSteps.readYaml(args) { String file ->
+                def data = null
+                if (steps.fileExists(file)) {
+                    data = testSteps.readYaml(text: metadata)
+                }
+                return data
+            }
+        }
+        def metadataTool = new OpenShiftResourceMetadata(steps, context(), config(), logger, openShift)
+        metadataTool.updateMetadata()
+
+        then:
+        1 * openShift.labelResources(targetProject, 'all', labels, selector)
+
+        where:
+        quickstarter         | releaseManager | helm  | metadata  || labels
+        null                 | false          | false | metadata0 || labels0
+        null                 | false          | false | metadata1 || labels1
+        'be-java-springboot' | false          | false | metadata1 || labels1
+        null                 | false          | false | metadata2 || labels2
+        'fe-angular'         | false          | false | metadata3 || labels3
+        'be-fe-mono-repo'    | false          | false | metadata4 || labels4
+        'someQuickstarter'   | false          | false | metadata4 || labels4
+        'be-java-springboot' | false          | false | metadata5 || labels5
+        null                 | false          | true  | metadata6 || labels6
+        null                 | true           | false | metadata7 || labels7
+        null                 | true           | true  | metadata8 || labels8
+    }
+
+    @Unroll
+    def "fails without target project"() {
+        given:
+        def steps = Stub(IPipelineSteps)
+        def logger = new Logger(steps, false)
+        def openShift = Mock(OpenShiftService)
+        def projectId = 'testProject'
+        def componentId = 'testComponent'
+        def selector = "app=${projectId}-${componentId}"
+
+        when:
+        def context = [
+            projectId:                        projectId,
+            componentId:                      componentId,
+            triggeredByOrchestrationPipeline: false
+        ]
+        def config = [
+            selector: selector,
+            chartDir: 'chart'
+        ]
+        steps.fileExists('metadata.yml') >> true
+        steps.fileExists(_ as String) >> false
+        steps.readYaml(file: 'metadata.yml') >> [:]
+        def metadataTool = new OpenShiftResourceMetadata(steps, context, config, logger, openShift)
+        metadataTool.updateMetadata()
+
+        then:
+        thrown IllegalArgumentException
+    }
+}

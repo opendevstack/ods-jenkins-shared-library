@@ -5,7 +5,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.util.ILogger
-import org.ods.util.OpenShiftResourceMetadata
+import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.util.PodData
 
 @SuppressWarnings('ParameterCount')

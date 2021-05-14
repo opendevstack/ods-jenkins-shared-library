@@ -1,7 +1,7 @@
 package org.ods.quickstarter
 
 
-import org.ods.util.OpenShiftResourceMetadata
+import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.util.PipelineSteps
 
 class CreateOpenShiftResourcesStage extends Stage {
