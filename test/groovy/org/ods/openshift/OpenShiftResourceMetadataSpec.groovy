@@ -25,14 +25,12 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
     ]
 
     private static final metadata1 = '''
-        version: '5.6'
         type: ods
         id: mysql
         role: someRole
         partOf: someBigApp
         runtime: spring-boot
         runtimeVersion: springBootVersion
-        odsVersion: 3.x
         systemName: mySystem
         projectVersion: '1.0'
         chart: willBeIgnored
@@ -43,13 +41,11 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
     private static final labels1 = [
         'app.kubernetes.io/name':               'mysql',
         'app.kubernetes.io/managed-by':         'tailor',
-        'app.kubernetes.io/version':            '5.6',
         'app.opendevstack.org/type':            'ods',
         'app.kubernetes.io/component':          'someRole',
         'app.kubernetes.io/part-of':            'someBigApp',
         'app.openshift.io/runtime':             'spring-boot',
         'app.openshift.io/runtime-version':     'springBootVersion',
-        'app.opendevstack.org/ods-version':     '3.x',
         'app.kubernetes.io/instance':           'testComponent',
         'helm.sh/chart':                        null,
         'app.opendevstack.org/system-name':     'mySystem',

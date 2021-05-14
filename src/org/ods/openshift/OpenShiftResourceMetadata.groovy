@@ -33,7 +33,6 @@ class OpenShiftResourceMetadata {
      */
     private static final labelKeys = [
         name:           'app.kubernetes.io/name',
-        version:        'app.kubernetes.io/version',
         instance:       'app.kubernetes.io/instance',
         component:      'app.kubernetes.io/component',
         partOf:         'app.kubernetes.io/part-of',
@@ -42,7 +41,6 @@ class OpenShiftResourceMetadata {
         runtimeVersion: 'app.openshift.io/runtime-version',
         chart:          'helm.sh/chart',
         owner:          'app.opendevstack.org/project-owner',
-        odsVersion:     'app.opendevstack.org/ods-version',
         type:           'app.opendevstack.org/type',
         systemName:     'app.opendevstack.org/system-name',
         projectVersion: 'app.opendevstack.org/project-version',
@@ -54,7 +52,6 @@ class OpenShiftResourceMetadata {
      */
     private static final mappings = [
         name:           'id',
-        version:        'version',
         instance:       'componentId',
         component:      'role',
         partOf:         'partOf',
@@ -63,7 +60,6 @@ class OpenShiftResourceMetadata {
         runtimeVersion: 'runtimeVersion',
         chart:          'chart',
         owner:          'projectAdmin',
-        odsVersion:     'odsVersion',
         type:           'type',
         systemName:     'systemName',
         projectVersion: 'projectVersion',
