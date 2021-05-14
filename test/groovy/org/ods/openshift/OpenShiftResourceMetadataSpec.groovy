@@ -184,10 +184,6 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
     ) {
         given:
         def steps = Stub(IPipelineSteps)
-        steps.getEnv() >> [
-            BUILD_PARAM_CONFIGITEM: 'mySystem',
-            BUILD_PARAM_CHANGEID:   '1.0',
-        ]
         def logger = new Logger(steps, false)
         def openShift = Mock(OpenShiftService)
         def projectId = 'testProject'
@@ -221,9 +217,15 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
             }
             return cfg
         }
+        if (releaseManager) {
+            steps.getEnv() >> [
+                BUILD_PARAM_CONFIGITEM: 'mySystem',
+                BUILD_PARAM_CHANGEID:   '1.0',
+            ]
+        }
         steps.fileExists(quickstarter ? "${componentId}/metadata.yml" : 'metadata.yml') >> true
         steps.fileExists('chart/Chart.yaml') >> helm
-        steps.readYaml(file: 'chart/Chart.yaml') >> [ name: 'myChart', version: '1.0+10' ]
+        steps.readYaml(file: 'chart/Chart.yaml') >> [name: 'myChart', version: '1.0+10']
         steps.readYaml(_ as Map) >> { Map args ->
             def testSteps = new PipelineSteps()
             return testSteps.readYaml(args) { String file ->
@@ -269,11 +271,11 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
         def context = [
             projectId:                        projectId,
             componentId:                      componentId,
-            triggeredByOrchestrationPipeline: false
+            triggeredByOrchestrationPipeline: false,
         ]
         def config = [
             selector: selector,
-            chartDir: 'chart'
+            chartDir: 'chart',
         ]
         steps.fileExists('metadata.yml') >> true
         steps.fileExists(_ as String) >> false
