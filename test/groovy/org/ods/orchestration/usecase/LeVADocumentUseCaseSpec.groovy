@@ -1631,7 +1631,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]]
 
             when:
-            def ordered = testIssue.steps?.sort { it.orderId }
+            LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+                null, null, null, null, null, null, null,
+                null, null)
+            def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
 
             then:
             ordered.get(0).orderId == 1
