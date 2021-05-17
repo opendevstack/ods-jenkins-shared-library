@@ -300,48 +300,48 @@ class OpenShiftResourceMetadata {
      */
     private static sanitizeValues(metadata) {
         return (Map<String, String>) metadata.collectEntries { key, value ->
-                if (value == null) {
-                    return [(key): null]
-                }
-                def sanitizedValue = value.toString()
-                def len = sanitizedValue.length()
-                def i = 0
-                for (; i<len; i++) {
-                    if(Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
-                        break
-                    }
-                }
-                if (i == len) {
-                    throw new IllegalArgumentException("Metadata entries must not entirely consist of \
-                    non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
-                }
-                if (i > 0) {
-                    checkLenient(key, value)
-                    sanitizedValue = sanitizedValue.subSequence(i, len)
-                }
-                // Now the value is warranted to start with an alphanumeric character
-                if (sanitizedValue.length() > 63) {
-                    checkLenient(key, value)
-                    sanitizedValue = sanitizedValue.subSequence(0, 63)
-                }
-                len = sanitizedValue.length()
-                // Recall that the value contains at least one alphanumeric character. No guard needed.
-                i = len
-                while (!Character.isLetterOrDigit(sanitizedValue.charAt(i - 1))) {
-                    i--
-                }
-                if (i < len) {
-                    checkLenient(key, value)
-                    sanitizedValue = sanitizedValue.subSequence(0, i)
-                }
-                def matcher = sanitizedValue =~ LABEL_VALUE_PATTERN
-                def replaced = matcher.replaceAll('_')
-                if (replaced != sanitizedValue) {
-                    checkLenient(key, value)
-                    sanitizedValue = replaced
-                }
-                return [(key): sanitizedValue]
+            if (value == null) {
+                return [(key): null]
             }
+            def sanitizedValue = value.toString()
+            def len = sanitizedValue.length()
+            def i = 0
+            for (; i < len; i++) {
+                if (Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
+                    break
+                }
+            }
+            if (i == len) {
+                throw new IllegalArgumentException("Metadata entries must not entirely consist of \
+                non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
+            }
+            if (i > 0) {
+                checkLenient(key, value)
+                sanitizedValue = sanitizedValue.subSequence(i, len)
+            }
+            // Now the value is warranted to start with an alphanumeric character
+            if (sanitizedValue.length() > 63) {
+                checkLenient(key, value)
+                sanitizedValue = sanitizedValue.subSequence(0, 63)
+            }
+            len = sanitizedValue.length()
+            // Recall that the value contains at least one alphanumeric character. No guard needed.
+            i = len
+            while (!Character.isLetterOrDigit(sanitizedValue.charAt(i - 1))) {
+                i--
+            }
+            if (i < len) {
+                checkLenient(key, value)
+                sanitizedValue = sanitizedValue.subSequence(0, i)
+            }
+            def matcher = sanitizedValue =~ LABEL_VALUE_PATTERN
+            def replaced = matcher.replaceAll('_')
+            if (replaced != sanitizedValue) {
+                checkLenient(key, value)
+                sanitizedValue = replaced
+            }
+            return [(key): sanitizedValue]
+        }
     }
 
     /**
