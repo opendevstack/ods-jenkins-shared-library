@@ -895,8 +895,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    def sortTestSteps(steps) {
-        return steps?.sort(false) { it.orderId }
+    def sortTestSteps(def testSteps) {
+        return testSteps?.sort(false) { it.orderId }
     }
 
     @NonCPS
