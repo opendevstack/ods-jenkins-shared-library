@@ -8,11 +8,11 @@ import org.ods.util.IPipelineSteps
 /**
  * Utility class to handle recommended and custom labels and annotations for OpenShift resources.
  *
- * @See <ahref="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/" >
+ * @See <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/" >
  *     Kubernetes: Recommended Labels</a>
- * @See <ahref="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc" >
+ * @See <a href="https://github.com/gorkem/app-labels/blob/master/labels-annotation-for-openshift.adoc" >
  *     Guidelines for Labels and Annotations for OpenShift applications</a>
- * @See <ahref="https://helm.sh/docs/chart_best_practices/labels/" > Helm: Labels and Annotations</a>
+ * @See <a href="https://helm.sh/docs/chart_best_practices/labels/" > Helm: Labels and Annotations</a>
  *
  */
 class OpenShiftResourceMetadata {
@@ -27,23 +27,27 @@ class OpenShiftResourceMetadata {
     // Custom roles for the standard quickstarters. Arbitrary roles are supported.
     static final ROLE_SUBSYSTEM = 'subsystem' // Data-science quickstarters are assigned this role by default
 
+    private static final LABEL_VALUE_PATTERN = ~/[^\w.\-]/
+
     /**
      * <code>Map</code> with the supported labels.
      * Keys are identifiers for each label and values are the label keys.
      */
     private static final labelKeys = [
-        name:           'app.kubernetes.io/name',
-        instance:       'app.kubernetes.io/instance',
-        component:      'app.kubernetes.io/component',
-        partOf:         'app.kubernetes.io/part-of',
-        managedBy:      'app.kubernetes.io/managed-by',
-        runtime:        'app.openshift.io/runtime',
-        runtimeVersion: 'app.openshift.io/runtime-version',
-        chart:          'helm.sh/chart',
-        owner:          'app.opendevstack.org/project-owner',
-        type:           'app.opendevstack.org/type',
-        systemName:     'app.opendevstack.org/system-name',
-        projectVersion: 'app.opendevstack.org/project-version',
+        name:                 'app.kubernetes.io/name',
+        version:              'app.kubernetes.io/version',
+        instance:             'app.kubernetes.io/instance',
+        component:            'app.kubernetes.io/component',
+        partOf:               'app.kubernetes.io/part-of',
+        managedBy:            'app.kubernetes.io/managed-by',
+        runtime:              'app.openshift.io/runtime',
+        runtimeVersion:       'app.openshift.io/runtime-version',
+        chart:                'helm.sh/chart',
+        type:                 'app.opendevstack.org/type',
+        systemName:           'app.opendevstack.org/system-name',
+        project:              'app.opendevstack.org/project',
+        projectVersion:       'app.opendevstack.org/project-version',
+        projectVersionStatus: 'app.opendevstack.org/project-version-status',
     ]
 
     /**
@@ -51,18 +55,20 @@ class OpenShiftResourceMetadata {
      * Keys are label id's and values, metadata id's.
      */
     private static final mappings = [
-        name:           'id',
-        instance:       'componentId',
-        component:      'role',
-        partOf:         'partOf',
-        managedBy:      'managedBy',
-        runtime:        'runtime',
-        runtimeVersion: 'runtimeVersion',
-        chart:          'chart',
-        owner:          'projectAdmin',
-        type:           'type',
-        systemName:     'systemName',
-        projectVersion: 'projectVersion',
+        name:                 'name',
+        version:              'version',
+        instance:             'componentId',
+        component:            'role',
+        partOf:               'partOf',
+        managedBy:            'managedBy',
+        runtime:              'runtime',
+        runtimeVersion:       'runtimeVersion',
+        chart:                'chartNameAndVersion',
+        type:                 'type',
+        systemName:           'systemName',
+        project:              'projectId',
+        projectVersion:       'projectVersion',
+        projectVersionStatus: 'projectVersionStatus'
     ]
 
     /**
@@ -76,6 +82,21 @@ class OpenShiftResourceMetadata {
         'runtime',
         'runtimeVersion',
         'chart',
+    ] as Set
+
+    /**
+     * The following metadata entries cannot have their values modified.
+     * If the values are not valid for a label, the labelling process will fail with an exception.
+     * Entries not in this list can be sanitized to match the allowed character set for labels, as follows.
+     * Label values can have alphanumerical values and the characters '.', '-' and '_',
+     * and must start and end with a letter or a digit.
+     * Any heading and trailing non-alphanumeric characters will be trimmed.
+     * If they still contain illegal characters, they will be replaced with underscores.
+     * Moreover, label values cannot be longer than 63 characters. Any characters after the 63rd will also be trimmed.
+     */
+    private static final strictEntries = [
+        'version',
+        'systemName',
     ] as Set
 
     private final context
@@ -131,7 +152,9 @@ class OpenShiftResourceMetadata {
      * Retrieves metadata for the component and sets the suitable labels and annotations
      * to the component resources.
      *
-     * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data.
+     * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data,
+     * or if a metadata entry value consists entirely in non-alphanumeric characters
+     * or it is not a valid label value and the entry does not allow modifications.
      * @throws RuntimeException if there is an error setting the labels and annotations in OpenShift.
      */
     void updateMetadata() {
@@ -141,14 +164,20 @@ class OpenShiftResourceMetadata {
 
     /**
      * Retrieves metadata for the component.
+     * All metadata values are warranted to be valid strings to be used as label values.
+     * Any non-string value is converted to a string and illegal label values are
+     * sanitized, if the entry allows modifications.
      *
      * @return a <code>Map</code> with the metadata for the component.
+     * @throws IllegalArgumentException if an entry value consists entirely in non-alphanumeric characters
+     * or it is not a valid label value and the entry does not allow modifications.
      */
     private getMetadata() {
         def metadata = getDefaultMetadata()
         metadata.putAll(getComponentMetadata())
         metadata.putAll(getMandatoryMetadata())
-        if (metadata.id == metadata.componentId) {
+        metadata = sanitizeValues(metadata)
+        if (metadata.name == metadata.componentId) {
             metadata.remove('componentId')
         }
         return metadata
@@ -177,7 +206,7 @@ class OpenShiftResourceMetadata {
      */
     private getDefaultMetadata() {
         def metadata = [
-            id: context.componentId,
+            name: context.componentId,
         ]
         def role = guessRoleFromQuickStarterName()
         if (role) {
@@ -212,31 +241,107 @@ class OpenShiftResourceMetadata {
      */
     private getMandatoryMetadata() {
         def metadata = [
-            componentId: context.componentId,
-            managedBy:   'tailor',
-            //projectAdmin: 'project-admin',
-            chart:       null as String,
+            componentId:         context.componentId,
+            managedBy:           'tailor',
+            chartNameAndVersion: null as String,
+            projectId:           context.projectId,
         ]
 
         // Find out whether this component is managed by helm
         def chart = getChartNameAndVersion()
         if (chart) {
             metadata.managedBy = 'helm'
-            metadata.chart = chart
+            metadata.chartNameAndVersion = chart
         }
 
         // When triggered by the release manager, it provides some of the metadata.
         if (context.triggeredByOrchestrationPipeline) {
             metadata.putAll([
-                systemName:     steps.env?.BUILD_PARAM_CONFIGITEM as String,
-                projectVersion: steps.env?.BUILD_PARAM_CHANGEID as String,
+                systemName:           steps.env?.BUILD_PARAM_CONFIGITEM,
+                projectVersion:       steps.env?.BUILD_PARAM_CHANGEID,
+                projectVersionStatus: steps.env?.BUILD_PARAM_VERSION == 'WIP' ? 'WIP' : 'RELEASE'
             ])
-            if (metadata.systemName?.startsWith('mailto:')) {
-                metadata.systemName = ''
-            }
+        } else {
+            // For the moment, we don't allow the users to customize these labels
+            metadata.putAll([
+                systemName:           null,
+                projectVersion:       null,
+                projectVersionStatus: null,
+            ])
         }
 
         return metadata
+    }
+
+    /**
+     * Sanitize all metadata values to make sure they are valid label values.
+     * Valid label values must be 63 characters or less and must be empty
+     * or begin and end with an alphanumeric character ([a-z0-9A-Z])
+     * with dashes (-), underscores (_), dots (.), and alphanumerics between.
+     * If an illegal value is found for an entry that allows modifications, the value will be sanitized as follows:
+     * 1. Any non-alphanumeric characters will be removed from the beginning of the value.
+     * 2. If it's longer than 63 characters, the trailing characters after the 63rd will be removed.
+     * 3. Any non-alphanumeric characters will be removed from the end of the value.
+     * 4. Every remaining illegal character will be replaced with an underscore.
+     *
+     * NOTE: If, after step 1, the value is empty, an exception will be risen
+     * instead of silently assigning an empty value. This situation should be rare, only for non-empty values
+     * consisting only of non-alphanumeric characters.
+     *
+     * If an illegal value is found for an entry that does not allow modifications,
+     * an exception with an informative message will be risen, thus ending the labelling process.
+     *
+     * All values are converted to strings using the <code>toString()</code> method.
+     *
+     * @param metadata a <Map> with the metadata entries to validate.
+     * @return the metadata with <code>String</code>, possibly sanitized, values.
+     * @throws IllegalArgumentException if an illegal value is found for an entry that does not allow modifications
+     * or a value is found that consists entirely in non-alphanumeric characters.
+     */
+    private static sanitizeValues(metadata) {
+        return (Map<String, String>) metadata.collectEntries { key, value ->
+                if (value == null) {
+                    return [(key): null]
+                }
+                def sanitizedValue = value.toString()
+                def len = sanitizedValue.length()
+                def i = 0
+                for (; i<len; i++) {
+                    if(Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
+                        break
+                    }
+                }
+                if (i == len) {
+                    throw new IllegalArgumentException("Metadata entries must not entirely consist of \
+                    non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
+                }
+                if (i > 0) {
+                    checkLenient(key, value)
+                    sanitizedValue = sanitizedValue.subSequence(i, len)
+                }
+                // Now the value is warranted to start with an alphanumeric character
+                if (sanitizedValue.length() > 63) {
+                    checkLenient(key, value)
+                    sanitizedValue = sanitizedValue.subSequence(0, 63)
+                }
+                len = sanitizedValue.length()
+                // Recall that the value contains at least one alphanumeric character. No guard needed.
+                i = len
+                while (!Character.isLetterOrDigit(sanitizedValue.charAt(i - 1))) {
+                    i--
+                }
+                if (i < len) {
+                    checkLenient(key, value)
+                    sanitizedValue = sanitizedValue.subSequence(0, i)
+                }
+                def matcher = sanitizedValue =~ LABEL_VALUE_PATTERN
+                def replaced = matcher.replaceAll('_')
+                if (replaced != sanitizedValue) {
+                    checkLenient(key, value)
+                    sanitizedValue = replaced
+                }
+                return [(key): sanitizedValue]
+            }
     }
 
     /**
@@ -325,6 +430,24 @@ class OpenShiftResourceMetadata {
             }
         }
         return null
+    }
+
+    /**
+     * Checks if this metadata entry can be sanitized to match the syntax of label values.
+     * If it must be left untouched, an exception will be thrown.
+     * This method is only called when the value is not a valid label value and must be modified.
+     * Therefore, the processing will fail, if an invalid entry is found that cannot be sanitized.
+     *
+     * @param entry a metadata entry.
+     * @throws IllegalArgumentException if this metadata value cannot be modified.
+     */
+    private static checkLenient(key, value) {
+        if (strictEntries.contains(key)) {
+            throw new IllegalArgumentException("Illegal value for metadata entry. \
+                Values must be 63 characters or less, begin and end with an alphanumeric character and \
+                contain only alphanumerics, '-', '_' and '.'. Please, check the metadata.yml file: \
+                ${key}=${value}")
+        }
     }
 
     /**
