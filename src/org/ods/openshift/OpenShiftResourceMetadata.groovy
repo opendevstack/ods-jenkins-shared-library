@@ -34,20 +34,20 @@ class OpenShiftResourceMetadata {
      * Keys are identifiers for each label and values are the label keys.
      */
     private static final labelKeys = [
-        name:                 'app.kubernetes.io/name',
-        version:              'app.kubernetes.io/version',
-        instance:             'app.kubernetes.io/instance',
-        component:            'app.kubernetes.io/component',
-        partOf:               'app.kubernetes.io/part-of',
-        managedBy:            'app.kubernetes.io/managed-by',
-        runtime:              'app.openshift.io/runtime',
-        runtimeVersion:       'app.openshift.io/runtime-version',
-        chart:                'helm.sh/chart',
-        type:                 'app.opendevstack.org/type',
-        systemName:           'app.opendevstack.org/system-name',
-        project:              'app.opendevstack.org/project',
-        projectVersion:       'app.opendevstack.org/project-version',
-        projectVersionStatus: 'app.opendevstack.org/project-version-status',
+        name:           'app.kubernetes.io/name',
+        version:        'app.kubernetes.io/version',
+        instance:       'app.kubernetes.io/instance',
+        component:      'app.kubernetes.io/component',
+        partOf:         'app.kubernetes.io/part-of',
+        managedBy:      'app.kubernetes.io/managed-by',
+        runtime:        'app.openshift.io/runtime',
+        runtimeVersion: 'app.openshift.io/runtime-version',
+        chart:          'helm.sh/chart',
+        type:           'app.opendevstack.org/type',
+        systemName:     'app.opendevstack.org/system-name',
+        project:        'app.opendevstack.org/project',
+        projectVersion: 'app.opendevstack.org/project-version',
+        workInProgress: 'app.opendevstack.org/work-in-progress',
     ]
 
     /**
@@ -55,20 +55,20 @@ class OpenShiftResourceMetadata {
      * Keys are label id's and values, metadata id's.
      */
     private static final mappings = [
-        name:                 'name',
-        version:              'version',
-        instance:             'componentId',
-        component:            'role',
-        partOf:               'partOf',
-        managedBy:            'managedBy',
-        runtime:              'runtime',
-        runtimeVersion:       'runtimeVersion',
-        chart:                'chartNameAndVersion',
-        type:                 'type',
-        systemName:           'systemName',
-        project:              'projectId',
-        projectVersion:       'projectVersion',
-        projectVersionStatus: 'projectVersionStatus'
+        name:           'name',
+        version:        'version',
+        instance:       'componentId',
+        component:      'role',
+        partOf:         'partOf',
+        managedBy:      'managedBy',
+        runtime:        'runtime',
+        runtimeVersion: 'runtimeVersion',
+        chart:          'chartNameAndVersion',
+        type:           'type',
+        systemName:     'systemName',
+        project:        'projectId',
+        projectVersion: 'projectVersion',
+        workInProgress: 'workInProgress',
     ]
 
     /**
@@ -95,7 +95,7 @@ class OpenShiftResourceMetadata {
      * Moreover, label values cannot be longer than 63 characters. Any characters after the 63rd will also be trimmed.
      */
     private static final strictEntries = [
-        'version',
+        'projectVersion',
         'systemName',
     ] as Set
 
@@ -257,16 +257,16 @@ class OpenShiftResourceMetadata {
         // When triggered by the release manager, it provides some of the metadata.
         if (context.triggeredByOrchestrationPipeline) {
             metadata.putAll([
-                systemName:           steps.env?.BUILD_PARAM_CONFIGITEM,
-                projectVersion:       steps.env?.BUILD_PARAM_CHANGEID,
-                projectVersionStatus: steps.env?.BUILD_PARAM_VERSION == 'WIP' ? 'WIP' : 'RELEASE'
+                systemName:     steps.env?.BUILD_PARAM_CONFIGITEM,
+                projectVersion: steps.env?.BUILD_PARAM_CHANGEID,
+                workInProgress: steps.env?.BUILD_PARAM_VERSION == 'WIP'
             ])
         } else {
             // For the moment, we don't allow the users to customize these labels
             metadata.putAll([
-                systemName:           null,
-                projectVersion:       null,
-                projectVersionStatus: null,
+                systemName:     null,
+                projectVersion: null,
+                workInProgress: null,
             ])
         }
 
@@ -420,6 +420,8 @@ class OpenShiftResourceMetadata {
             def chartPath = "${config.chartDir}/Chart.yaml"
             if (steps.fileExists(chartPath)) {
                 def chart = steps.readYaml(file: chartPath)
+                // The following replacement is as per the specification of this label
+                // and independent of the way we choose to sanitize labels otherwise.
                 return "${chart.name}-${chart.version.replace('+' as char, '_' as char)}"
             }
         }

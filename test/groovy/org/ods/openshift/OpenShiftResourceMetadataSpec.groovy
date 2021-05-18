@@ -147,17 +147,17 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
     '''
 
     private static final labels7 = [
-        'app.kubernetes.io/name':                      'testComponent',
-        'app.kubernetes.io/managed-by':                'tailor',
-        'app.kubernetes.io/instance':                  null,
-        'app.kubernetes.io/part-of':                   null,
-        'app.openshift.io/runtime':                    null,
-        'app.openshift.io/runtime-version':            null,
-        'helm.sh/chart':                               null,
-        'app.opendevstack.org/system-name':            'mySystem',
-        'app.opendevstack.org/project-version':        '1.0',
-        'app.opendevstack.org/project-version-status': 'WIP',
-        'app.opendevstack.org/project':                'testProject',
+        'app.kubernetes.io/name':                'testComponent',
+        'app.kubernetes.io/managed-by':          'tailor',
+        'app.kubernetes.io/instance':            null,
+        'app.kubernetes.io/part-of':             null,
+        'app.openshift.io/runtime':              null,
+        'app.openshift.io/runtime-version':      null,
+        'helm.sh/chart':                         null,
+        'app.opendevstack.org/system-name':      'mySystem',
+        'app.opendevstack.org/project-version':  '1.0',
+        'app.opendevstack.org/work-in-progress': 'true',
+        'app.opendevstack.org/project':          'testProject',
     ]
 
     private static final metadata8 = '''
@@ -169,17 +169,17 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
     '''
 
     private static final labels8 = [
-        'app.kubernetes.io/name':                      'testComponent',
-        'app.kubernetes.io/managed-by':                'helm',
-        'app.kubernetes.io/instance':                  null,
-        'app.kubernetes.io/part-of':                   null,
-        'app.openshift.io/runtime':                    null,
-        'app.openshift.io/runtime-version':            null,
-        'helm.sh/chart':                               'myChart-1.0_10',
-        'app.opendevstack.org/system-name':            'mySystem',
-        'app.opendevstack.org/project-version':        '1.0',
-        'app.opendevstack.org/project-version-status': 'RELEASE',
-        'app.opendevstack.org/project':                'testProject',
+        'app.kubernetes.io/name':                'testComponent',
+        'app.kubernetes.io/managed-by':          'helm',
+        'app.kubernetes.io/instance':            null,
+        'app.kubernetes.io/part-of':             null,
+        'app.openshift.io/runtime':              null,
+        'app.openshift.io/runtime-version':      null,
+        'helm.sh/chart':                         'myChart-1.0_10',
+        'app.opendevstack.org/system-name':      'mySystem',
+        'app.opendevstack.org/project-version':  '1.0',
+        'app.opendevstack.org/work-in-progress': 'false',
+        'app.opendevstack.org/project':          'testProject',
     ]
 
     @Unroll
@@ -336,13 +336,12 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
         def projectId = 'testProject'
         def componentId = 'testComponent'
         def selector = "app=${projectId}-${componentId}"
-
-        when:
         def context = [
             projectId:                        projectId,
             componentId:                      componentId,
             triggeredByOrchestrationPipeline: false,
-            targetProject:                    "${projectId}-dev"
+            targetProject:                    "${projectId}-dev",
+            triggeredByOrchestrationPipeline: true,
         ]
         def config = [
             selector: selector,
@@ -350,8 +349,28 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
         ]
         steps.fileExists('metadata.yml') >> true
         steps.fileExists(_ as String) >> false
-        steps.readYaml(file: 'metadata.yml') >> [ version: '1+1' ]
-        def metadataTool = new OpenShiftResourceMetadata(steps, context, config, logger, openShift)
+        steps.readYaml(file: 'metadata.yml') >> [ systemName: 'willBeIgnored' ]
+        def metadataTool
+
+        when:
+        steps.getEnv() >> [
+            BUILD_PARAM_CONFIGITEM: 'mySystem',
+            BUILD_PARAM_CHANGEID:   '1+0',
+            BUILD_PARAM_VERSION:    'WIP',
+        ]
+        metadataTool = new OpenShiftResourceMetadata(steps, context, config, logger, openShift)
+        metadataTool.updateMetadata()
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        steps.getEnv() >> [
+            BUILD_PARAM_CONFIGITEM: 'my+System',
+            BUILD_PARAM_CHANGEID:   '1.0',
+            BUILD_PARAM_VERSION:    '1.0',
+        ]
+        metadataTool = new OpenShiftResourceMetadata(steps, context, config, logger, openShift)
         metadataTool.updateMetadata()
 
         then:
