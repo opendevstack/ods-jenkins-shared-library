@@ -207,8 +207,8 @@ class JiraUseCase {
             content = content ? content.getValue() : ""
 
             def documentTypes = (issue.fields.labels ?: [])
-                .findAll{String l -> l.startsWith(LabelPrefix.DOCUMENT)}
-                .collect{String l -> l.replace(LabelPrefix.DOCUMENT, '')}
+                .findAll { String l -> l.startsWith(LabelPrefix.DOCUMENT) }
+                .collect { String l -> l.replace(LabelPrefix.DOCUMENT, '') }
             if (documentTypes.size() == 0) {
                 throw new IllegalArgumentException("Error: issue '${issue.key}' of type " +
                     "'${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' contains no " +
@@ -218,7 +218,7 @@ class JiraUseCase {
 
             def predecessorLinks = issue.fields.issuelinks
                 .findAll { it.type.name == "Succeeds" && it.outwardIssue?.key }
-                .collect{ it.outwardIssue.key }
+                .collect { it.outwardIssue.key }
 
             return [(issue.key as String): [
                     section: "sec${number.replaceAll(/\./, "s")}".toString(),

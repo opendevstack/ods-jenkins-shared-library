@@ -1616,7 +1616,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
 
-    def "order steps"(){
+    def "order steps"() {
         given:
         def  testIssue = [ key: "JIRA-1" ,
               steps: [

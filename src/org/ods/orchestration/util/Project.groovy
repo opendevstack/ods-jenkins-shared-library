@@ -375,20 +375,20 @@ class Project {
             this.addCommentInReleaseStatus(message)
         }
 
-        if(this.jiraUseCase.jira){
+        if(this.jiraUseCase.jira) {
             logger.debug("Verify that each unit test in Jira project ${this.key} has exactly one component assigned.")
             def faultMap = [:]
             this.data.jira.tests
-                .findAll{it.value.get("testType") == "Unit"}
-                .each{entry ->
-                    if(entry.value.get("components").size() != 1){
+                .findAll { it.value.get("testType") == "Unit" }
+                .each { entry ->
+                    if(entry.value.get("components").size() != 1) {
                         faultMap.put(entry.key, entry.value.get("components").size())
                     }
                 }
-            if(faultMap.size() != 0){
+            if(faultMap.size() != 0) {
                 def faultyTestIssues = faultMap.keySet()
-                    .collect{key -> key + ": " + faultMap.get(key) + "; "}
-                    .inject(""){temp, val -> temp + val}
+                    .collect { key -> key + ": " + faultMap.get(key) + "; " }
+                    .inject("") { temp, val -> temp + val }
                 throw new IllegalArgumentException("Error: unit tests must have exactly 1 component assigned. Following unit tests have an invalid number of components: ${faultyTestIssues}")
             }
         }
@@ -401,16 +401,19 @@ class Project {
         return this
     }
 
+    @NonCPS
     Map<String, List> getWipJiraIssues() {
         return this.data.jira.undone
     }
 
+    @NonCPS
     boolean hasWipJiraIssues() {
         def values = this.getWipJiraIssues().values()
         values = values.collect { it instanceof Map ? it.values() : it }.flatten()
         return !values.isEmpty()
     }
 
+    @NonCPS
     boolean isProjectReadyToFreeze(Map data) {
         def result = true
         JiraDataItem.TYPES_TO_BE_CLOSED.each { type ->
@@ -421,6 +424,7 @@ class Project {
         return result
     }
 
+    @NonCPS
     protected Map<String, List> computeWipJiraIssues(Map data) {
         def result = [:]
         JiraDataItem.TYPES_WITH_STATUS.each { type ->
@@ -437,6 +441,7 @@ class Project {
      * @param data jira data
      * @return dict with map documentTypes -> sectionsNotDoneKeys
      */
+    @NonCPS
     protected Map<String,List> computeWipDocChapterPerDocument(Map data) {
         (data[JiraDataItem.TYPE_DOCS] ?: [:])
             .values()
@@ -450,12 +455,14 @@ class Project {
             }
     }
 
+    @NonCPS
     protected boolean issueIsWIP(Map issue) {
         issue.status != null &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE) &&
             !issue.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_CANCELLED)
     }
 
+    @NonCPS
     protected Map convertJiraDataToJiraDataItems(Map data) {
         JiraDataItem.TYPES.each { type ->
             if (data.containsKey(type)) {
@@ -471,6 +478,7 @@ class Project {
         return data
     }
 
+    @NonCPS
     List<JiraDataItem> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { key, testIssue ->
             def result = testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
@@ -489,6 +497,7 @@ class Project {
         }.values() as List
     }
 
+    @NonCPS
     Map getEnumDictionary(String name) {
         return this.data.jira.project.enumDictionary[name]
     }
@@ -497,18 +506,22 @@ class Project {
         return this.data.jira.project.projectProperties
     }
 
+    @NonCPS
     List<JiraDataItem> getAutomatedTestsTypeAcceptance(String componentName = null) {
         return this.getAutomatedTests(componentName, [TestType.ACCEPTANCE])
     }
 
+    @NonCPS
     List<JiraDataItem> getAutomatedTestsTypeInstallation(String componentName = null) {
         return this.getAutomatedTests(componentName, [TestType.INSTALLATION])
     }
 
+    @NonCPS
     List<JiraDataItem> getAutomatedTestsTypeIntegration(String componentName = null) {
         return this.getAutomatedTests(componentName, [TestType.INTEGRATION])
     }
 
+    @NonCPS
     List<JiraDataItem> getAutomatedTestsTypeUnit(String componentName = null) {
         return this.getAutomatedTests(componentName, [TestType.UNIT])
     }
@@ -666,22 +679,27 @@ class Project {
         return null
     }
 
+    @NonCPS
     List<JiraDataItem> getBugs() {
         return this.data.jira.bugs.values() as List
     }
 
+    @NonCPS
     List<JiraDataItem> getComponents() {
         return this.data.jira.components.values() as List
     }
 
+    @NonCPS
     String getDescription() {
         return this.data.metadata.description
     }
 
+    @NonCPS
     List<Map> getDocumentTrackingIssues() {
         return this.data.jira.trackingDocs.values() as List
     }
 
+    @NonCPS
     List<Map> getDocumentTrackingIssues(List<String> labels) {
         def result = []
 
@@ -697,10 +715,12 @@ class Project {
         return result.unique()
     }
 
+    @NonCPS
     List<Map> getDocumentTrackingIssuesForHistory() {
         return this.data.jira.trackingDocsForHistory.values() as List
     }
 
+    @NonCPS
     List<Map> getDocumentTrackingIssuesForHistory(List<String> labels) {
         def result = []
 
@@ -716,6 +736,7 @@ class Project {
         return result.unique()
     }
 
+    @NonCPS
     List<Map> getDocumentTrackingIssuesNotDone(List<String> labels) {
         return this.getDocumentTrackingIssues(labels).findAll {
             !it.status.equalsIgnoreCase(JiraDataItem.ISSUE_STATUS_DONE)
@@ -752,10 +773,12 @@ class Project {
         return new URIBuilder(result).build()
     }
 
+    @NonCPS
     List<JiraDataItem> getEpics() {
         return this.data.jira.epics.values() as List
     }
 
+    @NonCPS
     Map<String, DocumentHistory> getDocumentHistories() {
         return this.data.documentHistories ?: [:]
     }
@@ -781,6 +804,7 @@ class Project {
      * @param issueTypeName Jira issue type
      * @return Map containing [id: "customfield_XYZ", name:"name shown in jira"]
      */
+    @NonCPS
     Map getJiraFieldsForIssueType(String issueTypeName) {
         return this.data.jira?.issueTypes[issueTypeName]?.fields ?: [:]
     }
@@ -798,6 +822,7 @@ class Project {
         return getKey()
     }
 
+    @NonCPS
     List<JiraDataItem> getMitigations() {
         return this.data.jira.mitigations.values() as List
     }
@@ -806,10 +831,12 @@ class Project {
         return this.data.metadata.name
     }
 
+    @NonCPS
     List<Map> getRepositories() {
         return this.data.metadata.repositories
     }
 
+    @NonCPS
     List<JiraDataItem> getRequirements() {
         return this.data.jira.requirements.values() as List
     }
@@ -818,14 +845,17 @@ class Project {
         return this.data.metadata.environments
     }
 
+    @NonCPS
     List<JiraDataItem> getRisks() {
         return this.data.jira.risks.values() as List
     }
 
+    @NonCPS
     Map getServices() {
         return this.data.metadata.services
     }
 
+    @NonCPS
     List<JiraDataItem> getSystemRequirements(String componentName = null, List<String> gampTopics = []) {
         return this.data.jira.requirements.findAll { key, req ->
             def result = true
@@ -843,22 +873,27 @@ class Project {
         }.values() as List
     }
 
+    @NonCPS
     List<JiraDataItem> getSystemRequirementsTypeAvailability(String componentName = null) {
         return this.getSystemRequirements(componentName, [GampTopic.AVAILABILITY_REQUIREMENT])
     }
 
+    @NonCPS
     List<JiraDataItem> getSystemRequirementsTypeConstraints(String componentName = null) {
         return this.getSystemRequirements(componentName, [GampTopic.CONSTRAINT])
     }
 
+    @NonCPS
     List<JiraDataItem> getSystemRequirementsTypeFunctional(String componentName = null) {
         return this.getSystemRequirements(componentName, [GampTopic.FUNCTIONAL_REQUIREMENT])
     }
 
+    @NonCPS
     List<JiraDataItem> getSystemRequirementsTypeInterfaces(String componentName = null) {
         return this.getSystemRequirements(componentName, [GampTopic.INTERFACE_REQUIREMENT])
     }
 
+    @NonCPS
     List<JiraDataItem> getTechnicalSpecifications(String componentName = null) {
         return this.data.jira.techSpecs.findAll { key, techSpec ->
             def result = true
@@ -872,20 +907,24 @@ class Project {
         }.values() as List
     }
 
+    @NonCPS
     List<JiraDataItem> getTests() {
         return this.data.jira.tests.values() as List
     }
 
+    @NonCPS
     List<JiraDataItem> getDocumentChaptersForDocument(String document) {
         def docs = this.data.jira[JiraDataItem.TYPE_DOCS] ?: [:]
         return docs.findAll { k, v -> v.documents && v.documents.contains(document) }.values() as List
     }
 
+    @NonCPS
     List<String> getWIPDocChaptersForDocument(String documentType) {
         def docs = this.getWIPDocChapters()
         return docs[documentType] ?: []
     }
 
+    @NonCPS
     Map getWIPDocChapters() {
         return this.data.jira.undoneDocChapters ?: [:]
     }
@@ -934,20 +973,24 @@ class Project {
         return "${getKey()}-${getConcreteEnvironment()}"
     }
 
+    @NonCPS
     boolean historyForDocumentExists(String document) {
         return this.getHistoryForDocument(document) ? true : false
     }
 
+    @NonCPS
     DocumentHistory getHistoryForDocument(String document) {
         return this.data.documentHistories[document]
     }
 
+    @NonCPS
     DocumentHistory findHistoryForDocumentType(String documentType) {
         // All docHistories for DTR and TIR should have the same version
         def key = this.data.documentHistories.keySet().find { it.startsWith(documentType) }
         return this.getHistoryForDocument(key)
     }
 
+    @NonCPS
     void setHistoryForDocument(DocumentHistory docHistory, String document) {
         this.data.documentHistories[document] = docHistory
     }
@@ -1543,10 +1586,10 @@ class Project {
                 if (link.action == 'add') {
                     left[issueType][issueToUpdateKey][link.linkType] << link.origin
                 } else if (link.action == 'discontinue') {
-                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link.origin }
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll { it == link.origin }
                 } else if (link.action == 'change') {
                     left[issueType][issueToUpdateKey][link.linkType] << link.origin
-                    left[issueType][issueToUpdateKey][link.linkType].removeAll{ it == link."replaces" }
+                    left[issueType][issueToUpdateKey][link.linkType].removeAll { it == link."replaces" }
                 }
                 // Remove potential duplicates in place
                 left[issueType][issueToUpdateKey][link.linkType].unique(true)
@@ -1631,6 +1674,7 @@ class Project {
      * @param newComponents components for the new data
      * @return merged components with all the links
      */
+    @NonCPS
     private Map mergeComponentsLinks(Map oldComponents, Map newComponents) {
         oldComponents[JiraDataItem.TYPE_COMPONENTS].collectEntries { compName, oldComp ->
             def newComp = newComponents[JiraDataItem.TYPE_COMPONENTS][compName] ?: [:]
@@ -1639,6 +1683,7 @@ class Project {
         }
     }
 
+    @NonCPS
     private static mergeJiraItemLinks(Map oldItem, Map newItem, List discontinuations = []) {
         Map oldItemWithCurrentLinks = oldItem.collectEntries { key, value ->
             if (JiraDataItem.TYPES.contains(key)) {
@@ -1658,6 +1703,7 @@ class Project {
         }
     }
 
+    @NonCPS
     private Map<String, List<String>> discontinuationsPerType (Map savedData, List<String> discontinuations) {
         savedData.findAll { JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { String issueType, Map issues ->
@@ -1666,12 +1712,14 @@ class Project {
             }
     }
 
+    @NonCPS
     private List<String> getComponentDiscontinuations(Map oldData, Map newData) {
         def oldComponents = (oldData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).keySet()
         def newComponents = (newData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).keySet()
         (oldComponents - newComponents) as List
     }
 
+    @NonCPS
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version
         (jiraData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).each { k, component ->
@@ -1683,6 +1731,7 @@ class Project {
         jiraData
     }
 
+    @NonCPS
     private static List getDiscontinuedLinks(Map savedData, List<String> discontinuations) {
         savedData.findAll { JiraDataItem.TYPES.contains(it.key) }.collect {
             issueType, Map issues ->
@@ -1699,6 +1748,7 @@ class Project {
         }.flatten()
     }
 
+    @NonCPS
     private static Map<String, List> buildChangesInLinks(Map oldData, Map updates) {
         def discontinuedLinks = getDiscontinuedLinks(oldData, (updates.discontinuations ?: []))
         def additionsAndChanges = getAdditionsAndChangesInLinks(updates)
@@ -1706,6 +1756,7 @@ class Project {
         return (discontinuedLinks + additionsAndChanges).groupBy { it.target }
     }
 
+    @NonCPS
     private static List getAdditionsAndChangesInLinks(Map newData) {
         def getLink = { String issueType, Map issue, String targetKey, Boolean isAnUpdate ->
             if (isAnUpdate) {
@@ -1729,6 +1780,7 @@ class Project {
         }.flatten()
     }
 
+    @NonCPS
     private static Map removeObsoleteIssues(Map jiraData, List<String> keysToRemove) {
         def result = jiraData.collectEntries { issueType, content ->
             if (JiraDataItem.TYPES.contains(issueType)) {
@@ -1748,6 +1800,7 @@ class Project {
      * @param jiraData map of jira data
      * @return a Map with the issue keys as values and their respective predecessor keys as keys
      */
+    @NonCPS
     private static Map getSuccessorIndex(Map jiraData) {
         def index = [:]
         jiraData.findAll { JiraDataItem.TYPES.contains(it.key) }.values().each { issueGroup ->
@@ -1765,6 +1818,7 @@ class Project {
      * @param newData data for the current version
      * @return Map new data with the issue predecessors expanded
      */
+    @NonCPS
     private static Map expandPredecessorInformation(Map savedData, Map newData, List discontinuations) {
         def expandPredecessor = { String issueType, String issueKey, String predecessor ->
             def predecessorIssue = (savedData[issueType] ?: [:])[predecessor]
