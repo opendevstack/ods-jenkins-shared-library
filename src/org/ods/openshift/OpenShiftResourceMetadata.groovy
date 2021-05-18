@@ -304,33 +304,27 @@ class OpenShiftResourceMetadata {
                 return [(key): null]
             }
             def sanitizedValue = value.toString()
-            def len = sanitizedValue.length()
+            def end = sanitizedValue.length()
             def i = 0
-            for (; i < len; i++) {
-                if (Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
-                    break
-                }
+            while (i < end && !Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
+                i++
             }
-            if (i == len) {
+            if (i == end) {
                 throw new IllegalArgumentException("Metadata entries must not entirely consist of \
                 non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
             }
-            if (i > 0) {
+            // Now the value is warranted to contain, at least, one alphanumeric character.
+            if (i > 0 || end > 63) {
                 checkLenient(key, value)
-                sanitizedValue = sanitizedValue.subSequence(i, len)
+                sanitizedValue = sanitizedValue.subSequence(i, Math.min(end, i + 63))
             }
-            // Now the value is warranted to start with an alphanumeric character
-            if (sanitizedValue.length() > 63) {
-                checkLenient(key, value)
-                sanitizedValue = sanitizedValue.subSequence(0, 63)
-            }
-            len = sanitizedValue.length()
-            // Recall that the value contains at least one alphanumeric character. No guard needed.
-            i = len
+            end = sanitizedValue.length()
+            i = end
+            // Recall that the value contains, at least, one alphanumeric character. No guard needed.
             while (!Character.isLetterOrDigit(sanitizedValue.charAt(i - 1))) {
                 i--
             }
-            if (i < len) {
+            if (i < end) {
                 checkLenient(key, value)
                 sanitizedValue = sanitizedValue.subSequence(0, i)
             }
