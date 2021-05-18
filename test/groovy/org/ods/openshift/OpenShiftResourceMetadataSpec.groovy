@@ -349,7 +349,7 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
         ]
         steps.fileExists('metadata.yml') >> true
         steps.fileExists(_ as String) >> false
-        steps.readYaml(file: 'metadata.yml') >> [ systemName: 'willBeIgnored' ]
+        steps.readYaml(file: 'metadata.yml') >> [:]
         def metadataTool
 
         when:
