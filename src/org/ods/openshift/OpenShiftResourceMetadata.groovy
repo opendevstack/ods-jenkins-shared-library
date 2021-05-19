@@ -243,9 +243,9 @@ class OpenShiftResourceMetadata {
         def metadata = [
             componentId:         context.componentId,
             managedBy:           'tailor',
-            chartNameAndVersion: null as String,
+            chartNameAndVersion: null as Object,
             projectId:           context.projectId,
-        ] as Map<String, ?>
+        ]
 
         // Find out whether this component is managed by helm
         def chart = getChartNameAndVersion()
