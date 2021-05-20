@@ -100,4 +100,18 @@ class JiraUseCaseZephyrSupportSpec extends SpecHelper {
         _ * zephyr.createTestExecutionForIssue(*_) >> ["1": []]
         1 * support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
     }
+
+    def "generate test cycle for developer previews"() {
+        given:
+        def testIssues = createJiraTestIssues()
+        def testResults = createTestResults()
+        project.buildParams.version = 'WIP'
+
+        when:
+        support.applyXunitTestResultsAsTestExecutionStatii(testIssues, testResults)
+
+        then:
+        1 * zephyr.createTestCycle(project.id, "11100", "Preview: Build " + steps.env.BUILD_ID, steps.env.BUILD_URL, project.buildParams.targetEnvironment) >> [id: "111"]
+        _ * zephyr.createTestExecutionForIssue(*_) >> ["1": []]
+    }
 }

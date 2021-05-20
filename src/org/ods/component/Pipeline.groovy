@@ -66,6 +66,8 @@ class Pipeline implements Serializable {
         if (!config.componentId) {
             script.error "Param 'componentId' is required"
         }
+        // amendProjectAndComponent.. will set the repoName from the origin url
+        // in case componentId or projectId was set hard, we use those to set it
         // allow to overwrite in case NOT ods std (e.g. from a migration)
         if (!config.repoName) {
             config.repoName = "${config.projectId}-${config.componentId}"
@@ -213,6 +215,7 @@ class Pipeline implements Serializable {
                         script.wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
                             gitService.checkout(
                                 context.gitCommit,
+                                [],
                                 [[credentialsId: context.credentialsId, url: context.gitUrl]]
                             )
                             if (this.displayNameUpdateEnabled) {
@@ -390,6 +393,7 @@ class Pipeline implements Serializable {
             if (!config.projectId) {
                 config.projectId = project
             }
+            // get the repo name from the git url
             config.repoName = splittedOrigin.last().replace('.git', '')
             if (!config.componentId) {
                 config.componentId = config.repoName - ~/^${project}-/
