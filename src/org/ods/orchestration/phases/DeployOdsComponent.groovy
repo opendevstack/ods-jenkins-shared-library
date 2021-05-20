@@ -2,15 +2,17 @@ package org.ods.orchestration.phases
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+
+import org.ods.util.IPipelineSteps
+import org.ods.util.ILogger
+import org.ods.services.GitService
+import org.ods.services.OpenShiftService
+import org.ods.services.JenkinsService
+import org.ods.services.ServiceRegistry
+import org.ods.services.GitService
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.services.GitService
-import org.ods.services.JenkinsService
-import org.ods.services.OpenShiftService
-import org.ods.services.ServiceRegistry
-import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
 
 // Deploy ODS comnponent (code or service) to 'qa' or 'prod'.
 @TypeChecked
@@ -46,7 +48,7 @@ class DeployOdsComponent {
 
             def originalDeploymentVersions = gatherOriginalDeploymentVersions(deploymentDescriptor.deployments)
 
-            updateOpenshiftResources(openShiftDir, "app=${project.key}-${repo.id}")
+            applyTemplates(openShiftDir, "app=${project.key}-${repo.id}")
 
             deploymentDescriptor.deployments.each { String deploymentName, Map deployment ->
 
@@ -105,7 +107,7 @@ class DeployOdsComponent {
         }
     }
 
-    private void updateOpenshiftResources(String openShiftDir, String componentSelector) {
+    private void applyTemplates(String openShiftDir, String componentSelector) {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         steps.dir(openShiftDir) {
             logger.info(

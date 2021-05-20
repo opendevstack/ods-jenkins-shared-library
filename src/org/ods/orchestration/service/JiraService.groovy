@@ -402,16 +402,12 @@ class JiraService {
     }
 
     @NonCPS
-    Map getProject(String projectKey, String expand = null) {
+    Map getProject(String projectKey) {
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to get project from Jira. \'projectKey\' is undefined.')
         }
 
-        def url = "${this.baseURL}/rest/api/2/project/{projectKey}"
-        if(expand) {
-            url += "?expand=${expand}"
-        }
-        def response = Unirest.get(url)
+        def response = Unirest.get("${this.baseURL}/rest/api/2/project/{projectKey}")
             .routeParam('projectKey', projectKey.toUpperCase())
             .basicAuth(this.username, this.password)
             .header('Accept', 'application/json')
