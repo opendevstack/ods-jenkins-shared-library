@@ -1,6 +1,6 @@
 package org.ods.openshift
 
-
+import groovy.transform.TypeChecked
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -54,7 +54,7 @@ class OpenShiftResourceMetadata {
      * <code>Map</code> with the mapping between label id's and metadata id's.
      * Keys are label id's and values, metadata id's.
      */
-    private static final mappings = [
+    private static final labelToMetadataMapping = [
         name:           'name',
         version:        'version',
         instance:       'componentId',
@@ -134,6 +134,7 @@ class OpenShiftResourceMetadata {
      * @param logger an <code>ILogger</code> instance.
      * @param openShift an optional instance of <code>OpenShiftService</code>. A new one will be created, if not given.
      */
+    @TypeChecked
     OpenShiftResourceMetadata(
         IPipelineSteps steps,
         Map context,
@@ -185,7 +186,7 @@ class OpenShiftResourceMetadata {
 
     /**
      * Sets the suitable labels and annotations to the component resource from the given metadata.
-     * It will only use entries whose keys are one of the values in the <code>mappings Map</code>.
+     * It will only use entries whose keys are one of the values in the <code>labelToMetadataMapping Map</code>.
      *
      * @param metadata a <code>Map</code> with the metadata to use to set the labels.
      * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data.
@@ -193,9 +194,11 @@ class OpenShiftResourceMetadata {
      */
     private setMetadata(metadata) {
         // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
-        def labels = labelKeys
-            .findAll { key, value -> removableKeys.contains(key) || metadata[mappings[key]] != null }
-            .collectEntries { key, value -> [(value): metadata[mappings[key]]] }
+        def labels = labelKeys.findAll { key, value ->
+            removableKeys.contains(key) || metadata[labelToMetadataMapping[key]] != null
+        }.collectEntries { key, value ->
+            [(value): metadata[labelToMetadataMapping[key]]]
+        }
         openShift.labelResources(getTargetProject(), 'all', labels, config.selector)
     }
 
