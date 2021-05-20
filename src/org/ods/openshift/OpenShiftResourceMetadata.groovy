@@ -154,8 +154,7 @@ class OpenShiftResourceMetadata {
      * to the component resources.
      *
      * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data,
-     * or if a metadata entry value consists entirely in non-alphanumeric characters
-     * or it is not a valid label value and the entry does not allow modifications.
+     * or if some invalid metadata was found.
      * @throws RuntimeException if there is an error setting the labels and annotations in OpenShift.
      */
     void updateMetadata() {
@@ -171,7 +170,8 @@ class OpenShiftResourceMetadata {
      *
      * @return a <code>Map</code> with the metadata for the component.
      * @throws IllegalArgumentException if an entry value consists entirely in non-alphanumeric characters
-     * or it is not a valid label value and the entry does not allow modifications.
+     * or it is not a valid label value and the entry does not allow modifications
+     * or some other invalid metadata was found.
      */
     private getMetadata() {
         def metadata = getDefaultMetadata()
@@ -241,6 +241,7 @@ class OpenShiftResourceMetadata {
      * This metadata is expected, instead, to override user metadata.
      *
      * @return a <code>Map</code> with mandatory metadata for the component.
+     * @throws IllegalArgumentException if a invalid chart file is found.
      */
     private getMandatoryMetadata() {
         def metadata = [
@@ -397,7 +398,7 @@ class OpenShiftResourceMetadata {
      * @return a <code>Map</code> with the metadata set up in the component.
      */
     private getMetadataFromComponent() {
-        return readMetadata('metadata.yml')
+        return readYaml('metadata.yml')
     }
 
     /**
@@ -407,7 +408,7 @@ class OpenShiftResourceMetadata {
      * @return a <code>Map</code> with the default metadata for components provisioned with the current quickstarter.
      */
     private getMetadataFromQuickStarter() {
-        return readMetadata("${context.componentId}/metadata.yml")
+        return readYaml("${context.componentId}/metadata.yml")
     }
 
     /**
@@ -417,12 +418,17 @@ class OpenShiftResourceMetadata {
      * It replaces any '+' symbol in the version with a '_' symbol.
      *
      * @return the chart name-version string, or null if no chart file can be found.
+     * @throws IllegalArgumentException if the chart file does not have name or version.
      */
     private getChartNameAndVersion() {
         if (config.chartDir) {
-            def chartPath = "${config.chartDir}/Chart.yaml"
-            if (steps.fileExists(chartPath)) {
-                def chart = steps.readYaml(file: chartPath)
+            def chart = readYaml("${config.chartDir}/Chart.yaml")
+            if (chart != null) {
+                if (!chart.name || !chart.version) {
+                    throw new IllegalArgumentException(
+                        "Invalid chart file ${config.chartDir}/Chart.yaml: vame=${chart.name}, version=${chart.version}"
+                    )
+                }
                 // The following replacement is as per the specification of this label
                 // and independent of the way we choose to sanitize labels otherwise.
                 return "${chart.name}-${chart.version.replace('+' as char, '_' as char)}"
@@ -450,14 +456,15 @@ class OpenShiftResourceMetadata {
     }
 
     /**
-     * Reads metadata from a YAML file given in <code>metadataPath</code>.
+     * Reads the YAML file given in <code>file</code> and returns the contents in <code>Map</code> format.
+     * Returns null, if the file cannot be found.
      *
-     * @param metadataPath a YAML file to read metadata from.
-     * @return a <code>Map</code> with the metadata contained in the given <code>metadataPath</code>.
+     * @param file a YAML file to read metadata from.
+     * @return a <code>Map</code> with the metadata contained in the given <code>file</code> or null if not found.
      */
-    private readMetadata(metadataPath) {
-        if (steps.fileExists(metadataPath)) {
-            return steps.readYaml(file: metadataPath)
+    private readYaml(file) {
+        if (steps.fileExists(file)) {
+            return steps.readYaml(file: file)
         }
         return null
     }
