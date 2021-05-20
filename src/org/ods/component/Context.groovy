@@ -121,6 +121,7 @@ class Context implements IContext {
         config.gitCommit = retrieveGitCommit()
         config.gitCommitAuthor = retrieveGitCommitAuthor()
         config.gitCommitMessage = retrieveGitCommitMessage()
+        config.gitCommitRawMessage = retrieveGitCommitRawMessage()
         config.gitCommitTime = retrieveGitCommitTime()
         config.tagversion = "${config.buildNumber}-${getShortGitCommit()}"
 
@@ -301,6 +302,10 @@ class Context implements IContext {
 
     String getGitCommitMessage() {
         config.gitCommitMessage
+    }
+
+    String getGitCommitRawMessage() {
+        config.gitCommitRawMessage
     }
 
     String getGitCommitTime() {
@@ -553,6 +558,13 @@ class Context implements IContext {
         script.sh(
             returnStdout: true, script: "git log -1 --format='%f' HEAD",
             label: 'getting GIT commit message'
+        ).trim()
+    }
+
+    private String retrieveGitCommitRawMessage() {
+        script.sh(
+            returnStdout: true, script: "git log -1 --pretty=%B HEAD",
+            label: 'getting raw GIT commit message'
         ).trim()
     }
 

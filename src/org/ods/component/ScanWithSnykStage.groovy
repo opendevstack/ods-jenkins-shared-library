@@ -43,6 +43,7 @@ class ScanWithSnykStage extends Stage {
         this.snyk = snyk
     }
 
+    // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
         if (!options.snykAuthenticationCode) {
             steps.error "Option 'snykAuthenticationCode' is not set!"
