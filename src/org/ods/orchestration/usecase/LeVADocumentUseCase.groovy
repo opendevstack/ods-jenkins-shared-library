@@ -876,8 +876,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                integrationTests: SortUtil.sortIssuesByKey(testIssuesTestForTCP(integrationTestIssues)),
-                acceptanceTests : SortUtil.sortIssuesByKey(testIssuesTestForTCP(acceptanceTestIssues)),
+                integrationTests: SortUtil.sortIssuesByKey(computeTestIssuesTestForTCP(integrationTestIssues)),
+                acceptanceTests : SortUtil.sortIssuesByKey(computeTestIssuesTestForTCP(acceptanceTestIssues)),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
@@ -888,7 +888,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private List<Map> testIssuesTestForTCP(List<Project.JiraDataItem> testIssues) {
+    private List<Map> computeTestIssuesTestForTCP(List<Project.JiraDataItem> testIssues) {
         testIssues.collect { testIssue ->
             [
                 key         : testIssue.key,
