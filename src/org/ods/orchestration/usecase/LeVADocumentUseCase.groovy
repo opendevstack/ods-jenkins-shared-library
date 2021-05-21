@@ -454,8 +454,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                acceptanceTests : testIssueForCFTP(acceptanceTestIssues),
-                integrationTests: testIssueForCFTP(integrationTestIssues),
+                acceptanceTests : computeTestIssueForCFTP(acceptanceTestIssues),
+                integrationTests: computeTestIssueForCFTP(integrationTestIssues),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
@@ -466,7 +466,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private List<LinkedHashMap<String, String>> testIssueForCFTP(List<Project.JiraDataItem> testIssueList) {
+    private List<LinkedHashMap<String, String>> computeTestIssueForCFTP(List<Project.JiraDataItem> testIssueList) {
         testIssueList.collect { testIssue ->
             [
                 key        : testIssue.key,
@@ -1604,7 +1604,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
             def docChapters = this.project.getDocumentChaptersForDocument(documentType)
-            def docChapterKeys = collectDocChaptersKeys(docChapters)
+            def docChapterKeys = computeDocChaptersKeys(docChapters)
             docHistory.load(jiraData, latestValidVersionId, (keysInDoc + docChapterKeys).unique())
 
             // Save the doc history to project class, so it can be persisted when considered
@@ -1615,10 +1615,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private List<Object> collectDocChaptersKeys(List<Project.JiraDataItem> docChapters) {
-        docChapters.collect { chapter ->
-            chapter.key
-        }
+    private List<Object> computeDocChaptersKeys(List<Project.JiraDataItem> docChapters) {
+        docChapters.collect { chapter -> chapter.key }
     }
 
     protected String computeSavedDocumentEnvironment(String documentType) {
