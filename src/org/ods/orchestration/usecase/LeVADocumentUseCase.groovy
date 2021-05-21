@@ -97,7 +97,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private final OpenShiftService os
     private final SonarQubeUseCase sq
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
+    LeVADocumentUseCase(Project project,
+                        IPipelineSteps steps,
+                        MROPipelineUtil util,
+                        DocGenService docGen,
+                        JenkinsService jenkins,
+                        JiraUseCase jiraUseCase,
+                        JUnitTestReportsUseCase junit,
+                        LeVADocumentChaptersFileService levaFiles,
+                        NexusService nexus,
+                        OpenShiftService os,
+                        PDFUtil pdf,
+                        SonarQubeUseCase sq) {
         super(project, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
@@ -157,12 +168,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
                 index = index + 1
                 [
-                        epicName        : req.value.epicName.first(),
-                        epicTitle       : req.value.epicTitle.first(),
-                        epicDescription : this.convertImages(req.value.epicDescription.first() ?: ''),
-                        key             : req.key,
-                        epicIndex       : index,
-                        stories         : req.value,
+                    epicName        : req.value.epicName.first(),
+                    epicTitle       : req.value.epicTitle.first(),
+                    epicDescription : this.convertImages(req.value.epicDescription.first() ?: ''),
+                    key             : req.key,
+                    epicIndex       : index,
+                    stories         : req.value,
                 ]
             }
             def output = [
@@ -443,22 +454,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                acceptanceTests : acceptanceTestIssues.collect { testIssue ->
-                    [
-                        key        : testIssue.key,
-                        description: testIssue.description ?: '',
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
-                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
-                    ]
-                },
-                integrationTests: integrationTestIssues.collect { testIssue ->
-                    [
-                        key        : testIssue.key,
-                        description: testIssue.description ?: '',
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
-                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
-                    ]
-                },
+                acceptanceTests : computeTestIssueForCFTP(acceptanceTestIssues),
+                integrationTests: computeTestIssueForCFTP(integrationTestIssues),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
@@ -466,6 +463,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    @NonCPS
+    private List<LinkedHashMap<String, String>> computeTestIssueForCFTP(List<Project.JiraDataItem> testIssueList) {
+        testIssueList.collect { testIssue ->
+            [
+                key        : testIssue.key,
+                description: testIssue.description ?: '',
+                ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
+                risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
+            ]
+        }
     }
 
     @NonCPS
@@ -867,24 +876,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                integrationTests: SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
-                    [
-                        key         : testIssue.key,
-                        description : testIssue.description,
-                        requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : sortTestSteps(testIssue.steps)
-                    ]
-                }),
-                acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
-                    [
-                        key         : testIssue.key,
-                        description : testIssue.description,
-                        requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
-                        bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : sortTestSteps(testIssue.steps)
-                    ]
-                }),
+                integrationTests: SortUtil.sortIssuesByKey(computeTestIssuesTestForTCP(integrationTestIssues)),
+                acceptanceTests : SortUtil.sortIssuesByKey(computeTestIssuesTestForTCP(acceptanceTestIssues)),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
@@ -892,6 +885,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    @NonCPS
+    private List<Map> computeTestIssuesTestForTCP(List<Project.JiraDataItem> testIssues) {
+        testIssues.collect { testIssue ->
+            [
+                key         : testIssue.key,
+                description : testIssue.description,
+                requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
+                bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
+                steps       : sortTestSteps(testIssue.steps)
+            ]
+        }
     }
 
     @NonCPS
@@ -953,7 +959,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     .collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
                 return component
-        }
+            }
 
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
@@ -1223,6 +1229,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return defaultTypes
     }
 
+    @NonCPS
     protected String convertImages(String content) {
         def result = content
         if (content && content.contains("<img")) {
@@ -1597,9 +1604,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
             def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
             def docChapters = this.project.getDocumentChaptersForDocument(documentType)
-            def docChapterKeys = docChapters.collect { chapter ->
-                chapter.key
-            }
+            def docChapterKeys = computeDocChaptersKeys(docChapters)
             docHistory.load(jiraData, latestValidVersionId, (keysInDoc + docChapterKeys).unique())
 
             // Save the doc history to project class, so it can be persisted when considered
@@ -1607,6 +1612,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return docHistory
         }
+    }
+
+    @NonCPS
+    private List<Object> computeDocChaptersKeys(List<Project.JiraDataItem> docChapters) {
+        docChapters.collect { chapter -> chapter.key }
     }
 
     protected String computeSavedDocumentEnvironment(String documentType) {

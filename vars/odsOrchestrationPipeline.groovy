@@ -102,6 +102,7 @@ def call(Map config) {
                 new ReleaseStage(this, project, repos).execute()
 
                 new FinalizeStage(this, project, repos).execute()
+                project.data = null
             }
         }
     }
