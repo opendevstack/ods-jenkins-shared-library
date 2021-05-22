@@ -322,10 +322,7 @@ class OpenShiftResourceMetadata {
                     "non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
             }
             // Now the value is warranted to contain, at least, one alphanumeric character.
-            def j = i + 63
-            if (end < j) {
-                j = end
-            }
+            def j = Math.min(end, i + 63)
             // No guard needed.
             while (!Character.isLetterOrDigit(sanitizedValue.charAt(j - 1))) {
                 j--
