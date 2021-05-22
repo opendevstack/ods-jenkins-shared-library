@@ -307,36 +307,39 @@ class OpenShiftResourceMetadata {
             if (value == null) {
                 return [(key): null]
             }
-            def sanitizedValue = value.toString()
+            def stringValue = value.toString()
+            if (!stringValue) {
+                return [(key): stringValue]
+            }
+            def sanitizedValue = stringValue
             def end = sanitizedValue.length()
             def i = 0
             while (i < end && !Character.isLetterOrDigit(sanitizedValue.charAt(i))) {
                 i++
             }
             if (i == end) {
-                throw new IllegalArgumentException("Metadata entries must not entirely consist of \
-                non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
+                throw new IllegalArgumentException('Metadata entries must not entirely consist of ' +
+                    "non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
             }
             // Now the value is warranted to contain, at least, one alphanumeric character.
-            if (i > 0 || end > 63) {
-                checkLenient(key, value)
-                sanitizedValue = sanitizedValue.subSequence(i, Math.min(end, i + 63))
+            def j = i + 63
+            if (end < j) {
+                j = end
             }
-            end = sanitizedValue.length()
-            i = end
-            // Recall that the value contains, at least, one alphanumeric character. No guard needed.
-            while (!Character.isLetterOrDigit(sanitizedValue.charAt(i - 1))) {
-                i--
+            // No guard needed.
+            while (!Character.isLetterOrDigit(sanitizedValue.charAt(j - 1))) {
+                j--
             }
-            if (i < end) {
-                checkLenient(key, value)
-                sanitizedValue = sanitizedValue.subSequence(0, i)
+            if (i > 0 || j < end) {
+                sanitizedValue = sanitizedValue.subSequence(i, j)
             }
             def matcher = sanitizedValue =~ LABEL_VALUE_PATTERN
-            def replaced = matcher.replaceAll('_')
-            if (replaced != sanitizedValue) {
-                checkLenient(key, value)
-                sanitizedValue = replaced
+            sanitizedValue = matcher.replaceAll('_')
+            if (sanitizedValue != stringValue && strictEntries.contains(key)) {
+                throw new IllegalArgumentException('Illegal value for metadata entry. ' +
+                    'Values must be 63 characters or less, begin and end with an alphanumeric character and ' +
+                    "contain only alphanumerics, '-', '_' and '.'. Please, check the metadata.yml file: " +
+                    "${key}=${value}")
             }
             return [(key): sanitizedValue]
         }
@@ -435,24 +438,6 @@ class OpenShiftResourceMetadata {
             }
         }
         return null
-    }
-
-    /**
-     * Checks if this metadata entry can be sanitized to match the syntax of label values.
-     * If it must be left untouched, an exception will be thrown.
-     * This method is only called when the value is not a valid label value and must be modified.
-     * Therefore, the processing will fail, if an invalid entry is found that cannot be sanitized.
-     *
-     * @param entry a metadata entry.
-     * @throws IllegalArgumentException if this metadata value cannot be modified.
-     */
-    private static checkLenient(key, value) {
-        if (strictEntries.contains(key)) {
-            throw new IllegalArgumentException("Illegal value for metadata entry. \
-                Values must be 63 characters or less, begin and end with an alphanumeric character and \
-                contain only alphanumerics, '-', '_' and '.'. Please, check the metadata.yml file: \
-                ${key}=${value}")
-        }
     }
 
     /**
