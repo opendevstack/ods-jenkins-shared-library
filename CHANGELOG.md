@@ -9,6 +9,7 @@
 - Change association with the current release in the test cycles of previewed execution ([#638](https://github.com/opendevstack/ods-jenkins-shared-library/pull/638))
 - Orchestation pipeline throws a non serializable exeption issue 645 ([#649](https://github.com/opendevstack/ods-jenkins-shared-library/pull/649))
 - Add labels to generated OpenShift resources ([#646](https://github.com/opendevstack/ods-jenkins-shared-library/pull/646))
+- Fixed bug that disallowed empty label values ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/655))
 
 ## [3.0] - 2020-08-11
 
