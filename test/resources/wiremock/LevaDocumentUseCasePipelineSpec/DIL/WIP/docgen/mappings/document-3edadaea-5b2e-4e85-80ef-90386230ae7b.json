@@ -1,0 +1,24 @@
+{
+  "id" : "3edadaea-5b2e-4e85-80ef-90386230ae7b",
+  "name" : "document",
+  "request" : {
+    "url" : "/document",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"metadata\":{\"type\":\"DIL\",\"version\":\"1.1\"},\"data\":{\"metadata\":{\"id\":null,\"name\":\"Sock Shop\",\"description\":\"A socks-selling e-commerce demo application.\",\"type\":\"Discrepancy Log\",\"version\":null,\"date_created\":\"${json-unit.any-string}\",\"buildParameter\":{\"projectKey\":\"OFI1805\",\"targetEnvironment\":\"dev\",\"targetEnvironmentToken\":\"D\",\"version\":\"WIP\",\"releaseStatusJiraIssueKey\":\"OFI1805-123\"},\"git\":null,\"openShift\":{\"apiUrl\":null},\"jenkins\":{\"buildNumber\":null,\"buildUrl\":null,\"jobName\":null},\"referencedDocs\":{\"CSD\":\"null / 3-WIP\",\"SSDS\":\"null / 2-WIP\",\"RA\":\"null / 3-WIP\",\"TRC\":\"null / 2-WIP\",\"DTP\":\"null / 3-WIP\",\"DTR\":\"null / 3-WIP\",\"CFTP\":\"null / 3-WIP\",\"CFTR\":\"null / 2-WIP\",\"TIR\":\"null / 2-WIP\",\"TIP\":\"null / 3-WIP\"},\"header\":[\"Discrepancy Log, Config Item: null\",\"Doc ID/Version: see auto-generated cover page\"],\"orientation\":\"Landscape\"},\"data\":{}}}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "document-3edadaea-5b2e-4e85-80ef-90386230ae7b.json",
+    "headers" : {
+      "Content-Type" : "application/json;charset=UTF-8",
+      "Set-Cookie" : "NSC_JOsfpq2xbmxr35vchdd5u0d3mpzrje0=ffffffff09bfd5ac45525d5f4f58455e445a4a423660;expires=Fri, 21-May-2021 10:32:38 GMT;path=/;httponly"
+    }
+  },
+  "uuid" : "3edadaea-5b2e-4e85-80ef-90386230ae7b",
+  "persistent" : true,
+  "insertionIndex" : 1
+}

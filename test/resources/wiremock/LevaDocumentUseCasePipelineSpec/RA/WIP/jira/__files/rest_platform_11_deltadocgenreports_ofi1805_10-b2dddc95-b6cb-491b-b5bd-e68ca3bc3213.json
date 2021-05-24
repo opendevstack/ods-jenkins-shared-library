@@ -1,0 +1,437 @@
+{
+  "project" : {
+    "name" : "Oficial test 18052021",
+    "description" : "Oficial test 18052021",
+    "key" : "OFI1805",
+    "jiraBaseUrl" : "https://jira-dev.biscrum.com/OFI1805",
+    "projectProperties" : {
+      "PROJECT.POO_CAT.LOW" : "Frequency of the usage of the related function is <10 times per year.",
+      "PROJECT.POO_CAT.HIGH" : "Frequency of the usage of the related function is >10 times per week.",
+      "WEBHOOK_PROXY.URL" : "https://webhook-proxy-OFI1805-cd.inh-odsapps.eu.boehringer.com/build?trigger_secret=6e2867de-1028-415e-9d48-12f4cef6e644",
+      "RM.REPOSITORY" : "ofi1805-release",
+      "RM.BRANCH" : "master",
+      "PROJECT.POO_CAT.MEDIUM" : "Frequency of the usage of the related function is <10 times per week.",
+      "PROJECT.USES_POO" : "false",
+      "PROJECT.IS_EDP_PROJECT" : "true",
+      "PROJECT.CONFIG_ITEM" : "BI-IT-DEVSTACK"
+    },
+    "gampTopics" : [ "operational requirements", "functional requirements", "data requirements", "technical requirements", "interface requirements", "environment requirements", "performance requirements", "availability requirements", "security requirements", "maintenance requirements", "regulatory requirements", "roles", "compatibility", "procedural constraints", "overarching requirements" ],
+    "enumDictionary" : {
+      "ProbabilityOfDetection" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Immediate",
+          "short" : "I"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Before Impact",
+          "short" : "B"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "After Impact",
+          "short" : "A"
+        }
+      },
+      "SeverityOfImpact" : {
+        "1" : {
+          "value" : 1,
+          "text" : "Low",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "Medium",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "High",
+          "short" : "H"
+        }
+      },
+      "ProbabilityOfOccurrence" : {
+        "1" : {
+          "value" : 1,
+          "text" : "LOW",
+          "short" : "L"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "HIGH",
+          "short" : "H"
+        }
+      },
+      "RiskPriority" : {
+        "0" : {
+          "value" : 0,
+          "text" : "N/A",
+          "short" : "N"
+        },
+        "1" : {
+          "value" : 1,
+          "text" : "HIGH",
+          "short" : "H"
+        },
+        "2" : {
+          "value" : 2,
+          "text" : "MEDIUM",
+          "short" : "M"
+        },
+        "3" : {
+          "value" : 3,
+          "text" : "LOW",
+          "short" : "L"
+        }
+      },
+      "GxPRelevance" : {
+        "R2" : {
+          "value" : 2,
+          "text" : "Relevant",
+          "short" : "R2"
+        },
+        "N0" : {
+          "value" : 0,
+          "text" : "Not relevant/ZERO",
+          "short" : "N0"
+        },
+        "N1" : {
+          "value" : 1,
+          "text" : "Not relevant/LESS",
+          "short" : "N1"
+        },
+        "N2" : {
+          "value" : 2,
+          "text" : "Not relevant/EQUAL",
+          "short" : "N2"
+        }
+      }
+    },
+    "versions" : [ "1.0", "2.0" ],
+    "id" : "14107"
+  },
+  "components" : {
+    "Technology-spock" : {
+      "name" : "Technology-spock",
+      "description" : null,
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    },
+    "Technology-release" : {
+      "name" : "Technology-release",
+      "description" : "Technology component ofi1805-release stored at https://bitbucket-dev.biscrum.com/projects/OFI1805/repos/ofi1805-release/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    },
+    "Technology-thefirst" : {
+      "name" : "Technology-thefirst",
+      "description" : "Technology component ofi1805-thefirst stored at https://bitbucket-dev.biscrum.com/projects/OFI1805/repos/ofi1805-thefirst/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ "OFI1805-129" ],
+      "mitigations" : [ ]
+    },
+    "Technology-thethird" : {
+      "name" : "Technology-thethird",
+      "description" : "Technology component ofi1805-thethird stored at https://bitbucket-dev.biscrum.com/projects/OFI1805/repos/ofi1805-thethird/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    },
+    "Technology-thesecond" : {
+      "name" : "Technology-thesecond",
+      "description" : "Technology component ofi1805-thesecond stored at https://bitbucket-dev.biscrum.com/projects/OFI1805/repos/ofi1805-thesecond/browse",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "epics" : [ ],
+      "tests" : [ ],
+      "mitigations" : [ ]
+    }
+  },
+  "releaseState" : "Released in Q",
+  "version" : "1.0",
+  "epics" : { },
+  "requirements" : {
+    "OFI1805-128" : {
+      "key" : "OFI1805-128",
+      "name" : "Story Continued",
+      "description" : "<p>Story Continued</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "gampTopic" : "operational requirements",
+      "acceptanceCriteria" : null,
+      "configSpec" : {
+        "name" : "N/A",
+        "description" : ""
+      },
+      "funcSpec" : {
+        "name" : "N/A",
+        "description" : "<p>Story Continued</p>",
+        "acceptanceCriteria" : "N/A"
+      },
+      "components" : [ ],
+      "epics" : [ ],
+      "risks" : [ "OFI1805-131" ],
+      "tests" : [ "OFI1805-129", "OFI1805-124" ],
+      "techSpecs" : [ "OFI1805-130" ],
+      "bugs" : [ ],
+      "mitigations" : [ "OFI1805-132" ],
+      "predecessors" : [ ]
+    }
+  },
+  "risks" : {
+    "OFI1805-131" : {
+      "key" : "OFI1805-131",
+      "name" : "RA CONTINUED",
+      "description" : null,
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : null,
+      "probabilityOfOccurrence" : null,
+      "severityOfImpact" : null,
+      "probabilityOfDetection" : null,
+      "riskPriorityNumber" : null,
+      "riskPriority" : null,
+      "mitigations" : [ "OFI1805-132" ],
+      "requirements" : [ "OFI1805-128" ],
+      "techSpecs" : [ ],
+      "tests" : [ ],
+      "predecessors" : [ ],
+      "riskComment" : null
+    },
+    "OFI1805-133" : {
+      "key" : "OFI1805-133",
+      "name" : "Risk Assessment - TST",
+      "description" : null,
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "gxpRelevance" : null,
+      "probabilityOfOccurrence" : null,
+      "severityOfImpact" : null,
+      "probabilityOfDetection" : null,
+      "riskPriorityNumber" : null,
+      "riskPriority" : null,
+      "mitigations" : [ ],
+      "requirements" : [ "OFI1805-128" ],
+      "techSpecs" : [ "OFI1805-130" ],
+      "tests" : [ ],
+      "predecessors" : [ ],
+      "riskComment" : null
+    }
+  },
+  "tests" : {
+    "OFI1805-124" : {
+      "id" : "53037",
+      "key" : "OFI1805-124",
+      "name" : "Integration Test - Steps",
+      "description" : null,
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ "OFI1805-128" ],
+      "techSpecs" : [ "OFI1805-130" ],
+      "risks" : [ ],
+      "steps" : [ {
+        "orderId" : 4,
+        "step" : "Step 3",
+        "data" : "",
+        "result" : "Result 3"
+      }, {
+        "orderId" : 5,
+        "step" : "Step 6",
+        "data" : "",
+        "result" : "Result 6"
+      }, {
+        "orderId" : 6,
+        "step" : "Step 5",
+        "data" : "",
+        "result" : "Result 5"
+      }, {
+        "orderId" : 1,
+        "step" : "Step 1",
+        "data" : "",
+        "result" : "Result 1"
+      }, {
+        "orderId" : 2,
+        "step" : "Step 2",
+        "data" : "",
+        "result" : "Result 2"
+      }, {
+        "orderId" : 3,
+        "step" : "Step 4",
+        "data" : "",
+        "result" : "Result 4"
+      } ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "OFI1805-125" : {
+      "id" : "53038",
+      "key" : "OFI1805-125",
+      "name" : "Acceptance Test - Steps",
+      "description" : null,
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ {
+        "orderId" : 1,
+        "step" : "Step b",
+        "data" : "",
+        "result" : "Result b"
+      }, {
+        "orderId" : 2,
+        "step" : "Step a ",
+        "data" : "",
+        "result" : "Result a"
+      }, {
+        "orderId" : 3,
+        "step" : "Step d",
+        "data" : "",
+        "result" : "Result d"
+      }, {
+        "orderId" : 4,
+        "step" : "Step c",
+        "data" : "",
+        "result" : "Result c"
+      } ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "OFI1805-126" : {
+      "id" : "53039",
+      "key" : "OFI1805-126",
+      "name" : "Integration Test - No Steps",
+      "description" : null,
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Integration",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "OFI1805-127" : {
+      "id" : "53040",
+      "key" : "OFI1805-127",
+      "name" : "Acceptance Test - No Steps",
+      "description" : null,
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ ],
+      "testType" : "Acceptance",
+      "executionType" : "Automated",
+      "requirements" : [ ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    },
+    "OFI1805-129" : {
+      "id" : "53042",
+      "key" : "OFI1805-129",
+      "name" : "Unit Test The First",
+      "description" : "<p>Unit Test The First</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ "Succeeded" ],
+      "components" : [ "Technology-thefirst" ],
+      "testType" : "Unit",
+      "executionType" : "Automated",
+      "requirements" : [ "OFI1805-128" ],
+      "techSpecs" : [ ],
+      "risks" : [ ],
+      "steps" : [ ],
+      "predecessors" : [ ],
+      "execLabel" : "Succeeded"
+    }
+  },
+  "mitigations" : {
+    "OFI1805-132" : {
+      "key" : "OFI1805-132",
+      "name" : "Mitigation CONTINUED",
+      "description" : null,
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Defined",
+      "labels" : [ ],
+      "risks" : [ "OFI1805-131" ],
+      "components" : [ ],
+      "requirements" : [ "OFI1805-128" ],
+      "techSpecs" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "techSpecs" : {
+    "OFI1805-130" : {
+      "key" : "OFI1805-130",
+      "name" : "TST CONTINUED",
+      "description" : "<p>TST CONTINUED</p>",
+      "versions" : [ "1.0" ],
+      "status" : "Done",
+      "resolution" : "Implemented",
+      "labels" : [ ],
+      "systemDesignSpec" : "<p>TST CONTINUED</p>",
+      "softwareDesignSpec" : "<p>TST CONTINUED</p>",
+      "components" : [ ],
+      "requirements" : [ "OFI1805-128" ],
+      "risks" : [ "OFI1805-133" ],
+      "tests" : [ "OFI1805-124" ],
+      "bugs" : [ ],
+      "mitigations" : [ ],
+      "predecessors" : [ ]
+    }
+  },
+  "bugs" : { },
+  "notesAndHints" : [ ],
+  "precedingVersions" : [ ],
+  "modifiedKeys" : { },
+  "continuedKeys" : [ ],
+  "discontinuedKeys" : [ ]
+}

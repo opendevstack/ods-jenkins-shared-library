@@ -1,0 +1,32 @@
+{
+  "id" : "4bb38854-7771-4bfc-a6c6-facdf6240d76",
+  "name" : "rest_api_2_issue_createmeta_ofi1805_issuetypes",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/OFI1805/issuetypes",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"maxResults\":50,\"startAt\":0,\"total\":10,\"isLast\":true,\"values\":[{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10000\",\"id\":\"10000\",\"description\":\"Created by Jira Software - do not edit or delete. Issue type for a big user story that needs to be broken down.\",\"iconUrl\":\"https://jira-dev.biscrum.com/images/icons/issuetypes/epic.svg\",\"name\":\"Epic\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10001\",\"id\":\"10001\",\"description\":\"Created by Jira Software - do not edit or delete. Issue type for a user story.\",\"iconUrl\":\"https://jira-dev.biscrum.com/images/icons/issuetypes/story.svg\",\"name\":\"Story\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10004\",\"id\":\"10004\",\"description\":\"A problem which impairs or prevents the functions of the product.\",\"iconUrl\":\"https://jira-dev.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype\",\"name\":\"Bug\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10104\",\"id\":\"10104\",\"description\":\"This Issue Type is used to create Zephyr Test within Jira.\",\"iconUrl\":\"https://jira-dev.biscrum.com/download/resources/com.thed.zephyr.je/images/icons/COLOR_zephyr_feather_20x20.svg\",\"name\":\"Test\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10501\",\"id\":\"10501\",\"description\":\"contains documentation\",\"iconUrl\":\"https://jira-dev.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10306&avatarType=issuetype\",\"name\":\"Documentation\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10514\",\"id\":\"10514\",\"description\":\"Release status of project\",\"iconUrl\":\"https://jira-dev.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10815&avatarType=issuetype\",\"name\":\"Release Status\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10515\",\"id\":\"10515\",\"description\":\"Document part\",\"iconUrl\":\"https://jira-dev.biscrum.com/secure/viewavatar?size=xsmall&avatarId=10816&avatarType=issuetype\",\"name\":\"Documentation Chapter\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10803\",\"id\":\"10803\",\"description\":\"Mitigation activity to reduce the impact or the probability of a risk\",\"iconUrl\":\"https://jira-dev.biscrum.com/secure/viewavatar?size=xsmall&avatarId=11001&avatarType=issuetype\",\"name\":\"Mitigation\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/10900\",\"id\":\"10900\",\"description\":\"The issue for technical specification\",\"iconUrl\":\"https://jira-dev.biscrum.com/secure/viewavatar?size=xsmall&avatarId=11300&avatarType=issuetype\",\"name\":\"Technical Specification Task\",\"subtask\":false},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issuetype/11003\",\"id\":\"11003\",\"description\":\"The issue for risk definition\",\"iconUrl\":\"https://jira-dev.biscrum.com/secure/viewavatar?size=xsmall&avatarId=11400&avatarType=issuetype\",\"name\":\"Risk Assessment\",\"subtask\":true}]}",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Fri, 21 May 2021 09:31:33 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "691x515665x1",
+      "X-ASESSIONID" : "ye6z1",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "X-ASEN" : "SEN-15918632",
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "sergio.sacristan%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent",
+      "Strict-Transport-Security" : "max-age=15768000"
+    }
+  },
+  "uuid" : "4bb38854-7771-4bfc-a6c6-facdf6240d76",
+  "persistent" : true,
+  "insertionIndex" : 1
+}
