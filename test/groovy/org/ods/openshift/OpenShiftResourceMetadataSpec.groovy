@@ -58,13 +58,14 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
         name: -_.testComponent_.-
         componentId: willBeOverridden
         managedBy: willBeOverridden
+        partOf: ''
     '''
 
     private static final labels2 = [
         'app.kubernetes.io/name':           'testComponent',
         'app.kubernetes.io/managed-by':     'tailor',
         'app.kubernetes.io/instance':       null,
-        'app.kubernetes.io/part-of':        null,
+        'app.kubernetes.io/part-of':        '',
         'app.openshift.io/runtime':         null,
         'app.openshift.io/runtime-version': null,
         'helm.sh/chart':                    null,
@@ -339,9 +340,8 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
         def context = [
             projectId:                        projectId,
             componentId:                      componentId,
-            triggeredByOrchestrationPipeline: false,
-            targetProject:                    "${projectId}-dev",
             triggeredByOrchestrationPipeline: true,
+            targetProject:                    "${projectId}-dev",
         ]
         def config = [
             selector: selector,
