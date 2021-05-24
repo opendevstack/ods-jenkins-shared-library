@@ -13,9 +13,9 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import spock.lang.Specification
 import util.FixtureHelper
-import util.LoggerStub
+import org.ods.core.test.LoggerStub
 import util.PipelineSteps
-import util.wiremock.BitbucketServiceMock
+import org.ods.core.test.wiremock.BitbucketServiceMock
 
 import static org.assertj.core.api.Assertions.*
 

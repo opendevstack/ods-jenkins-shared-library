@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import org.ods.util.ILogger
 
 import java.time.LocalDateTime
 import org.ods.services.GitService
@@ -12,7 +13,6 @@ import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
 import org.ods.services.ServiceRegistry
 import org.ods.util.IPipelineSteps
-import org.ods.util.Logger
 
 import groovy.xml.XmlUtil
 
@@ -98,8 +98,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private final OpenShiftService os
     private final SonarQubeUseCase sq
     private final BitbucketTraceabilityUseCase bbt
+    private final ILogger logger
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt) {
+    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen,
+                        JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit,
+                        LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os,
+                        PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt, ILogger logger) {
         super(project, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
@@ -107,6 +111,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.os = os
         this.sq = sq
         this.bbt = bbt
+        this.logger = logger
     }
 
     @NonCPS
@@ -778,7 +783,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @SuppressWarnings('CyclomaticComplexity')
-    String createTCR(Map repo = null, Map data = null) {
+    String createTCR(Map repo = null, Map data) {
         String documentType = DocumentType.TCR as String
 
         def sections = this.getDocumentSections(documentType)
@@ -1397,8 +1402,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll('Technology-', '')
 
-            def gitUrl = new GitService(
-                this.steps, new Logger(this.steps, false)).getOriginUrl()
+            def gitUrl = new GitService(this.steps, logger).getOriginUrl()
             def isReleaseManagerComponent =
                 gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
             if (isReleaseManagerComponent) {
@@ -1460,7 +1464,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.project.repositories.collect {
             [
                 id: it.id,
-                description: it.metadata.description,
+                description: it.metadata?.description,
                 tests: componentTestMapping[it.id]? componentTestMapping[it.id].join(", "): "None defined"
             ]
         }
@@ -1600,7 +1604,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def documentType = LeVADocumentUtil.getTypeFromName(documentName)
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
-            def docHistory = new DocumentHistory(this.steps, ServiceRegistry.instance.get(Logger), environment, documentName)
+            def docHistory = new DocumentHistory(this.steps, logger, environment, documentName)
             def docChapters = this.project.getDocumentChaptersForDocument(documentType)
             def docChapterKeys = docChapters.collect { chapter ->
                 chapter.key

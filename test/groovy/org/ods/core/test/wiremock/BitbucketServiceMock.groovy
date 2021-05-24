@@ -1,4 +1,4 @@
-package util.wiremock
+package org.ods.core.test.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock

@@ -1,4 +1,4 @@
-package util
+package org.ods.core.test
 
 import org.ods.util.ILogger
 
