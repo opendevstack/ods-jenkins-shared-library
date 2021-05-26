@@ -6,6 +6,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
+import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -375,7 +376,7 @@ class Project {
             }
 
             if(!this.isWorkInProgress){
-                throw new IllegalArgumentException(message)
+                throw new OpenIssuesException(message)
             }
             this.addCommentInReleaseStatus(message)
         }
