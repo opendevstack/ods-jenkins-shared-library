@@ -10,6 +10,7 @@
 - Orchestation pipeline throws a non serializable exeption issue 645 ([#649](https://github.com/opendevstack/ods-jenkins-shared-library/pull/649))
 - Add labels to generated OpenShift resources ([#646](https://github.com/opendevstack/ods-jenkins-shared-library/pull/646))
 - Fixed bug that disallowed empty label values ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/655))
+- Added builder (agent and master) labels into image building process  ([#644](https://github.com/opendevstack/ods-jenkins-shared-library/pull/644))
 
 ## [3.0] - 2020-08-11
 
