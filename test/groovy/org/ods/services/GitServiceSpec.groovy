@@ -51,9 +51,10 @@ class GitServiceSpec extends SpecHelper {
         result == mergedBranch
 
         where:
-        gitCommitMessage                                                                 || mergedBranch
-        'Merge pull request #62 in ODM/odm-components from bugfix/ODM-509-foo to master' || 'bugfix/ODM-509-foo'
-        "Merge branch 'bugfix/ODM-509-foo' to master"                                    || 'bugfix/ODM-509-foo'
+        gitCommitMessage                                                                            || mergedBranch
+        'Merge pull request #62 in ODM/odm-components from bugfix/ODM-509-foo to master'            || 'bugfix/ODM-509-foo'
+        'Pull request #62: test\n\nMerge in ODM/odm-components from bugfix/ODM-509-foo to master'   || 'bugfix/ODM-509-foo'
+        "Merge branch 'bugfix/ODM-509-foo' to master"                                               || 'bugfix/ODM-509-foo'
     }
 }
 
