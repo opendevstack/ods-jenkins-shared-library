@@ -506,8 +506,8 @@ class Context implements IContext {
 
     Map<String,String> getEnvParamsAndAddPrefix (String envNamePattern = 'ods.build.', String keyPrefix = '') {
         String rawEnv = script.sh(
-            returnStdout: true, script: 'env | grep ${envNamePattern} || true',
-            label: 'getting extension environment labels'
+            returnStdout: true, script: "env | grep ${envNamePattern} || true",
+            label: 'getting extension labels from current environment'
           ).trim()
 
         if (rawEnv.size() == 0 ) {
