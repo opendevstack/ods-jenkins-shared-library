@@ -5,6 +5,8 @@ interface IContext {
 
     def assemble()
 
+    def amendWithAgentInformation()
+
     // Get debug mode
     boolean getDebug()
 
