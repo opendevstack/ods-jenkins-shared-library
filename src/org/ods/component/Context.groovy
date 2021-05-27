@@ -60,6 +60,8 @@ class Context implements IContext {
         config.sonarQubeEdition = script.env.SONAR_EDITION ?: 'community'
 
         config.globalExtensionImageLabels = getExtensionBuildParams()
+        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_MASTER_')
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
 
@@ -149,6 +151,15 @@ class Context implements IContext {
         }
 
         logger.debug "Assembled configuration: ${debugConfig}"
+    }
+
+    def amendWithAgentInformation() {
+        if (!config.globalExtensionImageLabels) {
+            config.globalExtensionImageLabels = [:]
+        }
+        // get the build labels from the env running in ..
+        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_AGENT_')
     }
 
     boolean getDebug() {
@@ -490,8 +501,12 @@ class Context implements IContext {
     }
 
     Map<String,String> getExtensionBuildParams () {
+        return getEnvParamsAndAddPrefix()
+    }
+
+    Map<String,String> getEnvParamsAndAddPrefix (String envNamePattern = 'ods.build.', String keyPrefix = '') {
         String rawEnv = script.sh(
-            returnStdout: true, script: 'env | grep ods.build. || true',
+            returnStdout: true, script: 'env | grep ${envNamePattern} || true',
             label: 'getting extension environment labels'
           ).trim()
 
@@ -501,7 +516,7 @@ class Context implements IContext {
 
         return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
             Iterator kv = line.toString().tokenize('=').iterator()
-            kvMap.put(kv.next(), kv.hasNext() ? kv.next() : '')
+            kvMap.put(keyPrefix + kv.next(), kv.hasNext() ? kv.next() : '')
             kvMap
         }
     }

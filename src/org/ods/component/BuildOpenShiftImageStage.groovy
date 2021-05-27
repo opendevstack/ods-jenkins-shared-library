@@ -137,6 +137,10 @@ class BuildOpenShiftImageStage extends Stage {
         openShift.getBuildStatus(context.cdProject, build)
     }
 
+    private String getImageLabelsForBuilderAgent() {
+        openShift.getImageLabels()
+    }
+
     private String patchBuildConfig(Map imageLabels) {
         openShift.patchBuildConfig(
             context.cdProject,
