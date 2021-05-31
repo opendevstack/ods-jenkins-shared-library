@@ -23,7 +23,7 @@ class AquaService {
                 label: 'Scan via Aqua CLI',
                 returnStatus: true,
                 script: """
-                  scannercli scan ${imageRef} \
+                  aquasec scan ${imageRef} \
                   --dockerless \
                   --register \
                   --text \
