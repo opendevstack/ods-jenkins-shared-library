@@ -23,6 +23,7 @@ class AquaService {
                 label: 'Scan via Aqua CLI',
                 returnStatus: true,
                 script: """
+                  set +e && \
                   aquasec scan ${imageRef} \
                   --dockerless \
                   --register \
@@ -32,7 +33,8 @@ class AquaService {
                   -U '${username}' \
                   -P '${password}' \
                   -H '${aquaUrl}' \
-                  --registry '${registry}'
+                  --registry '${registry} && \
+                  set -e'
                 """
             ) as int
         }

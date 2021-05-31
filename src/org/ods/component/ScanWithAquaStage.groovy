@@ -89,14 +89,14 @@ class ScanWithAquaStage extends Stage {
                 logger.info "Finished scan via Aqua CLI successfully!"
                 break
             case 1:
-                steps.unstable "An error occurred in processing the scan request " +
+                logger.warn"An error occurred in processing the scan request " +
                     "(e.g. invalid command line options, image not pulled, operational error)."
                 break
             case 4:
-                steps.unstable "The image scanned failed at least one of the Image Assurance Policies specified."
+                logger.warn "The image scanned failed at least one of the Image Assurance Policies specified."
                 break
             default:
-                steps.unstable "An unknown return code was returned: ${returnCode}"
+                logger.warn "An unknown return code was returned: ${returnCode}"
         }
         logger.infoClocked(options.resourceName, "Aqua scan (via CLI)")
         return returnCode
