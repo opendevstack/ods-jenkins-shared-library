@@ -28,6 +28,7 @@ class AquaService {
                   --register \
                   --text \
                   --htmlfile '${reportFile}' \
+                  -w /tmp \
                   -U '${username}' \
                   -P '${password}' \
                   -H '${aquaUrl}' \
