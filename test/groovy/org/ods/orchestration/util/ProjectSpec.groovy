@@ -840,6 +840,68 @@ class ProjectSpec extends SpecHelper {
         project.getWIPDocChaptersForDocument(document) == [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]
     }
 
+    def "fail build with open issues"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-1": [
+                    status: "TODO"
+                ],
+                "${type}-2": [
+                    status: "DOING"
+                ],
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        def expected = [:]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
+        }
+
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-1": [
+                        status: "TODO"
+                    ],
+                    "bugs-2": [
+                        status: "DOING"
+                    ],
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
+
+        and:
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            !expectedMessage.find("${type}-3")
+        }
+    }
+
     def "load initial version"() {
         given:
         def component1 = [key: "CMP-1", name: "Component 1"]
@@ -1666,7 +1728,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -1762,7 +1824,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2197,7 +2259,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2542,10 +2604,10 @@ class ProjectSpec extends SpecHelper {
 
     Boolean issueListIsEquals(List issuesA, List issuesB) {
         if (issuesA.size() != issuesB.size()) return false
-        def issuesBKeys = issuesB.collect{it.key}
-        def areEquals = issuesA.collect{ issueA ->
+        def issuesBKeys = issuesB.collect { it.key }
+        def areEquals = issuesA.collect { issueA ->
             if (! issuesBKeys.contains(issueA.key)) return false
-            def correspondentIssueB = issuesB.find{it.key == issueA.key}
+            def correspondentIssueB = issuesB.find { it.key == issueA.key }
             issueIsEquals(issueA, correspondentIssueB)
         }
         return areEquals.isEmpty() || areEquals.contains(true)

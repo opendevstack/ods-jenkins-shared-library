@@ -115,12 +115,6 @@ class FinalizeStage extends Stage {
 
             util.failBuild(message)
             throw new IllegalStateException(message)
-        } else if (!project.isWorkInProgress && !project.isProjectReadyToFreeze(project.data.jira)) {
-            project.reportPipelineStatus('Build fail as it has open issues.', true)
-            if (!project.isWorkInProgress) {
-                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                    "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
-            }
         } else {
             project.reportPipelineStatus()
             if (!project.isWorkInProgress) {

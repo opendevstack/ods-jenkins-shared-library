@@ -65,16 +65,18 @@ class InitStage extends Stage {
                     )
                 }
                 logger.info("Checkout release manager repository @ ${baseTag}")
-                checkoutGitRef(
+                git.checkout(
                     "refs/tags/${baseTag}",
-                    [[$class: 'LocalBranch', localBranch: gitReleaseBranch]]
+                    [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
+                    script.scm.userRemoteConfigs
                 )
             } else {
                 if (git.remoteBranchExists(gitReleaseBranch)) {
                     logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
-                    checkoutGitRef(
+                    git.checkout(
                         "*/${gitReleaseBranch}",
-                        [[$class: 'LocalBranch', localBranch: gitReleaseBranch]]
+                        [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
+                        script.scm.userRemoteConfigs
                     )
                 } else {
                     git.checkoutNewLocalBranch(gitReleaseBranch)
@@ -395,16 +397,6 @@ class InitStage extends Stage {
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         return [project: project, repos: repos, startAgent: stageToStartAgent]
-    }
-
-    private checkoutGitRef(String gitRef, def extensions) {
-        script.checkout([
-            $class: 'GitSCM',
-            branches: [[name: gitRef]],
-            doGenerateSubmoduleConfigurations: false,
-            extensions: extensions,
-            userRemoteConfigs: script.scm.userRemoteConfigs,
-        ])
     }
 
     private Map loadEnvState(ILogger logger, String targetEnvironment) {

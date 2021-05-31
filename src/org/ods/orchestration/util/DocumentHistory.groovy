@@ -7,6 +7,7 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
 import java.nio.file.NoSuchFileException
+import com.cloudbees.groovy.cps.NonCPS
 
 /**
  * This class contains the logic for keeping a consistent document version.
@@ -104,10 +105,12 @@ class DocumentHistory {
         repository.save(this.data, this.getSavedDocumentName())
     }
 
+    @NonCPS
     List<DocumentHistoryEntry> getDocHistoryEntries() {
         this.data
     }
 
+    @NonCPS
     List<Map> getDocGenFormat() {
         def issueTypes = JiraDataItem.TYPES - JiraDataItem.TYPE_DOCS
         def transformEntry =  { DocumentHistoryEntry e ->
@@ -141,6 +144,7 @@ class DocumentHistory {
     }
 
     @SuppressWarnings(['UseCollectMany'])
+    @NonCPS
     protected List<String> getDocumentKeys() {
         def result = this.data
             .collect { e ->
@@ -153,6 +157,7 @@ class DocumentHistory {
         return []
     }
 
+    @NonCPS
     protected Map computeDocChaptersOfDocument(DocumentHistoryEntry entry) {
         def docIssues = SortUtil.sortHeadingNumbers(entry[JiraDataItem.TYPE_DOCS] ?: [], 'number')
             .collect {
@@ -186,6 +191,7 @@ class DocumentHistory {
         sortDocHistories(dhs).reverse()
     }
 
+    @NonCPS
     private Map computeDiscontinuations(Map jiraData, List<String> previousDocumentIssues) {
         (jiraData.discontinuationsPerType ?: [:])
             .collectEntries { String issueType, List<Map> issues ->
@@ -194,6 +200,7 @@ class DocumentHistory {
             }
     }
 
+    @NonCPS
     private static List<Map> discontinuedIssuesThatWereInDocument(String issuesType, List<String> previousDocIssues,
                                                                   List<Map> discontinued) {
         if (issuesType.equalsIgnoreCase(JiraDataItem.TYPE_DOCS)) {
@@ -203,6 +210,7 @@ class DocumentHistory {
         }
     }
 
+    @NonCPS
     private static Map computeIssueContent(String issueType, String action, Map issue) {
         def result = [key: issue.key, action: action]
         if (JiraDataItem.TYPE_DOCS.equalsIgnoreCase(issueType)) {
@@ -220,6 +228,7 @@ class DocumentHistory {
         versions.takeWhile { it.version != previousProjVersion }.collect { it.id }
     }
 
+    @NonCPS
     private void checkIfAllIssuesHaveVersions(Collection<Map> jiraIssues) {
         if (jiraIssues) {
             def issuesWithNoVersion = jiraIssues.findAll { Map i ->
@@ -253,6 +262,7 @@ class DocumentHistory {
      * @param currentEntry current document history entry
      * @return rational message
      */
+    @NonCPS
     private String rationaleIfConcurrentVersionsAreFound(DocumentHistoryEntry currentEntry) {
         def oldVersionsSimplified = this.data.collect {
             [id: it.getEntryId(), version: it.getProjectVersion(), previousVersion: it.getPreviousProjectVersion()]
@@ -287,6 +297,7 @@ class DocumentHistory {
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
+    @NonCPS
     private Map computeEntryData(Map jiraData, String projectVersion, List<String> keysInDocument) {
 
         def previousDocumentIssues = this.getDocumentKeys()
@@ -318,6 +329,7 @@ class DocumentHistory {
      * @param issuesInDoc list of the keys of the issues that should be included in the current document version.
      * @return the map with all the issues and actions to be included in the current document history entry, by type.
      */
+    @NonCPS
     private Map computeActionsThatBelongToTheCurrentHistoryData (
         List<String> previousDocIssues, Map versionActions, List<String> issuesInDoc) {
         // Guard against the possibility that a null issuesInDoc is provided
@@ -355,6 +367,7 @@ class DocumentHistory {
         return issues
     }
 
+    @NonCPS
     private Map computeAdditionsAndUpdates(Map jiraData, String projectVersion) {
         jiraData.findAll { JiraDataItem.TYPES.contains(it.key) }
             .collectEntries { String issueType, Map<String, Map> issues ->
@@ -364,10 +377,11 @@ class DocumentHistory {
             }
     }
 
+    @NonCPS
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentType) }
+            issues = issues.findAll { it.value.documents.contains(this.documentType.split('-').first()) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }
