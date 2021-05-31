@@ -613,7 +613,7 @@ class OpenShiftService {
 
     // getConfigMapData returns the data content of given ConfigMap.
     Map getConfigMapData(String project, String name) {
-        getJSON(project, "ConfigMap", name, "{.data}")
+        getJSON(project, "ConfigMap", name).data as Map
     }
 
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {
@@ -693,12 +693,11 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    private Map getJSON(String project, String kind, String name, String jsonPath = null) {
-        String path = jsonPath ? "path='${jsonPath}'" : ""
+    private Map getJSON(String project, String kind, String name) {
         def stdout = steps.sh(
-            script: "oc -n ${project} get ${kind}/${name} -o json${path}",
+            script: "oc -n ${project} get ${kind}/${name} -o json",
             returnStdout: true,
-            label: "Get JSON of ${kind}/${name}${jsonPath ? ' ' + path : ''}"
+            label: "Get JSON of ${kind}/${name}"
         ).toString().trim()
         def json = new JsonSlurperClassic().parseText(stdout)
         json as Map
