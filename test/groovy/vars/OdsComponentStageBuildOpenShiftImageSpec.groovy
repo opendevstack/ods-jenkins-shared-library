@@ -42,7 +42,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     openShiftService.getLastBuildVersion(*_) >> 123
     openShiftService.getBuildStatus(*_) >> 'complete'
     openShiftService.getImageReference(*_) >> '0daecc05'
-    
+
     ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
@@ -53,6 +53,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       false
     }
     helper.registerAllowedMethod('echo', [ String ]) {String args -> }
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+        [buildId: 'bar-123', image: '0daecc05']
+    }
     def buildInfo = script.call(context)
 
     then:
@@ -74,7 +77,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     // test immediate return
     buildInfo.buildId == 'bar-123'
     buildInfo.image == "0daecc05"
-    
+
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
@@ -111,6 +114,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       false
     }
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+        [buildId: 'overwrite-123', image: '0daecc05']
+    }
     def buildInfo = script.call(context, configOverwrite)
 
     then:
@@ -134,7 +140,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     // test immediate return
     buildInfo.buildId == 'overwrite-123'
     buildInfo.image == "0daecc05"
-    
+
     // test artifact URIS
     def buildArtifacts = context.getBuildArtifactURIs()
     buildArtifacts.size() > 0
@@ -165,6 +171,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
     helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> }
     helper.registerAllowedMethod('fileExists', [ String ]) { String args -> false }
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+        [buildId: 'bar-123', image: '0daecc05']
+    }
     def buildInfo = script.call(context)
 
     then:
@@ -191,6 +200,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       false
     }
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+        [buildId: 'bar-123', image: '0daecc05']
+    }
     script.call(context)
 
     then:
@@ -215,6 +227,9 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+        [buildId: 'bar-123', image: '0daecc05']
+    }
     if (branches != null) {
       script.call(context, [branches: branches])
     } else {
