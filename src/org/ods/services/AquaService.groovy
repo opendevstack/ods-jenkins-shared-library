@@ -7,6 +7,10 @@ import org.ods.util.IPipelineSteps
 @TypeChecked
 class AquaService {
 
+    static final int AQUA_SUCCESS = 0
+    static final int AQUA_OPERATIONAL_ERROR = 1
+    static final int AQUA_POLICIES_ERROR = 4
+
     private final IPipelineSteps steps
     private final ILogger logger
 
@@ -17,7 +21,7 @@ class AquaService {
 
     int scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
         logger.info "Starting to scan via Aqua CLI..."
-        int status = 0
+        int status = AQUA_SUCCESS
         withCredentials(credentialsId) { username, password ->
             status = steps.sh(
                 label: 'Scan via Aqua CLI',

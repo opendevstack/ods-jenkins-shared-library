@@ -65,8 +65,11 @@ class ScanWithAquaStage extends Stage {
 
         String reportFile = "aqua-report.html"
         int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
-        createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
-        archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
+        // If report exists
+        if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
+            createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
+            archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
+        }
     }
 
     private String getImageRef() {
@@ -85,14 +88,14 @@ class ScanWithAquaStage extends Stage {
         int returnCode = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
         // see possible return codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
         switch (returnCode) {
-            case 0:
+            case AquaService.AQUA_SUCCESS:
                 logger.info "Finished scan via Aqua CLI successfully!"
                 break
-            case 1:
+            case AquaService.AQUA_OPERATIONAL_ERROR:
                 logger.warn"An error occurred in processing the scan request " +
                     "(e.g. invalid command line options, image not pulled, operational error)."
                 break
-            case 4:
+            case AquaService.AQUA_POLICIES_ERROR:
                 logger.warn "The image scanned failed at least one of the Image Assurance Policies specified."
                 break
             default:
