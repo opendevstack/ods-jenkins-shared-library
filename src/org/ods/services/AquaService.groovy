@@ -37,8 +37,8 @@ class AquaService {
                   -U '${username}' \
                   -P '${password}' \
                   -H '${aquaUrl}' \
-                  --registry '${registry} && \
-                  set -e'
+                  --registry '${registry}' && \
+                  set -e
                 """
             ) as int
         }
