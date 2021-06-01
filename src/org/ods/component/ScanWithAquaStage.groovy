@@ -69,7 +69,7 @@ class ScanWithAquaStage extends Stage {
         }
 
         String enabled = connectionData['enabled']
-        if(Boolean.valueOf(enabled)) {
+        if (Boolean.valueOf(enabled)) {
             String reportFile = "aqua-report.html"
             int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
             // If report exists
