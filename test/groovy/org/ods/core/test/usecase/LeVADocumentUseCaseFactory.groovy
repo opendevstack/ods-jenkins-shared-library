@@ -75,20 +75,23 @@ class LeVADocumentUseCaseFactory {
 
     LeVADocumentUseCase createLeVADocumentUseCase(Map buildParams){
         log.info "createLeVADocumentUseCase with:[${buildParams}]"
-        setupProject(buildParams)
+
+        loadProject(buildParams)
+
+        docGen = new DocGenService(docGenServer.mock().baseUrl())
+        junit = new JUnitTestReportsUseCase(project, steps)
+        levaFiles = new LeVADocumentChaptersFileService(steps)
+        pdfUtil = new PDFUtil()
+
         return new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdfUtil, sq)
     }
 
-    private void setupProject(Map buildParams) {
+    private void loadProject(Map buildParams) {
         try {
             logger = new LoggerStub(log)
             project = buildProject(buildParams, logger)
-            pdfUtil = new PDFUtil()
             util = new MROPipelineUtil(project, steps, null, logger)
-            junit = new JUnitTestReportsUseCase(project, steps)
-            levaFiles = new LeVADocumentChaptersFileService(steps)
             jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
-            docGen = new DocGenService(docGenServer.mock().baseUrl())
             project.load(gitService, jiraUseCase)
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
