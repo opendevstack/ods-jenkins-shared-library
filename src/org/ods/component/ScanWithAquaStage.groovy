@@ -32,6 +32,10 @@ class ScanWithAquaStage extends Stage {
 
     protected run() {
         Map connectionData = openShift.getConfigMapData(context.cdProject, "aqua")
+        if (!connectionData.containsKey('enabled')) {
+            // If not exist key, is enabled
+            connectionData.put('enabled', true)
+        }
         // base URL of Aqua server.
         String url = connectionData['url']
         if (!url) {
@@ -63,12 +67,18 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        String reportFile = "aqua-report.html"
-        int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
-        // If report exists
-        if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
-            createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
-            archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
+        boolean enabled = connectionData['enabled']
+        if(enabled) {
+            String reportFile = "aqua-report.html"
+            int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
+            // If report exists
+            if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
+                createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
+                archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
+            }
+        } else {
+            logger.info "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
+            return
         }
     }
 
