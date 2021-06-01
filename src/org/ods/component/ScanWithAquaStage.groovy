@@ -11,6 +11,8 @@ import org.ods.util.ILogger
 class ScanWithAquaStage extends Stage {
 
     public final String STAGE_NAME = 'Aqua Security Scan'
+    static final String AQUA_CONFIG_MAP_NAME = "aqua"
+    static final String AQUA_GENERAL_CONFIG_MAP_PROJECT = "ods"
     private final AquaService aqua
     private final BitbucketService bitbucket
     private final OpenShiftService openShift
@@ -31,25 +33,27 @@ class ScanWithAquaStage extends Stage {
     }
 
     protected run() {
-        Map connectionData = openShift.getConfigMapData(context.cdProject, "aqua")
-        if (!connectionData.containsKey('enabled')) {
+        Map configurationAquaCluster = openShift.getConfigMapData(AQUA_GENERAL_CONFIG_MAP_PROJECT, AQUA_CONFIG_MAP_NAME)
+        Map configurationAquaProject = openShift.getConfigMapData(context.cdProject, AQUA_CONFIG_MAP_NAME)
+
+        if (!configurationAquaProject.containsKey('enabled')) {
             // If not exist key, is enabled
-            connectionData.put('enabled', true)
+            configurationAquaProject.put('enabled', true)
             logger.info "Not parameter 'enabled' at project level. Default enabled"
         }
         // base URL of Aqua server.
-        String url = connectionData['url']
+        String url = configurationAquaCluster['url']
         if (!url) {
             steps.error "Please provide the URL of the Aqua platform!"
         }
         // name in Aqua of the registry that contains the image we want to scan
-        String registry = connectionData['registry']
+        String registry = configurationAquaCluster['registry']
         if (!registry) {
             steps.error "Please provide the name of the registry that contains the image of interest!"
         }
         // name of the credentials that stores the username/password of a user with access
         // to the Aqua server identified by "aquaUrl", defaults to the cd-user
-        String secretName = connectionData['secretName']
+        String secretName = configurationAquaCluster['secretName']
         String credentialsId = context.cdProject + "-"
         if (!secretName) {
             credentialsId = context.credentialsId
@@ -68,8 +72,9 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        String enabled = connectionData['enabled']
-        if (Boolean.valueOf(enabled)) {
+        boolean enabledInCluster = Boolean.valueOf(configurationAquaCluster['enabled'].toString())
+        boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
+        if (enabledInCluster && enabledInProject) {
             String reportFile = "aqua-report.html"
             int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
             // If report exists
@@ -78,8 +83,18 @@ class ScanWithAquaStage extends Stage {
                 archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
             }
         } else {
-            logger.info "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
-            return
+            if(!enabledInCluster && !enabledInProject) {
+                logger.info "Skipping Aqua scan because is not enabled nor cluster " +
+                    "in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project, nor project level in 'aqua' ConfigMap"
+                return
+            } else if (enabledInCluster) {
+                logger.info "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
+                return
+            } else {
+                logger.info "Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
+                    "ConfigMap in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project"
+                return
+            }
         }
     }
 
