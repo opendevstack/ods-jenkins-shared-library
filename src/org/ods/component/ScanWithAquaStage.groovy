@@ -35,6 +35,7 @@ class ScanWithAquaStage extends Stage {
         if (!connectionData.containsKey('enabled')) {
             // If not exist key, is enabled
             connectionData.put('enabled', true)
+            logger.info "Not parameter 'enabled' at project level. Default enabled"
         }
         // base URL of Aqua server.
         String url = connectionData['url']
@@ -67,8 +68,8 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        boolean enabled = connectionData['enabled']
-        if(enabled) {
+        String enabled = connectionData['enabled']
+        if(Boolean.valueOf(enabled)) {
             String reportFile = "aqua-report.html"
             int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
             // If report exists
