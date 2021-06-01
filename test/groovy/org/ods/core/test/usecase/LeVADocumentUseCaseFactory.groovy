@@ -1,6 +1,7 @@
 package org.ods.core.test.usecase
 
 import groovy.util.logging.Slf4j
+import hudson.model.Run
 import org.apache.commons.io.FileUtils
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.rules.TemporaryFolder
@@ -74,28 +75,38 @@ class LeVADocumentUseCaseFactory {
     }
 
     LeVADocumentUseCase createLeVADocumentUseCase(Map buildParams){
+        log.info "createLeVADocumentUseCase with:[${buildParams}]"
         setup(buildParams)
         return new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdfUtil, sq)
     }
 
-    private def setup(Map buildParams) {
-        System.setProperty("java.io.tmpdir", tempFolder.getRoot().absolutePath)
-        FileUtils.copyDirectory(new FixtureHelper().getResource("logback.xml").parentFile, tempFolder.getRoot());
+    private void setup(Map buildParams) {
+        try {
+            log.info "copyDirectory tests resources to temp folder"
+            System.setProperty("java.io.tmpdir", tempFolder.getRoot().absolutePath)
+            FileUtils.copyDirectory(new FixtureHelper().getResource("logback.xml").parentFile, tempFolder.getRoot());
+            log.info "createLeVADocumentUseCase setup 3"
 
-        steps.env.RUN_DISPLAY_URL =""
-        pdfUtil = new PDFUtil()
-        logger = new LoggerStub(log)
+            steps.env.RUN_DISPLAY_URL =""
+            pdfUtil = new PDFUtil()
+            logger = new LoggerStub(log)
 
-        project = buildProject(buildParams)
+            project = buildProject(buildParams)
 
-        util = new MROPipelineUtil(project, steps, null, logger)
-        junit = new JUnitTestReportsUseCase(project, steps)
-        levaFiles = new LeVADocumentChaptersFileService(steps)
-        def jiraService = new JiraServiceForWireMock(jiraServer.mock().baseUrl(), JIRA_USER, JIRA_PASSWORD)
-        jiraUseCase = new JiraUseCase(project, steps, util, jiraService, logger)
-        docGen = new DocGenService(docGenServer.mock().baseUrl())
-        usecase = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdfUtil, sq)
-        project.load(gitService, jiraUseCase)
+            util = new MROPipelineUtil(project, steps, null, logger)
+            junit = new JUnitTestReportsUseCase(project, steps)
+            levaFiles = new LeVADocumentChaptersFileService(steps)
+            def jiraService = new JiraServiceForWireMock(jiraServer.mock().baseUrl(), JIRA_USER, JIRA_PASSWORD)
+            jiraUseCase = new JiraUseCase(project, steps, util, jiraService, logger)
+            docGen = new DocGenService(docGenServer.mock().baseUrl())
+            usecase = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdfUtil, sq)
+
+            log.info "project load"
+            project.load(gitService, jiraUseCase)
+        } catch(RuntimeException e){
+            log.error("setup error:${e.getMessage()}", e)
+            throw e
+        }
     }
 
     def buildProject(Map buildParams) {
