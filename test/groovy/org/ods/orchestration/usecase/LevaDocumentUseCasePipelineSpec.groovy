@@ -17,7 +17,6 @@ import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.IPipelineSteps
 import spock.lang.Shared
-import spock.lang.Stepwise
 import spock.lang.Unroll
 import util.FixtureHelper
 
@@ -67,7 +66,9 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     @Unroll
     def "create #doctype"() {
         given: "There's a LeVADocument service"
-        def useCase = getLeVADocumentUseCaseFactory(doctype, version).createLeVADocumentUseCase(buildParams(version))
+        LeVADocumentUseCase useCase = getLeVADocumentUseCaseFactory(doctype, version)
+            .loadProject(buildParams(version))
+            .createLeVADocumentUseCase()
 
         when: "the user creates a LeVA document"
         useCase."create${doctype}"()

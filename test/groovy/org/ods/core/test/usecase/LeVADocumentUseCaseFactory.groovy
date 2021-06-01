@@ -39,6 +39,7 @@ class LeVADocumentUseCaseFactory {
     private SonarQubeUseCase sq
     private GitService gitService
     private IPipelineSteps steps
+    private Project project
 
     LeVADocumentUseCaseFactory(WiremockManager jiraServer,
                                WiremockManager docGenServer,
@@ -62,37 +63,38 @@ class LeVADocumentUseCaseFactory {
         this.steps = steps
     }
 
-    LeVADocumentUseCase createLeVADocumentUseCase(Map buildParams){
-        log.info "createLeVADocumentUseCase with:[${buildParams}]"
+    def loadProject(Map buildParams) {
+        log.info "loadProject with:[${buildParams}]"
         try {
-            def project = loadProject(buildParams)
-            return new LeVADocumentUseCase
-                (
-                    project,
-                    steps,
-                    project.jiraUseCase.util,
-                    new DocGenService(docGenServer.mock().baseUrl()),
-                    jenkins,
-                    project.jiraUseCase,
-                    new JUnitTestReportsUseCase(project, steps),
-                    new LeVADocumentChaptersFileService(steps),
-                    nexus,
-                    os,
-                    new PDFUtil(),
-                    sq
-                )
+            project = loadProject(buildParams)
+            def logger = new LoggerStub(log)
+            project = buildProject(buildParams, logger)
+            def util = new MROPipelineUtil(project, steps, null, logger)
+            def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
+            project.load(gitService, jiraUseCase)
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
             throw e
         }
+        return this
     }
 
-    private Project loadProject(Map buildParams) {
-        def logger = new LoggerStub(log)
-        def project = buildProject(buildParams, logger)
-        def util = new MROPipelineUtil(project, steps, null, logger)
-        def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
-        return project.load(gitService, jiraUseCase)
+    LeVADocumentUseCase createLeVADocumentUseCase(){
+        return new LeVADocumentUseCase
+            (
+                project,
+                steps,
+                project.jiraUseCase.util,
+                new DocGenService(docGenServer.mock().baseUrl()),
+                jenkins,
+                project.jiraUseCase,
+                new JUnitTestReportsUseCase(project, steps),
+                new LeVADocumentChaptersFileService(steps),
+                nexus,
+                os,
+                new PDFUtil(),
+                sq
+            )
     }
 
     private Project buildProject(Map buildParams, ILogger logger) {
