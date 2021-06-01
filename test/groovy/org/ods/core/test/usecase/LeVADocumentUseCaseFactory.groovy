@@ -27,6 +27,7 @@ import util.FixtureHelper
 
 @Slf4j
 class LeVADocumentUseCaseFactory {
+    // Add jiraUser & jiraPassword in gradle.properties to change Jira user/password
     private static final String JIRA_USER = System.properties["jiraUser"]
     private static final String JIRA_PASSWORD = System.properties["jiraPassword"]
 

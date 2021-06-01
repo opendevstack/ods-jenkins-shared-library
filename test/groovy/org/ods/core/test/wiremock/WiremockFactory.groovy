@@ -9,6 +9,7 @@ enum WiremockFactory {
     },
     JIRA {
         WiremockManager  build() {
+            // Add jiraURL in gradle.properties to change default jiraURL
             String defaultURL =   System.properties["jiraURL"]
             new WiremockManager("jira", defaultURL)
         }

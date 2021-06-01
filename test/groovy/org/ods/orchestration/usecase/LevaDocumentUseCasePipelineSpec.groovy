@@ -22,7 +22,6 @@ import spock.lang.Unroll
 import util.FixtureHelper
 
 @Slf4j
-@Stepwise
 class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final String PROJECT_KEY = "OFI1805"
     private static final String PROJECT_KEY_RELEASE_ID = "123"
