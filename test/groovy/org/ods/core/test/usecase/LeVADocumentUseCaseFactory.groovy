@@ -1,7 +1,6 @@
 package org.ods.core.test.usecase
 
 import groovy.util.logging.Slf4j
-import hudson.model.Run
 import org.apache.commons.io.FileUtils
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.rules.TemporaryFolder
@@ -23,8 +22,6 @@ import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
-import org.ods.util.Logger
-import util.FixtureHelper
 
 @Slf4j
 class LeVADocumentUseCaseFactory {
@@ -67,32 +64,27 @@ class LeVADocumentUseCaseFactory {
 
     LeVADocumentUseCase createLeVADocumentUseCase(Map buildParams){
         log.info "createLeVADocumentUseCase with:[${buildParams}]"
-        def useCase
         try {
             def project = loadProject(buildParams)
-            def docGen = new DocGenService(docGenServer.mock().baseUrl())
-            def junit = new JUnitTestReportsUseCase(project, steps)
-            def levaFiles = new LeVADocumentChaptersFileService(steps)
-            def pdfUtil = new PDFUtil()
-            useCase = new LeVADocumentUseCase(
-                project,
-                steps,
-                project.jiraUseCase.util,
-                docGen,
-                jenkins,
-                project.jiraUseCase,
-                junit,
-                levaFiles,
-                nexus,
-                os,
-                pdfUtil,
-                sq
-            )
+            return new LeVADocumentUseCase
+                (
+                    project,
+                    steps,
+                    project.jiraUseCase.util,
+                    new DocGenService(docGenServer.mock().baseUrl()),
+                    jenkins,
+                    project.jiraUseCase,
+                    new JUnitTestReportsUseCase(project, steps),
+                    new LeVADocumentChaptersFileService(steps),
+                    nexus,
+                    os,
+                    new PDFUtil(),
+                    sq
+                )
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
             throw e
         }
-        return useCase
     }
 
     private Project loadProject(Map buildParams) {
@@ -101,10 +93,6 @@ class LeVADocumentUseCaseFactory {
         def util = new MROPipelineUtil(project, steps, null, logger)
         def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
         return project.load(gitService, jiraUseCase)
-    }
-
-    private JiraServiceForWireMock buildJiraServiceForWireMock() {
-        new JiraServiceForWireMock(jiraServer.mock().baseUrl(), JIRA_USER, JIRA_PASSWORD)
     }
 
     private Project buildProject(Map buildParams, ILogger logger) {
@@ -122,5 +110,9 @@ class LeVADocumentUseCaseFactory {
         project.data.buildParams = buildParams
 
         return project
+    }
+
+    private JiraServiceForWireMock buildJiraServiceForWireMock() {
+        new JiraServiceForWireMock(jiraServer.mock().baseUrl(), JIRA_USER, JIRA_PASSWORD)
     }
 }
