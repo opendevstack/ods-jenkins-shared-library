@@ -104,7 +104,7 @@ class ScanWithAquaStage extends Stage {
             } else if (enabledInCluster) {
                 message = "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
             } else {
-                message ="Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
+                message = "Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
                     "ConfigMap in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project"
             }
             logger.info message
