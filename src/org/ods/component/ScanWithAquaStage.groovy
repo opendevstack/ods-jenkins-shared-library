@@ -107,7 +107,7 @@ class ScanWithAquaStage extends Stage {
                 message = "Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
                     "ConfigMap in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project"
             }
-            logger.info message
+            logger.warn message
             errorMessages += "<li>${message}</li>"
         }
         notifyAquaProblem(alertEmails, errorMessages)
