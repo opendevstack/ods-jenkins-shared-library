@@ -35,21 +35,30 @@ class ScanWithAquaStage extends Stage {
     protected run() {
         Map configurationAquaCluster = openShift.getConfigMapData(AQUA_GENERAL_CONFIG_MAP_PROJECT, AQUA_CONFIG_MAP_NAME)
         Map configurationAquaProject = openShift.getConfigMapData(context.cdProject, AQUA_CONFIG_MAP_NAME)
+        String errorMessages = ''
 
         if (!configurationAquaProject.containsKey('enabled')) {
             // If not exist key, is enabled
             configurationAquaProject.put('enabled', true)
             logger.info "Not parameter 'enabled' at project level. Default enabled"
         }
+        // addresses form Aqua advises mails.
+        String alertEmails = configurationAquaCluster['alertEmails']
+        if (!alertEmails) {
+            logger.info "Please provide the alert emails of the Aqua platform!"
+        }
+
         // base URL of Aqua server.
         String url = configurationAquaCluster['url']
         if (!url) {
-            steps.error "Please provide the URL of the Aqua platform!"
+            logger.info "Please provide the URL of the Aqua platform!"
+            errorMessages += "<li>Provide the Aqua url of platform</li>"
         }
         // name in Aqua of the registry that contains the image we want to scan
         String registry = configurationAquaCluster['registry']
         if (!registry) {
-            steps.error "Please provide the name of the registry that contains the image of interest!"
+            logger.info "Please provide the name of the registry that contains the image of interest!"
+            errorMessages += "<li>Provide the name of the registry to use in Aqua</li>"
         }
         // name of the credentials that stores the username/password of a user with access
         // to the Aqua server identified by "aquaUrl", defaults to the cd-user
@@ -69,6 +78,8 @@ class ScanWithAquaStage extends Stage {
                 "-> The aqua stage runs before the image build stage and hence no new image was created yet.\n" +
                 "-> The image build stage was not executed because the image was imported.\n" +
                 "-> The aqua stage and the image build stage have different values for 'resourceName' set."
+            errorMessages += "<li>Skipping as imageRef could not be retrieved</li>"
+            notifyAquaProblem(alertEmails, errorMessages)
             return
         }
 
@@ -77,25 +88,30 @@ class ScanWithAquaStage extends Stage {
         if (enabledInCluster && enabledInProject) {
             String reportFile = "aqua-report.html"
             int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
+            if (AquaService.AQUA_SUCCESS != returnCode) {
+                errorMessages += "<li>Error executing Aqua CLI</li>"
+            }
             // If report exists
             if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
                 createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
                 archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
-            }
+            } // TODO errors in BB y Reports
         } else {
+            def message = ''
             if(!enabledInCluster && !enabledInProject) {
-                logger.info "Skipping Aqua scan because is not enabled nor cluster " +
+                message = "Skipping Aqua scan because is not enabled nor cluster " +
                     "in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project, nor project level in 'aqua' ConfigMap"
-                return
             } else if (enabledInCluster) {
-                logger.info "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
-                return
+                message =  "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
             } else {
-                logger.info "Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
+                message "Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
                     "ConfigMap in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project"
-                return
             }
+            logger.info message
+            errorMessages += "<li>${message}</li>"
         }
+        notifyAquaProblem(alertEmails, errorMessages)
+        return
     }
 
     private String getImageRef() {
@@ -118,14 +134,14 @@ class ScanWithAquaStage extends Stage {
                 logger.info "Finished scan via Aqua CLI successfully!"
                 break
             case AquaService.AQUA_OPERATIONAL_ERROR:
-                logger.warn"An error occurred in processing the scan request " +
+                logger.info "An error occurred in processing the scan request " +
                     "(e.g. invalid command line options, image not pulled, operational error)."
                 break
             case AquaService.AQUA_POLICIES_ERROR:
-                logger.warn "The image scanned failed at least one of the Image Assurance Policies specified."
+                logger.info "The image scanned failed at least one of the Image Assurance Policies specified."
                 break
             default:
-                logger.warn "An unknown return code was returned: ${returnCode}"
+                logger.info "An unknown return code was returned: ${returnCode}"
         }
         logger.infoClocked(options.resourceName, "Aqua scan (via CLI)")
         return returnCode
@@ -164,4 +180,16 @@ class ScanWithAquaStage extends Stage {
         context.addArtifactURI('SCSR', targetReport)
     }
 
+    private void notifyAquaProblem(String recipients = '', String message = '') {
+        String subject = "Build $context.componentId on project $context.projectId had some problems with Aqua!"
+        String body = "<p>$subject</p> <p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
+
+        if (message) {
+            script.emailext(
+                body: body, mimeType: 'text/html',
+                replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
+                to: recipients
+            )
+        }
+    }
 }
