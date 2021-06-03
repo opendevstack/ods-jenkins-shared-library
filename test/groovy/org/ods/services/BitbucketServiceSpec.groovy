@@ -66,6 +66,24 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     }
 
+    def "create code insight report"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        def result = service.createCodeInsightReport("http://link", "repo-name", "123456", "Title", "Details", "PASS")
+
+        then:
+        1 * steps.sh(_)
+    }
+
     protected String readResource(String name) {
         def classLoader = getClass().getClassLoader();
         def file = new File(classLoader.getResource(name).getFile());
