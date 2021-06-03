@@ -98,9 +98,9 @@ class ScanWithAquaStage extends Stage {
                     def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String)
                     // returnCode is 0 --> Success or 4 --> Error policies
                     // with errorCode > 0 BitbucketCodeInsight is FAIL
-                    def int errorCode = returnCode +
-                        resultInfo.vulnerability_summary.critical +
-                        resultInfo.vulnerability_summary.malware
+                    int errorCode = returnCode +
+                        resultInfo.vulnerability_summary.critical as int +
+                        resultInfo.vulnerability_summary.malware as int
 
                     createBitbucketCodeInsightReport(url, registry, imageRef, errorCode)
                     archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
