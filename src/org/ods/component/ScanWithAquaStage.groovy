@@ -185,7 +185,7 @@ class ScanWithAquaStage extends Stage {
         String body = "<p>$subject</p> <p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
 
         if (message) {
-            script.emailext(
+            steps.emailext(
                 body: body, mimeType: 'text/html',
                 replyTo: '$script.DEFAULT_REPLYTO', subject: subject,
                 to: recipients
