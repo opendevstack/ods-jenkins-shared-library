@@ -19,7 +19,8 @@ class AquaService {
         this.logger = logger
     }
 
-    int scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
+    int scanViaCli(String aquaUrl, String registry, String imageRef,
+                   String credentialsId, String reportFile, String jsonFile) {
         logger.info "Starting to scan via Aqua CLI..."
         int status = AQUA_SUCCESS
         withCredentials(credentialsId) { username, password ->
@@ -33,6 +34,7 @@ class AquaService {
                   --register \
                   --text \
                   --htmlfile '${reportFile}' \
+                  --jsonfile '${jsonFile}' \
                   -w /tmp \
                   -U '${username}' \
                   -P '${password}' \

@@ -87,14 +87,22 @@ class ScanWithAquaStage extends Stage {
         boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
         if (enabledInCluster && enabledInProject) {
             String reportFile = "aqua-report.html"
-            int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile)
+            String jsonFile = "aqua-report.json"
+            int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
             if (AquaService.AQUA_SUCCESS != returnCode) {
                 errorMessages += "<li>Error executing Aqua CLI</li>"
             }
             // If report exists
             if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
                 try {
-                    createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
+                    def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String)
+                    // returnCode is 0 --> Success or 4 --> Error policies
+                    // with errorCode > 0 BitbucketCodeInsight is FAIL
+                    def int errorCode = returnCode +
+                        resultInfo.vulnerability_summary.critical +
+                        resultInfo.vulnerability_summary.malware
+
+                    createBitbucketCodeInsightReport(url, registry, imageRef, errorCode)
                     archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
                 } catch (err) {
                     logger.warn("Error archiving the Aqua reports due to: ${err}")
@@ -130,9 +138,10 @@ class ScanWithAquaStage extends Stage {
         return null
     }
 
-    private int scanViaCli(String aquaUrl, String registry, String imageRef, String credentialsId, String reportFile) {
+    private int scanViaCli(String aquaUrl, String registry, String imageRef,
+                           String credentialsId, String reportFile, String jsonFile) {
         logger.startClocked(options.resourceName)
-        int returnCode = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile)
+        int returnCode = aqua.scanViaCli(aquaUrl, registry, imageRef, credentialsId, reportFile, jsonFile)
         // see possible return codes at https://docs.aquasec.com/docs/scanner-cmd-scan#section-return-codes
         switch (returnCode) {
             case AquaService.AQUA_SUCCESS:
@@ -156,7 +165,7 @@ class ScanWithAquaStage extends Stage {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
         String details = "Please visit the following link to review the Aqua Security scan report:"
-        // for now, we set the result always to successful in the aqua stage
+
         String result = returnCode == 0 ? "PASS" : "FAIL"
         bitbucket.createCodeInsightReport(aquaScanUrl, context.repoName, context.gitCommit, title, details, result)
     }
