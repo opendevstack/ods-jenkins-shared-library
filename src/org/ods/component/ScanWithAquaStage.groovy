@@ -10,7 +10,7 @@ import org.ods.util.ILogger
 @TypeChecked
 class ScanWithAquaStage extends Stage {
 
-    public final String STAGE_NAME = 'Aqua Security Scan'
+    static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
     static final String AQUA_GENERAL_CONFIG_MAP_PROJECT = "ods"
     private final AquaService aqua
@@ -98,7 +98,7 @@ class ScanWithAquaStage extends Stage {
             } // TODO errors in BB y Reports
         } else {
             def message = ''
-            if(!enabledInCluster && !enabledInProject) {
+            if (!enabledInCluster && !enabledInProject) {
                 message = "Skipping Aqua scan because is not enabled nor cluster " +
                     "in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project, nor project level in 'aqua' ConfigMap"
             } else if (enabledInCluster) {
@@ -182,7 +182,8 @@ class ScanWithAquaStage extends Stage {
 
     private void notifyAquaProblem(String recipients = '', String message = '') {
         String subject = "Build $context.componentId on project $context.projectId had some problems with Aqua!"
-        String body = "<p>$subject</p> <p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
+        String body = "<p>$subject</p> " +
+            "<p>URL : <a href=\"$context.buildUrl\">$context.buildUrl</a></p> <ul>$message</ul>"
 
         if (message) {
             steps.emailext(
@@ -192,4 +193,5 @@ class ScanWithAquaStage extends Stage {
             )
         }
     }
+
 }
