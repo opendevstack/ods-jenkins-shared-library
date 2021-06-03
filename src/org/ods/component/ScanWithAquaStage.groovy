@@ -93,9 +93,14 @@ class ScanWithAquaStage extends Stage {
             }
             // If report exists
             if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
-                createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
-                archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
-            } // TODO errors in BB y Reports
+                try {
+                    createBitbucketCodeInsightReport(url, registry, imageRef, returnCode)
+                    archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
+                } catch (err) {
+                    logger.warn("Error archiving the Aqua reports due to: ${err}")
+                    errorMessages += "<li>Error archiving Aqua reports</li>"
+                }
+            }
         } else {
             def message = ''
             if (!enabledInCluster && !enabledInProject) {
