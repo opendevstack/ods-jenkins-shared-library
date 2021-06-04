@@ -78,10 +78,48 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         ])
 
         when:
-        def result = service.createCodeInsightReport("http://link", "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport("http://link", "repo-name", "123456", "Title", "Details", "PASS")
 
         then:
-        1 * steps.sh(_)
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_)>> {
+            assert it.label == ['Create Bitbucket Code Insight report via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request PUT')
+            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Content-Type: application/json"')
+            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
+                '[{"title":"Link","value":{"linktext":"http://link","href":"http://link"},"type":"LINK"}]}\'')
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
+                'projects/FOO/repos/repo-name/commits/123456/reports/123456')
+        }
+    }
+
+    def "create code insight report with error in call"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(new Logger(steps, false))
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            logger
+        ])
+
+        when:
+        service.createCodeInsightReport("http://link", "repo-name", "123456", "Title", "Details", "PASS")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
+            throw new Exception ("Error with curl")
+        }
+        1 * logger.warn("Could not create Bitbucket Code Insight report due to: java.lang.Exception: Error with curl")
     }
 
     protected String readResource(String name) {
