@@ -19,6 +19,7 @@ class AquaService {
         this.logger = logger
     }
 
+    @SuppressWarnings('ParameterCount')
     int scanViaCli(String aquaUrl, String registry, String imageRef,
                    String credentialsId, String reportFile, String jsonFile) {
         logger.info "Starting to scan via Aqua CLI..."
