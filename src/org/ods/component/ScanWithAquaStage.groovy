@@ -139,6 +139,7 @@ class ScanWithAquaStage extends Stage {
         return null
     }
 
+    @SuppressWarnings('ParameterCount')
     private int scanViaCli(String aquaUrl, String registry, String imageRef,
                            String credentialsId, String reportFile, String jsonFile) {
         logger.startClocked(options.resourceName)
