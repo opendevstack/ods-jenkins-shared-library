@@ -1193,15 +1193,11 @@ class Project {
         }
     }
 
-    protected Map loadJiraDataTrackingDocs(String versionName = null) {
+    protected Map loadJiraDataTrackingDocs() {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
         def jql = "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"
-
-        if (versionName) {
-            jql = jql + " AND fixVersion = '${versionName}'"
-        }
 
         def jqlQuery = [
             jql: jql,
@@ -1211,12 +1207,7 @@ class Project {
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
-            def message = "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}'"
-            if (versionName) {
-                message += " for version '${versionName}'"
-            }
-            message += "."
-
+            def message = "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}.'"
             throw new IllegalArgumentException(message)
         }
 
