@@ -91,4 +91,12 @@ class PipelineScript {
     def stash (Map args) {
 
     }
+
+    def readFile (Map args) {
+
+    }
+
+    def readJSON (Map args) {
+
+    }
 }
