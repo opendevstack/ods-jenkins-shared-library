@@ -1236,6 +1236,7 @@ class Project {
         if (!this.jiraUseCase.jira) return [:]
 
         def jiraCreateMeta = this.jiraUseCase.jira.getCreateMeta(this.jiraProjectKey)
+        logger.info("getCreateMeta('${this.jiraProjectKey}')=${jiraCreateMeta}")
         return jiraCreateMeta.projects[0].issuetypes.collectEntries { jiraIssueType ->
             [
                 jiraIssueType.name,
