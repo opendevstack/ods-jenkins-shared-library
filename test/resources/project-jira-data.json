@@ -1,4 +1,5 @@
 {
+    "version": "0.3",
     "project": {
         "name": "Sock Shop",
         "description": "Sock Shop: A Microservice Demo Application",

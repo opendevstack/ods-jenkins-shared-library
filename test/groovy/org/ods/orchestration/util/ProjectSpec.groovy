@@ -969,7 +969,7 @@ class ProjectSpec extends SpecHelper {
         1 * project.convertJiraDataToJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
         1 * project.loadJiraDataBugs(*_) >> createProjectJiraDataBugs()
-        2 * project.loadJiraDataTrackingDocs(*_) >> createProjectJiraDataDocs()
+        1 * project.loadJiraDataTrackingDocs(*_) >> createProjectJiraDataDocs()
         1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
         1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
@@ -1178,90 +1178,6 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result.version == "0.1"
-    }
-
-    def "load Jira data"() {
-        setup:
-        def docGenData
-
-        // Stubbed Method Responses limitation of not being able to spy/mock JiraUseCase for projectObj
-        def jiraIssue1 = createJiraIssue("1", null, null, null, "DONE")
-        jiraIssue1.fields["0"] = "1.0"
-        jiraIssue1.fields.labels = [JiraUseCase.LabelPrefix.DOCUMENT+ "CSD"]
-        jiraIssue1.renderedFields = [:]
-        jiraIssue1.renderedFields["1"] = "<html>myContent1</html>"
-        jiraIssue1.renderedFields.description = "<html>1-description</html>"
-
-        def jira = Mock(JiraService) {
-            getDocGenData(_) >> {
-                return docGenData
-            }
-            isVersionEnabledForDelta(*_) >> { return false }
-            searchByJQLQuery(*_) >> { return [ issues: [jiraIssue1]]}
-            getTextFieldsOfIssue(*_) >> { return [field_0: [name: "1"]]}
-        }
-
-        def projectObj = new Project(steps, logger)
-        projectObj.git = git
-        projectObj.jiraUseCase = new JiraUseCase(projectObj, steps, Mock(MROPipelineUtil), jira, logger)
-        projectObj.data.buildParams = createProjectBuildParams()
-        projectObj.data.jira = [issueTypes: [
-            (JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER): [ fields: [
-                (JiraUseCase.CustomIssueFields.HEADING_NUMBER): [id:"0"],
-                (JiraUseCase.CustomIssueFields.CONTENT): [id: "1"],
-            ]],
-            (JiraUseCase.IssueTypes.RELEASE_STATUS): [ fields: [
-                (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
-            ]]
-        ]]
-        projectObj.data.metadata = [capabilities:[[LeVADocs:[GAMPCategory: 5,templatesVersion: "1.1"]]]]
-
-        def projectKey = "DEMO"
-
-        project = createProject([
-            "loadJiraData": {
-                return projectObj.loadJiraData(projectKey)
-            }
-        ])
-
-        when:
-        docGenData = null
-        project.loadJiraData(projectKey)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
-
-        when:
-        docGenData = [:]
-        project.loadJiraData(projectKey)
-
-        then:
-        e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
-
-        when:
-        docGenData = [project: [:]]
-        project.loadJiraData(projectKey)
-
-        then:
-        e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
-
-        when:
-        docGenData = [project: [id: null]]
-        project.loadJiraData(projectKey)
-
-        then:
-        e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to load documentation generation data from Jira. 'project.id' is undefined."
-
-        when:
-        docGenData = [project: [id: "4711"]]
-        def result = project.loadJiraData(projectKey)
-
-        then:
-        result.project.id == "4711"
     }
 
     def "load metadata"() {

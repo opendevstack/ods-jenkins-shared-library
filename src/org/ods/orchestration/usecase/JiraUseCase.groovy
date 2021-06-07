@@ -2,13 +2,11 @@ package org.ods.orchestration.usecase
 
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.Project.JiraDataItem
-
-import java.util.concurrent.ConcurrentHashMap
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['IfStatementBraces', 'LineLength'])
 class JiraUseCase {

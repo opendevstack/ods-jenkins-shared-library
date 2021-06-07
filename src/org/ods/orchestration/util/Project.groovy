@@ -1665,9 +1665,9 @@ class Project {
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version
         (jiraData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).each { k, component ->
-            jiraData[JiraDataItem.TYPE_COMPONENTS][k].key = k
+            component.key = k
             if (! component.versions) {
-                jiraData[JiraDataItem.TYPE_COMPONENTS][k].versions = [currentVersion]
+                component.versions = [currentVersion]
             }
         }
         jiraData
