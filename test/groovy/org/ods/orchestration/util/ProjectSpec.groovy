@@ -893,7 +893,7 @@ class ProjectSpec extends SpecHelper {
         project.hasWipJiraIssues()
 
         then:
-        def e = thrown(IllegalArgumentException)
+        def e = thrown(OpenIssuesException)
         e.message == expectedMessage
 
         and:
