@@ -1205,7 +1205,7 @@ class Project {
 
         def jqlQuery = [
             jql: jql,
-            validateQuery: 'none',
+            validateQuery: false, // Deprecated. Newer versions of Jira use 'none' for this, but our Jira seems older.
             fields: 'summary,description,status,labels,fixVersions'
         ]
 
