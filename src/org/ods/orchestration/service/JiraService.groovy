@@ -376,8 +376,8 @@ class JiraService {
 
     @NonCPS
     Map getCreateMeta(String projectId) {
-        if (!projectKey?.trim()) {
-            throw new IllegalArgumentException('Error: unable to get Jira create meta. \'projectKey\' is undefined.')
+        if (!projectId?.trim()) {
+            throw new IllegalArgumentException('Error: unable to get Jira create meta. \'projectId\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/api/2/issue/createmeta")
