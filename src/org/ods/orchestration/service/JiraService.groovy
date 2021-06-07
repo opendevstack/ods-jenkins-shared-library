@@ -375,6 +375,32 @@ class JiraService {
     }
 
     @NonCPS
+    Map getCreateMeta(String projectKey) {
+        if (!projectKey?.trim()) {
+            throw new IllegalArgumentException('Error: unable to get Jira create meta. \'projectKey\' is undefined.')
+        }
+
+        def response = Unirest.get("${this.baseURL}/rest/api/2/issue/createmeta")
+            .queryString('expand', 'projects.issuetypes.fields')
+            .queryString('projectKeys', projectKey)
+            .basicAuth(this.username, this.password)
+            .header('Accept', 'application/json')
+            .asString()
+
+        response.ifFailure {
+            def message = "Error: unable to get Jira issue types. Jira responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
+
+            if (response.getStatus() == 404) {
+                message = "Error: unable to get Jira issue types. Jira could not be found at: '${this.baseURL}'."
+            }
+
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    @NonCPS
     List<Map> getVersionsForProject(String projectKey) {
         if (!projectKey?.trim()) {
             throw new IllegalArgumentException('Error: unable to load project version from Jira. \'projectKey\' is undefined.')

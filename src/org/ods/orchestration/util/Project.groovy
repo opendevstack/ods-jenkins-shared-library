@@ -1235,14 +1235,14 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def jiraIssueTypes = this.jiraUseCase.jira.getIssueTypes(this.jiraProjectKey)
-        return jiraIssueTypes.values.collectEntries { jiraIssueType ->
+        def jiraCreateMeta = this.jiraUseCase.jira.getCreateMeta(this.jiraProjectKey)
+        return jiraCreateMeta.projects[0].issuetypes.collectEntries { jiraIssueType ->
             [
                 jiraIssueType.name,
                 [
                     id: jiraIssueType.id,
                     name: jiraIssueType.name,
-                    fields: this.jiraUseCase.jira.getIssueTypeMetadata(this.jiraProjectKey, jiraIssueType.id).values.collectEntries { value ->
+                    fields: jiraIssueType.fields.collectEntries { key, value ->
                         [
                             value.name,
                             [
