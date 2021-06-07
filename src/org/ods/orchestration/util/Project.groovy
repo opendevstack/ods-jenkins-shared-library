@@ -353,8 +353,10 @@ class Project {
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(version)
         this.data.jira.trackingDocsForHistory = this.loadJiraDataTrackingDocs()
+        this.data.jira.trackingDocs = this.data.jira.trackingDocsForHistory.findAll { key, value ->
+            value.fixVersion == version
+        }
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
@@ -1202,7 +1204,9 @@ class Project {
         }
 
         def jqlQuery = [
-            jql: jql
+            jql: jql,
+            validateQuery: 'none',
+            fields: 'summary,description,status,labels,fixVersions'
         ]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
@@ -1225,6 +1229,7 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
+                    fixVersion: jiraIssue.fields.fixVersions?.first()
                 ],
             ]
         }
@@ -1235,8 +1240,7 @@ class Project {
         if (!this.jiraUseCase.jira) return [:]
 
         def jiraCreateMeta = this.jiraUseCase.jira.getCreateMeta(this.jiraProjectKey)
-        logger.info("getCreateMeta('${this.jiraProjectKey}')=${jiraCreateMeta}")
-        return jiraCreateMeta.projects[0].issuetypes.collectEntries { jiraIssueType ->
+        return jiraCreateMeta.projects.first().issuetypes.collectEntries { jiraIssueType ->
             [
                 jiraIssueType.name,
                 [
