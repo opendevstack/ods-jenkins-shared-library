@@ -1205,8 +1205,8 @@ class Project {
 
         def jqlQuery = [
             jql: jql,
-            validateQuery: false, // Deprecated. Newer versions of Jira use 'none' for this, but our Jira seems older.
-            fields: 'summary,description,status,labels,fixVersions'
+            validateQuery: 'false', // Deprecated. Newer versions of Jira use 'none' for this, but our Jira seems older.
+            fields: ['summary', 'description', 'status', 'labels', 'fixVersions']
         ]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
