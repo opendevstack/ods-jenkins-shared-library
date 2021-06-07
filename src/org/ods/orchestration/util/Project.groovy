@@ -1229,7 +1229,7 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
-                    fixVersion: jiraIssue.fields.fixVersions?.first()
+                    fixVersion: jiraIssue.fields.fixVersions?.first().name
                 ],
             ]
         }
