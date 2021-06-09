@@ -994,7 +994,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         0 * stage.logger.warn(_)
     }
 
-    def "run the Stage with default credential - Without config maps"() {
+    def "run the Stage without config maps"() {
         given:
         def stage = createStage()
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
