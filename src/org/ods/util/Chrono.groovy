@@ -15,7 +15,7 @@ class Chrono {
             def end = System.currentTimeMillis()
             def duration = Duration.ofMillis(end - start)
             ILogger logger = ServiceRegistry.instance.get(Logger)
-            logger.info("${blockName}: ${duration}")
+            logger.info("${blockName} duration: ${duration}")
         }
     }
 
