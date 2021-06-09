@@ -221,7 +221,8 @@ class Pipeline implements Serializable {
                             if (this.displayNameUpdateEnabled) {
                                 script.currentBuild.displayName = "#${context.tagversion}"
                             }
-
+                            // hook method for (Agent) specific callouts
+                            context.amendWithAgentInformation()
                             stages(context)
                         }
                         script.stage('odsPipeline finished') {

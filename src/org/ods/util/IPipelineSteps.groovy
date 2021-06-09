@@ -51,6 +51,10 @@ interface IPipelineSteps {
 
     def writeJSON(Map args)
 
+    def readYaml(Map args)
+
+    def writeYaml(Map args)
+
     def timeout(Map args, Closure block)
 
     def deleteDir()

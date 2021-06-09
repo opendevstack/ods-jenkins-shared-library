@@ -112,6 +112,14 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.writeJSON(args)
     }
 
+    def readYaml(Map args) {
+        this.context.readYaml(args)
+    }
+
+    def writeYaml(Map args) {
+        this.context.writeYaml(args)
+    }
+
     def timeout(Map args, Closure block) {
         this.context.timeout(args, block)
     }
