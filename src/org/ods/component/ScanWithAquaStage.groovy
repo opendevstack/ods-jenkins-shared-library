@@ -33,9 +33,16 @@ class ScanWithAquaStage extends Stage {
     }
 
     protected run() {
-        Map configurationAquaCluster = openShift.getConfigMapData(AQUA_GENERAL_CONFIG_MAP_PROJECT, AQUA_CONFIG_MAP_NAME)
-        Map configurationAquaProject = openShift.getConfigMapData(context.cdProject, AQUA_CONFIG_MAP_NAME)
+        Map configurationAquaCluster = [:]
+        Map configurationAquaProject = [:]
         String errorMessages = ''
+        try {
+            configurationAquaCluster = openShift.getConfigMapData(AQUA_GENERAL_CONFIG_MAP_PROJECT, AQUA_CONFIG_MAP_NAME)
+            configurationAquaProject = openShift.getConfigMapData(context.cdProject, AQUA_CONFIG_MAP_NAME)
+        } catch (err) {
+            logger.warn("Error retrieving the Aqua config due to: ${err}")
+            errorMessages += "<li>Error retrieving the Aqua config</li>"
+        }
 
         if (!configurationAquaProject.containsKey('enabled')) {
             // If not exist key, is enabled
