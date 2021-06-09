@@ -86,7 +86,7 @@ class FinalizeStage extends Stage {
         }
 
         if (project.hasWipJiraIssues()) {
-            util.warnBuild('The project has opened issues, please check the release status issue for more information')
+            util.warnBuild(project.generateWIPIssuesMessage())
         }
 
         // Dump a representation of the project
