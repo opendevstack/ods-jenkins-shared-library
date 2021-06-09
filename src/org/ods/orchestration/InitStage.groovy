@@ -269,7 +269,7 @@ class InitStage extends Stage {
 
         Closure loadClosure = {
             logger.debugClocked('Project#load')
-            project.load(registry.get(GitService), registry.get(JiraUseCase), registry.get(MROPipelineUtil))
+            project.load(registry.get(GitService), registry.get(JiraUseCase))
             logger.debugClocked('Project#load')
 
             logger.debug 'Validate that for Q and P we have a valid version'

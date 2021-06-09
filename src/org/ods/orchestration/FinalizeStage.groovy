@@ -85,6 +85,10 @@ class FinalizeStage extends Stage {
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
+        if (project.hasWipJiraIssues()) {
+            util.warnBuild('The project has opened issues, please check the release status issue for more information')
+        }
+
         // Dump a representation of the project
         logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
 
