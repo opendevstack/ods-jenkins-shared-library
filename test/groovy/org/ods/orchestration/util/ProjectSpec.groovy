@@ -2756,4 +2756,56 @@ class ProjectSpec extends SpecHelper {
 
 
     }
+
+    def "generate message for WIP issues"(){
+        given:
+        def expectedMessage = """
+        Pipeline-generated documents are watermarked 'Work in Progress' since the following issues are work in progress:
+
+        Epics: NET-124
+
+        Mitigations: NET-123
+
+        Requirements: NET-125
+
+        Risks: NET-126
+
+        TechSpecs: NET-128
+
+        Tests: NET-140, NET-131, NET-142, NET-130, NET-141, NET-133, NET-144, NET-132, NET-143, NET-135, NET-134, NET-137, NET-136, NET-139, NET-138
+        """.stripIndent().replaceAll("[\\t\\n\\r]+"," ").trim()
+
+        when:
+        def message = project.generateWIPIssuesMessage().stripIndent().replaceAll("[\\t\\n\\r]+"," ").trim()
+
+        then:
+        message == expectedMessage
+    }
+
+    def "generate message for WIP issues when deploying to dev"(){
+        given:
+        project.data.buildParams.version = "1.0"
+
+        def expectedMessage = """
+        The pipeline failed since the following issues are work in progress (no documents were generated):
+
+        Epics: NET-124
+
+        Mitigations: NET-123
+
+        Requirements: NET-125
+
+        Risks: NET-126
+
+        TechSpecs: NET-128
+
+        Tests: NET-140, NET-131, NET-142, NET-130, NET-141, NET-133, NET-144, NET-132, NET-143, NET-135, NET-134, NET-137, NET-136, NET-139, NET-138
+        """.stripIndent().replaceAll("[\\t\\n\\r]+"," ").trim()
+
+        when:
+        def message = project.generateWIPIssuesMessage().stripIndent().replaceAll("[\\t\\n\\r]+"," ").trim()
+
+        then:
+        message == expectedMessage
+    }
 }
