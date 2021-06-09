@@ -980,8 +980,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             [
                 'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
                     '<p>URL : <a href="http://buidl">http://buidl</a></p> ' +
-                    '<ul><li>Provide the Aqua url of platform</li><' +
-                    'li>Provide the name of the registry to use in Aqua</li>' +
+                    '<ul><li>Provide the Aqua url of platform</li>' +
+                    '<li>Provide the name of the registry to use in Aqua</li>' +
                     '<li>Error executing Aqua CLI</li></ul>',
                 'mimeType':'text/html',
                 'replyTo':'$script.DEFAULT_REPLYTO',
@@ -992,5 +992,42 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         }
         // No warnings
         0 * stage.logger.warn(_)
+    }
+
+    def "run the Stage with default credential - Without config maps"() {
+        given:
+        def stage = createStage()
+        stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
+
+        when:
+        stage.run()
+
+        then:
+        // Get configs
+        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> {
+            throw new Exception("Non existing ConfigMap")
+        }
+        // Default cd-user
+        1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
+            "continuing with default credentialsId 'cd-user'...")
+        // Mail sent
+        1 * stage.script.emailext(
+            [
+                'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
+                    '<p>URL : <a href="http://buidl">http://buidl</a></p> <ul><li>Error retrieving the Aqua config</li>' +
+                    '<li>Provide the Aqua url of platform</li>' +
+                    '<li>Provide the name of the registry to use in Aqua</li>' +
+                    '<li>Skipping Aqua scan because is not enabled at cluster level in \'aqua\' ConfigMap in ods project</li></ul>',
+                'mimeType':'text/html',
+                'replyTo':'$script.DEFAULT_REPLYTO',
+                'subject':'Build component1 on project prj1 had some problems with Aqua!',
+                'to':null
+            ]
+        ) >> {
+            println "No destination to mail!!"
+        }
+        // Warnings
+        1 * stage.logger.warn('Error retrieving the Aqua config due to: java.lang.Exception: Non existing ConfigMap')
     }
 }
