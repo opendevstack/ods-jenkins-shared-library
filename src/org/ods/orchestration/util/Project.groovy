@@ -263,6 +263,7 @@ class Project {
     protected IPipelineSteps steps
     protected GitService git
     protected JiraUseCase jiraUseCase
+    protected MROPipelineUtil util
     protected ILogger logger
     protected Map config
     protected String targetProject
@@ -332,9 +333,10 @@ class Project {
         this.logger.debug "Using release manager commit: ${this.data.git.commit}"
     }
 
-    Project load(GitService git, JiraUseCase jiraUseCase) {
+    Project load(GitService git, JiraUseCase jiraUseCase, MROPipelineUtil util) {
         this.git = git
         this.jiraUseCase = jiraUseCase
+        this.util = util
 
         // FIXME: the quality of this function degraded with ODS 3.1 and needs a cleanup
         // with a clear concept for versioning (scattered across various places)
@@ -378,6 +380,7 @@ class Project {
             if(!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
             }
+            util.warnBuild(message)
             this.addCommentInReleaseStatus(message)
         }
 
