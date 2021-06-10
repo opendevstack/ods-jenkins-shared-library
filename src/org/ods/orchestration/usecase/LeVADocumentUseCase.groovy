@@ -10,6 +10,7 @@ import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
 import org.ods.util.Chrono
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
@@ -1721,13 +1722,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
      * @param document to be gathered the id of
      * @return string with the valid id
      */
-    protected Long getLatestDocVersionId(String document, List<String> environments = null) {
+    protected Long getLatestDocVersionId(String document, List<String> environments) {
         def versionId
         if (this.project.historyForDocumentExists(document)) {
             versionId = this.project.getHistoryForDocument(document).getVersion()
         } else {
             def trackingIssues =  this.getDocumentTrackingIssuesForHistory(document, environments)
-            versionId = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+            versionId = this.getLatestDocVersionId(trackingIssues)
         }
         return versionId
     }
@@ -1766,7 +1767,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 version = this.project.getHistoryForDocument(doc).getVersion()
             } else {
                 def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
-                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                version = this.getLatestDocVersionId(trackingIssues)
                 if (this.project.isWorkInProgress) {
                     version = (version + 1L).toString() + "-WIP"
                 } else if (docIsCreatedInTheEnvironment(doc)) {
@@ -1778,6 +1779,33 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
 
+    }
+
+    protected Long getLatestDocVersionId(List<Map> trackingIssues) {
+        def logger = ServiceRegistry.instance.get(Logger)
+        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        def documentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
+
+        // We will use the biggest ID available
+        def versionList = trackingIssues.collect { issue ->
+            def versionNumber = 0L
+            def version = this.project.data.jira.trackingDocsForHistory[issue.key][documentVersionField]
+            if (version) {
+                try {
+                    versionNumber = version.toLong()
+                } catch (NumberFormatException _) {
+                    logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
+                        "version. It contains value '${version}'.")
+                }
+            }
+            return versionNumber
+        }
+
+        def result = versionList.max()
+        logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
+            "${trackingIssues.collect { it.key } }")
+
+        return result
     }
 
 }

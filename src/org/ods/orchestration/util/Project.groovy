@@ -1194,12 +1194,15 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
+        def documentationTrackingIssueFields = this.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        def documentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
+
         def jql = "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"
 
         def jqlQuery = [
             jql: jql,
             validateQuery: 'false', // Deprecated. Newer versions of Jira use 'none' for this, but our Jira seems older.
-            fields: ['summary', 'description', 'status', 'labels', 'fixVersions']
+            fields: ['summary', 'description', 'status', 'labels', 'fixVersions', documentVersionField]
         ]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
