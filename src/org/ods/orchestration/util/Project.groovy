@@ -1066,7 +1066,6 @@ class Project {
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
             def currentVersion = buildParams.changeId
-            logger.info("Version: ${buildParams.version}, changeId: ${currentVersion}")
 
             // We detect the correct version even if the build is WIP
             result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
@@ -1076,8 +1075,7 @@ class Project {
     }
 
     protected String getVersionFromReleaseStatusIssue() {
-        // TODO review if it's possible to use Project.getVersionName()?
-        return this.jiraUseCase.getVersionFromReleaseStatusIssue()
+        return this.versionName
     }
 
     protected Map loadVersionJiraData(String projectKey, String versionName) {
