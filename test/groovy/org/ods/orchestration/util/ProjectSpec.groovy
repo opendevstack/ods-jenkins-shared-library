@@ -2198,7 +2198,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
@@ -2266,7 +2265,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> firstVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
@@ -2329,7 +2327,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2401,7 +2398,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2463,7 +2459,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 

@@ -92,7 +92,7 @@ class FakeProject extends Project {
     protected Map loadCurrentVersionDataFromJira() {
         return [
             "id"  : "11100",
-            "name": "0.3"
+            "name": "1.0"
         ]
     }
 
@@ -200,7 +200,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TCR"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1071": [
                 "key"        : "NET-1071",
@@ -210,7 +210,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TCP"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1066": [
                 "key"        : "NET-1066",
@@ -220,7 +220,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:DIL_P"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1064": [
                 "key"        : "NET-1064",
@@ -230,7 +230,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:DIL_Q"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1142": [
                 "key": "NET-1142",
@@ -240,7 +240,7 @@ class FixtureHelper {
                 "labels": [
                     "Doc:DIL"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1013": [
                 "key"        : "NET-1013",
@@ -250,7 +250,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:CSD"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-938" : [
                 "key"        : "NET-938",
@@ -260,7 +260,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TRC"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-937" : [
                 "key"        : "NET-937",
@@ -270,7 +270,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:SSDS"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-494" : [
                 "key"        : "NET-494",
@@ -280,7 +280,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:IVR"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-433" : [
                 "key"        : "NET-433",
@@ -290,7 +290,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TC_CTR_M"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-428" : [
                 "key"        : "NET-428",
@@ -300,7 +300,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:FTR_M"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-427" : [
                 "key"        : "NET-427",
@@ -310,7 +310,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TC_CTR"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1133": [
                 "key": "NET-1133",
@@ -320,7 +320,7 @@ class FixtureHelper {
                 "labels": [
                     "Doc:TCP_P"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1132": [
                 "key": "NET-1132",
@@ -330,7 +330,7 @@ class FixtureHelper {
                 "labels": [
                     "Doc:TCP_Q"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-416" : [
                 "key"        : "NET-416",
@@ -340,7 +340,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:IVP"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-318" : [
                 "key"        : "NET-318",
@@ -350,7 +350,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TIP"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-317" : [
                 "key"        : "NET-317",
@@ -360,7 +360,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TIR"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-24"  : [
                 "key"        : "NET-24",
@@ -370,7 +370,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:VSR"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-23"  : [
                 "key"        : "NET-23",
@@ -380,7 +380,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:IVR_P"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-22"  : [
                 "key"        : "NET-22",
@@ -390,7 +390,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TIR_P"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-21"  : [
                 "key"        : "NET-21",
@@ -400,7 +400,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:IVP_P"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-20"  : [
                 "key"        : "NET-20",
@@ -410,7 +410,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TIP_P"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-19"  : [
                 "key"        : "NET-19",
@@ -420,7 +420,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:CFTR"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-18"  : [
                 "key"        : "NET-18",
@@ -430,7 +430,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TC"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-17"  : [
                 "key"        : "NET-17",
@@ -440,7 +440,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:CFTP"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1129": [
                 "key": "NET-1129",
@@ -450,7 +450,7 @@ class FixtureHelper {
                 "labels": [
                     "Doc:CFTP_P"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-1128": [
                 "key": "NET-1128",
@@ -460,7 +460,7 @@ class FixtureHelper {
                 "labels": [
                     "Doc:CFTP_Q"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-15"  : [
                 "key"        : "NET-15",
@@ -470,7 +470,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:DTR"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-14"  : [
                 "key"        : "NET-14",
@@ -480,7 +480,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:IVR_Q"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-13"  : [
                 "key"        : "NET-13",
@@ -490,7 +490,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TIR_Q"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-12"  : [
                 "key"        : "NET-12",
@@ -500,7 +500,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:DTP"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-8"   : [
                 "key"        : "NET-8",
@@ -510,7 +510,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:IVP_Q"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-7"   : [
                 "key"        : "NET-7",
@@ -520,7 +520,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:TIP_Q"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ],
             "NET-6"   : [
                 "key"        : "NET-6",
@@ -530,7 +530,7 @@ class FixtureHelper {
                 "labels"     : [
                     "Doc:RA"
                 ],
-                "fixVersion" : "0.3"
+                "fixVersion" : "1.0"
             ]
         ]
     }
