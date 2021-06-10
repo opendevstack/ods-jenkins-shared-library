@@ -1065,9 +1065,8 @@ class Project {
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
-            // FIXME: getVersionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
-            // than once. However, it's also called via this.project.versionFromReleaseStatusIssue in JiraUseCase.groovy.
-            def currentVersion = this.getVersionFromReleaseStatusIssue() // TODO why is param.version not sufficient here?
+            def currentVersion = buildParams.changeId
+            logger.info("Version: ${buildParams.version}, changeId: ${currentVersion}")
 
             // We detect the correct version even if the build is WIP
             result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
