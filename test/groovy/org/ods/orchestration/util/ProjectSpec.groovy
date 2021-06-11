@@ -473,7 +473,8 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == [
-            [key: "NET-318", status: "DONE"]
+            [key: "NET-318", name: 'Technical Installation Plan', description: 'C-TIP', status: "DONE",
+             labels: ['Doc:TIP'], fixVersion: '1.0']
         ]
 
         when:
@@ -481,9 +482,12 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == [
-            [key: "NET-318", status: "DONE"],
-            [key: "NET-7", status: "DONE"],
-            [key: "NET-20", status: "DONE"]
+            [key: "NET-318", name: 'Technical Installation Plan', description: 'C-TIP', status: "DONE",
+             labels: ['Doc:TIP'], fixVersion: '1.0'],
+            [key: "NET-20", name: 'Technical Installation Plan for P', description: 'C-TIP for P', status: "DONE",
+             labels: ['Doc:TIP_P'], fixVersion: '1.0'],
+            [key: "NET-7", name: 'Technical Installation Plan for Q', description: 'C-TIP for Q', status: "DONE",
+             labels: ['Doc:TIP_Q'], fixVersion: '1.0']
         ]
     }
 

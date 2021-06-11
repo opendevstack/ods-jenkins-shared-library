@@ -1789,21 +1789,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
             def versionNumber = 0L
-            def version = this.project.data.jira.trackingDocsForHistory[issue.key][documentVersionField]
+            def version = issue[documentVersionField]
             if (version) {
                 try {
                     versionNumber = version.toLong()
                 } catch (NumberFormatException _) {
-                    logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        "version. It contains value '${version}'.")
+                    if(logger) {
+                        logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
+                            "version. It contains value '${version}'.")
+                    }
                 }
             }
             return versionNumber
         }
 
         def result = versionList.max()
-        logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
-            "${trackingIssues.collect { it.key } }")
+        if(logger) {
+            logger.debug("Retrieved max doc version ${versionList.max()} from doc tracking issues " +
+                "${trackingIssues.collect { it.key } }")
+        }
 
         return result
     }

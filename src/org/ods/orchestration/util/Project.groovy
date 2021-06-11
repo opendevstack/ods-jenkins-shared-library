@@ -353,8 +353,9 @@ class Project {
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.trackingDocsForHistory = this.loadJiraDataTrackingDocs()
-        this.data.jira.trackingDocs = this.data.jira.trackingDocsForHistory.findAll { key, value ->
+        def trackingDocs = this.loadJiraDataTrackingDocs()
+        this.data.jira.trackingDocsForHistory = trackingDocs
+        this.data.jira.trackingDocs = trackingDocs.findAll { key, value ->
             value.fixVersion == version
         }
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
@@ -705,18 +706,12 @@ class Project {
 
     @NonCPS
     List<Map> getDocumentTrackingIssues(List<String> labels) {
-        def result = []
-
+        def labelSet = labels.collect { it.toLowerCase() }
         def issues = this.getDocumentTrackingIssues()
-        labels.each { label ->
-            issues.each { issue ->
-                if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
-                    result << [key: issue.key, status: issue.status]
-                }
-            }
+        def matched = issues.findAll { issue ->
+            !labelSet.disjoint(issue.labels.collect { it.toLowerCase() })
         }
-
-        return result.unique()
+        return matched
     }
 
     @NonCPS
@@ -726,18 +721,12 @@ class Project {
 
     @NonCPS
     List<Map> getDocumentTrackingIssuesForHistory(List<String> labels) {
-        def result = []
-
+        def labelSet = labels.collect { it.toLowerCase() }
         def issues = this.getDocumentTrackingIssuesForHistory()
-        labels.each { label ->
-            issues.each { issue ->
-                if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
-                    result << [key: issue.key, status: issue.status]
-                }
-            }
+        def matched = issues.findAll { issue ->
+            !labelSet.disjoint(issue.labels.collect { it.toLowerCase() })
         }
-
-        return result.unique()
+        return matched
     }
 
     @NonCPS
