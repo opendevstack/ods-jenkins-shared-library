@@ -1604,8 +1604,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
             documentVersionId = "${metadata.version}-${metadata.jenkins.buildNumber}"
         }
 
+        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
         jiraIssues.each { Map jiraIssue ->
-            this.updateValidDocVersionInJira(jiraIssue.key as String, documentVersionId)
+            if(this.updateValidDocVersionInJira(jiraIssue.key as String, documentVersionId)) {
+                jiraIssue[documentationTrackingIssueDocumentVersionField] = documentVersionId
+                if(this.project.data.jira.trackingDocs[jiraIssue.key][documentationTrackingIssueDocumentVersionField] != documentVersionId
+                    || this.project.data.jira.trackingDocsForHistory[jiraIssue.key][documentationTrackingIssueDocumentVersionField] != documentVersionId) {
+                    throw new RuntimeException("Update of doc version did not work as expected")
+                }
+            }
             this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key as String, msg)
         }
     }
@@ -1656,7 +1664,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         environment
     }
 
-    protected void updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {
+    protected boolean updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION]
 
@@ -1664,7 +1672,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             // In case of generating a final document, we add the label for the version that should be released
             this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
                 [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
+            return true
         }
+        return false
     }
 
     protected List<Map> getDocumentTrackingIssues(String documentType, List<String> environments = null) {
