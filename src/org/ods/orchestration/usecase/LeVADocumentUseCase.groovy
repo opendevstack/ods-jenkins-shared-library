@@ -1606,11 +1606,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         jiraIssues.each { Map jiraIssue ->
             if(this.updateValidDocVersionInJira(jiraIssue.key as String, documentVersionId)) {
+                // The update is only done when not in developer preview mode
                 jiraIssue.docVersion = documentVersionId
-                if(this.project.data.jira.trackingDocs[jiraIssue.key].docVersion != documentVersionId
-                    || this.project.data.jira.trackingDocsForHistory[jiraIssue.key].docVersion != documentVersionId) {
-                    throw new RuntimeException("Update of doc version did not work as expected")
-                }
             }
             this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key as String, msg)
         }
