@@ -1604,13 +1604,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
             documentVersionId = "${metadata.version}-${metadata.jenkins.buildNumber}"
         }
 
-        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
-        def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
         jiraIssues.each { Map jiraIssue ->
             if(this.updateValidDocVersionInJira(jiraIssue.key as String, documentVersionId)) {
-                jiraIssue[documentationTrackingIssueDocumentVersionField] = documentVersionId
-                if(this.project.data.jira.trackingDocs[jiraIssue.key][documentationTrackingIssueDocumentVersionField] != documentVersionId
-                    || this.project.data.jira.trackingDocsForHistory[jiraIssue.key][documentationTrackingIssueDocumentVersionField] != documentVersionId) {
+                jiraIssue.docVersion = documentVersionId
+                if(this.project.data.jira.trackingDocs[jiraIssue.key].docVersion != documentVersionId
+                    || this.project.data.jira.trackingDocsForHistory[jiraIssue.key].docVersion != documentVersionId) {
                     throw new RuntimeException("Update of doc version did not work as expected")
                 }
             }
@@ -1793,13 +1791,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Long getLatestDocVersionId(List<Map> trackingIssues) {
         def logger = ServiceRegistry.instance.get(Logger)
-        def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
-        def documentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
 
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
             def versionNumber = 0L
-            def version = issue[documentVersionField]
+            def version = issue.docVersion
             if (version) {
                 try {
                     versionNumber = version.toLong()
