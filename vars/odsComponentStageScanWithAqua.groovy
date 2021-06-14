@@ -67,7 +67,6 @@ def call(IContext context, Map config = [:]) {
                 ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
         } catch (err) {
             logger.info("Error retrieving the Aqua config due to: ${err}")
-            errorMessages += "<li>Error retrieving the Aqua config from project</li>"
         }
         if (!configurationAquaProject.containsKey('enabled')) {
             // If not exist key, is enabled
@@ -75,7 +74,6 @@ def call(IContext context, Map config = [:]) {
             logger.info "Not parameter 'enabled' at project level. Default enabled"
         }
 
-        def message = ''
         boolean enabledInCluster = Boolean.valueOf(configurationAquaCluster['enabled'].toString())
         boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
 
@@ -92,16 +90,15 @@ def call(IContext context, Map config = [:]) {
             ).execute()
         }
         else if (!enabledInCluster && !enabledInProject) {
-            message = "Skipping Aqua scan because is not enabled nor cluster " +
-                "in ${ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT} project, nor project level in 'aqua' ConfigMap"
+            logger.warn("Skipping Aqua scan because is not enabled nor cluster " +
+                "in ${ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT} project, " +
+                "nor project level in 'aqua' ConfigMap")
         } else if (enabledInCluster) {
-            message = "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
-        } else {
-            message = "Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
-                "ConfigMap in ${ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT} project"
+            logger.warn("Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap")
+        } else if {
+            logger.warn("Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
+                "ConfigMap in ${ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT} project")
         }
-        logger.warn message
-        errorMessages += "<li>${message}</li>"
     } catch (err) {
         logger.warn("Error with Aqua due to: ${err}")
         errorMessages += "<li>Error with Aqua</li>"
