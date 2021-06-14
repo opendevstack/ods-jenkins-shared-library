@@ -87,8 +87,6 @@ def call(IContext context, Map config = [:]) {
                 openShiftService,
                 logger,
                 configurationAquaCluster,
-                configurationAquaProject,
-                configurationAquaCluster,
                 configurationAquaProject
             ).execute()
         }
