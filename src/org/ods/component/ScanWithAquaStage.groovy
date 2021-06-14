@@ -17,11 +17,14 @@ class ScanWithAquaStage extends Stage {
     private final BitbucketService bitbucket
     private final OpenShiftService openShift
     private final ScanWithAquaOptions options
+    private Map configurationAquaCluster
+    private Map configurationAquaProject
 
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithAquaStage(def script, IContext context, Map config, AquaService aqua, BitbucketService bitbucket,
-                      OpenShiftService openShift, ILogger logger) {
+                      OpenShiftService openShift, ILogger logger,
+                      Map configurationAquaCluster = [:], Map configurationAquaProject = [:]) {
         super(script, context, logger)
         if (!config.resourceName) {
             config.resourceName = context.componentId
@@ -30,44 +33,32 @@ class ScanWithAquaStage extends Stage {
         this.aqua = aqua
         this.bitbucket = bitbucket
         this.openShift = openShift
+        this.configurationAquaCluster = configurationAquaCluster
+        this.configurationAquaProject = configurationAquaProject
     }
 
     protected run() {
-        Map configurationAquaCluster = [:]
-        Map configurationAquaProject = [:]
         String errorMessages = ''
-        try {
-            configurationAquaCluster = openShift.getConfigMapData(AQUA_GENERAL_CONFIG_MAP_PROJECT, AQUA_CONFIG_MAP_NAME)
-            configurationAquaProject = openShift.getConfigMapData(context.cdProject, AQUA_CONFIG_MAP_NAME)
-        } catch (err) {
-            logger.warn("Error retrieving the Aqua config due to: ${err}")
-            errorMessages += "<li>Error retrieving the Aqua config</li>"
-        }
 
-        if (!configurationAquaProject.containsKey('enabled')) {
-            // If not exist key, is enabled
-            configurationAquaProject.put('enabled', true)
-            logger.info "Not parameter 'enabled' at project level. Default enabled"
-        }
-        // addresses form Aqua advises mails.
+        // Addresses form Aqua advises mails.
         String alertEmails = configurationAquaCluster['alertEmails']
         if (!alertEmails) {
             logger.info "Please provide the alert emails of the Aqua platform!"
+            errorMessages = '<li>Provide the alert emails of the Aqua platform</li>'
         }
-
-        // base URL of Aqua server.
+        // Base URL of Aqua server.
         String url = configurationAquaCluster['url']
         if (!url) {
             logger.info "Please provide the URL of the Aqua platform!"
             errorMessages += "<li>Provide the Aqua url of platform</li>"
         }
-        // name in Aqua of the registry that contains the image we want to scan
+        // Name in Aqua of the registry that contains the image we want to scan.
         String registry = configurationAquaCluster['registry']
         if (!registry) {
             logger.info "Please provide the name of the registry that contains the image of interest!"
             errorMessages += "<li>Provide the name of the registry to use in Aqua</li>"
         }
-        // name of the credentials that stores the username/password of a user with access
+        // Name of the credentials that stores the username/password of a user with access
         // to the Aqua server identified by "aquaUrl", defaults to the cd-user
         String secretName = configurationAquaCluster['secretName']
         String credentialsId = context.cdProject + "-"
@@ -90,47 +81,31 @@ class ScanWithAquaStage extends Stage {
             return
         }
 
-        boolean enabledInCluster = Boolean.valueOf(configurationAquaCluster['enabled'].toString())
-        boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
-        if (enabledInCluster && enabledInProject) {
-            String reportFile = "aqua-report.html"
-            String jsonFile = "aqua-report.json"
-            int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
-            if (AquaService.AQUA_SUCCESS != returnCode) {
-                errorMessages += "<li>Error executing Aqua CLI</li>"
-            }
-            // If report exists
-            if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
-                try {
-                    def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
-                    Map vulnerabilities = resultInfo.vulnerability_summary as Map
-                    // returnCode is 0 --> Success or 4 --> Error policies
-                    // with sum of errorCodes > 0 BitbucketCodeInsight is FAIL
-                    def errorCodes = [returnCode,
-                                      vulnerabilities.critical,
-                                      vulnerabilities.malware]
-
-                    createBitbucketCodeInsightReport(url, registry, imageRef, errorCodes.sum() as int)
-                    archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
-                } catch (err) {
-                    logger.warn("Error archiving the Aqua reports due to: ${err}")
-                    errorMessages += "<li>Error archiving Aqua reports</li>"
-                }
-            }
-        } else {
-            def message = ''
-            if (!enabledInCluster && !enabledInProject) {
-                message = "Skipping Aqua scan because is not enabled nor cluster " +
-                    "in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project, nor project level in 'aqua' ConfigMap"
-            } else if (enabledInCluster) {
-                message = "Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap"
-            } else {
-                message = "Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
-                    "ConfigMap in ${AQUA_GENERAL_CONFIG_MAP_PROJECT} project"
-            }
-            logger.warn message
-            errorMessages += "<li>${message}</li>"
+        String reportFile = "aqua-report.html"
+        String jsonFile = "aqua-report.json"
+        int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
+        if (AquaService.AQUA_SUCCESS != returnCode) {
+            errorMessages += "<li>Error executing Aqua CLI</li>"
         }
+        // If report exists
+        if ([AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
+            try {
+                def resultInfo = steps.readJSON(text: steps.readFile(file: jsonFile) as String) as Map
+                Map vulnerabilities = resultInfo.vulnerability_summary as Map
+                // returnCode is 0 --> Success or 4 --> Error policies
+                // with sum of errorCodes > 0 BitbucketCodeInsight is FAIL
+                def errorCodes = [returnCode,
+                                  vulnerabilities.critical,
+                                  vulnerabilities.malware]
+
+                createBitbucketCodeInsightReport(url, registry, imageRef, errorCodes.sum() as int)
+                archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
+            } catch (err) {
+                logger.warn("Error archiving the Aqua reports due to: ${err}")
+                errorMessages += "<li>Error archiving Aqua reports</li>"
+            }
+        }
+
         notifyAquaProblem(alertEmails, errorMessages)
         return
     }

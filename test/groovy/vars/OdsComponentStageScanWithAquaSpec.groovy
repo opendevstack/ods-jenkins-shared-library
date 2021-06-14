@@ -32,7 +32,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         branchToEnvironmentMapping: ['master': 'dev', 'release/': 'test'],
     ]
 
-    def "run successfully"() {
+    def "Run successfully"() {
         given:
         def c = config + [environment: 'dev']
         IContext context = new Context(null, c, logger)
@@ -68,10 +68,206 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
         script.call(context)
 
         then:
         printCallStack()
         assertJobStatusSuccess()
     }
+
+    def "Not executed - Disabled at project level"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ]
+        openShiftService.getConfigMapData("foo", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: false
+        ]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
+    def "Not executed - Disabled at cluster level"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: false,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ]
+        openShiftService.getConfigMapData("foo", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: true
+        ]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
+    def "Not executed - Disabled at cluster and project level"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: false,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ]
+        openShiftService.getConfigMapData("foo", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: false
+        ]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
+    def "Run successfully - Without enabled property in project ConfigMap"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+        context.addBuildToArtifactURIs("bar", [image: "image1/image1:2323232323"])
+
+        AquaService aquaService = Stub(AquaService.class)
+        aquaService.scanViaCli(*_) >> 0
+        ServiceRegistry.instance.add(AquaService, aquaService)
+
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        bitbucketService.createCodeInsightReport(*_) >> null
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ]
+        openShiftService.getConfigMapData("foo", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [:]
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('readJSON', [ Map ]) { [
+            vulnerability_summary: [critical: 0, malware: 0]
+        ] }
+        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
+    def "Run successfully - Without ConfigMap at project level"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+        context.addBuildToArtifactURIs("bar", [image: "image1/image1:2323232323"])
+
+        AquaService aquaService = Stub(AquaService.class)
+        aquaService.scanViaCli(*_) >> 0
+        ServiceRegistry.instance.add(AquaService, aquaService)
+
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        bitbucketService.createCodeInsightReport(*_) >> null
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ]
+        openShiftService.getConfigMapData("foo", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> {
+            throw new Exception("Non existing ConfigMap")
+        }
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('readJSON', [ Map ]) { [
+            vulnerability_summary: [critical: 0, malware: 0]
+        ] }
+        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
+    def "Not executed - Not existing Map in cluster"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+
+        OpenShiftService openShiftService = Stub(OpenShiftService.class)
+        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> {
+            throw new Exception("Non existing ConfigMap")
+        }
+        ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
+
+
 }

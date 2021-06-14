@@ -9,7 +9,7 @@ import vars.test_helper.PipelineSpockTestBase
 
 class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
-    ScanWithAquaStage createStage() {
+    ScanWithAquaStage createStage(Map configurationAquaCluster = [:], Map configurationAquaProject = [:]) {
         def script = Spy(PipelineScript)
         def steps = Spy(util.PipelineSteps)
         def logger = Spy(new Logger(steps, false))
@@ -37,7 +37,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             aqua,
             bitbucket,
             openShift,
-            logger
+            logger,
+            configurationAquaCluster,
+            configurationAquaProject
         )
 
         return stage
@@ -242,25 +244,21 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with default credential - OK"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-                enabled: true,
-                alertEmails: "mail1@mail.com",
-                url: "http://aqua",
-                registry: "internal"
-            ]
 
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -302,26 +300,21 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with custom credential - OK"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal",
+            secretName: "custom-secret"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal",
-            secretName: "custom-secret"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // No default cd-user
         0 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -363,24 +356,19 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage without image - ERROR "() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -400,25 +388,20 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with default credential - Error Policies"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -468,25 +451,20 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with default credential - Error Vulnerabilities critical"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -528,25 +506,20 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with default credential - Error Malware"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -588,25 +561,20 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with default credential - Error CLI Operational"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -630,25 +598,20 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with default credential - Error CLI Unspecified"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -670,147 +633,22 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         0 * stage.logger.warn(_)
     }
 
-    def "run the Stage with default credential - Disabled at project level"() {
-        given:
-        def stage = createStage()
-        stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
-
-        when:
-        stage.run()
-
-        then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: false
-        ]
-        // Default cd-user
-        1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
-            "continuing with default credentialsId 'cd-user'...")
-        // Mail sent
-        1 * stage.script.emailext(
-            [
-                'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
-                    '<p>URL : <a href="http://buidl">http://buidl</a></p> <ul><li>Skipping Aqua scan ' +
-                    'because is not enabled at project level in \'aqua\' ConfigMap</li></ul>',
-                'mimeType':'text/html',
-                'replyTo':'$script.DEFAULT_REPLYTO',
-                'subject':'Build component1 on project prj1 had some problems with Aqua!',
-                'to':'mail1@mail.com'
-            ]
-        )
-        // Warnings
-        1 * stage.logger.warn("Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap")
-    }
-
-    def "run the Stage with default credential - Disabled at cluster level"() {
-        given:
-        def stage = createStage()
-        stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
-
-        when:
-        stage.run()
-
-        then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: false,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
-        // Default cd-user
-        1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
-            "continuing with default credentialsId 'cd-user'...")
-        // Mail sent
-        1 * stage.script.emailext(
-            [
-                'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
-                    '<p>URL : <a href="http://buidl">http://buidl</a></p> <ul><li>Skipping Aqua scan ' +
-                    'because is not enabled at cluster level in \'aqua\' ConfigMap in ods project</li></ul>',
-                'mimeType':'text/html',
-                'replyTo':'$script.DEFAULT_REPLYTO',
-                'subject':'Build component1 on project prj1 had some problems with Aqua!',
-                'to':'mail1@mail.com'
-            ]
-        )
-        // Warnings
-        1 * stage.logger.warn("Skipping Aqua scan because is not enabled at cluster level in 'aqua' ConfigMap in ods project")
-    }
-
-    def "run the Stage with default credential - Disabled at cluster and project"() {
-        given:
-        def stage = createStage()
-        stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
-
-        when:
-        stage.run()
-
-        then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: false,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: false
-        ]
-        // Default cd-user
-        1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
-            "continuing with default credentialsId 'cd-user'...")
-        // Mail sent
-        1 * stage.script.emailext(
-            [
-                'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
-                    '<p>URL : <a href="http://buidl">http://buidl</a></p> <ul><li>Skipping Aqua scan ' +
-                    'because is not enabled nor cluster in ods project, nor project level in \'aqua\' ConfigMap</li></ul>',
-                'mimeType':'text/html',
-                'replyTo':'$script.DEFAULT_REPLYTO',
-                'subject':'Build component1 on project prj1 had some problems with Aqua!',
-                'to':'mail1@mail.com'
-            ]
-        )
-        // Warnings
-        1 * stage.logger.warn("Skipping Aqua scan because is not enabled nor cluster in ods project, nor project level in 'aqua' ConfigMap")
-    }
-
     def "run the Stage with default credential - Error archiving report"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com",
+            url: "http://aqua",
+            registry: "internal"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -845,84 +683,20 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.logger.warn('Error archiving the Aqua reports due to: java.lang.Exception: Error bitbucket')
     }
 
-    def "run the Stage with default credential and without ConfigMap in project (default enabled) - OK"() {
-        given:
-        def stage = createStage()
-        stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
-
-        when:
-        stage.run()
-
-        then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-            url: "http://aqua",
-            registry: "internal"
-        ]
-
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [:]
-        1 * stage.logger.info("Not parameter 'enabled' at project level. Default enabled")
-
-        // Default cd-user
-        1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
-            "continuing with default credentialsId 'cd-user'...")
-        // Do the scan
-        1 * stage.aqua.scanViaCli("http://aqua", "internal", "image1:2323232323",
-            "cd-user", "aqua-report.html", "aqua-report.json") >> AquaService.AQUA_SUCCESS
-        // Read results
-        1 * stage.script.readFile([file: "aqua-report.json"]) >> "[vulnerability_summary: [critical: 0, malware: 0]]"
-        1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
-            vulnerability_summary: [critical: 0, malware: 0]
-        ]
-        // Create report in Bitbucket
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "PASS")
-        // Archive artifact
-        1 * stage.script.sh(_) >> {
-            assert it.label == ['Create artifacts dir']
-            assert it.script == ['mkdir -p artifacts']
-        }
-        1 * stage.script.sh(_) >> {
-            assert it.label == ['Rename report to SCSR']
-            assert it.script == ['mv aqua-report.html artifacts/SCSR-prj1-component1-aqua-report.html']
-        }
-        1 * stage.script.archiveArtifacts(_) >> {
-            assert it.artifacts == ['artifacts/SCSR*']
-        }
-        1 * stage.script.stash(_) >> {
-            assert it.name == ['scsr-report-component1-56']
-            assert it.includes == ['artifacts/SCSR*']
-            assert it.allowEmpty == [true]
-        }
-        // No mail sent
-        0 * stage.script.emailext(_)
-        // No warnings
-        0 * stage.logger.warn(_)
-    }
-
     def "run the Stage with default credential and without config params in cluster ConfigMap, but with email - Error CLI Operational"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true,
+            alertEmails: "mail1@mail.com"
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true,
-            alertEmails: "mail1@mail.com",
-        ]
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         1 * stage.logger.info("Please provide the URL of the Aqua platform!")
         1 * stage.logger.info("Please provide the name of the registry that contains the image of interest!")
         // Default cd-user
@@ -951,21 +725,17 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     def "run the Stage with default credential and without config params in cluster ConfigMap, included email - Error CLI Operational"() {
         given:
-        def stage = createStage()
+        def stage = createStage([
+            enabled: true
+        ], [
+            enabled: true
+        ])
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
         stage.run()
 
         then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
-        1 * stage.openShift.getConfigMapData("prj1-cd", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
-            enabled: true
-        ]
         1 * stage.logger.info("Please provide the alert emails of the Aqua platform!")
         1 * stage.logger.info("Please provide the URL of the Aqua platform!")
         1 * stage.logger.info("Please provide the name of the registry that contains the image of interest!")
@@ -979,46 +749,11 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.script.emailext(
             [
                 'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
-                    '<p>URL : <a href="http://buidl">http://buidl</a></p> ' +
-                    '<ul><li>Provide the Aqua url of platform</li>' +
-                    '<li>Provide the name of the registry to use in Aqua</li>' +
-                    '<li>Error executing Aqua CLI</li></ul>',
-                'mimeType':'text/html',
-                'replyTo':'$script.DEFAULT_REPLYTO',
-                'subject':'Build component1 on project prj1 had some problems with Aqua!',
-                'to':null]
-        ) >> {
-            println "No destination to mail!!"
-        }
-        // No warnings
-        0 * stage.logger.warn(_)
-    }
-
-    def "run the Stage without config maps"() {
-        given:
-        def stage = createStage()
-        stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
-
-        when:
-        stage.run()
-
-        then:
-        // Get configs
-        1 * stage.openShift.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
-            ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> {
-            throw new Exception("Non existing ConfigMap")
-        }
-        // Default cd-user
-        1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
-            "continuing with default credentialsId 'cd-user'...")
-        // Mail sent
-        1 * stage.script.emailext(
-            [
-                'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
-                    '<p>URL : <a href="http://buidl">http://buidl</a></p> <ul><li>Error retrieving the Aqua config</li>' +
+                    '<p>URL : <a href="http://buidl">http://buidl</a></p> <ul>' +
+                    '<li>Provide the alert emails of the Aqua platform</li>' +
                     '<li>Provide the Aqua url of platform</li>' +
                     '<li>Provide the name of the registry to use in Aqua</li>' +
-                    '<li>Skipping Aqua scan because is not enabled at cluster level in \'aqua\' ConfigMap in ods project</li></ul>',
+                    '<li>Error executing Aqua CLI</li></ul>',
                 'mimeType':'text/html',
                 'replyTo':'$script.DEFAULT_REPLYTO',
                 'subject':'Build component1 on project prj1 had some problems with Aqua!',
@@ -1027,7 +762,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ) >> {
             println "No destination to mail!!"
         }
-        // Warnings
-        1 * stage.logger.warn('Error retrieving the Aqua config due to: java.lang.Exception: Non existing ConfigMap')
+        // No warnings
+        0 * stage.logger.warn(_)
     }
+
 }
