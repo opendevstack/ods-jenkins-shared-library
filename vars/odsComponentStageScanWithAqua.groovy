@@ -80,7 +80,7 @@ def call(IContext context, Map config = [:]) {
         boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
 
         if (enabledInCluster && enabledInProject) {
-            return new ScanWithAquaStage(this,
+            new ScanWithAquaStage(this,
                 context,
                 config,
                 aquaService,
