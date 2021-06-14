@@ -106,7 +106,6 @@ def call(IContext context, Map config = [:]) {
         }
         logger.warn message
         errorMessages += "<li>${message}</li>"
-
     } catch (err) {
         logger.warn("Error retrieving the Aqua config due to: ${err}")
         errorMessages += "<li>Error retrieving the Aqua config</li>"
