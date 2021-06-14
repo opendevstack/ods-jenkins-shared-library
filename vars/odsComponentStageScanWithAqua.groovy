@@ -95,7 +95,7 @@ def call(IContext context, Map config = [:]) {
                 "nor project level in 'aqua' ConfigMap")
         } else if (enabledInCluster) {
             logger.warn("Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap")
-        } else if {
+        } else {
             logger.warn("Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
                 "ConfigMap in ${ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT} project")
         }
