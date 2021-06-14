@@ -66,12 +66,13 @@ def call(IContext context, Map config = [:]) {
             configurationAquaProject = openShiftService.getConfigMapData(context.cdProject,
                 ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
         } catch (err) {
+            logger.info("Error retrieving the Aqua config due to: ${err}")
             errorMessages += "<li>Error retrieving the Aqua config from project</li>"
         }
         if (!configurationAquaProject.containsKey('enabled')) {
             // If not exist key, is enabled
-            configurationAquaProject.put('enabled', true).
-                logger.info "Not parameter 'enabled' at project level. Default enabled"
+            configurationAquaProject.put('enabled', true)
+            logger.info "Not parameter 'enabled' at project level. Default enabled"
         }
 
         def message = ''
@@ -102,8 +103,8 @@ def call(IContext context, Map config = [:]) {
         logger.warn message
         errorMessages += "<li>${message}</li>"
     } catch (err) {
-        logger.warn("Error retrieving the Aqua config due to: ${err}")
-        errorMessages += "<li>Error retrieving the Aqua config</li>"
+        logger.warn("Error with Aqua due to: ${err}")
+        errorMessages += "<li>Error with Aqua</li>"
     }
     notifyAqua(steps, context, alertEmails, errorMessages)
 }
