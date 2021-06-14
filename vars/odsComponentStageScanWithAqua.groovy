@@ -63,13 +63,11 @@ def call(IContext context, Map config = [:]) {
             logger.info("Error retrieving the Aqua config due to: ${err}")
             errorMessages += "<li>Error retrieving the Aqua config from project</li>"
         }
-
         if (!configurationAquaProject.containsKey('enabled')) {
             // If not exist key, is enabled
             configurationAquaProject.put('enabled', true).
                 logger.info "Not parameter 'enabled' at project level. Default enabled"
         }
-
         // Addresses form Aqua advises mails.
         alertEmails = configurationAquaCluster['alertEmails']
         if (!alertEmails) {
@@ -81,8 +79,7 @@ def call(IContext context, Map config = [:]) {
         boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
 
         if (enabledInCluster && enabledInProject) {
-            return new ScanWithAquaStage(
-                this,
+            return new ScanWithAquaStage(this,
                 context,
                 config,
                 aquaService,
