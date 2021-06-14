@@ -55,23 +55,23 @@ def call(IContext context, Map config = [:]) {
     try {
         configurationAquaCluster = openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
+        // Addresses form Aqua advises mails.
+        alertEmails = configurationAquaCluster['alertEmails']
+        if (!alertEmails) {
+            logger.info "Please provide the alert emails of the Aqua platform!"
+        }
+
         // Aqua ConfigMap at project level not existing: enabled = true
         try {
             configurationAquaProject = openShiftService.getConfigMapData(context.cdProject,
                 ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
         } catch (err) {
-            logger.info("Error retrieving the Aqua config due to: ${err}")
             errorMessages += "<li>Error retrieving the Aqua config from project</li>"
         }
         if (!configurationAquaProject.containsKey('enabled')) {
             // If not exist key, is enabled
             configurationAquaProject.put('enabled', true).
                 logger.info "Not parameter 'enabled' at project level. Default enabled"
-        }
-        // Addresses form Aqua advises mails.
-        alertEmails = configurationAquaCluster['alertEmails']
-        if (!alertEmails) {
-            logger.info "Please provide the alert emails of the Aqua platform!"
         }
 
         def message = ''
