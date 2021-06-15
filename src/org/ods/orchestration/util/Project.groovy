@@ -409,7 +409,7 @@ class Project {
                 message += '\n\n' + type.capitalize() + ': ' + values.join(', ')
             }
         }
-        message
+        return message
     }
 
     @NonCPS
