@@ -363,7 +363,7 @@ class Project {
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
         if (this.hasWipJiraIssues()) {
-            String message = generateWIPIssuesMessage()
+            String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
             if(!this.isWorkInProgress){
                 throw new OpenIssuesException(message)
@@ -395,21 +395,6 @@ class Project {
         this.jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
         return this
-    }
-
-    def generateWIPIssuesMessage() {
-        def message = this.isWorkInProgress ? 'Pipeline-generated documents are watermarked ' +
-            "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
-            'since the following issues are work in progress: ' :
-            "The pipeline failed since the following issues are work in progress (no documents were generated): "
-
-        this.getWipJiraIssues().each { type, keys ->
-            def values = keys instanceof Map ? keys.values().flatten() : keys
-            if (!values.isEmpty()) {
-                message += '\n\n' + type.capitalize() + ': ' + values.join(', ')
-            }
-        }
-        return message
     }
 
     @NonCPS

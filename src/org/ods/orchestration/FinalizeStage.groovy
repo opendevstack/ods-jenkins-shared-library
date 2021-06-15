@@ -1,5 +1,6 @@
 package org.ods.orchestration
 
+import org.ods.orchestration.util.ProjectMessagesUtil
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
@@ -86,7 +87,7 @@ class FinalizeStage extends Stage {
         }
 
         if (project.hasWipJiraIssues()) {
-            util.warnBuild(project.generateWIPIssuesMessage())
+            util.warnBuild(ProjectMessagesUtil.generateWIPIssuesMessage(project))
         }
 
         // Dump a representation of the project
