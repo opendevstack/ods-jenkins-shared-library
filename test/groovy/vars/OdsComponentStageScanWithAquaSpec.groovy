@@ -30,6 +30,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         buildTime: '2020-03-23 12:27:08 +0100',
         odsSharedLibVersion: '2.x',
         branchToEnvironmentMapping: ['master': 'dev', 'release/': 'test'],
+        JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE: 'ods'
     ]
 
     def "Run successfully"() {
@@ -47,7 +48,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(BitbucketService, bitbucketService)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
-        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        openShiftService.getConfigMapData('ods',
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
             enabled: true,
             alertEmails: "mail1@mail.com",
@@ -82,7 +83,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         IContext context = new Context(null, c, logger)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
-        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        openShiftService.getConfigMapData('ods',
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
             enabled: true,
             alertEmails: "mail1@mail.com",
@@ -110,7 +111,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         IContext context = new Context(null, c, logger)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
-        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        openShiftService.getConfigMapData('ods',
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
             enabled: false,
             alertEmails: "mail1@mail.com",
@@ -138,7 +139,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         IContext context = new Context(null, c, logger)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
-        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        openShiftService.getConfigMapData('ods',
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
             enabled: false,
             alertEmails: "mail1@mail.com",
@@ -175,7 +176,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(BitbucketService, bitbucketService)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
-        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        openShiftService.getConfigMapData('ods',
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
             enabled: true,
             alertEmails: "mail1@mail.com",
@@ -217,7 +218,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(BitbucketService, bitbucketService)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
-        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        openShiftService.getConfigMapData('ods',
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [
             enabled: true,
             alertEmails: "mail1@mail.com",
@@ -252,7 +253,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         IContext context = new Context(null, c, logger)
 
         OpenShiftService openShiftService = Stub(OpenShiftService.class)
-        openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        openShiftService.getConfigMapData('ods',
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> {
             throw new Exception("Non existing ConfigMap")
         }
@@ -267,7 +268,5 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         printCallStack()
         assertJobStatusSuccess()
     }
-
-
 
 }

@@ -12,7 +12,6 @@ class ScanWithAquaStage extends Stage {
 
     static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
-    static final String AQUA_GENERAL_CONFIG_MAP_PROJECT = "ods"
     private final AquaService aqua
     private final BitbucketService bitbucket
     private final OpenShiftService openShift

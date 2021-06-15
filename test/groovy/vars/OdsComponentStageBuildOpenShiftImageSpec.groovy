@@ -1,11 +1,9 @@
 package vars
 
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
-import groovy.lang.MissingPropertyException
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
-import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
@@ -53,7 +51,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
       false
     }
     helper.registerAllowedMethod('echo', [ String ]) {String args -> }
-    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context, Map ]) {
         [buildId: 'bar-123', image: '0daecc05']
     }
     def buildInfo = script.call(context)
@@ -114,7 +112,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       false
     }
-    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context, Map ]) {
         [buildId: 'overwrite-123', image: '0daecc05']
     }
     def buildInfo = script.call(context, configOverwrite)
@@ -171,7 +169,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
     helper.registerAllowedMethod("writeFile", [ Map ]) { Map args -> }
     helper.registerAllowedMethod('fileExists', [ String ]) { String args -> false }
-    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context, Map ]) {
         [buildId: 'bar-123', image: '0daecc05']
     }
     def buildInfo = script.call(context)
@@ -200,7 +198,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
       false
     }
-    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context, Map ]) {
         [buildId: 'bar-123', image: '0daecc05']
     }
     script.call(context)
@@ -227,7 +225,7 @@ class OdsComponentStageBuildOpenShiftImageSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageBuildOpenShiftImage.groovy')
-    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context ]) {
+    helper.registerAllowedMethod('odsComponentStageScanWithAqua', [ Context, Map ]) {
         [buildId: 'bar-123', image: '0daecc05']
     }
     if (branches != null) {

@@ -53,7 +53,7 @@ def call(IContext context, Map config = [:]) {
     String errorMessages = ''
     String alertEmails = ''
     try {
-        configurationAquaCluster = openShiftService.getConfigMapData(ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT,
+        configurationAquaCluster = openShiftService.getConfigMapData(config.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE,
             ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
         // Addresses form Aqua advises mails.
         alertEmails = configurationAquaCluster['alertEmails']
@@ -80,7 +80,7 @@ def call(IContext context, Map config = [:]) {
         if (enabledInCluster && enabledInProject) {
             new ScanWithAquaStage(this,
                 context,
-                config,
+                [:],
                 aquaService,
                 bitbucketService,
                 openShiftService,
