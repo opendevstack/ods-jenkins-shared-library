@@ -1476,6 +1476,7 @@ class Project {
         this.data.build.hasUnexecutedJiraTests = status
     }
 
+    @NonCPS
     String toString() {
         // Don't serialize resolved Jira data items
         def result = this.data.subMap(['build', 'buildParams', 'metadata', 'git', 'jira'])
