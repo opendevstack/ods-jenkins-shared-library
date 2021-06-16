@@ -160,28 +160,28 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     epicDescription : epic?.description,
                 ]
             }
+            def sortedUpdatedReqs = SortUtil.sortIssuesByKey(updatedReqs)
+            def reqsGroupByEpic = sortedUpdatedReqs.findAll {
+                it.epic != null }.groupBy { it.epic }.sort()
 
-            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll {
-                it.epic != null }.groupBy { it.epic }
-
-            def index = 0
-            def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
-                index = index + 1
+            def reqsGroupByEpicUpdated = reqsGroupByEpic.entrySet().withIndex(1).collect { group, index ->
+                def stories = group.value
+                def aStory = stories.first()
                 [
-                    epicName        : req.value.epicName.first(),
-                    epicTitle       : req.value.epicTitle.first(),
-                    epicDescription : this.convertImages(req.value.epicDescription.first() ?: ''),
-                    key             : req.key,
+                    epicName        : aStory.epicName,
+                    epicTitle       : aStory.epicTitle,
+                    epicDescription : this.convertImages(aStory.epicDescription ?: ''),
+                    key             : group.key, // This is the same as aStory.epic, the epic key.
                     epicIndex       : index,
-                    stories         : req.value,
+                    stories         : stories,
                 ]
             }
             def output = [
-                noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll { it.epic == null },
-                epics  : SortUtil.sortIssuesByKey(reqsGroupByEpicUpdated)
+                noepics: sortedUpdatedReqs.findAll { it.epic == null },
+                epics  : reqsGroupByEpicUpdated
             ]
 
-            [
+            return [
                 (gampTopic.replaceAll(' ', '').toLowerCase()): output
             ]
         }
