@@ -164,16 +164,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def reqsGroupByEpic = sortedUpdatedReqs.findAll {
                 it.epic != null }.groupBy { it.epic }.sort()
 
-            def reqsGroupByEpicUpdated = reqsGroupByEpic.entrySet().withIndex(1).collect { group, index ->
-                def stories = group.value
-                def aStory = stories.first()
+            def reqsGroupByEpicUpdated = reqsGroupByEpic.values().indexed(1).collect { index, epicStories ->
+                def aStory = epicStories.first()
                 [
                     epicName        : aStory.epicName,
                     epicTitle       : aStory.epicTitle,
                     epicDescription : this.convertImages(aStory.epicDescription ?: ''),
-                    key             : group.key, // This is the same as aStory.epic, the epic key.
+                    key             : aStory.epic,
                     epicIndex       : index,
-                    stories         : stories,
+                    stories         : epicStories,
                 ]
             }
             def output = [
