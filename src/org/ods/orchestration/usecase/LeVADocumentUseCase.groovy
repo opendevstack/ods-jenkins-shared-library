@@ -577,7 +577,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return [
                 key: r.key,
                 name: r.name,
-                description: r.description,
+                description: convertImages(r.description),
                 proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
                 requirements: requirements.collect { it.name }.join("<br/>"),
                 requirementsKey: requirements.collect { it.key }.join("<br/>"),
