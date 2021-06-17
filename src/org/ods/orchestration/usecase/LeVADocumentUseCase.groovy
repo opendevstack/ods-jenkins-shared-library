@@ -149,28 +149,27 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     epicDescription : epic?.description,
                 ]
             }
+            def sortedUpdatedReqs = SortUtil.sortIssuesByKey(updatedReqs)
+            def reqsGroupByEpic = sortedUpdatedReqs.findAll {
+                it.epic != null }.groupBy { it.epic }.sort()
 
-            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll {
-                it.epic != null }.groupBy { it.epic }
-
-            def index = 0
-            def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
-                index = index + 1
+            def reqsGroupByEpicUpdated = reqsGroupByEpic.values().indexed(1).collect { index, epicStories ->
+                def aStory = epicStories.first()
                 [
-                        epicName        : req.value.epicName.first(),
-                        epicTitle       : req.value.epicTitle.first(),
-                        epicDescription : this.convertImages(req.value.epicDescription.first() ?: ''),
-                        key             : req.key,
+                        epicName        : aStory.epicName,
+                        epicTitle       : aStory.epicTitle,
+                        epicDescription : this.convertImages(aStory.epicDescription ?: ''),
+                        key             : aStory.epic,
                         epicIndex       : index,
-                        stories         : req.value,
+                        stories         : epicStories,
                 ]
             }
             def output = [
-                noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll { it.epic == null },
-                epics  : SortUtil.sortIssuesByKey(reqsGroupByEpicUpdated)
+                noepics: sortedUpdatedReqs.findAll { it.epic == null },
+                epics  : reqsGroupByEpicUpdated
             ]
 
-            [
+            return [
                 (gampTopic.replaceAll(' ', '').toLowerCase()): output
             ]
         }
