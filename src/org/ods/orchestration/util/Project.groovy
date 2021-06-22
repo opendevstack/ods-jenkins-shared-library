@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.orchestration.usecase.JiraUseCase
-import org.ods.orchestration.usecase.LeVADocumentUseCase
+import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -362,20 +362,10 @@ class Project {
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
         if (this.hasWipJiraIssues()) {
-            def message = this.isWorkInProgress ?'Pipeline-generated documents are watermarked ' +
-                "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
-                'since the following issues are work in progress: ':
-                "The pipeline failed since the following issues are work in progress (no documents were generated): "
-
-            this.getWipJiraIssues().each { type, keys ->
-                def values = keys instanceof Map ? keys.values().flatten() : keys
-                if (!values.isEmpty()) {
-                    message += '\n\n' + type.capitalize() + ': ' + values.join(', ')
-                }
-            }
+            String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
             if(!this.isWorkInProgress){
-                throw new IllegalArgumentException(message)
+                throw new OpenIssuesException(message)
             }
             this.addCommentInReleaseStatus(message)
         }
@@ -675,10 +665,12 @@ class Project {
         ]
     }
 
+    @NonCPS
     List getCapabilities() {
         return this.data.metadata.capabilities
     }
 
+    @NonCPS
     Object getCapability(String name) {
         def entry = this.getCapabilities().find { it instanceof Map ? it.find { it.key == name } : it == name }
         if (entry) {
@@ -952,6 +944,7 @@ class Project {
         this.data.openshift.targetApiUrl
     }
 
+    @NonCPS
     boolean hasCapability(String name) {
         def collector = {
             return (it instanceof Map) ? it.keySet().first().toLowerCase() : it.toLowerCase()
@@ -960,10 +953,12 @@ class Project {
         return this.capabilities.collect(collector).contains(name.toLowerCase())
     }
 
+    @NonCPS
     boolean getHasFailingTests() {
         return this.data.build.hasFailingTests
     }
 
+    @NonCPS
     boolean hasUnexecutedJiraTests() {
         return this.data.build.hasUnexecutedJiraTests
     }
