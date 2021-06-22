@@ -665,10 +665,12 @@ class Project {
         ]
     }
 
+    @NonCPS
     List getCapabilities() {
         return this.data.metadata.capabilities
     }
 
+    @NonCPS
     Object getCapability(String name) {
         def entry = this.getCapabilities().find { it instanceof Map ? it.find { it.key == name } : it == name }
         if (entry) {
@@ -942,6 +944,7 @@ class Project {
         this.data.openshift.targetApiUrl
     }
 
+    @NonCPS
     boolean hasCapability(String name) {
         def collector = {
             return (it instanceof Map) ? it.keySet().first().toLowerCase() : it.toLowerCase()
@@ -950,10 +953,12 @@ class Project {
         return this.capabilities.collect(collector).contains(name.toLowerCase())
     }
 
+    @NonCPS
     boolean getHasFailingTests() {
         return this.data.build.hasFailingTests
     }
 
+    @NonCPS
     boolean hasUnexecutedJiraTests() {
         return this.data.build.hasUnexecutedJiraTests
     }
