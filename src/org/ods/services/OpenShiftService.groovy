@@ -666,6 +666,76 @@ class OpenShiftService {
         ).toString().trim()
     }
 
+    /**
+     * Pause a Deployment or DeploymentConfig.
+     * No deployments will be triggered until rollouts are resumed.
+     *
+     * @param project the project to apply the operation to. The current project, if null.
+     * @param resources either deployment or deploymentconfig and, optionally, the name <code>kind[/name]</code>.
+     * @param selector a comma-separated list of label conditions.
+     * @return the output of the shell script running the OpenShift client command.
+     * @throws IllegalArgumentException if no <code>resources</code> are provided.
+     */
+    String pauseRollouts(String project, String resources, String selector = null) {
+        if (!resources) {
+            throw new IllegalArgumentException('You must specify the resources to label')
+        }
+        if (logger.getDebugMode()) {
+            logger.debug("Pausing rollouts for ${resources}, selected by ${selector}")
+        }
+        def script = "oc rollout pause ${resources}"
+        if (selector) {
+            script += " -l ${selector} "
+        }
+        if (project) {
+            script += " -n ${project} "
+        }
+        def scriptLabel = "Pause ${resources}"
+        if (selector) {
+            scriptLabel += " selected by the following labels: ${selector}"
+        }
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    /**
+     * Resume rollouts for a Deployment or DeploymentConfig.
+     * If there were previous changes, a rollout may be immediately triggered.
+     *
+     * @param project the project to apply the operation to. The current project, if null.
+     * @param resources either deployment or deploymentconfig and, optionally, the name <code>kind[/name]</code>.
+     * @param selector a comma-separated list of label conditions.
+     * @return the output of the shell script running the OpenShift client command.
+     * @throws IllegalArgumentException if no <code>resources</code> are provided.
+     */
+    String resumeRollouts(String project, String resources, String selector = null) {
+        if (!resources) {
+            throw new IllegalArgumentException('You must specify the resources to label')
+        }
+        if (logger.getDebugMode()) {
+            logger.debug("Resuming rollouts for ${resources}, selected by ${selector}")
+        }
+        def script = "oc rollout pause ${resources}"
+        if (selector) {
+            script += " -l ${selector} "
+        }
+        if (project) {
+            script += " -n ${project} "
+        }
+        def scriptLabel = "Resume rollouts for ${resources},"
+        if (selector) {
+            scriptLabel += " selected by the following labels: ${selector}"
+        }
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
+    }
+
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {
         logger.info "Creating BuildConfig ${name} in ${project} ... "
         def bcYml = buildConfigBinaryYml(name, labels, tag)
