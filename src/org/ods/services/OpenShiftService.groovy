@@ -667,18 +667,21 @@ class OpenShiftService {
     }
 
     /**
-     * Pause a Deployment or DeploymentConfig.
+     * Pause a <code>Deployment</code> or <code>DeploymentConfig</code>.
      * No deployments will be triggered until rollouts are resumed.
+     * You can specify anything for <code>resources</code>, but only Deployments and DeploymentConfigs can be paused,
+     * so make sure that <code>resources</code> and <code>selector</code> together only select objects of those types.
+     * Usual values for <code>resources</code> are <code>deployment[/name]</code> and <code>dc[/name]</code>.
      *
      * @param project the project to apply the operation to. The current project, if null.
-     * @param resources either deployment or deploymentconfig and, optionally, the name <code>kind[/name]</code>.
+     * @param resources the kind of resource to pause and, optionally, the name: <code>kind[/name]</code>.
      * @param selector a comma-separated list of label conditions.
      * @return the output of the shell script running the OpenShift client command.
      * @throws IllegalArgumentException if no <code>resources</code> are provided.
      */
     String pauseRollouts(String project, String resources, String selector = null) {
         if (!resources) {
-            throw new IllegalArgumentException('You must specify the resources to label')
+            throw new IllegalArgumentException('You must specify the resources to pause')
         }
         if (logger.getDebugMode()) {
             logger.debug("Pausing rollouts for ${resources}, selected by ${selector}")
@@ -702,23 +705,26 @@ class OpenShiftService {
     }
 
     /**
-     * Resume rollouts for a Deployment or DeploymentConfig.
+     * Resume rollouts for a <code>Deployment</code> or <code>DeploymentConfig</code>.
      * If there were previous changes, a rollout may be immediately triggered.
+     * You can specify anything for <code>resources</code>, but only Deployments and DeploymentConfigs can be resumed,
+     * so make sure that <code>resources</code> and <code>selector</code> together only select objects of those types.
+     * Usual values for <code>resources</code> are <code>deployment[/name]</code> and <code>dc[/name]</code>.
      *
      * @param project the project to apply the operation to. The current project, if null.
-     * @param resources either deployment or deploymentconfig and, optionally, the name <code>kind[/name]</code>.
+     * @param resources the kind of resource to resume and, optionally, the name: <code>kind[/name]</code>.
      * @param selector a comma-separated list of label conditions.
      * @return the output of the shell script running the OpenShift client command.
      * @throws IllegalArgumentException if no <code>resources</code> are provided.
      */
     String resumeRollouts(String project, String resources, String selector = null) {
         if (!resources) {
-            throw new IllegalArgumentException('You must specify the resources to label')
+            throw new IllegalArgumentException('You must specify the resources to resume rollouts for')
         }
         if (logger.getDebugMode()) {
             logger.debug("Resuming rollouts for ${resources}, selected by ${selector}")
         }
-        def script = "oc rollout pause ${resources}"
+        def script = "oc rollout resume ${resources}"
         if (selector) {
             script += " -l ${selector} "
         }
