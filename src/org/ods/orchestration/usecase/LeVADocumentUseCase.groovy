@@ -149,25 +149,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     epicDescription : epic?.description,
                 ]
             }
-            def sortedUpdatedReqs = SortUtil.sortIssuesByKey(updatedReqs)
-            def reqsGroupByEpic = sortedUpdatedReqs.findAll {
-                it.epic != null }.groupBy { it.epic }.sort()
 
-            def reqsGroupByEpicUpdated = reqsGroupByEpic.values().indexed(1).collect { index, epicStories ->
-                def aStory = epicStories.first()
-                [
-                        epicName        : aStory.epicName,
-                        epicTitle       : aStory.epicTitle,
-                        epicDescription : this.convertImages(aStory.epicDescription ?: ''),
-                        key             : aStory.epic,
-                        epicIndex       : index,
-                        stories         : epicStories,
-                ]
-            }
-            def output = [
-                noepics: sortedUpdatedReqs.findAll { it.epic == null },
-                epics  : reqsGroupByEpicUpdated
-            ]
+            def output = sortByEpicAndRequirementKeys(updatedReqs)
 
             return [
                 (gampTopic.replaceAll(' ', '').toLowerCase()): output
@@ -193,6 +176,30 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    protected Map sortByEpicAndRequirementKeys(List updatedReqs) {
+        def sortedUpdatedReqs = SortUtil.sortIssuesByKey(updatedReqs)
+        def reqsGroupByEpic = sortedUpdatedReqs.findAll {
+            it.epic != null }.groupBy { it.epic }.sort()
+
+        def reqsGroupByEpicUpdated = reqsGroupByEpic.values().indexed(1).collect { index, epicStories ->
+            def aStory = epicStories.first()
+            [
+                epicName        : aStory.epicName,
+                epicTitle       : aStory.epicTitle,
+                epicDescription : this.convertImages(aStory.epicDescription ?: ''),
+                key             : aStory.epic,
+                epicIndex       : index,
+                stories         : epicStories,
+            ]
+        }
+        def output = [
+            noepics: sortedUpdatedReqs.findAll { it.epic == null },
+            epics  : reqsGroupByEpicUpdated
+        ]
+
+        return output
     }
 
     @NonCPS
