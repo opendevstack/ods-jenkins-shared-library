@@ -1647,6 +1647,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def project = Stub(Project)
         project.isVersioningEnabled >> true
         project.findHistoryForDocumentType('CSD') >> docHistory
+        project.findHistoryForDocumentType('DTR-repoId') >> docHistory
         project.buildParams >> [targetEnvironmentToken: 'D', configItem: 'ConfigItem']
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
@@ -1663,7 +1664,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             SSDS: 'ConfigItem / 2',
             RA: 'ConfigItem / 2',
             TRC: 'ConfigItem / 1',
-            DTP: 'ConfigItem / 2',
+            DTP: 'ConfigItem / 3',
             DTR: 'ConfigItem / 2',
             CFTP: 'ConfigItem / 2',
             CFTR: 'ConfigItem / 1',
