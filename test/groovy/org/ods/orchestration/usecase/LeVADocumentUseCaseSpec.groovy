@@ -1691,4 +1691,61 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
     }
 
+    def "requirements are properly sorted and indexed by epic and key"() {
+        given:
+        def updatedReqs = [
+            [
+                key:  'key5',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key2',
+                epic: null
+            ],
+            [
+                key:  'key3',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key1',
+                epic: null
+            ],
+            [
+                key:  'key8',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key4',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key6',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key7',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key9',
+                epic: null
+            ],
+        ]
+
+        when:
+        def groupedReqs = usecase.sortByEpicAndRequirementKeys(updatedReqs)
+
+        then:
+        // Requirements without epic are sorted by key
+        assert groupedReqs.noepics == groupedReqs.noepics.toSorted { req -> req.key }
+        // Epics are sorted by epic key
+        assert groupedReqs.epics == groupedReqs.epics.toSorted { epic -> epic.key }
+        // Epics are correctly indexed, according to the order by epic key
+        assert groupedReqs.epics == groupedReqs.epics.toSorted { epic -> epic.epicIndex }
+        // For each epic, its requirements are sorted by requirement key
+        groupedReqs.epics.each { epic ->
+            assert epic.stories == epic.stories.toSorted { req -> req.key }
+        }
+    }
+
 }
