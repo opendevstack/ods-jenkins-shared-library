@@ -2756,4 +2756,48 @@ class ProjectSpec extends SpecHelper {
 
 
     }
+
+    def "find history for document type"() {
+        given:
+        def project = new Project(null, null)
+        def histories = [
+            CSD: Stub(DocumentHistory),
+            SSDS: Stub(DocumentHistory),
+            RA: Stub(DocumentHistory),
+            TRC: Stub(DocumentHistory),
+            DTP: Stub(DocumentHistory),
+            DTR: Stub(DocumentHistory),
+            CFTP: Stub(DocumentHistory),
+            CFTR: Stub(DocumentHistory),
+            TIR: Stub(DocumentHistory),
+            TIP: Stub(DocumentHistory),
+        ]
+        def stored = [
+            CSD: histories.CSD,
+            SSDS: histories.SSDS,
+            RA: histories.RA,
+            TRC: histories.TRC,
+            DTP: histories.DTP,
+            'DTR-repo1': histories.DTR,
+            'DTR-repo2': histories.DTR,
+            CFTP: histories.CFTP,
+            CFTR: histories.CFTR,
+            'TIR-repo1': histories.TIR,
+            'TIR-repo2': histories.TIR,
+            TIP: histories.TIP,
+        ]
+
+        when:
+        stored.each { docName, history ->
+            project.setHistoryForDocument(history, docName)
+        }
+
+        then:
+        histories.each { docType, history ->
+            assert project.findHistoryForDocumentType(docType) == history
+        }
+        assert project.findHistoryForDocumentType('other') == null
+
+    }
+
 }
