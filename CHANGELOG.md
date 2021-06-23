@@ -17,6 +17,7 @@
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
 - Fix Reference Documents not displaying the correct version on the SLC Documents ([#672](https://github.com/opendevstack/ods-jenkins-shared-library/pull/672))
 - Jenkins nonCPS prevents project.dump from work ([#673](https://github.com/opendevstack/ods-jenkins-shared-library/issues/673))
+- Regression from NonCPS refactoring leads to method not found ([#675](https://github.com/opendevstack/ods-jenkins-shared-library/issues/675)
 
 ## [3.0] - 2020-08-11
 

@@ -954,7 +954,7 @@ class Project {
     }
 
     @NonCPS
-    boolean getHasFailingTests() {
+    boolean hasFailingTests() {
         return this.data.build.hasFailingTests
     }
 
