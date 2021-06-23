@@ -993,9 +993,12 @@ class Project {
 
     @NonCPS
     DocumentHistory findHistoryForDocumentType(String documentType) {
-        // All docHistories for DTR and TIR should have the same version
-        def entry = this.data.documentHistories.find { it.key.startsWith(documentType) }
-        return entry?.value
+        def history = getHistoryForDocument(documentType)
+        if (!history) {
+            // All docHistories for DTR and TIR should have the same version
+            history = this.data.documentHistories.find { it.key.startsWith("${documentType}-") }?.value
+        }
+        return history
     }
 
     @NonCPS
