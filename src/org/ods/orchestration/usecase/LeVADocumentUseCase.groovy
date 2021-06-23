@@ -1742,16 +1742,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (! this.project.isVersioningEnabled) {
                 // TODO removeme in ODS 4.x
                 version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
-            } else if (this.project.historyForDocumentExists(doc)) {
-                // The document, or a new version of it, has already been created in this same pipeline run.
-                version = this.project.findHistoryForDocumentType(doc).getVersion()
             } else {
-                def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
-                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
-                    // Either this is a developer preview or
-                    // the document will be generated in this deploy, but it is not created yet.
-                    version += 1L
+                // The document, or a new version of it, has already been created in this same pipeline run.
+                version = this.project.findHistoryForDocumentType(doc)?.getVersion()
+                if (!version) {
+                    def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
+                    version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                    if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
+                        // Either this is a developer preview or
+                        // the document will be generated in this deploy, but it is not created yet.
+                        version += 1L
+                    }
                 }
             }
 
