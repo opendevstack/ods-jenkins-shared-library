@@ -1646,8 +1646,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         docHistory.getVersion() >> 3L
         def project = Stub(Project)
         project.isVersioningEnabled >> true
-        project.getHistoryForDocument('CSD') >> docHistory
-        project.historyForDocumentExists('CSD') >> true
+        project.findHistoryForDocumentType('CSD') >> docHistory
         project.buildParams >> [targetEnvironmentToken: 'D', configItem: 'ConfigItem']
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
