@@ -344,7 +344,7 @@ class BitbucketService {
                         --header \"Content-Type: application/json\" \\
                         --data '${payload}' \\
                         ${bitbucketUrl}/rest/insights/1.0/projects/${project}/\
-repos/${repo}/commits/${gitCommit}/reports/${gitCommit}"""
+repos/${repo}/commits/${gitCommit}/reports/org.opendevstack.aquasec"""
                 )
                 return
             } catch (err) {

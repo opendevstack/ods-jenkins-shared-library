@@ -95,7 +95,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
                 '[{"title":"Link","value":{"linktext":"http://link","href":"http://link"},"type":"LINK"}]}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
-                'projects/FOO/repos/repo-name/commits/123456/reports/123456')
+                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
         }
     }
 
