@@ -2695,7 +2695,7 @@ class ProjectSpec extends SpecHelper {
 
     }
 
-    def "find history for document type"() {
+    def "get version for document type"() {
         given:
         def project = new Project(null, null)
         def histories = [
@@ -2724,6 +2724,16 @@ class ProjectSpec extends SpecHelper {
             'TIR-repo2': histories.TIR,
             TIP: histories.TIP,
         ]
+        histories.CSD.getVersion() >> 3L
+        histories.SSDS.getVersion() >> 1L
+        histories.RA.getVersion() >> 8L
+        histories.TRC.getVersion() >> 5L
+        histories.DTP.getVersion() >> 2L
+        histories.DTR.getVersion() >> 4L
+        histories.CFTP.getVersion() >> 9L
+        histories.CFTR.getVersion() >> 6L
+        histories.TIR.getVersion() >> 10L
+        histories.TIP.getVersion() >> 7L
 
         when:
         stored.each { docName, history ->
@@ -2732,9 +2742,9 @@ class ProjectSpec extends SpecHelper {
 
         then:
         histories.each { docType, history ->
-            assert project.findHistoryForDocumentType(docType) == history
+            assert project.getDocumentVersionFromHistories(docType) == history.getVersion()
         }
-        assert project.findHistoryForDocumentType('other') == null
+        assert project.getDocumentVersionFromHistories('other') == null
 
     }
 
