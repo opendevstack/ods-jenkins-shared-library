@@ -156,4 +156,7 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         return this.context
     }
 
+    def emailext(Map args) {
+        this.context.emailext(args)
+    }
 }

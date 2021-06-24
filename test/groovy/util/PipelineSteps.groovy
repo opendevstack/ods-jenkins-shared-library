@@ -178,4 +178,9 @@ class PipelineSteps implements IPipelineSteps {
     def node (String name, Closure block) {
       block ()
     }
+
+    def emailext(Map args) {
+
+    }
+
 }

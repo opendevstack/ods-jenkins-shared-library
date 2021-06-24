@@ -123,6 +123,13 @@ codenarc {
     reportFormat = 'html'
 }
 
+/**
+ The CodeNarc plugin adds the following tasks to the project:
+ - codenarcMain — Runs CodeNarc against the production Groovy source files.
+ - codenarcTest — Runs CodeNarc against the test Groovy source files.
+ - codenarcSourceSet — Runs CodeNarc against the given source set’s Groovy source files.
+ Run locally by executing e.g. 'gradle codenarcMain', the report can be found in ./build/reports/codenarc.
+ */
 codenarcTest {
     ignoreFailures = true
 }

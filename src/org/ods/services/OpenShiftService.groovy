@@ -666,6 +666,11 @@ class OpenShiftService {
         ).toString().trim()
     }
 
+    // getConfigMapData returns the data content of given ConfigMap.
+    Map getConfigMapData(String project, String name) {
+        getJSON(project, "ConfigMap", name).data as Map
+    }
+
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {
         logger.info "Creating BuildConfig ${name} in ${project} ... "
         def bcYml = buildConfigBinaryYml(name, labels, tag)

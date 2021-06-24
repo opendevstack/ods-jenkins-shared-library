@@ -73,4 +73,5 @@ interface IPipelineSteps {
 
     def unwrap()
 
+    def emailext(Map args)
 }
