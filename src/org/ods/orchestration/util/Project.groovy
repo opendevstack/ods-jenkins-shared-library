@@ -781,7 +781,7 @@ class Project {
 
     @NonCPS
     Map<String, DocumentHistory> getDocumentHistories() {
-        return this.data.documentHistories ?: [:]
+        return this.data.documentHistories
     }
 
     String getId() {
@@ -988,19 +988,22 @@ class Project {
 
     @NonCPS
     DocumentHistory getHistoryForDocument(String document) {
-        return this.data.documentHistories[document]
+        return this.documentHistories[document]
     }
 
     @NonCPS
-    DocumentHistory findHistoryForDocumentType(String documentType) {
-        // All docHistories for DTR and TIR should have the same version
-        def key = this.data.documentHistories.keySet().find { it.startsWith(documentType) }
-        return this.getHistoryForDocument(key)
+    Long getDocumentVersionFromHistories(String documentType) {
+        def history = getHistoryForDocument(documentType)
+        if (!history) {
+            // All docHistories for DTR and TIR should have the same version
+            history = this.documentHistories.find { it.key.startsWith("${documentType}-") }?.value
+        }
+        return history?.version
     }
 
     @NonCPS
     void setHistoryForDocument(DocumentHistory docHistory, String document) {
-        this.data.documentHistories[document] = docHistory
+        this.documentHistories[document] = docHistory
     }
 
     static Map loadBuildParams(IPipelineSteps steps) {
@@ -1538,7 +1541,7 @@ class Project {
         if (this.isAssembleMode) {
             fileNames.add(this.saveVersionData(bitbucketRepo))
         }
-        fileNames.addAll(this.getDocumentHistories().collect { docName, dh ->
+        fileNames.addAll(this.documentHistories.collect { docName, dh ->
             dh.saveDocHistoryData(bitbucketRepo)
         })
         return fileNames

@@ -1253,7 +1253,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallDTR()
 
         then:
-        1 * project.findHistoryForDocumentType(*_) >> docHistory
+        1 * project.getDocumentVersionFromHistories(*_) >> docHistory.getVersion()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
@@ -1272,7 +1272,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallTIR()
 
         then:
-        1 * project.findHistoryForDocumentType(*_) >> docHistory
+        1 * project.getDocumentVersionFromHistories(*_) >> docHistory.getVersion()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
@@ -1642,12 +1642,10 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
     def "referenced documents version"() {
         given:
-        def docHistory = Stub(DocumentHistory)
-        docHistory.getVersion() >> 3L
         def project = Stub(Project)
         project.isVersioningEnabled >> true
-        project.getHistoryForDocument('CSD') >> docHistory
-        project.historyForDocumentExists('CSD') >> true
+        project.getDocumentVersionFromHistories('CSD') >> 3L
+        project.getDocumentVersionFromHistories('DTR') >> 4L
         project.buildParams >> [targetEnvironmentToken: 'D', configItem: 'ConfigItem']
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
@@ -1665,7 +1663,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             RA: 'ConfigItem / 2',
             TRC: 'ConfigItem / 1',
             DTP: 'ConfigItem / 2',
-            DTR: 'ConfigItem / 2',
+            DTR: 'ConfigItem / 4',
             CFTP: 'ConfigItem / 2',
             CFTR: 'ConfigItem / 1',
             TIR: 'ConfigItem / 2',
@@ -1683,7 +1681,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             RA: 'ConfigItem / 2-WIP',
             TRC: 'ConfigItem / 2-WIP',
             DTP: 'ConfigItem / 2-WIP',
-            DTR: 'ConfigItem / 2-WIP',
+            DTR: 'ConfigItem / 4-WIP',
             CFTP: 'ConfigItem / 2-WIP',
             CFTR: 'ConfigItem / 2-WIP',
             TIR: 'ConfigItem / 2-WIP',

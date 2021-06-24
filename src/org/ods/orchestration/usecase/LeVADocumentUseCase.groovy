@@ -340,8 +340,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
-        def docHistory = this.project.findHistoryForDocumentType(documentType)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
+        def docVersion = this.project.getDocumentVersionFromHistories(documentType) as String
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docVersion)
         return uri
     }
 
@@ -1104,8 +1104,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
-        def docHistory = this.project.findHistoryForDocumentType(documentType)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
+        def docVersion = this.project.getDocumentVersionFromHistories(documentType) as String
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docVersion)
         return uri
     }
 
@@ -1739,16 +1739,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (! this.project.isVersioningEnabled) {
                 // TODO removeme in ODS 4.x
                 version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
-            } else if (this.project.historyForDocumentExists(doc)) {
-                // The document, or a new version of it, has already been created in this same pipeline run.
-                version = this.project.getHistoryForDocument(doc).getVersion()
             } else {
-                def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
-                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
-                    // Either this is a developer preview or
-                    // the document will be generated in this deploy, but it is not created yet.
-                    version += 1L
+                // The document, or a new version of it, has already been created in this same pipeline run.
+                version = this.project.getDocumentVersionFromHistories(doc)
+                if (!version) {
+                    def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
+                    version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                    if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
+                        // Either this is a developer preview or
+                        // the document will be generated in this deploy, but it is not created yet.
+                        version += 1L
+                    }
                 }
             }
 
