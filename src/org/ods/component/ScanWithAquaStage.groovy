@@ -61,12 +61,12 @@ class ScanWithAquaStage extends Stage {
         // to the Aqua server identified by "aquaUrl", defaults to the cd-user
         String secretName = configurationAquaCluster['secretName']
         String credentialsId = context.cdProject + "-"
-        if (!secretName) {
+        if (secretName) {
+            credentialsId += secretName
+        } else {
             credentialsId = context.credentialsId
             logger.info("No custom secretName was specified in the aqua ConfigMap, continuing with default " +
                 "credentialsId '" + credentialsId + "'...")
-        } else {
-            credentialsId += secretName
         }
         // reference of the image that was build in this pipeline run
         String imageRef = getImageRef()
@@ -115,7 +115,7 @@ class ScanWithAquaStage extends Stage {
             context.getBuildArtifactURIs().builds[options.resourceName] as Map<String, String>
         if (buildInfo) {
             String imageRef = buildInfo.image
-            return imageRef.substring(imageRef.indexOf("/") + 1)
+            return imageRef[(imageRef.indexOf("/") + 1)..-1]
         }
         return null
     }
