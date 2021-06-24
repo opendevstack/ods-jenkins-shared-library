@@ -4,6 +4,7 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 
@@ -15,6 +16,7 @@ class ScanWithAquaStage extends Stage {
     private final AquaService aqua
     private final BitbucketService bitbucket
     private final OpenShiftService openShift
+    private final NexusService nexus
     private final ScanWithAquaOptions options
     private Map configurationAquaCluster
     private Map configurationAquaProject
@@ -22,7 +24,7 @@ class ScanWithAquaStage extends Stage {
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
     ScanWithAquaStage(def script, IContext context, Map config, AquaService aqua, BitbucketService bitbucket,
-                      OpenShiftService openShift, ILogger logger,
+                      OpenShiftService openShift, NexusService nexusService, ILogger logger,
                       Map configurationAquaCluster = [:], Map configurationAquaProject = [:]) {
         super(script, context, logger)
         if (!config.resourceName) {
@@ -32,6 +34,7 @@ class ScanWithAquaStage extends Stage {
         this.aqua = aqua
         this.bitbucket = bitbucket
         this.openShift = openShift
+        this.nexus = nexusService
         this.configurationAquaCluster = configurationAquaCluster
         this.configurationAquaProject = configurationAquaProject
     }
@@ -97,8 +100,9 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.critical,
                                   vulnerabilities.malware]
 
+                URI reportUriNexus = archiveReportInNexus(reportFile)
                 createBitbucketCodeInsightReport(url, registry, imageRef, errorCodes.sum() as int)
-                archiveReport(!context.triggeredByOrchestrationPipeline, reportFile)
+                archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
                 errorMessages += "<li>Error archiving Aqua reports</li>"
@@ -153,7 +157,19 @@ class ScanWithAquaStage extends Stage {
         bitbucket.createCodeInsightReport(aquaScanUrl, context.repoName, context.gitCommit, title, details, result)
     }
 
-    private archiveReport(boolean archive, String reportFile) {
+    private URI archiveReportInNexus(String reportFile) {
+        URI report = nexus.storeArtifactFromFile(
+            "${context.projectId}",
+            "${System.currentTimeMillis()}-${context.buildNumber}/aqua",
+            "report.html",
+            new File(reportFile), "text/html")
+
+        logger.info "Report stored in: ${report}"
+
+        return report
+    }
+
+    private archiveReportInJenkins(boolean archive, String reportFile) {
         String targetReport = "SCSR-${context.projectId}-${context.componentId}-${reportFile}"
         steps.sh(
             label: 'Create artifacts dir',

@@ -3,6 +3,7 @@ import org.ods.component.IContext
 
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
@@ -48,6 +49,12 @@ def call(IContext context, Map config = [:]) {
         registry.add(OpenShiftService, openShiftService)
     }
 
+    NexusService nexusService = registry.get(NexusService)
+    if (!nexusService) {
+        nexusService = new NexusService(context.nexusUrl, context.nexusUsername, context.nexusPassword)
+        registry.add(NexusService, nexusService)
+    }
+
     Map configurationAquaCluster = [:]
     Map configurationAquaProject = [:]
     String errorMessages = ''
@@ -85,6 +92,7 @@ def call(IContext context, Map config = [:]) {
                 aquaService,
                 bitbucketService,
                 openShiftService,
+                nexusService,
                 logger,
                 configurationAquaCluster,
                 configurationAquaProject

@@ -3,6 +3,7 @@ package org.ods.component
 import org.ods.PipelineScript
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
@@ -30,6 +31,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             logger))
         def openShift = Spy(new OpenShiftService (steps, logger))
+        def nexus = Spy(new NexusService ("http://nexus", "user", "pass"))
         def stage = new ScanWithAquaStage(
             script,
             context,
@@ -37,6 +39,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             aqua,
             bitbucket,
             openShift,
+            nexus,
             logger,
             configurationAquaCluster,
             configurationAquaProject
@@ -74,12 +77,12 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         0 * stage.script.emailext(_)
     }
 
-    def "archive report if stage not launched by orchestration pipeline"() {
+    def "archive report in Jenkins if stage not launched by orchestration pipeline"() {
         given:
         def stage = createStage()
 
         when:
-        stage.archiveReport(true, "report.html")
+        stage.archiveReportInJenkins(true, "report.html")
 
         then:
         1 * stage.script.sh(_) >> {
@@ -101,12 +104,12 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
 
     }
 
-    def "archive report if stage launched by orchestration pipeline"() {
+    def "archive report in Jenkins if stage launched by orchestration pipeline"() {
         given:
         def stage = createStage()
 
         when:
-        stage.archiveReport(false, "report.html")
+        stage.archiveReportInJenkins(false, "report.html")
 
         then:
         1 * stage.script.sh(_) >> {
@@ -126,6 +129,19 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             assert it.allowEmpty == [true]
         }
 
+    }
+
+    def "archive report in Nexus"() {
+        given:
+        def stage = createStage()
+
+        when:
+        stage.archiveReportInNexus("report.html")
+
+        then:
+        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.logger.info("Report stored in: http://nexus/prj1/12345-56/aqua/report.html")
     }
 
     def "create Bitbucket Insight report - PASS"() {
@@ -270,6 +286,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
+        // Archive in Nexus
+        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -326,6 +345,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
+        // Archive in Nexus
+        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -413,6 +435,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
+        // Archive in Nexus
+        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -476,6 +501,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 1, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 1, malware: 0]
         ]
+        // Archive in Nexus
+        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -531,6 +559,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 1]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 1]
         ]
+        // Archive in Nexus
+        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -633,7 +664,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         0 * stage.logger.warn(_)
     }
 
-    def "run the Stage with default credential - Error archiving report"() {
+    def "run the Stage with default credential - Error archiving report in Bitbucket"() {
         given:
         def stage = createStage([
             enabled: true,
@@ -660,6 +691,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.script.readJSON([text: "[vulnerability_summary: [critical: 0, malware: 0]]"]) >> [
             vulnerability_summary: [critical: 0, malware: 0]
         ]
+        // Archive in Nexus
+        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/prj1/12345-56/aqua/report.html")
         // Error creating report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,

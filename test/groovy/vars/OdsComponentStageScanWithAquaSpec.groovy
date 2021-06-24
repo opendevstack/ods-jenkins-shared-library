@@ -5,6 +5,8 @@ import org.ods.component.IContext
 import org.ods.component.ScanWithAquaStage
 import org.ods.services.AquaService
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
+import org.ods.services.NexusServiceSpec
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
@@ -60,6 +62,10 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ]
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
+        NexusService nexusService = Stub(NexusService.class)
+        nexusService.storeArtifactFromFile(*_) >> new URI("http://nexus/foo/12345-11/aqua/report.html")
+        ServiceRegistry.instance.add(NexusService, nexusService)
+
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
@@ -95,6 +101,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ]
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
+        NexusService nexusService = Stub(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
+
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
@@ -123,6 +132,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ]
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
+        NexusService nexusService = Stub(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
+
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
@@ -150,6 +162,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
             enabled: false
         ]
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        NexusService nexusService = Stub(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
@@ -185,6 +200,10 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ]
         openShiftService.getConfigMapData("foo", ScanWithAquaStage.AQUA_CONFIG_MAP_NAME) >> [:]
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        NexusService nexusService = Stub(NexusService.class)
+        nexusService.storeArtifactFromFile(*_) >> new URI("http://nexus/foo/12345-11/aqua/report.html")
+        ServiceRegistry.instance.add(NexusService, nexusService)
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
@@ -230,6 +249,10 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         }
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
+        NexusService nexusService = Stub(NexusService.class)
+        nexusService.storeArtifactFromFile(*_) >> new URI("http://nexus/foo/12345-11/aqua/report.html")
+        ServiceRegistry.instance.add(NexusService, nexusService)
+
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
@@ -258,6 +281,9 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
             throw new Exception("Non existing ConfigMap")
         }
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+
+        NexusService nexusService = Stub(NexusService.class)
+        ServiceRegistry.instance.add(NexusService, nexusService)
 
         when:
         def script = loadScript('vars/odsComponentStageScanWithAqua.groovy')
