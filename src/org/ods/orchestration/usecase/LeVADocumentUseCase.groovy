@@ -150,27 +150,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ]
             }
 
-            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll {
-                it.epic != null }.groupBy { it.epic }
+            def output = sortByEpicAndRequirementKeys(updatedReqs)
 
-            def index = 0
-            def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
-                index = index + 1
-                [
-                        epicName        : req.value.epicName.first(),
-                        epicTitle       : req.value.epicTitle.first(),
-                        epicDescription : this.convertImages(req.value.epicDescription.first() ?: ''),
-                        key             : req.key,
-                        epicIndex       : index,
-                        stories         : req.value,
-                ]
-            }
-            def output = [
-                noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll { it.epic == null },
-                epics  : SortUtil.sortIssuesByKey(reqsGroupByEpicUpdated)
-            ]
-
-            [
+            return [
                 (gampTopic.replaceAll(' ', '').toLowerCase()): output
             ]
         }
@@ -194,6 +176,30 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    protected Map sortByEpicAndRequirementKeys(List updatedReqs) {
+        def sortedUpdatedReqs = SortUtil.sortIssuesByKey(updatedReqs)
+        def reqsGroupByEpic = sortedUpdatedReqs.findAll {
+            it.epic != null }.groupBy { it.epic }.sort()
+
+        def reqsGroupByEpicUpdated = reqsGroupByEpic.values().indexed(1).collect { index, epicStories ->
+            def aStory = epicStories.first()
+            [
+                epicName        : aStory.epicName,
+                epicTitle       : aStory.epicTitle,
+                epicDescription : this.convertImages(aStory.epicDescription ?: ''),
+                key             : aStory.epic,
+                epicIndex       : index,
+                stories         : epicStories,
+            ]
+        }
+        def output = [
+            noepics: sortedUpdatedReqs.findAll { it.epic == null },
+            epics  : reqsGroupByEpicUpdated
+        ]
+
+        return output
     }
 
     @NonCPS
@@ -895,8 +901,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    def sortTestSteps(steps) {
-        return steps?.sort(false) { it.orderId }
+    def sortTestSteps(def testSteps) {
+        return testSteps?.sort(false) { it.orderId }
     }
 
     @NonCPS
@@ -1734,19 +1740,25 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 // TODO removeme in ODS 4.x
                 version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
             } else if (this.project.historyForDocumentExists(doc)) {
+                // The document, or a new version of it, has already been created in this same pipeline run.
                 version = this.project.getHistoryForDocument(doc).getVersion()
             } else {
                 def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
                 version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                if (this.project.isWorkInProgress) {
-                    version = (version + 1L).toString() + "-WIP"
-                } else if (docIsCreatedInTheEnvironment(doc)) {
-                    // The document will be generated in this deploy but it is not created yet
+                if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
+                    // Either this is a developer preview or
+                    // the document will be generated in this deploy, but it is not created yet.
                     version += 1L
                 }
             }
 
-            [(doc): "${this.project.buildParams.configItem} / ${version}"]
+            if (this.project.isWorkInProgress) {
+                // If this is a developer preview, the document version is always a WIP, because,
+                // if we have the document history, it has already been updated to a new version.
+                version = "${version}-WIP"
+            }
+
+            return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
 
     }

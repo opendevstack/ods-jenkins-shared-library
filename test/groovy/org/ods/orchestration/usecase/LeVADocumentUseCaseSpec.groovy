@@ -1631,9 +1631,121 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             ]]
 
             when:
-            def ordered = testIssue.steps?.sort { it.orderId }
+            LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+                null, null, null, null, null, null, null,
+                null, null)
+            def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
 
             then:
             ordered.get(0).orderId == 1
     }
+
+    def "referenced documents version"() {
+        given:
+        def docHistory = Stub(DocumentHistory)
+        docHistory.getVersion() >> 3L
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.getHistoryForDocument('CSD') >> docHistory
+        project.historyForDocumentExists('CSD') >> true
+        project.buildParams >> [targetEnvironmentToken: 'D', configItem: 'ConfigItem']
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        jiraUseCase.getLatestDocVersionId(_) >> 1L
+        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null))
+        useCase.getDocumentTrackingIssues(_, _) >> []
+
+        when:
+        def versions = useCase.getReferencedDocumentsVersion()
+
+        then:
+        versions == [
+            CSD: 'ConfigItem / 3',
+            SSDS: 'ConfigItem / 2',
+            RA: 'ConfigItem / 2',
+            TRC: 'ConfigItem / 1',
+            DTP: 'ConfigItem / 2',
+            DTR: 'ConfigItem / 2',
+            CFTP: 'ConfigItem / 2',
+            CFTR: 'ConfigItem / 1',
+            TIR: 'ConfigItem / 2',
+            TIP: 'ConfigItem / 2',
+        ]
+
+        when:
+        project.isWorkInProgress >> true
+        versions = useCase.getReferencedDocumentsVersion()
+
+        then:
+        versions == [
+            CSD: 'ConfigItem / 3-WIP',
+            SSDS: 'ConfigItem / 2-WIP',
+            RA: 'ConfigItem / 2-WIP',
+            TRC: 'ConfigItem / 2-WIP',
+            DTP: 'ConfigItem / 2-WIP',
+            DTR: 'ConfigItem / 2-WIP',
+            CFTP: 'ConfigItem / 2-WIP',
+            CFTR: 'ConfigItem / 2-WIP',
+            TIR: 'ConfigItem / 2-WIP',
+            TIP: 'ConfigItem / 2-WIP',
+        ]
+    }
+
+    def "requirements are properly sorted and indexed by epic and key"() {
+        given:
+        def updatedReqs = [
+            [
+                key:  'key5',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key2',
+                epic: null
+            ],
+            [
+                key:  'key3',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key1',
+                epic: null
+            ],
+            [
+                key:  'key8',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key4',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key6',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key7',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key9',
+                epic: null
+            ],
+        ]
+
+        when:
+        def groupedReqs = usecase.sortByEpicAndRequirementKeys(updatedReqs)
+
+        then:
+        // Requirements without epic are sorted by key
+        assert groupedReqs.noepics == groupedReqs.noepics.toSorted { req -> req.key }
+        // Epics are sorted by epic key
+        assert groupedReqs.epics == groupedReqs.epics.toSorted { epic -> epic.key }
+        // Epics are correctly indexed, according to the order by epic key
+        assert groupedReqs.epics == groupedReqs.epics.toSorted { epic -> epic.epicIndex }
+        // For each epic, its requirements are sorted by requirement key
+        groupedReqs.epics.each { epic ->
+            assert epic.stories == epic.stories.toSorted { req -> req.key }
+        }
+    }
+
 }
