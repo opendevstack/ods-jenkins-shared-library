@@ -24,13 +24,11 @@ def call(IContext context, Map config = [:]) {
         steps = new PipelineSteps(this)
         registry.add(PipelineSteps, steps)
     }
-
     AquaService aquaService = registry.get(AquaService)
     if (!aquaService) {
         aquaService = new AquaService(steps, logger)
         registry.add(AquaService, aquaService)
     }
-
     BitbucketService bitbucketService = registry.get(BitbucketService)
     if (!bitbucketService) {
         bitbucketService = new BitbucketService(
@@ -42,13 +40,11 @@ def call(IContext context, Map config = [:]) {
         )
         registry.add(BitbucketService, bitbucketService)
     }
-
     OpenShiftService openShiftService = registry.get(OpenShiftService)
     if (!openShiftService) {
         openShiftService = new OpenShiftService(steps, logger)
         registry.add(OpenShiftService, openShiftService)
     }
-
     NexusService nexusService = registry.get(NexusService)
     if (!nexusService) {
         nexusService = new NexusService(context.nexusUrl, context.nexusUsername, context.nexusPassword)
