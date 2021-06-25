@@ -158,11 +158,12 @@ class ScanWithAquaStage extends Stage {
     }
 
     private URI archiveReportInNexus(String reportFile) {
-        URI report = nexus.storeArtifactFromFile(
-            "${context.projectId}",
-            "${System.currentTimeMillis()}-${context.buildNumber}/aqua",
+        URI report = nexus.storeArtifact(
+            // TODO what repository use. Probably must be defined in config-map
+            "leva-documentation",
+            "${context.projectId}/${System.currentTimeMillis()}-${context.buildNumber}/aqua",
             "report.html",
-            new File(reportFile), "text/html")
+            (steps.readFile(file: reportFile) as String).bytes, "text/html")
 
         logger.info "Report stored in: ${report}"
 

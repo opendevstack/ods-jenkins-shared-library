@@ -136,12 +136,13 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.archiveReportInNexus("report.html")
+        stage.archiveReportInNexus("aqua-report.html")
 
         then:
-        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/prj1/12345-56/aqua/report.html")
-        1 * stage.logger.info("Report stored in: http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
+        1 * stage.logger.info("Report stored in: http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
     }
 
     def "create Bitbucket Insight report - PASS"() {
@@ -287,8 +288,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -346,8 +348,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -436,8 +439,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -502,8 +506,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             vulnerability_summary: [critical: 1, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -560,8 +565,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             vulnerability_summary: [critical: 0, malware: 1]
         ]
         // Archive in Nexus
-        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,
@@ -692,8 +698,9 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             vulnerability_summary: [critical: 0, malware: 0]
         ]
         // Archive in Nexus
-        1 * stage.nexus.storeArtifactFromFile("prj1", _, "report.html", _, "text/html") >>
-            new URI("http://nexus/prj1/12345-56/aqua/report.html")
+        1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Error creating report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             stage.context.repoName, stage.context.gitCommit,

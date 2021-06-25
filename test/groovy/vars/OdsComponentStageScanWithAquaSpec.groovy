@@ -63,7 +63,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
         NexusService nexusService = Stub(NexusService.class)
-        nexusService.storeArtifactFromFile(*_) >> new URI("http://nexus/foo/12345-11/aqua/report.html")
+        nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
         when:
@@ -202,7 +202,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
         NexusService nexusService = Stub(NexusService.class)
-        nexusService.storeArtifactFromFile(*_) >> new URI("http://nexus/foo/12345-11/aqua/report.html")
+        nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
         when:
@@ -250,7 +250,7 @@ class OdsComponentStageScanWithAquaSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
         NexusService nexusService = Stub(NexusService.class)
-        nexusService.storeArtifactFromFile(*_) >> new URI("http://nexus/foo/12345-11/aqua/report.html")
+        nexusService.storeArtifact(*_) >> new URI("http://nexus/repository/leva-documentation/foo/12345-11/aqua/report.html")
         ServiceRegistry.instance.add(NexusService, nexusService)
 
         when:
