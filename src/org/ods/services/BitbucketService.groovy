@@ -324,15 +324,26 @@ class BitbucketService {
                 "\"reporter\":\"OpenDevStack\"," +
                 "\"createdDate\":${System.currentTimeMillis()}," +
                 "\"details\":\"${details}\"," +
-                "\"result\":\"${result}\"," +
-                "\"link\":\"${linkNexus}\"," +
-                "\"data\": [" +
-                "{" +
-                "\"title\":\"Link\"," +
-                "\"value\":{\"linktext\":\"Result in Aqua\",\"href\":\"${linkAqua}\"}," +
-                "\"type\":\"LINK\"" +
-                "}" +
-                "]" +
+                "\"result\":\"${result}\","
+                if (linkNexus) {
+                    payload += "\"link\":\"${linkNexus}\","
+                }
+                payload +="\"data\": ["
+                if (linkAqua) {
+                    payload += "{" +
+                    "\"title\":\"Link\"," +
+                    "\"value\":{\"linktext\":\"Result in Aqua\",\"href\":\"${linkAqua}\"}," +
+                    "\"type\":\"LINK\"" +
+                    "},"
+                }
+                if (linkNexus) {
+                    payload += "{" +
+                    "\"title\":\"Link\"," +
+                    "\"value\":{\"linktext\":\"Result in Nexus\",\"href\":\"${linkNexus}\"}," +
+                    "\"type\":\"LINK\"" +
+                    "},"
+                }
+                payload += "]" +
                 "}"
             try {
                 script.sh(

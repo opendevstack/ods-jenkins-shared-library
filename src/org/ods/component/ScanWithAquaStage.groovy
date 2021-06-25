@@ -149,7 +149,8 @@ class ScanWithAquaStage extends Stage {
         return returnCode
     }
 
-    private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport, String registry, String imageRef, int returnCode) {
+    private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport,
+                                             String registry, String imageRef, int returnCode) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
         String details = "Please visit the following link to review the Aqua Security scan report:"
