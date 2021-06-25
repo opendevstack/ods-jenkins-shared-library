@@ -316,8 +316,8 @@ class BitbucketService {
      * @param result One of: PASS, FAIL
      */
     @SuppressWarnings('ParameterCount')
-    void createCodeInsightReport(String linkAqua, String linkNexus, String repo, String gitCommit, String title, String details,
-                                 String result) {
+    void createCodeInsightReport(String linkAqua, String linkNexus,
+                                 String repo, String gitCommit, String title, String details, String result) {
         withTokenCredentials { username, token ->
             def payload = "{" +
                 "\"title\":\"${title}\"," +
@@ -325,25 +325,28 @@ class BitbucketService {
                 "\"createdDate\":${System.currentTimeMillis()}," +
                 "\"details\":\"${details}\"," +
                 "\"result\":\"${result}\","
-                if (linkNexus) {
-                    payload += "\"link\":\"${linkNexus}\","
-                }
-                payload +="\"data\": ["
-                if (linkAqua) {
-                    payload += "{" +
+            if (linkNexus) {
+                payload += "\"link\":\"${linkNexus}\","
+            }
+            payload += "\"data\": ["
+            if (linkAqua) {
+                payload += "{" +
                     "\"title\":\"Link\"," +
                     "\"value\":{\"linktext\":\"Result in Aqua\",\"href\":\"${linkAqua}\"}," +
                     "\"type\":\"LINK\"" +
-                    "},"
-                }
+                    "}"
                 if (linkNexus) {
-                    payload += "{" +
+                    payload += ','
+                }
+            }
+            if (linkNexus) {
+                payload += "{" +
                     "\"title\":\"Link\"," +
                     "\"value\":{\"linktext\":\"Result in Nexus\",\"href\":\"${linkNexus}\"}," +
                     "\"type\":\"LINK\"" +
-                    "},"
-                }
-                payload += "]" +
+                    "}"
+            }
+            payload += "]" +
                 "}"
             try {
                 script.sh(
