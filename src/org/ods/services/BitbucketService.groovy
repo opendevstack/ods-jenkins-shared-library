@@ -316,7 +316,7 @@ class BitbucketService {
      * @param result One of: PASS, FAIL
      */
     @SuppressWarnings('ParameterCount')
-    void createCodeInsightReport(String link, String repo, String gitCommit, String title, String details,
+    void createCodeInsightReport(String linkAqua, String linkNexus, String repo, String gitCommit, String title, String details,
                                  String result) {
         withTokenCredentials { username, token ->
             def payload = "{" +
@@ -325,10 +325,11 @@ class BitbucketService {
                 "\"createdDate\":${System.currentTimeMillis()}," +
                 "\"details\":\"${details}\"," +
                 "\"result\":\"${result}\"," +
+                "\"link\":\"${linkNexus}\"," +
                 "\"data\": [" +
                 "{" +
                 "\"title\":\"Link\"," +
-                "\"value\":{\"linktext\":\"${link}\",\"href\":\"${link}\"}," +
+                "\"value\":{\"linktext\":\"Result in Aqua\",\"href\":\"${linkAqua}\"}," +
                 "\"type\":\"LINK\"" +
                 "}" +
                 "]" +

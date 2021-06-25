@@ -78,7 +78,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         ])
 
         when:
-        service.createCodeInsightReport("http://link", "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport("http://link", "http://link-nexus", "repo-name", "123456", "Title", "Details", "PASS")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
@@ -92,8 +92,8 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             assert it.script.toString().contains('--header "Content-Type: application/json"')
             assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
             // Avoid timestamp of creation
-            assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
-                '[{"title":"Link","value":{"linktext":"http://link","href":"http://link"},"type":"LINK"}]}\'')
+            assert it.script.toString().contains('"details":"Details","result":"PASS","link":"http://link-nexus","data": ' +
+                '[{"title":"Link","value":{"linktext":"Result in Aqua","href":"http://link"},"type":"LINK"}]}\'')
             assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
                 'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
         }
@@ -112,7 +112,7 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
         ])
 
         when:
-        service.createCodeInsightReport("http://link", "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport("http://link", "http://linq-nexus", "repo-name", "123456", "Title", "Details", "PASS")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']

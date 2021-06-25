@@ -101,7 +101,8 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.malware]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile)
-                createBitbucketCodeInsightReport(url, registry, imageRef, errorCodes.sum() as int)
+                createBitbucketCodeInsightReport(url, reportUriNexus.toString(),
+                    registry, imageRef, errorCodes.sum() as int)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
@@ -148,13 +149,14 @@ class ScanWithAquaStage extends Stage {
         return returnCode
     }
 
-    private createBitbucketCodeInsightReport(String aquaUrl, String registry, String imageRef, int returnCode) {
+    private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport, String registry, String imageRef, int returnCode) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
         String details = "Please visit the following link to review the Aqua Security scan report:"
 
         String result = returnCode == 0 ? "PASS" : "FAIL"
-        bitbucket.createCodeInsightReport(aquaScanUrl, context.repoName, context.gitCommit, title, details, result)
+        bitbucket.createCodeInsightReport(aquaScanUrl, nexusUrlReport,
+            context.repoName, context.gitCommit, title, details, result)
     }
 
     private URI archiveReportInNexus(String reportFile) {
