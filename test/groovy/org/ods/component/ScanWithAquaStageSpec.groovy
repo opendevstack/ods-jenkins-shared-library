@@ -150,10 +150,10 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "internal", "12345", 0)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus", "internal", "12345", 0)
 
         then:
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns",
+        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns", "http://nexus",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "PASS")
@@ -165,10 +165,10 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "internal", "12345", 1)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal", "12345", 1)
 
         then:
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns",
+        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns", "http://nexus",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "FAIL")
@@ -293,6 +293,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
+            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "PASS")
@@ -353,6 +354,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
+            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "PASS")
@@ -444,6 +446,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
+            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "FAIL")
@@ -511,6 +514,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
+            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "FAIL")
@@ -570,6 +574,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
+            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "FAIL")
@@ -703,6 +708,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Error creating report in Bitbucket
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
+            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
             "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
             "PASS") >> {
