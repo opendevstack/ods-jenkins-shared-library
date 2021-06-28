@@ -317,7 +317,8 @@ class BitbucketService {
      */
     @SuppressWarnings('ParameterCount')
     void createCodeInsightReport(String linkAqua, String linkNexus,
-                                 String repo, String gitCommit, String title, String details, String result) {
+                                 String repo, String gitCommit,
+                                 String title, String details, String result, String message = null) {
         withTokenCredentials { username, token ->
             def payload = "{" +
                 "\"title\":\"${title}\"," +
@@ -331,19 +332,29 @@ class BitbucketService {
             payload += "\"data\": ["
             if (linkAqua) {
                 payload += "{" +
-                    "\"title\":\"Link\"," +
+                    "\"title\":\"Report\"," +
                     "\"value\":{\"linktext\":\"Result in Aqua\",\"href\":\"${linkAqua}\"}," +
                     "\"type\":\"LINK\"" +
                     "}"
-                if (linkNexus) {
+                if (linkNexus || message) {
                     payload += ','
                 }
             }
             if (linkNexus) {
                 payload += "{" +
-                    "\"title\":\"Link\"," +
+                    "\"title\":\"Report\"," +
                     "\"value\":{\"linktext\":\"Result in Nexus\",\"href\":\"${linkNexus}\"}," +
                     "\"type\":\"LINK\"" +
+                    "}"
+                if (message) {
+                    payload += ','
+                }
+            }
+            if (message) {
+                payload += "{" +
+                    "\"title\":\"Messages\"," +
+                    "\"value\":\"${message}\"," +
+                    "\"type\":\"TEXT\"" +
                     "}"
             }
             payload += "]" +
