@@ -136,7 +136,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.archiveReportInNexus("aqua-report.html")
+        stage.archiveReportInNexus("aqua-report.html", "leva-documentation")
 
         then:
         1 * stage.script.readFile([file: "aqua-report.html"]) >> "Cool report"
@@ -280,7 +280,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -342,7 +343,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
             registry: "internal",
-            secretName: "custom-secret"
+            secretName: "custom-secret",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -402,7 +404,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -434,7 +437,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -494,7 +498,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -554,7 +559,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -614,7 +620,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -651,7 +658,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -688,7 +696,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             enabled: true,
             alertEmails: "mail1@mail.com",
             url: "http://aqua",
-            registry: "internal"
+            registry: "internal",
+            nexusRepository: "leva-documentation"
         ], [
             enabled: true
         ])
@@ -753,6 +762,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         then:
         1 * stage.logger.info("Please provide the URL of the Aqua platform!")
         1 * stage.logger.info("Please provide the name of the registry that contains the image of interest!")
+        1 * stage.logger.info("Please provide the name of the repository in Nexus to store the reports!")
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -766,6 +776,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     '<p>URL : <a href="http://buidl">http://buidl</a></p> ' +
                     '<ul><li>Provide the Aqua url of platform</li>' +
                     '<li>Provide the name of the registry to use in Aqua</li>' +
+                    '<li>Provide the name of the repository en Nexus to use with Aqua</li>' +
                     '<li>Error executing Aqua CLI</li></ul>',
                 'mimeType':'text/html',
                 'replyTo':'$script.DEFAULT_REPLYTO',
@@ -793,6 +804,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.logger.info("Please provide the alert emails of the Aqua platform!")
         1 * stage.logger.info("Please provide the URL of the Aqua platform!")
         1 * stage.logger.info("Please provide the name of the registry that contains the image of interest!")
+        1 * stage.logger.info("Please provide the name of the repository in Nexus to store the reports!")
         // Default cd-user
         1 * stage.logger.info("No custom secretName was specified in the aqua ConfigMap, " +
             "continuing with default credentialsId 'cd-user'...")
@@ -807,6 +819,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     '<li>Provide the alert emails of the Aqua platform</li>' +
                     '<li>Provide the Aqua url of platform</li>' +
                     '<li>Provide the name of the registry to use in Aqua</li>' +
+                    '<li>Provide the name of the repository en Nexus to use with Aqua</li>' +
                     '<li>Error executing Aqua CLI</li></ul>',
                 'mimeType':'text/html',
                 'replyTo':'$script.DEFAULT_REPLYTO',

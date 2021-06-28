@@ -60,6 +60,13 @@ class ScanWithAquaStage extends Stage {
             logger.info "Please provide the name of the registry that contains the image of interest!"
             errorMessages += "<li>Provide the name of the registry to use in Aqua</li>"
         }
+        // Name in Nexus of the repository where to store the reports.
+        String nexusRepository = configurationAquaCluster['nexusRepository']
+        if (!nexusRepository) {
+            logger.info "Please provide the name of the repository in Nexus to store the reports!"
+            errorMessages += "<li>Provide the name of the repository en Nexus to use with Aqua</li>"
+        }
+
         // Name of the credentials that stores the username/password of a user with access
         // to the Aqua server identified by "aquaUrl", defaults to the cd-user
         String secretName = configurationAquaCluster['secretName']
@@ -100,7 +107,7 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.critical,
                                   vulnerabilities.malware]
 
-                URI reportUriNexus = archiveReportInNexus(reportFile)
+                URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
                 createBitbucketCodeInsightReport(url, reportUriNexus.toString(),
                     registry, imageRef, errorCodes.sum() as int, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
@@ -177,11 +184,10 @@ class ScanWithAquaStage extends Stage {
         return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
     }
 
-    private URI archiveReportInNexus(String reportFile) {
+    private URI archiveReportInNexus(String reportFile, nexusRepository) {
         URI report = nexus.storeArtifact(
-            // TODO what repository use. Probably must be defined in config-map
-            "leva-documentation",
-            "${context.projectId}/${System.currentTimeMillis()}-${context.buildNumber}/aqua",
+            "${nexusRepository}",
+            "${context.projectId}/${context.componentId}/${System.currentTimeMillis()}-${context.buildNumber}/aqua",
             "report.html",
             (steps.readFile(file: reportFile) as String).bytes, "text/html")
 
