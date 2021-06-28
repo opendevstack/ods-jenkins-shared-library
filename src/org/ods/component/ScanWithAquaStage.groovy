@@ -86,7 +86,7 @@ class ScanWithAquaStage extends Stage {
         String reportFile = "aqua-report.html"
         String jsonFile = "aqua-report.json"
         int returnCode = scanViaCli(url, registry, imageRef, credentialsId, reportFile, jsonFile)
-        if (AquaService.AQUA_SUCCESS != returnCode) {
+        if (![AquaService.AQUA_SUCCESS, AquaService.AQUA_POLICIES_ERROR].contains(returnCode)) {
             errorMessages += "<li>Error executing Aqua CLI</li>"
         }
         // If report exists
@@ -102,12 +102,14 @@ class ScanWithAquaStage extends Stage {
 
                 URI reportUriNexus = archiveReportInNexus(reportFile)
                 createBitbucketCodeInsightReport(url, reportUriNexus.toString(),
-                    registry, imageRef, errorCodes.sum() as int)
+                    registry, imageRef, errorCodes.sum() as int, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
                 logger.warn("Error archiving the Aqua reports due to: ${err}")
                 errorMessages += "<li>Error archiving Aqua reports</li>"
             }
+        } else {
+            createBitbucketCodeInsightReport(errorMessages)
         }
 
         notifyAquaProblem(alertEmails, errorMessages)
@@ -150,14 +152,23 @@ class ScanWithAquaStage extends Stage {
     }
 
     private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport,
-                                             String registry, String imageRef, int returnCode) {
+                                             String registry, String imageRef, int returnCode, String messages) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
         String title = "Aqua Security"
-        String details = "Please visit the following link to review the Aqua Security scan report:"
+        String details = "Please visit the following links to review the Aqua Security scan report:"
 
         String result = returnCode == 0 ? "PASS" : "FAIL"
         bitbucket.createCodeInsightReport(aquaScanUrl, nexusUrlReport,
-            context.repoName, context.gitCommit, title, details, result)
+            context.repoName, context.gitCommit, title, details, result, messages)
+    }
+
+    private createBitbucketCodeInsightReport(String messages) {
+        String title = "Aqua Security"
+        String details = "There was some problems with Aqua:"
+
+        String result = "FAIL"
+        bitbucket.createCodeInsightReport(null, null,
+            context.repoName, context.gitCommit, title, details, result, messages)
     }
 
     private URI archiveReportInNexus(String reportFile) {

@@ -150,13 +150,13 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus", "internal", "12345", 0)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus", "internal", "12345", 0, null)
 
         then:
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns", "http://nexus",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "PASS")
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "PASS", null)
 
     }
 
@@ -165,13 +165,28 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         def stage = createStage()
 
         when:
-        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal", "12345", 1)
+        stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal", "12345", 1, null)
 
         then:
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns", "http://nexus",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "FAIL")
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "FAIL", null)
+
+    }
+
+    def "create Bitbucket Insight report - Messages"() {
+        given:
+        def stage = createStage()
+
+        when:
+        stage.createBitbucketCodeInsightReport('Message')
+
+        then:
+        1 * stage.bitbucket.createCodeInsightReport(null, null,
+            stage.context.repoName, stage.context.gitCommit,
+            "Aqua Security","There was some problems with Aqua:",
+            "FAIL", 'Message')
 
     }
 
@@ -295,8 +310,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "PASS")
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "PASS", '')
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -356,8 +371,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "PASS")
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "PASS", '')
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -448,8 +463,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "FAIL")
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "FAIL", '')
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -467,16 +482,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             assert it.includes == ['artifacts/SCSR*']
             assert it.allowEmpty == [true]
         }
-        // Mail sent
-        1 * stage.script.emailext(
-            [
-                'body':'<p>Build component1 on project prj1 had some problems with Aqua!</p> ' +
-                '<p>URL : <a href="http://buidl">http://buidl</a></p> <ul><li>Error executing Aqua CLI</li></ul>',
-                'mimeType':'text/html',
-                'replyTo':'$script.DEFAULT_REPLYTO',
-                'subject':'Build component1 on project prj1 had some problems with Aqua!',
-                'to':'mail1@mail.com']
-        )
+        // No mail sent
+        0 * stage.script.emailext(_)
         // No warnings
         0 * stage.logger.warn(_)
     }
@@ -516,8 +523,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "FAIL")
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "FAIL", '')
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -535,7 +542,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             assert it.includes == ['artifacts/SCSR*']
             assert it.allowEmpty == [true]
         }
-        // Mail sent
+        // No mail sent
         0 * stage.script.emailext(_)
         // No warnings
         0 * stage.logger.warn(_)
@@ -576,8 +583,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "FAIL")
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "FAIL", '')
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -595,7 +602,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
             assert it.includes == ['artifacts/SCSR*']
             assert it.allowEmpty == [true]
         }
-        // Mail sent
+        // No mail sent
         0 * stage.script.emailext(_)
         // No warnings
         0 * stage.logger.warn(_)
@@ -710,8 +717,8 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
             "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
             stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following link to review the Aqua Security scan report:",
-            "PASS") >> {
+            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
+            "PASS", '') >> {
             throw new Exception ("Error bitbucket")
         }
 
