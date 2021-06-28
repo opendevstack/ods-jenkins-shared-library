@@ -160,7 +160,8 @@ class ScanWithAquaStage extends Stage {
 
         String result = returnCode == 0 ? "PASS" : "FAIL"
         bitbucket.createCodeInsightReport(aquaScanUrl, nexusUrlReport,
-            context.repoName, context.gitCommit, title, details, result, messages)
+            context.repoName, context.gitCommit,
+            title, details, result, prepareMessageToBitbucket(messages))
     }
 
     private createBitbucketCodeInsightReport(String messages) {
@@ -169,7 +170,11 @@ class ScanWithAquaStage extends Stage {
 
         String result = "FAIL"
         bitbucket.createCodeInsightReport(null, null,
-            context.repoName, context.gitCommit, title, details, result, messages)
+            context.repoName, context.gitCommit, title, details, result, prepareMessageToBitbucket(messages))
+    }
+
+    private String prepareMessageToBitbucket(String message = "") {
+        return message?.replace("<li>", "")?.replace("</li>", "\n")
     }
 
     private URI archiveReportInNexus(String reportFile) {
