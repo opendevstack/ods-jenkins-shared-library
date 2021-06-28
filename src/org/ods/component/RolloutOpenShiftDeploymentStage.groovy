@@ -131,7 +131,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             refreshResources = true
         }
         def metadata = new OpenShiftResourceMetadata(steps, context.properties, options.properties, logger, openShift)
-        metadata.updateMetadata()
+        metadata.updateMetadata(true)
 
         if (refreshResources) {
             deploymentResources = openShift.getResourcesForComponent(

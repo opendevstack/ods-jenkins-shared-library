@@ -153,11 +153,13 @@ class OpenShiftResourceMetadata {
      * Retrieves metadata for the component and sets the suitable labels and annotations
      * to the component resources.
      *
+     * @param pauseRollouts whether to pause rollouts to avoid triggering deployments when updating the labels
+     * in <code>dc</code> and <code>deploy</code> templates.
      * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data,
      * or if some invalid metadata was found.
      * @throws RuntimeException if there is an error setting the labels and annotations in OpenShift.
      */
-    void updateMetadata() {
+    void updateMetadata(boolean pauseRollouts = false) {
         def metadata = getMetadata()
         setMetadata(metadata)
     }
@@ -189,17 +191,17 @@ class OpenShiftResourceMetadata {
      * It will only use entries whose keys are one of the values in the <code>labelToMetadataMapping Map</code>.
      *
      * @param metadata a <code>Map</code> with the metadata to use to set the labels.
+     * @param pauseRollouts whether to pause rollouts to avoid triggering deployments when updating the labels
+     * in <code>dc</code> and <code>deploy</code> templates.
      * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data.
      * @throws RuntimeException if there is an error setting the labels and annotations in OpenShift.
      */
-    private setMetadata(metadata) {
+    private setMetadata(metadata, pauseRollouts = false) {
         // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
-        def labels = labelKeys.findAll { key, value ->
-            removableKeys.contains(key) || metadata[labelToMetadataMapping[key]] != null
-        }.collectEntries { key, value ->
-            [(value): metadata[labelToMetadataMapping[key]]]
-        }
-        openShift.labelResources(getTargetProject(), 'all', labels, config.selector)
+        def labels = getLabels(metadata)
+        def project = getTargetProject()
+        applyLabelsToDeploymentTemplates(project, labels, pauseRollouts)
+        labelResources(project, labels)
     }
 
     /**
@@ -321,7 +323,7 @@ class OpenShiftResourceMetadata {
                 throw new IllegalArgumentException('Metadata entries must not entirely consist of ' +
                     "non-alphanumeric characters. Please, check the metadata.yml file: ${key}=${value}")
             }
-            // Now the value is warranted to contain, at least, one alphanumeric character.
+            // Now the value is warranted to contain, at least, one alphanumeric character, at position i.
             def j = Math.min(end, i + 63)
             // No guard needed.
             while (!Character.isLetterOrDigit(sanitizedValue.charAt(j - 1))) {
@@ -340,6 +342,24 @@ class OpenShiftResourceMetadata {
             }
             return [(key): sanitizedValue]
         }
+    }
+
+    /**
+     * Builds a map with the labels to be set or unset, based on the given metadata.
+     * The map keys and values are the corresponding label keys and values.
+     * A <code>null</code> value is used to mark a label that has to be removed.
+     *
+     * @param metadata a map with the metadata to generate labels for.
+     * @return a map with the labels to be set or removed.
+     */
+    private getLabels(metadata) {
+        // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
+        def labels = labelKeys.findAll { key, value ->
+            removableKeys.contains(key) || metadata[labelToMetadataMapping[key]] != null
+        }.collectEntries { key, value ->
+            [(value): metadata[labelToMetadataMapping[key]]]
+        }
+        return labels
     }
 
     /**
@@ -362,6 +382,35 @@ class OpenShiftResourceMetadata {
             project = "${context.projectId}-${config.environment}"
         }
         return project
+    }
+
+    /**
+     * Updates the labels defined in the Deployment and DeploymentConfig templates
+     * by adding, replacing or removing them with the ones given.
+     * It can optionally pause rollouts at the same time, so that other modifications can be performed
+     * before triggering a redeploy.
+     *
+     * @param project the namespace whose objects will be updated.
+     * @param labels a map with the label keys and values to set or remove. Null values mean the label will be removed.
+     * @param pauseRollouts Whether to pause rollouts. By default, a rollout will be triggered when labels are modified.
+     * @throws RuntimeException if there is an error updating the deployment templates.
+     */
+    private applyLabelsToDeploymentTemplates(project, labels, pauseRollouts = false) {
+        def patch = [template: [metadata: [labels: labels]]]
+        if (pauseRollouts) {
+            patch.paused = true
+        }
+        openShift.bulkPatch(project, ['dc', 'deploy'], config.selector, patch, '/spec')
+    }
+
+    /**
+     * Sets or removes labels to all the resources selected by <code>config.selector</config>.
+     *
+     * @param project the project in which resources are to be labeled.
+     * @param labels a map with the labels to apply or remove. A null value means the label will be removed.
+     */
+    private labelResources(project, labels) {
+        openShift.labelResources(project, 'all', labels, config.selector)
     }
 
     /**
