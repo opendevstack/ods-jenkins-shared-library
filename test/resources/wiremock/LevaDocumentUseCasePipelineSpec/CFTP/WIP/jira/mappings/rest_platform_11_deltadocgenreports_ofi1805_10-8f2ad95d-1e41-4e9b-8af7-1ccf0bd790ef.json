@@ -1,0 +1,32 @@
+{
+  "id" : "8f2ad95d-1e41-4e9b-8af7-1ccf0bd790ef",
+  "name" : "rest_platform_11_deltadocgenreports_ofi1805_10",
+  "request" : {
+    "url" : "/rest/platform/1.1/deltadocgenreports/OFI1805/1.0",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_platform_11_deltadocgenreports_ofi1805_10-8f2ad95d-1e41-4e9b-8af7-1ccf0bd790ef.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Fri, 21 May 2021 09:33:54 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "693x515726x1",
+      "X-ASESSIONID" : "ye6z1",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "X-ASEN" : "SEN-15918632",
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "sergio.sacristan%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent",
+      "Strict-Transport-Security" : "max-age=15768000"
+    }
+  },
+  "uuid" : "8f2ad95d-1e41-4e9b-8af7-1ccf0bd790ef",
+  "persistent" : true,
+  "insertionIndex" : 14
+}

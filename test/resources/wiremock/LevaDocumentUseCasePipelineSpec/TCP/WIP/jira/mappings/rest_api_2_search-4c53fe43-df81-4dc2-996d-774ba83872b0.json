@@ -1,0 +1,37 @@
+{
+  "id" : "4c53fe43-df81-4dc2-996d-774ba83872b0",
+  "name" : "rest_api_2_search",
+  "request" : {
+    "url" : "/rest/api/2/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"jql\":\"project = OFI1805 AND issuetype = 'Documentation'\",\"maxResults\":1000}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_search-4c53fe43-df81-4dc2-996d-774ba83872b0.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Fri, 21 May 2021 09:38:24 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "698x515852x1",
+      "X-ASESSIONID" : "ye6z1",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "X-ASEN" : "SEN-15918632",
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "sergio.sacristan%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent",
+      "Strict-Transport-Security" : "max-age=15768000"
+    }
+  },
+  "uuid" : "4c53fe43-df81-4dc2-996d-774ba83872b0",
+  "persistent" : true,
+  "insertionIndex" : 20
+}

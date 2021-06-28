@@ -1,0 +1,35 @@
+{
+  "id" : "692b4d72-a99b-478d-adde-0792d719e061",
+  "name" : "rest_api_2_project_ofi1805_versions",
+  "request" : {
+    "url" : "/rest/api/2/project/OFI1805/versions",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "[{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/version/12810\",\"id\":\"12810\",\"name\":\"1.0\",\"archived\":false,\"released\":false,\"projectId\":14107},{\"self\":\"https://jira-dev.biscrum.com/rest/api/2/version/12812\",\"id\":\"12812\",\"name\":\"2.0\",\"archived\":false,\"released\":false,\"projectId\":14107}]",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Fri, 21 May 2021 09:38:15 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "698x515848x1",
+      "X-ASESSIONID" : "ye6z1",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "X-ASEN" : "SEN-15918632",
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "sergio.sacristan%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent",
+      "Strict-Transport-Security" : "max-age=15768000"
+    }
+  },
+  "uuid" : "692b4d72-a99b-478d-adde-0792d719e061",
+  "persistent" : true,
+  "scenarioName" : "scenario-1-rest-api-2-project-OFI1805-versions",
+  "requiredScenarioState" : "Started",
+  "newScenarioState" : "scenario-1-rest-api-2-project-OFI1805-versions-2",
+  "insertionIndex" : 16
+}

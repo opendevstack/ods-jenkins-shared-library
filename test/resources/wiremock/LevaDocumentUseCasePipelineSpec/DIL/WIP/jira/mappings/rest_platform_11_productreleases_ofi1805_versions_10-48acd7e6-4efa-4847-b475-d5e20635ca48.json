@@ -1,0 +1,32 @@
+{
+  "id" : "48acd7e6-4efa-4847-b475-d5e20635ca48",
+  "name" : "rest_platform_11_productreleases_ofi1805_versions_10",
+  "request" : {
+    "url" : "/rest/platform/1.1/productreleases/OFI1805/versions/1.0",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"addedIssues\":[{\"key\":\"OFI1805-128\",\"summary\":\"Story Continued\",\"issueTypeName\":\"Story\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[\"OFI1805-131\"],\"status\":\"Done\"},{\"key\":\"OFI1805-129\",\"summary\":\"Unit Test The First\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"OFI1805-130\",\"summary\":\"TST CONTINUED\",\"issueTypeName\":\"Technical Specification Task\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[\"OFI1805-133\"],\"status\":\"Done\"},{\"key\":\"OFI1805-133\",\"summary\":\"Risk Assessment - TST\",\"issueTypeName\":\"Risk Assessment\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"OFI1805-131\",\"summary\":\"RA CONTINUED\",\"issueTypeName\":\"Risk Assessment\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"OFI1805-132\",\"summary\":\"Mitigation CONTINUED\",\"issueTypeName\":\"Mitigation\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"OFI1805-126\",\"summary\":\"Integration Test - No Steps\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"OFI1805-127\",\"summary\":\"Acceptance Test - No Steps\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"OFI1805-124\",\"summary\":\"Integration Test - Steps\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"},{\"key\":\"OFI1805-125\",\"summary\":\"Acceptance Test - Steps\",\"issueTypeName\":\"Test\",\"fixVersions\":[\"1.0\"],\"subTaskKeys\":[],\"status\":\"Done\"}],\"modifiedIssues\":{},\"continuedIssueKeys\":[],\"discontinuedIssueKeys\":[],\"predecessorIssueKeys\":[],\"addedLinks\":[{\"sourceKey\":\"OFI1805-124\",\"linkType\":\"TESTS\",\"destKey\":\"OFI1805-130\"},{\"sourceKey\":\"OFI1805-130\",\"linkType\":\"SPECIFIES\",\"destKey\":\"OFI1805-128\"},{\"sourceKey\":\"OFI1805-129\",\"linkType\":\"TESTS\",\"destKey\":\"OFI1805-128\"},{\"sourceKey\":\"OFI1805-129\",\"linkType\":\"COMPONENTS\",\"destKey\":\"Technology-thefirst\"},{\"sourceKey\":\"OFI1805-130\",\"linkType\":\"SUBTASKS\",\"destKey\":\"OFI1805-133\"},{\"sourceKey\":\"OFI1805-132\",\"linkType\":\"MITIGATES\",\"destKey\":\"OFI1805-131\"},{\"sourceKey\":\"OFI1805-128\",\"linkType\":\"SUBTASKS\",\"destKey\":\"OFI1805-131\"}],\"continuedLinks\":[],\"discontinuedLinks\":[],\"inheritedLinks\":[],\"predecessorLinks\":[],\"managerStatus\":\"Successful\",\"versionId\":12810,\"name\":\"1.0\",\"frozen\":true,\"releaseState\":\"Released in Q\",\"version\":\"1.0\"}",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Fri, 21 May 2021 09:32:01 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "691x515677x1",
+      "X-ASESSIONID" : "ye6z1",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "X-ASEN" : "SEN-15918632",
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "sergio.sacristan%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent",
+      "Strict-Transport-Security" : "max-age=15768000"
+    }
+  },
+  "uuid" : "48acd7e6-4efa-4847-b475-d5e20635ca48",
+  "persistent" : true,
+  "insertionIndex" : 13
+}

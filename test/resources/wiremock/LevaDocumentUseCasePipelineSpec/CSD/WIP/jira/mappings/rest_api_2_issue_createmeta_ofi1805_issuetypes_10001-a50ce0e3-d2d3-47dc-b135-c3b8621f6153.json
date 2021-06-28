@@ -1,0 +1,32 @@
+{
+  "id" : "a50ce0e3-d2d3-47dc-b135-c3b8621f6153",
+  "name" : "rest_api_2_issue_createmeta_ofi1805_issuetypes_10001",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/OFI1805/issuetypes/10001",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_issue_createmeta_ofi1805_issuetypes_10001-a50ce0e3-d2d3-47dc-b135-c3b8621f6153.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Fri, 21 May 2021 09:30:07 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "690x515631x1",
+      "X-ASESSIONID" : "ye6z1",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "X-ASEN" : "SEN-15918632",
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "sergio.sacristan%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent",
+      "Strict-Transport-Security" : "max-age=15768000"
+    }
+  },
+  "uuid" : "a50ce0e3-d2d3-47dc-b135-c3b8621f6153",
+  "persistent" : true,
+  "insertionIndex" : 3
+}

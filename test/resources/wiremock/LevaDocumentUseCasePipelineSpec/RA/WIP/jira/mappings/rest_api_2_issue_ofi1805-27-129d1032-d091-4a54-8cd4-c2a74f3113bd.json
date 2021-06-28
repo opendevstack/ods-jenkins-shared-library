@@ -1,0 +1,32 @@
+{
+  "id" : "129d1032-d091-4a54-8cd4-c2a74f3113bd",
+  "name" : "rest_api_2_issue_ofi1805-27",
+  "request" : {
+    "url" : "/rest/api/2/issue/OFI1805-27?fields=customfield_11602",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"expand\":\"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\",\"id\":\"52940\",\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issue/52940\",\"key\":\"OFI1805-27\",\"fields\":{\"customfield_11602\":null}}",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Fri, 21 May 2021 09:35:53 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "695x515782x1",
+      "X-ASESSIONID" : "ye6z1",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "X-ASEN" : "SEN-15918632",
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "sergio.sacristan%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent",
+      "Strict-Transport-Security" : "max-age=15768000"
+    }
+  },
+  "uuid" : "129d1032-d091-4a54-8cd4-c2a74f3113bd",
+  "persistent" : true,
+  "insertionIndex" : 31
+}
