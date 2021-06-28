@@ -2,6 +2,7 @@ package org.ods.openshift
 
 import groovy.transform.TypeChecked
 import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
@@ -146,22 +147,30 @@ class OpenShiftResourceMetadata {
         this.context = context
         this.config = config
         this.logger = logger
-        this.openShift = openShift ?: new OpenShiftService(steps, logger)
+        this.openShift = openShift ?:
+            ServiceRegistry.instance.get(OpenShiftService) ?:
+                new OpenShiftService(steps, logger)
     }
 
     /**
      * Retrieves metadata for the component and sets the suitable labels and annotations
      * to the component resources.
+     * It also adds the labels to the templates in the Deployments and DeploymentConfigs.
+     * The optional parameter <code>deployments</code> allows to specify the concrete
+     * Deployments or DeploymentConfigs to update. None, if empty. If null (default),
+     * all the Deployments and DeploymentConfigs found in the target project using <code>config.selector</code>.
      *
      * @param pauseRollouts whether to pause rollouts to avoid triggering deployments when updating the labels
      * in <code>dc</code> and <code>deploy</code> templates.
+     * @param deployments a map of resource kind to a list of resource names of all the deployments for which to
+     * update the labels in their template. Autodetected, if <code>null</code>.
      * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data,
      * or if some invalid metadata was found.
      * @throws RuntimeException if there is an error setting the labels and annotations in OpenShift.
      */
-    void updateMetadata(boolean pauseRollouts = false) {
+    void updateMetadata(boolean pauseRollouts = false, Map<String, List<String>> deployments = null) {
         def metadata = getMetadata()
-        setMetadata(metadata)
+        setMetadata(metadata, pauseRollouts, deployments)
     }
 
     /**
@@ -196,11 +205,11 @@ class OpenShiftResourceMetadata {
      * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data.
      * @throws RuntimeException if there is an error setting the labels and annotations in OpenShift.
      */
-    private setMetadata(metadata, pauseRollouts = false) {
+    private setMetadata(metadata, pauseRollouts = false, deployments = null) {
         // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
         def labels = getLabels(metadata)
         def project = getTargetProject()
-        applyLabelsToDeploymentTemplates(project, labels, pauseRollouts)
+        applyLabelsToDeploymentTemplates(project, labels, pauseRollouts, deployments)
         labelResources(project, labels)
     }
 
@@ -395,12 +404,16 @@ class OpenShiftResourceMetadata {
      * @param pauseRollouts Whether to pause rollouts. By default, a rollout will be triggered when labels are modified.
      * @throws RuntimeException if there is an error updating the deployment templates.
      */
-    private applyLabelsToDeploymentTemplates(project, labels, pauseRollouts = false) {
+    private applyLabelsToDeploymentTemplates(project, labels, pauseRollouts = false, deployments = null) {
         def patch = [template: [metadata: [labels: labels]]]
         if (pauseRollouts) {
             patch.paused = true
         }
-        openShift.bulkPatch(project, ['dc', 'deploy'], config.selector, patch, '/spec')
+        if (deployments != null) {
+            openShift.bulkPatch(project, deployments, patch, '/spec')
+        } else {
+            openShift.bulkPatch(project, ['dc', 'deploy'], config.selector, patch, '/spec')
+        }
     }
 
     /**

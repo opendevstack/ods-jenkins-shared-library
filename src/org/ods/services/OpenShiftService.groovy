@@ -698,6 +698,10 @@ class OpenShiftService {
         ).toString().trim()
     }
 
+    List<String> bulkPause(String project, Map<String, List<String>> resources) {
+        return bulkApply(project, resources, this.&pause)
+    }
+
     List<String> bulkPause(String project, List<String> kinds, String selector) {
         return bulkApply(project, kinds, selector, this.&pause)
     }
@@ -733,6 +737,10 @@ class OpenShiftService {
             label: scriptLabel,
             returnStdout: true
         ).toString().trim()
+    }
+
+    List<String> bulkResume(String project, Map<String, List<String>> resources) {
+        return bulkApply(project, resources, this.&resume)
     }
 
     List<String> bulkResume(String project, List<String> kinds, String selector) {
@@ -797,9 +805,13 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    List<String> bulkPatch(String project, List<String> kinds, String selector, Map<String, ?> patch, String path = null) {
+    List<String> bulkPatch(
+        String project,
+        Map<String, List<String>> resources,
+        Map<String, ?> patch,
+        String path = null
+    ) {
         def results = []
-        def resources = getResourcesForComponent(project, kinds, selector)
         resources.each { kind, names ->
             names.each { name ->
                 results << this.patch("${kind}/${name}", patch, path, project)
@@ -808,15 +820,35 @@ class OpenShiftService {
         return results
     }
 
-    private List<String> bulkApply(String project, List<String> kinds, String selector, Closure body) {
-        def results = []
+    List<String> bulkPatch(
+        String project,
+        List<String> kinds,
+        String selector,
+        Map<String, ?> patch,
+        String path = null
+    ) {
         def resources = getResourcesForComponent(project, kinds, selector)
+        return bulkPatch(project, resources, patch, path)
+    }
+
+    // getConfigMapData returns the data content of given ConfigMap.
+    Map getConfigMapData(String project, String name) {
+        getJSON(project, "ConfigMap", name).data as Map
+    }
+
+    private List<String> bulkApply(String project, Map<String, List<String>> resources, Closure body) {
+        def results = []
         resources.each { kind, names ->
             names.each { name ->
                 results << body("${kind}/${name}", project)
             }
         }
         return results
+    }
+
+    private List<String> bulkApply(String project, List<String> kinds, String selector, Closure body) {
+        def resources = getResourcesForComponent(project, kinds, selector)
+        return bulkApply(project, resources, body)
     }
 
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {

@@ -2,6 +2,8 @@ package vars
 
 import org.ods.quickstarter.Context
 import org.ods.quickstarter.IContext
+import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
 import util.PipelineSteps
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
@@ -36,6 +38,9 @@ class OdsQuickstarterStageCreateOpenShiftResourcesSpec extends PipelineSpockTest
             return metadata
         }
     }
+    def openShiftService = Stub(OpenShiftService)
+    openShiftService.getResourcesForComponent('foo-dev', ['dc', 'deploy'], 'app=foo-bar') >> [DeploymentConfig: ['foo'], Deployment: ['bar']]
+    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
 
     when:
     def script = loadScript('vars/odsQuickstarterStageCreateOpenShiftResources.groovy')

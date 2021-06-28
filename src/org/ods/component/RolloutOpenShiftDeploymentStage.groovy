@@ -113,32 +113,44 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             steps.error "Deployment resources cannot be used in the orchestration pipeline yet."
             return
         }
-        def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
+        try {
+            openShift.bulkPause(context.targetProject, deploymentResources)
+            def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
-        // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
+            // Tag images which have been built in this pipeline from cd project into target project
+            retagImages(context.targetProject, getBuiltImages())
 
-        def refreshResources = false
-        if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
-            if (context.triggeredByOrchestrationPipeline) {
-                steps.error "Helm cannot be used in the orchestration pipeline yet."
-                return
+            def refreshResources = false
+            if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
+                if (context.triggeredByOrchestrationPipeline) {
+                    steps.error "Helm cannot be used in the orchestration pipeline yet."
+                    return
+                }
+                helmUpgrade(context.targetProject)
+                refreshResources = true
+            } else if (steps.fileExists(options.openshiftDir)) {
+                tailorApply(context.targetProject)
+                refreshResources = true
             }
-            helmUpgrade(context.targetProject)
-            refreshResources = true
-        } else if (steps.fileExists(options.openshiftDir)) {
-            tailorApply(context.targetProject)
-            refreshResources = true
-        }
-        def metadata = new OpenShiftResourceMetadata(steps, context.properties, options.properties, logger, openShift)
-        metadata.updateMetadata(true)
+            if (refreshResources) {
+                deploymentResources = openShift.getResourcesForComponent(
+                    context.targetProject, DEPLOYMENT_KINDS, options.selector
+                )
+            }
 
-        if (refreshResources) {
-            deploymentResources = openShift.getResourcesForComponent(
-                context.targetProject, DEPLOYMENT_KINDS, options.selector
+            def metadata = new OpenShiftResourceMetadata(
+                steps,
+                context.properties,
+                options.properties,
+                logger,
+                openShift
             )
+            metadata.updateMetadata(true, deploymentResources)
+
+            return rollout(deploymentResources, originalDeploymentVersions)
+        } finally {
+            openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
         }
-        return rollout(deploymentResources, originalDeploymentVersions)
     }
 
     protected String stageLabel() {
