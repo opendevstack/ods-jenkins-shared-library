@@ -174,7 +174,7 @@ class ScanWithAquaStage extends Stage {
     }
 
     private String prepareMessageToBitbucket(String message = "") {
-        return message?.replaceAll("<li>", "")?.replaceAll("</li>", "\n")
+        return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
     }
 
     private URI archiveReportInNexus(String reportFile) {
