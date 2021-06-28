@@ -113,6 +113,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             steps.error "Deployment resources cannot be used in the orchestration pipeline yet."
             return
         }
+        def paused = true
         try {
             openShift.bulkPause(context.targetProject, deploymentResources)
             def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
@@ -145,11 +146,14 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 logger,
                 openShift
             )
-            metadata.updateMetadata(true, deploymentResources)
+            metadata.updateMetadata(false, deploymentResources)
+            paused = false
 
             return rollout(deploymentResources, originalDeploymentVersions)
         } finally {
-            openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
+            if (paused) {
+                openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
+            }
         }
     }
 

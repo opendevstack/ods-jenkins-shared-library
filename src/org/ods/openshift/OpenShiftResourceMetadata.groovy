@@ -159,16 +159,19 @@ class OpenShiftResourceMetadata {
      * The optional parameter <code>deployments</code> allows to specify the concrete
      * Deployments or DeploymentConfigs to update. None, if empty. If null (default),
      * all the Deployments and DeploymentConfigs found in the target project using <code>config.selector</code>.
+     * The optional parameter <code>pauseRollouts</code> allows to pause or resume rollouts at the same time we update
+     * the template labels. If <code>null</code> (default), it will leave the current value untouched.
+     * Otherwise, it will pause (<code>true</code>) or resume (<code>false</code>) rollouts.
      *
      * @param pauseRollouts whether to pause rollouts to avoid triggering deployments when updating the labels
-     * in <code>dc</code> and <code>deploy</code> templates.
+     * in <code>dc</code> and <code>deploy</code> templates. Default: do not change.
      * @param deployments a map of resource kind to a list of resource names of all the deployments for which to
      * update the labels in their template. Autodetected, if <code>null</code>.
      * @throws IllegalArgumentException if the target OpenShift project cannot be guessed from the available data,
      * or if some invalid metadata was found.
      * @throws RuntimeException if there is an error setting the labels and annotations in OpenShift.
      */
-    void updateMetadata(boolean pauseRollouts = false, Map<String, List<String>> deployments = null) {
+    void updateMetadata(Boolean pauseRollouts = null, Map<String, List<String>> deployments = null) {
         def metadata = getMetadata()
         setMetadata(metadata, pauseRollouts, deployments)
     }
@@ -209,8 +212,8 @@ class OpenShiftResourceMetadata {
         // TODO Make sure the user cannot override the labels set by the release manager in a previous deployment.
         def labels = getLabels(metadata)
         def project = getTargetProject()
-        applyLabelsToDeploymentTemplates(project, labels, pauseRollouts, deployments)
         labelResources(project, labels)
+        applyLabelsToDeploymentTemplates(project, labels, pauseRollouts, deployments)
     }
 
     /**
@@ -406,8 +409,9 @@ class OpenShiftResourceMetadata {
      */
     private applyLabelsToDeploymentTemplates(project, labels, pauseRollouts = false, deployments = null) {
         def patch = [template: [metadata: [labels: labels]]]
-        if (pauseRollouts) {
-            patch.paused = true
+        if (pauseRollouts != null) {
+            // Setting paused to null will remove it, which has the effect of resuming rollouts.
+            patch.paused = pauseRollouts ?: null
         }
         if (deployments != null) {
             openShift.bulkPatch(project, deployments, patch, '/spec')
