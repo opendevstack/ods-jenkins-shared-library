@@ -795,7 +795,7 @@ class OpenShiftService {
         }
         def script = "oc patch ${resource} --type='merge' -p '${jsonPatch}'"
         if (project) {
-            script += "-n ${project}"
+            script += " -n ${project}"
         }
         def scriptLabel = "Patch ${resource}"
         steps.sh(
