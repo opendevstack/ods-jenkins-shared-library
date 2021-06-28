@@ -151,7 +151,7 @@ class ScanWithAquaStage extends Stage {
         return returnCode
     }
 
-    @SuppressWarnings('LineLength')
+    @SuppressWarnings('ParameterCount')
     private createBitbucketCodeInsightReport(String aquaUrl, String nexusUrlReport,
                                              String registry, String imageRef, int returnCode, String messages) {
         String aquaScanUrl = aquaUrl + "/#/images/" + registry + "/" + imageRef.replace("/", "%2F") + "/vulns"
@@ -174,7 +174,7 @@ class ScanWithAquaStage extends Stage {
     }
 
     private String prepareMessageToBitbucket(String message = "") {
-        return message?.replace("<li>", "")?.replace("</li>", "\n")
+        return message?.replaceAll("<li>", "")?.replaceAll("</li>", "\n")
     }
 
     private URI archiveReportInNexus(String reportFile) {
