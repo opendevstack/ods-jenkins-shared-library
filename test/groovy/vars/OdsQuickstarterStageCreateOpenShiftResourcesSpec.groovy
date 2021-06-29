@@ -38,9 +38,11 @@ class OdsQuickstarterStageCreateOpenShiftResourcesSpec extends PipelineSpockTest
             return metadata
         }
     }
-    def openShiftService = Stub(OpenShiftService)
-    openShiftService.getResourcesForComponent('foo-dev', ['dc', 'deploy'], 'app=foo-bar') >> [DeploymentConfig: ['foo'], Deployment: ['bar']]
-    ServiceRegistry.instance.add(OpenShiftService, openShiftService)
+    helper.registerAllowedMethod('sh', [ Map ]) { Map args ->
+        if (args.label ==~ /Getting all .* names for selector 'app=foo-bar'/) {
+            return 'DeploymentConfig:foo Deployment:bar '
+        }
+    }
 
     when:
     def script = loadScript('vars/odsQuickstarterStageCreateOpenShiftResources.groovy')

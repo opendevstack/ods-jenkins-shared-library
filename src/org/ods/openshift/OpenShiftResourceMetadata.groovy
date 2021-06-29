@@ -147,9 +147,7 @@ class OpenShiftResourceMetadata {
         this.context = context
         this.config = config
         this.logger = logger
-        this.openShift = openShift ?:
-            ServiceRegistry.instance?.get(OpenShiftService) ?:
-                new OpenShiftService(steps, logger)
+        this.openShift = openShift ?: new OpenShiftService(steps, logger)
     }
 
     /**
