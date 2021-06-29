@@ -698,10 +698,25 @@ class OpenShiftService {
         ).toString().trim()
     }
 
+    /**
+     * Apply the <code>pause</code> method to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @return a <code>List</code> or strings with the output of the <code>pause</code> method for each resource.
+     */
     List<String> bulkPause(String project, Map<String, List<String>> resources) {
         return bulkApply(project, resources, this.&pause)
     }
 
+    /**
+     * Apply the <code>pause</code> method to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @return a <code>List</code> or strings with the output of the <code>pause</code> method for each resource found.
+     */
     List<String> bulkPause(String project, List<String> kinds, String selector) {
         return bulkApply(project, kinds, selector, this.&pause)
     }
@@ -739,10 +754,25 @@ class OpenShiftService {
         ).toString().trim()
     }
 
+    /**
+     * Apply the <code>resume</code> method to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @return a <code>List</code> or strings with the output of the <code>resume</code> method for each resource.
+     */
     List<String> bulkResume(String project, Map<String, List<String>> resources) {
         return bulkApply(project, resources, this.&resume)
     }
 
+    /**
+     * Apply the <code>resume</code> method to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @return a <code>List</code> or strings with the output of the <code>resume</code> method for each resource found.
+     */
     List<String> bulkResume(String project, List<String> kinds, String selector) {
         return bulkApply(project, kinds, selector, this.&resume)
     }
@@ -805,7 +835,16 @@ class OpenShiftService {
         ).toString().trim()
     }
 
-    List<String> bulkPatch(
+    /**
+     * Apply the <code>patch</code> method to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @param patch the patch to apply.
+     * @param path the optional absolute path at which to apply the patch.
+     * @return a <code>List</code> or strings with the output of the <code>patch</code> method for each resource.
+     */
+    List<String> bulkPatch (
         String project,
         Map<String, List<String>> resources,
         Map<String, ?> patch,
@@ -820,7 +859,17 @@ class OpenShiftService {
         return results
     }
 
-    List<String> bulkPatch(
+    /**
+     * Apply the <code>patch</code> method to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @param patch the patch to apply.
+     * @param path the optional absolute path at which to apply the patch.
+     * @return a <code>List</code> or strings with the output of the <code>patch</code> method for each resource found.
+     */
+    List<String> bulkPatch (
         String project,
         List<String> kinds,
         String selector,
@@ -836,6 +885,14 @@ class OpenShiftService {
         getJSON(project, "ConfigMap", name).data as Map
     }
 
+    /**
+     * Apply the given closure to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @return a <code>List</code> or strings with the output of the given closure for each resource.
+     */
+    //TODO Adapt it to admit arbitrary additional parameters to the closure
     private List<String> bulkApply(String project, Map<String, List<String>> resources, Closure body) {
         def results = []
         resources.each { kind, names ->
@@ -846,6 +903,15 @@ class OpenShiftService {
         return results
     }
 
+    /**
+     * Apply the given closure to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @return a <code>List</code> or strings with the output of the given closure for each resource found.
+     */
+    //TODO Adapt it to admit arbitrary additional parameters to the closure
     private List<String> bulkApply(String project, List<String> kinds, String selector, Closure body) {
         def resources = getResourcesForComponent(project, kinds, selector)
         return bulkApply(project, resources, body)
