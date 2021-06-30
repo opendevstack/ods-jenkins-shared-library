@@ -1753,7 +1753,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 // The document, or a new version of it, has already been created in this same pipeline run.
                 version = this.project.getDocumentVersionFromHistories(doc)
                 if (!version) {
-                    def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
+                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, ['D', 'Q', 'P'])
                     version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
                     if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
                         // Either this is a developer preview or
