@@ -2,7 +2,6 @@ package org.ods.openshift
 
 import groovy.transform.TypeChecked
 import org.ods.services.OpenShiftService
-import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 

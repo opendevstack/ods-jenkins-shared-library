@@ -113,25 +113,26 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             steps.error "Deployment resources cannot be used in the orchestration pipeline yet."
             return
         }
+        def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
+
+        def refreshResources = false
         def paused = true
         try {
             openShift.bulkPause(context.targetProject, deploymentResources)
-            def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
             // Tag images which have been built in this pipeline from cd project into target project
             retagImages(context.targetProject, getBuiltImages())
 
-            def refreshResources = false
             if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
                 if (context.triggeredByOrchestrationPipeline) {
                     steps.error "Helm cannot be used in the orchestration pipeline yet."
                     return
                 }
+                refreshResources = true
                 helmUpgrade(context.targetProject)
-                refreshResources = true
             } else if (steps.fileExists(options.openshiftDir)) {
-                tailorApply(context.targetProject)
                 refreshResources = true
+                tailorApply(context.targetProject)
             }
             if (refreshResources) {
                 deploymentResources = openShift.getResourcesForComponent(
@@ -148,13 +149,13 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             )
             metadata.updateMetadata(false, deploymentResources)
             paused = false
-
-            return rollout(deploymentResources, originalDeploymentVersions)
         } finally {
             if (paused) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
+
+        return rollout(deploymentResources, originalDeploymentVersions)
     }
 
     protected String stageLabel() {
