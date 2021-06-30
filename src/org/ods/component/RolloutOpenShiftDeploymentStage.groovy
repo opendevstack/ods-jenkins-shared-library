@@ -147,15 +147,16 @@ class RolloutOpenShiftDeploymentStage extends Stage {
                 logger,
                 openShift
             )
-            metadata.updateMetadata(false, deploymentResources)
+            metadata.updateMetadata(true, deploymentResources)
+
+            def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
             paused = false
+            return rolloutData
         } finally {
             if (paused) {
                 openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
             }
         }
-
-        return rollout(deploymentResources, originalDeploymentVersions)
     }
 
     protected String stageLabel() {
@@ -264,6 +265,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         setImageTagLatest(ownedImageStreams)
+
+        // May be paused in order to prevent multiple rollouts.
+        // If a rollout is triggered when resuming, the rollout method should detect it.
+        openShift.resume("${resourceKind}/${resourceName}", context.targetProject)
 
         String podManager
         try {
