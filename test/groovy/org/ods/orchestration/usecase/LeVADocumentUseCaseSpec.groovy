@@ -1651,12 +1651,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
         jiraUseCase.getLatestDocVersionId(_) >> 1L
         def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null))
-        useCase.getDocumentTrackingIssues(_, _) >> []
 
         when:
         def versions = useCase.getReferencedDocumentsVersion()
 
         then:
+        8 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
         versions == [
             CSD: 'ConfigItem / 3',
             SSDS: 'ConfigItem / 2',
@@ -1675,6 +1675,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         versions = useCase.getReferencedDocumentsVersion()
 
         then:
+        8 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
         versions == [
             CSD: 'ConfigItem / 3-WIP',
             SSDS: 'ConfigItem / 2-WIP',
