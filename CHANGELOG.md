@@ -14,6 +14,7 @@
 - Added builder (agent and master) labels into image building process  ([#644](https://github.com/opendevstack/ods-jenkins-shared-library/pull/644))
 - Added regexp compatibility with new Bitbucket merge commit messages ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/656))
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
+- Add recommended labels to pods ([#686](https://github.com/opendevstack/ods-jenkins-shared-library/pull/686))
 
 ## [3.0] - 2020-08-11
 
