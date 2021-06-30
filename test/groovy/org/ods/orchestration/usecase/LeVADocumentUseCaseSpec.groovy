@@ -1595,7 +1595,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentSections(_) >> docChapters2
         1 * project.getSystemRequirements() >> requirements
-        4 * usecase.convertImages(_)
+        5 * usecase.convertImages(_)
         3 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
         1 * usecase.createDocument(*_) >> ''
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
@@ -1608,7 +1608,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.computeComponentMetadata(_) >> compMetadata
 
         then:
-        1 * usecase.convertImages(_)
+        2 * usecase.convertImages(_)
         1 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
         1 * usecase.createDocument(*_) >> ''
         usecase.obtainCodeReviewReport(*_) >> []
