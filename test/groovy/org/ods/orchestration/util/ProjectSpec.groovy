@@ -2756,4 +2756,60 @@ class ProjectSpec extends SpecHelper {
 
 
     }
+
+    def "get version for document type"() {
+        given:
+        def project = new Project(null, null)
+        def versions = [
+            CSD: 3L,
+            SSDS: 1L,
+            RA: 8L,
+            TRC: 5L,
+            DTP: 2L,
+            DTR: 4L,
+            CFTP: 9L,
+            CFTR: 6L,
+            TIR: 10L,
+            TIP: 7L,
+        ]
+        def histories = [
+            CSD: Stub(DocumentHistory),
+            SSDS: Stub(DocumentHistory),
+            RA: Stub(DocumentHistory),
+            TRC: Stub(DocumentHistory),
+            DTP: Stub(DocumentHistory),
+            'DTR-repo1': Stub(DocumentHistory),
+            'DTR-repo2': Stub(DocumentHistory),
+            CFTP: Stub(DocumentHistory),
+            CFTR: Stub(DocumentHistory),
+            'TIR-repo1': Stub(DocumentHistory),
+            'TIR-repo2': Stub(DocumentHistory),
+            TIP: Stub(DocumentHistory),
+        ]
+        histories.CSD.getVersion() >> versions.CSD
+        histories.SSDS.getVersion() >> versions.SSDS
+        histories.RA.getVersion() >> versions.RA
+        histories.TRC.getVersion() >> versions.TRC
+        histories.DTP.getVersion() >> versions.DTP
+        histories.'DTR-repo1'.getVersion() >> versions.DTR
+        histories.'DTR-repo2'.getVersion() >> versions.DTR
+        histories.CFTP.getVersion() >> versions.CFTP
+        histories.CFTR.getVersion() >> versions.CFTR
+        histories.'TIR-repo1'.getVersion() >> versions.TIR
+        histories.'TIR-repo2'.getVersion() >> versions.TIR
+        histories.TIP.getVersion() >> versions.TIP
+
+        when:
+        histories.each { docName, history ->
+            project.setHistoryForDocument(history, docName)
+        }
+
+        then:
+        versions.each { docType, version ->
+            assert project.getDocumentVersionFromHistories(docType) == version
+        }
+        assert project.getDocumentVersionFromHistories('other') == null
+
+    }
+
 }
