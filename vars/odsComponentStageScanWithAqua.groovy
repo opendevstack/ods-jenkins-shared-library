@@ -10,6 +10,7 @@ import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.PipelineSteps
 
+@SuppressWarnings('AbcMetric')
 def call(IContext context, Map config = [:]) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     // this is only for testing, because we need access to the script context :(
