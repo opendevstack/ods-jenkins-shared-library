@@ -184,7 +184,6 @@ class ScanWithAquaStage extends Stage {
         return message?.replaceAll("<li>", "")?.replaceAll("</li>", ". ")
     }
 
-
     @SuppressWarnings('ReturnNullFromCatchBlock')
     private URI archiveReportInNexus(String reportFile, nexusRepository) {
         try {
