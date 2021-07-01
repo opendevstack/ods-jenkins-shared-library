@@ -96,13 +96,13 @@ def call(IContext context, Map config = [:]) {
         }
         else if (!enabledInCluster && !enabledInProject) {
             logger.warn("Skipping Aqua scan because is not enabled nor cluster " +
-                "in ${ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT} project, " +
+                "in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project, " +
                 "nor project level in 'aqua' ConfigMap")
         } else if (enabledInCluster) {
             logger.warn("Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap")
         } else {
             logger.warn("Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
-                "ConfigMap in ${ScanWithAquaStage.AQUA_GENERAL_CONFIG_MAP_PROJECT} project")
+                "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
         }
     } catch (err) {
         logger.warn("Error with Aqua due to: ${err}")
