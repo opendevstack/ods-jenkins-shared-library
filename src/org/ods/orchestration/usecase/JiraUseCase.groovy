@@ -206,6 +206,12 @@ class JiraUseCase {
             }
             content = content ? content.getValue() : ""
 
+            def matcher = content =~ /<a.*id="(.*)_thumb".*href="(.*?)"/
+            matcher.each {
+                def imageMatcher = content =~ /<a.*id="${it[1]}_thumb".*src="(.*?)"/
+                content = content.replace(imageMatcher[0][1], it[2])
+            }
+
             def documentTypes = (issue.fields.labels ?: [])
                 .findAll { String l -> l.startsWith(LabelPrefix.DOCUMENT) }
                 .collect { String l -> l.replace(LabelPrefix.DOCUMENT, '') }

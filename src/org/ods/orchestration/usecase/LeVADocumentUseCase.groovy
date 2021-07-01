@@ -146,7 +146,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     epic            : epic?.key,
                     epicName        : epic?.epicName,
                     epicTitle       : epic?.title,
-                    epicDescription : epic?.description,
+                    epicDescription : this.convertImages(epic?.description),
                 ]
             }
 
@@ -283,7 +283,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             [
                 key               : testIssue.key,
-                description       : description ?: "N/A",
+                description       : this.convertImages(description ?: 'N/A'),
                 systemRequirement : testIssue.requirements.join(", "),
                 success           : testIssue.isSuccess ? "Y" : "N",
                 remarks           : testIssue.isUnexecuted ? "Not executed" : "N/A",
@@ -452,7 +452,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTests : acceptanceTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: '',
+                        description: this.convertImages(testIssue.description ?: ''),
                         ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
                         risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
                     ]
@@ -460,7 +460,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests: integrationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: '',
+                        description: this.convertImages(testIssue.description ?: ''),
                         ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
                         risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
                     ]
@@ -583,7 +583,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return [
                 key: r.key,
                 name: r.name,
-                description: r.description,
+                description: convertImages(r.description),
                 proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
                 requirements: requirements.collect { it.name }.join("<br/>"),
                 requirementsKey: requirements.collect { it.key }.join("<br/>"),
@@ -735,7 +735,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 tests             : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: "",
+                        description: this.convertImages(testIssue.description ?: ''),
                         remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                         success    : testIssue.isSuccess ? "Y" : "N",
                         summary    : testIssue.name,
@@ -819,7 +819,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests    : SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
@@ -832,7 +832,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTests     : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
@@ -876,7 +876,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests: SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : sortTestSteps(testIssue.steps)
@@ -885,7 +885,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : sortTestSteps(testIssue.steps)
@@ -940,7 +940,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 nameOfSoftware: c.nameOfSoftware,
                 componentType : c.componentType,
                 componentId   : c.componentId,
-                description   : c.description,
+                description   : this.convertImages(c.description ?: ''),
                 supplier      : c.supplier,
                 version       : c.version,
                 references    : c.references
@@ -1142,7 +1142,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [
                 key         : r.key,
                 name        : r.name,
-                description : r.description,
+                description : this.convertImages(r.description ?: ''),
                 risks       : r.risks.join(", "),
                 tests       : r.tests.join(", "),
                 predecessors: predecessors,
@@ -1339,7 +1339,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [
                 moduleName: testIssue.components.join(", "),
                 testKey: testIssue.key,
-                description: description ?: "N/A",
+                description: this.convertImages(description ?: 'N/A'),
                 systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                 softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
                 riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"

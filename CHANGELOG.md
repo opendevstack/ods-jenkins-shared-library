@@ -15,6 +15,7 @@
 - Added regexp compatibility with new Bitbucket merge commit messages ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/656))
 - Set jenkins job to unstable in case of open issues ([#664](https://github.com/opendevstack/ods-jenkins-shared-library/pull/664))
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
+- Fixed use of full image in the creation of the documents ([682](https://github.com/opendevstack/ods-jenkins-shared-library/pull/682))
 - Fix epic Issues not correctly ordered on the CSD ([#671](https://github.com/opendevstack/ods-jenkins-shared-library/pull/671))
 - Fix Reference Documents not displaying the correct version on the SLC Documents ([#672](https://github.com/opendevstack/ods-jenkins-shared-library/pull/672))
 - Jenkins nonCPS prevents project.dump from work ([#673](https://github.com/opendevstack/ods-jenkins-shared-library/issues/673))
