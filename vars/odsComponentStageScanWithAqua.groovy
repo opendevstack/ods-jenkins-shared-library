@@ -19,7 +19,6 @@ def call(IContext context, Map config = [:]) {
     }
 
     ServiceRegistry registry = ServiceRegistry.instance
-
     PipelineSteps steps = registry.get(PipelineSteps)
     if (!steps) {
         steps = new PipelineSteps(this)
