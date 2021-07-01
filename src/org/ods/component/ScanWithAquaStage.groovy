@@ -64,7 +64,7 @@ class ScanWithAquaStage extends Stage {
         String nexusRepository = configurationAquaCluster['nexusRepository']
         if (!nexusRepository) {
             logger.info "Please provide the name of the repository in Nexus to store the reports!"
-            errorMessages += "<li>Provide the name of the repository en Nexus to use with Aqua</li>"
+            errorMessages += "<li>Provide the name of the repository in Nexus to use with Aqua</li>"
         }
 
         // Name of the credentials that stores the username/password of a user with access

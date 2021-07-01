@@ -776,7 +776,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     '<p>URL : <a href="http://buidl">http://buidl</a></p> ' +
                     '<ul><li>Provide the Aqua url of platform</li>' +
                     '<li>Provide the name of the registry to use in Aqua</li>' +
-                    '<li>Provide the name of the repository en Nexus to use with Aqua</li>' +
+                    '<li>Provide the name of the repository in Nexus to use with Aqua</li>' +
                     '<li>Error executing Aqua CLI</li></ul>',
                 'mimeType':'text/html',
                 'replyTo':'$script.DEFAULT_REPLYTO',
@@ -819,7 +819,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     '<li>Provide the alert emails of the Aqua platform</li>' +
                     '<li>Provide the Aqua url of platform</li>' +
                     '<li>Provide the name of the registry to use in Aqua</li>' +
-                    '<li>Provide the name of the repository en Nexus to use with Aqua</li>' +
+                    '<li>Provide the name of the repository in Nexus to use with Aqua</li>' +
                     '<li>Error executing Aqua CLI</li></ul>',
                 'mimeType':'text/html',
                 'replyTo':'$script.DEFAULT_REPLYTO',
