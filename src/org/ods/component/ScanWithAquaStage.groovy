@@ -108,7 +108,7 @@ class ScanWithAquaStage extends Stage {
                                   vulnerabilities.malware]
 
                 URI reportUriNexus = archiveReportInNexus(reportFile, nexusRepository)
-                createBitbucketCodeInsightReport(url, reportUriNexus.toString(),
+                createBitbucketCodeInsightReport(url, nexusRepository?reportUriNexus.toString():null,
                     registry, imageRef, errorCodes.sum() as int, errorMessages)
                 archiveReportInJenkins(!context.triggeredByOrchestrationPipeline, reportFile)
             } catch (err) {
