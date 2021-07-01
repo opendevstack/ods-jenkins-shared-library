@@ -185,16 +185,21 @@ class ScanWithAquaStage extends Stage {
     }
 
     private URI archiveReportInNexus(String reportFile, nexusRepository) {
-        URI report = nexus.storeArtifact(
-            "${nexusRepository}",
-            "${context.projectId}/${context.componentId}/" +
-                "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
-            "report.html",
-            (steps.readFile(file: reportFile) as String).bytes, "text/html")
+        try {
+            URI report = nexus.storeArtifact(
+                "${nexusRepository}",
+                "${context.projectId}/${context.componentId}/" +
+                    "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/aqua",
+                "report.html",
+                (steps.readFile(file: reportFile) as String).bytes, "text/html")
 
-        logger.info "Report stored in: ${report}"
+            logger.info "Report stored in: ${report}"
 
-        return report
+            return report
+        } catch (err) {
+            logger.warn("Error archiving the Aqua reports in Nexus due to: ${err}")
+            return null
+        }
     }
 
     private archiveReportInJenkins(boolean archive, String reportFile) {
