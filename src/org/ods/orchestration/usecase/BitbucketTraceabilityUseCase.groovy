@@ -47,7 +47,6 @@ class BitbucketTraceabilityUseCase {
         return file.absolutePath
     }
 
-
     /**
      * Read an existing csv file and parse the info to obtaining an structured List of data.
      *

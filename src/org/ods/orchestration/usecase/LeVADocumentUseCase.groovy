@@ -936,7 +936,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
 
         if (!sections."sec2s3") sections."sec2s3" = [:]
-        sections."sec2s3".bitbucket = SortUtil.sortIssuesByProperties(bbInfo?:[], ["component", "date", "url"])
+        sections."sec2s3".bitbucket = SortUtil.sortIssuesByProperties(bbInfo ?: [], ["component", "date", "url"])
 
         if (!sections."sec3s1") sections."sec3s1" = [:]
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
@@ -986,7 +986,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
-
 
     @NonCPS
     private def computeKeysInDocForTIP(def data) {
@@ -1514,7 +1513,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<String> getJiraTrackingIssueLabelsForDocTypeAndEnvs(String documentType, List<String> envs = null) {
         def labels = []
 
-        def environments = (envs)? envs : this.project.buildParams.targetEnvironmentToken
+        def environments = (envs) ? envs : this.project.buildParams.targetEnvironmentToken
         environments.each { env ->
             LeVADocumentScheduler.ENVIRONMENT_TYPE[env].get(documentType).each { label ->
                 labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
@@ -1591,7 +1590,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
         if (this.project.historyForDocumentExists(documentName)) {
-
             return this.project.getHistoryForDocument(documentName)
         } else {
             def documentType = documentName.split('-').first()
@@ -1705,7 +1703,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     /**
      * gets teh document version IDS at the start ... can't do that...
-     * @return
+     * @return Map
      */
     protected Map getReferencedDocumentsVersion() {
         if (!this.jiraUseCase) return [:]
@@ -1760,5 +1758,4 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
     }
-
 }
