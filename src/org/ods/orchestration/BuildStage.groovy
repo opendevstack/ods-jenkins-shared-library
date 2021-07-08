@@ -87,7 +87,7 @@ class BuildStage extends Stage {
         // the build will have failed beforehand
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.isAssembleMode && project.isWorkInProgress &&
-            (project.hasFailingTests || failedRepos.size > 0)) {
+            (project.hasFailingTests() || failedRepos.size > 0)) {
             util.failBuild("Failing build as repositories contain errors!\nFailed: ${failedRepos}")
         }
     }

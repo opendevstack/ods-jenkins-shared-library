@@ -96,6 +96,9 @@ class MROPipelineUtil extends PipelineUtil {
             def job
             def env = []
             env.addAll(this.project.getMainReleaseManagerEnv())
+            this.project.buildParams.each { key, value ->
+                env << "BUILD_PARAM_${key.toUpperCase()}=${value}"
+            }
             env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
             this.steps.withEnv (env) {
                 job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
@@ -316,7 +319,6 @@ class MROPipelineUtil extends PipelineUtil {
                 this.executeBlockAndFailBuild {
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                     def targetEnvToken = this.project.buildParams.targetEnvironmentToken
-
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }

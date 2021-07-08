@@ -30,7 +30,7 @@ class GitService {
     @SuppressWarnings('LineLength')
     static String mergedBranch(String project, String repository, String commitMessage) {
         def uppercaseProject = project.toUpperCase()
-        def msgMatcher = commitMessage =~ /Merge pull request #[0-9]* in ${uppercaseProject}\/${repository} from (\S*)|^Merge branch '(\S*)'/
+        def msgMatcher = commitMessage =~ /(?:Pull request #[0-9]+.*\R+Merge|Merge pull request #[0-9]+) in ${uppercaseProject}\/${repository} from (\S*)|^Merge branch '(\S*)'/
         if (msgMatcher) {
             return msgMatcher[0][1] ?: msgMatcher[0][2]
         }
@@ -152,12 +152,28 @@ class GitService {
                  || gitCommitSubject.contains('[skipci]')
                  || gitCommitSubject.contains('***noci***'))
     }
-
-    void checkout(String gitCommit, def userRemoteConfigs) {
+    void checkout(
+        String branch,
+        def extensions,
+        def userRemoteConfigs,
+        boolean doGenerateSubmoduleConfigurations = false) {
+        def branches = [[name: branch]]
+        this.checkout(
+            branches,
+            extensions,
+            userRemoteConfigs,
+            doGenerateSubmoduleConfigurations
+        )
+        }
+    void checkout(
+        def branches,
+        def extensions,
+        def userRemoteConfigs,
+        boolean doGenerateSubmoduleConfigurations = false) {
         def gitParams = [
             $class: 'GitSCM',
-            branches: [[name: gitCommit]],
-            doGenerateSubmoduleConfigurations: false,
+            branches: branches,
+            doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
             extensions: [[
                     $class: 'SubmoduleOption',
                     disableSubmodules: false,
@@ -165,11 +181,15 @@ class GitService {
                     recursiveSubmodules: true,
                     reference: '',
                     trackingSubmodules: false],
-                   [$class: 'CleanBeforeCheckout'],
-                   [$class: 'CleanCheckout']],
+                    [$class: 'CleanBeforeCheckout'],
+                    [$class: 'CleanCheckout']
+                    ],
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs,
         ]
+        if (!extensions.empty) {
+            gitParams.extensions += extensions
+        }
         if (isAgentNodeGitLfsEnabled()) {
             gitParams.extensions << [$class: 'GitLFSPull']
         }
@@ -216,20 +236,6 @@ class GitService {
             script: "git push --tags origin ${name}",
             label: "Push branch ${name} with tags"
         )
-    }
-
-    def checkout(
-        String gitRef,
-        def extensions,
-        def userRemoteConfigs,
-        boolean doGenerateSubmoduleConfigurations = false) {
-        script.checkout([
-            $class: 'GitSCM',
-            branches: [[name: gitRef]],
-            doGenerateSubmoduleConfigurations: doGenerateSubmoduleConfigurations,
-            extensions: extensions,
-            userRemoteConfigs: userRemoteConfigs,
-        ])
     }
 
     boolean remoteTagExists(String name) {

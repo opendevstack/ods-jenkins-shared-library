@@ -5,6 +5,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.services.OpenShiftService
 import org.ods.services.JenkinsService
 import org.ods.util.ILogger
+import org.ods.openshift.OpenShiftResourceMetadata
 import org.ods.util.PodData
 
 @SuppressWarnings('ParameterCount')
@@ -97,6 +98,7 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         this.jenkins = jenkins
     }
 
+    // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
         if (!context.environment) {
             logger.warn 'Skipping because of empty (target) environment ...'
@@ -113,28 +115,48 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
         def originalDeploymentVersions = fetchOriginalVersions(deploymentResources)
 
-        // Tag images which have been built in this pipeline from cd project into target project
-        retagImages(context.targetProject, getBuiltImages())
-
         def refreshResources = false
-        if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
-            if (context.triggeredByOrchestrationPipeline) {
-                steps.error "Helm cannot be used in the orchestration pipeline yet."
-                return
-            }
-            helmUpgrade(context.targetProject)
-            refreshResources = true
-        } else if (steps.fileExists(options.openshiftDir)) {
-            tailorApply(context.targetProject)
-            refreshResources = true
-        }
+        def paused = true
+        try {
+            openShift.bulkPause(context.targetProject, deploymentResources)
 
-        if (refreshResources) {
-            deploymentResources = openShift.getResourcesForComponent(
-                context.targetProject, DEPLOYMENT_KINDS, options.selector
+            // Tag images which have been built in this pipeline from cd project into target project
+            retagImages(context.targetProject, getBuiltImages())
+
+            if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
+                if (context.triggeredByOrchestrationPipeline) {
+                    steps.error "Helm cannot be used in the orchestration pipeline yet."
+                    return
+                }
+                refreshResources = true
+                helmUpgrade(context.targetProject)
+            } else if (steps.fileExists(options.openshiftDir)) {
+                refreshResources = true
+                tailorApply(context.targetProject)
+            }
+            if (refreshResources) {
+                deploymentResources = openShift.getResourcesForComponent(
+                    context.targetProject, DEPLOYMENT_KINDS, options.selector
+                )
+            }
+
+            def metadata = new OpenShiftResourceMetadata(
+                steps,
+                context.properties,
+                options.properties,
+                logger,
+                openShift
             )
+            metadata.updateMetadata(true, deploymentResources)
+
+            def rolloutData = rollout(deploymentResources, originalDeploymentVersions)
+            paused = false
+            return rolloutData
+        } finally {
+            if (paused) {
+                openShift.bulkResume(context.targetProject, DEPLOYMENT_KINDS, options.selector)
+            }
         }
-        return rollout(deploymentResources, originalDeploymentVersions)
     }
 
     protected String stageLabel() {
@@ -243,6 +265,10 @@ class RolloutOpenShiftDeploymentStage extends Stage {
         }
 
         setImageTagLatest(ownedImageStreams)
+
+        // May be paused in order to prevent multiple rollouts.
+        // If a rollout is triggered when resuming, the rollout method should detect it.
+        openShift.resume("${resourceKind}/${resourceName}", context.targetProject)
 
         String podManager
         try {

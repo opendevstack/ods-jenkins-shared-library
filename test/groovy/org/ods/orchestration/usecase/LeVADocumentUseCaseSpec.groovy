@@ -1247,7 +1247,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallDTR()
 
         then:
-        1 * project.findHistoryForDocumentType(*_) >> docHistory
+        1 * project.getDocumentVersionFromHistories(*_) >> docHistory.getVersion()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
@@ -1266,7 +1266,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase.createOverallTIR()
 
         then:
-        1 * project.findHistoryForDocumentType(*_) >> docHistory
+        1 * project.getDocumentVersionFromHistories(*_) >> docHistory.getVersion()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentTypeName])
         1 * usecase.createOverallDocument("Overall-TIR-Cover", documentType, _, _, _) >> uri
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
@@ -1589,7 +1589,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentSections(_) >> docChapters2
         1 * project.getSystemRequirements() >> requirements
-        4 * usecase.convertImages(_)
+        5 * usecase.convertImages(_)
         3 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
         1 * usecase.createDocument(*_) >> ''
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
@@ -1602,11 +1602,143 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.computeComponentMetadata(_) >> compMetadata
 
         then:
-        1 * usecase.convertImages(_)
+        2 * usecase.convertImages(_)
         1 * jiraUseCase.convertHTMLImageSrcIntoBase64Data(contentWithImage) >> imageb64
         1 * usecase.createDocument(*_) >> ''
         usecase.obtainCodeReviewReport(*_) >> []
         project.getTechnicalSpecifications() >> techSpecs
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
+
+    def "order steps"() {
+        given:
+        def  testIssue = [ key: "JIRA-1" ,
+              steps: [
+                [
+                    orderId: 2,
+                    data: "N/A"
+                ],
+                [
+                    orderId: 1,
+                    data: "N/A"
+                ]
+            ]]
+
+            when:
+            LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null)
+            def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
+
+            then:
+            ordered.get(0).orderId == 1
+    }
+
+    def "referenced documents version"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.getDocumentVersionFromHistories('CSD') >> 3L
+        project.getDocumentVersionFromHistories('DTR') >> 4L
+        project.buildParams >> [targetEnvironmentToken: 'D', configItem: 'ConfigItem']
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        jiraUseCase.getLatestDocVersionId(_) >> 1L
+        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null))
+
+        when:
+        def versions = useCase.getReferencedDocumentsVersion()
+
+        then:
+        8 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
+        versions == [
+            CSD: 'ConfigItem / 3',
+            SSDS: 'ConfigItem / 2',
+            RA: 'ConfigItem / 2',
+            TRC: 'ConfigItem / 1',
+            DTP: 'ConfigItem / 2',
+            DTR: 'ConfigItem / 4',
+            CFTP: 'ConfigItem / 2',
+            CFTR: 'ConfigItem / 1',
+            TIR: 'ConfigItem / 2',
+            TIP: 'ConfigItem / 2',
+        ]
+
+        when:
+        project.isWorkInProgress >> true
+        versions = useCase.getReferencedDocumentsVersion()
+
+        then:
+        8 * useCase.getDocumentTrackingIssuesForHistory(_, _) >> []
+        versions == [
+            CSD: 'ConfigItem / 3-WIP',
+            SSDS: 'ConfigItem / 2-WIP',
+            RA: 'ConfigItem / 2-WIP',
+            TRC: 'ConfigItem / 2-WIP',
+            DTP: 'ConfigItem / 2-WIP',
+            DTR: 'ConfigItem / 4-WIP',
+            CFTP: 'ConfigItem / 2-WIP',
+            CFTR: 'ConfigItem / 2-WIP',
+            TIR: 'ConfigItem / 2-WIP',
+            TIP: 'ConfigItem / 2-WIP',
+        ]
+    }
+
+    def "requirements are properly sorted and indexed by epic and key"() {
+        given:
+        def updatedReqs = [
+            [
+                key:  'key5',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key2',
+                epic: null
+            ],
+            [
+                key:  'key3',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key1',
+                epic: null
+            ],
+            [
+                key:  'key8',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key4',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key6',
+                epic: 'epic2'
+            ],
+            [
+                key:  'key7',
+                epic: 'epic1'
+            ],
+            [
+                key:  'key9',
+                epic: null
+            ],
+        ]
+
+        when:
+        def groupedReqs = usecase.sortByEpicAndRequirementKeys(updatedReqs)
+
+        then:
+        // Requirements without epic are sorted by key
+        assert groupedReqs.noepics == groupedReqs.noepics.toSorted { req -> req.key }
+        // Epics are sorted by epic key
+        assert groupedReqs.epics == groupedReqs.epics.toSorted { epic -> epic.key }
+        // Epics are correctly indexed, according to the order by epic key
+        assert groupedReqs.epics == groupedReqs.epics.toSorted { epic -> epic.epicIndex }
+        // For each epic, its requirements are sorted by requirement key
+        groupedReqs.epics.each { epic ->
+            assert epic.stories == epic.stories.toSorted { req -> req.key }
+        }
+    }
+
 }

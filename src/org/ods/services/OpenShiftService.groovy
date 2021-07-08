@@ -1,13 +1,14 @@
 package org.ods.services
 
 import com.cloudbees.groovy.cps.NonCPS
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
+
 import java.security.SecureRandom
 
 @SuppressWarnings(['ClassSize', 'MethodCount'])
@@ -609,6 +610,311 @@ class OpenShiftService {
         if (!resourceExists(project, 'ImageStream', name)) {
             createImageStream(project, name, labels)
         }
+    }
+
+    /**
+     * Apply labels provided in <code>labels</code> to resources given in <code>resources</code> (format kind/name).
+     * The selection can be restricted to a project and also with a label selector given in <code>selector</code>.
+     * You can apply labels to all object kinds with <code>resources=all</code> and using a selector.
+     * If the label already exists, it will be overwritten.
+     * If the value for one label is the empty string, the label will be set with an empty string as value.
+     * If the value for one label is null, the label will be deleted from the selected resources.
+     *
+     * Allowed selector conditions are:
+     * <code>label=value</code>
+     * <code>label==value</code>
+     * <code>label!=value</code>
+     * More than one condition can be specified, separated by commas.
+     *
+     * @param project the project to apply the operation to. The current project, if null.
+     * @param resources the resources to apply the labels to, with format <code>kind[/name]</code>.
+     * @param labels a <code>Map</code> containing label keys and values.
+     * @param selector a comma-separated list of label conditions.
+     * @return the output of the shell script running the OpenShift client command.
+     * @throws IllegalArgumentException if no <code>resources</code> or no <code>labels</code> are provided.
+     */
+    String labelResources(String project, String resources, Map<String, String> labels, String selector = null) {
+        if (!resources) {
+            throw new IllegalArgumentException('You must specify the resources to label')
+        }
+        if (!labels) {
+            throw new IllegalArgumentException('At least one label update is required')
+        }
+        def labelStr = labels.collect { key, value ->
+            def label = key
+            label += value == null ? '-' : "='${value}'"
+            return label
+        }.join(' ')
+        if (logger.getDebugMode()) {
+            logger.debug("Setting labels ${labelStr} to resources ${resources} selected by ${selector}")
+        }
+        def script = "oc label --overwrite ${resources} "
+        if (selector) {
+            script += "-l ${selector} "
+        }
+        if (project) {
+            script += "-n ${project} "
+        }
+        script += labelStr
+        def scriptLabel = "Set labels to ${resources}"
+        if (selector) {
+            scriptLabel += " selected by the following labels: ${selector}"
+        }
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    /**
+     * Mark the provided resource as paused.
+     * Generally used to pause rollouts for a <code>Deployment</code> or <code>DeploymentConfig</code>.
+     * No deployments will be triggered until rollouts are resumed.
+     * The resource can be specified with the syntax <code>type/resource</code> or <code>type resource</code>.
+     * For example, <code>dc/aDeploymentConfig</code> or <code>deployment aDeployment</code>.
+     *
+     * @param resource the resource to be paused.
+     * @param project the namespace of the resource. Default: <code>null</code> (the current project).
+     * @return the output of the shell script running the OpenShift client command.
+     * @throws IllegalArgumentException if no <code>resource</code> is provided.
+     */
+    String pause(String resource, String project = null) {
+        if (!resource) {
+            throw new IllegalArgumentException('You must specify the resource to pause')
+        }
+        if (logger.getDebugMode()) {
+            logger.debug("Pausing ${resource}")
+        }
+        def script = "oc rollout pause ${resource}"
+        if (project) {
+            script += " -n ${project} "
+        }
+        def scriptLabel = "Pause ${resource}"
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    /**
+     * Apply the <code>pause</code> method to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @return a <code>List</code> or strings with the output of the <code>pause</code> method for each resource.
+     */
+    List<String> bulkPause(String project, Map<String, List<String>> resources) {
+        return bulkApply(project, resources, this.&pause)
+    }
+
+    /**
+     * Apply the <code>pause</code> method to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @return a <code>List</code> or strings with the output of the <code>pause</code> method for each resource found.
+     */
+    List<String> bulkPause(String project, List<String> kinds, String selector) {
+        return bulkApply(project, kinds, selector, this.&pause)
+    }
+
+    /**
+     * Resume a paused resource.
+     * Generally used to resume rollouts for a <code>Deployment</code> or <code>DeploymentConfig</code>:
+     * A rollout will be immediately triggered, if the resource has changed while paused.
+     * Note that, if the state of the resource when resuming is exactly the same as the last time it was paused,
+     * no rollout will be triggered, no matter the changes it may have suffered while in paused state.
+     * The resource can be specified with the syntax <code>type/resource</code> or <code>type resource</code>.
+     * For example, <code>dc/aDeploymentConfig</code> or <code>deployment aDeployment</code>.
+     *
+     * @param resource the resource to be resumed.
+     * @param project the namespace of the resource. Default: <code>null</code> (the current project).
+     * @return the output of the shell script running the OpenShift client command.
+     * @throws IllegalArgumentException if no <code>resource</code> is provided.
+     */
+    String resume(String resource, String project = null) {
+        if (!resource) {
+            throw new IllegalArgumentException('You must specify the resource to resume')
+        }
+        if (logger.getDebugMode()) {
+            logger.debug("Resuming ${resource}")
+        }
+        def script = "oc rollout resume ${resource}"
+        if (project) {
+            script += " -n ${project} "
+        }
+        def scriptLabel = "Resume ${resource}"
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    /**
+     * Apply the <code>resume</code> method to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @return a <code>List</code> or strings with the output of the <code>resume</code> method for each resource.
+     */
+    List<String> bulkResume(String project, Map<String, List<String>> resources) {
+        return bulkApply(project, resources, this.&resume)
+    }
+
+    /**
+     * Apply the <code>resume</code> method to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @return a <code>List</code> or strings with the output of the <code>resume</code> method for each resource found.
+     */
+    List<String> bulkResume(String project, List<String> kinds, String selector) {
+        return bulkApply(project, kinds, selector, this.&resume)
+    }
+
+    /**
+     * Applies a patch to the given resource.
+     * If the path is specified, it must be the absolute path of some member belonging to the resource definition
+     * to which the patch is to be applied.
+     * If any suffix of the path does not exist, all the nested members in the path will be created.
+     * If the patch is null, the member specified by the path will be removed.
+     * (Note: This method cannot be used to delete a resource.
+     * Specifying both a null patch and a null path will raise an exception.)
+     * Otherwise, the patch will be performed by applying the following rules:
+     * Any members of the resource not present in the patch will be left untouched.
+     * Any member in the patch with non-null value and which does not appear in the resource will be added.
+     * For any members in the patch that also exist in the resource:
+     * If the value in the patch is <code>null</code>, the member in the resource will be removed.
+     * If the value in the patch is not a <code>Map</code>, it will replace the value in the resource.
+     * If the value in the patch is a <code>Map</code>, it will patch the value in the resource in a recursive fashion.
+     *
+     * Note that the <code>path</code> parameter is just a convenience.
+     * The same functionality can be obtained by nesting maps in the <code>patch</code>.
+     *
+     * @param resource the resource to patch, with syntax type/resource or type resource.
+     * @param patch a <code>Map</code> specifying the patch to apply.
+     * @param path the optional absolute path at which to apply the patch.
+     * @param project the namespace of the resource. Default: null (the current project).
+     * @return
+     */
+    String patch(String resource, Map<String, ?> patch, String path = null, String project = null) {
+        if (!resource) {
+            throw new IllegalArgumentException('You must specify the resource to path')
+        }
+        if (path != null && !path.startsWith('/')) {
+            throw new IllegalArgumentException("The path must start with a slash. path == '${path}'")
+        }
+        if (patch == null && path == null) {
+            throw new IllegalArgumentException('You must specify either a patch or a path')
+        }
+        def fullPatch = patch
+        if (path) {
+            path.substring(1).split('/').reverseEach { member ->
+                fullPatch = [(member): fullPatch]
+            }
+        }
+        def jsonPatch = JsonOutput.toJson(fullPatch)
+        if (logger.getDebugMode()) {
+            def namespace = project ?: 'current'
+            logger.debug("Patching ${resource} in the ${namespace} project with ${jsonPatch}")
+        }
+        def script = "oc patch ${resource} --type='merge' -p '${jsonPatch}'"
+        if (project) {
+            script += " -n ${project}"
+        }
+        def scriptLabel = "Patch ${resource}"
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
+    }
+
+    /**
+     * Apply the <code>patch</code> method to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @param patch the patch to apply.
+     * @param path the optional absolute path at which to apply the patch.
+     * @return a <code>List</code> or strings with the output of the <code>patch</code> method for each resource.
+     */
+    List<String> bulkPatch (
+        String project,
+        Map<String, List<String>> resources,
+        Map<String, ?> patch,
+        String path = null
+    ) {
+        def results = []
+        resources.each { kind, names ->
+            names.each { name ->
+                results << this.patch("${kind}/${name}", patch, path, project)
+            }
+        }
+        return results
+    }
+
+    /**
+     * Apply the <code>patch</code> method to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @param patch the patch to apply.
+     * @param path the optional absolute path at which to apply the patch.
+     * @return a <code>List</code> or strings with the output of the <code>patch</code> method for each resource found.
+     */
+    List<String> bulkPatch (
+        String project,
+        List<String> kinds,
+        String selector,
+        Map<String, ?> patch,
+        String path = null
+    ) {
+        def resources = getResourcesForComponent(project, kinds, selector)
+        return bulkPatch(project, resources, patch, path)
+    }
+
+    // getConfigMapData returns the data content of given ConfigMap.
+    Map getConfigMapData(String project, String name) {
+        getJSON(project, "ConfigMap", name).data as Map
+    }
+
+    /**
+     * Apply the given closure to each resource provided.
+     *
+     * @param project the namespace where the resources exist.
+     * @param resources a <code>Map</code> with the resource names grouped by resource kind.
+     * @return a <code>List</code> or strings with the output of the given closure for each resource.
+     */
+    //TODO Adapt it to admit arbitrary additional parameters to the closure
+    private List<String> bulkApply(String project, Map<String, List<String>> resources, Closure body) {
+        def results = []
+        resources.each { kind, names ->
+            names.each { name ->
+                results << body("${kind}/${name}", project)
+            }
+        }
+        return results
+    }
+
+    /**
+     * Apply the given closure to each resource of the given kinds and selected by the given selector.
+     *
+     * @param project the namespace where to locate the resources.
+     * @param kinds the kinds of resources we want to select.
+     * @param selector a label selector to select the resources.
+     * @return a <code>List</code> or strings with the output of the given closure for each resource found.
+     */
+    //TODO Adapt it to admit arbitrary additional parameters to the closure
+    private List<String> bulkApply(String project, List<String> kinds, String selector, Closure body) {
+        def resources = getResourcesForComponent(project, kinds, selector)
+        return bulkApply(project, resources, body)
     }
 
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {
