@@ -23,7 +23,7 @@
 - Fix reference Document Version for the DTR and TIR are not correct ([#681](https://github.com/opendevstack/ods-jenkins-shared-library/pull/681))
 - Fix the referenced documents are not displaying the correct version if they are generated after the SLC Document ([#685](https://github.com/opendevstack/ods-jenkins-shared-library/pull/685))
 - Add recommended labels to pods ([#686](https://github.com/opendevstack/ods-jenkins-shared-library/pull/686))
-
+- Added data for Risk Assesment document ([687](https://github.com/opendevstack/ods-jenkins-shared-library/pull/687))
 ## [3.0] - 2020-08-11
 
 ### Added
