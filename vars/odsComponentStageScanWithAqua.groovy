@@ -65,17 +65,15 @@ def call(IContext context, Map config = [:]) {
             logger.info "Please provide the alert emails of the Aqua platform!"
         }
 
-        // Aqua ConfigMap at project level not existing: enabled = true
-        try {
-            configurationAquaProject = openShiftService.getConfigMapData(context.cdProject,
-                ScanWithAquaStage.AQUA_CONFIG_MAP_NAME)
-        } catch (err) {
-            logger.info("Error retrieving the Aqua config due to: ${err}")
-        }
-        if (!configurationAquaProject.containsKey('enabled')) {
+        // Check if exist project configration at cluster level
+        if (!configurationAquaCluster.containsKey("projects.${context.cdProject}.enabled")) {
             // If not exist key, is enabled
             configurationAquaProject.put('enabled', true)
-            logger.info "Not parameter 'enabled' at project level. Default enabled"
+            logger.info "Not parameter 'projects.${context.cdProject}.enabled' at cluster level. Default enabled"
+        } else {
+            configurationAquaProject.put('enabled',
+                configurationAquaCluster.get("projects.${context.cdProject}.enabled"))
+            logger.info "Parameter 'projects.${context.cdProject}.enabled' at cluster level exists"
         }
 
         boolean enabledInCluster = Boolean.valueOf(configurationAquaCluster['enabled'].toString())
@@ -95,13 +93,16 @@ def call(IContext context, Map config = [:]) {
             ).execute()
         }
         else if (!enabledInCluster && !enabledInProject) {
-            logger.warn("Skipping Aqua scan because is not enabled nor cluster " +
-                "in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project, " +
-                "nor project level in 'aqua' ConfigMap")
+            logger.warn("Skipping Aqua scan because is not enabled nor cluster nor project " +
+                "in '${ScanWithAquaStage.AQUA_CONFIG_MAP_NAME}' ConfigMap " +
+                "in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
         } else if (enabledInCluster) {
-            logger.warn("Skipping Aqua scan because is not enabled at project level in 'aqua' ConfigMap")
+            logger.warn("Skipping Aqua scan because is not enabled at project level " +
+                "in '${ScanWithAquaStage.AQUA_CONFIG_MAP_NAME}' " +
+                "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
         } else {
-            logger.warn("Skipping Aqua scan because is not enabled at cluster level in 'aqua' " +
+            logger.warn("Skipping Aqua scan because is not enabled at cluster level " +
+                "in '${ScanWithAquaStage.AQUA_CONFIG_MAP_NAME}' " +
                 "ConfigMap in ${config.imageLabels.JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE} project")
         }
     } catch (err) {
