@@ -65,9 +65,10 @@ def call(IContext context, Map config = [:]) {
             logger.info "Please provide the alert emails of the Aqua platform!"
         }
         // Check if exist project configration at cluster level
-        if (configurationAquaCluster.containsKey("projects.${context.projectId}.enabled")) {
+        def key = "projects." + context.projectId ".enabled" // Not work "projects.${context.projectId}.enabled"
+        if (configurationAquaCluster.containsKey(key)) {
             configurationAquaProject.put('enabled',
-                configurationAquaCluster.get("projects.${context.projectId}.enabled"))
+                configurationAquaCluster.get(key))
             logger.info "Parameter 'projects.${context.projectId}.enabled' at cluster level exists"
         } else {
             // If not exist key, is enabled
@@ -77,7 +78,6 @@ def call(IContext context, Map config = [:]) {
 
         boolean enabledInCluster = Boolean.valueOf(configurationAquaCluster['enabled'].toString())
         boolean enabledInProject = Boolean.valueOf(configurationAquaProject['enabled'].toString())
-
         if (enabledInCluster && enabledInProject) {
             new ScanWithAquaStage(this,
                 context,
