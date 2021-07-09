@@ -64,16 +64,15 @@ def call(IContext context, Map config = [:]) {
         if (!alertEmails) {
             logger.info "Please provide the alert emails of the Aqua platform!"
         }
-
         // Check if exist project configration at cluster level
-        if (!configurationAquaCluster.containsKey("projects.${context.cdProject}.enabled")) {
+        if (configurationAquaCluster.containsKey("projects.${context.repoName}.enabled")) {
+            configurationAquaProject.put('enabled',
+                configurationAquaCluster.get("projects.${context.repoName}.enabled"))
+            logger.info "Parameter 'projects.${context.repoName}.enabled' at cluster level exists"
+        } else {
             // If not exist key, is enabled
             configurationAquaProject.put('enabled', true)
-            logger.info "Not parameter 'projects.${context.cdProject}.enabled' at cluster level. Default enabled"
-        } else {
-            configurationAquaProject.put('enabled',
-                configurationAquaCluster.get("projects.${context.cdProject}.enabled"))
-            logger.info "Parameter 'projects.${context.cdProject}.enabled' at cluster level exists"
+            logger.info "Not parameter 'projects.${context.repoName}.enabled' at cluster level. Default enabled"
         }
 
         boolean enabledInCluster = Boolean.valueOf(configurationAquaCluster['enabled'].toString())
