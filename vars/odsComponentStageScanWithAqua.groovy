@@ -65,7 +65,7 @@ def call(IContext context, Map config = [:]) {
             logger.info "Please provide the alert emails of the Aqua platform!"
         }
         // Check if exist project configration at cluster level
-        def key = "projects." + context.projectId ".enabled" // Not work "projects.${context.projectId}.enabled"
+        def key = "projects." + context.projectId + ".enabled" // Not work "projects.${context.projectId}.enabled"
         if (configurationAquaCluster.containsKey(key)) {
             configurationAquaProject.put('enabled',
                 configurationAquaCluster.get(key))
