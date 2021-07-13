@@ -194,7 +194,7 @@ class OpenShiftService {
             // a rollout just before we wanted to start it. In that case, we
             // do not need to fail.
             def newVersion = getLatestVersion(name)
-            logger.warn("Rollout - deployment-last #${version} / latest #${newVersion} has errored out: ERR ${ex}, status: ${rolloutStatus}")
+            logger.warn("Rollout - deployment-last #${version} / latest #${newVersion} has errored out: ERR ${ex}")
             if (newVersion > version) {
                 logger.debug("Deployment #${newVersion} has been started by another process")
             } else if (newVersion == version) {
