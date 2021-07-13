@@ -606,6 +606,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             } + r.getResolvedMitigations().collect { [key: it.key, name: it.name, description: it.description, type: "mitigation", referencesRisk: r.key] })
         }.flatten()
 
+        if (!sections."sec4s2s1") sections."sec4s2s1" = [:]
+        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION"?: 'n/a'
+
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
 
         if (this.project.getProjectProperties()."PROJECT.USES_POO" == "true") {
