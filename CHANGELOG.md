@@ -4,6 +4,7 @@
 - Fixed the Document History of the IVP & IVR is not being generated ([#627](https://github.com/opendevstack/ods-jenkins-shared-library/pull/627))
 - Fixed a "null" string is added in the Section 3.1 of the CFTR when the Description of the Zephyr Unit Test doesn't has a Description ([#632](https://github.com/opendevstack/ods-jenkins-shared-library/pull/632))
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
+- MRO promotion to P/Q fails in cornercases when using monorepo ([#688](https://github.com/opendevstack/ods-jenkins-shared-library/issues/688))
 
 ## [3.0] - 2020-08-11
 
