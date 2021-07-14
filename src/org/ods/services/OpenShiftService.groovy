@@ -182,6 +182,7 @@ class OpenShiftService {
         replicationController
     }
 
+    @SuppressWarnings('LineLength')
     void startRollout(String name, int version) {
         try {
             steps.sh(
@@ -193,8 +194,23 @@ class OpenShiftService {
             // a rollout just before we wanted to start it. In that case, we
             // do not need to fail.
             def newVersion = getLatestVersion(name)
+            logger.warn("Rollout - deployment-last #${version} / latest #${newVersion} has errored out: ERR ${ex}")
             if (newVersion > version) {
                 logger.debug("Deployment #${newVersion} has been started by another process")
+            } else if (newVersion == version) {
+                // there is a corner case - where multiple triggers fired, e.g mono-repo and caused
+                // n deployments (in various states, e.g. one cancelled, one running)
+                // we "assume" the running on to be the right one - and bubble
+                // that one up - as surrounding code will check anyway for matching of
+                // image sha's etc...
+                def replicationController = "${name}-${newVersion}"
+                def rolloutStatus = getRolloutStatus(replicationController)
+                if (rolloutStatus != 'running') {
+                    logger.debug("Deployment #${version} / latest #${newVersion} has errored out: ERR ${ex}, status: ${rolloutStatus}")
+                    throw ex
+                } else {
+                    logger.debug("New Deployment #${newVersion} already running")
+                }
             } else {
                 throw ex
             }
