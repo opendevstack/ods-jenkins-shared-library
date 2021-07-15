@@ -1146,7 +1146,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 key         : r.key,
                 name        : r.name,
                 description : this.convertImages(r.description ?: ''),
-                risks       : r.risks.join(", "),
+                techSpecs   : r.techSpecs.join(", "),
+                risks       : (r.getResolvedTechnicalSpecifications().risks + r.risks).flatten().join(", "),
                 tests       : r.tests.join(", "),
                 predecessors: predecessors,
             ]
