@@ -1,5 +1,7 @@
 package org.ods.services
 
+import groovy.json.JsonSlurperClassic
+import kong.unirest.Unirest
 import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
@@ -41,7 +43,7 @@ class BitbucketService {
     private final ILogger logger
 
     BitbucketService(def script, String bitbucketUrl, String project,
-        String passwordCredentialsId, ILogger logger) {
+                     String passwordCredentialsId, ILogger logger) {
         this.script = script
         this.bitbucketUrl = bitbucketUrl
         this.project = project
@@ -429,8 +431,8 @@ repos/${repo}/commits/${gitCommit}/reports/org.opendevstack.aquasec"""
         } else {
             throw new RuntimeException(
                 "ERROR: Secret ${openShiftCdProject}/${tokenSecretName} has been created, " +
-                "but credentials '${credentialsId}' are not available. " +
-                'Please ensure that the secret is synced and re-run the pipeline.'
+                    "but credentials '${credentialsId}' are not available. " +
+                    'Please ensure that the secret is synced and re-run the pipeline.'
             )
         }
     }
@@ -477,6 +479,51 @@ repos/${repo}/commits/${gitCommit}/reports/org.opendevstack.aquasec"""
         return tokenMap
     }
 
+    @NonCPS
+    String getToken() {
+        withTokenCredentials { username, token -> return token}
+    }
+
+    @NonCPS
+    Map getCommitsForIntegrationBranch(String token, String repo, int limit, int nextPageStart){
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
+        return queryRepo(token, request, limit, nextPageStart)
+    }
+
+    @NonCPS
+    Map getPRforMergedCommit(String token, String repo, String commit) {
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}" +
+            "/repos/${repo}/commits/${commit}/pull-requests"
+        return queryRepo(token, request, 0, 0)
+    }
+
+    private Map queryRepo(String token, String request, int limit, int nextPageStart) {
+        Map<String, String> headers = buildHeaders(token)
+        def httpRequest = Unirest.get(request).headers(headers)
+        if (limit>0) {
+            httpRequest.queryString("limit", limit)
+        }
+        if (nextPageStart>0) {
+            httpRequest.queryString("start", nextPageStart)
+        }
+        def response = httpRequest.asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to get data from Bitbucket responded with code: ' +
+                    "'${response.getStatus()}' and message: '${response.getBody()}'."
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    private Map<String, String> buildHeaders(String token) {
+        Map<String, String> headers = [:]
+        headers.put("accept", "application/json")
+        headers.put("Authorization", "Bearer ".concat(token))
+        return headers
+    }
+
     private void createUserTokenSecret(String username, String password) {
         String secretYml = userTokenSecretYml(tokenSecretName, username, password)
         script.writeFile(
@@ -497,9 +544,9 @@ repos/${repo}/commits/${gitCommit}/reports/org.opendevstack.aquasec"""
         try {
             script.withCredentials([
                 script.usernamePassword(
-                  credentialsId: credentialsId,
-                  usernameVariable: 'USERNAME',
-                  passwordVariable: 'TOKEN'
+                    credentialsId: credentialsId,
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'TOKEN'
                 )
             ]) {
                 true

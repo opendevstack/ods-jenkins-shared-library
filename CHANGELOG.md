@@ -15,10 +15,16 @@
 - Added regexp compatibility with new Bitbucket merge commit messages ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/656))
 - Set jenkins job to unstable in case of open issues ([#664](https://github.com/opendevstack/ods-jenkins-shared-library/pull/664))
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
+- Fixed use of full image in the creation of the documents ([682](https://github.com/opendevstack/ods-jenkins-shared-library/pull/682))
 - Fix epic Issues not correctly ordered on the CSD ([#671](https://github.com/opendevstack/ods-jenkins-shared-library/pull/671))
 - Fix Reference Documents not displaying the correct version on the SLC Documents ([#672](https://github.com/opendevstack/ods-jenkins-shared-library/pull/672))
 - Jenkins nonCPS prevents project.dump from work ([#673](https://github.com/opendevstack/ods-jenkins-shared-library/issues/673))
-- Regression from NonCPS refactoring leads to method not found ([#675](https://github.com/opendevstack/ods-jenkins-shared-library/issues/675), ([#678]https://github.com/opendevstack/ods-jenkins-shared-library/issues/678)
+- Regression from NonCPS refactoring leads to method not found ([#675](https://github.com/opendevstack/ods-jenkins-shared-library/issues/675), ([#678](https://github.com/opendevstack/ods-jenkins-shared-library/issues/678))
+- Fix reference Document Version for the DTR and TIR are not correct ([#681](https://github.com/opendevstack/ods-jenkins-shared-library/pull/681))
+- Fix the referenced documents are not displaying the correct version if they are generated after the SLC Document ([#685](https://github.com/opendevstack/ods-jenkins-shared-library/pull/685))
+- Add recommended labels to pods ([#686](https://github.com/opendevstack/ods-jenkins-shared-library/pull/686))
+- Added data for Risk Assesment document ([687](https://github.com/opendevstack/ods-jenkins-shared-library/pull/687))
+- Modified SSDS document to use Pull Request info not SonarQube ([#614](https://github.com/opendevstack/ods-jenkins-shared-library/pull/614))
 - Added Aqua Stage ([#661](https://github.com/opendevstack/ods-jenkins-shared-library/pull/661), [#617](https://github.com/opendevstack/ods-jenkins-shared-library/pull/617))
 
 ## [3.0] - 2020-08-11
