@@ -1,0 +1,33 @@
+---
+id: edpt3
+name: Project edpt3
+description: Description of edpt3.
+
+services:
+  bitbucket:
+    credentials:
+      id: net-cd-cd-user-with-password
+  jira:
+    credentials:
+      id: net-cd-cd-user-with-password
+  nexus:
+    repository:
+       name: leva-documentation
+
+repositories:
+  - id: demo-app-backend
+    name: edpt3-demo-app-backend
+    type: ods
+  - id: demo-app-front-end
+    name: edpt3-demo-app-front-end
+    type: ods
+  - id: demo-app-end-to-end
+    name: edpt3-demo-app-end-to-end
+    type: ods-test
+
+capabilities:
+- LeVADocs:
+    GAMPCategory: "5"
+    templatesVersion: "1.0"
+
+environments: {}

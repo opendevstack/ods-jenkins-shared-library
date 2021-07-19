@@ -96,14 +96,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private final LeVADocumentChaptersFileService levaFiles
     private final OpenShiftService os
     private final SonarQubeUseCase sq
+    private final BitbucketTraceabilityUseCase bbt
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
+    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt) {
         super(project, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
         this.levaFiles = levaFiles
         this.os = os
         this.sq = sq
+        this.bbt = bbt
     }
 
     @NonCPS
@@ -919,6 +921,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
 
+        this.bbt.generateSourceCodeReviewFile()
+        def bbInfo = this.bbt.readSourceCodeReviewFile(this.bbt.generateSourceCodeReviewFile())
+
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
@@ -932,6 +937,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     description: this.convertImages(techSpec.systemDesignSpec)
                 ]
             }
+
+        if (!sections."sec2s3") sections."sec2s3" = [:]
+        sections."sec2s3".bitbucket = SortUtil.sortIssuesByProperties(bbInfo ?: [], ["component", "date", "url"])
 
         if (!sections."sec3s1") sections."sec3s1" = [:]
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
@@ -967,17 +975,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
 
-        // Code review report
-        def codeRepos = this.project.repositories. findAll { it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
-        def codeReviewReports = obtainCodeReviewReport(codeRepos)
-
-        def modifier = { document ->
-            List documents = [document]
-            documents += codeReviewReports
-            // Merge the current document with the code review report
-            return this.pdf.merge(documents)
-        }
-
         def keysInDoc = this.computeKeysInDocForSSDS(this.project.getTechnicalSpecifications(), componentsMetadata, modules)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
@@ -988,11 +985,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
-
 
     @NonCPS
     private def computeKeysInDocForTIP(def data) {
@@ -1521,7 +1517,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<String> getJiraTrackingIssueLabelsForDocTypeAndEnvs(String documentType, List<String> envs = null) {
         def labels = []
 
-        def environments = (envs)? envs : this.project.buildParams.targetEnvironmentToken
+        def environments = (envs) ? envs : this.project.buildParams.targetEnvironmentToken
         environments.each { env ->
             LeVADocumentScheduler.ENVIRONMENT_TYPE[env].get(documentType).each { label ->
                 labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
@@ -1598,7 +1594,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
         if (this.project.historyForDocumentExists(documentName)) {
-
             return this.project.getHistoryForDocument(documentName)
         } else {
             def documentType = documentName.split('-').first()
@@ -1712,7 +1707,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     /**
      * gets teh document version IDS at the start ... can't do that...
-     * @return
+     * @return Map
      */
     protected Map getReferencedDocumentsVersion() {
         if (!this.jiraUseCase) return [:]
@@ -1767,5 +1762,4 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
     }
-
 }

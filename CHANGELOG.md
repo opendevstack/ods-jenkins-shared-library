@@ -24,7 +24,9 @@
 - Fix the referenced documents are not displaying the correct version if they are generated after the SLC Document ([#685](https://github.com/opendevstack/ods-jenkins-shared-library/pull/685))
 - Add recommended labels to pods ([#686](https://github.com/opendevstack/ods-jenkins-shared-library/pull/686))
 - Added data for Risk Assesment document ([687](https://github.com/opendevstack/ods-jenkins-shared-library/pull/687))
-- Add Technical Specifications and risks related to technical specifications to the TRC document ([#](https://github.com/opendevstack/ods-jenkins-shared-library/pull/690))
+- Modified SSDS document to use Pull Request info not SonarQube ([#614](https://github.com/opendevstack/ods-jenkins-shared-library/pull/614))
+- Add Technical Specifications and risks related to technical specifications to the TRC document ([#690](https://github.com/opendevstack/ods-jenkins-shared-library/pull/690))
+
 ## [3.0] - 2020-08-11
 
 ### Added
