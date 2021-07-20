@@ -26,6 +26,7 @@
 - Added data for Risk Assesment document ([687](https://github.com/opendevstack/ods-jenkins-shared-library/pull/687))
 - Modified SSDS document to use Pull Request info not SonarQube ([#614](https://github.com/opendevstack/ods-jenkins-shared-library/pull/614))
 - Added Aqua Stage ([#661](https://github.com/opendevstack/ods-jenkins-shared-library/pull/661), [#617](https://github.com/opendevstack/ods-jenkins-shared-library/pull/617))
+- Add Technical Specifications and risks related to technical specifications to the TRC document ([#690](https://github.com/opendevstack/ods-jenkins-shared-library/pull/690))
 
 ## [3.0] - 2020-08-11
 
