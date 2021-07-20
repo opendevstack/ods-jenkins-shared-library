@@ -880,11 +880,6 @@ class OpenShiftService {
         return bulkPatch(project, resources, patch, path)
     }
 
-    // getConfigMapData returns the data content of given ConfigMap.
-    Map getConfigMapData(String project, String name) {
-        getJSON(project, "ConfigMap", name).data as Map
-    }
-
     /**
      * Apply the given closure to each resource provided.
      *
@@ -915,6 +910,11 @@ class OpenShiftService {
     private List<String> bulkApply(String project, List<String> kinds, String selector, Closure body) {
         def resources = getResourcesForComponent(project, kinds, selector)
         return bulkApply(project, resources, body)
+    }
+
+    // getConfigMapData returns the data content of given ConfigMap.
+    Map getConfigMapData(String project, String name) {
+        getJSON(project, "ConfigMap", name).data as Map
     }
 
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {

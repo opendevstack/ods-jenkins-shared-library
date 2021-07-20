@@ -530,4 +530,17 @@ class OpenShiftServiceSpec extends SpecHelper {
         1 * openShift.patch('type2/resource4', [:], '/path','project')
     }
 
+    def "getConfigMapData obtain data from a ConfigMap"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
+        service.getJSON("project-name", "ConfigMap", "config-name") >> [data: [key: "key1", value: "value1"]]
+
+        when:
+        def result = service.getConfigMapData("project-name", "config-name")
+
+        then:
+        result == [key: "key1", value: "value1"]
+    }
+
 }

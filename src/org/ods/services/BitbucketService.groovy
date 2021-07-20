@@ -311,6 +311,76 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
+    /**
+     * Creates a code insight report in bitbucket via API.
+     * For further information visit https://developer.atlassian.com/server/bitbucket/how-tos/code-insights/
+     *
+     * @param result One of: PASS, FAIL
+     */
+    @SuppressWarnings('ParameterCount')
+    void createCodeInsightReport(String linkAqua, String linkNexus,
+                                 String repo, String gitCommit,
+                                 String title, String details, String result, String message = null) {
+        withTokenCredentials { username, token ->
+            def payload = "{" +
+                "\"title\":\"${title}\"," +
+                "\"reporter\":\"OpenDevStack\"," +
+                "\"createdDate\":${System.currentTimeMillis()}," +
+                "\"details\":\"${details}\"," +
+                "\"result\":\"${result}\","
+            if (linkNexus) {
+                payload += "\"link\":\"${linkNexus}\","
+            }
+            payload += "\"data\": ["
+            if (linkAqua) {
+                payload += "{" +
+                    "\"title\":\"Report\"," +
+                    "\"value\":{\"linktext\":\"Result in Aqua\",\"href\":\"${linkAqua}\"}," +
+                    "\"type\":\"LINK\"" +
+                    "}"
+                if (linkNexus || message) {
+                    payload += ','
+                }
+            }
+            if (linkNexus) {
+                payload += "{" +
+                    "\"title\":\"Report\"," +
+                    "\"value\":{\"linktext\":\"Result in Nexus\",\"href\":\"${linkNexus}\"}," +
+                    "\"type\":\"LINK\"" +
+                    "}"
+                if (message) {
+                    payload += ','
+                }
+            }
+            if (message) {
+                payload += "{" +
+                    "\"title\":\"Messages\"," +
+                    "\"value\":\"${message}\"," +
+                    "\"type\":\"TEXT\"" +
+                    "}"
+            }
+            payload += "]" +
+                "}"
+            try {
+                script.sh(
+                    label: 'Create Bitbucket Code Insight report via API',
+                    script: """curl \\
+                        --fail \\
+                        -sS \\
+                        --request PUT \\
+                        --header \"Authorization: Bearer ${token}\" \\
+                        --header \"Content-Type: application/json\" \\
+                        --data '${payload}' \\
+                        ${bitbucketUrl}/rest/insights/1.0/projects/${project}/\
+repos/${repo}/commits/${gitCommit}/reports/org.opendevstack.aquasec"""
+                )
+                return
+            } catch (err) {
+                logger.warn("Could not create Bitbucket Code Insight report due to: ${err}")
+            }
+        }
+    }
+
     def withTokenCredentials(Closure block) {
         if (!tokenCredentialsId) {
             createUserTokenIfMissing()
