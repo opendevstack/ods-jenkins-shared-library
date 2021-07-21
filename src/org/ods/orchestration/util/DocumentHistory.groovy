@@ -8,7 +8,6 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
 import java.nio.file.NoSuchFileException
-import com.cloudbees.groovy.cps.NonCPS
 
 /**
  * This class contains the logic for keeping a consistent document version.
