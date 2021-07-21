@@ -6,6 +6,8 @@ import org.ods.util.Logger
 import org.ods.util.PipelineSteps
 import util.SpecHelper
 
+import java.nio.file.NoSuchFileException
+
 class DocumentHistorySpec extends SpecHelper {
 
     IPipelineSteps steps
@@ -226,17 +228,18 @@ class DocumentHistorySpec extends SpecHelper {
         given:
         def jiraData = jiraData10
         def targetEnvironment = 'D'
-        def savedVersionId = null
 
         def versionEntries = entries10
         def docContent = computeIssuesDoc(versionEntries)
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
 
         then:
-        0 * history.loadSavedDocHistoryData(_)
+        1 * history.loadSavedDocHistoryData() >> {
+            throw new NoSuchFileException('projectData/documentHistory-D-DocType.json')
+        }
 
         then:
         history.latestVersionId == 1L
@@ -248,7 +251,6 @@ class DocumentHistorySpec extends SpecHelper {
         given:
         def jiraData = jiraData11_first
         def targetEnvironment = 'D'
-        def savedVersionId = 1L
         def savedData = entries10
 
         def versionEntries = entries11_first
@@ -256,10 +258,10 @@ class DocumentHistorySpec extends SpecHelper {
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
 
         then:
-        1 * history.loadSavedDocHistoryData(_) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         history.latestVersionId == 2L
@@ -271,7 +273,6 @@ class DocumentHistorySpec extends SpecHelper {
         given:
         def jiraData = jiraData20Alt
         def targetEnvironment = 'D'
-        def savedVersionId = 5L
         def savedData = entries20
 
         def versionEntries = entries20Alt
@@ -279,10 +280,10 @@ class DocumentHistorySpec extends SpecHelper {
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
 
         then:
-        1 * history.loadSavedDocHistoryData(savedVersionId) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         history.latestVersionId == 6L
@@ -294,7 +295,6 @@ class DocumentHistorySpec extends SpecHelper {
         given:
         def jiraData = jiraDataFix
         def targetEnvironment = 'D'
-        def savedVersionId = 2L
         def savedData = entries11_first
 
         def versionEntries = entriesFix
@@ -302,10 +302,10 @@ class DocumentHistorySpec extends SpecHelper {
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
 
         then:
-        1 * history.loadSavedDocHistoryData(savedVersionId) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         history.latestVersionId == 3L
@@ -318,7 +318,6 @@ class DocumentHistorySpec extends SpecHelper {
         given:
         def jiraData = jiraData11_second
         def targetEnvironment = 'D'
-        def savedVersionId = 3L
         def savedData = entriesFix
 
         def versionEntries = entries11_second
@@ -326,10 +325,10 @@ class DocumentHistorySpec extends SpecHelper {
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
 
         then:
-        1 * history.loadSavedDocHistoryData(savedVersionId) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         history.latestVersionId == 4L
@@ -341,7 +340,6 @@ class DocumentHistorySpec extends SpecHelper {
         given:
         def jiraData = jiraData20
         def targetEnvironment = 'D'
-        def savedVersionId = 4L
         def savedData = entries11_second
 
         def versionEntries = entries20
@@ -349,10 +347,10 @@ class DocumentHistorySpec extends SpecHelper {
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
 
         then:
-        1 * history.loadSavedDocHistoryData(savedVersionId) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         history.latestVersionId == 5L
@@ -363,7 +361,6 @@ class DocumentHistorySpec extends SpecHelper {
     def "returns empty doc history and logs a warning if some issues do not have a version"() {
         setup:
         def targetEnvironment = 'D'
-        def savedVersionId = 0L
         def issueNV = [key: "ISSUE-A"]
         def issueV = [key: "ISSUE-A", versions: ['2']]
 
@@ -384,75 +381,78 @@ class DocumentHistorySpec extends SpecHelper {
         def docContent = ["ISSUE-A"]
 
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
+        history.loadSavedDocHistoryData() >> {
+            throw new NoSuchFileException('projectData/documentHistory-D-DocType.json')
+        }
 
         when: "We have a versioned component"
-        history.load(base_saved_data + [components: [(issueV.key):issueV]], savedVersionId, docContent)
+        history.load(base_saved_data + [components: [(issueV.key):issueV]], docContent)
 
         then:
         history.allIssuesAreValid
 
         when: "We have a non versioned component"
-        history.load(base_saved_data + [components: [(issueNV.key):issueNV]], savedVersionId, docContent)
+        history.load(base_saved_data + [components: [(issueNV.key):issueNV]], docContent)
 
         then:
         ! history.allIssuesAreValid
 
         when: "We have a versioned epic"
-        history.load(base_saved_data + [epics: [(issueV.key):issueV]], savedVersionId, docContent)
+        history.load(base_saved_data + [epics: [(issueV.key):issueV]], docContent)
 
         then:
         history.allIssuesAreValid
 
         when: "We have a non versioned epic"
-        history.load(base_saved_data + [epics: [(issueNV.key):issueNV]], savedVersionId, docContent)
+        history.load(base_saved_data + [epics: [(issueNV.key):issueNV]], docContent)
 
         then:
         ! history.allIssuesAreValid
 
         when: "We have a versioned risks"
-        history.load(base_saved_data + [risks: [(issueV.key):issueV]], savedVersionId, docContent)
+        history.load(base_saved_data + [risks: [(issueV.key):issueV]], docContent)
 
         then:
         history.allIssuesAreValid
 
         when: "We have a non versioned risks"
-        history.load(base_saved_data + [risks: [(issueNV.key):issueNV]], savedVersionId, docContent)
+        history.load(base_saved_data + [risks: [(issueNV.key):issueNV]], docContent)
 
         then:
         ! history.allIssuesAreValid
 
         when: "We have a versioned requirements"
-        history.load(base_saved_data + [requirements: [(issueV.key):issueV]], savedVersionId, docContent)
+        history.load(base_saved_data + [requirements: [(issueV.key):issueV]], docContent)
 
         then:
         history.allIssuesAreValid
 
         when: "We have a non versioned requirements"
-        history.load(base_saved_data + [requirements: [(issueNV.key):issueNV]], savedVersionId, docContent)
+        history.load(base_saved_data + [requirements: [(issueNV.key):issueNV]], docContent)
 
         then:
         ! history.allIssuesAreValid
 
         when: "We have a versioned tests"
-        history.load(base_saved_data + [tests: [(issueV.key):issueV]], savedVersionId, docContent)
+        history.load(base_saved_data + [tests: [(issueV.key):issueV]], docContent)
 
         then:
         history.allIssuesAreValid
 
         when: "We have a non versioned tests"
-        history.load(base_saved_data + [tests: [(issueNV.key):issueNV]], savedVersionId, docContent)
+        history.load(base_saved_data + [tests: [(issueNV.key):issueNV]], docContent)
 
         then:
         ! history.allIssuesAreValid
 
         when: "We have a versioned techSpecs"
-        history.load(base_saved_data + [techSpecs: [(issueV.key):issueV]], savedVersionId, docContent)
+        history.load(base_saved_data + [techSpecs: [(issueV.key):issueV]], docContent)
 
         then:
         history.allIssuesAreValid
 
         when: "We have a non versioned techSpecs"
-        history.load(base_saved_data + [techSpecs: [(issueNV.key):issueNV]], savedVersionId, docContent)
+        history.load(base_saved_data + [techSpecs: [(issueNV.key):issueNV]], docContent)
 
         then:
         ! history.allIssuesAreValid
@@ -461,7 +461,6 @@ class DocumentHistorySpec extends SpecHelper {
     def "issue type docs is shown as documentation chapter in the history and includes heading number and summary"() {
         setup:
         def targetEnvironment = 'D'
-        def savedVersionId = 1L
 
         def base_saved_data = [
             bugs                   : [:],
@@ -484,8 +483,8 @@ class DocumentHistorySpec extends SpecHelper {
 
 
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'doc1'])
-        history.loadSavedDocHistoryData(savedVersionId) >> [new DocumentHistoryEntry([:], 1L, '1.0', '', 'Initial document version.')]
-        history.load(base_saved_data, savedVersionId, ['added1', 'added2', 'otherDocCh', 'changed1', 'discontinued'])
+        history.loadSavedDocHistoryData() >> [new DocumentHistoryEntry([:], 1L, '1.0', '', 'Initial document version.')]
+        history.load(base_saved_data, ['added1', 'added2', 'otherDocCh', 'changed1', 'discontinued'])
 
         when:
         def result = history.getDocGenFormat()
@@ -501,7 +500,6 @@ class DocumentHistorySpec extends SpecHelper {
         setup:
         def jiraData = jiraData11_first
         def targetEnvironment = 'D'
-        def savedVersionId = 1L
         def savedData = entries10
         def versionEntries = entries11_first
         def docContent = computeIssuesDoc(versionEntries)
@@ -509,11 +507,11 @@ class DocumentHistorySpec extends SpecHelper {
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
         def result = history.getDocGenFormat()
 
         then:
-        1 * history.loadSavedDocHistoryData(_) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         result.collect { it.entryId } == [1, 2]
@@ -523,18 +521,17 @@ class DocumentHistorySpec extends SpecHelper {
         setup:
         def jiraData = jiraData11_first
         def targetEnvironment = 'D'
-        def savedVersionId = 1L
         def savedData = entries10
         def versionEntries = entries11_first
         def docContent = computeIssuesDoc(versionEntries)
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
         def result = history.getDocGenFormat()
 
         then:
-        1 * history.loadSavedDocHistoryData(_) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         result.collect { it.entryId } == [1, 2]
@@ -543,7 +540,6 @@ class DocumentHistorySpec extends SpecHelper {
     def "loads saved data as DocumentEntry"() {
         given:
         def targetEnvironment = 'D'
-        def savedVersionId = 1L
         def savedProjVersion = 'version'
         def savedData = [[
                 bugs                  : [],
@@ -573,7 +569,7 @@ class DocumentHistorySpec extends SpecHelper {
         ProjectDataBitbucketRepository repo = Spy(constructorArgs: [steps])
 
         when:
-        def result = history.loadSavedDocHistoryData(savedVersionId, repo)
+        def result = history.loadSavedDocHistoryData(repo)
 
         then:
         1 * repo.loadFile(_) >> savedData
@@ -583,7 +579,7 @@ class DocumentHistorySpec extends SpecHelper {
         result.first().getEntryId() == expectedResult.first().getEntryId()
 
         when:
-        history.loadSavedDocHistoryData(savedVersionId, repo)
+        history.loadSavedDocHistoryData(repo)
 
         then:
         1 * repo.loadFile(_) >> [wrong: "saved data"]
@@ -593,7 +589,7 @@ class DocumentHistorySpec extends SpecHelper {
         e.message.contains("Unable to load saved document history for file")
 
         when:
-        history.loadSavedDocHistoryData(savedVersionId, repo)
+        history.loadSavedDocHistoryData(repo)
 
         then:
         1 * repo.loadFile(_) >> [[bugs: ["BUG-1"], projectVersion: 'version']]
@@ -604,7 +600,7 @@ class DocumentHistorySpec extends SpecHelper {
         e.message.contains('EntryId cannot be empty')
 
         when:
-        history.loadSavedDocHistoryData(savedVersionId, repo)
+        history.loadSavedDocHistoryData(repo)
 
         then:
         1 * repo.loadFile(_) >> [[bugs: ["BUG-1"], entryId: 12]]
@@ -620,7 +616,6 @@ class DocumentHistorySpec extends SpecHelper {
         def jiraData = jiraData10
         def firstProjectVersion = '1.0'
         def targetEnvironment = 'D'
-        def savedVersionId = 1L
         def savedData = entries10
         def docContent = computeIssuesDoc(entries10)
         def versionEntries = [new DocumentHistoryEntry(entries10.first().getDelegate(), 2L, firstProjectVersion, '',
@@ -628,10 +623,10 @@ class DocumentHistorySpec extends SpecHelper {
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
 
         when:
-        history.load(jiraData, savedVersionId, docContent)
+        history.load(jiraData, docContent)
 
         then:
-        1 * history.loadSavedDocHistoryData(_) >> savedData
+        1 * history.loadSavedDocHistoryData() >> savedData
 
         then:
         history.latestVersionId == 2L
@@ -642,7 +637,6 @@ class DocumentHistorySpec extends SpecHelper {
     def "filters issues to what we have in the document"() {
         given:
         def targetEnvironment = 'D'
-        def savedVersionId = null
 
         def cmp = {  name, String version = null ->  [key: "Technology-${name}" as String, name: name, versions: [version]]}
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions: [version]]}
@@ -693,10 +687,12 @@ class DocumentHistorySpec extends SpecHelper {
         def issuesToInclude = [req1.key, tst1.key]
 
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
-
+        history.loadSavedDocHistoryData() >> {
+            throw new NoSuchFileException('projectData/documentHistory-D-DocType.json')
+        }
 
         when:
-        history.load(jiraData, savedVersionId, issuesToInclude)
+        history.load(jiraData, issuesToInclude)
 
         then:
         compareItems.each {
@@ -709,7 +705,6 @@ class DocumentHistorySpec extends SpecHelper {
     def "handle filtered issues that might have no longer be in the document"() {
         given:
         def targetEnvironment = 'D'
-        def savedVersionId = 1L
 
         def cmp = {  name, String version = null ->  [key: "Technology-${name}" as String, name: name, versions: [version]]}
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions: [version]]}
@@ -774,11 +769,11 @@ class DocumentHistorySpec extends SpecHelper {
         def issuesToInclude = [req1.key, req2.key]
 
         DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'DocType'])
-        history.loadSavedDocHistoryData(savedVersionId) >> savedData
+        history.loadSavedDocHistoryData() >> savedData
 
 
         when:
-        history.load(jiraData, savedVersionId, issuesToInclude)
+        history.load(jiraData, issuesToInclude)
 
         then:
         history.data.first().bugs == result.bugs
