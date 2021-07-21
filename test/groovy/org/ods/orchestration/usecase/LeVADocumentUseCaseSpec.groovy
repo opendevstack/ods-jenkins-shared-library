@@ -16,7 +16,6 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
-import java.nio.file.Paths
 
 import static util.FixtureHelper.*
 
