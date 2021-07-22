@@ -26,26 +26,17 @@ class TestStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.TEST
 
+        def globalStructure = [
+            testReportFiles: [],
+            testResults: [
+                testsuites: []
+            ]
+        ]
         def globalData = [
             tests: [
-                acceptance: [
-                    testReportFiles: [],
-                    testResults: [
-                        testsuites: []
-                    ]
-                ],
-                installation: [
-                    testReportFiles: [],
-                    testResults: [
-                        testsuites: []
-                    ]
-                ],
-                integration: [
-                    testReportFiles: [],
-                    testResults: [
-                        testsuites: []
-                    ]
-                ]
+                acceptance: globalStructure,
+                installation: globalStructure,
+                integration: globalStructure
             ]
         ]
 
