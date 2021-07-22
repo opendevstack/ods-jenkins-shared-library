@@ -55,7 +55,7 @@ class TestStageSpec extends SpecHelper {
         registry.add(JUnitTestReportsUseCase, junit)
         registry.add(JenkinsService, jenkins)
         registry.add(Logger, logger)
-        
+
         return registry
     }
 
@@ -83,6 +83,9 @@ class TestStageSpec extends SpecHelper {
         testStage.run()
 
         then:
+        1 * testStage.getTestResults(steps, _, Project.TestType.INSTALLATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
+        1 * testStage.getTestResults(steps, _, Project.TestType.INTEGRATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
+        1 * testStage.getTestResults(steps, _, Project.TestType.ACCEPTANCE) >> [testReportFiles: [], testResults: [testsuites:[]]]
         1 * util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.TEST, project.repositories, _, _) >> { phase_, repos_, preExecuteRepo_, postExecuteRepo_ ->
             postExecuteRepo_.call(steps, [type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST] as Map)
             return []
