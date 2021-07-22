@@ -8,6 +8,7 @@ import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.PipelineSteps
 
+@SuppressWarnings(['AbcMetric'])
 class TestStage extends Stage {
 
     public final String STAGE_NAME = 'Test'
