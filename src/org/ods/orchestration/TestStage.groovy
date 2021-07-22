@@ -30,13 +30,13 @@ class TestStage extends Stage {
             testReportFiles: [],
             testResults: [
                 testsuites: []
-            ]
+            ],
         ]
         def globalData = [
             tests: [
                 acceptance: globalStructure,
                 installation: globalStructure,
-                integration: globalStructure
+                integration: globalStructure,
             ]
         ]
 
