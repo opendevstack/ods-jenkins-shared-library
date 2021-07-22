@@ -63,10 +63,15 @@ class DocumentHistory {
                 this.data = docHistories
             }
         } catch (NoSuchFileException e) {
-            this.logger.warn("No saved history found. Exception message: ${e.message}")
+            if (sourceEnvironment != targetEnvironment) {
+                this.logger.warn("No saved history found. Exception message: ${e.message}")
+            } else {
+                this.logger.debug("No saved history found. Exception message: ${e.message}")
+            }
         }
-        // Only update the history if the target environment is the first one where the document is created.
-        if (sourceEnvironment == targetEnvironment) {
+        // Only update the history if the target environment is the first one where the document is created,
+        // or if no saved history was found
+        if (sourceEnvironment == targetEnvironment || !latestVersionId) {
             this.latestVersionId += 1L
             def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
             if (this.allIssuesAreValid) {

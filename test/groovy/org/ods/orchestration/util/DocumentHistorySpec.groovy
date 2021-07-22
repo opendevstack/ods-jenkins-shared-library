@@ -1,9 +1,11 @@
 package org.ods.orchestration.util
 
+import groovy.json.JsonOutput
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.PipelineSteps
+import spock.lang.Unroll
 import util.SpecHelper
 
 import java.nio.file.NoSuchFileException
@@ -785,6 +787,59 @@ class DocumentHistorySpec extends SpecHelper {
         history.data.first().tests == result.tests
         history.data.first().techSpecs == result.techSpecs
         history.data.first()[Project.JiraDataItem.TYPE_DOCS] == result[Project.JiraDataItem.TYPE_DOCS]
+    }
+
+
+    def "inherit history from D"() {
+        given:
+        def jiraData = jiraData11_first
+        def targetEnvironment = 'Q'
+        def savedData = entries10
+        def savedJson = JsonOutput.toJson(savedData)
+
+        def versionEntries = entries11_first
+        def docContent = computeIssuesDoc(versionEntries)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'TIR'])
+        steps.readFile(file: 'projectData/documentHistory-D-TIR.json') >> savedJson
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        1 * history.loadSavedDocHistoryData()
+
+        then:
+        history.latestVersionId == 1L
+        assert entryListIsEquals(history.data, savedData)
+        history.data == savedData
+    }
+
+    @Unroll
+    def "inherit history from Q"() {
+        given:
+        def jiraData = jiraData11_first
+        def targetEnvironment = 'P'
+        def savedData = entries10
+        def savedJson = JsonOutput.toJson(savedData)
+
+        def versionEntries = entries11_first
+        def docContent = computeIssuesDoc(versionEntries)
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, docType])
+        steps.readFile(file: "projectData/documentHistory-Q-${docType}.json") >> savedJson
+
+        when:
+        history.load(jiraData, docContent)
+
+        then:
+        1 * history.loadSavedDocHistoryData()
+
+        then:
+        history.latestVersionId == 1L
+        assert entryListIsEquals(history.data, savedData)
+        history.data == savedData
+
+        where:
+        docType << ['TIR', 'IVR']
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
