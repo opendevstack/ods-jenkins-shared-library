@@ -30,13 +30,13 @@ class DocumentHistory {
      * Autoincremental number containing the internal version Id of the document
      */
     protected Long latestVersionId
-    protected final String documentType
+    protected final String documentName
     protected Boolean allIssuesAreValid = true
 
-    DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment, String documentType) {
+    DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment, String documentName) {
         this.steps = steps
         this.logger = logger
-        this.documentType = documentType
+        this.documentName = documentName
         if (!targetEnvironment) {
             throw new RuntimeException('Variable \'targetEnvironment\' cannot be empty for computing Document History')
         }
@@ -44,11 +44,12 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
         // Retrieve the history from the previous environment,
         // unless the target environment is the first one where the document is generated.
-        sourceEnvironment = getSourceEnvironment(targetEnvironment, documentType)
+        sourceEnvironment = getSourceEnvironment(targetEnvironment, documentName)
     }
 
     // Find the previous environment where the document was generated, if it exists.
     // Otherwise, use the target environment.
+    @NonCPS
     private getSourceEnvironment(String targetEnvironment, String documentName) {
         def documentType = documentName.split('-').first()
         def environment = null
@@ -68,7 +69,7 @@ class DocumentHistory {
             if (docHistories) {
                 this.latestVersionId = docHistories.first().getEntryId()
                 if (logger.getDebugMode()) {
-                    logger.debug("Retrieved latest ${documentType} version ${latestVersionId} from saved history")
+                    logger.debug("Retrieved latest ${documentName} version ${latestVersionId} from saved history")
                 }
                 this.data = docHistories
             }
@@ -86,7 +87,7 @@ class DocumentHistory {
             def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
             if (this.allIssuesAreValid) {
                 if (logger.getDebugMode()) {
-                    logger.debug("Creating a new history entry with version ${latestVersionId} for ${documentType}")
+                    logger.debug("Creating a new history entry with version ${latestVersionId} for ${documentName}")
                 }
                 newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
                 this.data.add(0, newDocDocumentHistoryEntry)
@@ -94,7 +95,7 @@ class DocumentHistory {
             } else {
                 // We only want to update the document version when we are actually adding a new entry.
                 this.latestVersionId -= 1L
-                logger.warn("Not all issues for ${documentType} had version. Not creating a new history entry.")
+                logger.warn("Not all issues for ${documentName} had version. Not creating a new history entry.")
             }
         }
         return this
@@ -209,7 +210,7 @@ class DocumentHistory {
     }
 
     protected String getSavedDocumentName(String environment = targetEnvironment) {
-        def suffix = (documentType) ? '-' + documentType : ''
+        def suffix = (documentName) ? '-' + documentName : ''
         return "documentHistory-${environment}${suffix}"
     }
 
@@ -414,7 +415,7 @@ class DocumentHistory {
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentType.split('-').first()) }
+            issues = issues.findAll { it.value.documents.contains(this.documentName.split('-').first()) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }
