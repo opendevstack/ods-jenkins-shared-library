@@ -8,6 +8,7 @@ import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.PipelineSteps
 
+@SuppressWarnings(['AbcMetric'])
 class TestStage extends Stage {
 
     public final String STAGE_NAME = 'Test'
@@ -26,20 +27,17 @@ class TestStage extends Stage {
 
         def phase = MROPipelineUtil.PipelinePhases.TEST
 
+        def globalStructure = [
+            testReportFiles: [],
+            testResults: [
+                testsuites: []
+            ],
+        ]
         def globalData = [
             tests: [
-                acceptance: [
-                    testReportFiles: [],
-                    testResults: [:]
-                ],
-                installation: [
-                    testReportFiles: [],
-                    testResults: [:]
-                ],
-                integration: [
-                    testReportFiles: [],
-                    testResults: [:]
-                ]
+                acceptance: globalStructure,
+                installation: globalStructure,
+                integration: globalStructure,
             ]
         ]
 
@@ -57,26 +55,19 @@ class TestStage extends Stage {
                     ]
                 ]
 
-                jira.reportTestResultsForProject(
-                    [Project.TestType.INSTALLATION],
-                    data.tests.installation.testResults
-                )
-
-                jira.reportTestResultsForProject(
-                    [Project.TestType.INTEGRATION],
-                    data.tests.integration.testResults
-                )
-
-                jira.reportTestResultsForProject(
-                    [Project.TestType.ACCEPTANCE],
-                    data.tests.acceptance.testResults
-                )
-
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
+                // Add the info of component to global data to maintain several e2e
                 globalData.tests.acceptance.testReportFiles.addAll(data.tests.acceptance.testReportFiles)
                 globalData.tests.installation.testReportFiles.addAll(data.tests.installation.testReportFiles)
                 globalData.tests.integration.testReportFiles.addAll(data.tests.integration.testReportFiles)
+
+                globalData.tests.acceptance.testResults.testsuites.addAll(
+                    data.tests.acceptance.testResults.testsuites)
+                globalData.tests.installation.testResults.testsuites.addAll(
+                    data.tests.installation.testResults.testsuites)
+                globalData.tests.integration.testResults.testsuites.addAll(
+                    data.tests.integration.testResults.testsuites)
             }
         }
 
@@ -93,6 +84,22 @@ class TestStage extends Stage {
                 }
         }
         executeInParallel(executeRepos, generateDocuments)
+
+        // Update Jira issues with global data
+        jira.reportTestResultsForProject(
+            [Project.TestType.INSTALLATION],
+            globalData.tests.installation.testResults
+        )
+
+        jira.reportTestResultsForProject(
+            [Project.TestType.INTEGRATION],
+            globalData.tests.integration.testResults
+        )
+
+        jira.reportTestResultsForProject(
+            [Project.TestType.ACCEPTANCE],
+            globalData.tests.acceptance.testResults
+        )
 
         // Parse all test report files into a single data structure
         globalData.tests.acceptance.testResults = junit.parseTestReportFiles(
