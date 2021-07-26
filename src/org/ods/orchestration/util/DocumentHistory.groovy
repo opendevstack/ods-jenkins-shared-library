@@ -44,10 +44,11 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
         // Retrieve the history from the previous environment,
         // unless the target environment is the first one where the document is generated.
+        def docType = documentType.split('-').first()
         def environment = null
         def envs = ['D', 'Q', 'P']
         for (int i = 0; i < envs.size() && envs[i] != targetEnvironment; i++) {
-            if (LeVADocumentScheduler.ENVIRONMENT_TYPE[envs[i]].containsKey(documentType)) {
+            if (LeVADocumentScheduler.ENVIRONMENT_TYPE[envs[i]].containsKey(docType)) {
                 environment = envs[i]
             }
         }
