@@ -799,8 +799,8 @@ class DocumentHistorySpec extends SpecHelper {
 
         def versionEntries = entries11_first
         def docContent = computeIssuesDoc(versionEntries)
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'TIR'])
-        steps.readFile(file: 'projectData/documentHistory-D-TIR.json') >> savedJson
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, 'TIR-component'])
+        steps.readFile(file: 'projectData/documentHistory-D-TIR-component.json') >> savedJson
 
         when:
         history.load(jiraData, docContent)
@@ -824,8 +824,8 @@ class DocumentHistorySpec extends SpecHelper {
 
         def versionEntries = entries11_first
         def docContent = computeIssuesDoc(versionEntries)
-        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, docType])
-        steps.readFile(file: "projectData/documentHistory-Q-${docType}.json") >> savedJson
+        DocumentHistory history = Spy(constructorArgs: [steps, logger, targetEnvironment, docName])
+        steps.readFile(file: "projectData/documentHistory-Q-${docName}.json") >> savedJson
 
         when:
         history.load(jiraData, docContent)
@@ -839,7 +839,7 @@ class DocumentHistorySpec extends SpecHelper {
         history.data == savedData
 
         where:
-        docType << ['TIR', 'IVR']
+        docName << ['TIR-component', 'IVR']
     }
 
     Boolean entryIsEquals(DocumentHistoryEntry a, DocumentHistoryEntry b) {
