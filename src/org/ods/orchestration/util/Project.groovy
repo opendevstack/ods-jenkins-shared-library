@@ -476,20 +476,36 @@ class Project {
     @NonCPS
     List<JiraDataItem> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { key, testIssue ->
-            def result = testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
-
-            if (result && componentName) {
-                result = testIssue.getResolvedComponents()
-                        .collect { it.name.toLowerCase() }
-                        .contains(componentName.toLowerCase())
-            }
-
-            if (result && testTypes) {
-                result = testTypes.collect { it.toLowerCase() }.contains(testIssue.testType.toLowerCase())
-            }
-
-            return result
+            return isAutomatedTest(testIssue) && hasGivenTypes(testTypes, testIssue) && hasGivenComponent(testIssue, componentName)
         }.values() as List
+    }
+
+    @NonCPS
+    boolean isAutomatedTest(testIssue) {
+        testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
+    }
+
+    @NonCPS
+    boolean hasGivenTypes(List<String> testTypes, testIssue) {
+        def result = true
+        if (testTypes) {
+            result = testTypes*.toLowerCase().contains(testIssue.testType.toLowerCase())
+        }
+        return result
+    }
+
+    @NonCPS
+    boolean hasGivenComponent(testIssue, String componentName) {
+        def result = true
+        if (componentName) {
+            result = testIssue.getResolvedComponents().collect {
+                if (!it || !it.name) {
+                    throw new RuntimeException("Error with testIssue key: ${testIssue.key}, no component assigned or it is wrong.")
+                }
+                it.name.toLowerCase()
+            }.contains(componentName.toLowerCase())
+        }
+        return result
     }
 
     @NonCPS

@@ -1,18 +1,21 @@
 package org.ods.orchestration.util
 
-import java.nio.file.Files
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.usecase.LeVADocumentUseCase
+import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
+import util.FixtureHelper
+import util.SpecHelper
+
+import java.nio.file.Files
 
 import static util.FixtureHelper.*
-
-import util.*
 
 class ProjectSpec extends SpecHelper {
 
@@ -2812,4 +2815,30 @@ class ProjectSpec extends SpecHelper {
 
     }
 
+    def "get automated unit tests"(){
+        given:
+        def component = "Technology-demo-app-catalogue"
+        def expected = project.data.jira.tests.findAll{ key, testIssue -> key == "NET-137"}.values() as List
+
+        when:
+        def testIssues = project.getAutomatedTestsTypeUnit(component)
+
+        then:
+        testIssues.containsAll(expected)
+    }
+
+    def "get automated unit tests throw an error"(){
+        given:
+        def component = "Technology-demo-app-catalogue"
+        def testReferences = project.data.jiraResolved[Project.JiraDataItem.TYPE_TESTS]["NET-137"]
+        def componentThatThrowError = [a:1] as Map
+        testReferences[Project.JiraDataItem.TYPE_COMPONENTS] = [componentThatThrowError]
+
+        when:
+        def testIssues = project.getAutomatedTestsTypeUnit(component)
+
+        then:
+        RuntimeException ex = thrown()
+        ex.message == 'Error with testIssue key: NET-137, no component assigned or it is wrong.'
+    }
 }
