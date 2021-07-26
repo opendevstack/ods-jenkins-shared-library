@@ -15,7 +15,7 @@ import org.ods.orchestration.util.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.NoSuchFileException
 
 import static util.FixtureHelper.*
 
@@ -67,6 +67,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
 
         docHistory = new DocumentHistory(steps, logger, 'D', 'SSD')
+        steps.readFile(_) >> { Map args ->
+            if (args.file ==~ 'projectData/documentHistory-[DQP]-.*\\.json') {
+                throw new NoSuchFileException(args.file)
+            }
+        }
         docHistory.load(project.data.jira, [])
         usecase.getAndStoreDocumentHistory(*_) >> docHistory
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true

@@ -1,13 +1,13 @@
 package org.ods.orchestration.util
 
 import com.cloudbees.groovy.cps.NonCPS
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.orchestration.util.Project.JiraDataItem
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
 import java.nio.file.NoSuchFileException
-import com.cloudbees.groovy.cps.NonCPS
 
 /**
  * This class contains the logic for keeping a consistent document version.
@@ -24,70 +24,104 @@ class DocumentHistory {
     protected IPipelineSteps steps
     protected ILogger logger
     protected List<DocumentHistoryEntry> data = []
+    private String sourceEnvironment
     protected String targetEnvironment
     /**
      * Autoincremental number containing the internal version Id of the document
      */
     protected Long latestVersionId
-    protected final String documentType
+    protected final String documentName
     protected Boolean allIssuesAreValid = true
 
-    DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment, String documentType) {
+    DocumentHistory(IPipelineSteps steps, ILogger logger, String targetEnvironment, String documentName) {
         this.steps = steps
         this.logger = logger
-        this.documentType = documentType
+        this.documentName = documentName
         if (!targetEnvironment) {
             throw new RuntimeException('Variable \'targetEnvironment\' cannot be empty for computing Document History')
         }
-        this.latestVersionId = 1L
+        this.latestVersionId = 0L
         this.targetEnvironment = targetEnvironment
+        // Retrieve the history from the previous environment,
+        // unless the target environment is the first one where the document is generated.
+        sourceEnvironment = getSourceEnvironment(targetEnvironment, documentName)
     }
 
-    DocumentHistory load(Map jiraData, Long savedVersionId = null, List<String> filterKeys) {
-        this.latestVersionId = 1L
-        if (savedVersionId) {
-            try {
-                def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData(savedVersionId))
-                if (docHistories) {
-                    this.latestVersionId = docHistories.first().getEntryId() + 1L
-                    this.data = docHistories
-                }
-            } catch (NoSuchFileException e) {
-                this.logger.warn("No saved history found for savedVersionId $savedVersionId. \
-                                    Exception message: ${e.message}")
+    // Find the previous environment where the document was generated, if it exists.
+    // Otherwise, use the target environment.
+    @NonCPS
+    private getSourceEnvironment(String targetEnvironment, String documentName) {
+        def documentType = documentName.split('-').first()
+        def environment = null
+        def envs = ['D', 'Q', 'P']
+        for (int i = 0; i < envs.size() && envs[i] != targetEnvironment; i++) {
+            if (LeVADocumentScheduler.ENVIRONMENT_TYPE[envs[i]].containsKey(documentType)) {
+                environment = envs[i]
             }
         }
-        def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
-        if (this.allIssuesAreValid) {
-            newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
-            this.data.add(0, newDocDocumentHistoryEntry)
-            this.data = sortDocHistoriesReversed(this.data)
+        return environment ?: targetEnvironment
+    }
+
+    DocumentHistory load(Map jiraData, List<String> filterKeys) {
+        this.latestVersionId = 0L
+        try {
+            def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData())
+            if (docHistories) {
+                this.latestVersionId = docHistories.first().getEntryId()
+                if (logger.getDebugMode()) {
+                    logger.debug("Retrieved latest ${documentName} version ${latestVersionId} from saved history")
+                }
+                this.data = docHistories
+            }
+        } catch (NoSuchFileException e) {
+            if (sourceEnvironment != targetEnvironment) {
+                this.logger.warn("No saved history found. Exception message: ${e.message}")
+            } else if (logger.getDebugMode()) {
+                this.logger.debug("No saved history found. Exception message: ${e.message}")
+            }
         }
-        this
+        // Only update the history if the target environment is the first one where the document is created,
+        // or if no saved history was found
+        if (sourceEnvironment == targetEnvironment || !latestVersionId) {
+            this.latestVersionId += 1L
+            def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
+            if (this.allIssuesAreValid) {
+                if (logger.getDebugMode()) {
+                    logger.debug("Creating a new history entry with version ${latestVersionId} for ${documentName}")
+                }
+                newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
+                this.data.add(0, newDocDocumentHistoryEntry)
+                this.data = sortDocHistoriesReversed(this.data)
+            } else {
+                // We only want to update the document version when we are actually adding a new entry.
+                this.latestVersionId -= 1L
+                logger.warn("Not all issues for ${documentName} had version. Not creating a new history entry.")
+            }
+        }
+        return this
     }
 
     Long getVersion() {
         this.latestVersionId
     }
 
-    List<DocumentHistoryEntry> loadSavedDocHistoryData(Long versionIdToRetrieve,
-                                                       ProjectDataBitbucketRepository repo = null) {
-        def fileName = this.getSavedDocumentName()
+    List<DocumentHistoryEntry> loadSavedDocHistoryData(ProjectDataBitbucketRepository repo = null) {
+        def fileName = this.getSavedDocumentName(sourceEnvironment)
         this.logger.debug("Retrieving saved document history with name '${fileName}' " +
-            "with version '${versionIdToRetrieve}' in workspace '${this.steps.env.WORKSPACE}'.")
+            "in workspace '${this.steps.env.WORKSPACE}'.")
         if (!repo) {
             repo = new ProjectDataBitbucketRepository(steps)
         }
         def content = repo.loadFile(fileName)
         try {
-            content.collect { Map entry ->
+            return content.collect { Map entry ->
                 if (! entry.entryId) {
                     throw new IllegalArgumentException('EntryId cannot be empty')
                 }
                 if (! entry.projectVersion) {
                     throw new IllegalArgumentException('projectVersion cannot be empty')
                 }
-                new DocumentHistoryEntry(
+                return new DocumentHistoryEntry(
                     entry,
                     entry.entryId,
                     entry.projectVersion,
@@ -107,7 +141,7 @@ class DocumentHistory {
 
     @NonCPS
     List<DocumentHistoryEntry> getDocHistoryEntries() {
-        this.data
+        this.data.clone()
     }
 
     @NonCPS
@@ -175,9 +209,9 @@ class DocumentHistory {
 
     }
 
-    protected String getSavedDocumentName() {
-        def suffix = (documentType) ? '-' + documentType : ''
-        return "documentHistory-${this.targetEnvironment}${suffix}"
+    protected String getSavedDocumentName(String environment = targetEnvironment) {
+        def suffix = (documentName) ? '-' + documentName : ''
+        return "documentHistory-${environment}${suffix}"
     }
 
     // Do not remove me. Sort is not supported by the Jenkins runtime
@@ -274,7 +308,7 @@ class DocumentHistory {
                 "Project has as previous project version '${currentEntry.getPreviousProjectVersion()}' " +
                 'but no document history containing that ' +
                 'version can be found. Please check the file named ' +
-                "'${this.getSavedDocumentName()}.json'" +
+                "'${this.getSavedDocumentName(sourceEnvironment)}.json'" +
                 ' in your release manager repository')
         }
 
@@ -354,7 +388,7 @@ class DocumentHistory {
                 }
                 // If this is not the first version, let's treat the predecessors of the current issue.
                 // As the current issue won't be in the document anymore, the predecessors may need to disappear, too.
-                if (this.latestVersionId != 1L) {
+                if (this.latestVersionId > 1L) {
                     // Any predecessors that were in the previous document history are discontinued.
                     // Note that there will never be more than one predecessor, but it's still a list.
                     ret += (action.predecessors ?: []).findAll { previousDocIssues.contains(it) }
@@ -381,7 +415,7 @@ class DocumentHistory {
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentType.split('-').first()) }
+            issues = issues.findAll { it.value.documents.contains(this.documentName.split('-').first()) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }
