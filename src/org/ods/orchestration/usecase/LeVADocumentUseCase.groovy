@@ -10,6 +10,7 @@ import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
@@ -1607,7 +1608,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def documentType = documentName.split('-').first()
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
-            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
+            def docHistory = new DocumentHistory(this.steps, ServiceRegistry.instance.get(Logger), environment, documentName)
             def docChapters = this.project.getDocumentChaptersForDocument(documentType)
             def docChapterKeys = computeDocChaptersKeys(docChapters)
             docHistory.load(jiraData, (keysInDoc + docChapterKeys).unique())

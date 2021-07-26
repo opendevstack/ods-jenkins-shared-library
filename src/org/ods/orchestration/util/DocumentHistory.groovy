@@ -60,12 +60,15 @@ class DocumentHistory {
             def docHistories = sortDocHistoriesReversed(this.loadSavedDocHistoryData())
             if (docHistories) {
                 this.latestVersionId = docHistories.first().getEntryId()
+                if (logger.getDebugMode()) {
+                    logger.debug("Retrieved latest ${documentType} version ${latestVersionId} from saved history")
+                }
                 this.data = docHistories
             }
         } catch (NoSuchFileException e) {
             if (sourceEnvironment != targetEnvironment) {
                 this.logger.warn("No saved history found. Exception message: ${e.message}")
-            } else {
+            } else if (logger.getDebugMode()) {
                 this.logger.debug("No saved history found. Exception message: ${e.message}")
             }
         }
@@ -75,12 +78,16 @@ class DocumentHistory {
             this.latestVersionId += 1L
             def newDocDocumentHistoryEntry = parseJiraDataToDocumentHistoryEntry(jiraData, filterKeys)
             if (this.allIssuesAreValid) {
+                if (logger.getDebugMode()) {
+                    logger.debug("Creating a new history entry with version ${latestVersionId} for ${documentType}")
+                }
                 newDocDocumentHistoryEntry.rational = createRational(newDocDocumentHistoryEntry)
                 this.data.add(0, newDocDocumentHistoryEntry)
                 this.data = sortDocHistoriesReversed(this.data)
             } else {
                 // We only want to update the document version when we are actually adding a new entry.
                 this.latestVersionId -= 1L
+                logger.warn("Not all issues for ${documentType} had version. Not creating a new history entry.")
             }
         }
         return this
