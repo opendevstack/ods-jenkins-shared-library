@@ -191,7 +191,7 @@ class ScanWithAquaStage extends Stage {
                 ]
             ],
             details: details,
-            result: result
+            result: result,
         ]
 
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
@@ -213,7 +213,7 @@ class ScanWithAquaStage extends Stage {
                 ]
             ],
             details: details,
-            result: result
+            result: result,
         ]
 
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)

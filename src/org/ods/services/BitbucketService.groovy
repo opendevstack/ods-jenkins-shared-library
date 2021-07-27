@@ -335,17 +335,17 @@ class BitbucketService {
                     "\"value\":{\"linktext\":\"${link.text}\",\"href\":\"${link.link}\"}," +
                     "\"type\":\"LINK\"" +
                     "}"
-                if (i !=  data.otherLinks.size()-1 || data.messages) {
+                if (i !=  data.otherLinks.size() - 1 || data.messages) {
                     payload += ','
                 }
             }
-            data.messages.eachWithIndex {Map message, i ->
+            data.messages.eachWithIndex { Map message, i ->
                 payload += "{" +
                     "\"title\":\"${message.title}\"," +
                     "\"value\":\"${message.value}\"," +
                     "\"type\":\"TEXT\"" +
                     "}"
-                if (i != data.messages.size()-1) {
+                if (i != data.messages.size() - 1) {
                     payload += ','
                 }
             }
