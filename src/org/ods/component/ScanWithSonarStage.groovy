@@ -10,7 +10,8 @@ import org.ods.util.ILogger
 @TypeChecked
 class ScanWithSonarStage extends Stage {
 
-    public final String STAGE_NAME = 'SonarQube Analysis'
+    static final String STAGE_NAME = 'SonarQube Analysis'
+    static final String BITBUCKET_SONARQUBE_REPORT_KEY = "org.opendevstack.sonarqube"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
     private final ScanWithSonarOptions options
@@ -189,6 +190,22 @@ class ScanWithSonarStage extends Stage {
             steps.error 'Quality gate status could not be retrieved. ' +
                 "Status was: '${qualityGateJSON}'. Error was: ${ex}"
         }
+    }
+
+    private createBitbucketCodeInsightReport() {
+        String title = "SonarQube"
+        String details = "Please visit the following links to review the SonarQube report:"
+
+        String result = "PASS"
+
+        def data = [
+            key: BITBUCKET_SONARQUBE_REPORT_KEY,
+            title: title,
+            details: details,
+            result: result,
+        ]
+
+        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
 }
