@@ -105,6 +105,9 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     sonarQubeService.scan(*_) >> null
     sonarQubeService.getQualityGateJSON(*_) >> """{"projectStatus": ${projectStatus}}"""
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
+    BitbucketService bitbucketService = Stub(BitbucketService.class)
+    bitbucketService.createCodeInsightReport(*_) >> null
+    ServiceRegistry.instance.add(BitbucketService, bitbucketService)
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
