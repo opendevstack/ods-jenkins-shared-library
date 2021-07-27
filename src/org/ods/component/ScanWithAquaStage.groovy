@@ -186,12 +186,12 @@ class ScanWithAquaStage extends Stage {
             ((List)data.otherLinks).add([
                 title: "Report",
                 text: "Result in Nexus",
-                link: nexusUrlReport
+                link: nexusUrlReport,
             ])
         }
         if (messages) {
             data.put("messages",[
-                [ title: "Messages", value: prepareMessageToBitbucket(messages) ]
+                [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
             ])
         }
 
