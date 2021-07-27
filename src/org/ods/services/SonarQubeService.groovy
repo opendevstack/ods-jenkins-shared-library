@@ -33,13 +33,8 @@ class SonarQubeService {
             if (logger.debugMode) {
                 scannerParams << '-X'
             }
-            if (pullRequestInfo) {
+            if (pullRequestInfo && (sonarQubeEdition != 'community')) {
                 [
-                    "-Dsonar.pullrequest.provider='Bitbucket Server'",
-                    "-Dsonar.pullrequest.bitbucketserver.serverUrl=${pullRequestInfo.bitbucketUrl}",
-                    "-Dsonar.pullrequest.bitbucketserver.token.secured=${pullRequestInfo.bitbucketToken}",
-                    "-Dsonar.pullrequest.bitbucketserver.project=${pullRequestInfo.bitbucketProject}",
-                    "-Dsonar.pullrequest.bitbucketserver.repository=${pullRequestInfo.bitbucketRepository}",
                     "-Dsonar.pullrequest.key=${pullRequestInfo.bitbucketPullRequestKey}",
                     "-Dsonar.pullrequest.branch=${pullRequestInfo.branch}",
                     "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}",
