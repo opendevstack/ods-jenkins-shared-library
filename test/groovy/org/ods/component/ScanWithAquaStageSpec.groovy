@@ -164,12 +164,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     link: "http://nexus"
                 ]
             ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: null
-                ]
-            ],
             details: "Please visit the following links to review the Aqua Security scan report:",
             result: "PASS"
         ]
@@ -198,12 +192,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     title: "Report",
                     text: "Result in Nexus",
                     link: "http://nexus"
-                ]
-            ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: null
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -352,12 +340,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
                 ]
             ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: ""
-                ]
-            ],
             details: "Please visit the following links to review the Aqua Security scan report:",
             result: "PASS"
         ]
@@ -435,12 +417,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     title: "Report",
                     text: "Result in Nexus",
                     link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
-                ]
-            ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: ""
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -552,12 +528,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
                 ]
             ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: ""
-                ]
-            ],
             details: "Please visit the following links to review the Aqua Security scan report:",
             result: "FAIL"
         ]
@@ -634,12 +604,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
                 ]
             ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: ""
-                ]
-            ],
             details: "Please visit the following links to review the Aqua Security scan report:",
             result: "FAIL"
         ]
@@ -714,12 +678,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     title: "Report",
                     text: "Result in Nexus",
                     link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
-                ]
-            ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: ""
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",
@@ -872,12 +830,6 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
                     title: "Report",
                     text: "Result in Nexus",
                     link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
-                ]
-            ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: ""
                 ]
             ],
             details: "Please visit the following links to review the Aqua Security scan report:",

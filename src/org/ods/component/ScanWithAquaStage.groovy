@@ -177,22 +177,23 @@ class ScanWithAquaStage extends Stage {
                     title: "Report",
                     text: "Result in Aqua",
                     link: aquaScanUrl
-                ],
-                [
-                    title: "Report",
-                    text: "Result in Nexus",
-                    link: nexusUrlReport
-                ]
-            ],
-            messages: [
-                [
-                    title: "Messages",
-                    value: prepareMessageToBitbucket(messages)
                 ]
             ],
             details: details,
             result: result,
         ]
+        if (nexusUrlReport) {
+            ((List)data.otherLinks).add([
+                title: "Report",
+                text: "Result in Nexus",
+                link: nexusUrlReport
+            ])
+        }
+        if (messages) {
+            data.put("messages",[
+                [ title: "Messages", value: prepareMessageToBitbucket(messages) ]
+            ])
+        }
 
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
