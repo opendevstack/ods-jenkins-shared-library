@@ -10,6 +10,7 @@ import org.ods.services.OpenShiftService
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.*
 import org.ods.orchestration.util.*
+import org.ods.services.ServiceRegistry
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
@@ -1599,13 +1600,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
             def documentType = documentName.split('-').first()
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
-            def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
-            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
+            def docHistory = new DocumentHistory(this.steps, ServiceRegistry.instance.get(Logger), environment, documentName)
             def docChapters = this.project.getDocumentChaptersForDocument(documentType)
             def docChapterKeys = docChapters.collect { chapter ->
                 chapter.key
             }
-            docHistory.load(jiraData, latestValidVersionId, (keysInDoc + docChapterKeys).unique())
+            docHistory.load(jiraData, (keysInDoc + docChapterKeys).unique())
 
             // Save the doc history to project class, so it can be persisted when considered
             this.project.setHistoryForDocument(docHistory, documentName)
