@@ -1,5 +1,6 @@
 package org.ods.services
 
+import org.ods.component.ScanWithAquaStage
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 
@@ -76,9 +77,28 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             new Logger(steps, false)
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            link: "http://link-nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://link"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://link-nexus"
+                ]
+            ],
+            details: "Details",
+            result: "PASS"
+        ]
 
         when:
-        service.createCodeInsightReport("http://link", "http://link-nexus", "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
@@ -110,9 +130,23 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             new Logger(steps, false)
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            link: "http://link-nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://link-nexus"
+                ]
+            ],
+            details: "Details",
+            result: "PASS"
+        ]
 
         when:
-        service.createCodeInsightReport(null, "http://link-nexus", "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
@@ -143,9 +177,22 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             new Logger(steps, false)
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://link"
+                ]
+            ],
+            details: "Details",
+            result: "PASS"
+        ]
 
         when:
-        service.createCodeInsightReport("http://link", null, "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
@@ -176,9 +223,15 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             new Logger(steps, false)
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            details: "Details",
+            result: "PASS"
+        ]
 
         when:
-        service.createCodeInsightReport(null, null, "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
@@ -208,9 +261,34 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             new Logger(steps, false)
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            link: "http://link-nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://link"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://link-nexus"
+                ]
+            ],
+            messages: [
+                [
+                    title: "Messages",
+                    value: "Messages"
+                ]
+            ],
+            details: "Details",
+            result: "PASS"
+        ]
 
         when:
-        service.createCodeInsightReport("http://link", "http://link-nexus", "repo-name", "123456", "Title", "Details", "PASS", "Messages")
+        service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
@@ -243,9 +321,21 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             new Logger(steps, false)
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            messages: [
+                [
+                    title: "Messages",
+                    value: "Messages"
+                ]
+            ],
+            details: "Details",
+            result: "PASS"
+        ]
 
         when:
-        service.createCodeInsightReport(null, null, "repo-name", "123456", "Title", "Details", "PASS", "Messages")
+        service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
@@ -277,9 +367,34 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
             'foo-cd-cd-user-with-password',
             logger
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Title",
+            link: "http://link-nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://link"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://link-nexus"
+                ]
+            ],
+            messages: [
+                [
+                    title: "Messages",
+                    value: "Messages"
+                ]
+            ],
+            details: "Details",
+            result: "PASS"
+        ]
 
         when:
-        service.createCodeInsightReport("http://link", "http://linq-nexus", "repo-name", "123456", "Title", "Details", "PASS")
+        service.createCodeInsightReport(data, "repo-name", "123456")
 
         then:
         2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
