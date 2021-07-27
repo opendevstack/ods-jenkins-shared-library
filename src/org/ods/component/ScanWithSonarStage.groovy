@@ -93,6 +93,8 @@ class ScanWithSonarStage extends Stage {
                 steps.echo 'Quality gate passed.'
             }
         }
+
+        createBitbucketCodeInsightReport()
     }
 
     private void scan(Map sonarProperties) {
