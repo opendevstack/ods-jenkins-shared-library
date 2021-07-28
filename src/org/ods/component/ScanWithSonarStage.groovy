@@ -2,6 +2,7 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.orchestration.util.PDFUtil
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
@@ -13,6 +14,7 @@ class ScanWithSonarStage extends Stage {
 
     static final String STAGE_NAME = 'SonarQube Analysis'
     static final String BITBUCKET_SONARQUBE_REPORT_KEY = "org.opendevstack.sonarqube"
+    static final String NEXUS_REPOSITORY = "leva-documentation"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
     private final NexusService nexus
@@ -97,8 +99,9 @@ class ScanWithSonarStage extends Stage {
                 steps.echo 'Quality gate passed.'
             }
         }
-
-        createBitbucketCodeInsightReport()
+        def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('SCRR-MD'))
+        URI reportUriNexus = generateAndArchiveReportInNexus(report, NEXUS_REPOSITORY)
+        createBitbucketCodeInsightReport(reportUriNexus.toString())
     }
 
     private void scan(Map sonarProperties) {
@@ -181,6 +184,7 @@ class ScanWithSonarStage extends Stage {
             includes: 'artifacts/SCRR*',
             allowEmpty: true
         )
+
         context.addArtifactURI('SCRR', targetReport)
         context.addArtifactURI('SCRR-MD', targetReportMd)
     }
@@ -198,7 +202,7 @@ class ScanWithSonarStage extends Stage {
         }
     }
 
-    private createBitbucketCodeInsightReport() {
+    private createBitbucketCodeInsightReport(String nexusUrlReport) {
         String title = "SonarQube"
         String details = "Please visit the following links to review the SonarQube report:"
 
@@ -207,11 +211,36 @@ class ScanWithSonarStage extends Stage {
         def data = [
             key: BITBUCKET_SONARQUBE_REPORT_KEY,
             title: title,
+            link: nexusUrlReport,
             details: details,
             result: result,
         ]
 
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
+    }
+
+    private File generateTempFileFromReport(String report) {
+        // Using File directly over report path doesn't work
+        File file = File.createTempFile("temp",".md")
+        file.write(steps.readFile(file: report) as String)
+
+        return file
+    }
+
+    private URI generateAndArchiveReportInNexus(File reportMd, nexusRepository) {
+        // Generate the PDF from temp markdown file
+        def pdfReport = new PDFUtil().convertFromMarkdown(reportMd, true)
+
+        URI report = nexus.storeArtifact(
+            "${nexusRepository}",
+            "${context.projectId}/${context.componentId}/" +
+                "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/sonarQube",
+            "report.pdf",
+            pdfReport, "application/pdf")
+
+        logger.info "Report stored in: ${report}"
+
+        return report
     }
 
 }

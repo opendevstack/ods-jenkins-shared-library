@@ -53,12 +53,13 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         def data = [
             key: ScanWithSonarStage.BITBUCKET_SONARQUBE_REPORT_KEY,
             title: "SonarQube",
+            link: "http://nexus",
             details: "Please visit the following links to review the SonarQube report:",
             result: "PASS"
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport()
+        stage.createBitbucketCodeInsightReport("http://nexus")
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)

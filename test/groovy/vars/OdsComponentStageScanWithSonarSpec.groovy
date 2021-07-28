@@ -54,6 +54,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
     script.call(context)
 
     then:
@@ -79,6 +80,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
     script.call(context, ['branch': '*'])
 
     then:
@@ -123,6 +125,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod("readJSON", [ Map ]) { Map args ->
       [projectStatus: [projectStatus: projectStatusKey]]
     }
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
     script.call(context, [requireQualityGatePass: true])
 
     then:
