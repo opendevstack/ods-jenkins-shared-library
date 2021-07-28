@@ -32,7 +32,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             'FOO',
             'foo-cd-cd-user-with-password',
             logger))
-        def sonarQube = Spy(new SonarQubeService(script, logger, "community"))
+        def sonarQube = Spy(new SonarQubeService(script, logger, "SonarServerConfig"))
         def nexus = Spy(new NexusService ("http://nexus", "user", "pass"))
         def stage = new ScanWithSonarStage (
             script,
@@ -40,6 +40,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             config,
             bitbucket,
             sonarQube,
+            nexus,
             logger
         )
 

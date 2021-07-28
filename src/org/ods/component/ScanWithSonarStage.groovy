@@ -3,6 +3,7 @@ package org.ods.component
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
 
@@ -14,6 +15,7 @@ class ScanWithSonarStage extends Stage {
     static final String BITBUCKET_SONARQUBE_REPORT_KEY = "org.opendevstack.sonarqube"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
+    private final NexusService nexus
     private final ScanWithSonarOptions options
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -23,6 +25,7 @@ class ScanWithSonarStage extends Stage {
         Map<String, Object> config,
         BitbucketService bitbucket,
         SonarQubeService sonarQube,
+        NexusService nexus,
         ILogger logger) {
         super(script, context, logger)
         // If user did not explicitly define which branches to scan,
@@ -54,6 +57,7 @@ class ScanWithSonarStage extends Stage {
         this.options = new ScanWithSonarOptions(config)
         this.bitbucket = bitbucket
         this.sonarQube = sonarQube
+        this.nexus = nexus
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
