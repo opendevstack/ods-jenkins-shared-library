@@ -1,20 +1,19 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-import org.ods.util.ILogger
-
-import java.time.LocalDateTime
+import groovy.xml.XmlUtil
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.service.DocGenService
+import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.util.*
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.service.*
-import org.ods.orchestration.util.*
-import org.ods.services.ServiceRegistry
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
-import groovy.xml.XmlUtil
+import java.time.LocalDateTime
 
 @SuppressWarnings(['IfStatementBraces',
     'LineLength',
@@ -775,11 +774,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
-    }
-
-    @NonCPS
-    private def computeKeysInDocForTCR(def data) {
-        return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
 
     @SuppressWarnings('CyclomaticComplexity')
@@ -1765,5 +1759,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
 
+    }
+
+    @NonCPS
+    private def computeKeysInDocForTCR(def data) {
+        return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
 }
