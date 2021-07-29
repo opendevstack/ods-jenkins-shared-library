@@ -14,6 +14,7 @@
 - Fixed bug that disallowed empty label values ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/655))
 - Added builder (agent and master) labels into image building process  ([#644](https://github.com/opendevstack/ods-jenkins-shared-library/pull/644))
 - Added regexp compatibility with new Bitbucket merge commit messages ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/656))
+- Remove the workaround for NPE resolving issues ([#660](https://github.com/opendevstack/ods-jenkins-shared-library/pull/660))
 - Set jenkins job to unstable in case of open issues ([#664](https://github.com/opendevstack/ods-jenkins-shared-library/pull/664))
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
 - Fixed use of full image in the creation of the documents ([682](https://github.com/opendevstack/ods-jenkins-shared-library/pull/682))
