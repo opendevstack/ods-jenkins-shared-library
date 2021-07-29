@@ -195,6 +195,23 @@ class InitStage extends Stage {
             )
         )
 
+        def bitbucket = BitbucketService.newFromEnv(
+            steps.unwrap(),
+            steps.env,
+            project.key,
+            project.services.bitbucket.credentials.id,
+            logger
+        )
+        registry.add(BitbucketService, bitbucket)
+
+        registry.add(BitbucketTraceabilityUseCase,
+            new BitbucketTraceabilityUseCase(
+                registry.get(BitbucketService),
+                registry.get(PipelineSteps),
+                registry.get(Project)
+            )
+        )
+
         registry.add(LeVADocumentUseCase,
             new LeVADocumentUseCase(
                 registry.get(Project),
@@ -208,7 +225,8 @@ class InitStage extends Stage {
                 registry.get(NexusService),
                 registry.get(OpenShiftService),
                 registry.get(PDFUtil),
-                registry.get(SonarQubeUseCase)
+                registry.get(SonarQubeUseCase),
+                registry.get(BitbucketTraceabilityUseCase)
             )
         )
 
@@ -221,15 +239,6 @@ class InitStage extends Stage {
                 logger
             )
         )
-
-        def bitbucket = BitbucketService.newFromEnv(
-            steps.unwrap(),
-            steps.env,
-            project.key,
-            project.services.bitbucket.credentials.id,
-            logger
-        )
-        registry.add(BitbucketService, bitbucket)
 
         git.configureUser()
         steps.withCredentials(
@@ -323,7 +332,12 @@ class InitStage extends Stage {
             logger.debug("Agent start stage: ${this.startAgentStageName}")
         }
 
-        executeInParallel(checkoutClosure, loadClosure)
+        try {
+            executeInParallel(checkoutClosure, loadClosure)
+        } catch (OpenIssuesException openDocumentsException) {
+            util.warnBuild(openDocumentsException.message)
+            throw openDocumentsException
+        }
 
         // In promotion mode, we need to check if the checked out repos are on commits
         // which "contain" the commits defined in the env state.

@@ -312,7 +312,7 @@ class MROPipelineUtil extends PipelineUtil {
         )
     }
 
-    Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
+    Map.Entry<String, Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
         return [
             repo.id,
             {
@@ -386,7 +386,7 @@ class MROPipelineUtil extends PipelineUtil {
         ]
     }
 
-    List<Set<Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure preExecute = null, Closure postExecute = null) {
+    List<Map<String, Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure preExecute = null, Closure postExecute = null) {
         // In some phases, we can run all repos in parallel
         if (PipelinePhases.ALWAYS_PARALLEL.contains(name)) {
             repos = [repos.flatten() as Set<Map>]

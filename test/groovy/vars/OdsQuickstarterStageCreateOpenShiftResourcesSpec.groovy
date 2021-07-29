@@ -2,6 +2,8 @@ package vars
 
 import org.ods.quickstarter.Context
 import org.ods.quickstarter.IContext
+import org.ods.services.OpenShiftService
+import org.ods.services.ServiceRegistry
 import util.PipelineSteps
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
@@ -34,6 +36,11 @@ class OdsQuickstarterStageCreateOpenShiftResourcesSpec extends PipelineSpockTest
                 ]
             }
             return metadata
+        }
+    }
+    helper.registerAllowedMethod('sh', [ Map ]) { Map args ->
+        if (args.label ==~ /Getting all .* names for selector 'app=foo-bar'/) {
+            return 'DeploymentConfig:foo Deployment:bar '
         }
     }
 

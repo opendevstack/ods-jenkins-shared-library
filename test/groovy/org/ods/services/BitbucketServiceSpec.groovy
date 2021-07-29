@@ -66,6 +66,229 @@ class BitbucketServiceSpec extends PipelineSpockTestBase {
 
     }
 
+    def "create code insight report"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        service.createCodeInsightReport("http://link", "http://link-nexus", "repo-name", "123456", "Title", "Details", "PASS")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_)>> {
+            assert it.label == ['Create Bitbucket Code Insight report via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request PUT')
+            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Content-Type: application/json"')
+            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('"details":"Details","result":"PASS","link":"http://link-nexus","data": ' +
+                '[{"title":"Report","value":{"linktext":"Result in Aqua","href":"http://link"},"type":"LINK"},' +
+                '{"title":"Report","value":{"linktext":"Result in Nexus","href":"http://link-nexus"},"type":"LINK"}]}\'')
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
+                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+        }
+    }
+
+    def "create code insight report without Aqua Link"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        service.createCodeInsightReport(null, "http://link-nexus", "repo-name", "123456", "Title", "Details", "PASS")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_)>> {
+            assert it.label == ['Create Bitbucket Code Insight report via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request PUT')
+            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Content-Type: application/json"')
+            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('"details":"Details","result":"PASS","link":"http://link-nexus","data": ' +
+                '[{"title":"Report","value":{"linktext":"Result in Nexus","href":"http://link-nexus"},"type":"LINK"}]}\'')
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
+                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+        }
+    }
+
+    def "create code insight report without Nexus link"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        service.createCodeInsightReport("http://link", null, "repo-name", "123456", "Title", "Details", "PASS")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_)>> {
+            assert it.label == ['Create Bitbucket Code Insight report via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request PUT')
+            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Content-Type: application/json"')
+            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
+                '[{"title":"Report","value":{"linktext":"Result in Aqua","href":"http://link"},"type":"LINK"}]}\'')
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
+                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+        }
+    }
+
+    def "create code insight report without Nexus and Aqua link"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        service.createCodeInsightReport(null, null, "repo-name", "123456", "Title", "Details", "PASS")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_)>> {
+            assert it.label == ['Create Bitbucket Code Insight report via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request PUT')
+            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Content-Type: application/json"')
+            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('"details":"Details","result":"PASS","data": []}\'')
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
+                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+        }
+    }
+
+    def "create code insight report with links and messages"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        service.createCodeInsightReport("http://link", "http://link-nexus", "repo-name", "123456", "Title", "Details", "PASS", "Messages")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_)>> {
+            assert it.label == ['Create Bitbucket Code Insight report via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request PUT')
+            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Content-Type: application/json"')
+            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('"details":"Details","result":"PASS","link":"http://link-nexus","data": ' +
+                '[{"title":"Report","value":{"linktext":"Result in Aqua","href":"http://link"},"type":"LINK"},' +
+                '{"title":"Report","value":{"linktext":"Result in Nexus","href":"http://link-nexus"},"type":"LINK"},' +
+                '{"title":"Messages","value":"Messages","type":"TEXT"}]}\'')
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
+                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+        }
+    }
+
+    def "create code insight report with messages but without links"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            new Logger(steps, false)
+        ])
+
+        when:
+        service.createCodeInsightReport(null, null, "repo-name", "123456", "Title", "Details", "PASS", "Messages")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_)>> {
+            assert it.label == ['Create Bitbucket Code Insight report via API']
+            assert it.script.toString().contains('curl')
+            assert it.script.toString().contains('--fail')
+            assert it.script.toString().contains('-sS')
+            assert it.script.toString().contains('--request PUT')
+            assert it.script.toString().contains('--header "Authorization: Bearer tokenvalue"')
+            assert it.script.toString().contains('--header "Content-Type: application/json"')
+            assert it.script.toString().contains('-data \'{"title":"Title","reporter":"OpenDevStack","createdDate":')
+            // Avoid timestamp of creation
+            assert it.script.toString().contains('"details":"Details","result":"PASS","data": ' +
+                '[{"title":"Messages","value":"Messages","type":"TEXT"}]}\'')
+            assert it.script.toString().contains('https://bitbucket.example.com/rest/insights/1.0/' +
+                'projects/FOO/repos/repo-name/commits/123456/reports/org.opendevstack.aquasec')
+        }
+    }
+
+    def "create code insight report with error in call"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def logger = Spy(new Logger(steps, false))
+        def service = Spy(BitbucketService, constructorArgs: [
+            steps,
+            'https://bitbucket.example.com',
+            'FOO',
+            'foo-cd-cd-user-with-password',
+            logger
+        ])
+
+        when:
+        service.createCodeInsightReport("http://link", "http://linq-nexus", "repo-name", "123456", "Title", "Details", "PASS")
+
+        then:
+        2 * steps.getEnv() >> ['USERNAME':'user', 'TOKEN': 'tokenvalue']
+        1 * steps.sh(_) >> {
+            throw new Exception ("Error with curl")
+        }
+        1 * logger.warn("Could not create Bitbucket Code Insight report due to: java.lang.Exception: Error with curl")
+    }
+
     protected String readResource(String name) {
         def classLoader = getClass().getClassLoader();
         def file = new File(classLoader.getResource(name).getFile());

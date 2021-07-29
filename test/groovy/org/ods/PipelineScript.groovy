@@ -69,18 +69,34 @@ class PipelineScript {
     def fileExists (file) {
         return true
     }
-    
+
     def zip (Map cfg) {
-      
+
     }
-    
+
     def parallel (Map executors) {
         if (executors) {
             executors.remove ('failFast')
-            executors.each { key, block -> 
+            executors.each { key, block ->
                 println key
                 block ()
             }
         }
+    }
+
+    def archiveArtifacts(Map args) {
+
+    }
+
+    def stash (Map args) {
+
+    }
+
+    def readFile (Map args) {
+
+    }
+
+    def readJSON (Map args) {
+
     }
 }

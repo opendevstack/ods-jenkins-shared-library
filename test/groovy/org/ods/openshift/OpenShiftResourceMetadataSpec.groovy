@@ -200,8 +200,7 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
         def environment = 'dev'
         def targetProject = "${projectId}-${environment}".toString()
         def selector = "app=${projectId}-${componentId}".toString()
-
-        when:
+        def deployments = [dc:['dc1','dc2'],deploy:['deploy1','deploy2']]
         def context = {
             def ctx = [
                 projectId:   projectId,
@@ -233,24 +232,90 @@ class OpenShiftResourceMetadataSpec extends SpecHelper {
                 BUILD_PARAM_VERSION:    version,
             ]
         }
-        steps.fileExists(quickstarter ? "${componentId}/metadata.yml" : 'metadata.yml') >> true
+        def metadataFile = quickstarter ? "${componentId}/metadata.yml".toString() : 'metadata.yml'
+        def metadataMap = new PipelineSteps().readYaml(text: metadata)
         steps.fileExists('chart/Chart.yaml') >> helm
+        steps.fileExists(metadataFile) >> true
+        steps.fileExists(_) >> false
         steps.readYaml(file: 'chart/Chart.yaml') >> [name: 'myChart', version: '1.0+10']
-        steps.readYaml(_ as Map) >> { Map args ->
-            def testSteps = new PipelineSteps()
-            return testSteps.readYaml(args) { String file ->
-                def data = null
-                if (steps.fileExists(file)) {
-                    data = testSteps.readYaml(text: metadata)
-                }
-                return data
-            }
-        }
+        steps.readYaml(file: metadataFile) >> metadataMap
+        steps.readYaml(_) >> null
         def metadataTool = new OpenShiftResourceMetadata(steps, context(), config(), logger, openShift)
+
+        when:
         metadataTool.updateMetadata()
 
         then:
         1 * openShift.labelResources(targetProject, 'all', labels, selector)
+        1 * openShift.bulkPatch(
+            targetProject,
+            ['dc','deploy'],
+            selector,
+            [template: [metadata: [labels: labels]]],
+            '/spec'
+        )
+
+        when:
+        metadataTool.updateMetadata(true)
+
+        then:
+        1 * openShift.labelResources(targetProject, 'all', labels, selector)
+        1 * openShift.bulkPatch(
+            targetProject,
+            ['dc','deploy'],
+            selector,
+            [template: [metadata: [labels: labels]], paused:  true],
+            '/spec'
+        )
+
+        when:
+        metadataTool.updateMetadata(false)
+
+        then:
+        1 * openShift.labelResources(targetProject, 'all', labels, selector)
+        1 * openShift.bulkPatch(
+            targetProject,
+            ['dc','deploy'],
+            selector,
+            [template: [metadata: [labels: labels]], paused:  null],
+            '/spec'
+        )
+
+        when:
+        metadataTool.updateMetadata(null, deployments)
+
+        then:
+        1 * openShift.labelResources(targetProject, 'all', labels, selector)
+        1 * openShift.bulkPatch(
+            targetProject,
+            deployments,
+            [template: [metadata: [labels: labels]]],
+            '/spec'
+        )
+
+        when:
+        metadataTool.updateMetadata(true, deployments)
+
+        then:
+        1 * openShift.labelResources(targetProject, 'all', labels, selector)
+        1 * openShift.bulkPatch(
+            targetProject,
+            deployments,
+            [template: [metadata: [labels: labels]], paused: true],
+            '/spec'
+        )
+
+        when:
+        metadataTool.updateMetadata(false, deployments)
+
+        then:
+        1 * openShift.labelResources(targetProject, 'all', labels, selector)
+        1 * openShift.bulkPatch(
+            targetProject,
+            deployments,
+            [template: [metadata: [labels: labels]], paused: null],
+            '/spec'
+        )
 
         where:
         quickstarter         | version | helm  | metadata  || labels
