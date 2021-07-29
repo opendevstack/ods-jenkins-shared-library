@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
 - Throw controlled exception when testIssue has no component assigned  ([#693](https://github.com/opendevstack/ods-jenkins-shared-library/pull/693))
 - Fix sort tests steps in TCP and TCR documentsn ([#652](https://github.com/opendevstack/ods-jenkins-shared-library/pull/652))
 - Fixed environment value of SonarQube edition ([#618](https://github.com/opendevstack/ods-jenkins-shared-library/issues/618))
