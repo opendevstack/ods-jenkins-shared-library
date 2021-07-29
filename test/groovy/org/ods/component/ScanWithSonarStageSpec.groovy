@@ -86,7 +86,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in SonarQube",
-                    link: "https://sonarqube-ods.ocp.odsbox.lan/dashboard?id=component1"
+                    link: "https://sonarqube.example.com/dashboard?id=prj1-component1"
                 ],
                 [
                     title: "Report",
@@ -99,7 +99,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("OK", "http://nexus")
+        stage.createBitbucketCodeInsightReport("OK", "http://nexus", "prj1-component1")
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
@@ -116,7 +116,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
                 [
                     title: "Report",
                     text: "Result in SonarQube",
-                    link: "https://sonarqube-ods.ocp.odsbox.lan/dashboard?id=component1"
+                    link: "https://sonarqube.example.com/dashboard?id=prj1-component1"
                 ],
                 [
                     title: "Report",
@@ -129,7 +129,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("ERROR", "http://nexus")
+        stage.createBitbucketCodeInsightReport("ERROR", "http://nexus", "prj1-component1")
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)

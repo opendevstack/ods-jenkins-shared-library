@@ -77,6 +77,12 @@ class SonarQubeService {
         }
     }
 
+    String getSonarQubeHostUrl() {
+        withSonarServerConfig { hostUrl, authToken ->
+            return hostUrl
+        }
+    }
+
     private String getScannerBinary() {
         def scannerBinary = 'sonar-scanner'
         def status = script.sh(
