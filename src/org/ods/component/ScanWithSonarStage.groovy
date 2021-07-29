@@ -91,6 +91,7 @@ class ScanWithSonarStage extends Stage {
 
         // We need always the QG to put in insight report in Bitbucket
         def qualityGateResult = getQualityGateResult(sonarProjectKey)
+        logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
         if (options.requireQualityGatePass) {
             if (qualityGateResult == 'ERROR') {
                 steps.error 'Quality gate failed!'
