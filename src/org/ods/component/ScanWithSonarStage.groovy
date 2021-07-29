@@ -14,7 +14,7 @@ class ScanWithSonarStage extends Stage {
 
     static final String STAGE_NAME = 'SonarQube Analysis'
     static final String BITBUCKET_SONARQUBE_REPORT_KEY = "org.opendevstack.sonarqube"
-    static final String NEXUS_REPOSITORY = "leva-documentation"
+    static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
     private final NexusService nexus
@@ -102,7 +102,8 @@ class ScanWithSonarStage extends Stage {
             }
         }
         def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('SCRR-MD'))
-        URI reportUriNexus = generateAndArchiveReportInNexus(report, NEXUS_REPOSITORY)
+        URI reportUriNexus = generateAndArchiveReportInNexus(report,
+            context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
         createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey)
     }
 
