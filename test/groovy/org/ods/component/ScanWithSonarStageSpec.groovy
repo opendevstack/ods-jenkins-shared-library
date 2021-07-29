@@ -82,12 +82,54 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             key: ScanWithSonarStage.BITBUCKET_SONARQUBE_REPORT_KEY,
             title: "SonarQube",
             link: "http://nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in SonarQube",
+                    link: "https://sonarqube-ods.ocp.odsbox.lan/dashboard?id=component1"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus"
+                ]
+            ],
             details: "Please visit the following links to review the SonarQube report:",
             result: "PASS"
         ]
 
         when:
-        stage.createBitbucketCodeInsightReport("http://nexus")
+        stage.createBitbucketCodeInsightReport("OK", "http://nexus")
+
+        then:
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
+    }
+
+    def "create Bitbucket Insight report - FAIL"() {
+        given:
+        def stage = createStage()
+        def data = [
+            key: ScanWithSonarStage.BITBUCKET_SONARQUBE_REPORT_KEY,
+            title: "SonarQube",
+            link: "http://nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in SonarQube",
+                    link: "https://sonarqube-ods.ocp.odsbox.lan/dashboard?id=component1"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus"
+                ]
+            ],
+            details: "Please visit the following links to review the SonarQube report:",
+            result: "FAIL"
+        ]
+
+        when:
+        stage.createBitbucketCodeInsightReport("ERROR", "http://nexus")
 
         then:
         1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)

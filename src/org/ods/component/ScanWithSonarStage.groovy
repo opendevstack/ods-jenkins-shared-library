@@ -89,8 +89,9 @@ class ScanWithSonarStage extends Stage {
             !context.triggeredByOrchestrationPipeline
         )
 
+        // We need always the QG to put in insight report in Bitbucket
+        def qualityGateResult = getQualityGateResult(sonarProjectKey)
         if (options.requireQualityGatePass) {
-            def qualityGateResult = getQualityGateResult(sonarProjectKey)
             if (qualityGateResult == 'ERROR') {
                 steps.error 'Quality gate failed!'
             } else if (qualityGateResult == 'UNKNOWN') {
@@ -101,7 +102,7 @@ class ScanWithSonarStage extends Stage {
         }
         def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('SCRR-MD'))
         URI reportUriNexus = generateAndArchiveReportInNexus(report, NEXUS_REPOSITORY)
-        createBitbucketCodeInsightReport(reportUriNexus.toString())
+        createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString())
     }
 
     private void scan(Map sonarProperties) {
@@ -202,16 +203,28 @@ class ScanWithSonarStage extends Stage {
         }
     }
 
-    private createBitbucketCodeInsightReport(String nexusUrlReport) {
+    private createBitbucketCodeInsightReport(String qualityGateResult, String nexusUrlReport) {
+        String sorQubeScanUrl = "https://sonarqube-ods.ocp.odsbox.lan" + "/dashboard?id=${context.componentId}"
         String title = "SonarQube"
         String details = "Please visit the following links to review the SonarQube report:"
-
-        String result = "PASS"
+        String result = qualityGateResult == "OK" ? "PASS" : "FAIL"
 
         def data = [
             key: BITBUCKET_SONARQUBE_REPORT_KEY,
             title: title,
             link: nexusUrlReport,
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in SonarQube",
+                    link: sorQubeScanUrl
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: nexusUrlReport
+                ]
+            ],
             details: details,
             result: result,
         ]
