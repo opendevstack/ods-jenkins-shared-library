@@ -1,0 +1,34 @@
+{
+  "id" : "e282e496-5150-407c-b7db-e99309a8b19d",
+  "name" : "rest_api_2_issue_ofi2004-156",
+  "request" : {
+    "url" : "/rest/api/2/issue/OFI2004-156?fields=customfield_11602",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"expand\":\"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\",\"id\":\"51201\",\"self\":\"https://jira.com/rest/api/2/issue/51201\",\"key\":\"OFI2004-156\",\"fields\":{\"customfield_11602\":\"2\"}}",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Thu, 29 Jul 2021 22:27:05 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "27x312115x1",
+      "X-ASESSIONID" : "1l09fay",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "user",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "e282e496-5150-407c-b7db-e99309a8b19d",
+  "persistent" : true,
+  "scenarioName" : "scenario-40-rest-api-2-issue-OFI2004-156",
+  "requiredScenarioState" : "scenario-40-rest-api-2-issue-OFI2004-156-2",
+  "insertionIndex" : 115
+}

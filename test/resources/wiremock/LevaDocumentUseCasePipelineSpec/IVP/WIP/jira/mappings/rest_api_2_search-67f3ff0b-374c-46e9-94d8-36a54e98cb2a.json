@@ -1,0 +1,37 @@
+{
+  "id" : "67f3ff0b-374c-46e9-94d8-36a54e98cb2a",
+  "name" : "rest_api_2_search",
+  "request" : {
+    "url" : "/rest/api/2/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"jql\":\"project = OFI2004 AND issuetype = 'Documentation' AND fixVersion = '3.0'\",\"maxResults\":1000}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_search-67f3ff0b-374c-46e9-94d8-36a54e98cb2a.json",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Thu, 29 Jul 2021 22:30:35 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "30x312229x1",
+      "X-ASESSIONID" : "1l09fay",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "user",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "67f3ff0b-374c-46e9-94d8-36a54e98cb2a",
+  "persistent" : true,
+  "insertionIndex" : 19
+}

@@ -1,0 +1,23 @@
+{
+  "id" : "3625b360-23df-4151-b602-789f7073ec1e",
+  "name" : "service_rest_v1_components",
+  "request" : {
+    "url" : "/service/rest/v1/components?repository=leva-documentation",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "anything" : "anything"
+    } ]
+  },
+  "response" : {
+    "status" : 204,
+    "headers" : {
+      "Date" : "Thu, 29 Jul 2021 22:24:07 GMT",
+      "Server" : "Nexus/3.28.1-01 (OSS)",
+      "X-Content-Type-Options" : "nosniff",
+      "Set-Cookie" : "b7bd9d362cf28fa3746ddf3faaa39cfe=7d66c6cb487ce9e25a74238fddf197a0; path=/; HttpOnly; Secure; SameSite=None"
+    }
+  },
+  "uuid" : "3625b360-23df-4151-b602-789f7073ec1e",
+  "persistent" : true,
+  "insertionIndex" : 1
+}
