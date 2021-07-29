@@ -196,7 +196,7 @@ class ScanWithSonarStage extends Stage {
         def qualityGateJSON = sonarQube.getQualityGateJSON(sonarProjectKey)
         try {
             def qualityGateResult = steps.readJSON(text: qualityGateJSON)
-            def status = qualityGateResult?.projectStatus?.projectStatus ?: 'UNKNOWN'
+            def status = qualityGateResult?.projectStatus?.status ?: 'UNKNOWN'
             return status.toUpperCase()
         } catch (Exception ex) {
             steps.error 'Quality gate status could not be retrieved. ' +

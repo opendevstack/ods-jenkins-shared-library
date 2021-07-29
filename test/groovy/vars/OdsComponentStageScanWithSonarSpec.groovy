@@ -48,6 +48,8 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
     sonarQubeService.scan(*_) >> null
+    sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+    sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
     when:
@@ -74,6 +76,8 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     ServiceRegistry.instance.add(NexusService, nexusService)
     SonarQubeService sonarQubeService = Mock(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+    sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+    sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
     when:
@@ -123,7 +127,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod("readJSON", [ Map ]) { Map args ->
-      [projectStatus: [projectStatus: projectStatusKey]]
+      [projectStatus: [status: projectStatusKey]]
     }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
     script.call(context, [requireQualityGatePass: true])
