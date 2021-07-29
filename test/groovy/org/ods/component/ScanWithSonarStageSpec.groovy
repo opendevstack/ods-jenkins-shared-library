@@ -43,8 +43,36 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
             nexus,
             logger
         )
+        // To use test steps class
+        stage.metaClass.steps = steps
 
         return stage
+    }
+
+    def "generate temp file from report file"() {
+        given:
+        def stage = createStage()
+
+        when:
+        def file = stage.generateTempFileFromReport("report.md")
+
+        then:
+        assert file.exists()
+        assert file.text == ""
+    }
+
+    def "archive report in Nexus"() {
+        given:
+        def stage = createStage()
+        def file = File.createTempFile("temp", ".md")
+
+        when:
+        stage.generateAndArchiveReportInNexus(file, "leva-documentation")
+
+        then:
+        1 * stage.nexus.storeArtifact("leva-documentation", _, "report.pdf", _, "application/pdf") >>
+            new URI("http://nexus/repository/leva-documentation/prj1/12345-56/sonarQube/report.pdf")
+        1 * stage.logger.info("Report stored in: http://nexus/repository/leva-documentation/prj1/12345-56/sonarQube/report.pdf")
     }
 
     def "create Bitbucket Insight report - PASS"() {
