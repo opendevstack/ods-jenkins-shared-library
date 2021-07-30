@@ -116,7 +116,7 @@ class NexusService {
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}'."
+                message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}' with repo: ${repository}."
             }
 
             throw new RuntimeException(message)

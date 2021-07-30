@@ -339,6 +339,11 @@ class Context implements IContext {
     }
 
     @NonCPS
+    String getSonarQubeNexusRepository() {
+        config.sonarQubeNexusRepository
+    }
+
+    @NonCPS
     String getSonarQubeBranch() {
         config.sonarQubeBranch
     }

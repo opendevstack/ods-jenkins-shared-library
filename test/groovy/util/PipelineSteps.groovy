@@ -81,7 +81,7 @@ class PipelineSteps implements IPipelineSteps {
 
     @Override
     def readFile(Map args) {
-        return null
+        return ""
     }
 
     @Override

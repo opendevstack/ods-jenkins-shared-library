@@ -2,7 +2,9 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import org.ods.orchestration.util.PDFUtil
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
 
@@ -10,9 +12,12 @@ import org.ods.util.ILogger
 @TypeChecked
 class ScanWithSonarStage extends Stage {
 
-    public final String STAGE_NAME = 'SonarQube Analysis'
+    static final String STAGE_NAME = 'SonarQube Analysis'
+    static final String BITBUCKET_SONARQUBE_REPORT_KEY = "org.opendevstack.sonarqube"
+    static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
     private final BitbucketService bitbucket
     private final SonarQubeService sonarQube
+    private final NexusService nexus
     private final ScanWithSonarOptions options
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -22,6 +27,7 @@ class ScanWithSonarStage extends Stage {
         Map<String, Object> config,
         BitbucketService bitbucket,
         SonarQubeService sonarQube,
+        NexusService nexus,
         ILogger logger) {
         super(script, context, logger)
         // If user did not explicitly define which branches to scan,
@@ -53,6 +59,7 @@ class ScanWithSonarStage extends Stage {
         this.options = new ScanWithSonarOptions(config)
         this.bitbucket = bitbucket
         this.sonarQube = sonarQube
+        this.nexus = nexus
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
@@ -82,8 +89,10 @@ class ScanWithSonarStage extends Stage {
             !context.triggeredByOrchestrationPipeline
         )
 
+        // We need always the QG to put in insight report in Bitbucket
+        def qualityGateResult = getQualityGateResult(sonarProjectKey)
+        logger.info "SonarQube Quality Gate value: ${qualityGateResult}"
         if (options.requireQualityGatePass) {
-            def qualityGateResult = getQualityGateResult(sonarProjectKey)
             if (qualityGateResult == 'ERROR') {
                 steps.error 'Quality gate failed!'
             } else if (qualityGateResult == 'UNKNOWN') {
@@ -92,6 +101,10 @@ class ScanWithSonarStage extends Stage {
                 steps.echo 'Quality gate passed.'
             }
         }
+        def report = generateTempFileFromReport("artifacts/" + context.getBuildArtifactURIs().get('SCRR-MD'))
+        URI reportUriNexus = generateAndArchiveReportInNexus(report,
+            context.sonarQubeNexusRepository ? context.sonarQubeNexusRepository : DEFAULT_NEXUS_REPOSITORY)
+        createBitbucketCodeInsightReport(qualityGateResult, reportUriNexus.toString(), sonarProjectKey)
     }
 
     private void scan(Map sonarProperties) {
@@ -174,6 +187,7 @@ class ScanWithSonarStage extends Stage {
             includes: 'artifacts/SCRR*',
             allowEmpty: true
         )
+
         context.addArtifactURI('SCRR', targetReport)
         context.addArtifactURI('SCRR-MD', targetReportMd)
     }
@@ -183,12 +197,66 @@ class ScanWithSonarStage extends Stage {
         def qualityGateJSON = sonarQube.getQualityGateJSON(sonarProjectKey)
         try {
             def qualityGateResult = steps.readJSON(text: qualityGateJSON)
-            def status = qualityGateResult?.projectStatus?.projectStatus ?: 'UNKNOWN'
+            def status = qualityGateResult?.projectStatus?.status ?: 'UNKNOWN'
             return status.toUpperCase()
         } catch (Exception ex) {
             steps.error 'Quality gate status could not be retrieved. ' +
                 "Status was: '${qualityGateJSON}'. Error was: ${ex}"
         }
+    }
+
+    private createBitbucketCodeInsightReport(String qualityGateResult, String nexusUrlReport, String sonarProjectKey) {
+        String sorQubeScanUrl = sonarQube.getSonarQubeHostUrl() + "/dashboard?id=${sonarProjectKey}"
+        String title = "SonarQube"
+        String details = "Please visit the following links to review the SonarQube report:"
+        String result = qualityGateResult == "OK" ? "PASS" : "FAIL"
+
+        def data = [
+            key: BITBUCKET_SONARQUBE_REPORT_KEY,
+            title: title,
+            link: nexusUrlReport,
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in SonarQube",
+                    link: sorQubeScanUrl
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: nexusUrlReport
+                ]
+            ],
+            details: details,
+            result: result,
+        ]
+
+        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
+    }
+
+    @SuppressWarnings('FileCreateTempFile')
+    private File generateTempFileFromReport(String report) {
+        // Using File directly over report path doesn't work
+        File file = File.createTempFile("temp", ".md")
+        file.write(steps.readFile(file: report) as String)
+
+        return file
+    }
+
+    private URI generateAndArchiveReportInNexus(File reportMd, nexusRepository) {
+        // Generate the PDF from temp markdown file
+        def pdfReport = new PDFUtil().convertFromMarkdown(reportMd, true)
+
+        URI report = nexus.storeArtifact(
+            "${nexusRepository}",
+            "${context.projectId}/${context.componentId}/" +
+                "${new Date().format('yyyy-MM-dd')}-${context.buildNumber}/sonarQube",
+            "report.pdf",
+            pdfReport, "application/pdf")
+
+        logger.info "Report stored in: ${report}"
+
+        return report
     }
 
 }

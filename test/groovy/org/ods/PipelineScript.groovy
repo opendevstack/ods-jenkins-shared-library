@@ -99,4 +99,12 @@ class PipelineScript {
     def readJSON (Map args) {
 
     }
+
+    def withSonarQubeEnv(String conf, Closure closure) {
+        closure()
+    }
+
+    def SONAR_HOST_URL = "https://sonarqube.example.com"
+
+    def SONAR_AUTH_TOKEN = "Token"
 }

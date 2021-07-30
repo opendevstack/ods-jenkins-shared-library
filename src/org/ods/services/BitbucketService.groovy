@@ -317,47 +317,37 @@ class BitbucketService {
      *
      * @param result One of: PASS, FAIL
      */
-    @SuppressWarnings('ParameterCount')
-    void createCodeInsightReport(String linkAqua, String linkNexus,
-                                 String repo, String gitCommit,
-                                 String title, String details, String result, String message = null) {
+    void createCodeInsightReport(Map data, String repo, String gitCommit) {
         withTokenCredentials { username, token ->
             def payload = "{" +
-                "\"title\":\"${title}\"," +
+                "\"title\":\"${data.title}\"," +
                 "\"reporter\":\"OpenDevStack\"," +
                 "\"createdDate\":${System.currentTimeMillis()}," +
-                "\"details\":\"${details}\"," +
-                "\"result\":\"${result}\","
-            if (linkNexus) {
-                payload += "\"link\":\"${linkNexus}\","
+                "\"details\":\"${data.details}\"," +
+                "\"result\":\"${data.result}\","
+            if (data.link) {
+                payload += "\"link\":\"${data.link}\","
             }
             payload += "\"data\": ["
-            if (linkAqua) {
+            data.otherLinks.eachWithIndex { Map link, i ->
                 payload += "{" +
-                    "\"title\":\"Report\"," +
-                    "\"value\":{\"linktext\":\"Result in Aqua\",\"href\":\"${linkAqua}\"}," +
+                    "\"title\":\"${link.title}\"," +
+                    "\"value\":{\"linktext\":\"${link.text}\",\"href\":\"${link.link}\"}," +
                     "\"type\":\"LINK\"" +
                     "}"
-                if (linkNexus || message) {
+                if (i !=  data.otherLinks.size() - 1 || data.messages) {
                     payload += ','
                 }
             }
-            if (linkNexus) {
+            data.messages.eachWithIndex { Map message, i ->
                 payload += "{" +
-                    "\"title\":\"Report\"," +
-                    "\"value\":{\"linktext\":\"Result in Nexus\",\"href\":\"${linkNexus}\"}," +
-                    "\"type\":\"LINK\"" +
-                    "}"
-                if (message) {
-                    payload += ','
-                }
-            }
-            if (message) {
-                payload += "{" +
-                    "\"title\":\"Messages\"," +
-                    "\"value\":\"${message}\"," +
+                    "\"title\":\"${message.title}\"," +
+                    "\"value\":\"${message.value}\"," +
                     "\"type\":\"TEXT\"" +
                     "}"
+                if (i != data.messages.size() - 1) {
+                    payload += ','
+                }
             }
             payload += "]" +
                 "}"
@@ -372,7 +362,7 @@ class BitbucketService {
                         --header \"Content-Type: application/json\" \\
                         --data '${payload}' \\
                         ${bitbucketUrl}/rest/insights/1.0/projects/${project}/\
-repos/${repo}/commits/${gitCommit}/reports/org.opendevstack.aquasec"""
+repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
                 )
                 return
             } catch (err) {

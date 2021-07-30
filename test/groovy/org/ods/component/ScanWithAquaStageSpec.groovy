@@ -148,46 +148,85 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
     def "create Bitbucket Insight report - PASS"() {
         given:
         def stage = createStage()
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/12345/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "PASS"
+        ]
 
         when:
         stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus", "internal", "12345", 0, null)
 
         then:
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns", "http://nexus",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "PASS", null)
-
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
     }
 
     def "create Bitbucket Insight report - FAIL"() {
         given:
         def stage = createStage()
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/12345/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "FAIL"
+        ]
 
         when:
         stage.createBitbucketCodeInsightReport("http://aqua", "http://nexus","internal", "12345", 1, null)
 
         then:
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/12345/vulns", "http://nexus",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "FAIL", null)
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
 
     }
 
     def "create Bitbucket Insight report - Messages"() {
         given:
         def stage = createStage()
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            messages: [
+                [
+                    title: "Messages",
+                    value: "Message"
+                ]
+            ],
+            details: "There was some problems with Aqua:",
+            result: "FAIL"
+        ]
 
         when:
         stage.createBitbucketCodeInsightReport('Message')
 
         then:
-        1 * stage.bitbucket.createCodeInsightReport(null, null,
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","There was some problems with Aqua:",
-            "FAIL", 'Message')
-
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
     }
 
     def "scan with CLI - SUCCESS"() {
@@ -285,6 +324,26 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ], [
             enabled: true
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/image1:2323232323/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "PASS"
+        ]
+
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
@@ -308,11 +367,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
-            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "PASS", '')
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -348,6 +403,25 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ], [
             enabled: true
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/image1:2323232323/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "PASS"
+        ]
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
@@ -370,11 +444,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
-            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "PASS", '')
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -442,6 +512,25 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ], [
             enabled: true
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/image1:2323232323/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "FAIL"
+        ]
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
@@ -464,11 +553,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
-            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "FAIL", '')
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -503,6 +588,25 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ], [
             enabled: true
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/image1:2323232323/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "FAIL"
+        ]
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
@@ -525,11 +629,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
-            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "FAIL", '')
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -564,6 +664,25 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ], [
             enabled: true
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/image1:2323232323/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "FAIL"
+        ]
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
@@ -586,11 +705,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Create report in Bitbucket
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
-            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "FAIL", '')
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit)
         // Archive artifact
         1 * stage.script.sh(_) >> {
             assert it.label == ['Create artifacts dir']
@@ -701,6 +816,25 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         ], [
             enabled: true
         ])
+        def data = [
+            key: ScanWithAquaStage.BITBUCKET_AQUA_REPORT_KEY,
+            title: "Aqua Security",
+            link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: "http://aqua/#/images/internal/image1:2323232323/vulns"
+                ],
+                [
+                    title: "Report",
+                    text: "Result in Nexus",
+                    link: "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html"
+                ]
+            ],
+            details: "Please visit the following links to review the Aqua Security scan report:",
+            result: "PASS"
+        ]
         stage.context.addBuildToArtifactURIs("component1", [image: "image1/image1:2323232323"])
 
         when:
@@ -723,11 +857,7 @@ class ScanWithAquaStageSpec extends PipelineSpockTestBase {
         1 * stage.nexus.storeArtifact("leva-documentation", _, "report.html", _, "text/html") >>
             new URI("http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html")
         // Error creating report in Bitbucket
-        1 * stage.bitbucket.createCodeInsightReport("http://aqua/#/images/internal/image1:2323232323/vulns",
-            "http://nexus/repository/leva-documentation/prj1/12345-56/aqua/report.html",
-            stage.context.repoName, stage.context.gitCommit,
-            "Aqua Security","Please visit the following links to review the Aqua Security scan report:",
-            "PASS", '') >> {
+        1 * stage.bitbucket.createCodeInsightReport(data, stage.context.repoName, stage.context.gitCommit) >> {
             throw new Exception ("Error bitbucket")
         }
 

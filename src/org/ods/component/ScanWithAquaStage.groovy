@@ -13,6 +13,7 @@ class ScanWithAquaStage extends Stage {
 
     static final String STAGE_NAME = 'Aqua Security Scan'
     static final String AQUA_CONFIG_MAP_NAME = "aqua"
+    static final String BITBUCKET_AQUA_REPORT_KEY = "org.opendevstack.aquasec"
     private final AquaService aqua
     private final BitbucketService bitbucket
     private final OpenShiftService openShift
@@ -166,9 +167,35 @@ class ScanWithAquaStage extends Stage {
         String details = "Please visit the following links to review the Aqua Security scan report:"
 
         String result = returnCode == 0 ? "PASS" : "FAIL"
-        bitbucket.createCodeInsightReport(aquaScanUrl, nexusUrlReport,
-            context.repoName, context.gitCommit,
-            title, details, result, prepareMessageToBitbucket(messages))
+
+        def data = [
+            key: BITBUCKET_AQUA_REPORT_KEY,
+            title: title,
+            link: nexusUrlReport,
+            otherLinks: [
+                [
+                    title: "Report",
+                    text: "Result in Aqua",
+                    link: aquaScanUrl
+                ]
+            ],
+            details: details,
+            result: result,
+        ]
+        if (nexusUrlReport) {
+            ((List)data.otherLinks).add([
+                title: "Report",
+                text: "Result in Nexus",
+                link: nexusUrlReport,
+            ])
+        }
+        if (messages) {
+            data.put("messages",[
+                [ title: "Messages", value: prepareMessageToBitbucket(messages), ]
+            ])
+        }
+
+        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
     private createBitbucketCodeInsightReport(String messages) {
@@ -176,8 +203,21 @@ class ScanWithAquaStage extends Stage {
         String details = "There was some problems with Aqua:"
 
         String result = "FAIL"
-        bitbucket.createCodeInsightReport(null, null,
-            context.repoName, context.gitCommit, title, details, result, prepareMessageToBitbucket(messages))
+
+        def data = [
+            key: BITBUCKET_AQUA_REPORT_KEY,
+            title: title,
+            messages: [
+                [
+                    title: "Messages",
+                    value: prepareMessageToBitbucket(messages)
+                ]
+            ],
+            details: details,
+            result: result,
+        ]
+
+        bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
     private String prepareMessageToBitbucket(String message = "") {
