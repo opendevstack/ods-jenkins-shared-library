@@ -20,18 +20,27 @@ import util.FixtureHelper
 
 @Slf4j
 class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
-    private static final String PROJECT_KEY = "OFI2004"
-    private static final String PROJECT_KEY_RELEASE_ID = "207"
-    private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
-
     /**
-     * By default testRecordMode = false
+     * By default RECORD = false
      * Add 'testRecordMode = true' in gradle.properties Change to record Wiremock interactions
+     * When RECORD wiremock will record the interaction with the servers
      *
      * After Wiremock record:
      *  in recorded files change "date_created":"...."  by "date_created":"${json-unit.any-string}"
      */
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"])
+
+    /**
+     * By default GENERATE_NEW_EXPECTED_FILES = false
+     * Add 'generateNewExpectedFiles = true' in gradle.properties Change to generate new expected files
+     * When GENERATE_NEW_EXPECTED_FILES it will remove the expected pdfs and create a new ones
+     * (ie. GENERATE_NEW_EXPECTED_FILES=true will not compare pdfs)
+     */
+    private static final boolean GENERATE_NEW_EXPECTED_FILES = Boolean.parseBoolean(System.properties["generateNewExpectedFiles"])
+
+    private static final String PROJECT_KEY = "OFI2004"
+    private static final String PROJECT_KEY_RELEASE_ID = "207"
+    private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
 
     @Rule
     EnvironmentVariables env = new EnvironmentVariables()
@@ -121,7 +130,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
 
     private boolean validatePDF(doctype, version, oveAllPrefix = "") {
         unzipGeneratedArtifact(doctype, version)
-        if (RECORD) {
+        if (GENERATE_NEW_EXPECTED_FILES) {
             copyDocWhenRecording(doctype, version, oveAllPrefix)
             return true
         } else {
@@ -143,7 +152,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     }
 
     private File expectedDoc(doctype, version, oveAllPrefix) {
-        new FixtureHelper().getResource("expected/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
+        new FixtureHelper().getResource("expected/${this.class.simpleName}/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
     }
 
     private File savedDoc(doctype, version) {
@@ -151,7 +160,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     }
 
     private void copyDocWhenRecording(doctype, version, oveAllPrefix) {
-        def expectedDoc = new File("test/resources/expected/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
+        def expectedDoc = new File("test/resources/expected/${this.class.simpleName}/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
         FileUtils.copyFile(actualDoc(doctype, version), expectedDoc)
     }
 
