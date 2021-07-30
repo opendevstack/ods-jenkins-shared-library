@@ -31,6 +31,7 @@
 - Add Technical Specifications and risks related to technical specifications to the TRC document ([#690](https://github.com/opendevstack/ods-jenkins-shared-library/pull/690))
 - Enable the co-existence of multiple E2E test components ([#377](https://github.com/opendevstack/ods-jenkins-shared-library/issues/377))
 - Fix Document History in TIR and IVR is not correct after de deploy to P ([#695](https://github.com/opendevstack/ods-jenkins-shared-library/pull/695))
+- Integrate SonarQube scan results with Bitbucket ([#698](https://github.com/opendevstack/ods-jenkins-shared-library/pull/698))
 
 ## [3.0] - 2020-08-11
 
