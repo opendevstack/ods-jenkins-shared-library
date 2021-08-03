@@ -209,6 +209,7 @@ class DocumentHistory {
 
     }
 
+    @NonCPS
     protected String getSavedDocumentName(String environment = targetEnvironment) {
         def suffix = (documentName) ? '-' + documentName : ''
         return "documentHistory-${environment}${suffix}"
