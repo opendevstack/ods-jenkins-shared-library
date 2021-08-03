@@ -101,6 +101,7 @@ class DocumentHistory {
         return this
     }
 
+    @NonCPS
     Long getVersion() {
         this.latestVersionId
     }
@@ -284,6 +285,7 @@ class DocumentHistory {
         }
     }
 
+    @NonCPS
     private String createRational(DocumentHistoryEntry currentEntry) {
         if (currentEntry.getEntryId() == 1L) {
             return "Initial document version."
@@ -304,7 +306,8 @@ class DocumentHistory {
         }.findAll { it.id != currentEntry.getEntryId() }
         def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
-        if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size()) {
+        if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size() &&
+            !documentName.contains('-')) {
             throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
                 "Project has as previous project version '${currentEntry.getPreviousProjectVersion()}' " +
                 'but no document history containing that ' +
