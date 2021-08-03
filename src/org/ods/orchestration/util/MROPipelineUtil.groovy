@@ -86,7 +86,7 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true, 
+    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true,
         String jenkinsFile = 'Jenkinsfile') {
         this.steps.dir(baseDir) {
             if (repo.data.openshift.resurrectedBuild) {
