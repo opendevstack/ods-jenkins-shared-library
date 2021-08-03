@@ -86,7 +86,8 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true) {
+    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true, 
+        String jenkinsFile = 'Jenkinsfile') {
         this.steps.dir(baseDir) {
             if (repo.data.openshift.resurrectedBuild) {
                 logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
@@ -101,7 +102,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
             env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
             this.steps.withEnv (env) {
-                job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
             }
             // Collect ODS build artifacts for repo.
             // We get a map with at least two keys ("build" and "deployments").
@@ -306,7 +307,8 @@ class MROPipelineUtil extends PipelineUtil {
             "*/${branch}",
             [
                 [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ],
-                [ $class: 'LocalBranch', localBranch: "**" ]
+                [ $class: 'LocalBranch', localBranch: "**" ],
+                [ $class: 'CleanBeforeCheckout']
             ],
             [[ credentialsId: credentialsId, url: repo.url ]]
         )
@@ -352,7 +354,14 @@ class MROPipelineUtil extends PipelineUtil {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
-                        if (name == PipelinePhases.TEST) {
+                        if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
+                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: ${repo.pipelineConfig.initJenkinsFile}")
+                            if (repo.pipelineConfig.initJenkinsFile) {
+                                executeODSComponent(repo, baseDir, true, repo.pipelineConfig.initJenkinsFile)
+                                // hacky - but the only way possible
+                                util.prepareCheckoutRepoNamedJob(repo)
+                            }
+                        } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")

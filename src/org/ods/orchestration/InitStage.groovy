@@ -267,11 +267,13 @@ class InitStage extends Stage {
         {
             script.parallel (
                 repos.collectEntries { repo ->
-                    logger.info("Repository: ${repo}")
+                    logger.info("Loading Repository: ${repo}")
                     if (envState?.repositories) {
                         repo.data.envStateCommit = envState.repositories[repo.id] ?: ''
                     }
                     util.prepareCheckoutRepoNamedJob(repo)
+                    // we allow init hooks for special component types
+                    util.prepareExecutePhaseForRepoNamedJob(phase, repo)
                 }
             )
         }
