@@ -445,29 +445,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
 
-        def keysInDoc = this.computeKeysInDocForCFTP(integrationTestIssues + acceptanceTestIssues)
+        def keysInDoc = []
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                acceptanceTests : acceptanceTestIssues.collect { testIssue ->
-                    [
-                        key        : testIssue.key,
-                        description: this.convertImages(testIssue.description ?: ''),
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
-                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
-                    ]
-                },
-                integrationTests: integrationTestIssues.collect { testIssue ->
-                    [
-                        key        : testIssue.key,
-                        description: this.convertImages(testIssue.description ?: ''),
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
-                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
-                    ]
-                },
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
