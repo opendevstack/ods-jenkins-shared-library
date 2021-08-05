@@ -355,9 +355,9 @@ class MROPipelineUtil extends PipelineUtil {
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
                         if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
-                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: ${repo.pipelineConfig?.initJenkinsFile}")
-                            if (repo.pipelineConfig?.initJenkinsFile) {
-                                executeODSComponent(repo, baseDir, true, repo.pipelineConfig.initJenkinsFile)
+                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: ${repo.initJenkinsFile}")
+                            if (repo.initJenkinsFile) {
+                                executeODSComponent(repo, baseDir, true, repo.initJenkinsFile)
                                 // hacky - but the only way possible
                                 util.prepareCheckoutRepoNamedJob(repo)
                             }
