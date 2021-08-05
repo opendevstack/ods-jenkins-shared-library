@@ -47,21 +47,6 @@ class DocumentHistory {
         sourceEnvironment = getSourceEnvironment(targetEnvironment, documentName)
     }
 
-    // Find the previous environment where the document was generated, if it exists.
-    // Otherwise, use the target environment.
-    @NonCPS
-    private getSourceEnvironment(String targetEnvironment, String documentName) {
-        def documentType = LeVADocumentUtil.getTypeFromName(documentName)
-        def environment = null
-        def envs = ['D', 'Q', 'P']
-        for (int i = 0; i < envs.size() && envs[i] != targetEnvironment; i++) {
-            if (LeVADocumentScheduler.ENVIRONMENT_TYPE[envs[i]].containsKey(documentType)) {
-                environment = envs[i]
-            }
-        }
-        return environment ?: targetEnvironment
-    }
-
     DocumentHistory load(Map jiraData, List<String> filterKeys) {
         this.latestVersionId = 0L
         try {
@@ -225,6 +210,22 @@ class DocumentHistory {
     @NonCPS
     protected static List<DocumentHistoryEntry> sortDocHistoriesReversed(List<DocumentHistoryEntry> dhs) {
         sortDocHistories(dhs).reverse()
+    }
+
+    // Find the previous environment where the document was generated, if it exists.
+    // Otherwise, use the target environment.
+    @NonCPS
+    private getSourceEnvironment(String targetEnvironment, String documentName) {
+        def documentType = LeVADocumentUtil.getTypeFromName(documentName)
+        def environment = null
+        Environment.values().collect { it.toString() }
+            .takeWhile { it != targetEnvironment }
+            .each { env ->
+                if (LeVADocumentScheduler.ENVIRONMENT_TYPE[env].containsKey(documentType)) {
+                    environment = env
+                }
+        }
+        return environment ?: targetEnvironment
     }
 
     @NonCPS

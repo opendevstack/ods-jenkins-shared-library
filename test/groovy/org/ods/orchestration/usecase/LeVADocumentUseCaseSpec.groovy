@@ -5,6 +5,7 @@ import groovy.util.logging.Log
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.services.ServiceRegistry
 import spock.lang.Unroll
 
 import org.ods.services.JenkinsService
@@ -61,6 +62,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         pdf = Mock(PDFUtil)
         sq = Mock(SonarQubeUseCase)
         logger = Mock(Logger)
+        ServiceRegistry.instance.add(Logger, logger)
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq))
         project.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
         project.getDocumentTrackingIssuesForHistory(_) >> [[key: 'ID-01', status: 'TODO']]

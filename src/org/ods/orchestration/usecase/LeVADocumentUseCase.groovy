@@ -1628,7 +1628,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String computeSavedDocumentEnvironment(String documentType) {
         def environment = this.project.buildParams.targetEnvironmentToken
         if (this.project.isWorkInProgress) {
-            environment = ['D', 'Q', 'P'].find { env ->
+            environment = Environment.values().collect { it.toString() }.find { env ->
                 LeVADocumentScheduler.ENVIRONMENT_TYPE[env].containsKey(documentType)
             }
         }
@@ -1753,7 +1753,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 // The document, or a new version of it, has already been created in this same pipeline run.
                 version = this.project.getDocumentVersionFromHistories(doc)
                 if (!version) {
-                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, ['D', 'Q', 'P'])
+                    def envs = Environment.values().collect { it.toString() }
+                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
                     version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
                     if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
                         // Either this is a developer preview or
