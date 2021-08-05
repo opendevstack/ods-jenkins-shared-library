@@ -307,7 +307,6 @@ class MROPipelineUtil extends PipelineUtil {
             [
                 [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ],
                 [ $class: 'LocalBranch', localBranch: "**" ],
-                [ $class: 'CleanBeforeCheckout']
             ],
             [[ credentialsId: credentialsId, url: repo.url ]]
         )
