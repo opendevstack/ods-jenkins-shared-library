@@ -360,7 +360,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 // hacky - but the only way possible - we know it's only one.
                                 Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
                                 checkout()
-                                this.logger.debug("new git data for ${repo.id}}: ${repo.git}")
+                                this.logger.debug("new git data for ${repo.id}}: ${repo.data.git}")
                             }
                         } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
