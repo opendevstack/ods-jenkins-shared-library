@@ -318,7 +318,6 @@ class MROPipelineUtil extends PipelineUtil {
             repo.id,
             {
                 this.executeBlockAndFailBuild {
-                    this.logger.debug("starting Exec: Repo '${repo}' phase: '${name}', pre: ${preExecute}")
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                     def targetEnvToken = this.project.buildParams.targetEnvironmentToken
                     if (preExecute) {
@@ -355,9 +354,9 @@ class MROPipelineUtil extends PipelineUtil {
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
                         if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
-                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: '${repo.initJenkinsFile}'")
-                            if (repo.initJenkinsFile) {
-                                executeODSComponent(repo, baseDir, true, repo.initJenkinsFile)
+                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
+                            if (repo.pipelineConfig?.initJenkinsFile) {
+                                executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
                                 // hacky - but the only way possible
                                 util.prepareCheckoutRepoNamedJob(repo)
                             }
