@@ -334,6 +334,7 @@ class InitStage extends Stage {
 
         try {
             executeInParallel(checkoutClosure, loadClosure)
+            @SuppressWarnings('Indentation')
             script.parallel (
                 repos.collectEntries { repo ->
                     logger.debug("-< Initing Repository: ${repo}")
