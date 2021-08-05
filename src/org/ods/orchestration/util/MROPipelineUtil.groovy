@@ -356,10 +356,12 @@ class MROPipelineUtil extends PipelineUtil {
                         if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
                             this.logger.debug("Repo '${repo.id}', init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
                             if (repo.pipelineConfig?.initJenkinsFile) {
+                                this.logger.debug("current git data for ${repo.id}: ${repo.data.git}")
                                 executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
                                 // hacky - but the only way possible - we know it's only one.
                                 Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
                                 checkout()
+                                this.steps.sh ('git log -1')
                                 this.logger.debug("new git data for ${repo.id}: ${repo.data.git}")
                             }
                         } else if (name == PipelinePhases.TEST) {
