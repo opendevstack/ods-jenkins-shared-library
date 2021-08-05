@@ -51,7 +51,7 @@ class DocumentHistory {
     // Otherwise, use the target environment.
     @NonCPS
     private getSourceEnvironment(String targetEnvironment, String documentName) {
-        def documentType = documentName.split('-').first()
+        def documentType = LeVADocumentUtil.getTypeFromName(documentName)
         def environment = null
         def envs = ['D', 'Q', 'P']
         for (int i = 0; i < envs.size() && envs[i] != targetEnvironment; i++) {
@@ -307,7 +307,7 @@ class DocumentHistory {
         def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
         if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size() &&
-            !documentName.contains('-')) {
+            LeVADocumentUtil.isFullDocument(documentName)) {
             throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
                 "Project has as previous project version '${currentEntry.getPreviousProjectVersion()}' " +
                 'but no document history containing that ' +
@@ -419,7 +419,8 @@ class DocumentHistory {
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentName.split('-').first()) }
+            def docType = LeVADocumentUtil.getTypeFromName(this.documentName)
+            issues = issues.findAll { it.value.documents.contains(docType) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }

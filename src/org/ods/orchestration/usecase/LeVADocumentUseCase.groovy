@@ -1605,7 +1605,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return this.project.getHistoryForDocument(documentName)
         } else {
-            def documentType = documentName.split('-').first()
+            def documentType = LeVADocumentUtil.getTypeFromName(documentName)
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
             def docHistory = new DocumentHistory(this.steps, ServiceRegistry.instance.get(Logger), environment, documentName)
