@@ -319,7 +319,7 @@ class MROPipelineUtil extends PipelineUtil {
             repo.id,
             {
                 this.executeBlockAndFailBuild {
-                    this.logger.debug("exec: Repo '${repo.id}' phase: '${name}'")
+                    this.logger.debug("starting Exec: Repo '${repo}' phase: '${name}', pre: ${preExecute}")
                     def baseDir = "${this.steps.env.WORKSPACE}/${REPOS_BASE_DIR}/${repo.id}"
                     def targetEnvToken = this.project.buildParams.targetEnvironmentToken
                     if (preExecute) {
