@@ -264,7 +264,7 @@ class MROPipelineUtil extends PipelineUtil {
 
                 // in case of a re-checkout, scm.GIT_COMMIT  still points
                 // to the old commit.
-                def commit = scm.GIT_COMMIT 
+                def commit = scm.GIT_COMMIT
                 def prevCommit = scm.GIT_PREVIOUS_COMMIT
                 def lastSuccessCommit =  scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT
                 if (recheckout) {
