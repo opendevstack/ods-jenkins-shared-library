@@ -32,7 +32,7 @@ class FinalizeOdsComponent {
 
     public void run(Map repo, String baseDir) {
         this.os = ServiceRegistry.instance.get(OpenShiftService)
-
+        logger.debug("Finalizing repo: ${repo}")
         def componentSelector = "app=${project.key}-${repo.id}"
 
         verifyDeploymentsBuiltByODS(repo, componentSelector)
