@@ -358,12 +358,12 @@ class MROPipelineUtil extends PipelineUtil {
                                 this.logger.debug("current git data for ${repo.id}: ${repo.data.git}")
                                 executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
                                 // hacky - but the only way possible - we know it's only one.
+                                Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
+                                checkout()
                                 steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
-                                    Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
-                                    checkout()
                                     this.steps.sh ('pwd && git log -1 && ls')
-                                    this.logger.debug("new git data for ${repo.id}: ${repo.data.git}")
                                 }
+                                this.logger.debug("new git data for ${repo.id}: ${repo.data.git}")
                             }
                         } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
