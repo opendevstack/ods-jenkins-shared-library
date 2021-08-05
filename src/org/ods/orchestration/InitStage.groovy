@@ -332,16 +332,15 @@ class InitStage extends Stage {
             logger.debug("Agent start stage: ${this.startAgentStageName}")
         }
 
-//        script.parallel (
-//            repos.collectEntries { repo ->
-//                logger.info("Initing  Repository: ${repo}")
-//                // we allow init hooks for special component types
-//                util.prepareExecutePhaseForRepoNamedJob(phase, repo)
-//            }
-//        )
-
         try {
             executeInParallel(checkoutClosure, loadClosure)
+            script.parallel (
+                repos.collectEntries { repo ->
+                    logger.info("Initing  Repository: ${repo}")
+                    // we allow init hooks for special component types
+                    util.prepareExecutePhaseForRepoNamedJob(phase, repo)
+                }
+            )
         } catch (OpenIssuesException openDocumentsException) {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
