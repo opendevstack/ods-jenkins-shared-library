@@ -332,21 +332,20 @@ class InitStage extends Stage {
             logger.debug("Agent start stage: ${this.startAgentStageName}")
         }
 
+//        script.parallel (
+//            repos.collectEntries { repo ->
+//                logger.info("Initing  Repository: ${repo}")
+//                // we allow init hooks for special component types
+//                util.prepareExecutePhaseForRepoNamedJob(phase, repo)
+//            }
+//        )
+
         try {
             executeInParallel(checkoutClosure, loadClosure)
         } catch (OpenIssuesException openDocumentsException) {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
         }
-
-        @SuppressWarnings('Indentation')
-        script.parallel (
-            repos.collectEntries { repo ->
-                logger.info("Initing  Repository: ${repo}")
-                // we allow init hooks for special component types
-                util.prepareExecutePhaseForRepoNamedJob(phase, repo)
-            }
-        )
 
         // In promotion mode, we need to check if the checked out repos are on commits
         // which "contain" the commits defined in the env state.
