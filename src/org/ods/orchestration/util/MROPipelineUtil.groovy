@@ -219,7 +219,7 @@ class MROPipelineUtil extends PipelineUtil {
         return repos
     }
 
-    Map<String, Closure> prepareCheckoutRepoNamedJob(Map repo) {
+    Map<String, Closure> prepareCheckoutRepoNamedJob(Map repo, boolean recheckout = false) {
         return [
             repo.id,
             {
@@ -262,11 +262,24 @@ class MROPipelineUtil extends PipelineUtil {
                 }
                 this.logger.debugClocked("${repo.id}-scm-checkout")
 
+                // in case of a re-checkout, scm.GIT_COMMIT  still points
+                // to the old commit.
+                def commit = scm.GIT_COMMIT 
+                def prevCommit = scm.GIT_PREVIOUS_COMMIT
+                def lastSuccessCommit =  scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT
+                if (recheckout) {
+                    steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                        commit = git.getCommitSha()
+                        prevCommit = scm.GIT_COMMIT
+                        lastSuccessCommit = scm.GIT_COMMIT
+                    }
+                }
+
                 repo.data.git = [
                     branch: scmBranch,
-                    commit: scm.GIT_COMMIT,
-                    previousCommit: scm.GIT_PREVIOUS_COMMIT,
-                    previousSucessfulCommit: scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT,
+                    commit: commit,
+                    previousCommit: prevCommit,
+                    previousSucessfulCommit: lastSuccessCommit,
                     url: scm.GIT_URL,
                     baseTag: this.project.baseTag,
                     targetTag: this.project.targetTag
@@ -358,7 +371,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 this.logger.debug("current git data for ${repo.id}: ${repo.data.git}")
                                 executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
                                 // hacky - but the only way possible - we know it's only one.
-                                Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
+                                Closure checkout = prepareCheckoutRepoNamedJob(repo, true).get(1)
                                 checkout()
                                 steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
                                     this.steps.sh ('pwd && git log -1 && ls')
