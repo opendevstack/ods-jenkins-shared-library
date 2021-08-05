@@ -273,7 +273,7 @@ class InitStage extends Stage {
                     }
                     util.prepareCheckoutRepoNamedJob(repo)
                     // we allow init hooks for special component types
-                    script.sh ('starting INIT phase execution')
+                    logger.info('starting INIT phase execution')
                     util.prepareExecutePhaseForRepoNamedJob(phase, repo)
                 }
             )
