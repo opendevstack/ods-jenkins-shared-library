@@ -336,7 +336,7 @@ class InitStage extends Stage {
             executeInParallel(checkoutClosure, loadClosure)
             script.parallel (
                 repos.collectEntries { repo ->
-                    logger.debug("Initing Repository: ${repo.id}")
+                    logger.debug("-< Initing Repository: ${repo}")
                     // we allow init hooks for special component types
                     util.prepareExecutePhaseForRepoNamedJob(phase, repo)
                 }
