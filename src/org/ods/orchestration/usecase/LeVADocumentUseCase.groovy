@@ -1725,7 +1725,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return [:]
 
         def environment = this.project.buildParams.targetEnvironmentToken
-        def docIsCreatedInTheEnvironment = { String doc ->
+        def isHistoryUpdatedInThisEnvironment = { String doc ->
             LeVADocumentScheduler.getFirstCreationEnvironment(doc) == environment
         }
 
@@ -1756,10 +1756,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     def envs = Environment.values().collect { it.toString() }
                     def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
                     version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                    if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
-                        // Either this is a developer preview or
-                        // the target environment is the first environment where the document is generated,
-                        // and, therefore, a new document history will be created.
+                    if (this.project.isWorkInProgress || isHistoryUpdatedInThisEnvironment(doc)) {
+                        // Either this is a developer preview or the history is to be updated in this environment.
                         version += 1L
                     }
                 }
