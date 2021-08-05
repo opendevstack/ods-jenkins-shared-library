@@ -1726,7 +1726,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def environment = this.project.buildParams.targetEnvironmentToken
         def docIsCreatedInTheEnvironment = { String doc ->
-            LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].containsKey(doc)
+            LeVADocumentScheduler.getFirstCreationEnvironment(doc) == environment
         }
 
         def referencedDcocs = [
@@ -1750,15 +1750,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 // TODO removeme in ODS 4.x
                 version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
             } else {
-                // The document, or a new version of it, has already been created in this same pipeline run.
                 version = this.project.getDocumentVersionFromHistories(doc)
                 if (!version) {
+                    // The document has not (yet) been generated in this pipeline run.
                     def envs = Environment.values().collect { it.toString() }
                     def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
                     version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
                     if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
                         // Either this is a developer preview or
-                        // the document will be generated in this deploy, but it is not created yet.
+                        // the target environment is the first environment where the document is generated,
+                        // and, therefore, a new document history will be created.
                         version += 1L
                     }
                 }
