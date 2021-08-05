@@ -361,7 +361,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 // hacky - but the only way possible - we know it's only one.
                                 Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
                                 checkout()
-                                this.steps.sh ('git log -1')
+                                this.steps.sh ('git log -1 && ls')
                                 this.logger.debug("new git data for ${repo.id}: ${repo.data.git}")
                             }
                         } else if (name == PipelinePhases.TEST) {
