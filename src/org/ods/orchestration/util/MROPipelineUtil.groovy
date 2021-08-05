@@ -358,8 +358,8 @@ class MROPipelineUtil extends PipelineUtil {
                             if (repo.pipelineConfig?.initJenkinsFile) {
                                 executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
                                 // hacky - but the only way possible - we know it's only one.
-                                def checkout = prepareCheckoutRepoNamedJob(repo)
-                                logger.debug("checkout: ${checkout}")
+                                Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
+                                checkout()
                             }
                         } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
