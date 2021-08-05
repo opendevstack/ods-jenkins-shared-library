@@ -93,8 +93,6 @@ class MROPipelineUtil extends PipelineUtil {
                 logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
                 return
             }
-            this.steps.sh("git log -1")
-            this.steps.sh("ls -la")
             def job
             def env = []
             env.addAll(this.project.getMainReleaseManagerEnv())

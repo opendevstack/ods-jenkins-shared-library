@@ -272,9 +272,6 @@ class InitStage extends Stage {
                         repo.data.envStateCommit = envState.repositories[repo.id] ?: ''
                     }
                     util.prepareCheckoutRepoNamedJob(repo)
-                    // we allow init hooks for special component types
-                    logger.info('starting INIT phase execution')
-                    util.prepareExecutePhaseForRepoNamedJob(phase, repo)
                 }
             )
         }
@@ -341,6 +338,15 @@ class InitStage extends Stage {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
         }
+
+        @SuppressWarnings('Indentation')
+        script.parallel (
+            repos.collectEntries { repo ->
+                logger.info("Initing  Repository: ${repo}")
+                // we allow init hooks for special component types
+                util.prepareExecutePhaseForRepoNamedJob(phase, repo)
+            }
+        )
 
         // In promotion mode, we need to check if the checked out repos are on commits
         // which "contain" the commits defined in the env state.
