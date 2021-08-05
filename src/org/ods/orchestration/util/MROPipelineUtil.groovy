@@ -349,7 +349,7 @@ class MROPipelineUtil extends PipelineUtil {
                             executeODSComponent(repo, baseDir, false)
                         } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
                             new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else if (this.project.isAssembleMode && PipelinePhases.FINALIZE) {
+                        } else if (this.project.isAssembleMode && name ==  PipelinePhases.FINALIZE) {
                             new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
