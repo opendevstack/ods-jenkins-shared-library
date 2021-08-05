@@ -361,7 +361,7 @@ class MROPipelineUtil extends PipelineUtil {
                                 steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
                                     Closure checkout = prepareCheckoutRepoNamedJob(repo).get(1)
                                     checkout()
-                                    this.steps.sh ('git log -1 && ls')
+                                    this.steps.sh ('pwd && git log -1 && ls')
                                     this.logger.debug("new git data for ${repo.id}: ${repo.data.git}")
                                 }
                             }
