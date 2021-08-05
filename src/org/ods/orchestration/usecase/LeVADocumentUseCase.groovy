@@ -442,9 +442,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
-        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
-
         def keysInDoc = []
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
