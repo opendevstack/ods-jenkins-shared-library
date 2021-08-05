@@ -357,8 +357,8 @@ class MROPipelineUtil extends PipelineUtil {
                             this.logger.debug("Repo '${repo.id}', init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
                             if (repo.pipelineConfig?.initJenkinsFile) {
                                 executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
-                                // hacky - but the only way possible
-                                Closure checkout = prepareCheckoutRepoNamedJob(repo).get(repo.id)
+                                // hacky - but the only way possible - we know it's only one.
+                                Closure checkout = prepareCheckoutRepoNamedJob(repo).get(0)
                                 checkout()
                             }
                         } else if (name == PipelinePhases.TEST) {
