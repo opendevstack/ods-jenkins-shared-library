@@ -559,13 +559,13 @@ class Context implements IContext {
 
     // set to commit the working tree after custom work
     void setCommitGitWorkingTree (boolean commit) {
-        config.CommitGitWorkingTree = commit
+        config.commitGitWorkingTree = commit
     }
 
     // get commit the working tree
     @NonCPS
     boolean getCommitGitWorkingTree () {
-        config.CommitGitWorkingTree
+        config.commitGitWorkingTree
     }
 
     private String retrieveGitUrl() {
