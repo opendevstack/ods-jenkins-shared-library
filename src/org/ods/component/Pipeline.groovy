@@ -224,6 +224,7 @@ class Pipeline implements Serializable {
                             }
                             // hook method for (Agent) specific callouts
                             context.amendWithAgentInformation()
+                            logger.debug("Open working tree? ${context.commitGitWorkingTree}")
                             if (context.commitGitWorkingTree) {
                                 git.configureUser()
                                 script.withCredentials(
