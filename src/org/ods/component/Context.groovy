@@ -140,6 +140,11 @@ class Context implements IContext {
         if (config.environment) {
             config.targetProject = "${config.projectId}-${config.environment}"
         }
+
+        if (!config.containsKey('commitGitWorkingTree')) {
+            config.commitGitWorkingTree = false
+        }
+
         // clone the map and overwrite exclusions
         Map debugConfig = new JsonSlurperClassic().
             parseText(JsonOutput.toJson(config))
@@ -549,6 +554,17 @@ class Context implements IContext {
     @NonCPS
     int getOpenshiftRolloutTimeoutRetries () {
         config.openshiftRolloutTimeoutRetries
+    }
+
+    // set to commit the working tree after custom work
+    void setCommitGitWorkingTree (boolean commit) {
+        config.CommitGitWorkingTree = commit
+    }
+
+    // get commit the working tree
+    @NonCPS
+    int getCommitGitWorkingTree () {
+        config.CommitGitWorkingTree
     }
 
     private String retrieveGitUrl() {

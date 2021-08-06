@@ -4,6 +4,7 @@ import org.ods.services.GitService
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
@@ -223,7 +224,27 @@ class Pipeline implements Serializable {
                             }
                             // hook method for (Agent) specific callouts
                             context.amendWithAgentInformation()
+                            if (context.commitGitWorkingTree) {
+                                git.configureUser()
+                                script.withCredentials(
+                                    [script.usernamePassword(
+                                        credentialsId: context.credentialsId,
+                                        usernameVariable: 'BITBUCKET_USER',
+                                        passwordVariable: 'BITBUCKET_PW'
+                                    )]
+                                ) {
+                                    GitCredentialStore.configureAndStore(
+                                        script, context.bitbucketUrl as String,
+                                        script.env.BITBUCKET_USER as String,
+                                        script.env.BITBUCKET_PW as String)
+                                }   
+                                script.sh("git checkout --track origin/${context.gitBranch}")
+                            }
                             stages(context)
+                            if (context.commitGitWorkingTree) {
+                                script.sh("git commit -m \"system-commit ods\" --allow-empty")
+                                script.sh("git push ${context.gitBranch} origin")
+                            }
                         }
                         script.stage('odsPipeline finished') {
                             updateBuildStatus('SUCCESS')
