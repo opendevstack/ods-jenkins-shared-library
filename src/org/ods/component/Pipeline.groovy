@@ -237,13 +237,13 @@ class Pipeline implements Serializable {
                                         script, context.bitbucketUrl as String,
                                         script.env.BITBUCKET_USER as String,
                                         script.env.BITBUCKET_PW as String)
-                                }   
+                                }
                                 script.sh("git checkout --track origin/${context.gitBranch}")
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {
                                 script.sh("git commit -m \"system-commit ods\" --allow-empty")
-                                script.sh("git push ${context.gitBranch} origin")
+                                git.pushRef(context.gitBranch)
                             }
                         }
                         script.stage('odsPipeline finished') {

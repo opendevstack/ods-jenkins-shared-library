@@ -144,6 +144,7 @@ class Context implements IContext {
         if (!config.containsKey('commitGitWorkingTree')) {
             config.commitGitWorkingTree = false
         }
+        logger.debug "Commit workingtree? ${config.commitGitWorkingTree}"
 
         // clone the map and overwrite exclusions
         Map debugConfig = new JsonSlurperClassic().
@@ -563,7 +564,7 @@ class Context implements IContext {
 
     // get commit the working tree
     @NonCPS
-    int getCommitGitWorkingTree () {
+    boolean getCommitGitWorkingTree () {
         config.CommitGitWorkingTree
     }
 
