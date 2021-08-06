@@ -196,5 +196,5 @@ interface IContext {
     int getOpenshiftRolloutTimeoutRetries ()
 
     // get commit the working tree
-    int getCommitGitWorkingTree ()
+    boolean getCommitGitWorkingTree ()
 }
