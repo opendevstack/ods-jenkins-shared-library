@@ -238,11 +238,11 @@ class Pipeline implements Serializable {
                                         script.env.BITBUCKET_USER as String,
                                         script.env.BITBUCKET_PW as String)
                                 }
-                                script.sh("git checkout --track origin/${context.gitBranch}")
+                                gitService.switchToRemoteBranch(context.gitBranch)
                             }
                             stages(context)
                             if (context.commitGitWorkingTree) {
-                                script.sh("git commit -m \"system-commit ods\" --allow-empty")
+                                gitService.commit ([], "system-commit ods, [ci skip]", true)
                                 gitService.pushRef(context.gitBranch)
                             }
                         }
