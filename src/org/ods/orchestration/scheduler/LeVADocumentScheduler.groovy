@@ -1,5 +1,6 @@
 package org.ods.orchestration.scheduler
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Environment
 import org.ods.orchestration.util.MROPipelineUtil
@@ -192,6 +193,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
      * @param documentType a document type.
      * @return the first environment for which the given document type is generated.
      */
+    @NonCPS
     static String getFirstCreationEnvironment(String documentType) {
         def environment = Environment.values().collect { it.toString() }.find { env ->
             ENVIRONMENT_TYPE[env].containsKey(documentType)
@@ -207,6 +209,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
      * @param environment the environment for which to find the previous creation environment.
      * @return the last environment where a document is generated before the given one.
      */
+    @NonCPS
     static String getPreviousCreationEnvironment(String documentType, String environment) {
         def previousEnvironment = null
         Environment.values().collect { it.toString() }
