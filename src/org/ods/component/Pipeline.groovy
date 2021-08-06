@@ -225,7 +225,7 @@ class Pipeline implements Serializable {
                             // hook method for (Agent) specific callouts
                             context.amendWithAgentInformation()
                             if (context.commitGitWorkingTree) {
-                                git.configureUser()
+                                gitService.configureUser()
                                 script.withCredentials(
                                     [script.usernamePassword(
                                         credentialsId: context.credentialsId,
@@ -243,7 +243,7 @@ class Pipeline implements Serializable {
                             stages(context)
                             if (context.commitGitWorkingTree) {
                                 script.sh("git commit -m \"system-commit ods\" --allow-empty")
-                                git.pushRef(context.gitBranch)
+                                gitService.pushRef(context.gitBranch)
                             }
                         }
                         script.stage('odsPipeline finished') {
