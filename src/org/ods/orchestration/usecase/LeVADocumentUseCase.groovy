@@ -431,11 +431,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    @NonCPS
-    private def computeKeysInDocForCFTP(def data) {
-        return data.collect { it.subMap(['key']).values() }.flatten()
-    }
-
     String createCFTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.CFTP as String
 

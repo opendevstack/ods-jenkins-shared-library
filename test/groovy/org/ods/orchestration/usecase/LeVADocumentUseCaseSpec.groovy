@@ -693,8 +693,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getAutomatedTestsTypeAcceptance()
-        1 * project.getAutomatedTestsTypeIntegration()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, documentTemplate, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
