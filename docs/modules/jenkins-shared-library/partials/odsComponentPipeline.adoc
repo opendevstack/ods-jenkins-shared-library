@@ -84,6 +84,9 @@ Available options are:
 
 | testResults
 | Configurable location for xunit test results, in case the build does not put them into `build/test-results/test`.
+
+| commitGitWorkingTree
+| Defaulting to false, if set to true, any changes in the working directory added with `git add` will be committed to the current branch and pushed.
 |===
 
 == Pipeline Context
