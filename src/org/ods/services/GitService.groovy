@@ -208,9 +208,13 @@ class GitService {
 
     def commit(List files, String msg, boolean allowEmpty = true) {
         def allowEmptyFlag = allowEmpty ? '--allow-empty' : ''
+        def filesToAddCommand = "git add ${files.join(' ')}"
+        if (files.empty) {
+            filesToAddCommand = ''
+        }
         script.sh(
             script: """
-                git add ${files.join(' ')}
+                ${filesToAddCommand}
                 git commit -m "${msg}" ${allowEmptyFlag}
             """,
             label: 'Commit'
@@ -282,6 +286,13 @@ class GitService {
             returnStatus: true,
             label: "Check if ${descendantCommit} is descendant of ${maybeAncestorCommit}"
         ) == 0
+    }
+
+    void switchToRemoteBranch(String branch) {
+        script.sh(
+            script: "git checkout --track origin/${branch}",
+            label: "Checkout branch origin/${branch}"
+        )
     }
 
     void switchToExistingBranch(String branch) {
