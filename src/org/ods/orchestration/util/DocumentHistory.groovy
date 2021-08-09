@@ -44,7 +44,7 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
         // Retrieve the history from the previous environment,
         // unless the target environment is the first one where the document is generated.
-        sourceEnvironment = getSourceEnvironment(targetEnvironment, documentName)
+        sourceEnvironment = getSourceEnvironment(documentName, targetEnvironment)
     }
 
     DocumentHistory load(Map jiraData, List<String> filterKeys) {
@@ -213,16 +213,9 @@ class DocumentHistory {
     // Find the previous environment where the document was generated, if it exists.
     // Otherwise, use the target environment.
     @NonCPS
-    private getSourceEnvironment(String targetEnvironment, String documentName) {
-        def documentType = documentName.split('-').first()
-        def environment = null
-        def envs = ['D', 'Q', 'P']
-        for (int i = 0; i < envs.size() && envs[i] != targetEnvironment; i++) {
-            if (LeVADocumentScheduler.ENVIRONMENT_TYPE[envs[i]].containsKey(documentType)) {
-                environment = envs[i]
-            }
-        }
-        return environment ?: targetEnvironment
+    private getSourceEnvironment(String documentName, String targetEnvironment) {
+        def documentType = LeVADocumentUtil.getTypeFromName(documentName)
+        return LeVADocumentScheduler.getPreviousCreationEnvironment(documentType, targetEnvironment)
     }
 
     @NonCPS

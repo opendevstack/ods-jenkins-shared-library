@@ -1012,7 +1012,9 @@ class Project {
         def history = getHistoryForDocument(documentType)
         if (!history) {
             // All docHistories for DTR and TIR should have the same version
-            history = this.documentHistories.find { it.key.startsWith("${documentType}-") }?.value
+            history = this.documentHistories.find {
+                LeVADocumentUtil.getTypeFromName(it.key) == documentType
+            }?.value
         }
         return history?.version
     }
