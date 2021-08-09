@@ -33,6 +33,7 @@
 - Fix Document History in TIR and IVR is not correct after de deploy to P ([#695](https://github.com/opendevstack/ods-jenkins-shared-library/pull/695))
 - Integrate SonarQube scan results with Bitbucket ([#698](https://github.com/opendevstack/ods-jenkins-shared-library/pull/698))
 - Fix NonCPS error in thumbnail replacement ([#704](https://github.com/opendevstack/ods-jenkins-shared-library/pull/704))
+- Fix referenced document versions after PR [#691] ([#709](https://github.com/opendevstack/ods-jenkins-shared-library/pull/709))
 
 ## [3.0] - 2020-08-11
 
