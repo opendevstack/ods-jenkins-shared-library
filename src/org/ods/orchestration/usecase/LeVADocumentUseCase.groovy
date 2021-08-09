@@ -1597,7 +1597,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (this.project.historyForDocumentExists(documentName)) {
             return this.project.getHistoryForDocument(documentName)
         } else {
-            def documentType = documentName.split('-').first()
+            def documentType = LeVADocumentUtil.getTypeFromName(documentName)
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
             def docHistory = new DocumentHistory(this.steps, ServiceRegistry.instance.get(Logger), environment, documentName)
@@ -1617,7 +1617,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String computeSavedDocumentEnvironment(String documentType) {
         def environment = this.project.buildParams.targetEnvironmentToken
         if (this.project.isWorkInProgress) {
-            environment = ['D', 'Q', 'P'].find { env ->
+            environment = Environment.values().collect { it.toString() }.find { env ->
                 LeVADocumentScheduler.ENVIRONMENT_TYPE[env].containsKey(documentType)
             }
         }
@@ -1714,8 +1714,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return [:]
 
         def environment = this.project.buildParams.targetEnvironmentToken
-        def docIsCreatedInTheEnvironment = { String doc ->
-            LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].containsKey(doc)
+        def isHistoryUpdatedInThisEnvironment = { String doc ->
+            LeVADocumentScheduler.getFirstCreationEnvironment(doc) == environment
         }
 
         def referencedDcocs = [
@@ -1739,14 +1739,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 // TODO removeme in ODS 4.x
                 version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
             } else {
-                // The document, or a new version of it, has already been created in this same pipeline run.
                 version = this.project.getDocumentVersionFromHistories(doc)
                 if (!version) {
-                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, ['D', 'Q', 'P'])
+                    // The document has not (yet) been generated in this pipeline run.
+                    def envs = Environment.values().collect { it.toString() }
+                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
                     version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                    if (this.project.isWorkInProgress || docIsCreatedInTheEnvironment(doc)) {
-                        // Either this is a developer preview or
-                        // the document will be generated in this deploy, but it is not created yet.
+                    if (this.project.isWorkInProgress || isHistoryUpdatedInThisEnvironment(doc)) {
+                        // Either this is a developer preview or the history is to be updated in this environment.
                         version += 1L
                     }
                 }

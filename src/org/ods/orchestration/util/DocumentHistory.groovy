@@ -44,7 +44,7 @@ class DocumentHistory {
         this.targetEnvironment = targetEnvironment
         // Retrieve the history from the previous environment,
         // unless the target environment is the first one where the document is generated.
-        sourceEnvironment = getSourceEnvironment(targetEnvironment, documentName)
+        sourceEnvironment = getSourceEnvironment(documentName, targetEnvironment)
     }
 
     DocumentHistory load(Map jiraData, List<String> filterKeys) {
@@ -86,6 +86,7 @@ class DocumentHistory {
         return this
     }
 
+    @NonCPS
     Long getVersion() {
         this.latestVersionId
     }
@@ -194,6 +195,7 @@ class DocumentHistory {
 
     }
 
+    @NonCPS
     protected String getSavedDocumentName(String environment = targetEnvironment) {
         def suffix = (documentName) ? '-' + documentName : ''
         return "documentHistory-${environment}${suffix}"
@@ -213,16 +215,9 @@ class DocumentHistory {
     // Find the previous environment where the document was generated, if it exists.
     // Otherwise, use the target environment.
     @NonCPS
-    private getSourceEnvironment(String targetEnvironment, String documentName) {
-        def documentType = documentName.split('-').first()
-        def environment = null
-        def envs = ['D', 'Q', 'P']
-        for (int i = 0; i < envs.size() && envs[i] != targetEnvironment; i++) {
-            if (LeVADocumentScheduler.ENVIRONMENT_TYPE[envs[i]].containsKey(documentType)) {
-                environment = envs[i]
-            }
-        }
-        return environment ?: targetEnvironment
+    private getSourceEnvironment(String documentName, String targetEnvironment) {
+        def documentType = LeVADocumentUtil.getTypeFromName(documentName)
+        return LeVADocumentScheduler.getPreviousCreationEnvironment(documentType, targetEnvironment)
     }
 
     @NonCPS
@@ -283,6 +278,7 @@ class DocumentHistory {
         }
     }
 
+    @NonCPS
     private String createRational(DocumentHistoryEntry currentEntry) {
         if (currentEntry.getEntryId() == 1L) {
             return "Initial document version."
@@ -303,7 +299,8 @@ class DocumentHistory {
         }.findAll { it.id != currentEntry.getEntryId() }
         def concurrentVersions = getConcurrentVersions(oldVersionsSimplified, currentEntry.getPreviousProjectVersion())
 
-        if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size()) {
+        if (currentEntry.getPreviousProjectVersion() && oldVersionsSimplified.size() == concurrentVersions.size() &&
+            LeVADocumentUtil.isFullDocument(documentName)) {
             throw new RuntimeException('Inconsistent state found when building DocumentHistory. ' +
                 "Project has as previous project version '${currentEntry.getPreviousProjectVersion()}' " +
                 'but no document history containing that ' +
@@ -415,7 +412,8 @@ class DocumentHistory {
     private List<Map> getIssueChangesForVersion(String version, String issueType, Map issues) {
         // Filter chapter issues for this document only
         if (issueType == JiraDataItem.TYPE_DOCS) {
-            issues = issues.findAll { it.value.documents.contains(this.documentName.split('-').first()) }
+            def docType = LeVADocumentUtil.getTypeFromName(this.documentName)
+            issues = issues.findAll { it.value.documents.contains(docType) }
         }
 
         issues.findAll { it.value.versions?.contains(version) }
