@@ -3,6 +3,7 @@ package org.ods.orchestration.util
 import com.cloudbees.groovy.cps.NonCPS
 
 class LeVADocumentUtil {
+
     private LeVADocumentUtil() {
     }
 
@@ -31,4 +32,5 @@ class LeVADocumentUtil {
     static boolean isPartialDocument(String name) {
         return !isFullDocument(name)
     }
+
 }

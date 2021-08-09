@@ -195,7 +195,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
      */
     @NonCPS
     static String getFirstCreationEnvironment(String documentType) {
-        def environment = Environment.values().collect { it.toString() }.find { env ->
+        def environment = Environment.values()*.toString().find { env ->
             ENVIRONMENT_TYPE[env].containsKey(documentType)
         }
         return environment
@@ -212,10 +212,10 @@ class LeVADocumentScheduler extends DocGenScheduler {
     @NonCPS
     static String getPreviousCreationEnvironment(String documentType, String environment) {
         def previousEnvironment = null
-        Environment.values().collect { it.toString() }
+        Environment.values()*.toString()
             .takeWhile { it != environment }
             .each { env ->
-                if(ENVIRONMENT_TYPE[env].containsKey(documentType)) {
+                if (ENVIRONMENT_TYPE[env].containsKey(documentType)) {
                     previousEnvironment = env
                 }
             }
