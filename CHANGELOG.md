@@ -5,6 +5,7 @@
 - Fixed a "null" string is added in the Section 3.1 of the CFTR when the Description of the Zephyr Unit Test doesn't has a Description ([#632](https://github.com/opendevstack/ods-jenkins-shared-library/pull/632))
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
 - MRO promotion to P/Q fails in cornercases when using monorepo ([#688](https://github.com/opendevstack/ods-jenkins-shared-library/issues/688))
+- Missing NonCPS for getCommittedFiles ([#711](https://github.com/opendevstack/ods-jenkins-shared-library/issues/711))
 
 ## [3.0] - 2020-08-11
 
@@ -125,7 +126,7 @@
 - Make ODS pipeline configurable for MRO ([#97](https://github.com/opendevstack/ods-jenkins-shared-library/issues/97))
 - Make jenkins ods shared lib ready for MRO ([#108](https://github.com/opendevstack/ods-jenkins-shared-library/pull/108))
 ### Fixed
-- Job fails when using a custom test reports location ([#132](https://github.com/opendevstack/ods-jenkins-shared-library/issues/132)) 
+- Job fails when using a custom test reports location ([#132](https://github.com/opendevstack/ods-jenkins-shared-library/issues/132))
 - Seldom failure (OCP Build app-be-bonjour-451 was not successfull - status Running) - although build completed in same var / stage([#135](https://github.com/opendevstack/ods-jenkins-shared-library/issues/135))
 - Fix build still running issue during build check ([#136](https://github.com/opendevstack/ods-jenkins-shared-library/pull/136))
 - Auto Clone Environment fails during curl download ([#109](https://github.com/opendevstack/ods-jenkins-shared-library/pull/109))
