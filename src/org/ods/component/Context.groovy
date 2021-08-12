@@ -223,6 +223,7 @@ class Context implements IContext {
         retrieveLastSuccessfulCommit()
     }
 
+    @NonCPS
     String[] getCommittedFiles() {
         def lastSuccessfulCommit = getLastSuccessfulCommit()
         retrieveGitCommitFiles(lastSuccessfulCommit)
