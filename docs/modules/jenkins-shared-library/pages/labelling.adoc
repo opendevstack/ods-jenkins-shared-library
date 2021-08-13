@@ -49,7 +49,7 @@ This is the list of supported labels:
 
 | <<_app_kubernetes_ioinstance>>
 | A unique name identifying the instance of an application
-| component id
+| Component ID
 | user-db
 
 | <<_app_kubernetes_ioversion>>
@@ -65,7 +65,7 @@ This is the list of supported labels:
 | <<_app_kubernetes_iopart_of>>
 | The name of a higher level application this one is part of
 | partOf metadata parameter
-| sock-shop
+| my-online-shop
 
 | <<_app_kubernetes_iomanaged_by>>
 | The tool being used to manage the operation of an application
@@ -80,7 +80,7 @@ This is the list of supported labels:
 | <<_app_openshift_ioruntime_version>>
 | The version of the runtime
 | runtimeVersion metadata parameter
-| 1.4.4.RELEASE
+| 2.1.16.RELEASE
 
 | <<_helm_shchart>>
 | Helm chart name-version
@@ -147,7 +147,8 @@ This label is used when there is more than one instance of the software identifi
 
 This label is automatically set to the component id and it cannot be customised.
 
-This label will only be set if different from app.kubernetes.io/name. Therefore, if the name label is set to its default value (component id), this instance label will not be set.
+This label will only be set if different from app.kubernetes.io/name.
+Therefore, if the name label is set to its default value (component id), this instance label will not be set.
 
 Example: user-db
 
@@ -173,15 +174,17 @@ This value can be customised by setting the role entry in the metadata.yml file.
 
 A best effort will be made to determine a default value for this:
 
--	If the quickstarter name starts with be- (but not be-fe-), the default is ‘backend’.
+-	If the quickstarter name starts with be- (but not be-fe-), the default is 'backend'.
 
--	If the quickstarter name starts with fe-, the default is ‘frontend’.
+-	If the quickstarter name starts with fe-, the default is 'frontend'.
 
--	If the quickstarter name starts with ds-, the default is ‘subsystem’.
+-	If the quickstarter name starts with ds-, the default is 'subsystem'.
 
 -	In any other case, there is no default.
 
-This default value can only be determined when first provisioning the component from a given quickstarter. No default value is ever calculated by the component or orchestration pipelines. However, if the default value was set by the quickstarter pipeline, it can be overridden, but not deleted.
+This default value can only be determined when first provisioning the component from a given quickstarter.
+No default value is ever calculated by the component or orchestration pipelines.
+However, if the default value was set by the quickstarter pipeline, it can be overridden, but not deleted.
 
 Example: database.
 
@@ -213,7 +216,7 @@ Any value can be set, but OpenShift recognises the following values:
 
 Whenever one of these values is appropriate, it is recommended to use it.
 
-Note that data-science components are assigned the ad-hoc ‘subsystem’ value by default.
+Note that data-science components are assigned the ad-hoc 'subsystem' value by default.
 
 This label will not be deleted if it is already set.
 
@@ -227,7 +230,8 @@ This label is not compulsory and has no default value.
 
 This value can be customised by setting the partOf entry in the metadata.yml file.
 
-Example: all the sock-shop demo app components are assigned app.kubernetes.io/part-of=demo-app-sockshop.
+Example: you are building an online shop, and this component is part of it.
+You can set app.kubernetes.io/part-of=my-online-shop.
 
 This label will be removed, if no value is given for it.
 
@@ -235,7 +239,7 @@ This label will be removed, if no value is given for it.
 
 The tool being used to manage the operation of an application.
 
-This is automatically set to ‘tailor’ (by default) or ‘helm’, for components managed with Helm.
+This is automatically set to 'tailor' (by default) or 'helm', for components managed with Helm.
 
 This value cannot be customised.
 
@@ -247,7 +251,7 @@ The runtime to be used to bootstrap the component.
 
 There may be more than one runtime, so the most meaningful or specific one should be set here.
 A typical example is a Spring-Boot application. Both Spring Boot and the JRE are suitable runtimes,
-but the first is chosen, as the JRE is implied by Spring Boot, but not the other way around.
+but the first one is chosen, as the JRE is implied by Spring Boot, but not the other way around.
 
 Other possible runtimes are nodejs, angularjs, etc.
 
@@ -269,7 +273,7 @@ Suitable values can be taken from the runtime Maven version, Gradle project.vers
 
 This label does not make sense, if app.openshift.io/runtime is not also specified.
 
-Example: 1.4.4.RELEASE.
+Example: 2.1.16.RELEASE.
 
 This label will be removed, if no value is given for it.
 
@@ -280,7 +284,7 @@ This should be the chart name and version: {{ .Chart.Name }}-{{ .Chart.Version |
 This is autodetected and cannot be customised. Only set when the component is managed by Helm.
 
 Note that, as per the specification of the label in Helm documentation,
-the value is always sanitised by replacing the character ‘+’ with the character ‘_’.
+the value is always sanitised by replacing the character '+' with the character '_'.
 This is done before the common sanitising performed to all label values.
 
 Example: charName-1.0.0.
@@ -303,6 +307,8 @@ Valid types are ods, ods-service, ods-test and ods-infra.
 Generally, only the two first ones create resources in OpenShift.
 
 This value can be customised by setting the type entry in the metadata.yml file and it has no default value.
+When using the release manager, this value should match the type parameter for this component in the
+release manager metadata file.
 
 Example: ods-service
 
