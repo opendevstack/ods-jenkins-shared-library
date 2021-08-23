@@ -53,7 +53,7 @@ pipeline {
                 }
                 stage("e2e") {
                     steps {
-                        build job: "${getProjectName()}/CI/${env.BRANCH_NAME}/01-Orchestrator",
+                        build job: "${getProjectName()}/e2e/${env.BRANCH_NAME}/01-Orchestrator",
                             parameters: [string(name: "${getProjectName()}_branch", value: env.BRANCH_NAME)],
                             wait: true
                     }
