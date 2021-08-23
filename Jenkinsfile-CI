@@ -3,17 +3,25 @@
  */
 pipeline {
     agent {
-        label('master')
+        label('microCentos')
     }
     options {
         skipDefaultCheckout(true)
         ansiColor('xterm')
+        withFolderProperties()
     }
     stages {
-        stage("Create/Update e2e jobs") {
+        stage('Checkout') {
             steps {
                 cleanWs()
-                git credentialsId: env.E2E_REPO_CREDENTIALS_ID, branch: env.E2E_REPO_BRANCH, url: env.E2E_REPO_URL, changelog: false
+                git credentialsId: env.E2E_REPO_CREDENTIALS_ID,
+                    branch: "master",
+                    url: env.E2E_REPO_URL,
+                    changelog: false
+            }
+        }
+        stage("Create/Update e2e jobs") {
+            steps {
                 jobDsl targets: ['jenkins/B_dsl_ci_orchestrator.groovy','jenkins/C_dsl_ci_tests.groovy'].join('\n'),
                     removedJobAction: 'DELETE',
                     removedViewAction: 'DELETE',
