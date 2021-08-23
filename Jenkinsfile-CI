@@ -15,7 +15,7 @@ pipeline {
             steps {
                 cleanWs()
                 git credentialsId: env.E2E_REPO_CREDENTIALS_ID,
-                    branch: "master",
+                    branch: env.E2E_REPO_BRANCH,
                     url: env.E2E_REPO_URL,
                     changelog: false
             }
