@@ -92,8 +92,21 @@ def checkoutSharedLibrary(){
 }
 
 def restartOC(){
-    sh script:"/usr/local/sbin/stop_ods.sh", returnStatus:true
-    sh script:"/usr/local/sbin/startup_ods.sh", returnStatus:true
+    echoInfo("restartOC start")
+    int retry = 0
+    while (restartOCTakesSometimeInSeconds()<60 && retry <5){
+        retry++
+    }
+}
+
+def restartOCTakesSometimeInSeconds(){
+    echoInfo("restartOCTakesSometimeInSeconds start")
+    Date startTime = new Date()
+    sh script:"/home/openshift/opendevstack/restart.sh", returnStatus:true
+    Date endTime = new Date()
+    int startupTime =  groovy.time.TimeCategory.minus(endTime, startTime).toMilliseconds()/1000
+    echoInfo("OC restart takes ${startupTime} seconds")
+    return startupTime
 }
 
 def echoInfo(msg){
