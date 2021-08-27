@@ -6,6 +6,7 @@
 ## [3.0] - 2020-08-11
 
 ### Added
+- Allow execution of e2e in the same Jenkins of the ODS-CI ([#716](https://github.com/opendevstack/ods-jenkins-shared-library/pull/716))
 - Merge ([ods-mro-shared-library](https://github.com/opendevstack/ods-mro-jenkins-shared-library)) into this library, and consolidate services ([#271](https://github.com/opendevstack/ods-jenkins-shared-library/issues/271))
 - Allow configuration of docker context directory ([#181](https://github.com/opendevstack/ods-jenkins-shared-library/issues/181))
 - Add harmonized stage names based on the new library layout ([#215](https://github.com/opendevstack/ods-jenkins-shared-library/issues/215))
