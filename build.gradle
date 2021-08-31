@@ -124,7 +124,7 @@ test {
     maxHeapSize = "2048m"
     jvmArgs "-XX:MaxPermSize=256m"
     systemProperty "testRecordMode", project.findProperty('testRecordMode')?: false
-    systemProperty "generateNewExpectedFiles", project.findProperty('generateNewExpectedFiles')?: false
+    systemProperty "generateExpectedPdfFiles", project.findProperty('generateExpectedPdfFiles')?: false
     systemProperty "nexusURL", project.findProperty('nexusURL')?: "http://nexus.odsbox.lan:7990"
     systemProperty "sonarQuURL", project.findProperty('sonarQuURL')?: "http://sonar.odsbox.lan:7990"
     systemProperty "bitbucketURL", project.findProperty('bitbucketURL')?: "http://bitbucket.odsbox.lan:7990"

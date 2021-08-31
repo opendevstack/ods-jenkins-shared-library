@@ -12,9 +12,7 @@ import org.ods.core.test.wiremock.WiremockServers
 import org.ods.core.test.wiremock.WiremockManager
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
-import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import spock.lang.Shared
 import spock.lang.Unroll
 import util.FixtureHelper
 
@@ -31,12 +29,12 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"])
 
     /**
-     * By default GENERATE_NEW_EXPECTED_FILES = false
-     * Add 'generateNewExpectedFiles = true' in gradle.properties Change to generate new expected files
-     * When GENERATE_NEW_EXPECTED_FILES it will remove the expected pdfs and create a new ones
-     * (ie. GENERATE_NEW_EXPECTED_FILES=true will not compare pdfs)
+     * By default GENERATE_EXPECTED_PDF_FILES = false
+     * Add 'generateExpectedPdfFiles = true' in gradle.properties Change to generate new expected files
+     * When GENERATE_EXPECTED_PDF_FILES it will remove the expected pdfs and create a new ones
+     * (ie. GENERATE_EXPECTED_PDF_FILES=true will not compare pdfs)
      */
-    private static final boolean GENERATE_NEW_EXPECTED_FILES = Boolean.parseBoolean(System.properties["generateNewExpectedFiles"])
+    private static final boolean GENERATE_EXPECTED_PDF_FILES = Boolean.parseBoolean(System.properties["generateExpectedPdfFiles"])
 
     private static final String PROJECT_KEY = "OFI2004"
     private static final String PROJECT_KEY_RELEASE_ID = "207"
@@ -130,7 +128,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
 
     private boolean validatePDF(doctype, version, oveAllPrefix = "") {
         unzipGeneratedArtifact(doctype, version)
-        if (GENERATE_NEW_EXPECTED_FILES) {
+        if (GENERATE_EXPECTED_PDF_FILES) {
             copyDocWhenRecording(doctype, version, oveAllPrefix)
             return true
         } else {

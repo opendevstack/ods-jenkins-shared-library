@@ -4,6 +4,9 @@ import com.lesfurets.jenkins.unit.RegressionTest
 import com.lesfurets.jenkins.unit.cps.BasePipelineTestCPS
 import spock.lang.Specification
 
+/**
+ * Class base to create component tests
+ */
 class PipelineSpecBase extends Specification implements RegressionTest {
 
     /**
