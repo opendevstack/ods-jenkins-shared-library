@@ -16,6 +16,21 @@ import org.ods.services.OpenShiftService
 import spock.lang.Unroll
 import util.FixtureHelper
 
+/**
+ * IMPORTANT: this test use Wiremock files to mock all the external interactions.
+ *
+ * We have 2 flags to play with the test:
+ *  - RECORD: When TRUE wiremock will record the interaction with the servers and compare the pdf results with the expected
+ *  - GENERATE_EXPECTED_PDF_FILES: When TRUE it will remove the expected pdfs and create a new ones
+ *
+ *  ie:
+ *  - RECORD=false & GENERATE_EXPECTED_PDF_FILES=false are the default values. So then it can be executed everywhere.
+ *  - RECORD=true & GENERATE_EXPECTED_PDF_FILES=false will record and compare the generate pdfs with the 'old' expected files
+ *      ==> with this combination, if there's an error,
+ *          we can compare new pdf with the old one, and see the implications of our changes in the pdfs
+ *  - RECORD=true & GENERATE_EXPECTED_PDF_FILES=true will record and generate new pdf expected files
+ *
+ */
 @Slf4j
 class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     /**
