@@ -1,7 +1,5 @@
 package util
 
-@Grab('org.yaml:snakeyaml:1.24')
-
 import org.ods.util.IPipelineSteps
 
 import groovy.json.JsonSlurper
