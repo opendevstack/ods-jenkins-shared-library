@@ -13,6 +13,7 @@ import org.ods.core.test.wiremock.WiremockManager
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
+import spock.lang.Ignore
 import spock.lang.Unroll
 import util.FixtureHelper
 
@@ -81,7 +82,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     def "create #doctype"() {
         given: "There's a LeVADocument service"
         LeVADocumentUseCase useCase = getLeVADocumentUseCaseFactory(doctype, version)
-            .loadProject(buildParams(version))
+            .loadProject(setBuildParams(version))
             .createLeVADocumentUseCase()
 
         when: "the user creates a LeVA document"
@@ -91,15 +92,18 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         validatePDF(doctype, version)
 
         where:
-        doctype << ["CFTP", "CSD", "DIL", "DTP", "IVP", "RA", "TCP",  "TIP"]   // TODO: SSDS, TCR
+        doctype << [ "CSD", "DIL", "DTP", "RA",  "CFTP", "IVP", "SSDS", "TCP",  "TIP"]
         version = "WIP"
     }
 
+    // TODO docs with params:  "DTR",  "CFTR", "IVR",  "TCR", "TIR", "TRC"
+
+    @Ignore // until DTR", "TIR" are done
     @Unroll
     def "create Overall #doctype"() {
         given: "There's a LeVADocument service"
         LeVADocumentUseCase useCase = getLeVADocumentUseCaseFactory("Overall$doctype", version)
-            .loadProject(buildParams(version))
+            .loadProject(setBuildParams(version))
             .createLeVADocumentUseCase()
 
         when: "the user creates a LeVA document"
@@ -109,13 +113,14 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         validatePDF(doctype, version, "OverAll")
 
         where:
-        doctype << ["TIR", "DTR"]
+        doctype << ["DTR", "TIR"] // TODO IVR
         version = "WIP"
     }
 
     private LeVADocumentUseCaseFactory getLeVADocumentUseCaseFactory(String doctype, String version) {
-        log.info "Using temporal folder:${tempFolder.getRoot()}"
         log.info "Using record Wiremock:${RECORD}"
+        log.info "Using GENERATE_EXPECTED_PDF_FILES:${GENERATE_EXPECTED_PDF_FILES}"
+        log.info "Using temporal folder:${tempFolder.getRoot()}"
         log.info "Using PROJECT_KEY:${PROJECT_KEY}"
 
         String scenarioPath = "${this.class.simpleName}/${doctype}/${version}"
@@ -128,7 +133,9 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
-
+        BitbucketTraceabilityUseCase bitbucketTraceabilityUseCase = Spy(new BitbucketTraceabilityUseCase(null, null, null))
+        bitbucketTraceabilityUseCase.generateSourceCodeReviewFile() >> new FixtureHelper()
+            .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()
         return new LeVADocumentUseCaseFactory(
             jiraServer,
             docGenServer,
@@ -138,7 +145,8 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
             tempFolder,
             jenkins,
             openShiftService,
-            gitService)
+            gitService,
+            bitbucketTraceabilityUseCase)
     }
 
     private boolean validatePDF(doctype, version, oveAllPrefix = "") {
@@ -168,21 +176,18 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         new FixtureHelper().getResource("expected/${this.class.simpleName}/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
     }
 
-    private File savedDoc(doctype, version) {
-        return new File("${SAVED_DOCUMENTS}/${doctype}-${PROJECT_KEY}-${version}-1.pdf")
-    }
-
     private void copyDocWhenRecording(doctype, version, oveAllPrefix) {
         def expectedDoc = new File("test/resources/expected/${this.class.simpleName}/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
         FileUtils.copyFile(actualDoc(doctype, version), expectedDoc)
     }
 
-    def buildParams(version){
+    def setBuildParams(version){
         def buildParams = [:]
         buildParams.projectKey = PROJECT_KEY
         buildParams.targetEnvironment = "dev"
         buildParams.targetEnvironmentToken = "D"
         buildParams.version = "${version}"
+        buildParams.configItem = "BI-IT-DEVSTACK"
         buildParams.releaseStatusJiraIssueKey = "${PROJECT_KEY}-${PROJECT_KEY_RELEASE_ID}"
         return buildParams
     }

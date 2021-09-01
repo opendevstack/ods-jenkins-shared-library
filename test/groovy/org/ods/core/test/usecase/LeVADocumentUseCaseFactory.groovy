@@ -10,6 +10,7 @@ import org.ods.core.test.wiremock.WiremockManager
 import org.ods.core.test.wiremock.WiremockServers
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
@@ -39,6 +40,7 @@ class LeVADocumentUseCaseFactory {
     private OpenShiftService os
     private GitService gitService
     private Project project
+    private BitbucketTraceabilityUseCase bbt
 
     LeVADocumentUseCaseFactory(WiremockManager jiraServer,
                                WiremockManager docGenServer,
@@ -48,7 +50,8 @@ class LeVADocumentUseCaseFactory {
                                TemporaryFolder tempFolder,
                                JenkinsService jenkins,
                                OpenShiftService os,
-                               GitService gitService){
+                               GitService gitService,
+                               BitbucketTraceabilityUseCase bbt){
         this.docGenServer = docGenServer
         this.jiraServer = jiraServer
         this.nexusServer = nexusServer
@@ -56,10 +59,10 @@ class LeVADocumentUseCaseFactory {
         this.gitService = gitService
 
         this.os = os
+        this.bbt = bbt
         this.jenkins = jenkins
         this.tempFolder = tempFolder
         this.env = env
-
     }
 
     def loadProject(Map buildParams) {
@@ -70,6 +73,8 @@ class LeVADocumentUseCaseFactory {
             def util = new MROPipelineUtil(project, steps, null, logger)
             def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
             project.load(gitService, jiraUseCase)
+            project.data.openshift.targetApiUrl = "https://openshift-sample"
+            project.repositories.each { repo -> repo.metadata = loadMetadata(repo) }
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
             throw e
@@ -93,7 +98,7 @@ class LeVADocumentUseCaseFactory {
                 os,
                 new PDFUtil(),
                 new SonarQubeUseCase(project, steps, nexusService),
-                null,
+                bbt,
                 new LoggerStub(log)
             )
     }
@@ -108,17 +113,44 @@ class LeVADocumentUseCaseFactory {
         steps.env.RUN_DISPLAY_URL =""
         steps.env.version = buildParams.version
         steps.env.configItem = "Functional-Test"
+        steps.env.RELEASE_PARAM_VERSION = "3.0"
+        steps.env.BUILD_NUMBER = "666"
+        steps.env.BUILD_URL = "https://jenkins-sample"
+        steps.env.JOB_NAME = "ofi2004-cd/ofi2004-cd-release-master"
 
         Project.METADATA_FILE_NAME = 'metadata.yml'
 
         def project = new Project(steps, logger, [:]).init()
         project.data.metadata.id = buildParams.projectKey
         project.data.buildParams = buildParams
-
+        project.data.git = buildGitData()
         return project
     }
 
     private JiraServiceForWireMock buildJiraServiceForWireMock() {
         new JiraServiceForWireMock(jiraServer.mock().baseUrl(), WiremockServers.JIRA.user, WiremockServers.JIRA.password)
+    }
+
+    def buildGitData() {
+        return  [
+            commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+            url: "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+            baseTag: "ods-generated-v3.0-3.0-0b11-D",
+            targetTag: "ods-generated-v3.0-3.0-0b11-D",
+            author: "s2o",
+            message: "Swingin' The Bottle",
+            time: "2021-04-20T14:58:31.042152",
+        ]
+    }
+
+    def loadMetadata(repo) {
+        return  [
+            id: repo.id,
+            name: repo.name,
+            description: "myDescription-A",
+            supplier: "mySupplier-A",
+            version: "myVersion-A",
+            references: "myReferences-A"
+        ]
     }
 }

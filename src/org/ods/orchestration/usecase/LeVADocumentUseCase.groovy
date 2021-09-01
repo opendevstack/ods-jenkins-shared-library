@@ -33,7 +33,6 @@ import java.time.LocalDateTime
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
-
         CSD,
         DIL,
         DTP,
@@ -52,7 +51,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         OVERALL_DTR,
         OVERALL_IVR,
         OVERALL_TIR
-
     }
 
     protected static Map DOCUMENT_TYPE_NAMES = [
@@ -251,8 +249,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createDTR(Map repo, Map data) {
-        def documentType = DocumentType.DTR as String
+        logger.debug("createDTR - repo:${repo}, data:${data}")
 
+        def documentType = DocumentType.DTR as String
         Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
         this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
         if (resurrectedDocument.found) {
@@ -487,9 +486,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @SuppressWarnings('CyclomaticComplexity')
-    String createCFTR(Map repo, Map data) {
-        def documentType = DocumentType.CFTR as String
+    String createCFTR(Map repo = null, Map data) {
+        logger.debug("createCFTR - data:${data}")
 
+        def documentType = DocumentType.CFTR as String
         def acceptanceTestData = data.tests.acceptance
         def integrationTestData = data.tests.integration
 
@@ -710,7 +710,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .flatten()
     }
 
-    String createIVR(Map repo, Map data) {
+    String createIVR(Map repo = null, Map data) {
+        logger.debug("createIVR - data:${data}")
+
         def documentType = DocumentType.IVR as String
 
         def installationTestData = data.tests.installation
@@ -778,6 +780,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTCR(Map repo = null, Map data) {
+        logger.debug("createTCR - data:${data}")
+
         String documentType = DocumentType.TCR as String
 
         def sections = this.getDocumentSections(documentType)
@@ -921,9 +925,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
 
-        this.bbt.generateSourceCodeReviewFile()
         def bbInfo = this.bbt.readSourceCodeReviewFile(this.bbt.generateSourceCodeReviewFile())
-
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
@@ -1021,6 +1023,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
+        logger.debug("createTIR - repo:${repo}, data:${data}")
+
         def documentType = DocumentType.TIR as String
 
         def installationTestData = data?.tests?.installation
@@ -1114,6 +1118,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createTRC(Map repo, Map data) {
+        logger.debug("createTRC - repo:${repo}, data:${data}")
+
         def documentType = DocumentType.TRC as String
 
         def acceptanceTestData = data.tests.acceptance

@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.*
 
 @Slf4j
 class BitbucketTraceabilityUseCaseSpec extends Specification {
-    private static final String EXPECTED_BITBUCKET_CSV = "expected/bitbucket.csv"
+    static final String EXPECTED_BITBUCKET_CSV = "expected/bitbucket.csv"
     private static final String EXPECTED_BITBUCKET_JSON = "expected/bitbucket.json"
 
     // Change for local development or CI testing

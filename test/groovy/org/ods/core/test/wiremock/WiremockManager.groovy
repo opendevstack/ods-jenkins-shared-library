@@ -73,7 +73,7 @@ class WiremockManager {
     private void cleanExistingRecords() {
         wireMockServer.resetAll()
         try {
-            FileUtils.cleanDirectory(new File(serverType));
+            FileUtils.cleanDirectory(new File(pathToFiles));
         } catch (Exception ex) {
             log.warn("Exception deleting Files: " + ex);
         }
