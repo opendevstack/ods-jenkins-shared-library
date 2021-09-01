@@ -36,6 +36,7 @@
 - Fix NonCPS error in thumbnail replacement ([#704](https://github.com/opendevstack/ods-jenkins-shared-library/pull/704))
 - Fix wrong entry in the document history when a new component is added ([#702](https://github.com/opendevstack/ods-jenkins-shared-library/pull/702))
 - Fix referenced document versions after PR [#691] ([#709](https://github.com/opendevstack/ods-jenkins-shared-library/pull/709))
+- Fix missing grapes import in BitbucketService [#1030] ([#1030](https://github.com/opendevstack/ods-jenkins-shared-library/pull/1030))
 
 ## [3.0] - 2020-08-11
 
