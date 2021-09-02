@@ -1048,7 +1048,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 log: this.jenkins.getCurrentBuildLogAsText()
             ]
 
-            data_.repositories: this.project.repositories.collect {
+            data_.repositories = this.project.repositories.collect {
                 it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
             }
         }
