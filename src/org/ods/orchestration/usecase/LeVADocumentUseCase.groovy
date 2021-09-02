@@ -631,10 +631,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .flatten()
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def installedRepos = this.project.repositories.collect {
+            it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories   : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections       : sections,
                 tests          : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
@@ -683,10 +687,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .flatten()
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def installedRepos = this.project.repositories.collect {
+            it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories      : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections          : sections,
                 tests             : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
@@ -948,7 +956,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 project_key : this.project.key,
                 repositories: this.project.repositories.collect {
-                    it << [ doInstall: it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+                    it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
                 },
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
@@ -1040,7 +1048,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 log: this.jenkins.getCurrentBuildLogAsText()
             ]
 
-            data_.repositories = this.project.repositories
+            data_.repositories: this.project.repositories.collect {
+                it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+            }
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
