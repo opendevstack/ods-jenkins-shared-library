@@ -87,6 +87,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
     ]
 
+    static List<String> COMPONENT_TYPE_IS_NOT_INSTALLED = [
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String,
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String,
+    ]
+
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
@@ -632,7 +637,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def installedRepos = this.project.repositories.collect {
-            it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
         }
 
         def data_ = [
@@ -688,7 +693,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def installedRepos = this.project.repositories.collect {
-            it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
         }
 
         def data_ = [
@@ -956,7 +961,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             data    : [
                 project_key : this.project.key,
                 repositories: this.project.repositories.collect {
-                    it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+                    it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
                 },
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
@@ -1049,7 +1054,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
 
             data_.repositories = this.project.repositories.collect {
-                it << [ doInstall: it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE.toLowerCase()]
+                it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
             }
         }
 
