@@ -92,6 +92,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String,
     ]
 
+    static Map<String, String INTERNAL_TO_EXT_COMPONENT_TYPES : [
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String : 'SAAS Component',
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String : 'Automated tests',
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String : 'Service Component',
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String : 'Software',
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String : 'Infrastructure as Code Component',
+    ]
+
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
@@ -896,7 +904,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 description   : c.description,
                 supplier      : c.supplier,
                 version       : c.version,
-                references    : c.references
+                references    : c.references,
+                doInstall     : c.doInstall
             ]
         }
 
@@ -1374,7 +1383,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     key               : component.name,
                     componentName     : component.name,
                     componentId       : metadata.id ?: 'N/A - part of this application',
-                    componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
+                    componentType     : INTERNAL_TO_EXT_COMPONENT_TYPES.get(repo_.type?.toLowerCase()),
+                    doInstall         : !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo_.type?.toLowerCase()),
                     odsRepoType       : repo_.type?.toLowerCase(),
                     description       : metadata.description,
                     nameOfSoftware    : normComponentName ?: metadata.name,
