@@ -95,8 +95,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     static Map<String, String INTERNAL_TO_EXT_COMPONENT_TYPES : [
         MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String : 'SAAS Component',
         MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String : 'Automated tests',
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String : 'Service Component',
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String : 'Software',
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String : '3rd Party Service Component',
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String : 'Software Component',
         MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String : 'Infrastructure as Code Component',
     ]
 
@@ -1001,6 +1001,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
+
+        repo << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo.type?.toLowerCase())]
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
