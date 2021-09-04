@@ -226,7 +226,8 @@ class InitStage extends Stage {
                 registry.get(OpenShiftService),
                 registry.get(PDFUtil),
                 registry.get(SonarQubeUseCase),
-                registry.get(BitbucketTraceabilityUseCase)
+                registry.get(BitbucketTraceabilityUseCase),
+                logger
             )
         )
 

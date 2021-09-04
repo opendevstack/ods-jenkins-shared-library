@@ -1,0 +1,82 @@
+# Document: Software Development Testing Plan (DTP)
+
+# The test cases include a prerequisite section that identifies any software
+# install dependencies, verification of prerequisites, or sequencing that
+# needs to be followed prior to execution of the test case.
+- number: 3.6
+  heading: Test Dependencies and Relationships
+  content: <em>N/A</em>. All unit tests are contained within each component's repository. Integration and system tests are contained within an end-to-end test repository and, if applicable, are executed only after all components were installed and unit tested successfully.
+
+# Test failures are handled by developers by correcting the error and re-deployment
+# to development system. The test case will be re-executed after fixing the error
+# to confirm the error is finally fixed.
+- number: 3.7
+  heading: Error Handling and Corrective Actions
+  content: Failing automated tests, at the unit, integration, and system level will cause the build process to abort. Detailed reporting of failed test cases will be reported as part of the Software Development Test Report (DTR), Installation Qualification Report (IQR), and Operational Qualification Report (OQR), respectively.
+
+# Enter any definitions here.
+# If there are no definitions write 'N/A' and delete the table below
+- number: 5.1
+  heading: Definitions
+  content: >
+    <table>
+      <tr>
+        <th>Term</th>
+        <th>Definition</th>
+      </tr>
+      <tr>
+        <td>Jenkins</td>
+        <td style="content-wrappable">Build engine supplied by CloudBees. Part of OpenDevStack (BI-IT-DEVSTACK)</td>
+      </tr>
+      <tr>
+        <td>xUnit</td>
+        <td style="content-wrappable">Unit testing framework, aggregates results across multiple languages</td>
+      </tr>
+    </table>
+
+# Enter any abbreviations here.
+# If there are no abbreviations write 'N/A' and delete the table below.
+- number: 5.2
+  heading: Abbreviations
+  content: >
+    <table>
+      <tr>
+        <th>Abbreviation</th>
+        <th>Meaning</th>
+      </tr>
+      <tr>
+        <td>ODS</td>
+        <td>OpenDevStack</td>
+      </tr>
+      <tr>
+        <td>xunit</td>
+        <td style="content-wrappable">Unit testing framework, aggregates results across multiple languages</td>
+      </tr>
+    </table>
+
+# If a document is referenced above, identify it here.
+- number: 6
+  heading: Reference Documents
+  content: N/A
+
+# Draft versions must be removed after finalisation of the first version
+# of this document to be actually approved.
+- number: 7
+  heading: Document History
+  content: >
+    <p>The following table provides the history of the document.</p>
+
+    <table>
+      <tr>
+        <th>Version</th>
+        <th>Date</th>
+        <th>Author</th>
+        <th>Reference</th>
+      </tr>
+      <tr>
+        <td></td>
+        <td style="content-wrappable">See summary of electronic document or signature page of printout.</td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>

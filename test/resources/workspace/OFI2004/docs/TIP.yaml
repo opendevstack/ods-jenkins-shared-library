@@ -1,0 +1,79 @@
+# Document: Technical Installation Plan (TIP)
+
+# Any organizational measures and communication needed.
+- number: 3.4
+  heading: Communication and Organization Tasks
+  content: N/A
+
+# Enter any definitions here.
+# If there are no definitions write 'N/A' and delete the table below.
+- number: 10.1
+  heading: Definitions
+  content: >
+    <table>
+      <tr>
+        <th>Term</th>
+        <th>Definition</th>
+      </tr>
+      <tr>
+        <td>GIT / Bitbucket</td>
+        <td style="content-wrappable">Version Control System - supplied by Atlassian</td>
+      </tr>
+      <tr>
+        <td>Jenkins</td>
+        <td style="content-wrappable">Build engine supplied by CloudBees. Part of OpenDevStack (BI-IT-DEVSTACK)</td>
+      </tr>
+      <tr>
+        <td>POD</td>
+        <td style="content-wrappable">Instance of a component, deployed to OpenShift</td>
+      </tr>
+      <tr>
+        <td>OpenShift</td>
+        <td style="content-wrappable">Red Hat Openshift, also known as OCP (Openshift Container Platform)</td>
+      </tr>
+    </table>
+
+# Enter any abbreviations here.
+# If there are no abbreviations write 'N/A' and delete the table below.
+- number: 10.2
+  heading: Abbreviations
+  content: >
+    <table>
+      <tr>
+        <th>Abbreviation</th>
+        <th>Meaning</th>
+      </tr>
+      <tr>
+        <td>OCP</td>
+        <td>Red Hat OpenShift Container Platform</td>
+      </tr>
+    </table>
+
+# Optional: if other documents than the following are referenced above,
+# identify them here.
+# - System Design Specification (DSD)
+- number: 11
+  heading: Reference Documents
+  content:
+
+# Draft versions must be removed after finalisation of the first version
+# of this document to be actually approved.
+- number: 12
+  heading: Document History
+  content: >
+    <p>The following table provides the history of the document.</p>
+
+    <table>
+      <tr>
+        <th>Version</th>
+        <th>Date</th>
+        <th>Author</th>
+        <th>Reference</th>
+      </tr>
+      <tr>
+        <td></td>
+        <td style="content-wrappable">See summary of electronic document or signature page of printout.</td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
