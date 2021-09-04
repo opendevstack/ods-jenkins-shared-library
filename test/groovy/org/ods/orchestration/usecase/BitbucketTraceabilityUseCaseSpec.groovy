@@ -13,15 +13,15 @@ import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import spock.lang.Specification
 import util.FixtureHelper
-import util.LoggerStub
+import org.ods.core.test.LoggerStub
 import util.PipelineSteps
-import util.wiremock.BitbucketServiceMock
+import org.ods.core.test.wiremock.BitbucketServiceMock
 
 import static org.assertj.core.api.Assertions.*
 
 @Slf4j
 class BitbucketTraceabilityUseCaseSpec extends Specification {
-    private static final String EXPECTED_BITBUCKET_CSV = "expected/bitbucket.csv"
+    static final String EXPECTED_BITBUCKET_CSV = "expected/bitbucket.csv"
     private static final String EXPECTED_BITBUCKET_JSON = "expected/bitbucket.json"
 
     // Change for local development or CI testing
