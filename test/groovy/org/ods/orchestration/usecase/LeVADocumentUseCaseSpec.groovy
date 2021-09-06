@@ -950,17 +950,19 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                                     : null
         def expectedComponents = ["key":"Technology-demo-app-catalogue",
                                   "nameOfSoftware":"demo-app-catalogue",
-                                  "componentType":"ODS Component",
+                                  "componentType":componentTypeLong,
                                   "componentId":"N/A - part of this application",
                                   "description":"Some description for demo-app-catalogue",
                                   "supplier":"https://github.com/microservices-demo/",
                                   "version":"WIP",
-                                  "references":"N/A"]
+                                  "references":"N/A",
+                                  "doInstall":doInstall]
         def expectedModules = ["key":"Technology-demo-app-catalogue",
                                "componentName":"Technology-demo-app-catalogue",
                                "componentId":"N/A - part of this application",
-                               "componentType":"ODS Component",
-                               "odsRepoType":"ods",
+                               "componentType":componentTypeLong,
+                               "doInstall":doInstall,
+                               "odsRepoType":odsRepoType,
                                "description":"Some description for demo-app-catalogue",
                                "nameOfSoftware":"demo-app-catalogue",
                                "references":"N/A",
@@ -1025,6 +1027,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         scenario << ["Neither  systemDesignSpec nor softwareDesignSpec",
                      "Only systemDesignSpec",
                      "Both softwareDesignSpec & systemDesignSpec"]
+        odsRepoType = 'ods'
+        componentTypeLong = 'ODS Software Component'
+        doInstall = true
         techSpecsParam << ['''
           {
             "key": "NET-128",
