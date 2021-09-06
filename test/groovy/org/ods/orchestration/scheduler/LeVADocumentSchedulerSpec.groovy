@@ -33,6 +33,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     static def REPO_ODS_SERVICE
     static def REPO_ODS_TEST
 
+    static def REPO_TYPE_ODS_SAAS_SERVICE 
+
     ILogger logger =  new LoggerStub(log)
 
     def setupSpec() {
@@ -46,6 +48,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         REPO_ODS_TEST = project.repositories[2]
         REPO_ODS_TEST.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
+
+        REPO_TYPE_ODS_SAAS_SERVICE = project.repositories[3]
+        REPO_TYPE_ODS_SAAS_SERVICE.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE
 
         PROJECT_GAMP_1 = createProject()
         PROJECT_GAMP_1.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "1"]]]
@@ -5489,6 +5494,31 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TIR | REPO_ODS_TEST    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TIR | REPO_ODS_TEST    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TIR | REPO_ODS_TEST    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
 
         // OVERALL_DTR: Overall Software Development Testing Report
         LeVADocumentUseCase.DocumentType.OVERALL_DTR | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
