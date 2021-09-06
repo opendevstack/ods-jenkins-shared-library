@@ -1027,9 +1027,11 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         scenario << ["Neither  systemDesignSpec nor softwareDesignSpec",
                      "Only systemDesignSpec",
                      "Both softwareDesignSpec & systemDesignSpec"]
+
         odsRepoType = 'ods'
-        componentTypeLong = 'ODS Software Component'
-        doInstall = true
+        componentTypeLong = LeVADocumentUseCase.INTERNAL_TO_EXT_COMPONENT_TYPES.get(odsRepoType)
+        doInstall = !LeVADocumentUseCase.COMPONENT_TYPE_IS_NOT_INSTALLED.contains(odsRepoType)
+
         techSpecsParam << ['''
           {
             "key": "NET-128",
