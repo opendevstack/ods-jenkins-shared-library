@@ -89,15 +89,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     static List<String> COMPONENT_TYPE_IS_NOT_INSTALLED = [
         MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String,
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String,
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String
     ]
 
-    static Map<String, String INTERNAL_TO_EXT_COMPONENT_TYPES : [
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String : 'SAAS Component',
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String : 'Automated tests',
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String : '3rd Party Service Component',
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String : 'Software Component',
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String : 'Infrastructure as Code Component',
+    static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'Software Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component'
     ]
 
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
@@ -927,7 +927,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         sections."sec10".modules = modules
 
         // Code review report
-        def codeRepos = this.project.repositories. findAll { it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+        def codeRepos = this.project.repositories.findAll { it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
         def codeReviewReports = obtainCodeReviewReport(codeRepos)
 
         def modifier = { document ->
