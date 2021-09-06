@@ -27,26 +27,20 @@ class SonarQubeService {
                 "-Dsonar.projectKey=${properties['sonar.projectKey']}",
                 "-Dsonar.projectName=${properties['sonar.projectName']}",
             ]
-            if (sonarQubeEdition != 'community') {
-                scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
-            }
             if (!properties.containsKey('sonar.projectVersion')) {
                 scannerParams << "-Dsonar.projectVersion=${gitCommit.take(8)}"
             }
             if (logger.debugMode) {
                 scannerParams << '-X'
             }
-            if (pullRequestInfo) {
+            if (pullRequestInfo && (sonarQubeEdition != 'community')) {
                 [
-                    "-Dsonar.pullrequest.provider='Bitbucket Server'",
-                    "-Dsonar.pullrequest.bitbucketserver.serverUrl=${pullRequestInfo.bitbucketUrl}",
-                    "-Dsonar.pullrequest.bitbucketserver.token.secured=${pullRequestInfo.bitbucketToken}",
-                    "-Dsonar.pullrequest.bitbucketserver.project=${pullRequestInfo.bitbucketProject}",
-                    "-Dsonar.pullrequest.bitbucketserver.repository=${pullRequestInfo.bitbucketRepository}",
                     "-Dsonar.pullrequest.key=${pullRequestInfo.bitbucketPullRequestKey}",
                     "-Dsonar.pullrequest.branch=${pullRequestInfo.branch}",
                     "-Dsonar.pullrequest.base=${pullRequestInfo.baseBranch}",
                 ].each { scannerParams << it }
+            } else if (sonarQubeEdition != 'community') {
+                scannerParams << "-Dsonar.branch.name=${properties['sonar.branch.name']}"
             }
             script.sh(
                 label: 'Run SonarQube scan',
@@ -80,6 +74,12 @@ class SonarQubeService {
                 script: "curl -s -u ${authToken}: ${hostUrl}/api/qualitygates/project_status?projectKey=${projectKey}",
                 returnStdout: true
             )
+        }
+    }
+
+    String getSonarQubeHostUrl() {
+        withSonarServerConfig { hostUrl, authToken ->
+            return hostUrl
         }
     }
 

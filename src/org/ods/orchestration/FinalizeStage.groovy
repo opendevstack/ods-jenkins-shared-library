@@ -1,5 +1,6 @@
 package org.ods.orchestration
 
+import org.ods.orchestration.util.ProjectMessagesUtil
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.util.MROPipelineUtil
@@ -85,6 +86,10 @@ class FinalizeStage extends Stage {
                 "need to be committed into branch '${project.gitReleaseBranch}'.")
         }
 
+        if (project.hasWipJiraIssues()) {
+            util.warnBuild(ProjectMessagesUtil.generateWIPIssuesMessage(project))
+        }
+
         // Dump a representation of the project
         logger.debug("---- ODS Project (${project.key}) data ----\r${project}\r -----")
 
@@ -115,12 +120,6 @@ class FinalizeStage extends Stage {
 
             util.failBuild(message)
             throw new IllegalStateException(message)
-        } else if (!project.isWorkInProgress && !project.isProjectReadyToFreeze(project.data.jira)) {
-            project.reportPipelineStatus('Build fail as it has open issues.', true)
-            if (!project.isWorkInProgress) {
-                bitbucket.setBuildStatus (steps.env.BUILD_URL, project.gitData.commit,
-                    "SUCCESSFUL", "Release Manager for commit: ${project.gitData.commit}")
-            }
         } else {
             project.reportPipelineStatus()
             if (!project.isWorkInProgress) {

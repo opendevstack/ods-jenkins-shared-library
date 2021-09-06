@@ -1,3 +1,5 @@
+import org.ods.orchestration.usecase.OpenIssuesException
+
 import java.nio.file.Paths
 
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
@@ -14,6 +16,7 @@ import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
+import org.ods.services.GitService
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -30,6 +33,7 @@ def call(Map config) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
+    def git = new GitService(steps, logger)
 
     def odsImageTag = config.odsImageTag
     if (!odsImageTag) {
@@ -66,13 +70,12 @@ def call(Map config) {
         }
 
         // checkout local branch
-        checkout([
-            $class: 'GitSCM',
-            branches: scmBranches,
-            doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
-            extensions: [[$class: 'LocalBranch', localBranch: '**']],
-            userRemoteConfigs: scm.userRemoteConfigs,
-        ])
+        git.checkout(
+            scmBranches,
+            [[$class: 'LocalBranch', localBranch: '**']],
+            scm.userRemoteConfigs,
+            scm.doGenerateSubmoduleConfigurations
+            )
         logger.debugClocked('pipeline-git-releasemanager')
 
         def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
@@ -81,7 +84,17 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             logger.debugClocked('pod-template')
             withEnv (envs) {
-                def result = new InitStage(this, project, repos, startAgentStage).execute()
+                def result
+                def cannotContinueAsHasOpenIssuesInClosingRelease = false
+                try {
+                    result = new InitStage(this, project, repos, startAgentStage).execute()
+                } catch (OpenIssuesException ex) {
+                    cannotContinueAsHasOpenIssuesInClosingRelease = true
+                }
+                if (cannotContinueAsHasOpenIssuesInClosingRelease) {
+                    logger.warn('Cannot continue as it has open issues in the release.')
+                    return
+                }
                 if (result) {
                     project = result.project
                     repos = result.repos

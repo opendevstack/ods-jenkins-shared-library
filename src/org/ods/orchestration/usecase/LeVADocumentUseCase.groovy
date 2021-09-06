@@ -1,19 +1,19 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-
-import java.time.LocalDateTime
+import groovy.xml.XmlUtil
+import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.service.DocGenService
+import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.util.*
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.service.*
-import org.ods.orchestration.util.*
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
-import org.ods.util.Logger
 
-import groovy.xml.XmlUtil
+import java.time.LocalDateTime
 
 @SuppressWarnings(['IfStatementBraces',
     'LineLength',
@@ -33,7 +33,6 @@ import groovy.xml.XmlUtil
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
-
         CSD,
         DIL,
         DTP,
@@ -52,7 +51,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         OVERALL_DTR,
         OVERALL_IVR,
         OVERALL_TIR
-
     }
 
     protected static Map DOCUMENT_TYPE_NAMES = [
@@ -104,19 +102,37 @@ class LeVADocumentUseCase extends DocGenUseCase {
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
 
-    private JiraUseCase jiraUseCase
-    private JUnitTestReportsUseCase junit
-    private LeVADocumentChaptersFileService levaFiles
-    private OpenShiftService os
-    private SonarQubeUseCase sq
+    private final JiraUseCase jiraUseCase
+    private final JUnitTestReportsUseCase junit
+    private final LeVADocumentChaptersFileService levaFiles
+    private final OpenShiftService os
+    private final SonarQubeUseCase sq
+    private final BitbucketTraceabilityUseCase bbt
+    private final ILogger logger
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen, JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit, LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os, PDFUtil pdf, SonarQubeUseCase sq) {
+    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen,
+                        JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit,
+                        LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os,
+                        PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt, ILogger logger) {
         super(project, steps, util, docGen, nexus, pdf, jenkins)
         this.jiraUseCase = jiraUseCase
         this.junit = junit
         this.levaFiles = levaFiles
         this.os = os
         this.sq = sq
+        this.bbt = bbt
+        this.logger = logger
+    }
+
+    @NonCPS
+    private def getReqsWithNoGampTopic(def requirements) {
+        return requirements.findAll { it.gampTopic == null }
+    }
+
+    @NonCPS
+    private def getReqsGroupedByGampTopic(def requirements) {
+        return requirements.findAll { it.gampTopic != null }
+            .groupBy { it.gampTopic.toLowerCase() }
     }
 
     @SuppressWarnings('CyclomaticComplexity')
@@ -127,17 +143,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def requirements = this.project.getSystemRequirements()
-
-        def reqsWithNoGampTopic = requirements.findAll { it.gampTopic == null }
-        def reqsGroupedByGampTopic = requirements. findAll { it.gampTopic != null }
-            .groupBy { it.gampTopic.toLowerCase() }
+        def reqsWithNoGampTopic = getReqsWithNoGampTopic(requirements)
+        def reqsGroupedByGampTopic = getReqsGroupedByGampTopic(requirements)
         reqsGroupedByGampTopic << ['uncategorized': reqsWithNoGampTopic ]
 
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             def updatedReqs = reqs.collect { req ->
                 def epics = req.getResolvedEpics()
                 def epic = !epics.isEmpty() ? epics.first() : null
-                [
+
+                return [
                     key             : req.key,
                     applicability   : 'Mandatory',
                     ursName         : req.name,
@@ -149,40 +164,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     epic            : epic?.key,
                     epicName        : epic?.epicName,
                     epicTitle       : epic?.title,
-                    epicDescription : epic?.description,
+                    epicDescription : this.convertImages(epic?.description),
                 ]
             }
 
-            def reqsGroupByEpic = SortUtil.sortIssuesByKey(updatedReqs).findAll{
-                it.epic != null}.groupBy{it.epic}
+            def output = sortByEpicAndRequirementKeys(updatedReqs)
 
-            def index = 0
-            def reqsGroupByEpicUpdated = reqsGroupByEpic.collect { req ->
-                index = index + 1
-                [
-                        epicName        : req.value.epicName.first(),
-                        epicTitle       : req.value.epicTitle.first(),
-                        epicDescription : this.convertImages(req.value.epicDescription.first() ?: ''),
-                        key             : req.key,
-                        epicIndex       : index,
-                        stories         : req.value,
-                ]
-            }
-            def output = [
-                noepics: SortUtil.sortIssuesByKey(updatedReqs).findAll{ it.epic == null },
-                epics  : SortUtil.sortIssuesByKey(reqsGroupByEpicUpdated)
-            ]
-
-            [
+            return [
                 (gampTopic.replaceAll(' ', '').toLowerCase()): output
             ]
         }
 
-        def keysInDoc = this.project.getRequirements()
-            .collect { it.subMap(['key', 'epics']).values()  }
-            .flatten().unique()
-
-        if(project.data?.jira?.discontinuationsPerType) {
+        def keysInDoc = computeKeysInDocForCSD(this.project.getRequirements())
+        if (project.data?.jira?.discontinuationsPerType) {
             keysInDoc += project.data.jira.discontinuationsPerType.requirements*.key
             keysInDoc += project.data.jira.discontinuationsPerType.epics*.key
         }
@@ -202,6 +196,43 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    protected Map sortByEpicAndRequirementKeys(List updatedReqs) {
+        def sortedUpdatedReqs = SortUtil.sortIssuesByKey(updatedReqs)
+        def reqsGroupByEpic = sortedUpdatedReqs.findAll {
+            it.epic != null }.groupBy { it.epic }.sort()
+
+        def reqsGroupByEpicUpdated = reqsGroupByEpic.values().indexed(1).collect { index, epicStories ->
+            def aStory = epicStories.first()
+            [
+                epicName        : aStory.epicName,
+                epicTitle       : aStory.epicTitle,
+                epicDescription : this.convertImages(aStory.epicDescription ?: ''),
+                key             : aStory.epic,
+                epicIndex       : index,
+                stories         : epicStories,
+            ]
+        }
+        def output = [
+            noepics: sortedUpdatedReqs.findAll { it.epic == null },
+            epics  : reqsGroupByEpicUpdated
+        ]
+
+        return output
+    }
+
+    @NonCPS
+    private def computeKeysInDocForCSD(def data) {
+        return data.collect { it.subMap(['key', 'epics']).values()  }
+            .flatten().unique()
+    }
+
+    @NonCPS
+    private def computeKeysInDocForDTP(def data, def tests) {
+        return data.collect { 'Technology-' + it.id } + tests
+            .collect { [it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }
+            .flatten()
+    }
+
     String createDTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.DTP as String
 
@@ -212,9 +243,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def tests = this.computeTestsWithRequirementsAndSpecs(unitTests)
         def modules = this.getReposWithUnitTestsInfo(unitTests)
 
-        def keysInDoc = modules.collect { 'Technology-' + it.id } + tests
-            .collect {[it.testKey, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]  }.flatten()
-
+        def keysInDoc = this.computeKeysInDocForDTP(modules, tests)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -233,8 +262,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     String createDTR(Map repo, Map data) {
-        def documentType = DocumentType.DTR as String
+        logger.debug("createDTR - repo:${repo}, data:${data}")
 
+        def documentType = DocumentType.DTR as String
         Map resurrectedDocument = resurrectAndStashDocument(documentType, repo)
         this.steps.echo "Resurrected ${documentType} for ${repo.id} -> (${resurrectedDocument.found})"
         if (resurrectedDocument.found) {
@@ -254,11 +284,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def tests = testIssues.collect { testIssue ->
-            def description = testIssue.name ?: ""
-            if (description && testIssue.description) {
-                description += ": "
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
             }
-            description += testIssue.description
 
             def riskLevels = testIssue.getResolvedRisks(). collect {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
@@ -271,7 +302,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             [
                 key               : testIssue.key,
-                description       : description ?: "N/A",
+                description       : this.convertImages(description ?: 'N/A'),
                 systemRequirement : testIssue.requirements.join(", "),
                 success           : testIssue.isSuccess ? "Y" : "N",
                 remarks           : testIssue.isUnexecuted ? "Not executed" : "N/A",
@@ -280,9 +311,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         }
 
-        def keysInDoc = tests.collect {
-            [it.key, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]
-        }.flatten()
+        def keysInDoc = this.computeKeysInDocForDTR(tests)
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
 
         def data_ = [
@@ -315,6 +344,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.createDocument(documentType, repo, data_, files, modifier, getDocumentTemplateName(documentType, repo), watermarkText)
     }
 
+    @NonCPS
+    private def computeKeysInDocForDTR(def data) {
+        return data.collect {
+            [it.key, it.systemRequirement.split(', '), it.softwareDesignSpec.split(', ')]
+        }.flatten()
+    }
+
     String createOverallDTR(Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
         def metadata = this.getDocumentMetadata(documentTypeName)
@@ -323,8 +359,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
         def uri = this.createOverallDocument('Overall-Cover', documentType, metadata, null, watermarkText)
-        def docHistory = this.project.findHistoryForDocumentType(documentType)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
+        def docVersion = this.project.getDocumentVersionFromHistories(documentType) as String
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docVersion)
         return uri
     }
 
@@ -411,6 +447,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    @NonCPS
+    private def computeKeysInDocForCFTP(def data) {
+        return data.collect { it.subMap(['key']).values() }.flatten()
+    }
+
     String createCFTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.CFTP as String
 
@@ -420,9 +461,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
 
-        def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
-            .collect { it.subMap(['key']).values() }.flatten()
-
+        def keysInDoc = this.computeKeysInDocForCFTP(integrationTestIssues + acceptanceTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -432,7 +471,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTests : acceptanceTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: '',
+                        description: this.convertImages(testIssue.description ?: ''),
                         ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
                         risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
                     ]
@@ -440,7 +479,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests: integrationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: '',
+                        description: this.convertImages(testIssue.description ?: ''),
                         ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
                         risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
                     ]
@@ -454,10 +493,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    @SuppressWarnings('CyclomaticComplexity')
-    String createCFTR(Map repo, Map data) {
-        def documentType = DocumentType.CFTR as String
+    @NonCPS
+    private def computeKeysInDocForCFTR(def data) {
+        return data.collect { it.subMap(['key']).values() }.flatten()
+    }
 
+    @SuppressWarnings('CyclomaticComplexity')
+    String createCFTR(Map repo = null, Map data) {
+        logger.debug("createCFTR - data:${data}")
+
+        def documentType = DocumentType.CFTR as String
         def acceptanceTestData = data.tests.acceptance
         def integrationTestData = data.tests.integration
 
@@ -468,8 +513,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def integrationTestIssues = SortUtil.sortIssuesByKey(this.project.getAutomatedTestsTypeIntegration())
         def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
 
-        def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
-            .collect { it.subMap(['key']).values() }.flatten()
+        def keysInDoc = this.computeKeysInDocForCFTR(integrationTestIssues + acceptanceTestIssues)
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
@@ -489,16 +533,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!acceptanceTestIssues.isEmpty()) {
             data_.data.acceptanceTests = acceptanceTestIssues.collect { testIssue ->
-                def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
-                }
-                description += testIssue.description
-
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: description ?: "N/A",
+                    description: getTestDescription(testIssue),
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
@@ -509,16 +547,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!integrationTestIssues.isEmpty()) {
             data_.data.integrationTests = integrationTestIssues.collect { testIssue ->
-                def description = testIssue.name ?: ""
-                if (description && testIssue.description) {
-                    description += ": "
-                }
-                description += testIssue.description
-
                 [
                     key        : testIssue.key,
                     datetime   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", "</br>") : "N/A",
-                    description: description ?: "N/A",
+                    description: getTestDescription(testIssue),
                     remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                     risk_key   : testIssue.risks ? testIssue.risks.join(", ") : "N/A",
                     success    : testIssue.isSuccess ? "Y" : "N",
@@ -534,6 +566,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, files, null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    //TODO Use this method to generate the test description everywhere
+    def getTestDescription(testIssue) {
+        return testIssue.description ?: testIssue.name ?: 'N/A'
+    }
+
+    @NonCPS
+    private def computeKeysInDocForRA(def data) {
+        return data
+            .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values()  }
+            .flatten()
     }
 
     String createRA(Map repo = null, Map data = null) {
@@ -559,7 +603,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return [
                 key: r.key,
                 name: r.name,
-                description: r.description,
+                description: convertImages(r.description),
                 proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
                 requirements: requirements.collect { it.name }.join("<br/>"),
                 requirementsKey: requirements.collect { it.key }.join("<br/>"),
@@ -580,6 +624,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             } + r.getResolvedMitigations().collect { [key: it.key, name: it.name, description: it.description, type: "mitigation", referencesRisk: r.key] })
         }.flatten()
 
+        if (!sections."sec4s2s1") sections."sec4s2s1" = [:]
+        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION"?: 'n/a'
+
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
 
         if (this.project.getProjectProperties()."PROJECT.USES_POO" == "true") {
@@ -598,10 +645,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def metadata = this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType])
         metadata.orientation = "Landscape"
 
-        def keysInDoc = this.project.getRisks()
-            .collect { it.subMap(['key', 'requirements', 'techSpecs', 'mitigations', 'tests']).values()  }
-            .flatten()
-
+        def keysInDoc = this.computeKeysInDocForRA(this.project.getRisks())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -615,6 +659,13 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    @NonCPS
+    private def computeKeysInDocForIPV(def data) {
+        return data
+            .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
+            .flatten()
     }
 
     String createIVP(Map repo = null, Map data = null) {
@@ -639,9 +690,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        def keysInDoc = installationTestIssues
-            .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
-            .flatten()
+        def keysInDoc = this.computeKeysInDocForIPV(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def installedRepos = this.project.repositories.collect {
@@ -671,7 +720,16 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    String createIVR(Map repo, Map data) {
+    @NonCPS
+    private def computeKeysInDocForIVR(def data) {
+        return data
+            .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
+            .flatten()
+    }
+
+    String createIVR(Map repo = null, Map data) {
+        logger.debug("createIVR - data:${data}")
+
         def documentType = DocumentType.IVR as String
 
         def installationTestData = data.tests.installation
@@ -695,9 +753,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        def keysInDoc = installationTestIssues
-            .collect { it.subMap(['key', 'components', 'techSpecs']).values()  }
-            .flatten()
+        def keysInDoc =  this.computeKeysInDocForIVR(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def installedRepos = this.project.repositories.collect {
@@ -712,7 +768,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 tests             : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
                         key        : testIssue.key,
-                        description: testIssue.description ?: "",
+                        description: this.convertImages(testIssue.description ?: ''),
                         remarks    : testIssue.isUnexecuted ? "Not executed" : "",
                         success    : testIssue.isSuccess ? "Y" : "N",
                         summary    : testIssue.name,
@@ -744,7 +800,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @SuppressWarnings('CyclomaticComplexity')
-    String createTCR(Map repo = null, Map data = null) {
+    String createTCR(Map repo = null, Map data) {
+        logger.debug("createTCR - data:${data}")
+
         String documentType = DocumentType.TCR as String
 
         def sections = this.getDocumentSections(documentType)
@@ -781,9 +839,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.jiraUseCase.matchTestIssuesAgainstTestResults(integrationTestIssues, integrationTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
         this.jiraUseCase.matchTestIssuesAgainstTestResults(acceptanceTestIssues, acceptanceTestData?.testResults ?: [:], matchedHandler, unmatchedHandler)
 
-        def keysInDoc = (integrationTestIssues + acceptanceTestIssues)
-            .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
-
+        def keysInDoc = this.computeKeysInDocForTCR(integrationTestIssues + acceptanceTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -793,11 +849,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests    : SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps,
+                        steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -806,11 +862,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTests     : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
-                        steps       : testIssue.steps,
+                        steps       : sortTestSteps(testIssue.steps),
                         timestamp   : testIssue.timestamp ? testIssue.timestamp.replaceAll("T", " ") : "N/A",
                         comment     : testIssue.comment,
                         actualResult: testIssue.actualResult
@@ -840,7 +896,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
         def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
 
-        def keysInDoc = computeDocumentKeys(integrationTestIssues, acceptanceTestIssues)
+        def keysInDoc = computeKeysInDocForTCP(integrationTestIssues + acceptanceTestIssues)
 
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
@@ -850,19 +906,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests: SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps
+                        steps       : sortTestSteps(testIssue.steps)
                     ]
                 }),
                 acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : testIssue.description,
+                        description : this.convertImages(testIssue.description ?: ''),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
-                        steps       : testIssue.steps
+                        steps       : sortTestSteps(testIssue.steps)
                     ]
                 }),
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
@@ -874,9 +930,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
+    @NonCPS
+    def sortTestSteps(def testSteps) {
+        return testSteps?.sort(false) { it.orderId }
+    }
+
+    @NonCPS
+    private def computeKeysInDocForSSDS(def techSpecs, def componentsMetadata, def modules) {
+        def specs = techSpecs.collect { it.subMap(['key', 'requirements']).values() }.flatten()
+        def components = componentsMetadata.collect { it.key }
+        def mods = modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten()
+        return specs + components + mods
+    }
+
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
 
+        def bbInfo = this.bbt.readSourceCodeReviewFile(this.bbt.generateSourceCodeReviewFile())
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
@@ -891,6 +961,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 ]
             }
 
+        if (!sections."sec2s3") sections."sec2s3" = [:]
+        sections."sec2s3".bitbucket = SortUtil.sortIssuesByProperties(bbInfo ?: [], ["component", "date", "url"])
+
         if (!sections."sec3s1") sections."sec3s1" = [:]
         sections."sec3s1".specifications = SortUtil.sortIssuesByProperties(systemDesignSpecifications, ["req_key", "key"])
 
@@ -901,7 +974,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 nameOfSoftware: c.nameOfSoftware,
                 componentType : c.componentType,
                 componentId   : c.componentId,
-                description   : c.description,
+                description   : this.convertImages(c.description ?: ''),
                 supplier      : c.supplier,
                 version       : c.version,
                 references    : c.references,
@@ -926,22 +999,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
 
-        // Code review report
-        def codeRepos = this.project.repositories.findAll { it.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
-        def codeReviewReports = obtainCodeReviewReport(codeRepos)
-
-        def modifier = { document ->
-            List documents = [document]
-            documents += codeReviewReports
-            // Merge the current document with the code review report
-            return this.pdf.merge(documents)
-        }
-
-        def keysInDoc = (this.project.getTechnicalSpecifications()
-            .collect { it.subMap(['key', 'requirements']).values() }.flatten()
-        + componentsMetadata.collect { it.key }
-        + modules.collect { it.subMap(['requirementKeys', 'softwareDesignSpecKeys']).values() }.flatten())
-
+        def keysInDoc = this.computeKeysInDocForSSDS(this.project.getTechnicalSpecifications(), componentsMetadata, modules)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -951,9 +1009,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, null, data_, [:], modifier, getDocumentTemplateName(documentType), watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
+    }
+
+    @NonCPS
+    private def computeKeysInDocForTIP(def data) {
+        return data.collect { it.key }
     }
 
     String createTIP(Map repo = null, Map data = null) {
@@ -962,7 +1025,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sections = this.getDocumentSectionsFileOptional(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        def keysInDoc = this.project.getComponents().collect {it.key }
+        def keysInDoc = this.computeKeysInDocForTIP(this.project.getComponents())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -984,6 +1047,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
+        logger.debug("createTIR - repo:${repo}, data:${data}")
+
         def documentType = DocumentType.TIR as String
 
         def installationTestData = data?.tests?.installation
@@ -1070,12 +1135,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
-        def docHistory = this.project.findHistoryForDocumentType(documentType)
-        this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
+        def docVersion = this.project.getDocumentVersionFromHistories(documentType) as String
+        this.updateJiraDocumentationTrackingIssue(documentType, uri, docVersion)
         return uri
     }
 
+    @NonCPS
+    private def computeKeysInDocForTRC(def data) {
+        return data.collect { it.subMap(['key', 'risks', 'tests']).values()  }.flatten()
+    }
+
     String createTRC(Map repo, Map data) {
+        logger.debug("createTRC - repo:${repo}, data:${data}")
+
         def documentType = DocumentType.TRC as String
 
         def acceptanceTestData = data.tests.acceptance
@@ -1103,8 +1175,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [
                 key         : r.key,
                 name        : r.name,
-                description : r.description,
-                risks       : r.risks.join(", "),
+                description : this.convertImages(r.description ?: ''),
+                techSpecs   : r.techSpecs.join(", "),
+                risks       : (r.getResolvedTechnicalSpecifications().risks + r.risks).flatten().unique().join(", "),
                 tests       : r.tests.join(", "),
                 predecessors: predecessors,
             ]
@@ -1112,10 +1185,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         if (!sections."sec4") sections."sec4" = [:]
         sections."sec4".systemRequirements = SortUtil.sortIssuesByKey(systemRequirements)
-        def keysInDoc = this.project.getSystemRequirements()
-            .collect { it.subMap(['key', 'risks', 'tests']).values()  }
-            .flatten()
 
+        def keysInDoc = this.computeKeysInDocForTRC(this.project.getSystemRequirements())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
@@ -1156,9 +1227,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     @NonCPS
-    private def computeDocumentKeys(integrationTestIssues, acceptanceTestIssues) {
-        return (integrationTestIssues + acceptanceTestIssues)
-            .collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
+    private def computeKeysInDocForTCP(def data) {
+        return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
 
     List<String> getSupportedDocuments() {
@@ -1293,11 +1363,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def value = obtainEnum("SeverityOfImpact", it.severityOfImpact)
                 return value ? value.text : "None"
             }
+            def description = ''
+            if (testIssue.description) {
+                description += testIssue.description
+            } else {
+                description += testIssue.name
+            }
 
             [
                 moduleName: testIssue.components.join(", "),
                 testKey: testIssue.key,
-                description: testIssue.description ?: "N/A",
+                description: this.convertImages(description ?: 'N/A'),
                 systemRequirement: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                 softwareDesignSpec: (softwareDesignSpecs.join(", ")) ?: "N/A",
                 riskLevel: riskLevels ? riskLevels.join(", ") : "N/A"
@@ -1354,8 +1430,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.project.components.collectEntries { component ->
             def normComponentName = component.name.replaceAll('Technology-', '')
 
-            def gitUrl = new GitService(
-                this.steps, new Logger(this.steps, false)).getOriginUrl()
+            def gitUrl = new GitService(this.steps, logger).getOriginUrl()
             def isReleaseManagerComponent =
                 gitUrl.endsWith("${this.project.key}-${normComponentName}.git".toLowerCase())
             if (isReleaseManagerComponent) {
@@ -1418,7 +1493,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         this.project.repositories.collect {
             [
                 id: it.id,
-                description: it.metadata.description,
+                description: it.metadata?.description,
                 tests: componentTestMapping[it.id]? componentTestMapping[it.id].join(", "): "None defined"
             ]
         }
@@ -1476,7 +1551,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<String> getJiraTrackingIssueLabelsForDocTypeAndEnvs(String documentType, List<String> envs = null) {
         def labels = []
 
-        def environments = (envs)? envs : this.project.buildParams.targetEnvironmentToken
+        def environments = (envs) ? envs : this.project.buildParams.targetEnvironmentToken
         environments.each { env ->
             LeVADocumentScheduler.ENVIRONMENT_TYPE[env].get(documentType).each { label ->
                 labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
@@ -1542,6 +1617,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return this.project.getWIPDocChaptersForDocument(documentType)
     }
 
+    @NonCPS
     protected List<String> computeSectionsNotDone(Map issues = [:]) {
         if (!issues) return []
         return issues.values().findAll { !it.status?.equalsIgnoreCase('done') }.collect { it.key }
@@ -1552,19 +1628,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase.jira) return
         // If we have already saved the version, load it from project
         if (this.project.historyForDocumentExists(documentName)) {
-
             return this.project.getHistoryForDocument(documentName)
         } else {
-            def documentType = documentName.split('-').first()
+            def documentType = LeVADocumentUtil.getTypeFromName(documentName)
             def jiraData = this.project.data.jira as Map
             def environment = this.computeSavedDocumentEnvironment(documentType)
-            def latestValidVersionId = this.getLatestDocVersionId(documentType, [environment])
-            def docHistory = new DocumentHistory(this.steps, new Logger(this.steps, false), environment, documentName)
-            def docChapters = this.project.getDocumentChaptersForDocument(documentName)
+            def docHistory = new DocumentHistory(this.steps, logger, environment, documentName)
+            def docChapters = this.project.getDocumentChaptersForDocument(documentType)
             def docChapterKeys = docChapters.collect { chapter ->
                 chapter.key
             }
-            docHistory.load(jiraData, latestValidVersionId, (keysInDoc + docChapterKeys).unique())
+            docHistory.load(jiraData, (keysInDoc + docChapterKeys).unique())
 
             // Save the doc history to project class, so it can be persisted when considered
             this.project.setHistoryForDocument(docHistory, documentName)
@@ -1576,7 +1650,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String computeSavedDocumentEnvironment(String documentType) {
         def environment = this.project.buildParams.targetEnvironmentToken
         if (this.project.isWorkInProgress) {
-            environment = ['D', 'Q', 'P'].find { env ->
+            environment = Environment.values().collect { it.toString() }.find { env ->
                 LeVADocumentScheduler.ENVIRONMENT_TYPE[env].containsKey(documentType)
             }
         }
@@ -1666,15 +1740,15 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     /**
      * gets teh document version IDS at the start ... can't do that...
-     * @return
+     * @return Map
      */
     protected Map getReferencedDocumentsVersion() {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
         def environment = this.project.buildParams.targetEnvironmentToken
-        def docIsCreatedInTheEnvironment = { String doc ->
-            LeVADocumentScheduler.ENVIRONMENT_TYPE[environment].containsKey(doc)
+        def isHistoryUpdatedInThisEnvironment = { String doc ->
+            LeVADocumentScheduler.getFirstCreationEnvironment(doc) == environment
         }
 
         def referencedDcocs = [
@@ -1697,22 +1771,33 @@ class LeVADocumentUseCase extends DocGenUseCase {
             if (! this.project.isVersioningEnabled) {
                 // TODO removeme in ODS 4.x
                 version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
-            } else if (this.project.historyForDocumentExists(doc)) {
-                version = this.project.getHistoryForDocument(doc).getVersion()
             } else {
-                def trackingIssues =  this.getDocumentTrackingIssues(doc, ['D', 'Q', 'P'])
-                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                if (this.project.isWorkInProgress) {
-                    version = (version + 1L).toString() + "-WIP"
-                } else if (docIsCreatedInTheEnvironment(doc)) {
-                    // The document will be generated in this deploy but it is not created yet
-                    version += 1L
+                version = this.project.getDocumentVersionFromHistories(doc)
+                if (!version) {
+                    // The document has not (yet) been generated in this pipeline run.
+                    def envs = Environment.values().collect { it.toString() }
+                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
+                    version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                    if (this.project.isWorkInProgress || isHistoryUpdatedInThisEnvironment(doc)) {
+                        // Either this is a developer preview or the history is to be updated in this environment.
+                        version += 1L
+                    }
                 }
             }
 
-            [(doc): "${this.project.buildParams.configItem} / ${version}"]
+            if (this.project.isWorkInProgress) {
+                // If this is a developer preview, the document version is always a WIP, because,
+                // if we have the document history, it has already been updated to a new version.
+                version = "${version}-WIP"
+            }
+
+            return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
 
     }
 
+    @NonCPS
+    private def computeKeysInDocForTCR(def data) {
+        return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
+    }
 }

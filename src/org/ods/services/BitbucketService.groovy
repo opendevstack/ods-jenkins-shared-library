@@ -1,5 +1,9 @@
 package org.ods.services
 
+@Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
+
+import groovy.json.JsonSlurperClassic
+import kong.unirest.Unirest
 import org.ods.util.ILogger
 import com.cloudbees.groovy.cps.NonCPS
 import org.ods.util.AuthUtil
@@ -41,7 +45,7 @@ class BitbucketService {
     private final ILogger logger
 
     BitbucketService(def script, String bitbucketUrl, String project,
-        String passwordCredentialsId, ILogger logger) {
+                     String passwordCredentialsId, ILogger logger) {
         this.script = script
         this.bitbucketUrl = bitbucketUrl
         this.project = project
@@ -309,6 +313,66 @@ class BitbucketService {
         logger.debugClocked("buildstatus-${buildName}-${state}")
     }
 
+    /**
+     * Creates a code insight report in bitbucket via API.
+     * For further information visit https://developer.atlassian.com/server/bitbucket/how-tos/code-insights/
+     *
+     * @param result One of: PASS, FAIL
+     */
+    void createCodeInsightReport(Map data, String repo, String gitCommit) {
+        withTokenCredentials { username, token ->
+            def payload = "{" +
+                "\"title\":\"${data.title}\"," +
+                "\"reporter\":\"OpenDevStack\"," +
+                "\"createdDate\":${System.currentTimeMillis()}," +
+                "\"details\":\"${data.details}\"," +
+                "\"result\":\"${data.result}\","
+            if (data.link) {
+                payload += "\"link\":\"${data.link}\","
+            }
+            payload += "\"data\": ["
+            data.otherLinks.eachWithIndex { Map link, i ->
+                payload += "{" +
+                    "\"title\":\"${link.title}\"," +
+                    "\"value\":{\"linktext\":\"${link.text}\",\"href\":\"${link.link}\"}," +
+                    "\"type\":\"LINK\"" +
+                    "}"
+                if (i !=  data.otherLinks.size() - 1 || data.messages) {
+                    payload += ','
+                }
+            }
+            data.messages.eachWithIndex { Map message, i ->
+                payload += "{" +
+                    "\"title\":\"${message.title}\"," +
+                    "\"value\":\"${message.value}\"," +
+                    "\"type\":\"TEXT\"" +
+                    "}"
+                if (i != data.messages.size() - 1) {
+                    payload += ','
+                }
+            }
+            payload += "]" +
+                "}"
+            try {
+                script.sh(
+                    label: 'Create Bitbucket Code Insight report via API',
+                    script: """curl \\
+                        --fail \\
+                        -sS \\
+                        --request PUT \\
+                        --header \"Authorization: Bearer ${token}\" \\
+                        --header \"Content-Type: application/json\" \\
+                        --data '${payload}' \\
+                        ${bitbucketUrl}/rest/insights/1.0/projects/${project}/\
+repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
+                )
+                return
+            } catch (err) {
+                logger.warn("Could not create Bitbucket Code Insight report due to: ${err}")
+            }
+        }
+    }
+
     def withTokenCredentials(Closure block) {
         if (!tokenCredentialsId) {
             createUserTokenIfMissing()
@@ -359,8 +423,8 @@ class BitbucketService {
         } else {
             throw new RuntimeException(
                 "ERROR: Secret ${openShiftCdProject}/${tokenSecretName} has been created, " +
-                "but credentials '${credentialsId}' are not available. " +
-                'Please ensure that the secret is synced and re-run the pipeline.'
+                    "but credentials '${credentialsId}' are not available. " +
+                    'Please ensure that the secret is synced and re-run the pipeline.'
             )
         }
     }
@@ -407,6 +471,51 @@ class BitbucketService {
         return tokenMap
     }
 
+    @NonCPS
+    String getToken() {
+        withTokenCredentials { username, token -> return token}
+    }
+
+    @NonCPS
+    Map getCommitsForIntegrationBranch(String token, String repo, int limit, int nextPageStart){
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}/repos/${repo}/commits"
+        return queryRepo(token, request, limit, nextPageStart)
+    }
+
+    @NonCPS
+    Map getPRforMergedCommit(String token, String repo, String commit) {
+        String request = "${bitbucketUrl}/rest/api/1.0/projects/${project}" +
+            "/repos/${repo}/commits/${commit}/pull-requests"
+        return queryRepo(token, request, 0, 0)
+    }
+
+    private Map queryRepo(String token, String request, int limit, int nextPageStart) {
+        Map<String, String> headers = buildHeaders(token)
+        def httpRequest = Unirest.get(request).headers(headers)
+        if (limit>0) {
+            httpRequest.queryString("limit", limit)
+        }
+        if (nextPageStart>0) {
+            httpRequest.queryString("start", nextPageStart)
+        }
+        def response = httpRequest.asString()
+
+        response.ifFailure {
+            def message = 'Error: unable to get data from Bitbucket responded with code: ' +
+                    "'${response.getStatus()}' and message: '${response.getBody()}'."
+            throw new RuntimeException(message)
+        }
+
+        return new JsonSlurperClassic().parseText(response.getBody())
+    }
+
+    private Map<String, String> buildHeaders(String token) {
+        Map<String, String> headers = [:]
+        headers.put("accept", "application/json")
+        headers.put("Authorization", "Bearer ".concat(token))
+        return headers
+    }
+
     private void createUserTokenSecret(String username, String password) {
         String secretYml = userTokenSecretYml(tokenSecretName, username, password)
         script.writeFile(
@@ -427,9 +536,9 @@ class BitbucketService {
         try {
             script.withCredentials([
                 script.usernamePassword(
-                  credentialsId: credentialsId,
-                  usernameVariable: 'USERNAME',
-                  passwordVariable: 'TOKEN'
+                    credentialsId: credentialsId,
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'TOKEN'
                 )
             ]) {
                 true

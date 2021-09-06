@@ -1,18 +1,21 @@
 package org.ods.orchestration.util
 
-import java.nio.file.Files
 
 import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.service.JiraService
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.usecase.LeVADocumentUseCase
+import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
-import org.ods.orchestration.service.*
-import org.ods.orchestration.usecase.*
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
+import util.FixtureHelper
+import util.SpecHelper
+
+import java.nio.file.Files
 
 import static util.FixtureHelper.*
-
-import util.*
 
 class ProjectSpec extends SpecHelper {
 
@@ -838,6 +841,68 @@ class ProjectSpec extends SpecHelper {
         project.getWipJiraIssues() == expected
         project.getWIPDocChapters() == [(document): [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]]
         project.getWIPDocChaptersForDocument(document) == [Project.JiraDataItem.TYPE_DOCS+"-1",  Project.JiraDataItem.TYPE_DOCS+"-2"]
+    }
+
+    def "fail build with open issues"() {
+        setup:
+        def data = [project: [:], components: [:]]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            data[type] = [
+                "${type}-1": [
+                    status: "TODO"
+                ],
+                "${type}-2": [
+                    status: "DOING"
+                ],
+                "${type}-3": [
+                    status: "DONE"
+                ]
+            ]
+        }
+
+        def expected = [:]
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            expected[type] = ["${type}-1", "${type}-2"]
+        }
+
+        def expectedMessage = "The pipeline failed since the following issues are work in progress (no documents were generated): "
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            expectedMessage += "\n\n${type.capitalize()}: ${type}-1, ${type}-2"
+        }
+
+        project = createProject([
+            "loadJiraData"    : {
+                return data
+            },
+            "loadJiraDataBugs": {
+                return [
+                    "bugs-1": [
+                        status: "TODO"
+                    ],
+                    "bugs-2": [
+                        status: "DOING"
+                    ],
+                    "bugs-3": [
+                        status: "DONE"
+                    ]
+                ]
+            }
+        ]).init()
+        project.data.buildParams.version = "1.0"
+        when:
+        project.load(git, jiraUseCase)
+
+        then:
+        project.hasWipJiraIssues()
+
+        then:
+        def e = thrown(OpenIssuesException)
+        e.message == expectedMessage
+
+        and:
+        Project.JiraDataItem.TYPES_WITH_STATUS.each { type ->
+            !expectedMessage.find("${type}-3")
+        }
     }
 
     def "load initial version"() {
@@ -1666,7 +1731,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -1762,7 +1827,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2197,7 +2262,7 @@ class ProjectSpec extends SpecHelper {
         def firstVersion = '1'
         def secondVersion = '2'
 
-        def cmp ={  name ->  [key: "CMP-${name}" as String, name: "Component 1"]}
+        def cmp = {  name ->  [key: "CMP-${name}" as String, name: "Component 1"] }
         def req = {  name, String version = null ->  [key: "REQ-${name}" as String, description:name, versions:[version]] }
         def ts = {  name, String version = null ->  [key: "TS-${name}" as String, description:name, versions:[version]] }
         def rsk = {  name, String version = null ->  [key: "RSK-${name}" as String, description:name, versions:[version]] }
@@ -2542,10 +2607,10 @@ class ProjectSpec extends SpecHelper {
 
     Boolean issueListIsEquals(List issuesA, List issuesB) {
         if (issuesA.size() != issuesB.size()) return false
-        def issuesBKeys = issuesB.collect{it.key}
-        def areEquals = issuesA.collect{ issueA ->
+        def issuesBKeys = issuesB.collect { it.key }
+        def areEquals = issuesA.collect { issueA ->
             if (! issuesBKeys.contains(issueA.key)) return false
-            def correspondentIssueB = issuesB.find{it.key == issueA.key}
+            def correspondentIssueB = issuesB.find { it.key == issueA.key }
             issueIsEquals(issueA, correspondentIssueB)
         }
         return areEquals.isEmpty() || areEquals.contains(true)
@@ -2693,5 +2758,87 @@ class ProjectSpec extends SpecHelper {
 
 
 
+    }
+
+    def "get version for document type"() {
+        given:
+        def project = new Project(null, null)
+        def versions = [
+            CSD: 3L,
+            SSDS: 1L,
+            RA: 8L,
+            TRC: 5L,
+            DTP: 2L,
+            DTR: 4L,
+            CFTP: 9L,
+            CFTR: 6L,
+            TIR: 10L,
+            TIP: 7L,
+        ]
+        def histories = [
+            CSD: Stub(DocumentHistory),
+            SSDS: Stub(DocumentHistory),
+            RA: Stub(DocumentHistory),
+            TRC: Stub(DocumentHistory),
+            DTP: Stub(DocumentHistory),
+            'DTR-repo1': Stub(DocumentHistory),
+            'DTR-repo2': Stub(DocumentHistory),
+            CFTP: Stub(DocumentHistory),
+            CFTR: Stub(DocumentHistory),
+            'TIR-repo1': Stub(DocumentHistory),
+            'TIR-repo2': Stub(DocumentHistory),
+            TIP: Stub(DocumentHistory),
+        ]
+        histories.CSD.getVersion() >> versions.CSD
+        histories.SSDS.getVersion() >> versions.SSDS
+        histories.RA.getVersion() >> versions.RA
+        histories.TRC.getVersion() >> versions.TRC
+        histories.DTP.getVersion() >> versions.DTP
+        histories.'DTR-repo1'.getVersion() >> versions.DTR
+        histories.'DTR-repo2'.getVersion() >> versions.DTR
+        histories.CFTP.getVersion() >> versions.CFTP
+        histories.CFTR.getVersion() >> versions.CFTR
+        histories.'TIR-repo1'.getVersion() >> versions.TIR
+        histories.'TIR-repo2'.getVersion() >> versions.TIR
+        histories.TIP.getVersion() >> versions.TIP
+
+        when:
+        histories.each { docName, history ->
+            project.setHistoryForDocument(history, docName)
+        }
+
+        then:
+        versions.each { docType, version ->
+            assert project.getDocumentVersionFromHistories(docType) == version
+        }
+        assert project.getDocumentVersionFromHistories('other') == null
+
+    }
+
+    def "get automated unit tests"(){
+        given:
+        def component = "Technology-demo-app-catalogue"
+        def expected = project.data.jira.tests.findAll{ key, testIssue -> key == "NET-137"}.values() as List
+
+        when:
+        def testIssues = project.getAutomatedTestsTypeUnit(component)
+
+        then:
+        testIssues.containsAll(expected)
+    }
+
+    def "get automated unit tests throw an error"(){
+        given:
+        def component = "Technology-demo-app-catalogue"
+        def testReferences = project.data.jiraResolved[Project.JiraDataItem.TYPE_TESTS]["NET-137"]
+        def componentThatThrowError = [a:1] as Map
+        testReferences[Project.JiraDataItem.TYPE_COMPONENTS] = [componentThatThrowError]
+
+        when:
+        def testIssues = project.getAutomatedTestsTypeUnit(component)
+
+        then:
+        RuntimeException ex = thrown()
+        ex.message == 'Error with testIssue key: NET-137, no component assigned or it is wrong.'
     }
 }

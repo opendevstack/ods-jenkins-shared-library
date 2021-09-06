@@ -125,7 +125,7 @@ class FakeProject extends Project {
         this.data.metadata.repositories = repos
     }
 
-    Map loadDocs(){
+    Map loadDocs() {
         return ["doc1": [
                     "key": "DOC-1",
                     "version": "1.0",

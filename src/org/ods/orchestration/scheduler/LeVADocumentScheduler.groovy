@@ -1,10 +1,12 @@
 package org.ods.orchestration.scheduler
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.usecase.LeVADocumentUseCase
-import org.ods.util.IPipelineSteps
-import org.ods.util.ILogger
+import org.ods.orchestration.util.Environment
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['LineLength', 'SpaceAroundMapEntryColon'])
 class LeVADocumentScheduler extends DocGenScheduler {
@@ -184,6 +186,43 @@ class LeVADocumentScheduler extends DocGenScheduler {
         this.logger = logger
     }
 
+    /**
+     * Returns the first environment where a document is generated.
+     * This will also be the only one for which the document history is created or updated.
+     * Subsequent environments will get copies of the document history for the previous one.
+     *
+     * @param documentType a document type.
+     * @return the first environment for which the given document type is generated.
+     */
+    @NonCPS
+    static String getFirstCreationEnvironment(String documentType) {
+        def environment = Environment.values()*.toString().find { env ->
+            ENVIRONMENT_TYPE[env].containsKey(documentType)
+        }
+        return environment
+    }
+
+    /**
+     * Returns the last environment where a document is generated before the given one.
+     * If the document is not generated in any previous environment, the given environment is returned.
+     *
+     * @param documentType a document type.
+     * @param environment the environment for which to find the previous creation environment.
+     * @return the last environment where a document is generated before the given one.
+     */
+    @NonCPS
+    static String getPreviousCreationEnvironment(String documentType, String environment) {
+        def previousEnvironment = null
+        Environment.values()*.toString()
+            .takeWhile { it != environment }
+            .each { env ->
+                if (ENVIRONMENT_TYPE[env].containsKey(documentType)) {
+                    previousEnvironment = env
+                }
+            }
+        return previousEnvironment ?: environment
+    }
+
     private boolean isDocumentApplicableForGampCategory(String documentType, String gampCategory) {
         return this.GAMP_CATEGORIES[gampCategory].contains(documentType)
     }
@@ -216,7 +255,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         }
 
         // Applicable for certain document types only if the Jira service is configured in the release manager configuration
-        if ([LeVADocumentUseCase.DocumentType.CSD, LeVADocumentUseCase.DocumentType.SSDS, LeVADocumentUseCase.DocumentType.CFTP, LeVADocumentUseCase.DocumentType.CFTR,LeVADocumentUseCase.DocumentType.IVP,LeVADocumentUseCase.DocumentType.IVR,LeVADocumentUseCase.DocumentType.DIL, LeVADocumentUseCase.DocumentType.TCP, LeVADocumentUseCase.DocumentType.TCR, LeVADocumentUseCase.DocumentType.RA, LeVADocumentUseCase.DocumentType.TRC].contains(documentType as LeVADocumentUseCase.DocumentType)) {
+        if ([LeVADocumentUseCase.DocumentType.CSD, LeVADocumentUseCase.DocumentType.SSDS, LeVADocumentUseCase.DocumentType.CFTP, LeVADocumentUseCase.DocumentType.CFTR, LeVADocumentUseCase.DocumentType.IVP, LeVADocumentUseCase.DocumentType.IVR, LeVADocumentUseCase.DocumentType.DIL, LeVADocumentUseCase.DocumentType.TCP, LeVADocumentUseCase.DocumentType.TCR, LeVADocumentUseCase.DocumentType.RA, LeVADocumentUseCase.DocumentType.TRC].contains(documentType as LeVADocumentUseCase.DocumentType)) {
             result = result && this.project.services?.jira != null
         }
 

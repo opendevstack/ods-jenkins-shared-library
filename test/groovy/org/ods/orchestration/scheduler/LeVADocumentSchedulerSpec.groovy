@@ -1,5 +1,7 @@
 package org.ods.orchestration.scheduler
 
+import groovy.util.logging.Slf4j
+import org.ods.core.test.LoggerStub
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.GitService
@@ -7,6 +9,7 @@ import org.ods.services.OpenShiftService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
@@ -16,6 +19,7 @@ import static util.FixtureHelper.*
 
 import util.*
 
+@Slf4j
 class LeVADocumentSchedulerSpec extends SpecHelper {
 
     static def PROJECT_GAMP_1
@@ -28,6 +32,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     static def REPO_ODS_CODE
     static def REPO_ODS_SERVICE
     static def REPO_ODS_TEST
+
+    ILogger logger =  new LoggerStub(log)
 
     def setupSpec() {
         def project = createProject()
@@ -71,6 +77,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -1474,6 +1482,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -2877,6 +2887,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -4280,6 +4292,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
 
@@ -5684,6 +5698,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
@@ -5715,6 +5731,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -5733,6 +5751,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -5765,6 +5785,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -5773,7 +5795,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -5865,6 +5888,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -5873,7 +5898,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -5961,6 +5987,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -5969,7 +5997,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6034,6 +6063,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6042,7 +6072,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6103,6 +6134,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6111,7 +6144,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6177,6 +6211,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6185,7 +6221,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6256,6 +6293,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6264,7 +6303,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6393,6 +6433,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6401,7 +6443,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6526,6 +6569,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6534,7 +6579,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6605,6 +6651,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6613,7 +6661,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6665,6 +6714,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6673,7 +6724,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6725,6 +6777,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6733,7 +6787,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6805,6 +6860,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6813,7 +6870,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6870,6 +6928,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6878,7 +6938,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6919,6 +6980,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6927,7 +6990,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6970,6 +7034,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6978,7 +7044,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7034,8 +7101,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7078,8 +7148,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7132,8 +7205,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7184,6 +7260,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -7192,7 +7270,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()

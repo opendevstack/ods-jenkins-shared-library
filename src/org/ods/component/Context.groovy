@@ -57,9 +57,11 @@ class Context implements IContext {
 
         config.odsBitbucketProject = script.env.ODS_BITBUCKET_PROJECT ?: 'opendevstack'
 
-        config.sonarQubeEdition = script.env.SONARQUBE_EDITION ?: 'community'
+        config.sonarQubeEdition = script.env.SONAR_EDITION ?: 'community'
 
         config.globalExtensionImageLabels = getExtensionBuildParams()
+        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_MASTER_')
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
 
@@ -121,6 +123,7 @@ class Context implements IContext {
         config.gitCommit = retrieveGitCommit()
         config.gitCommitAuthor = retrieveGitCommitAuthor()
         config.gitCommitMessage = retrieveGitCommitMessage()
+        config.gitCommitRawMessage = retrieveGitCommitRawMessage()
         config.gitCommitTime = retrieveGitCommitTime()
         config.tagversion = "${config.buildNumber}-${getShortGitCommit()}"
 
@@ -137,6 +140,12 @@ class Context implements IContext {
         if (config.environment) {
             config.targetProject = "${config.projectId}-${config.environment}"
         }
+
+        if (!config.containsKey('commitGitWorkingTree')) {
+            config.commitGitWorkingTree = false
+        }
+        logger.debug "Commit workingtree? ${config.commitGitWorkingTree}"
+
         // clone the map and overwrite exclusions
         Map debugConfig = new JsonSlurperClassic().
             parseText(JsonOutput.toJson(config))
@@ -148,6 +157,15 @@ class Context implements IContext {
         }
 
         logger.debug "Assembled configuration: ${debugConfig}"
+    }
+
+    def amendWithAgentInformation() {
+        if (!config.globalExtensionImageLabels) {
+            config.globalExtensionImageLabels = [:]
+        }
+        // get the build labels from the env running in ..
+        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_AGENT_')
     }
 
     boolean getDebug() {
@@ -303,6 +321,10 @@ class Context implements IContext {
         config.gitCommitMessage
     }
 
+    String getGitCommitRawMessage() {
+        config.gitCommitRawMessage
+    }
+
     String getGitCommitTime() {
         config.gitCommitTime
     }
@@ -320,6 +342,11 @@ class Context implements IContext {
     @NonCPS
     String getSonarQubeEdition() {
         config.sonarQubeEdition
+    }
+
+    @NonCPS
+    String getSonarQubeNexusRepository() {
+        config.sonarQubeNexusRepository
     }
 
     @NonCPS
@@ -485,9 +512,13 @@ class Context implements IContext {
     }
 
     Map<String,String> getExtensionBuildParams () {
+        return getEnvParamsAndAddPrefix()
+    }
+
+    Map<String,String> getEnvParamsAndAddPrefix (String envNamePattern = 'ods.build.', String keyPrefix = '') {
         String rawEnv = script.sh(
-            returnStdout: true, script: 'env | grep ods.build. || true',
-            label: 'getting extension environment labels'
+            returnStdout: true, script: "env | grep ${envNamePattern} || true",
+            label: 'getting extension labels from current environment'
           ).trim()
 
         if (rawEnv.size() == 0 ) {
@@ -496,7 +527,7 @@ class Context implements IContext {
 
         return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
             Iterator kv = line.toString().tokenize('=').iterator()
-            kvMap.put(kv.next(), kv.hasNext() ? kv.next() : '')
+            kvMap.put(keyPrefix + kv.next(), kv.hasNext() ? kv.next() : '')
             kvMap
         }
     }
@@ -526,6 +557,17 @@ class Context implements IContext {
         config.openshiftRolloutTimeoutRetries
     }
 
+    // set to commit the working tree after custom work
+    void setCommitGitWorkingTree (boolean commit) {
+        config.commitGitWorkingTree = commit
+    }
+
+    // get commit the working tree
+    @NonCPS
+    boolean getCommitGitWorkingTree () {
+        config.commitGitWorkingTree
+    }
+
     private String retrieveGitUrl() {
         def gitUrl = script.sh(
             returnStdout: true,
@@ -553,6 +595,13 @@ class Context implements IContext {
         script.sh(
             returnStdout: true, script: "git log -1 --format='%f' HEAD",
             label: 'getting GIT commit message'
+        ).trim()
+    }
+
+    private String retrieveGitCommitRawMessage() {
+        script.sh(
+            returnStdout: true, script: "git log -1 --pretty=%B HEAD",
+            label: 'getting raw GIT commit message'
         ).trim()
     }
 

@@ -1,7 +1,6 @@
 package vars
 
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
-import groovy.lang.MissingPropertyException
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.OpenShiftService
@@ -9,6 +8,7 @@ import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.PodData
+import util.PipelineSteps
 import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
 
@@ -159,7 +159,31 @@ class OdsComponentStageRolloutOpenShiftDeploymentSpec extends PipelineSpockTestB
     when:
     def script = loadScript('vars/odsComponentStageRolloutOpenShiftDeployment.groovy')
     helper.registerAllowedMethod('fileExists', [ String ]) { String args ->
-      args == 'chart/Chart.yaml'
+      args == 'chart/Chart.yaml' || args == 'metadata.yml'
+    }
+    helper.registerAllowedMethod('readYaml', [ Map ]) { Map args ->
+        def testSteps = new PipelineSteps()
+        testSteps.readYaml(args) { file ->
+            def metadata = null
+            switch (file) {
+                case 'metadata.yml':
+                    metadata = [
+                        name:        'Name',
+                        description: 'Description',
+                        supplier:    'none',
+                        version:     '1.0',
+                        type:        'ods',
+                    ]
+                    break
+                case 'chart/Chart.yaml':
+                    metadata = [
+                        name:    'myChart',
+                        version: '1.0+01',
+                    ]
+                    break
+            }
+            return metadata
+        }
     }
     def deploymentInfo = script.call(context)
 

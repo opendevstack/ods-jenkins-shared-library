@@ -84,6 +84,9 @@ Available options are:
 
 | testResults
 | Configurable location for xunit test results, in case the build does not put them into `build/test-results/test`.
+
+| commitGitWorkingTree
+| Defaulting to false, if set to true, any changes in the working directory added with `git add` will be committed to the current branch and pushed.
 |===
 
 == Pipeline Context
@@ -127,7 +130,7 @@ The `context` object contains the following properties:
 | Nexus URL, including username and password as BasicAuth. `nexusHostWithBasicAuth` is an alias for `nexusUrlWithBasicAuth`.
 
 | sonarQubeEdition
-| Edition of SonarQube in use, determined by `SONARQUBE_EDITION` (defaults to `community`).
+| Edition of SonarQube in use, determined by `SONAR_EDITION` (defaults to `community`).
 
 | environment
 | The environment which was chosen as the deployment target, e.g. `dev`.
@@ -166,7 +169,10 @@ The `context` object contains the following properties:
 | Git commit author.
 
 | gitCommitMessage
-| Git commit message.
+| Git commit message (sanitized).
+
+| gitCommitRawMessage
+| Git commit message (raw).
 
 | gitCommitTime
 | Git commit time in RFC 3399.
@@ -364,7 +370,7 @@ stage('Cleanup preview resources') {
   if (context.environment != 'dev') {
     echo "Not performing cleanup outside dev environment"; return
   }
-  def mergedIssueId = org.ods.services.GitService.mergedIssueId(context.projectId, context.repoName, context.gitCommitMessage)
+  def mergedIssueId = org.ods.services.GitService.mergedIssueId(context.projectId, context.repoName, context.gitCommitRawMessage)
   if (mergedIssueId) {
     echo "Perform cleanup of suffix '-${mergedIssueId}'"
     sh("oc -n ${context.targetProject} delete all -l app=${context.projectId}-${context.componentId}-${mergedIssueId}")

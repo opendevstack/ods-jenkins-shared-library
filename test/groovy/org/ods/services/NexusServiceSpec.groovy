@@ -152,7 +152,7 @@ class NexusServiceSpec extends SpecHelper {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to store artifact. Nexus could not be found at: 'http://localhost:${server.port()}'."
+        e.message == "Error: unable to store artifact. Nexus could not be found at: 'http://localhost:${server.port()}' with repo: ${request.data.repository}."
 
         cleanup:
         stopServer(server)
@@ -186,17 +186,17 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 404
         ])
-  
+
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
-  
+
         when:
         service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
-  
+
         then:
         def e = thrown(RuntimeException)
         e.message == "Error: unable to get artifact. Nexus could not be found at: 'http://localhost:${server.port()}${request.path}'."
-  
+
         cleanup:
         stopServer(server)
     }
@@ -207,16 +207,16 @@ class NexusServiceSpec extends SpecHelper {
         def response = storeArtifactResponseData([
             status: 200
         ])
-  
+
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
-  
+
         when:
         Map result = service.retrieveArtifact(request.data.repository, request.data.directory, request.data.name, "abc")
-  
+
         then:
         result.uri == new URI("http://localhost:${server.port()}${request.path}")
-  
+
         cleanup:
         stopServer(server)
     }

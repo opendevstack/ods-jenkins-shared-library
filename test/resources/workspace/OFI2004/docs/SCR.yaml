@@ -1,0 +1,96 @@
+# Document: Software Development (Coding and Code Review) Report (SCR)
+
+# Optional: Insert a description of the scope of the deliverables and activities
+# this document addresses.
+- number: 2
+  heading: Scope
+  content:
+
+# Only one of the following three options can be chosen.
+- number: 5
+  heading: Conclusion Statement
+  content: >
+    <table>
+      <tr>
+        <th>Summary</th>
+        <th>Statement</th>
+      </tr>
+      <tr>
+        <td>Complete success, no discrepancies</th>
+        <td style="content-wrappable">Based on the results documented above and no discrepancies being observed during the coding review, it is determined that the software code is suitable for release to Development Testing.</th>
+      </tr>
+      <tr>
+        <td>Success with some minor discrepancies</td>
+        <td style="content-wrappable">Based on the results documented above and having documented any discrepancies in the coding review checklist, it is determined that the software code is suitable for release to Development Testing.</td>
+      </tr>
+      <tr>
+        <td>Unacceptable results with major discrepancies</td>
+        <td style="content-wrappable">Major discrepancies or failures occurred that could not be remediated to an acceptable level. The coding review cannot be accepted as successfully executed.</td>
+      </tr>
+    </table>
+
+# Enter any definitions here.
+# If there are no definitions write 'N/A' and delete the table below
+- number: 6.1
+  heading: Definitions
+  content: >
+    <table>
+      <tr>
+        <th>Term</th>
+        <th>Definition</th>
+      </tr>
+      <tr>
+        <td>Jenkins</td>
+        <td style="content-wrappable">Build engine supplied by CloudBees. Part of OpenDevStack (BI-IT-DEVSTACK)</td>
+      </tr>
+      <tr>
+        <td>SonarQube</td>
+        <td style="content-wrappable">Software quality management system. Part of OpenDevStack core</td>
+      </tr>
+    </table>
+
+# Enter any abbreviations here.
+# If there are no abbreviations write 'N/A' and delete the table below.
+- number: 6.2
+  heading: Abbreviations
+  content: >
+    <table>
+      <tr>
+        <th>Abbreviation</th>
+        <th>Meaning</th>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
+
+# Optional: if other documents than the following are referenced above,
+# identify them here.
+# - Software Development (Coding and Code Review) Plan (SCP)
+# - Software Code Review Report (SCRR), provided by SonarQube
+- number: 7
+  heading: Reference Documents
+  content:
+
+# Draft versions must be removed after finalisation of the first version
+# of this document to be actually approved.
+- number: 8
+  heading: Document History
+  content: >
+    <p>The following table provides the history of the document.</p>
+
+    <table>
+      <tr>
+        <th>Version</th>
+        <th>Date</th>
+        <th>Author</th>
+        <th>Reference</th>
+      </tr>
+      <tr>
+        <td></td>
+        <td style="content-wrappable">See summary of electronic document or signature page of printout.</td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>

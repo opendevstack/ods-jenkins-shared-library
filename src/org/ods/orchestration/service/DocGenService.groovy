@@ -61,6 +61,7 @@ class DocGenService {
         return decodeBase64(result.data)
     }
 
+    @NonCPS
     private static byte[] decodeBase64(String base64String) {
         return Base64.decoder.decode(base64String)
     }

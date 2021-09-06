@@ -28,7 +28,7 @@ class InitStage extends Stage {
         super(script, project, repos, startAgentStageName)
     }
 
-    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey', 'LineLength'])
+    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey', 'LineLength', 'Indentation'])
     def run() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         def steps = new PipelineSteps(script)
@@ -65,16 +65,18 @@ class InitStage extends Stage {
                     )
                 }
                 logger.info("Checkout release manager repository @ ${baseTag}")
-                checkoutGitRef(
+                git.checkout(
                     "refs/tags/${baseTag}",
-                    [[$class: 'LocalBranch', localBranch: gitReleaseBranch]]
+                    [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
+                    script.scm.userRemoteConfigs
                 )
             } else {
                 if (git.remoteBranchExists(gitReleaseBranch)) {
                     logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
-                    checkoutGitRef(
+                    git.checkout(
                         "*/${gitReleaseBranch}",
-                        [[$class: 'LocalBranch', localBranch: gitReleaseBranch]]
+                        [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
+                        script.scm.userRemoteConfigs
                     )
                 } else {
                     git.checkoutNewLocalBranch(gitReleaseBranch)
@@ -193,6 +195,23 @@ class InitStage extends Stage {
             )
         )
 
+        def bitbucket = BitbucketService.newFromEnv(
+            steps.unwrap(),
+            steps.env,
+            project.key,
+            project.services.bitbucket.credentials.id,
+            logger
+        )
+        registry.add(BitbucketService, bitbucket)
+
+        registry.add(BitbucketTraceabilityUseCase,
+            new BitbucketTraceabilityUseCase(
+                registry.get(BitbucketService),
+                registry.get(PipelineSteps),
+                registry.get(Project)
+            )
+        )
+
         registry.add(LeVADocumentUseCase,
             new LeVADocumentUseCase(
                 registry.get(Project),
@@ -206,7 +225,9 @@ class InitStage extends Stage {
                 registry.get(NexusService),
                 registry.get(OpenShiftService),
                 registry.get(PDFUtil),
-                registry.get(SonarQubeUseCase)
+                registry.get(SonarQubeUseCase),
+                registry.get(BitbucketTraceabilityUseCase),
+                logger
             )
         )
 
@@ -219,15 +240,6 @@ class InitStage extends Stage {
                 logger
             )
         )
-
-        def bitbucket = BitbucketService.newFromEnv(
-            steps.unwrap(),
-            steps.env,
-            project.key,
-            project.services.bitbucket.credentials.id,
-            logger
-        )
-        registry.add(BitbucketService, bitbucket)
 
         git.configureUser()
         steps.withCredentials(
@@ -256,7 +268,7 @@ class InitStage extends Stage {
         {
             script.parallel (
                 repos.collectEntries { repo ->
-                    logger.info("Repository: ${repo}")
+                    logger.info("Loading Repository: ${repo}")
                     if (envState?.repositories) {
                         repo.data.envStateCommit = envState.repositories[repo.id] ?: ''
                     }
@@ -321,7 +333,19 @@ class InitStage extends Stage {
             logger.debug("Agent start stage: ${this.startAgentStageName}")
         }
 
-        executeInParallel(checkoutClosure, loadClosure)
+        try {
+            executeInParallel(checkoutClosure, loadClosure)
+            script.parallel (
+                repos.collectEntries { repo ->
+                    logger.debug("-< Initing Repository: ${repo.id}")
+                    // we allow init hooks for special component types
+                    util.prepareExecutePhaseForRepoNamedJob(phase, repo)
+                }
+            )
+        } catch (OpenIssuesException openDocumentsException) {
+            util.warnBuild(openDocumentsException.message)
+            throw openDocumentsException
+        }
 
         // In promotion mode, we need to check if the checked out repos are on commits
         // which "contain" the commits defined in the env state.
@@ -395,16 +419,6 @@ class InitStage extends Stage {
         registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         return [project: project, repos: repos, startAgent: stageToStartAgent]
-    }
-
-    private checkoutGitRef(String gitRef, def extensions) {
-        script.checkout([
-            $class: 'GitSCM',
-            branches: [[name: gitRef]],
-            doGenerateSubmoduleConfigurations: false,
-            extensions: extensions,
-            userRemoteConfigs: script.scm.userRemoteConfigs,
-        ])
     }
 
     private Map loadEnvState(ILogger logger, String targetEnvironment) {

@@ -5,6 +5,8 @@ interface IContext {
 
     def assemble()
 
+    def amendWithAgentInformation()
+
     // Get debug mode
     boolean getDebug()
 
@@ -106,6 +108,9 @@ interface IContext {
     // Git commit message.
     String getGitCommitMessage()
 
+    // Git commit raw message.
+    String getGitCommitRawMessage()
+
     // Git commit time in RFC 3399.
     String getGitCommitTime()
 
@@ -120,6 +125,9 @@ interface IContext {
 
     // Edition of the SonarQube server
     String getSonarQubeEdition()
+
+    // Nexus repository to store SonarQube reports
+    String getSonarQubeNexusRepository()
 
     // set branch on which to run SonarQube analysis.
     void setSonarQubeBranch(String sonarQubeBranch)
@@ -187,4 +195,6 @@ interface IContext {
     // get the rollout retry
     int getOpenshiftRolloutTimeoutRetries ()
 
+    // get commit the working tree
+    boolean getCommitGitWorkingTree ()
 }

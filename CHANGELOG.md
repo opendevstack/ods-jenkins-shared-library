@@ -1,11 +1,48 @@
 # Changelog
 
 ## Unreleased
-
+- Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
+- Throw controlled exception when testIssue has no component assigned  ([#693](https://github.com/opendevstack/ods-jenkins-shared-library/pull/693))
+- Fix sort tests steps in TCP and TCR documentsn ([#652](https://github.com/opendevstack/ods-jenkins-shared-library/pull/652))
+- Fixed environment value of SonarQube edition ([#618](https://github.com/opendevstack/ods-jenkins-shared-library/issues/618))
+- Early stop on opened Jira issues before deploy to dev environment ([#626](https://github.com/opendevstack/ods-jenkins-shared-library/pull/626))
+- Fixed the Document History of the IVP & IVR is not being generated ([#627](https://github.com/opendevstack/ods-jenkins-shared-library/pull/627))
+- Fixed Test name/summary in DTP/DTR documents ([#625](https://github.com/opendevstack/ods-jenkins-shared-library/pull/625)).
+- Fix A "null" string is added in the Section 3.1 of the CFTR when the Description of the Zephyr Unit Test doesn't has a Description ([#634](https://github.com/opendevstack/ods-jenkins-shared-library/pull/634))
+- Change association with the current release in the test cycles of previewed execution ([#638](https://github.com/opendevstack/ods-jenkins-shared-library/pull/638))
+- Orchestation pipeline throws a non serializable exeption issue 645 ([#649](https://github.com/opendevstack/ods-jenkins-shared-library/pull/649))
+- Add labels to generated OpenShift resources ([#646](https://github.com/opendevstack/ods-jenkins-shared-library/pull/646))
+- Fixed bug that disallowed empty label values ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/655))
+- Added builder (agent and master) labels into image building process  ([#644](https://github.com/opendevstack/ods-jenkins-shared-library/pull/644))
+- Added regexp compatibility with new Bitbucket merge commit messages ([#655](https://github.com/opendevstack/ods-jenkins-shared-library/pull/656))
+- Remove the workaround for NPE resolving issues ([#660](https://github.com/opendevstack/ods-jenkins-shared-library/pull/660))
+- Set jenkins job to unstable in case of open issues ([#664](https://github.com/opendevstack/ods-jenkins-shared-library/pull/664))
+- Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
+- Fixed use of full image in the creation of the documents ([682](https://github.com/opendevstack/ods-jenkins-shared-library/pull/682))
+- Fix epic Issues not correctly ordered on the CSD ([#671](https://github.com/opendevstack/ods-jenkins-shared-library/pull/671))
+- Fix Reference Documents not displaying the correct version on the SLC Documents ([#672](https://github.com/opendevstack/ods-jenkins-shared-library/pull/672))
+- Jenkins nonCPS prevents project.dump from work ([#673](https://github.com/opendevstack/ods-jenkins-shared-library/issues/673))
+- Regression from NonCPS refactoring leads to method not found ([#675](https://github.com/opendevstack/ods-jenkins-shared-library/issues/675), ([#678](https://github.com/opendevstack/ods-jenkins-shared-library/issues/678))
+- Fix reference Document Version for the DTR and TIR are not correct ([#681](https://github.com/opendevstack/ods-jenkins-shared-library/pull/681))
+- Fix the referenced documents are not displaying the correct version if they are generated after the SLC Document ([#685](https://github.com/opendevstack/ods-jenkins-shared-library/pull/685))
+- Add recommended labels to pods ([#686](https://github.com/opendevstack/ods-jenkins-shared-library/pull/686))
+- Added data for Risk Assesment document ([687](https://github.com/opendevstack/ods-jenkins-shared-library/pull/687))
+- Modified SSDS document to use Pull Request info not SonarQube ([#614](https://github.com/opendevstack/ods-jenkins-shared-library/pull/614))
+- Added Aqua Stage ([#661](https://github.com/opendevstack/ods-jenkins-shared-library/pull/661), [#617](https://github.com/opendevstack/ods-jenkins-shared-library/pull/617))
+- Add Technical Specifications and risks related to technical specifications to the TRC document ([#690](https://github.com/opendevstack/ods-jenkins-shared-library/pull/690))
+- Enable the co-existence of multiple E2E test components ([#377](https://github.com/opendevstack/ods-jenkins-shared-library/issues/377))
+- Fix Document History in TIR and IVR is not correct after de deploy to P ([#695](https://github.com/opendevstack/ods-jenkins-shared-library/pull/695))
+- Integrate SonarQube scan results with Bitbucket ([#698](https://github.com/opendevstack/ods-jenkins-shared-library/pull/698))
+- Provide init hook for test quickstarters to better plug into RM ([#699](https://github.com/opendevstack/ods-jenkins-shared-library/pull/699))
+- Fix NonCPS error in thumbnail replacement ([#704](https://github.com/opendevstack/ods-jenkins-shared-library/pull/704))
+- Fix wrong entry in the document history when a new component is added ([#702](https://github.com/opendevstack/ods-jenkins-shared-library/pull/702))
+- Fix referenced document versions after PR [#691] ([#709](https://github.com/opendevstack/ods-jenkins-shared-library/pull/709))
+- Fix missing grapes import in BitbucketService [#717] ([#717](https://github.com/opendevstack/ods-jenkins-shared-library/issues/717))
 
 ## [3.0] - 2020-08-11
 
 ### Added
+- Allow execution of e2e in the same Jenkins of the ODS-CI ([#716](https://github.com/opendevstack/ods-jenkins-shared-library/pull/716))
 - Merge ([ods-mro-shared-library](https://github.com/opendevstack/ods-mro-jenkins-shared-library)) into this library, and consolidate services ([#271](https://github.com/opendevstack/ods-jenkins-shared-library/issues/271))
 - Allow configuration of docker context directory ([#181](https://github.com/opendevstack/ods-jenkins-shared-library/issues/181))
 - Add harmonized stage names based on the new library layout ([#215](https://github.com/opendevstack/ods-jenkins-shared-library/issues/215))

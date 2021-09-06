@@ -1,0 +1,35 @@
+<configuration debug="true"> <!-- debug attr enables status data dump -->
+
+    <timestamp key="sec" datePattern="yyyyMMdd_HHmmss"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%date] %highlight([%level]) [%logger{15}] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="trace">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <logger name="org.eclipse" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="unirest" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="com.github" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="com.jayway" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="org.apache" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="com.athaydes" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>    <logger name="de.redsix.pdfcompare" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+</configuration>
