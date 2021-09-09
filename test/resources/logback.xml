@@ -3,22 +3,33 @@
     <timestamp key="sec" datePattern="yyyyMMdd_HHmmss"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
-            <pattern>[%date] %highlight([%level]) [%logger{10}] %msg%n</pattern>
+            <pattern>[%date] %highlight([%level]) [%logger{15}] %msg%n</pattern>
         </encoder>
     </appender>
 
-
-    <!-- TRACE < DEBUG < INFO <  WARN < ERROR -->
-    <!-- Read Chapter 2 Architecture of logback doc for effective
-       level (level inheritance) and accumulation (appender additivity) -->
-    <root level="info">
+    <root level="trace">
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="org.ods" level="trace" additivity="false">
+    <logger name="org.eclipse" level="info" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-
+    <logger name="unirest" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="com.github" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="com.jayway" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="org.apache" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="com.athaydes" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>    <logger name="de.redsix.pdfcompare" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
 </configuration>
