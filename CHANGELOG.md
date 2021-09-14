@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
 - Throw controlled exception when testIssue has no component assigned  ([#693](https://github.com/opendevstack/ods-jenkins-shared-library/pull/693))
 - Fix sort tests steps in TCP and TCR documentsn ([#652](https://github.com/opendevstack/ods-jenkins-shared-library/pull/652))
 - Fixed environment value of SonarQube edition ([#618](https://github.com/opendevstack/ods-jenkins-shared-library/issues/618))
@@ -33,11 +34,16 @@
 - Fix Document History in TIR and IVR is not correct after de deploy to P ([#695](https://github.com/opendevstack/ods-jenkins-shared-library/pull/695))
 - Integrate SonarQube scan results with Bitbucket ([#698](https://github.com/opendevstack/ods-jenkins-shared-library/pull/698))
 - Remove not needed entries in the CFTP document history ([#707](https://github.com/opendevstack/ods-jenkins-shared-library/pull/707))
+- Provide init hook for test quickstarters to better plug into RM ([#699](https://github.com/opendevstack/ods-jenkins-shared-library/pull/699))
 - Fix NonCPS error in thumbnail replacement ([#704](https://github.com/opendevstack/ods-jenkins-shared-library/pull/704))
+- Fix wrong entry in the document history when a new component is added ([#702](https://github.com/opendevstack/ods-jenkins-shared-library/pull/702))
+- Fix referenced document versions after PR [#691] ([#709](https://github.com/opendevstack/ods-jenkins-shared-library/pull/709))
+- Fix missing grapes import in BitbucketService [#717] ([#717](https://github.com/opendevstack/ods-jenkins-shared-library/issues/717))
 
 ## [3.0] - 2020-08-11
 
 ### Added
+- Allow execution of e2e in the same Jenkins of the ODS-CI ([#716](https://github.com/opendevstack/ods-jenkins-shared-library/pull/716))
 - Merge ([ods-mro-shared-library](https://github.com/opendevstack/ods-mro-jenkins-shared-library)) into this library, and consolidate services ([#271](https://github.com/opendevstack/ods-jenkins-shared-library/issues/271))
 - Allow configuration of docker context directory ([#181](https://github.com/opendevstack/ods-jenkins-shared-library/issues/181))
 - Add harmonized stage names based on the new library layout ([#215](https://github.com/opendevstack/ods-jenkins-shared-library/issues/215))

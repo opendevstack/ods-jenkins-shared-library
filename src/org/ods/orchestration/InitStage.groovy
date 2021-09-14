@@ -28,7 +28,7 @@ class InitStage extends Stage {
         super(script, project, repos, startAgentStageName)
     }
 
-    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey', 'LineLength'])
+    @SuppressWarnings(['CyclomaticComplexity', 'NestedBlockDepth', 'GStringAsMapKey', 'LineLength', 'Indentation'])
     def run() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         def steps = new PipelineSteps(script)
@@ -226,7 +226,8 @@ class InitStage extends Stage {
                 registry.get(OpenShiftService),
                 registry.get(PDFUtil),
                 registry.get(SonarQubeUseCase),
-                registry.get(BitbucketTraceabilityUseCase)
+                registry.get(BitbucketTraceabilityUseCase),
+                logger
             )
         )
 
@@ -267,7 +268,7 @@ class InitStage extends Stage {
         {
             script.parallel (
                 repos.collectEntries { repo ->
-                    logger.info("Repository: ${repo}")
+                    logger.info("Loading Repository: ${repo}")
                     if (envState?.repositories) {
                         repo.data.envStateCommit = envState.repositories[repo.id] ?: ''
                     }
@@ -334,6 +335,13 @@ class InitStage extends Stage {
 
         try {
             executeInParallel(checkoutClosure, loadClosure)
+            script.parallel (
+                repos.collectEntries { repo ->
+                    logger.debug("-< Initing Repository: ${repo.id}")
+                    // we allow init hooks for special component types
+                    util.prepareExecutePhaseForRepoNamedJob(phase, repo)
+                }
+            )
         } catch (OpenIssuesException openDocumentsException) {
             util.warnBuild(openDocumentsException.message)
             throw openDocumentsException
