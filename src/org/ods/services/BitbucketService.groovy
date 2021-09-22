@@ -1,5 +1,7 @@
 package org.ods.services
 
+@Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
+
 import groovy.json.JsonSlurperClassic
 import kong.unirest.Unirest
 import org.ods.util.ILogger
