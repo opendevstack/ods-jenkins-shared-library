@@ -13,8 +13,10 @@ Some additional labels, specific to OpenDevStack, are also assigned.
 
 == Usage
 
-The labelling process is automatically applied by both the quickstarter and the component pipelines.
-The orchestration pipeline does not directly perform any labelling, but the component pipeline
+The labelling process is automatically applied by both the
+xref:jenkins-shared-library:quickstarter-pipeline.adoc[quickstarter] and the
+xref:jenkins-shared-library:component-pipeline.adoc[component] pipelines.
+The xref:jenkins-shared-library:orchestration-pipeline.adoc[orchestration] pipeline does not directly perform any labelling, but the component pipeline
 will set some label values based on the information provided by the release manager, when available.
 
 The labels set are not directly used by OpenDevStack, but are just made available to the users
@@ -26,14 +28,14 @@ The values for the labels are set, in decreasing order or priority, from:
 
 1. Values forcibly set by the library, which cannot be customised.
 
-2. Metadata information which can be customised through the metadata.yml file in the component repository.
+2. xref:quickstarters:metadata.adoc[Metadata] information which can be customised through the metadata.yml file in the component repository.
 
 3. Some labels can get default values when none have been assigned in the previous steps.
 
-The labels are also assigned to the template of each Deployment or DeploymentConfig resource.
+The labels are also assigned to the template of each `Deployment` or `DeploymentConfig` resource.
 This warrants that any pods created will also be appropriately labeled.
 
-Changing the tamplate of a Deployment or DeploymentConfig can trigger a new deployment,
+Changing the template of a Deployment or DeploymentConfig can trigger a new deployment,
 if a config-change trigger is in place. A best effort is done to avoid multiple deployments.
 Note that any paused Deployment or DeploymentConfig will be resumed as part of the rollout stage.
 
@@ -44,73 +46,73 @@ This is the list of supported labels:
 
 | <<_app_kubernetes_ioname>>
 | The name of the application
-| name metadata parameter
-| mongodb
+| `name` metadata parameter
+| `mongodb`
 
 | <<_app_kubernetes_ioinstance>>
 | A unique name identifying the instance of an application
 | Component ID
-| user-db
+| `user-db`
 
 | <<_app_kubernetes_ioversion>>
 | The version of the application
-| version metadata parameter
-| 4.0.8
+| `version` metadata parameter
+| `4.0.8`
 
 | <<_app_kubernetes_iocomponent>>
 | The component within the architecture
-| role metadata parameter
-| database
+| `role` metadata parameter
+| `database`
 
 | <<_app_kubernetes_iopart_of>>
 | The name of a higher level application this one is part of
-| partOf metadata parameter
-| my-online-shop
+| `partOf` metadata parameter
+| `my-online-shop`
 
 | <<_app_kubernetes_iomanaged_by>>
 | The tool being used to manage the operation of an application
 | Autodetected
-| tailor
+| `tailor`
 
 | <<_app_openshift_ioruntime>>
 | The runtime this application runs on
-| runtime metadata parameter
+| `runtime` metadata parameter
 | spring-boot
 
 | <<_app_openshift_ioruntime_version>>
 | The version of the runtime
-| runtimeVersion metadata parameter
-| 2.1.16.RELEASE
+| `runtimeVersion` metadata parameter
+| `2.1.16.RELEASE`
 
 | <<_helm_shchart>>
 | Helm chart name-version
 | Autodetected
-| chartName-1.0.0
+| `chartName-1.0.0`
 
 | <<_app_opendevstack_orgproject>>
 | Project ID
 | Autodetected
-| my-project
+| `my-project`
 
 | <<_app_opendevstack_orgtype>>
 | Type of ODS component
-| type metadata parameter
-| ods-service
+| `type` metadata parameter
+| `ods-service`
 
 | <<_app_opendevstack_orgsystem_name>>
 | The name of the system
 | Autodetected
-| some-system
+| `some-system`
 
 | <<_app_opendevstack_orgproject_version>>
 | Version across all components in the project
 | Autodetected
-| 1.0
+| `1.0`
 
 | <<_app_opendevstack_orgwork_in_progress>>
 | Whether this project version is still a work in progress
 | Autodetected
-| true
+| `true`
 
 |===
 
@@ -119,10 +121,10 @@ This is the list of supported labels:
 Detailed description of each label and how to customise it, if possible.
 
 Please, note that valid label values must be 63 characters or less and must be empty
-or begin and end with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between.
+or begin and end with an alphanumeric character (`[a-z0-9A-Z]`) with dashes (`-`), underscores (`_`), dots (`.`), and alphanumerics between.
 Most label values will be sanitised before assigning, but it is recommended to specify values following these restrictions.
 
-=== app.kubernetes.io/name
+=== `app.kubernetes.io/name`
 
 The name of the application.
 
@@ -130,63 +132,63 @@ This is the software deployed in this component. There may be other instances of
 
 This label is always assigned and its default value is the component id.
 
-This value can be customised by setting the name entry in the metadata.yml file.
+This value can be customised by setting the `name` entry in the metadata.yml file.
 
-Suitable values for this label can be retrieved from Maven artifactId, Gradle project.name, docker image name,
-Helm {{ template "name" . }}…
+Suitable values for this label can be retrieved from Maven `artifactId`, Gradle `project.name`, docker image name,
+Helm `{{ template "name" . }}`…
 
-Examples: user-service, mongodb.
+Examples: `user-service`, `mongodb`.
 
 This label will not be deleted, if it is already set.
 
-=== app.kubernetes.io/instance
+=== `app.kubernetes.io/instance`
 
 A unique name identifying the instance of an application.
 
-This label is used when there is more than one instance of the software identified by the app.kubernetes.io/name label.
+This label is used when there is more than one instance of the software identified by the <<_app_kubernetes_ioname>> label.
 
 This label is automatically set to the component id and it cannot be customised.
 
-This label will only be set if different from app.kubernetes.io/name.
+This label will only be set if its value differs from the value of `app.kubernetes.io/name`.
 Therefore, if the name label is set to its default value (component id), this instance label will not be set.
 
-Example: user-db
+Example: `user-db`
 
-=== app.kubernetes.io/version
+=== `app.kubernetes.io/version`
 
 The current version of the application (e.g., a semantic version, revision hash, etc.).
 
-This is the version of the software identified by the app.kubernetes.io/name label.
+This is the version of the software identified by the <<_app_kubernetes_ioname>> label.
 
-This value can be customised by setting the version entry in the metadata.yml file and it has no default value.
+This value can be customised by setting the `version` entry in the metadata.yml file and it has no default value.
 
-Example: 4.0.8.
+Example: `4.0.8`
 
 This label will not be deleted, if it is already set.
 
-=== app.kubernetes.io/component
+=== `app.kubernetes.io/component`
 
 The component within the architecture.
 
 This is the role this component plays in the architecture.
 
-This value can be customised by setting the role entry in the metadata.yml file.
+This value can be customised by setting the `role` entry in the metadata.yml file.
 
 A best effort will be made to determine a default value for this:
 
--	If the quickstarter name starts with be- (but not be-fe-), the default is 'backend'.
+-	If the quickstarter name starts with be- (but not be-fe-), the default is `backend`.
 
--	If the quickstarter name starts with fe-, the default is 'frontend'.
+-	If the quickstarter name starts with fe-, the default is `frontend`.
 
--	If the quickstarter name starts with ds-, the default is 'subsystem'.
+-	If the quickstarter name starts with ds-, the default is `subsystem`.
 
 -	In any other case, there is no default.
 
-This default value can only be determined when first provisioning the component from a given quickstarter.
+This default value can only be determined when provisioning the component for the first time from a given quickstarter.
 No default value is ever calculated by the component or orchestration pipelines.
 However, if the default value was set by the quickstarter pipeline, it can be overridden, but not deleted.
 
-Example: database.
+Example: `database`
 
 Any value can be set, but OpenShift recognises the following values:
 
@@ -194,33 +196,33 @@ Any value can be set, but OpenShift recognises the following values:
 |===
 | Value | Meaning
 
-| frontend
+| `frontend`
 | Serves the UI or part of the UI for an application.
 
-| backend
+| `backend`
 | Usually an application code that is running on a runtime or framework.
 
-| database
+| `database`
 | Data persistence.
 
-| integration
+| `integration`
 | Integration middleware such as API gateways or single-sign-on software.
 
-| cache
+| `cache`
 | Stores information from other components for performance purposes.
 
-| queue
+| `queue`
 | Message queue, asynchronous communication component.
 
 |===
 
 Whenever one of these values is appropriate, it is recommended to use it.
 
-Note that data-science components are assigned the ad-hoc 'subsystem' value by default.
+Note that data-science components are assigned the ad-hoc `subsystem` value by default.
 
 This label will not be deleted if it is already set.
 
-=== app.kubernetes.io/part-of
+=== `app.kubernetes.io/part-of`
 
 The name of a higher level application this one is part of.
 
@@ -228,24 +230,24 @@ This is used to group components as part of a higher-level application, when sui
 
 This label is not compulsory and has no default value.
 
-This value can be customised by setting the partOf entry in the metadata.yml file.
+This value can be customised by setting the `partOf` entry in the metadata.yml file.
 
 Example: you are building an online shop, and this component is part of it.
-You can set app.kubernetes.io/part-of=my-online-shop.
+You can set `app.kubernetes.io/part-of=my-online-shop`.
 
 This label will be removed, if no value is given for it.
 
-=== app.kubernetes.io/managed-by
+=== `app.kubernetes.io/managed-by`
 
 The tool being used to manage the operation of an application.
 
-This is automatically set to 'tailor' (by default) or 'helm', for components managed with Helm.
+This is automatically set to `tailor` (by default) or `helm`, for components managed with Helm.
 
 This value cannot be customised.
 
-Example: tailor.
+Example: `tailor`
 
-=== app.openshift.io/runtime
+=== `app.openshift.io/runtime`
 
 The runtime to be used to bootstrap the component.
 
@@ -253,68 +255,68 @@ There may be more than one runtime, so the most meaningful or specific one shoul
 A typical example is a Spring-Boot application. Both Spring Boot and the JRE are suitable runtimes,
 but the first one is chosen, as the JRE is implied by Spring Boot, but not the other way around.
 
-Other possible runtimes are nodejs, angularjs, etc.
+Other possible runtimes are `nodejs`, `angularjs`, etc.
 
-This value can be customised by setting the runtime entry in the metadata.yml file and it has no default value.
+This value can be customised by setting the `runtime` entry in the metadata.yml file and it has no default value.
 
-Suitable values can be taken from the runtime Maven artifactId, Gradle project.name, docker image name…
+Suitable values can be taken from the runtime Maven `artifactId`, Gradle `project.name`, docker image name…
 
-Example: spring-boot.
+Example: `spring-boot`
 
 This label will be removed, if no value is given for it.
 
-=== app.openshift.io/runtime-version
+=== `app.openshift.io/runtime-version`
 
 The version of the runtime.
 
-This value can be customised by setting the runtimeVersion entry in the metadata.yml file and it has no default value.
+This value can be customised by setting the `runtimeVersion` entry in the metadata.yml file and it has no default value.
 
-Suitable values can be taken from the runtime Maven version, Gradle project.version, docker image version tag…
+Suitable values can be taken from the runtime Maven `version`, Gradle `project.version`, docker image version tag…
 
-This label does not make sense, if app.openshift.io/runtime is not also specified.
+This label does not make sense, if <<_app_openshift_ioruntime>> is not also specified.
 
-Example: 2.1.16.RELEASE.
+Example: `2.1.16.RELEASE`
 
 This label will be removed, if no value is given for it.
 
-=== helm.sh/chart
+=== `helm.sh/chart`
 
-This should be the chart name and version: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}.
+This should be the chart name and version: `{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}`.
 
 This is autodetected and cannot be customised. Only set when the component is managed by Helm.
 
 Note that, as per the specification of the label in Helm documentation,
-the value is always sanitised by replacing the character '+' with the character '_'.
+the value is always sanitised by replacing the character `+` with the character `_`.
 This is done before the common sanitising performed to all label values.
 
-Example: charName-1.0.0.
+Example: `charName-1.0.0`
 
-=== app.opendevstack.org/project
+=== `app.opendevstack.org/project`
 
 The project id.
 
 This is autodetected and cannot be customised.
 
-Example: my-project.
+Example: `my-project`
 
 This label will not be deleted if it is already set.
 
-=== app.opendevstack.org/type
+=== `app.opendevstack.org/type`
 
 The type of OpenDevStack component.
 
-Valid types are ods, ods-service, ods-test and ods-infra.
+Valid types are `ods`, `ods-service`, `ods-test` and `ods-infra`.
 Generally, only the two first ones create resources in OpenShift.
 
-This value can be customised by setting the type entry in the metadata.yml file and it has no default value.
+This value can be customised by setting the `type` entry in the metadata.yml file and it has no default value.
 When using the release manager, this value should match the type parameter for this component in the
 release manager metadata file.
 
-Example: ods-service
+Example: `ods-service`
 
 This label will not be deleted if it is already set.
 
-=== app.opendevstack.org/system-name
+=== `app.opendevstack.org/system-name`
 
 This is currently set by the Release Manager to the config item and it cannot be customised.
 
@@ -323,7 +325,7 @@ If it is not a valid OpenShift label value, the pipeline will fail with a suitab
 
 This label will not be deleted if it is already set.
 
-=== app.opendevstack.org/project-version
+=== `app.opendevstack.org/project-version`
 
 This is currently set by the Release Manager to the change id and it cannot be customised.
 
@@ -332,7 +334,7 @@ If it is not a valid OpenShift label value, the pipeline will fail with a suitab
 
 This label will not be deleted if it is already set.
 
-=== app.opendevstack.org/work-in-progress
+=== `app.opendevstack.org/work-in-progress`
 
 Boolean value indicating whether the current project version (change id) is still a work in progress.
 
