@@ -190,7 +190,7 @@ This default value can only be determined when provisioning the component for th
 No default value is ever calculated by the component or orchestration pipelines.
 However, if the default value was set by the quickstarter pipeline, it can be overridden, but not deleted.
 
-Example: database
+Example: `database`
 
 Any value can be set, but OpenShift recognises the following values:
 
