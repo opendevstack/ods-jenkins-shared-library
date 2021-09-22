@@ -1,5 +1,7 @@
 = OpenShift resource labelling
 
+== Overview
+
 The shared library automatically labels all OpenShift resources created in order to ease their management.
 The labels applied are based on the recommendations by:
 
@@ -40,7 +42,7 @@ if a config-change trigger is in place. A best effort is done to avoid multiple 
 Note that any paused Deployment or DeploymentConfig will be resumed as part of the rollout stage.
 
 This is the list of supported labels:
-[cols="1,2,3,4"]
+[cols="4,3,2,2"]
 |===
 | Label | Meaning | Value | Example
 
@@ -124,7 +126,7 @@ Please, note that valid label values must be 63 characters or less and must be e
 or begin and end with an alphanumeric character (`[a-z0-9A-Z]`) with dashes (`-`), underscores (`_`), dots (`.`), and alphanumerics between.
 Most label values will be sanitised before assigning, but it is recommended to specify values following these restrictions.
 
-=== `app.kubernetes.io/name`
+=== app.kubernetes.io/name
 
 The name of the application.
 
@@ -141,7 +143,7 @@ Examples: `user-service`, `mongodb`.
 
 This label will not be deleted, if it is already set.
 
-=== `app.kubernetes.io/instance`
+=== app.kubernetes.io/instance
 
 A unique name identifying the instance of an application.
 
@@ -154,7 +156,7 @@ Therefore, if the name label is set to its default value (component id), this in
 
 Example: `user-db`
 
-=== `app.kubernetes.io/version`
+=== app.kubernetes.io/version
 
 The current version of the application (e.g., a semantic version, revision hash, etc.).
 
@@ -166,7 +168,7 @@ Example: `4.0.8`
 
 This label will not be deleted, if it is already set.
 
-=== `app.kubernetes.io/component`
+=== app.kubernetes.io/component
 
 The component within the architecture.
 
@@ -188,11 +190,11 @@ This default value can only be determined when provisioning the component for th
 No default value is ever calculated by the component or orchestration pipelines.
 However, if the default value was set by the quickstarter pipeline, it can be overridden, but not deleted.
 
-Example: `database`
+Example: database
 
 Any value can be set, but OpenShift recognises the following values:
 
-[cols="1,2"]
+[cols="1,4"]
 |===
 | Value | Meaning
 
@@ -222,7 +224,7 @@ Note that data-science components are assigned the ad-hoc `subsystem` value by d
 
 This label will not be deleted if it is already set.
 
-=== `app.kubernetes.io/part-of`
+=== app.kubernetes.io/part-of
 
 The name of a higher level application this one is part of.
 
@@ -237,7 +239,7 @@ You can set `app.kubernetes.io/part-of=my-online-shop`.
 
 This label will be removed, if no value is given for it.
 
-=== `app.kubernetes.io/managed-by`
+=== app.kubernetes.io/managed-by
 
 The tool being used to manage the operation of an application.
 
@@ -247,7 +249,7 @@ This value cannot be customised.
 
 Example: `tailor`
 
-=== `app.openshift.io/runtime`
+=== app.openshift.io/runtime
 
 The runtime to be used to bootstrap the component.
 
@@ -265,7 +267,7 @@ Example: `spring-boot`
 
 This label will be removed, if no value is given for it.
 
-=== `app.openshift.io/runtime-version`
+=== app.openshift.io/runtime-version
 
 The version of the runtime.
 
@@ -279,7 +281,7 @@ Example: `2.1.16.RELEASE`
 
 This label will be removed, if no value is given for it.
 
-=== `helm.sh/chart`
+=== helm.sh/chart
 
 This should be the chart name and version: `{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}`.
 
@@ -291,7 +293,7 @@ This is done before the common sanitising performed to all label values.
 
 Example: `charName-1.0.0`
 
-=== `app.opendevstack.org/project`
+=== app.opendevstack.org/project
 
 The project id.
 
@@ -301,7 +303,7 @@ Example: `my-project`
 
 This label will not be deleted if it is already set.
 
-=== `app.opendevstack.org/type`
+=== app.opendevstack.org/type
 
 The type of OpenDevStack component.
 
@@ -316,7 +318,7 @@ Example: `ods-service`
 
 This label will not be deleted if it is already set.
 
-=== `app.opendevstack.org/system-name`
+=== app.opendevstack.org/system-name
 
 This is currently set by the Release Manager to the config item and it cannot be customised.
 
@@ -325,7 +327,7 @@ If it is not a valid OpenShift label value, the pipeline will fail with a suitab
 
 This label will not be deleted if it is already set.
 
-=== `app.opendevstack.org/project-version`
+=== app.opendevstack.org/project-version
 
 This is currently set by the Release Manager to the change id and it cannot be customised.
 
@@ -334,7 +336,7 @@ If it is not a valid OpenShift label value, the pipeline will fail with a suitab
 
 This label will not be deleted if it is already set.
 
-=== `app.opendevstack.org/work-in-progress`
+=== app.opendevstack.org/work-in-progress
 
 Boolean value indicating whether the current project version (change id) is still a work in progress.
 
