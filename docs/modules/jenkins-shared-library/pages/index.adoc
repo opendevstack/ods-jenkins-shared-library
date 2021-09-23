@@ -1,7 +1,7 @@
 = Jenkins Shared Library
 :page-aliases: latest@ods-jenkins-shared-library:ROOT:index.adoc
 
-OpenDevStack provides a https://jenkins.io/doc/book/pipeline/shared-libraries/[Jenkins Shared Library] which offers two pipelines:
+OpenDevStack provides a https://jenkins.io/doc/book/pipeline/shared-libraries/[Jenkins Shared Library] which offers three pipelines:
 
 . A xref:jenkins-shared-library:component-pipeline.adoc[pipeline to build components], `odsComponentPipeline`. This pipeline allows to have a minimal `Jenkinsfile` in each repository by providing all language-agnostic build aspects. The goal is to duplicate as little as possible between repositories and have an easy way to ship updates to all projects. As a user, you will mostly interface with this pipeline.
 . A xref:jenkins-shared-library:orchestration-pipeline.adoc[pipeline to orchestrate releases with multiple components], `odsOrchestrationPipeline`. It supports the orchestration of multiple repositories into a live application using the *Release Manager* quickstarter.

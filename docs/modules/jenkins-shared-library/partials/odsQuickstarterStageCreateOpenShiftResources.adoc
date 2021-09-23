@@ -15,3 +15,10 @@ Available options:
 | selector
 | Label selector to constrain `tailor apply` to, defaults to `app=${context.projectId}-${context.componentId}`.
 |===
+
+All the created OpenShift resources are automatically labeled to ease their management.
+
+The quickstarter pipeline does a best effort to assign appropriate labels for a new component,
+based on the information of the quickstarter. This information can be customised by updating the component metadata.
+
+Detailed information about the labelling can be found xref:jenkins-shared-library:labelling.adoc[here].
