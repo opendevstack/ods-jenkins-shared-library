@@ -581,8 +581,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def risks = this.project.getRisks().collect { r ->
-            def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
-            def testsText = r.tests ? r.tests.join(", ") : "None"
+            def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
+            def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
             def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
             def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
             def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
@@ -1772,6 +1772,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
 
+    }
+
+    protected String replaceDashToNonBreakableUnicode(theString) {
+        return theString?.replaceAll('-', '&#x2011;')
     }
 
 }
