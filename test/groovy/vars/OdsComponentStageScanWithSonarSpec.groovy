@@ -85,7 +85,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
-    script.call(context, ['branch': '*'])
+    script.call(context, ['branch': '*', 'analyzePullRequests': 'true'])
 
     then:
     printCallStack()
