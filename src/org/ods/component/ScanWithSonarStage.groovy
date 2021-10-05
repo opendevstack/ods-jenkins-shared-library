@@ -50,7 +50,7 @@ class ScanWithSonarStage extends Stage {
                 .toList()
         }
         if (!config.containsKey('analyzePullRequests')) {
-            config.analyzePullRequests = true
+            config.analyzePullRequests = false
         }
         if (!config.containsKey('requireQualityGatePass')) {
             config.requireQualityGatePass = false
