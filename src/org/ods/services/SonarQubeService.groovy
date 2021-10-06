@@ -18,6 +18,10 @@ class SonarQubeService {
         script.readProperties(file: filename)
     }
 
+    Map<String, Object> readTask(String filename = '.scannerwork/report-task.txt') {
+        script.readProperties(file: filename)
+    }
+
     def scan(Map properties, String gitCommit, Map pullRequestInfo = [:], String sonarQubeEdition) {
         withSonarServerConfig { hostUrl, authToken ->
             def scannerParams = [
@@ -72,6 +76,16 @@ class SonarQubeService {
             script.sh(
                 label: 'Get status of quality gate',
                 script: "curl -s -u ${authToken}: ${hostUrl}/api/qualitygates/project_status?projectKey=${projectKey}",
+                returnStdout: true
+            )
+        }
+    }
+
+    def getComputeEngineTaskJSON(String taskid) {
+        withSonarServerConfig { hostUrl, authToken ->
+            script.sh(
+                label: 'Get status of compute engine task',
+                script: "curl -s -u ${authToken}: ${hostUrl}/api/ce/task?id=${taskid}",
                 returnStdout: true
             )
         }
