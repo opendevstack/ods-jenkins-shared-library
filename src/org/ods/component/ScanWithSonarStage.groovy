@@ -227,6 +227,7 @@ class ScanWithSonarStage extends Stage {
         }
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     private String getComputeEngineTaskResult(String taskid) {
         def computeEngineTaskJSON = sonarQube.getComputeEngineTaskJSON(taskid)
         try {
