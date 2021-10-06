@@ -80,28 +80,7 @@ class ScanWithSonarStage extends Stage {
         logger.startClocked("${sonarProjectKey}-sq-scan")
         scan(sonarProperties)
         logger.debugClocked("${sonarProjectKey}-sq-scan", (null as String))
-
-        def taskProperties = sonarQube.readTask()
-
-        def waitTime = 5 // seconds
-        def retries = 5
-        for (def i = 0; i < retries; i++) {
-            def computeEngineTaskResult = getComputeEngineTaskResult(taskProperties['ceTaskId'])
-            if (computeEngineTaskResult == 'IN_PROGRESS' || computeEngineTaskResult == 'PENDING') {
-                logger.info "SonarQube background task has not finished yet."
-                script.sleep(waitTime)
-            } else {
-                if (computeEngineTaskResult == 'SUCCESS'){
-                    logger.info "SonarQube background task has finished successfully."
-                    break
-                }else{
-                    if (computeEngineTaskResult == 'FAILED'){
-                        logger.info "SonarQube background task has failed!"
-                        script.error 'SonarQube Scanner stage has ended with errors'
-                    }
-                }
-            }
-        }
+        retryComputeEngineStatusCheck()
 
         generateAndArchiveReports(
             sonarProjectKey,
@@ -237,6 +216,31 @@ class ScanWithSonarStage extends Stage {
         } catch (Exception ex) {
             script.error 'Quality gate status could not be retrieved. ' +
                 "Status was: '${computeEngineTaskJSON}'. Error was: ${ex}"
+        }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String retryComputeEngineStatusCheck() {
+        def waitTime = 5 // seconds
+        def retries = 5
+        def taskProperties = sonarQube.readTask()
+
+        for (def i = 0; i < retries; i++) {
+            def computeEngineTaskResult = getComputeEngineTaskResult(taskProperties['ceTaskId'])
+            if (computeEngineTaskResult == 'IN_PROGRESS' || computeEngineTaskResult == 'PENDING') {
+                logger.info "SonarQube background task has not finished yet."
+                script.sleep(waitTime)
+            } else {
+                if (computeEngineTaskResult == 'SUCCESS'){
+                    logger.info "SonarQube background task has finished successfully."
+                    break
+                }else{
+                    if (computeEngineTaskResult == 'FAILED'){
+                        logger.info "SonarQube background task has failed!"
+                        steps.error 'SonarQube Scanner stage has ended with errors'
+                    }
+                }
+            }
         }
     }
 
