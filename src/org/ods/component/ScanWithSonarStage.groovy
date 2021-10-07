@@ -214,7 +214,7 @@ class ScanWithSonarStage extends Stage {
             def status = computeEngineTaskResult?.task?.status ?: 'UNKNOWN'
             return status.toUpperCase()
         } catch (Exception ex) {
-            script.error 'Quality gate status could not be retrieved. ' +
+            script.error 'Compute engine status could not be retrieved. ' +
                 "Status was: '${computeEngineTaskJSON}'. Error was: ${ex}"
         }
     }
@@ -230,17 +230,17 @@ class ScanWithSonarStage extends Stage {
             if (computeEngineTaskResult == 'IN_PROGRESS' || computeEngineTaskResult == 'PENDING') {
                 logger.info "SonarQube background task has not finished yet."
                 script.sleep(waitTime)
-            } else {
-                if (computeEngineTaskResult == 'SUCCESS'){
+            } else if (computeEngineTaskResult == 'SUCCESS'){
                     logger.info "SonarQube background task has finished successfully."
                     break
-                }else{
-                    if (computeEngineTaskResult == 'FAILED'){
+                }else if (computeEngineTaskResult == 'FAILED'){
                         logger.info "SonarQube background task has failed!"
                         steps.error 'SonarQube Scanner stage has ended with errors'
+                    } else {
+                        logger.info "Unknown status for the background task"
+                        steps.error 'SonarQube Scanner stage has ended with errors'
                     }
-                }
-            }
+
         }
     }
 
