@@ -111,7 +111,7 @@ class SonarQubeService {
                 "errorMessage": "Fail to extract report AVaXuGAi_te3Ldc_YItm from database",
                 "logs": false,
                 "hasErrorStacktrace": true,
-                "errorStacktrace": "java.lang.IllegalStateException: Fail to extract report AVaXuGAi_te3Ldc_YItm from database\n\tat org.sonar.server.computation.task.projectanalysis.step.ExtractReportStep.execute(ExtractReportStep.java:50)",
+                "errorStacktrace": "java.lang.IllegalStateException: Fail to extract report from database",
                 "scannerContext": "SonarQube plugins:\n\t- Git 1.0 (scmgit)\n\t- Java 3.13.1 (java)",
                 "hasScannerContext": true
             }
