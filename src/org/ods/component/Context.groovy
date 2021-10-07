@@ -270,6 +270,7 @@ class Context implements IContext {
         config.branchToEnvironmentMapping
     }
 
+    @NonCPS
     String getEnvironment() {
         config.environment
     }

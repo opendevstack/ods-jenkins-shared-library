@@ -16,42 +16,68 @@ class InfrastructureService {
     }
 
     @SuppressWarnings('ParameterCount')
-    int runMake(String rule, String awsAccessKeyId, String awsSecretAccessKey, String tfBackendPrefix, String tfBackendS3Key, String workspace, String region) {
+    int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
         logger.info "Running 'make ${rule}'..."
-        // int status = AQUA_SUCCESS
-        withEnv(setEnv(tfBackendPrefix, tfBackendS3Key, workspace, region))
+        int status = 500
+        steps.withEnv(setEnv(environmentVars, tfBackendS3Key, workspace))
         {
-            withCredentials([
-                string(credentialsId: awsAccessKeyId, variable: 'AWS_ACCESS_KEY_ID'),
-                string(credentialsId: awsSecretAccessKey, variable: 'AWS_SECRET_ACCESS_KEY')
-            ]){
-                status = steps.sh(
-                    label: 'Infrastructure Makefile',
-                    returnStatus: true,
-                    script: """
-                        set +e && \
-                        make ${rule} && \
-                        set -e
-                    """
-                ) as int
+            withCredentials(
+                    environmentVars.credentials.key.toLowerCase(),
+                    environmentVars.credentials.secret.toLowerCase()
+                ) {
+                    status = steps.sh(
+                        label: 'Infrastructure Makefile',
+                        returnStatus: true,
+                        script: """
+                            set +e && \
+                            eval \"\$(rbenv init -)\" && \
+                            make ${rule} && \
+                            set -e
+                        """
+                    ) as int
             }
         }
         return status
     }
 
-    def setEnv(String tfBackendPrefix, String tfBackendS3Key, String workspace, String region) {
-        def env = [
-            "TF_BACKEND_PREFIX=${tfBackendPrefix}",
-            "TF_BACKEND_S3KEY=${tfBackendS3Key}"
-        ]
+    @SuppressWarnings('ParameterCount')
+    int runMake(String rule) {
+        logger.info "Running 'make ${rule}'..."
+        int status = 500
+        status = steps.sh(
+            label: 'Infrastructure Makefile',
+            returnStatus: true,
+            script: """
+                set +e && \
+                eval \"\$(rbenv init -)\" && \
+                make ${rule} && \
+                set -e
+            """
+        ) as int
+        return status
+    }
 
+    List<String> setEnv(Map environmentVars, String tfBackendS3Key, String workspace) {
+        def env = [
+            "TF_BACKEND_PREFIX=${environmentVars.account}",
+            "AWS_DEFAULT_REGION=${environmentVars.region.toLowerCase()}"
+        ]
+        if (tfBackendS3Key) {
+            env << "TF_BACKEND_S3KEY=${tfBackendS3Key}"
+        }
         if (workspace) {
             env << "TF_WORKSPACE=${workspace}"
         }
-        if (region) {
-            env << "AWS_DEFAULT_REGION=${region}"
-        }
         return env
+    }
+
+    def withCredentials(String awsAccessKeyId, String awsSecretAccessKey, Closure block) {
+        steps.withCredentials([
+            steps.string(credentialsId: awsAccessKeyId, variable: 'AWS_ACCESS_KEY_ID'),
+            steps.string(credentialsId: awsSecretAccessKey, variable: 'AWS_SECRET_ACCESS_KEY')
+        ]) {
+            block(steps.env.AWS_ACCESS_KEY_ID, steps.env.AWS_SECRET_ACCESS_KEY)
+        }
     }
 
 }
