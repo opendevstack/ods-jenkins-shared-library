@@ -18,6 +18,16 @@ class SonarQubeService {
         script.readProperties(file: filename)
     }
 
+    /*
+    Example of the file located in .scannerwork/report-task.txt:
+        projectKey=XXXX-python
+        serverUrl=https://sonarqube-ods.XXXX.com
+        serverVersion=8.2.0.32929
+        branch=dummy
+        dashboardUrl=https://sonarqube-ods.XXXX.com/dashboard?id=XXXX-python&branch=dummy
+        ceTaskId=AXxaAoUSsjAMlIY9kNmn
+        ceTaskUrl=https://sonarqube-ods.XXXX.com/api/ce/task?id=AXxaAoUSsjAMlIY9kNmn
+    */
     Map<String, Object> readTask(String filename = '.scannerwork/report-task.txt') {
         script.readProperties(file: filename)
     }
@@ -81,6 +91,31 @@ class SonarQubeService {
         }
     }
 
+    /*
+        Example of the data returned in the api call api/ce/task:
+
+            "task": {
+                "organization": "my-org-1",
+                "id": "AVAn5RKqYwETbXvgas-I",
+                "type": "REPORT",
+                "componentId": "AVAn5RJmYwETbXvgas-H",
+                "componentKey": "project_1",
+                "componentName": "Project One",
+                "componentQualifier": "TRK",
+                "analysisId": "123456",
+                "status": "FAILED",
+                "submittedAt": "2015-10-02T11:32:15+0200",
+                "startedAt": "2015-10-02T11:32:16+0200",
+                "executedAt": "2015-10-02T11:32:22+0200",
+                "executionTimeMs": 5286,
+                "errorMessage": "Fail to extract report AVaXuGAi_te3Ldc_YItm from database",
+                "logs": false,
+                "hasErrorStacktrace": true,
+                "errorStacktrace": "java.lang.IllegalStateException: Fail to extract report AVaXuGAi_te3Ldc_YItm from database\n\tat org.sonar.server.computation.task.projectanalysis.step.ExtractReportStep.execute(ExtractReportStep.java:50)",
+                "scannerContext": "SonarQube plugins:\n\t- Git 1.0 (scmgit)\n\t- Java 3.13.1 (java)",
+                "hasScannerContext": true
+            }
+    */
     def getComputeEngineTaskJSON(String taskid) {
         withSonarServerConfig { hostUrl, authToken ->
             script.sh(
