@@ -1749,4 +1749,21 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         }
     }
 
+    def "dash to unicode conversion"() {
+        given:
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null, null, null, null, null)
+
+        expect:
+        leVADocumentUseCase.replaceDashToNonBreakableUnicode(value) == result
+
+        where:
+        value     | result
+        null      | null
+        'abc'     | 'abc'
+        '-'       | '&#x2011;'
+        'ab-c'    | 'ab&#x2011;c'
+        'ab-c-d'  | 'ab&#x2011;c&#x2011;d'
+    }
+
 }

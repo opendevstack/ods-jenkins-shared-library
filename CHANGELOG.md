@@ -41,6 +41,7 @@
 - Fix missing grapes import in BitbucketService [#717] ([#717](https://github.com/opendevstack/ods-jenkins-shared-library/issues/717))
 - Documented the labeling functionality ([#715](https://github.com/opendevstack/ods-jenkins-shared-library/pull/715))
 - Fix by default sonarQu should analyzePullRequests:false ([#663](https://github.com/opendevstack/ods-jenkins-shared-library/issues/663))
+- Fix RA table overflow replacing unicode character in jira keys ([#735](https://github.com/opendevstack/ods-jenkins-shared-library/pull/735))
 
 ## [3.0] - 2020-08-11
 
