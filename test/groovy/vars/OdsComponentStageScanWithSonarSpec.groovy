@@ -47,8 +47,10 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     ServiceRegistry.instance.add(NexusService, nexusService)
     SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+    sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
     sonarQubeService.scan(*_) >> null
     sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
@@ -76,7 +78,9 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     ServiceRegistry.instance.add(NexusService, nexusService)
     SonarQubeService sonarQubeService = Mock(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+    sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
     sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
@@ -113,6 +117,8 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     IContext context = new Context(null, c, logger)
     SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+    sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
+    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.scan(*_) >> null
     sonarQubeService.getQualityGateJSON(*_) >> """{"projectStatus": ${projectStatus}}"""
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
