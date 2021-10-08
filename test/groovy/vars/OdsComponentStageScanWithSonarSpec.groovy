@@ -50,7 +50,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
     sonarQubeService.scan(*_) >> null
     sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
-    sonarQubeService.getComputeEngineTaskJSON(*_) >> '{"task":{"status":"SUCCESS"}}'
+    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
@@ -80,7 +80,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
     sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
     sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
-    sonarQubeService.getComputeEngineTaskJSON(*_) >> '{"task":{"status":"SUCCESS"}}'
+    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
@@ -118,7 +118,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
     sonarQubeService.readTask() >> ['ceTaskId': 'AXxaAoUSsjAMlIY9kNmn']
-    sonarQubeService.getComputeEngineTaskJSON(*_) >> '{"task":{"status":"SUCCESS"}}'
+    sonarQubeService.getComputeEngineTaskResult(*_) >> 'SUCCESS'
     sonarQubeService.scan(*_) >> null
     sonarQubeService.getQualityGateJSON(*_) >> """{"projectStatus": ${projectStatus}}"""
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)

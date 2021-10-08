@@ -207,26 +207,19 @@ class ScanWithSonarStage extends Stage {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String getComputeEngineTaskResult(String taskid) {
-        def computeEngineTaskJSON = sonarQube.getComputeEngineTaskJSON(taskid)
-        try {
-            def computeEngineTaskResult = script.readJSON(text: computeEngineTaskJSON)
-            def status = computeEngineTaskResult?.task?.status ?: 'UNKNOWN'
-            return status.toUpperCase()
-        } catch (Exception ex) {
-            script.error 'Compute engine status could not be retrieved. ' +
-                "Status was: '${computeEngineTaskJSON}'. Error was: ${ex}"
-        }
-    }
-
-    @TypeChecked(TypeCheckingMode.SKIP)
     private String retryComputeEngineStatusCheck() {
         def waitTime = 5 // seconds
         def retries = 5
         def taskProperties = sonarQube.readTask()
 
         for (def i = 0; i < retries; i++) {
-            def computeEngineTaskResult = getComputeEngineTaskResult(taskProperties['ceTaskId'])
+            def computeEngineTaskResult
+            try {
+                computeEngineTaskResult = sonarQube.getComputeEngineTaskResult(taskProperties['ceTaskId'])
+            } catch (Exception ex) {
+                script.error 'Compute engine status could not be retrieved. ' +
+                "Status was: '${computeEngineTaskJSON}'. Error was: ${ex}"
+            }
             if (computeEngineTaskResult == 'IN_PROGRESS' || computeEngineTaskResult == 'PENDING') {
                 logger.info "SonarQube background task has not finished yet."
                 script.sleep(waitTime)

@@ -126,6 +126,13 @@ class SonarQubeService {
         }
     }
 
+    String getComputeEngineTaskResult(String taskid) {
+        def computeEngineTaskJSON = getComputeEngineTaskJSON(taskid)
+        def computeEngineTaskResult = script.readJSON(text: computeEngineTaskJSON)
+        def status = computeEngineTaskResult?.task?.status ?: 'UNKNOWN'
+        return status.toUpperCase()
+    }
+
     String getSonarQubeHostUrl() {
         withSonarServerConfig { hostUrl, authToken ->
             return hostUrl
