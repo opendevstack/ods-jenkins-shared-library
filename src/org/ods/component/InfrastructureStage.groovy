@@ -47,31 +47,21 @@ class InfrastructureStage extends Stage {
     }
 
     protected run() {
-        script.stage("AWS IaC - Testing") {
-            if(runMakeWithEnv("test", environmentVarsTesting, tfBackendS3Key, null) != 0) {
-                script.error("AWS IaC - Testing stage failed!")
-            }
+        if(runMakeWithEnv("test", environmentVarsTesting, tfBackendS3Key, null) != 0) {
+            script.error("AWS IaC - Testing stage failed!")
         }
         if (stackDeploy) {
-            script.stage("AWS IaC - Plan") {
-                if(runMakeWithEnv("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
-                    script.error("AWS IaC - Plan stage failed!")
-                }
+            if(runMakeWithEnv("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+                script.error("AWS IaC - Plan stage failed!")
             }
-            script.stage("AWS IaC - Deploy") {
-                if(runMakeWithEnv("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
-                    script.error("AWS IaC - Deploy stage failed!")
-                }
+            if(runMakeWithEnv("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+                script.error("AWS IaC - Deploy stage failed!")
             }
-            script.stage("AWS IaC - Smoke-test") {
-                if(runMakeWithEnv("smoke-test", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
-                    script.error("AWS IaC - Smoke-test stage failed!")
-                }
+            if(runMakeWithEnv("smoke-test", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+                script.error("AWS IaC - Smoke-test stage failed!")
             }
-            script.stage("AWS IaC - Report") {
-                if(runMake("install-report") != 0) {
-                    script.error("AWS IaC - Report stage failed!")
-                }
+            if(runMake("install-report") != 0) {
+                script.error("AWS IaC - Report stage failed!")
             }
 
             script.stash(name: "installation-test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/default.xml' , allowEmpty: true)

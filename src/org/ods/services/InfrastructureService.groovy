@@ -15,15 +15,14 @@ class InfrastructureService {
         this.logger = logger
     }
 
-    @SuppressWarnings('ParameterCount')
-    int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
+    public int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
         logger.info "Running 'make ${rule}'..."
         int status = 1
         steps.withEnv(setEnv(environmentVars, tfBackendS3Key, workspace))
         {
             withCredentials(
-                    environmentVars.credentials.key.toLowerCase(),
-                    environmentVars.credentials.secret.toLowerCase()
+                    (environmentVars.credentials.key as String).toLowerCase(),
+                    (environmentVars.credentials.secret as String).toLowerCase()
                 ) {
                     status = steps.sh(
                         label: 'Infrastructure Makefile',
@@ -40,8 +39,7 @@ class InfrastructureService {
         return status
     }
 
-    @SuppressWarnings('ParameterCount')
-    int runMake(String rule) {
+    public int runMake(String rule) {
         logger.info "Running 'make ${rule}'..."
         int status = 1
         status = steps.sh(
@@ -57,10 +55,10 @@ class InfrastructureService {
         return status
     }
 
-    List<String> setEnv(Map environmentVars, String tfBackendS3Key, String workspace) {
-        def env = [
+    private List<String> setEnv(Map environmentVars, String tfBackendS3Key, String workspace) {
+        List<String> env = [
             "TF_BACKEND_PREFIX=${environmentVars.account}",
-            "AWS_DEFAULT_REGION=${environmentVars.region.toLowerCase()}"
+            "AWS_DEFAULT_REGION=${(environmentVars.region as String).toLowerCase()}"
         ]
         if (tfBackendS3Key) {
             env << "TF_BACKEND_S3KEY=${tfBackendS3Key}"
@@ -71,7 +69,7 @@ class InfrastructureService {
         return env
     }
 
-    def withCredentials(String awsAccessKeyId, String awsSecretAccessKey, Closure block) {
+    private withCredentials(String awsAccessKeyId, String awsSecretAccessKey, Closure block) {
         steps.withCredentials([
             steps.string(credentialsId: awsAccessKeyId, variable: 'AWS_ACCESS_KEY_ID'),
             steps.string(credentialsId: awsSecretAccessKey, variable: 'AWS_SECRET_ACCESS_KEY')
