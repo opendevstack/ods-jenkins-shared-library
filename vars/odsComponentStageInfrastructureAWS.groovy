@@ -44,9 +44,6 @@ def call(IContext context, Map config = [:]) {
         GitCredentialStore.configureAndStore(this, context.bitbucketUrl, username, pw)
     }
 
-    if (!steps.fileExists("Makefile")) {
-        error "Missing Makefile"
-    }
     if (!config.resourceName) {
         config.resourceName = context.componentId
     }

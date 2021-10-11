@@ -86,16 +86,7 @@ class InfrastructureStage extends Stage {
     private int runMake(String rule) {
         logger.startClocked(options.resourceName)
         int returnCode = infrastructure.runMake(rule)
-        switch (returnCode) {
-            case 0:
-                logger.info "Finished AWS IaC make ${rule} successfully!"
-                break
-            case 1:
-                logger.info "AWS IaC make ${rule} failed. See logs for further information."
-                break
-            default:
-                logger.info "An unknown return code was returned: ${returnCode}"
-        }
+        logResult(rule, returnCode)
         logger.infoClocked(options.resourceName, "AWS Infrastructure as Code (via Makefile)")
         return returnCode
     }
@@ -104,6 +95,12 @@ class InfrastructureStage extends Stage {
     private int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
         logger.startClocked(options.resourceName)
         int returnCode = infrastructure.runMakeWithEnv(rule, environmentVars, tfBackendS3Key, workspace)
+        logResult(rule, returnCode)
+        logger.infoClocked(options.resourceName, "AWS Infrastructure as Code (via Makefile)")
+        return returnCode
+    }
+
+    private logResult(String rule, int returnCode) {
         switch (returnCode) {
             case 0:
                 logger.info "Finished AWS IaC make ${rule} successfully!"
@@ -112,9 +109,7 @@ class InfrastructureStage extends Stage {
                 logger.info "AWS IaC make ${rule} failed. See logs for further information."
                 break
             default:
-                logger.info "An unknown return code was returned: ${returnCode}"
+                logger.info "AWS IaC make ${rule} unknown return code: ${returnCode}"
         }
-        logger.infoClocked(options.resourceName, "AWS Infrastructure as Code (via Makefile)")
-        return returnCode
     }
 }
