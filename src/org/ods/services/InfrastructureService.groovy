@@ -18,7 +18,7 @@ class InfrastructureService {
     @SuppressWarnings('ParameterCount')
     int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
         logger.info "Running 'make ${rule}'..."
-        int status = 500
+        int status = 1
         steps.withEnv(setEnv(environmentVars, tfBackendS3Key, workspace))
         {
             withCredentials(
@@ -43,7 +43,7 @@ class InfrastructureService {
     @SuppressWarnings('ParameterCount')
     int runMake(String rule) {
         logger.info "Running 'make ${rule}'..."
-        int status = 500
+        int status = 1
         status = steps.sh(
             label: 'Infrastructure Makefile',
             returnStatus: true,

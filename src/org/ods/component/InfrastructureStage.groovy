@@ -20,8 +20,6 @@ class InfrastructureStage extends Stage {
     private final Map environmentVars
     private final Map environmentVarsTesting
 
-
-
     @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
     InfrastructureStage(def script, IContext context, Map config,
@@ -50,20 +48,30 @@ class InfrastructureStage extends Stage {
 
     protected run() {
         script.stage("AWS IaC - Testing") {
-            int returnTCode = runMakeWithEnv("test", environmentVarsTesting, tfBackendS3Key, null)
+            if(runMakeWithEnv("test", environmentVarsTesting, tfBackendS3Key, null) != 0) {
+                script.error("AWS IaC - Testing stage failed!")
+            }
         }
         if (stackDeploy) {
             script.stage("AWS IaC - Plan") {
-                int returnPCode = runMakeWithEnv("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment'])
+                if(runMakeWithEnv("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+                    script.error("AWS IaC - Plan stage failed!")
+                }
             }
             script.stage("AWS IaC - Deploy") {
-                int returnDCode = runMakeWithEnv("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment'])
+                if(runMakeWithEnv("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+                    script.error("AWS IaC - Deploy stage failed!")
+                }
             }
             script.stage("AWS IaC - Smoke-test") {
-                int returnSCode = runMakeWithEnv("smoke-test", environmentVars, tfBackendS3Key, tfVars['meta_environment'])
+                if(runMakeWithEnv("smoke-test", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+                    script.error("AWS IaC - Smoke-test stage failed!")
+                }
             }
             script.stage("AWS IaC - Report") {
-                int returnRCode = runMake("install-report")
+                if(runMake("install-report") != 0) {
+                    script.error("AWS IaC - Report stage failed!")
+                }
             }
 
             script.stash(name: "installation-test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/default.xml' , allowEmpty: true)
@@ -78,18 +86,13 @@ class InfrastructureStage extends Stage {
     private int runMake(String rule) {
         logger.startClocked(options.resourceName)
         int returnCode = infrastructure.runMake(rule)
-
         switch (returnCode) {
-            // case AquaService.AQUA_SUCCESS:
-            //     logger.info "Finished scan via Aqua CLI successfully!"
-            //     break
-            // case AquaService.AQUA_OPERATIONAL_ERROR:
-            //     logger.info "An error occurred in processing the scan request " +
-            //         "(e.g. invalid command line options, image not pulled, operational error)."
-            //     break
-            // case AquaService.AQUA_POLICIES_ERROR:
-            //     logger.info "The image scanned failed at least one of the Image Assurance Policies specified."
-            //     break
+            case 0:
+                logger.info "Finished AWS IaC make ${rule} successfully!"
+                break
+            case 1:
+                logger.info "AWS IaC make ${rule} failed. See logs for further information."
+                break
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
@@ -101,18 +104,13 @@ class InfrastructureStage extends Stage {
     private int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
         logger.startClocked(options.resourceName)
         int returnCode = infrastructure.runMakeWithEnv(rule, environmentVars, tfBackendS3Key, workspace)
-
         switch (returnCode) {
-            // case AquaService.AQUA_SUCCESS:
-            //     logger.info "Finished scan via Aqua CLI successfully!"
-            //     break
-            // case AquaService.AQUA_OPERATIONAL_ERROR:
-            //     logger.info "An error occurred in processing the scan request " +
-            //         "(e.g. invalid command line options, image not pulled, operational error)."
-            //     break
-            // case AquaService.AQUA_POLICIES_ERROR:
-            //     logger.info "The image scanned failed at least one of the Image Assurance Policies specified."
-            //     break
+            case 0:
+                logger.info "Finished AWS IaC make ${rule} successfully!"
+                break
+            case 1:
+                logger.info "AWS IaC make ${rule} failed. See logs for further information."
+                break
             default:
                 logger.info "An unknown return code was returned: ${returnCode}"
         }
