@@ -6,6 +6,7 @@
 - Fixed regression on project dump in release manager ([#666](https://github.com/opendevstack/ods-jenkins-shared-library/issues/666))
 - MRO promotion to P/Q fails in cornercases when using monorepo ([#688](https://github.com/opendevstack/ods-jenkins-shared-library/issues/688))
 - Fix RA table overflow replacing unicode character in jira keys ([#730](https://github.com/opendevstack/ods-jenkins-shared-library/pull/730))
+- Fix Cnes report is executed too soon in the Sonar Scanner stage ([#732](https://github.com/opendevstack/ods-jenkins-shared-library/issues/732))
 ## [3.0] - 2020-08-11
 
 ### Added
