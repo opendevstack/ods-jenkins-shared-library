@@ -3,6 +3,7 @@ package org.ods.services
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 
 @TypeChecked
 class InfrastructureService {
@@ -15,25 +16,24 @@ class InfrastructureService {
         this.logger = logger
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     public int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
         logger.info "Running 'make ${rule}'..."
         int status = 1
         steps.withEnv(setEnv(environmentVars, tfBackendS3Key, workspace))
         {
-            withCredentials(
-                    (environmentVars.credentials.key as String).toLowerCase(),
-                    (environmentVars.credentials.secret as String).toLowerCase()
-                ) {
-                    status = steps.sh(
-                        label: 'Infrastructure Makefile',
-                        returnStatus: true,
-                        script: """
-                            set +e && \
-                            eval \"\$(rbenv init -)\" && \
-                            make ${rule} && \
-                            set -e
-                        """
-                    ) as int
+            withCredentials((environmentVars.credentials.key as String).toLowerCase(),
+                            (environmentVars.credentials.secret as String).toLowerCase()) {
+                status = steps.sh(
+                    label: 'Infrastructure Makefile',
+                    returnStatus: true,
+                    script: """
+                        set +e && \
+                        eval \"\$(rbenv init -)\" && \
+                        make ${rule} && \
+                        set -e
+                    """
+                ) as int
             }
         }
         return status
@@ -57,14 +57,14 @@ class InfrastructureService {
 
     private List<String> setEnv(Map environmentVars, String tfBackendS3Key, String workspace) {
         List<String> env = [
-            "TF_BACKEND_PREFIX=${environmentVars.account}",
-            "AWS_DEFAULT_REGION=${(environmentVars.region as String).toLowerCase()}"
+            "TF_BACKEND_PREFIX=${environmentVars.account}".toString(),
+            "AWS_DEFAULT_REGION=${environmentVars.region.toString().toLowerCase()}".toString()
         ]
         if (tfBackendS3Key) {
-            env << "TF_BACKEND_S3KEY=${tfBackendS3Key}"
+            env << "TF_BACKEND_S3KEY=${tfBackendS3Key}".toString()
         }
         if (workspace) {
-            env << "TF_WORKSPACE=${workspace}"
+            env << "TF_WORKSPACE=${workspace}".toString()
         }
         return env
     }

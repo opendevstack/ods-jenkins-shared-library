@@ -20,59 +20,73 @@ class InfrastructureStage extends Stage {
     private final Map environmentVars
     private final Map environmentVarsTesting
 
-    @SuppressWarnings('ParameterCount')
     @TypeChecked(TypeCheckingMode.SKIP)
+    @SuppressWarnings('ParameterCount')
     InfrastructureStage(def script, IContext context, Map config,
                         InfrastructureService infrastructure, ILogger logger,
                         def environmentVars, def environmentVarsTesting, def tfVars) {
         super(script, context, logger)
 
-        this.script                         = script
-        this.options                        = new InfrastructureOptions(config)
-        this.infrastructure                 = infrastructure
-        this.stackDeploy                    = true
-        this.environmentVarsTesting         = environmentVarsTesting
-        this.environmentVars                = null
-        this.tfVars                         = null
-        this.tfBackendS3Key                 = null
+        this.script = script
+        this.options = new InfrastructureOptions(config)
+        this.infrastructure = infrastructure
+        this.stackDeploy = true
+        this.environmentVarsTesting = environmentVarsTesting
+        this.environmentVars = null
+        this.tfVars = null
+        this.tfBackendS3Key = null
 
         if (!context.environment) {
             this.stackDeploy = false
         }
         if (this.stackDeploy) {
-            this.environmentVars            = environmentVars
-            this.tfBackendS3Key             = "${environmentVars.account}/${context.projectId}/${context.componentId}/${context.environment}"
-            this.tfVars                     = tfVars
+            this.environmentVars = environmentVars
+            this.tfBackendS3Key =
+                "${environmentVars.account}/${context.projectId}/${context.componentId}/${context.environment}"
+            this.tfVars = tfVars
         }
     }
 
+    @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
-        if(runMakeWithEnv("test", environmentVarsTesting, tfBackendS3Key, null) != 0) {
+        if (runMakeWithEnv("test", environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
             script.error("AWS IaC - Testing stage failed!")
         }
         if (stackDeploy) {
-            if(runMakeWithEnv("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+            if (runMakeWithEnv("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("AWS IaC - Plan stage failed!")
             }
-            if(runMakeWithEnv("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+            if (runMakeWithEnv("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("AWS IaC - Deploy stage failed!")
             }
-            if(runMakeWithEnv("smoke-test", environmentVars, tfBackendS3Key, tfVars['meta_environment']) != 0) {
+            if (runMakeWithEnv("smoke-test",
+                              environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("AWS IaC - Smoke-test stage failed!")
             }
-            if(runMake("install-report") != 0) {
+            if (runMake("install-report") != 0) {
                 script.error("AWS IaC - Report stage failed!")
             }
 
-            script.stash(name: "installation-test-reports-junit-xml-${context.componentId}-${context.buildNumber}", includes: 'build/test-results/test/default.xml' , allowEmpty: true)
-            script.stash(name: "changes-${context.componentId}-${context.buildNumber}", includes: 'reports/install/tf_created.log' , allowEmpty: true)
-            script.stash(name: "target-${context.componentId}-${context.buildNumber}", includes: 'reports/install/aws_deploy_account.log' , allowEmpty: true)
-            script.stash(name: "state-${context.componentId}-${context.buildNumber}", includes: 'reports/install/tf_show.log' , allowEmpty: true)
+            script.stash(
+                name: "installation-test-reports-junit-xml-${context.componentId}-${context.buildNumber}",
+                includes: 'build/test-results/test/default.xml',
+                allowEmpty: true)
+            script.stash(
+                name: "changes-${context.componentId}-${context.buildNumber}",
+                includes: 'reports/install/tf_created.log',
+                allowEmpty: true)
+            script.stash(
+                name: "target-${context.componentId}-${context.buildNumber}",
+                includes: 'reports/install/aws_deploy_account.log',
+                allowEmpty: true)
+            script.stash(
+                name: "state-${context.componentId}-${context.buildNumber}",
+                includes: 'reports/install/tf_show.log',
+                allowEmpty: true)
         }
         return
     }
 
-    @SuppressWarnings('ParameterCount')
     private int runMake(String rule) {
         logger.startClocked(options.resourceName)
         int returnCode = infrastructure.runMake(rule)
@@ -81,7 +95,6 @@ class InfrastructureStage extends Stage {
         return returnCode
     }
 
-    @SuppressWarnings('ParameterCount')
     private int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
         logger.startClocked(options.resourceName)
         int returnCode = infrastructure.runMakeWithEnv(rule, environmentVars, tfBackendS3Key, workspace)
@@ -102,4 +115,5 @@ class InfrastructureStage extends Stage {
                 logger.info "AWS IaC make ${rule} unknown return code: ${returnCode}"
         }
     }
+
 }
