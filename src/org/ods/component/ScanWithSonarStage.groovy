@@ -55,6 +55,7 @@ class ScanWithSonarStage extends Stage {
         this.sonarQube = sonarQube
     }
 
+    // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
         if (options.longLivedBranches) {
             logger.info "Long-lived branches: ${options.longLivedBranches.join(', ')}"

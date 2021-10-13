@@ -4,10 +4,10 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PodData
+
 import java.security.SecureRandom
 
 @SuppressWarnings(['ClassSize', 'MethodCount'])
@@ -609,6 +609,61 @@ class OpenShiftService {
         if (!resourceExists(project, 'ImageStream', name)) {
             createImageStream(project, name, labels)
         }
+    }
+
+    /**
+     * Apply labels provided in <code>labels</code> to resources given in <code>resources</code> (format kind/name).
+     * The selection can be restricted to a project and also with a label selector given in <code>selector</code>.
+     * You can apply labels to all object kinds with <code>resources=all</code> and using a selector.
+     * If the label already exists, it will be overwritten.
+     * If the value for one label is the empty string, the label will be set with an empty string as value.
+     * If the value for one label is null, the label will be deleted from the selected resources.
+     *
+     * Allowed selector conditions are:
+     * <code>label=value</code>
+     * <code>label==value</code>
+     * <code>label!=value</code>
+     * More than one condition can be specified, separated by commas.
+     *
+     * @param project the project to apply the operation to. The current project, if null.
+     * @param resources the resources to apply the labels to, with format <code>kind[/name]</code>.
+     * @param labels a <code>Map</code> containing label keys and values.
+     * @param selector a comma-separated list of label conditions.
+     * @return the output of the shell script running the OpenShift client command.
+     * @throws IllegalArgumentException if no <code>resources</code> or no <code>labels</code> are provided.
+     */
+    String labelResources(String project, String resources, Map<String, String> labels, String selector = null) {
+        if (!resources) {
+            throw new IllegalArgumentException('You must specify the resources to label')
+        }
+        if (!labels) {
+            throw new IllegalArgumentException('At least one label update is required')
+        }
+        def labelStr = labels.collect { key, value ->
+            def label = key
+            label += value == null ? '-' : "='${value}'"
+            return label
+        }.join(' ')
+        if (logger.getDebugMode()) {
+            logger.debug("Setting labels ${labelStr} to resources ${resources} selected by ${selector}")
+        }
+        def script = "oc label --overwrite ${resources} "
+        if (selector) {
+            script += "-l ${selector} "
+        }
+        if (project) {
+            script += "-n ${project} "
+        }
+        script += labelStr
+        def scriptLabel = "Set labels to ${resources}"
+        if (selector) {
+            scriptLabel += " selected by the following labels: ${selector}"
+        }
+        steps.sh(
+            script: script,
+            label: scriptLabel,
+            returnStdout: true
+        ).toString().trim()
     }
 
     private void createBuildConfig(String project, String name, Map<String, String> labels, String tag) {

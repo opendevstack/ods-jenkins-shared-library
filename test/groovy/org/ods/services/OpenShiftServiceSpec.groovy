@@ -1,11 +1,12 @@
 package org.ods.services
 
 import groovy.json.JsonSlurperClassic
-
-import spock.lang.*
-
-import util.*
+import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
+import util.FixtureHelper
+import util.OpenShiftHelper
+import util.SpecHelper
 
 class OpenShiftServiceSpec extends SpecHelper {
 
@@ -210,6 +211,52 @@ class OpenShiftServiceSpec extends SpecHelper {
 
         then:
         result == 'complete'
+    }
+
+    def "label resources"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+        steps.sh(_) >> ''
+        def logger = Stub(ILogger)
+        def labels = [
+            'my.domain.org/label-key': 'the-v.al_ue',
+            toDelete                 : null,
+            emptyValue               : ''
+        ]
+        def project = 'testProject'
+        def resources = 'type/resource'
+        def selector = 'app=project-component,foo!=bar,x==y'
+        def openShift = new OpenShiftService(steps, logger)
+
+        when:
+        openShift.labelResources(project, resources, labels, selector)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validateLabels(it.script, project, resources, labels, selector) })
+
+        when:
+        openShift.labelResources(null, resources, labels, selector)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validateLabels(it.script, null, resources, labels, selector) })
+
+        when:
+        openShift.labelResources(project, resources, labels)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validateLabels(it.script, project, resources, labels) })
+
+        when:
+        openShift.labelResources(project, resources, null, selector)
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        openShift.labelResources(project, null, labels, selector)
+
+        then:
+        thrown IllegalArgumentException
     }
 
 }

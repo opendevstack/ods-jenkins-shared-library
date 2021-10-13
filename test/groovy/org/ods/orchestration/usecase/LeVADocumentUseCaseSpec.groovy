@@ -1615,4 +1615,28 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.getTechnicalSpecifications() >> techSpecs
         1 * usecase.updateJiraDocumentationTrackingIssue(*_)
     }
+
+    def "order steps"() {
+        given:
+        def  testIssue = [ key: "JIRA-1" ,
+              steps: [
+                [
+                    orderId: 2,
+                    data: "N/A"
+                ],
+                [
+                    orderId: 1,
+                    data: "N/A"
+                ]
+            ]]
+
+            when:
+            LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+                null, null, null, null, null, null, null,
+                null, null)
+            def ordered = leVADocumentUseCase.sortTestSteps(testIssue.steps)
+
+            then:
+            ordered.get(0).orderId == 1
+    }
 }
