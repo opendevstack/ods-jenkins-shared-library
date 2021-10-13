@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-
+- Add support for ods-saas-service components ([#607](https://github.com/opendevstack/ods-jenkins-shared-library/pull/607))
 
 ## [3.0] - 2020-08-11
 
