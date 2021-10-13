@@ -70,6 +70,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         usecase = Spy(new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger))
         project.getOpenShiftApiUrl() >> 'https://api.dev-openshift.com'
         project.getDocumentTrackingIssuesForHistory(_) >> [[key: 'ID-01', status: 'TODO']]
+        ServiceRegistry.instance.add(Logger, logger)
 
 
         docHistory = new DocumentHistory(steps, logger, 'D', 'SSD')
@@ -695,8 +696,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
-        1 * project.getAutomatedTestsTypeAcceptance()
-        1 * project.getAutomatedTestsTypeIntegration()
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.createDocument(documentType, null, _, [:], _, documentTemplate, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
@@ -1771,6 +1770,23 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         groupedReqs.epics.each { epic ->
             assert epic.stories == epic.stories.toSorted { req -> req.key }
         }
+    }
+
+    def "dash to unicode conversion"() {
+        given:
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null, null, null, null, null)
+
+        expect:
+        leVADocumentUseCase.replaceDashToNonBreakableUnicode(value) == result
+
+        where:
+        value     | result
+        null      | null
+        'abc'     | 'abc'
+        '-'       | '&#x2011;'
+        'ab-c'    | 'ab&#x2011;c'
+        'ab-c-d'  | 'ab&#x2011;c&#x2011;d'
     }
 
 }

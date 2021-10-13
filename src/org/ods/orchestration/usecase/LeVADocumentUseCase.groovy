@@ -447,43 +447,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return uri
     }
 
-    @NonCPS
-    private def computeKeysInDocForCFTP(def data) {
-        return data.collect { it.subMap(['key']).values() }.flatten()
-    }
-
     String createCFTP(Map repo = null, Map data = null) {
         def documentType = DocumentType.CFTP as String
 
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
-        def acceptanceTestIssues = this.project.getAutomatedTestsTypeAcceptance()
-        def integrationTestIssues = this.project.getAutomatedTestsTypeIntegration()
-
-        def keysInDoc = this.computeKeysInDocForCFTP(integrationTestIssues + acceptanceTestIssues)
+        def keysInDoc = []
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 sections        : sections,
-                acceptanceTests : acceptanceTestIssues.collect { testIssue ->
-                    [
-                        key        : testIssue.key,
-                        description: this.convertImages(testIssue.description ?: ''),
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
-                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
-                    ]
-                },
-                integrationTests: integrationTestIssues.collect { testIssue ->
-                    [
-                        key        : testIssue.key,
-                        description: this.convertImages(testIssue.description ?: ''),
-                        ur_key     : testIssue.requirements ? testIssue.requirements.join(', ') : 'N/A',
-                        risk_key   : testIssue.risks ? testIssue.risks.join(', ') : 'N/A'
-                    ]
-                },
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
@@ -591,8 +567,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def risks = this.project.getRisks().collect { r ->
-            def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
-            def testsText = r.tests ? r.tests.join(", ") : "None"
+            def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
+            def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
             def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
             def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
             def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
@@ -1799,4 +1775,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private def computeKeysInDocForTCR(def data) {
         return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
+    protected String replaceDashToNonBreakableUnicode(theString) {
+        return theString?.replaceAll('-', '&#x2011;')
+    }
+
 }
