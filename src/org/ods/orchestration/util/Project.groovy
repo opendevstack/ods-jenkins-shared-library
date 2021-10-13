@@ -5,7 +5,7 @@ import groovy.json.JsonOutput
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.service.leva.ProjectDataBitbucketRepository
 import org.ods.orchestration.usecase.JiraUseCase
-import org.ods.orchestration.usecase.LeVADocumentUseCase
+import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -362,20 +362,10 @@ class Project {
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
         if (this.hasWipJiraIssues()) {
-            def message = this.isWorkInProgress ?'Pipeline-generated documents are watermarked ' +
-                "'${LeVADocumentUseCase.WORK_IN_PROGRESS_WATERMARK}' " +
-                'since the following issues are work in progress: ':
-                "The pipeline failed since the following issues are work in progress (no documents were generated): "
-
-            this.getWipJiraIssues().each { type, keys ->
-                def values = keys instanceof Map ? keys.values().flatten() : keys
-                if (!values.isEmpty()) {
-                    message += '\n\n' + type.capitalize() + ': ' + values.join(', ')
-                }
-            }
+            String message = ProjectMessagesUtil.generateWIPIssuesMessage(this)
 
             if(!this.isWorkInProgress){
-                throw new IllegalArgumentException(message)
+                throw new OpenIssuesException(message)
             }
             this.addCommentInReleaseStatus(message)
         }
@@ -486,20 +476,36 @@ class Project {
     @NonCPS
     List<JiraDataItem> getAutomatedTests(String componentName = null, List<String> testTypes = []) {
         return this.data.jira.tests.findAll { key, testIssue ->
-            def result = testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
-
-            if (result && componentName) {
-                result = testIssue.getResolvedComponents()
-                        .collect { it.name.toLowerCase() }
-                        .contains(componentName.toLowerCase())
-            }
-
-            if (result && testTypes) {
-                result = testTypes.collect { it.toLowerCase() }.contains(testIssue.testType.toLowerCase())
-            }
-
-            return result
+            return isAutomatedTest(testIssue) && hasGivenTypes(testTypes, testIssue) && hasGivenComponent(testIssue, componentName)
         }.values() as List
+    }
+
+    @NonCPS
+    boolean isAutomatedTest(testIssue) {
+        testIssue.executionType?.toLowerCase() == JiraDataItem.ISSUE_TEST_EXECUTION_TYPE_AUTOMATED
+    }
+
+    @NonCPS
+    boolean hasGivenTypes(List<String> testTypes, testIssue) {
+        def result = true
+        if (testTypes) {
+            result = testTypes*.toLowerCase().contains(testIssue.testType.toLowerCase())
+        }
+        return result
+    }
+
+    @NonCPS
+    boolean hasGivenComponent(testIssue, String componentName) {
+        def result = true
+        if (componentName) {
+            result = testIssue.getResolvedComponents().collect {
+                if (!it || !it.name) {
+                    throw new RuntimeException("Error with testIssue key: ${testIssue.key}, no component assigned or it is wrong.")
+                }
+                it.name.toLowerCase()
+            }.contains(componentName.toLowerCase())
+        }
+        return result
     }
 
     @NonCPS
@@ -675,10 +681,12 @@ class Project {
         ]
     }
 
+    @NonCPS
     List getCapabilities() {
         return this.data.metadata.capabilities
     }
 
+    @NonCPS
     Object getCapability(String name) {
         def entry = this.getCapabilities().find { it instanceof Map ? it.find { it.key == name } : it == name }
         if (entry) {
@@ -789,7 +797,7 @@ class Project {
 
     @NonCPS
     Map<String, DocumentHistory> getDocumentHistories() {
-        return this.data.documentHistories ?: [:]
+        return this.data.documentHistories
     }
 
     String getId() {
@@ -952,6 +960,7 @@ class Project {
         this.data.openshift.targetApiUrl
     }
 
+    @NonCPS
     boolean hasCapability(String name) {
         def collector = {
             return (it instanceof Map) ? it.keySet().first().toLowerCase() : it.toLowerCase()
@@ -960,10 +969,12 @@ class Project {
         return this.capabilities.collect(collector).contains(name.toLowerCase())
     }
 
-    boolean getHasFailingTests() {
+    @NonCPS
+    boolean hasFailingTests() {
         return this.data.build.hasFailingTests
     }
 
+    @NonCPS
     boolean hasUnexecutedJiraTests() {
         return this.data.build.hasUnexecutedJiraTests
     }
@@ -993,19 +1004,24 @@ class Project {
 
     @NonCPS
     DocumentHistory getHistoryForDocument(String document) {
-        return this.data.documentHistories[document]
+        return this.documentHistories[document]
     }
 
     @NonCPS
-    DocumentHistory findHistoryForDocumentType(String documentType) {
-        // All docHistories for DTR and TIR should have the same version
-        def key = this.data.documentHistories.keySet().find { it.startsWith(documentType) }
-        return this.getHistoryForDocument(key)
+    Long getDocumentVersionFromHistories(String documentType) {
+        def history = getHistoryForDocument(documentType)
+        if (!history) {
+            // All docHistories for DTR and TIR should have the same version
+            history = this.documentHistories.find {
+                LeVADocumentUtil.getTypeFromName(it.key) == documentType
+            }?.value
+        }
+        return history?.version
     }
 
     @NonCPS
     void setHistoryForDocument(DocumentHistory docHistory, String document) {
-        this.data.documentHistories[document] = docHistory
+        this.documentHistories[document] = docHistory
     }
 
     static Map loadBuildParams(IPipelineSteps steps) {
@@ -1132,34 +1148,6 @@ class Project {
     protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
         def result = [:]
         def newData = this.loadVersionJiraData(projectKey, versionName)
-        /* FIXME: This is a workaround for NPE bugs resulting from being unable to resolve a reference to an issue belonging
-        *  to a previous version. As a workaround, the deltadocgen report contains the full information of all references.
-        *  Here we will strip data information and store it aside for the use of the resolution algorithm.
-        *  The NPE's must be fixed in the future, and this workaround and the deltadocgen report workaround have to be
-        *  rolled back. */
-        // FIXME: Start of the workaround
-        def typesOfInterest = [
-            JiraDataItem.TYPE_EPICS,
-            JiraDataItem.TYPE_REQUIREMENTS,
-            JiraDataItem.TYPE_TECHSPECS,
-            JiraDataItem.TYPE_RISKS,
-            JiraDataItem.TYPE_MITIGATIONS,
-            JiraDataItem.TYPE_TESTS
-        ] as Set
-        def olderIssues = [:]
-        newData = newData.collectEntries {
-            type, issues ->
-            if (typesOfInterest.contains(type)) {
-                olderIssues.putAll(issues)
-                def filteredIssues = issues.findAll {
-                    key, Map issue -> issue.versions[0] == versionName
-                }
-                return [(type): filteredIssues]
-            }
-            return [(type): issues]
-        }
-        result.olderIssues = olderIssues
-        // FIXME: End of the workaround.
 
         // Get more info of the versions from Jira
         def predecessors = newData.precedingVersions ?: []
@@ -1452,13 +1440,7 @@ class Project {
                         result[type][key][referenceType] = []
 
                         item[referenceType].eachWithIndex { referenceKey, index ->
-                            /* FIXME: This is a workaround for NPE bugs resulting from being unable to resolve a reference to an issue belonging
-                            *  to a previous version. As a workaround, the deltadocgen report contains the full information of all references.
-                            *  Here, whenever an issue cannot be resolved, we use an auxiliar olderIssues map
-                            *  containing the referenced issues belonging to previous versions.
-                            *  The NPE's must be fixed in the future, and this workaround and the deltadocgen report workaround have to be
-                            *  rolled back. */
-                            result[type][key][referenceType][index] = data[referenceType][referenceKey]?:data.olderIssues[referenceKey]
+                            result[type][key][referenceType][index] = data[referenceType][referenceKey]
                         }
                     }
                 }
@@ -1476,6 +1458,7 @@ class Project {
         this.data.build.hasUnexecutedJiraTests = status
     }
 
+    @NonCPS
     String toString() {
         // Don't serialize resolved Jira data items
         def result = this.data.subMap(['build', 'buildParams', 'metadata', 'git', 'jira'])
@@ -1542,7 +1525,7 @@ class Project {
         if (this.isAssembleMode) {
             fileNames.add(this.saveVersionData(bitbucketRepo))
         }
-        fileNames.addAll(this.getDocumentHistories().collect { docName, dh ->
+        fileNames.addAll(this.documentHistories.collect { docName, dh ->
             dh.saveDocHistoryData(bitbucketRepo)
         })
         return fileNames

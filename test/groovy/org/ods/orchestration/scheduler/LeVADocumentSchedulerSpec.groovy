@@ -1,5 +1,7 @@
 package org.ods.orchestration.scheduler
 
+import groovy.util.logging.Slf4j
+import org.ods.core.test.LoggerStub
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.GitService
@@ -7,6 +9,7 @@ import org.ods.services.OpenShiftService
 import org.ods.orchestration.service.*
 import org.ods.orchestration.usecase.*
 import org.ods.orchestration.util.*
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 
@@ -16,10 +19,12 @@ import static util.FixtureHelper.*
 
 import util.*
 
+@Slf4j
 class LeVADocumentSchedulerSpec extends SpecHelper {
 
     static def PROJECT_GAMP_1
     static def PROJECT_GAMP_3
+    static def PROJECT_GAMP_3_ODS_SAAS
     static def PROJECT_GAMP_4
     static def PROJECT_GAMP_5
     static def PROJECT_GAMP_5_WITHOUT_JIRA
@@ -28,6 +33,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     static def REPO_ODS_CODE
     static def REPO_ODS_SERVICE
     static def REPO_ODS_TEST
+
+    static def REPO_TYPE_ODS_SAAS_SERVICE 
+
+    ILogger logger =  new LoggerStub(log)
 
     def setupSpec() {
         def project = createProject()
@@ -41,11 +50,18 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         REPO_ODS_TEST = project.repositories[2]
         REPO_ODS_TEST.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST
 
+        REPO_TYPE_ODS_SAAS_SERVICE = project.repositories[3]
+        REPO_TYPE_ODS_SAAS_SERVICE.type = MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE
+
         PROJECT_GAMP_1 = createProject()
         PROJECT_GAMP_1.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "1"]]]
 
         PROJECT_GAMP_3 = createProject()
         PROJECT_GAMP_3.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "3"]]]
+
+        PROJECT_GAMP_3_ODS_SAAS = createProject()
+        PROJECT_GAMP_3_ODS_SAAS.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "3"]]]
+        PROJECT_GAMP_3_ODS_SAAS.repositories = [["id":"saas", "type":MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String]]
 
         PROJECT_GAMP_4 = createProject()
         PROJECT_GAMP_4.data.metadata.capabilities = [[LeVADocs: [GAMPCategory: "4"]]]
@@ -71,6 +87,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -1474,6 +1492,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -2877,6 +2897,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -4280,6 +4302,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
 
@@ -5476,6 +5500,31 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TIR | REPO_ODS_TEST    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TIR | REPO_ODS_TEST    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
 
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+
         // OVERALL_DTR: Overall Software Development Testing Report
         LeVADocumentUseCase.DocumentType.OVERALL_DTR | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.OVERALL_DTR | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
@@ -5675,6 +5724,101 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.OVERALL_TIR | REPO_ODS_TEST    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
     }
 
+    @Unroll
+    def "is document applicable for GAMP category 3 / SAAS only"() {
+        given:
+        def project = PROJECT_GAMP_3_ODS_SAAS
+
+        def steps = Spy(util.PipelineSteps)
+        def util = Mock(MROPipelineUtil)
+        def usecase = Mock(LeVADocumentUseCase)
+        def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+
+        expect:
+        scheduler.isDocumentApplicable(documentType as String, phase, stage, repo) == result
+
+        where:
+        documentType                        | repo | phase                                   | stage                                                         || result
+        // CSD: Configuration Specification
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.CSD | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.TIR | REPO_TYPE_ODS_SAAS_SERVICE    | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.DEPLOY   | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
+        LeVADocumentUseCase.DocumentType.OVERALL_TIR | null | MROPipelineUtil.PipelinePhases.FINALIZE | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
+    }
+
     def "is document applicable with invalid GAMP category"() {
         given:
         def project = createProject()
@@ -5684,6 +5828,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         // Test Parameters
@@ -5697,7 +5843,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Error: unable to assert applicability of document type '${documentType}' for project '${project.key}' in phase '${phase}'. The GAMP category '0' is not supported."
+        e.message == "Error: unable to assert applicability of document type '${documentType}' for project '${project.key}' in phase '${phase}'. The GAMP category '0' is not supported for non-SAAS systems."
 
         when:
         scheduler.isDocumentApplicable(documentType, phase, stage, repo)
@@ -5715,6 +5861,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -5733,6 +5881,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def util = Mock(MROPipelineUtil)
         def usecase = Mock(LeVADocumentUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
 
         expect:
@@ -5765,6 +5915,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -5773,7 +5925,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -5865,6 +6018,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -5873,7 +6028,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -5961,6 +6117,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -5969,7 +6127,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6034,6 +6193,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6042,7 +6202,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6103,6 +6264,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6111,7 +6274,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6177,6 +6341,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6185,7 +6351,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6256,6 +6423,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6264,7 +6433,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6393,6 +6563,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6401,7 +6573,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6526,6 +6699,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6534,7 +6709,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6605,6 +6781,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6613,7 +6791,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6665,6 +6844,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6673,7 +6854,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6725,6 +6907,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6733,7 +6917,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6805,6 +6990,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6813,7 +7000,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6870,6 +7058,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6878,7 +7068,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6919,6 +7110,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6927,7 +7120,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -6970,6 +7164,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6978,7 +7174,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7034,8 +7231,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7078,8 +7278,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7132,8 +7335,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()
@@ -7184,6 +7390,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
+        def bbt = Mock(BitbucketTraceabilityUseCase)
+
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -7192,7 +7400,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq)
+        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
                 return usecaseObj.getMetaClass()

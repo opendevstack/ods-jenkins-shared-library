@@ -87,13 +87,13 @@ class MROPipelineUtil extends PipelineUtil {
         }
     }
 
-    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true) {
+    private void executeODSComponent(Map repo, String baseDir, boolean failfast = true,
+        String jenkinsFile = 'Jenkinsfile') {
         this.steps.dir(baseDir) {
             if (repo.data.openshift.resurrectedBuild) {
                 logger.info("Repository '${repo.id}' is in sync with OpenShift, no need to rebuild")
                 return
             }
-
             def job
             def env = []
             env.addAll(this.project.getMainReleaseManagerEnv())
@@ -102,7 +102,7 @@ class MROPipelineUtil extends PipelineUtil {
             }
             env << "NOTIFY_BB_BUILD=${!project.isWorkInProgress}"
             this.steps.withEnv (env) {
-                job = this.loadGroovySourceFile("${baseDir}/Jenkinsfile")
+                job = this.loadGroovySourceFile("${baseDir}/${jenkinsFile}")
             }
             // Collect ODS build artifacts for repo.
             // We get a map with at least two keys ("build" and "deployments").
@@ -220,7 +220,7 @@ class MROPipelineUtil extends PipelineUtil {
         return repos
     }
 
-    Map<String, Closure> prepareCheckoutRepoNamedJob(Map repo) {
+    Map<String, Closure> prepareCheckoutRepoNamedJob(Map repo, boolean recheckout = false) {
         return [
             repo.id,
             {
@@ -263,11 +263,24 @@ class MROPipelineUtil extends PipelineUtil {
                 }
                 this.logger.debugClocked("${repo.id}-scm-checkout")
 
+                // in case of a re-checkout, scm.GIT_COMMIT  still points
+                // to the old commit.
+                def commit = scm.GIT_COMMIT
+                def prevCommit = scm.GIT_PREVIOUS_COMMIT
+                def lastSuccessCommit =  scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT
+                if (recheckout) {
+                    steps.dir("${REPOS_BASE_DIR}/${repo.id}") {
+                        commit = git.getCommitSha()
+                        prevCommit = scm.GIT_COMMIT
+                        lastSuccessCommit = scm.GIT_COMMIT
+                    }
+                }
+
                 repo.data.git = [
                     branch: scmBranch,
-                    commit: scm.GIT_COMMIT,
-                    previousCommit: scm.GIT_PREVIOUS_COMMIT,
-                    previousSucessfulCommit: scm.GIT_PREVIOUS_SUCCESSFUL_COMMIT,
+                    commit: commit,
+                    previousCommit: prevCommit,
+                    previousSucessfulCommit: lastSuccessCommit,
                     url: scm.GIT_URL,
                     baseTag: this.project.baseTag,
                     targetTag: this.project.targetTag
@@ -307,13 +320,13 @@ class MROPipelineUtil extends PipelineUtil {
             "*/${branch}",
             [
                 [ $class: 'RelativeTargetDirectory', relativeTargetDir: "${REPOS_BASE_DIR}/${repo.id}" ],
-                [ $class: 'LocalBranch', localBranch: "**" ]
+                [ $class: 'LocalBranch', localBranch: "**" ],
             ],
             [[ credentialsId: credentialsId, url: repo.url ]]
         )
     }
 
-    Set<Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
+    Map.Entry<String, Closure> prepareExecutePhaseForRepoNamedJob(String name, Map repo, Closure preExecute = null, Closure postExecute = null) {
         return [
             repo.id,
             {
@@ -349,13 +362,22 @@ class MROPipelineUtil extends PipelineUtil {
                             executeODSComponent(repo, baseDir, false)
                         } else if (this.project.isPromotionMode && name == PipelinePhases.DEPLOY) {
                             new DeployOdsComponent(project, steps, git, logger).run(repo, baseDir)
-                        } else if (this.project.isAssembleMode && PipelinePhases.FINALIZE) {
+                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
                             new FinalizeOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Service Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
-                        if (name == PipelinePhases.TEST) {
+                        if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
+                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
+                            if (repo.pipelineConfig?.initJenkinsFile) {
+                                executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
+                                // hacky - but the only way possible - we know it's only one.
+                                Closure checkout = prepareCheckoutRepoNamedJob(repo, true).get(1)
+                                checkout()
+                                this.logger.debug("Got new git data for ${repo.id}: ${repo.data.git}")
+                            }
+                        } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
@@ -389,7 +411,7 @@ class MROPipelineUtil extends PipelineUtil {
         ]
     }
 
-    List<Set<Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure preExecute = null, Closure postExecute = null) {
+    List<Map<String, Closure>> prepareExecutePhaseForReposNamedJob(String name, List<Set<Map>> repos, Closure preExecute = null, Closure postExecute = null) {
         // In some phases, we can run all repos in parallel
         if (PipelinePhases.ALWAYS_PARALLEL.contains(name)) {
             repos = [repos.flatten() as Set<Map>]

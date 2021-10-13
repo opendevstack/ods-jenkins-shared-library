@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.service.JiraService
 import org.ods.util.IPipelineSteps
@@ -206,6 +207,8 @@ class JiraUseCase {
             }
             content = content ? content.getValue() : ""
 
+            this.thumbnailImageReplacement(content)
+
             def documentTypes = (issue.fields.labels ?: [])
                 .findAll { String l -> l.startsWith(LabelPrefix.DOCUMENT) }
                 .collect { String l -> l.replace(LabelPrefix.DOCUMENT, '') }
@@ -214,7 +217,6 @@ class JiraUseCase {
                     "'${JiraUseCase.IssueTypes.DOCUMENTATION_CHAPTER}' contains no " +
                     "document labels. There should be at least one label starting with '${LabelPrefix.DOCUMENT}'")
             }
-
 
             def predecessorLinks = issue.fields.issuelinks
                 .findAll { it.type.name == "Succeeds" && it.outwardIssue?.key }
@@ -400,4 +402,14 @@ class JiraUseCase {
             }
         }
     }
+
+    @NonCPS
+    private thumbnailImageReplacement(content) {
+        def matcher = content =~ /<a.*id="(.*)_thumb".*href="(.*?)"/
+        matcher.each {
+            def imageMatcher = content =~ /<a.*id="${it[1]}_thumb".*src="(.*?)"/
+            content = content.replace(imageMatcher[0][1], it[2])
+        }
+    }
+
 }

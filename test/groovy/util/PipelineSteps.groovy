@@ -1,10 +1,12 @@
 package util
 
+import groovy.util.logging.Slf4j
 import org.ods.util.IPipelineSteps
 
 import groovy.json.JsonSlurper
 import org.yaml.snakeyaml.Yaml
 
+@Slf4j
 class PipelineSteps implements IPipelineSteps {
 
     private Map currentBuild = [:]
@@ -32,6 +34,7 @@ class PipelineSteps implements IPipelineSteps {
     }
 
     void echo(String message) {
+        log.info(message)
     }
 
     def getCurrentBuild() {
@@ -81,7 +84,12 @@ class PipelineSteps implements IPipelineSteps {
 
     @Override
     def readFile(Map args) {
-        return null
+        log.debug("readFile file: ${env.WORKSPACE}/${args.file}")
+        try {
+            return new File("${env.WORKSPACE}/${args.file}")?.text
+        } catch(Exception exception){
+            return ""
+        }
     }
 
     @Override
@@ -96,6 +104,7 @@ class PipelineSteps implements IPipelineSteps {
 
     @Override
     def readJSON(Map args) {
+        log.debug("readJSON file: ${args.text}")
         new JsonSlurper().parseText(args.text)
     }
 
@@ -178,4 +187,9 @@ class PipelineSteps implements IPipelineSteps {
     def node (String name, Closure block) {
       block ()
     }
+
+    def emailext(Map args) {
+
+    }
+
 }

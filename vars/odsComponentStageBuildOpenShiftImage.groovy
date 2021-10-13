@@ -21,6 +21,9 @@ def call(IContext context, Map config = [:]) {
         ServiceRegistry.instance.get(JenkinsService),
         logger
     )
-    return stage.execute()
+    stage.execute()
+
+    // Call to aqua stage always after the image creation
+    odsComponentStageScanWithAqua(context, config)
 }
 return this

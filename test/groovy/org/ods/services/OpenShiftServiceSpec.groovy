@@ -259,4 +259,288 @@ class OpenShiftServiceSpec extends SpecHelper {
         thrown IllegalArgumentException
     }
 
+    def "pause rollouts"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+        steps.sh(_) >> ''
+        def logger = Stub(ILogger)
+        def project = 'testProject'
+        def resource = 'type/resource'
+        def openShift = new OpenShiftService(steps, logger)
+
+        when:
+        openShift.pause(resource, project)
+
+        then:
+        1 * steps.sh({
+            it.script =~ /^\s*oc\s+rollout\s+pause\s/ &&
+                OpenShiftHelper.validateResourceParams(it.script, project, resource)
+        })
+
+        when:
+        openShift.pause(resource)
+
+        then:
+        1 * steps.sh({
+            it.script =~ /^\s*oc\s+rollout\s+pause\s/ &&
+                OpenShiftHelper.validateResourceParams(it.script, null, resource)
+        })
+
+        when:
+        openShift.pause(resource, '')
+
+        then:
+        1 * steps.sh({
+            it.script =~ /^\s*oc\s+rollout\s+pause\s/ &&
+                OpenShiftHelper.validateResourceParams(it.script, null, resource)
+        })
+
+        when:
+        openShift.pause(null, project)
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        openShift.pause('', project)
+
+        then:
+        thrown IllegalArgumentException
+    }
+
+    def "resume rollouts"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+        steps.sh(_) >> ''
+        def logger = Stub(ILogger)
+        def project = 'testProject'
+        def resource = 'type/resource'
+        def openShift = new OpenShiftService(steps, logger)
+
+        when:
+        openShift.resume(resource, project)
+
+        then:
+        1 * steps.sh({
+            it.script =~ /^\s*oc\s+rollout\s+resume\s/ &&
+                OpenShiftHelper.validateResourceParams(it.script, project, resource)
+        })
+
+        when:
+        openShift.resume(resource)
+
+        then:
+        1 * steps.sh({
+            it.script =~ /^\s*oc\s+rollout\s+resume\s/ &&
+                OpenShiftHelper.validateResourceParams(it.script, null, resource)
+        })
+
+        when:
+        openShift.resume(resource, '')
+
+        then:
+        1 * steps.sh({
+            it.script =~ /^\s*oc\s+rollout\s+resume\s/ &&
+                OpenShiftHelper.validateResourceParams(it.script, null, resource)
+        })
+
+        when:
+        openShift.resume(null, project)
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        openShift.resume('', project)
+
+        then:
+        thrown IllegalArgumentException
+    }
+
+    def "patch resource"() {
+        given:
+        def steps = Mock(IPipelineSteps)
+        steps.sh(_) >> ''
+        def logger = Stub(ILogger)
+        def openShift = new OpenShiftService(steps, logger)
+        def project = 'testProject'
+        def resource = 'type/resource'
+        def patch = [field1: 'value1', field2: [field3: 1, field4: null], field5: ['one', 2, null]]
+        def path = '/base/path'
+
+        when:
+        openShift.patch(resource, patch, path, project)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, project, resource, patch, path) })
+
+        when:
+        openShift.patch(resource, null, path, project)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, project, resource, null, path) })
+
+        when:
+        openShift.patch(resource, [:], path, project)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, project, resource, [:], path) })
+
+        when:
+        openShift.patch(resource, patch, path)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, null, resource, patch, path) })
+
+        when:
+        openShift.patch(resource, patch, path, '')
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, null, resource, patch, path) })
+
+        when:
+        openShift.patch(resource, patch)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, null, resource, patch, null) })
+
+        when:
+        openShift.patch(resource, patch, null, project)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, project, resource, patch, null) })
+
+        when:
+        openShift.patch(resource, patch, '/', project)
+
+        then:
+        1 * steps.sh({ OpenShiftHelper.validatePatch(it.script, project, resource, patch, '/') })
+
+        when:
+        openShift.patch(resource, null, null, project)
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        openShift.patch(null, patch, path, project)
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        openShift.patch('', patch, path, project)
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        // Path must start with a slash
+        openShift.patch(resource, patch, 'some/path', project)
+
+        then:
+        thrown IllegalArgumentException
+
+        when:
+        // Path must start with a slash
+        openShift.patch(resource, patch, '', project)
+
+        then:
+        thrown IllegalArgumentException
+    }
+
+    def "bulk pause rollouts"() {
+        given:
+        def steps = Stub(IPipelineSteps)
+        def logger = Stub(ILogger)
+        def openShift = Spy(new OpenShiftService(steps, logger))
+        def resources = [type1: ['resource1','resource2'],type2: ['resource3','resource4']]
+        openShift.getResourcesForComponent(_,_,_) >> resources
+
+        when:
+        openShift.bulkPause('project', resources)
+
+        then:
+        1 * openShift.pause('type1/resource1','project')
+        1 * openShift.pause('type1/resource2','project')
+        1 * openShift.pause('type2/resource3','project')
+        1 * openShift.pause('type2/resource4','project')
+
+        when:
+        openShift.bulkPause('project', ['type1','type2'], 'app=foo-bar')
+
+        then:
+        1 * openShift.pause('type1/resource1','project')
+        1 * openShift.pause('type1/resource2','project')
+        1 * openShift.pause('type2/resource3','project')
+        1 * openShift.pause('type2/resource4','project')
+    }
+
+    def "bulk resume rollouts"() {
+        given:
+        def steps = Stub(IPipelineSteps)
+        def logger = Stub(ILogger)
+        def openShift = Spy(new OpenShiftService(steps, logger))
+        def resources = [type1: ['resource1','resource2'],type2: ['resource3','resource4']]
+        openShift.getResourcesForComponent(_,_,_) >> resources
+
+        when:
+        openShift.bulkResume('project', resources)
+
+        then:
+        1 * openShift.resume('type1/resource1','project')
+        1 * openShift.resume('type1/resource2','project')
+        1 * openShift.resume('type2/resource3','project')
+        1 * openShift.resume('type2/resource4','project')
+
+        when:
+        openShift.bulkResume('project', ['type1','type2'], 'app=foo-bar')
+
+        then:
+        1 * openShift.resume('type1/resource1','project')
+        1 * openShift.resume('type1/resource2','project')
+        1 * openShift.resume('type2/resource3','project')
+        1 * openShift.resume('type2/resource4','project')
+    }
+
+    def "bulk patch resources"() {
+        given:
+        def steps = Stub(IPipelineSteps)
+        def logger = Stub(ILogger)
+        def openShift = Spy(new OpenShiftService(steps, logger))
+        def resources = [type1: ['resource1','resource2'],type2: ['resource3','resource4']]
+        openShift.getResourcesForComponent(_,_,_) >> resources
+
+        when:
+        openShift.bulkPatch('project', resources, [:], '/path')
+
+        then:
+        1 * openShift.patch('type1/resource1', [:], '/path','project')
+        1 * openShift.patch('type1/resource2', [:], '/path','project')
+        1 * openShift.patch('type2/resource3', [:], '/path','project')
+        1 * openShift.patch('type2/resource4', [:], '/path','project')
+
+        when:
+        openShift.bulkPatch('project', ['type1','type2'], 'app=foo-bar', [:], '/path')
+
+        then:
+        1 * openShift.patch('type1/resource1', [:], '/path','project')
+        1 * openShift.patch('type1/resource2', [:], '/path','project')
+        1 * openShift.patch('type2/resource3', [:], '/path','project')
+        1 * openShift.patch('type2/resource4', [:], '/path','project')
+    }
+
+    def "getConfigMapData obtain data from a ConfigMap"() {
+        given:
+        def steps = Spy(util.PipelineSteps)
+        def service = GroovySpy(OpenShiftService, constructorArgs: [steps, new Logger(steps, false)], global: true)
+        service.getJSON("project-name", "ConfigMap", "config-name") >> [data: [key: "key1", value: "value1"]]
+
+        when:
+        def result = service.getConfigMapData("project-name", "config-name")
+
+        then:
+        result == [key: "key1", value: "value1"]
+    }
+
 }

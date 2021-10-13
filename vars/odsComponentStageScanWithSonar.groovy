@@ -1,7 +1,7 @@
 import org.ods.component.ScanWithSonarStage
 import org.ods.component.IContext
-
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
@@ -31,12 +31,17 @@ def call(IContext context, Map config = [:]) {
             'SonarServerConfig'
         )
     }
+    def nexusService = ServiceRegistry.instance.get(NexusService)
+    if (!nexusService) {
+        nexusService = new NexusService(context.nexusUrl, context.nexusUsername, context.nexusPassword)
+    }
     def stage = new ScanWithSonarStage(
         this,
         context,
         config,
         bitbucketService,
         sonarQubeService,
+        nexusService,
         logger
     )
     stage.execute()

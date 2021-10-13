@@ -5,6 +5,7 @@ import groovy.lang.MissingPropertyException
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.BitbucketService
+import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.Logger
 import org.ods.services.ServiceRegistry
@@ -42,15 +43,20 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     BitbucketService bitbucketService = Stub(BitbucketService.class)
     bitbucketService.findPullRequest(*_) >> [:]
     ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+    NexusService nexusService = Mock(NexusService.class)
+    ServiceRegistry.instance.add(NexusService, nexusService)
     SonarQubeService sonarQubeService = Stub(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
     sonarQubeService.scan(*_) >> null
+    sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+    sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
     script.call(context)
 
     then:
@@ -66,14 +72,19 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     bitbucketService.withTokenCredentials(*_) >> { Closure block -> block('user', 's3cr3t') }
     bitbucketService.findPullRequest(*_) >> [key: 1, base: 'master']
     ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+    NexusService nexusService = Mock(NexusService.class)
+    ServiceRegistry.instance.add(NexusService, nexusService)
     SonarQubeService sonarQubeService = Mock(SonarQubeService.class)
     sonarQubeService.readProperties() >> ['sonar.projectKey': 'foo']
+    sonarQubeService.getQualityGateJSON(*_) >> '{"projectStatus":{"status":"OK"}}'
+    sonarQubeService.getSonarQubeHostUrl() >> "https://sonarqube.example.com"
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
     script.call(context, ['branch': '*'])
 
     then:
@@ -105,14 +116,20 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     sonarQubeService.scan(*_) >> null
     sonarQubeService.getQualityGateJSON(*_) >> """{"projectStatus": ${projectStatus}}"""
     ServiceRegistry.instance.add(SonarQubeService, sonarQubeService)
+    BitbucketService bitbucketService = Stub(BitbucketService.class)
+    bitbucketService.createCodeInsightReport(*_) >> null
+    ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+    NexusService nexusService = Mock(NexusService.class)
+    ServiceRegistry.instance.add(NexusService, nexusService)
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod("readJSON", [ Map ]) { Map args ->
-      [projectStatus: [projectStatus: projectStatusKey]]
+      [projectStatus: [status: projectStatusKey]]
     }
+    helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
     script.call(context, [requireQualityGatePass: true])
 
     then:
@@ -135,7 +152,10 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
     given:
     def config = [
       branchToEnvironmentMapping: ['master': 'dev', 'release/': 'test'],
-      gitBranch: 'feature/foo'
+      gitBranch: 'feature/foo',
+      nexusUrl: 'http://nexus',
+      nexusUsername: 'foo',
+      nexusPassword: 'bar'
     ]
     def context = new Context(null, config, logger)
 
@@ -155,7 +175,10 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
       environment: null,
       gitBranch: 'master',
       gitCommit: 'cd3e9082d7466942e1de86902bb9e663751dae8e',
-      branchToEnvironmentMapping: [:]
+      branchToEnvironmentMapping: [:],
+      nexusUrl: 'http://nexus',
+      nexusUsername: 'foo',
+      nexusPassword: 'bar'
     ]
     def context = new Context(null, config, logger)
 

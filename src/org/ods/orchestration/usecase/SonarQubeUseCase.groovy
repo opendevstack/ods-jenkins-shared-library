@@ -38,4 +38,5 @@ class SonarQubeUseCase {
             "application/text"
         )
     }
+
 }
