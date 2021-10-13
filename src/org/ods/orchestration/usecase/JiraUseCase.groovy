@@ -256,6 +256,9 @@ class JiraUseCase {
     }
 
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
+        def duplicateKeysErrorMessage = "Error: found duplicated Jira tests. Check tests with key: "
+        def duplicatesKeys = []
+
         def result = [
             matched: [:],
             unmatched: []
@@ -263,6 +266,10 @@ class JiraUseCase {
 
         this.walkTestIssuesAndTestResults(testIssues, testResults) { testIssue, testCase, isMatch ->
             if (isMatch) {
+                if (result.matched.get(testIssue) != null) {
+                    duplicatesKeys.add(testIssue.key)
+                }
+
                 result.matched << [
                     (testIssue): testCase
                 ]
@@ -281,6 +288,10 @@ class JiraUseCase {
 
         if (unmatchedHandler) {
             unmatchedHandler(result.unmatched)
+        }
+
+        if (duplicatesKeys) {
+            throw new IllegalStateException(duplicateKeysErrorMessage + duplicatesKeys);
         }
     }
 

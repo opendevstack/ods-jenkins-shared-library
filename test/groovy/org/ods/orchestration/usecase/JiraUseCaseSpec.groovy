@@ -552,6 +552,31 @@ class JiraUseCaseSpec extends SpecHelper {
         mismatched == expectedMismatched
     }
 
+    def "match Jira test issues against test results having duplicate test results"() {
+        given:
+        def testIssues = createJiraTestIssues()
+        def testResults = createTestResultsWithDuplicates()
+
+        def matched = [:]
+        def matchedHandler = { result ->
+            matched = result.collectEntries { jiraTestIssue, testcase ->
+                [(jiraTestIssue.key.toString()), testcase.name]
+            }
+        }
+
+        def mismatched = [:]
+        def mismatchedHandler = { result ->
+            mismatched = result.collect { it.key }
+        }
+
+        when:
+        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Error: found duplicated Jira tests. Check tests with key: [JIRA-1, JIRA-2]'
+    }
+
     def "report test results for component in DEV"() {
         given:
         project.buildParams.targetEnvironmentToken = "D"
