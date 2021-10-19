@@ -255,7 +255,9 @@ class JiraUseCase {
         return versionField[productReleaseVersionField.id].name
     }
 
-    void matchTestIssuesAgainstTestResults(List testIssues, Map testResults, Closure matchedHandler, Closure unmatchedHandler = null) {
+    void matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
+                                           Closure matchedHandler, Closure unmatchedHandler = null,
+                                           boolean checkDuplicateTestResults = true) {
         def duplicateKeysErrorMessage = "Error: found duplicated Jira tests. Check tests with key: "
         def duplicatesKeys = []
 
@@ -290,7 +292,7 @@ class JiraUseCase {
             unmatchedHandler(result.unmatched)
         }
 
-        if (duplicatesKeys) {
+        if (checkDuplicateTestResults && duplicatesKeys) {
             throw new IllegalStateException(duplicateKeysErrorMessage + duplicatesKeys);
         }
     }
