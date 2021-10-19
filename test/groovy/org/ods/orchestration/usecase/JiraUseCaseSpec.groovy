@@ -552,6 +552,65 @@ class JiraUseCaseSpec extends SpecHelper {
         mismatched == expectedMismatched
     }
 
+    def "match Jira test issues against test results having duplicate test results"() {
+        given:
+        def testIssues = createJiraTestIssues()
+        def testResults = createTestResultsWithDuplicates()
+
+        def matched = [:]
+        def matchedHandler = { result ->
+            matched = result.collectEntries { jiraTestIssue, testcase ->
+                [(jiraTestIssue.key.toString()), testcase.name]
+            }
+        }
+
+        def mismatched = [:]
+        def mismatchedHandler = { result ->
+            mismatched = result.collect { it.key }
+        }
+
+        when:
+        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Error: found duplicated Jira tests. Check tests with key: [JIRA-1, JIRA-2]'
+    }
+
+    def "match Jira test issues against test results having duplicate test results with flag check duplicate to false"() {
+        given:
+        def testIssues = createJiraTestIssues()
+        def testResults = createTestResultsWithDuplicates()
+
+        def matched = [:]
+        def matchedHandler = { result ->
+            matched = result.collectEntries { jiraTestIssue, testcase ->
+                [(jiraTestIssue.key.toString()), testcase.name]
+            }
+        }
+
+        def mismatched = [:]
+        def mismatchedHandler = { result ->
+            mismatched = result.collect { it.key }
+        }
+
+        when:
+        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler, false)
+
+        then:
+        def expectedMatched = [
+            "JIRA-1": "JIRA1_my-testcase-3",
+            "JIRA-2": "JIRA2_my-testcase-4"
+        ]
+
+        def expectedMismatched = [
+            "JIRA-3, JIRA-4, JIRA-5"
+        ]
+
+        matched == expectedMatched
+        mismatched.toString() == expectedMismatched.toString()
+    }
+
     def "report test results for component in DEV"() {
         given:
         project.buildParams.targetEnvironmentToken = "D"
