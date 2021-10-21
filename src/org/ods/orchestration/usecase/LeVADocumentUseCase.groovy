@@ -1699,11 +1699,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def environment = this.project.buildParams.targetEnvironmentToken
-        def isHistoryUpdatedInThisEnvironment = { String doc ->
-            LeVADocumentScheduler.getFirstCreationEnvironment(doc) == environment
-        }
-
         def referencedDcocs = [
             DocumentType.CSD,
             DocumentType.SSDS,
@@ -1719,34 +1714,42 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         referencedDcocs.collectEntries { DocumentType dt ->
             def doc = dt as String
-            def version
-
-            if (! this.project.isVersioningEnabled) {
-                // TODO removeme in ODS 4.x
-                version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
-            } else {
-                version = this.project.getDocumentVersionFromHistories(doc)
-                if (!version) {
-                    // The document has not (yet) been generated in this pipeline run.
-                    def envs = Environment.values().collect { it.toString() }
-                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
-                    version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                    if (this.project.isWorkInProgress || isHistoryUpdatedInThisEnvironment(doc)) {
-                        // Either this is a developer preview or the history is to be updated in this environment.
-                        version += 1L
-                    }
-                }
-            }
-
-            if (this.project.isWorkInProgress) {
-                // If this is a developer preview, the document version is always a WIP, because,
-                // if we have the document history, it has already been updated to a new version.
-                version = "${version}-WIP"
-            }
+            def version = getVersion(this.project, doc)
 
             return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
 
+    }
+
+    protected String getVersion(Project project, String doc) {
+        def version
+
+        if (!project.isVersioningEnabled) {
+            // TODO removeme in ODS 4.x
+            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
+        } else {
+            version = project.getDocumentVersionFromHistories(doc)
+            if (!version) {
+                // The document has not (yet) been generated in this pipeline run.
+                def envs = Environment.values().collect { it.toString() }
+                def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
+                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                if (project.isWorkInProgress ||
+                        LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
+                        project.buildParams.targetEnvironmentToken ) {
+                    // Either this is a developer preview or the history is to be updated in this environment.
+                    version += 1L
+                }
+            }
+        }
+
+        if (project.isWorkInProgress) {
+            // If this is a developer preview, the document version is always a WIP, because,
+            // if we have the document history, it has already been updated to a new version.
+            version = "${version}-WIP"
+        }
+
+        return version as String
     }
 
     @NonCPS
