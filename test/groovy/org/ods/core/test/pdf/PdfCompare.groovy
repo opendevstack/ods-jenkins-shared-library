@@ -60,9 +60,13 @@ class PdfCompare {
     }
 
     private String errorFileName(String file1, int iPage) {
-        String fileName = new File(file1).getName().replace(PDF, "_") + (iPage + 1)
-        fileName = this.imageDestinationPath + File.separator + fileName + DIFF
-        fileName
+        String fileName = this.imageDestinationPath +
+            File.separator +
+            new File(file1).getName().replace(PDF, "_") +
+            (iPage + 1) +
+            DIFF
+        log.info("See file with pdf difference:$fileName")
+        return fileName
     }
 
     private int getPageCount(String file) throws IOException{

@@ -29,29 +29,14 @@ import util.FixtureHelper
  *  - RECORD=true & GENERATE_EXPECTED_PDF_FILES=false will record and compare the generate pdfs with the 'old' expected files
  *      ==> with this combination, if there's an error,
  *          we can compare new pdf with the old one, and see the implications of our changes in the pdfs
+ *          see here _build/reports/LeVADocs_ the compared results images
  *  - RECORD=true & GENERATE_EXPECTED_PDF_FILES=true will record and generate new pdf expected files
  *
  */
 @Slf4j
 class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
-    /**
-     * By default RECORD = false
-     * Add 'testRecordMode = true' in gradle.properties Change to record Wiremock interactions
-     * When RECORD wiremock will record the interaction with the servers
-     *
-     * After Wiremock record:
-     *  in recorded files change "date_created":"...."  by "date_created":"${json-unit.any-string}"
-     */
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"])
-
-    /**
-     * By default GENERATE_EXPECTED_PDF_FILES = false
-     * Add 'generateExpectedPdfFiles = true' in gradle.properties Change to generate new expected files
-     * When GENERATE_EXPECTED_PDF_FILES it will remove the expected pdfs and create a new ones
-     * (ie. GENERATE_EXPECTED_PDF_FILES=true will not compare pdfs)
-     */
     private static final boolean GENERATE_EXPECTED_PDF_FILES = Boolean.parseBoolean(System.properties["generateExpectedPdfFiles"])
-
     private static final String PROJECT_KEY = "OFI2004"
     private static final String PROJECT_KEY_RELEASE_ID = "207"
     private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
