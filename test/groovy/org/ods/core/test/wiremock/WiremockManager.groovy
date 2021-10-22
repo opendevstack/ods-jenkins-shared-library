@@ -4,6 +4,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult
+import groovy.json.JsonBuilder
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 
@@ -21,7 +24,7 @@ class WiremockManager {
     private final String serverType
     private final String defaultURL
 
-    WiremockManager(String serverType, String defaultURL = null) {
+    WiremockManager(String serverType, String defaultURL) {
         this.serverType = serverType
         this.defaultURL = defaultURL
     }
@@ -63,6 +66,8 @@ class WiremockManager {
             try {
                 SnapshotRecordResult recording = wireMockServer.stopRecording()
                 log.info("record files:[{}]", recording.stubMappings)
+                if (recording && serverType == "docgen")
+                    cleanWiremockDatafiles()
             }catch(Exception e){
                 log.error("stopRecording error", e)
                 throw new RuntimeException("Error when stopRecording", e)
@@ -79,6 +84,31 @@ class WiremockManager {
         }
         new File("${pathToFiles}/${MAPPINGS_ROOT}").mkdirs()
         new File("${pathToFiles}/${FILES_ROOT}").mkdirs()
+    }
+
+    private cleanWiremockDatafiles() {
+        log.info("cleanWiremock date_created field")
+        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {updateDateCreated(it)}
+    }
+
+    private void updateDateCreated(File file) {
+        JsonBuilder jsonBuilderFromFile = getJsonFromText(file.text)
+        String equalToJsonField = jsonBuilderFromFile.content?.request?.bodyPatterns?.equalToJson
+        if (!equalToJsonField)
+            return
+
+        JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(equalToJsonField)
+
+        jsonBuilderFromEqualToJsonField.content[0].data.metadata.date_created = "\${json-unit.any-string}"
+        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderFromEqualToJsonField.toString()
+
+        file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())
+    }
+
+    private JsonBuilder getJsonFromText(String text) {
+        def slurped = new JsonSlurper().parseText(text)
+        def builder = new JsonBuilder(slurped)
+        return builder
     }
 
     private String getTargetURL(String targetURLParam) {
