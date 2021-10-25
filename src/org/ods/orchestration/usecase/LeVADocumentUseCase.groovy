@@ -85,6 +85,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
     ]
 
+    static List<String> COMPONENT_TYPE_IS_NOT_INSTALLED = [
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String,
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String
+    ]
+
+    static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component'
+    ]
+
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
@@ -660,10 +673,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForIPV(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def installedRepos = this.project.repositories.collect {
+            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories   : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections       : sections,
                 tests          : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
@@ -719,10 +736,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc =  this.computeKeysInDocForIVR(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def installedRepos = this.project.repositories.collect {
+            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories      : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections          : sections,
                 tests             : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
@@ -936,7 +957,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 description   : this.convertImages(c.description ?: ''),
                 supplier      : c.supplier,
                 version       : c.version,
-                references    : c.references
+                references    : c.references,
+                doInstall     : c.doInstall
             ]
         }
 
@@ -966,7 +988,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
-
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
@@ -990,7 +1011,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 project_key : this.project.key,
-                repositories: this.project.repositories,
+                repositories: this.project.repositories.collect {
+                    it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+                },
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
@@ -1022,6 +1045,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
+
+        repo << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo.type?.toLowerCase())]
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1083,7 +1108,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 log: this.jenkins.getCurrentBuildLogAsText()
             ]
 
-            data_.repositories = this.project.repositories
+            data_.repositories = this.project.repositories.collect {
+                it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+            }
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
@@ -1414,7 +1441,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     key               : component.name,
                     componentName     : component.name,
                     componentId       : metadata.id ?: 'N/A - part of this application',
-                    componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
+                    componentType     : INTERNAL_TO_EXT_COMPONENT_TYPES.get(repo_.type?.toLowerCase()),
+                    doInstall         : !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo_.type?.toLowerCase()),
                     odsRepoType       : repo_.type?.toLowerCase(),
                     description       : metadata.description,
                     nameOfSoftware    : normComponentName ?: metadata.name,

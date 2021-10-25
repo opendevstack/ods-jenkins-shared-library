@@ -81,6 +81,32 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ]
     ]
 
+    // Document types per GAMP category - for a saas only project
+    private static Map GAMP_CATEGORIES_SAAS_ONLY = [
+        "3": [
+            LeVADocumentUseCase.DocumentType.CSD as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
+            LeVADocumentUseCase.DocumentType.CFTP as String,
+            LeVADocumentUseCase.DocumentType.CFTR as String,
+            LeVADocumentUseCase.DocumentType.TCP as String,
+            LeVADocumentUseCase.DocumentType.TCR as String,
+            LeVADocumentUseCase.DocumentType.DIL as String,
+            LeVADocumentUseCase.DocumentType.TRC as String,
+        ],
+        "4": [
+            LeVADocumentUseCase.DocumentType.CSD as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
+            LeVADocumentUseCase.DocumentType.TCP as String,
+            LeVADocumentUseCase.DocumentType.TCR as String,
+            LeVADocumentUseCase.DocumentType.CFTP as String,
+            LeVADocumentUseCase.DocumentType.CFTR as String,
+            LeVADocumentUseCase.DocumentType.DIL as String,
+            LeVADocumentUseCase.DocumentType.TRC as String,
+        ]
+    ]
+
     // Document types per pipeline phase with an optional lifecycle constraint
     private static Map PIPELINE_PHASES = [
         (MROPipelineUtil.PipelinePhases.INIT): [
@@ -123,6 +149,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE): [:],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
@@ -222,8 +249,25 @@ class LeVADocumentScheduler extends DocGenScheduler {
         return previousEnvironment ?: environment
     }
 
+    @NonCPS
+    private boolean isProjectOneSAASRepoOnly () {
+        if (!(this.project.repositories.findAll{ repo ->
+            repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE}).isEmpty()) {
+            return (this.project.repositories.findAll{ repo ->
+                (repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE &&
+                repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST)
+            }).isEmpty()
+        } else {
+            return false
+        }
+    }
+
     private boolean isDocumentApplicableForGampCategory(String documentType, String gampCategory) {
         return this.GAMP_CATEGORIES[gampCategory].contains(documentType)
+    }
+
+    private boolean isDocumentApplicableForSAASOnlyGampCategory(String documentType, String gampCategory) {
+        return this.GAMP_CATEGORIES_SAAS_ONLY[gampCategory].contains(documentType)
     }
 
     private boolean isDocumentApplicableForPipelinePhaseAndLifecycleStage(String documentType, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage) {
@@ -244,11 +288,18 @@ class LeVADocumentScheduler extends DocGenScheduler {
     }
 
     private boolean isDocumentApplicableForProject(String documentType, String gampCategory, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage) {
-        if (!this.GAMP_CATEGORIES.keySet().contains(gampCategory)) {
-            throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
+        def result
+        if (isProjectOneSAASRepoOnly()) {
+            if (!this.GAMP_CATEGORIES_SAAS_ONLY.keySet().contains(gampCategory)) {
+                throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported for SAAS systems.")
+            }
+            result = isDocumentApplicableForSAASOnlyGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
+        } else {
+            if (!this.GAMP_CATEGORIES.keySet().contains(gampCategory)) {
+                throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported for non-SAAS systems.")
+            }
+            result = isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
         }
-
-        def result = isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
         if (isDocumentRequiringRepositories(documentType)) {
             result = result && !this.project.repositories.isEmpty()
         }
