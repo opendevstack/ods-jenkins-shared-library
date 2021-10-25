@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Fixed the Developer Preview fails because "Duplicated Tests"
 - Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
 - Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
 - Throw controlled exception when testIssue has no component assigned  ([#693](https://github.com/opendevstack/ods-jenkins-shared-library/pull/693))
@@ -45,6 +46,7 @@
 - Fix RA table overflow replacing unicode character in jira keys ([#735](https://github.com/opendevstack/ods-jenkins-shared-library/pull/735))
 - Fix Cnes report is executed too soon in the Sonar Scanner stage ([#732](https://github.com/opendevstack/ods-jenkins-shared-library/issues/732))
 - Add support for ods-saas-service components ([#607](https://github.com/opendevstack/ods-jenkins-shared-library/pull/607))
+- Automaticaly change the date_created by Wiremock with a Wiremock wildcard ([#743](https://github.com/opendevstack/ods-jenkins-shared-library/pull/743))
 
 ## [3.0] - 2020-08-11
 

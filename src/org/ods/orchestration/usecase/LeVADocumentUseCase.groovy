@@ -487,7 +487,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def acceptanceTestIssues = SortUtil.sortIssuesByKey(this.project.getAutomatedTestsTypeAcceptance())
         def integrationTestIssues = SortUtil.sortIssuesByKey(this.project.getAutomatedTestsTypeIntegration())
-        def discrepancies = this.computeTestDiscrepancies("Integration and Acceptance Tests", (acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]))
+        def discrepancies = this
+            .computeTestDiscrepancies("Integration and Acceptance Tests",
+                (acceptanceTestIssues + integrationTestIssues),
+                junit.combineTestResults([acceptanceTestData.testResults, integrationTestData.testResults]),
+                false)
 
         def keysInDoc = this.computeKeysInDocForCFTR(integrationTestIssues + acceptanceTestIssues)
 
@@ -1137,7 +1141,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             [Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION].contains(it.testType)
         }
 
-        this.computeTestDiscrepancies(null, testIssues, junit.combineTestResults([acceptanceTestData.testResults, installationTestData.testResults, integrationTestData.testResults]))
+        def combinedJunitTestResults = junit.combineTestResults(
+            [acceptanceTestData.testResults, installationTestData.testResults, integrationTestData.testResults])
+        this.computeTestDiscrepancies(null, testIssues, combinedJunitTestResults, false)
 
         def testIssuesWip = testIssues.findAll { !it.status.equalsIgnoreCase("cancelled") && (!it.isSuccess || it.isUnexecuted) }
 
@@ -1246,7 +1252,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         result
     }
 
-    protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults) {
+    protected Map computeTestDiscrepancies(String name, List testIssues, Map testResults, boolean checkDuplicateTestResults = true) {
         def result = [
             discrepancies: 'No discrepancies found.',
             conclusion   : [
@@ -1271,7 +1277,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             }
         }
 
-        this.jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults ?: [:], matchedHandler, unmatchedHandler)
+        this.jiraUseCase.matchTestIssuesAgainstTestResults(testIssues, testResults ?: [:], matchedHandler, unmatchedHandler, checkDuplicateTestResults)
 
         // Compute failed and missing Jira test issues
         def failedTestIssues = testIssues.findAll { testIssue ->
