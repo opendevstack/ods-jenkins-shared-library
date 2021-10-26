@@ -1,0 +1,32 @@
+{
+  "id" : "795bca15-bd53-4241-a75a-edf38d603724",
+  "name" : "rest_api_2_issue_ofi2004-255",
+  "request" : {
+    "url" : "/rest/api/2/issue/OFI2004-255?fields=customfield_11602",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"expand\":\"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\",\"id\":\"51300\",\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issue/51300\",\"key\":\"OFI2004-255\",\"fields\":{\"customfield_11602\":null}}",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Tue, 26 Oct 2021 14:43:47 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1003x13960x1",
+      "X-ASESSIONID" : "1tyei15",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "test%40test.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "795bca15-bd53-4241-a75a-edf38d603724",
+  "persistent" : true,
+  "insertionIndex" : 173
+}
