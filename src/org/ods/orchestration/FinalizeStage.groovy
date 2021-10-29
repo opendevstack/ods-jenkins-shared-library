@@ -65,14 +65,14 @@ class FinalizeStage extends Stage {
             script.parallel(repoFinalizeTasks)
             logger.debug("Integrate into main branch")
             if (project.isAssembleMode && !project.isWorkInProgress) {
-                integrateIntoMainBranchRepos(steps, git)
+                integrateIntoMainBranchRepos(steps, git, logger)
             }
 
             logger.debug("Gatering commits")
-            gatherCreatedExecutionCommits(steps, git)
+            gatherCreatedExecutionCommits(steps, git, logger)
 
             if (!project.buildParams.rePromote) {
-                pushRepos(steps, git)
+                pushRepos(steps, git, logger)
                 recordAndPushEnvStateForReleaseManager(steps, logger, git)
             }
 
@@ -130,7 +130,7 @@ class FinalizeStage extends Stage {
         }
     }
 
-    private void pushRepos(IPipelineSteps steps, GitService git, ILogger logger) {
+    private void pushRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
         logger.debug("Start Push repos")
