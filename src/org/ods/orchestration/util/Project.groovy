@@ -331,6 +331,13 @@ class Project {
         this.logger.debug "Using release manager commit: ${this.data.git.commit}"
     }
 
+    Project setProjectKey(String projectKey) {
+        if(projectKey) {
+            this.data.metadata.id = projectKey
+        }
+        return this
+    }
+
     Project load(GitService git, JiraUseCase jiraUseCase) {
         this.git = git
         this.jiraUseCase = jiraUseCase

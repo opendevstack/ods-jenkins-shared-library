@@ -1,10 +1,9 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import org.ods.orchestration.parser.JUnitParser
-import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.Project
+import org.ods.util.IPipelineSteps
 
 @SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])
 class JUnitTestReportsUseCase {
@@ -50,12 +49,37 @@ class JUnitTestReportsUseCase {
         return result
     }
 
-    Map parseTestReportFiles(List<File> files) {
+    Map parseTestReportFiles(List<File> files, Map<String, Map<Integer, Integer>> testStatus_Number_Jira = [:]) {
         def testResults = files.collect { file ->
-            JUnitParser.parseJUnitXML(file.text)
+            JUnitParser.parseJUnitXML(replaceTestIDsInFile(file, testStatus_Number_Jira))
         }
 
         return this.combineTestResults(testResults)
+    }
+
+    private String replaceTestIDsInFile(File file, Map<String, Map<Integer, Integer>> testStatus_Number_Jira) {
+        String content = file.text.replaceAll('\\%PROJECT\\%', project.key)
+        int max = 0
+        testStatus_Number_Jira.each{
+            String status = it.key
+            it.value.each{
+                if ( max < it.value ) {
+                    max = it.value
+                }
+                content = content.replaceAll("\\%TEST_${status}_${it.key}\\%", String.valueOf(it.value))
+            }
+        }
+        while(content.matches('(?s).+\\%TEST_OK_\\d\\%.+')){
+            content = content.replaceFirst("\\%TEST_OK_\\d\\%", String.valueOf(++max))
+        }
+        while(content.matches('(?s).+\\%TEST_KO_\\d\\%.+')){
+            content = content.replaceFirst("\\%TEST_KO_\\d\\%", String.valueOf(++max))
+        }
+        while(content.matches('(?s).+\\%TEST_SKIPPED_\\d\\%.+')){
+            content = content.replaceFirst("\\%TEST_SKIPPED_\\d\\%", String.valueOf(++max))
+        }
+        file.text = content
+        return content
     }
 
     void reportTestReportsFromPathToJenkins(String path) {

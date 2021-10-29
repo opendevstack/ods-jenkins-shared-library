@@ -140,12 +140,13 @@ class FakeProject extends Project {
 }
 
 class FixtureHelper {
-    static Project createProject() {
+    static Project createProject(String projectKey = null) {
         def steps = new PipelineSteps()
         steps.env.WORKSPACE = ""
 
         return new FakeProject(steps, new Logger(steps, true))
             .init()
+            .setProjectKey(projectKey)
             .load(new FakeGitUtil(steps, null), null)
     }
 
@@ -811,6 +812,41 @@ class FixtureHelper {
                 <testcase name="NET142_carts-gets-processed-correctly" classname="org.sockshop.integration.CartTest" status="Succeeded" time="3" />
                 <testcase name="NET143_frontend-retrieves-cart-correctly" classname="org.sockshop.integration.FrontendTest" status="Succeeded" time="3" />
                 <testcase name="NET144_frontend-retrieves-payment-data-correctly" classname="org.sockshop.integration.PaymentTest" status="Succeeded" time="3" />
+            </testsuite>
+        </testsuites>
+        """
+    }
+
+    static String createProjectJUnitXmlTestResults() {
+        """
+        <testsuites name="sockshop-suites" tests="4" failures="1" errors="1">
+            <testsuite name="sockshop-suite-1" tests="2" failures="0" errors="1" skipped="0" timestamp="2020-03-08T20:49:53Z">
+                <properties>
+                    <property name="my-property-a" value="my-property-a-value"/>
+                </properties>
+                <testcase name="%PROJECT%%TEST_OK_1%_verify-database-setup" classname="org.sockshop.DatabaseSetupTest" status="Succeeded" time="1"/>
+                <testcase name="%PROJECT%%TEST_KO_1%_verify-payment-service-installation" classname="org.sockshop.PaymentServiceInstallationTest" status="Error" time="2">
+                    <error type="my-error-type" message="my-error-message">This is an error.</error>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-2" tests="2" failures="1" errors="0" skipped="1" timestamp="2020-03-08T20:46:54Z">
+                <testcase name="%PROJECT%%TEST_KO_2%_verify-order-service-installation" classname="org.sockshop.OrderServiceInstallationTest" status="Failed" time="3">
+                    <failure type="my-failure-type" message="my-failure-message">This is a failure.</failure>
+                </testcase>
+                <testcase name="%PROJECT%%TEST_SKIPPED_1%_verify-databse-authentication" classname="org.sockshop.ShippingServiceInstallationTest" status="Missing" time="4">
+                    <skipped/>
+                </testcase>
+            </testsuite>
+            <testsuite name="sockshop-suite-3" tests="1" failures="0" errors="0" skipped="0" timestamp="2020-03-08T20:46:55Z">
+                <testcase name="%PROJECT%%TEST_OK_2%_verify-frontend-is-setup-correctly" classname="org.sockshop.FrontendSetupTest" status="Succeeded" time="5"/>
+            </testsuite>
+            <testsuite name="sockshop-suite-4" tests="4" failures="0" errors="0" skipped="1" timestamp="2020-03-08T20:46:56Z">
+                <testcase name="%PROJECT%%TEST_OK_3%_user-exists-in-system" classname="org.sockshop.integration.UserTest" status="Succeeded" time="3" />
+                <testcase name="%PROJECT%%TEST_OK_4%_carts-gets-processed-correctly" classname="org.sockshop.integration.CartTest" status="Succeeded" time="3" />
+                <testcase name="%PROJECT%%TEST_OK_5%_frontend-retrieves-cart-correctly" classname="org.sockshop.integration.FrontendTest" status="Succeeded" time="3" />
+                <testcase name="%PROJECT%%TEST_OK_6%_frontend-retrieves-payment-data-correctly" classname="org.sockshop.integration.PaymentTest" status="Succeeded" time="3" />
+                <testcase name="%PROJECT%%TEST_OK_7%_frontend-retrieves-pet-correctly" classname="org.sockshop.integration.PetTest" status="Succeeded" time="3" />
+                <testcase name="%PROJECT%%TEST_OK_8%_frontend-retrieves-dog-data-correctly" classname="org.sockshop.integration.DogTest" status="Succeeded" time="3" />
             </testsuite>
         </testsuites>
         """

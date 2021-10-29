@@ -88,18 +88,26 @@ class WiremockManager {
 
     private cleanWiremockDatafiles() {
         log.info("cleanWiremock date_created field")
-        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {updateDateCreated(it)}
+        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {updateVariablesInCreated(it)}
     }
 
-    private void updateDateCreated(File file) {
+    private void updateVariablesInCreated(File file) {
         JsonBuilder jsonBuilderFromFile = getJsonFromText(file.text)
-        String equalToJsonField = jsonBuilderFromFile.content?.request?.bodyPatterns?.equalToJson
+        String equalToJsonField = jsonBuilderFromFile.content?.request?.bodyPatterns[0]?.equalToJson
         if (!equalToJsonField)
             return
 
         JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(equalToJsonField)
 
-        jsonBuilderFromEqualToJsonField.content[0].data.metadata.date_created = "\${json-unit.any-string}"
+        jsonBuilderFromEqualToJsonField.content.data.metadata.date_created = "\${json-unit.any-string}"
+        if(jsonBuilderFromEqualToJsonField.content.data.data?.integrationTestFiles){
+            jsonBuilderFromEqualToJsonField.content.data.data.integrationTestFiles[0].name = "\${json-unit.any-string}"
+            jsonBuilderFromEqualToJsonField.content.data.data.integrationTestFiles[0].path = "\${json-unit.any-string}"
+        }
+        if(jsonBuilderFromEqualToJsonField.content.data.data?.acceptanceTestFiles){
+            jsonBuilderFromEqualToJsonField.content.data.data.acceptanceTestFiles[0].name = "\${json-unit.any-string}"
+            jsonBuilderFromEqualToJsonField.content.data.data.acceptanceTestFiles[0].path = "\${json-unit.any-string}"
+        }
         jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderFromEqualToJsonField.toString()
 
         file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())

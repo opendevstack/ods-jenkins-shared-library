@@ -17,6 +17,10 @@ import spock.lang.Ignore
 import spock.lang.Unroll
 import util.FixtureHelper
 
+import java.nio.file.Files
+
+import static util.FixtureHelper.createProjectJUnitXmlTestResults
+
 /**
  * IMPORTANT: this test use Wiremock files to mock all the external interactions.
  *
@@ -40,6 +44,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final String PROJECT_KEY = "OFI2004"
     private static final String PROJECT_KEY_RELEASE_ID = "207"
     private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
+    private static final Map<String, Map<Integer, Integer>> LINK_TESTS_IN_JIRA = ["OK": [1: 132, 2: 137, 3: 138, 4: 139, 5: 140, 6: 141, 7: 142, 8: 143], "KO": [:], "SKIPPED": [:]]
 
     @Rule
     EnvironmentVariables env = new EnvironmentVariables()
@@ -71,17 +76,41 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
             .createLeVADocumentUseCase()
 
         when: "the user creates a LeVA document"
-        useCase."create${doctype}"()
+        Map data
+        if(doctype == "TCR"){
+            def xmlFile = Files.createTempFile("junit", ".xml").toFile()
+            xmlFile << "<?xml version='1.0' ?>\n" + createProjectJUnitXmlTestResults()
+
+            def testReportFiles = [xmlFile]
+            def testResults = new JUnitTestReportsUseCase(useCase.project, useCase.steps).parseTestReportFiles(testReportFiles, LINK_TESTS_IN_JIRA)
+            data = [
+                tests: [
+                    acceptance : [
+                        testReportFiles: testReportFiles,
+                        testResults    : testResults
+                    ],
+                    installation: [
+                        testReportFiles: testReportFiles,
+                        testResults    : testResults
+                    ],
+                    integration: [
+                        testReportFiles: testReportFiles,
+                        testResults    : testResults
+                    ]
+                ]
+            ]
+        }
+        useCase."create${doctype}"(null, data)
 
         then: "the generated PDF is as expected"
         validatePDF(doctype, version)
 
         where:
-        doctype << [ "CSD", "DIL", "DTP", "RA",  "CFTP", "IVP", "SSDS", "TCP",  "TIP"]
+        doctype << [ "CSD", "DIL", "DTP", "RA",  "CFTP", "IVP", "SSDS", "TCP",  "TIP", "TCR"]
         version = "WIP"
     }
 
-    // TODO docs with params:  "DTR",  "CFTR", "IVR",  "TCR", "TIR", "TRC"
+    // TODO docs with params:  "DTR",  "CFTR", "IVR",  "TCR", "TIR"
 
     @Ignore // until DTR", "TIR" are done
     @Unroll
