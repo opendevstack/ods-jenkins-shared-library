@@ -63,11 +63,12 @@ class FinalizeStage extends Stage {
             }
             repoFinalizeTasks.failFast = true
             script.parallel(repoFinalizeTasks)
-
+            logger.debug("Integrate into main branch")
             if (project.isAssembleMode && !project.isWorkInProgress) {
                 integrateIntoMainBranchRepos(steps, git)
             }
 
+            logger.debug("Gatering commits")
             gatherCreatedExecutionCommits(steps, git)
 
             if (!project.buildParams.rePromote) {
@@ -167,28 +168,31 @@ class FinalizeStage extends Stage {
         script.parallel(gatherCommitTasks)
     }
 
-    private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
+     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def repoIntegrateTasks = flattenedRepos
-            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
-               it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA }
-            .collectEntries { repo ->
-                [
-                    (repo.id): {
-                        steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                            def filesToCheckout = []
-                            if (steps.fileExists('openshift')) {
-                                filesToCheckout = ['openshift/ods-deployments.json']
-                            } else {
-                                filesToCheckout = [
-                                    'openshift-exported/ods-deployments.json',
-                                    'openshift-exported/template.yml'
-                                ]
-                            }
-                            git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
+        def repoIntegrateTasks = [ : ]
+        logger.debug("Start itegration into main")
+        for (Map repo : flattenedRepos) {
+            if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
+               repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)
+            {
+                repoIntegrateTasks << (repo.id): {
+                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                        def filesToCheckout = []
+                        if (steps.fileExists('openshift')) {
+                            filesToCheckout = ['openshift/ods-deployments.json']
+                        } else {
+                            filesToCheckout = [
+                                'openshift-exported/ods-deployments.json',
+                                'openshift-exported/template.yml'
+                            ]
                         }
+                        git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                     }
-                ]
+                }
+            } else {
+                logger.debug("Reintegration will not be done for ${repo.id} with type ${repo.type}")
+            }
         }
         repoIntegrateTasks.failFast = true
         script.parallel(repoIntegrateTasks)
