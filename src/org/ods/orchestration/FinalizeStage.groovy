@@ -181,8 +181,9 @@ class FinalizeStage extends Stage {
                         repo.data.git.createdExecutionCommit = git.commitSha
                     }
                 }
-            }
             ]
+            }
+            
         // def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
         //     [
         //         (repo.id): {
