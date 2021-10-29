@@ -130,7 +130,7 @@ class FinalizeStage extends Stage {
         }
     }
 
-    private void pushRepos(IPipelineSteps steps, GitService git) {
+    private void pushRepos(IPipelineSteps steps, GitService git, ILogger logger) {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
         logger.debug("Start Push repos")
