@@ -134,20 +134,21 @@ class FinalizeStage extends Stage {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
         logger.debug("Start Push repos")
-        for (Map repo : flattenedRepos){
-        repoPushTasks << (repo.id): {
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                        if (project.isWorkInProgress) {
-                            git.pushRef(repo.branch)
-                        } else if (project.isAssembleMode) {
-                            git.createTag(project.targetTag)
-                            git.pushBranchWithTags(project.gitReleaseBranch)
-                        } else {
-                            git.createTag(project.targetTag)
-                            git.pushRef(project.targetTag)
-                        }
+        for (Map repo : flattenedRepos) {
+            repoPushTasks << [ (repo.id): {
+                steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                    if (project.isWorkInProgress) {
+                        git.pushRef(repo.branch)
+                    } else if (project.isAssembleMode) {
+                        git.createTag(project.targetTag)
+                        git.pushBranchWithTags(project.gitReleaseBranch)
+                    } else {
+                        git.createTag(project.targetTag)
+                        git.pushRef(project.targetTag)
                     }
                 }
+            }
+            ]
         }
         // def repoPushTasks = flattenedRepos.collectEntries { repo ->
         //     [
@@ -174,13 +175,14 @@ class FinalizeStage extends Stage {
         def flattenedRepos = repos.flatten()
         def gatherCommitTasks = [ : ]
         logger.debug("Start gather execution commits")
-        for (Map repo : flattenedRepos){
-            gatherCommitTasks << (repo.id): {
+        for (Map repo : flattenedRepos) {
+            gatherCommitTasks << [ (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         repo.data.git.createdExecutionCommit = git.commitSha
                     }
                 }
-        }
+            }
+            ]
         // def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
         //     [
         //         (repo.id): {
@@ -202,7 +204,7 @@ class FinalizeStage extends Stage {
             if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
                repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)
             {
-                repoIntegrateTasks << (repo.id): {
+                repoIntegrateTasks << [ (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         def filesToCheckout = []
                         if (steps.fileExists('openshift')) {
@@ -216,6 +218,7 @@ class FinalizeStage extends Stage {
                         git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
                     }
                 }
+                ]
             } else {
                 logger.debug("Reintegration will not be done for ${repo.id} with type ${repo.type}")
             }
