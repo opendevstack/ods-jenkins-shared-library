@@ -524,11 +524,11 @@ class Context implements IContext {
         if (rawEnv.size() == 0 ) {
             return [:]
         }
-        return normalizeEnvironment(rawEnv)
+        return normalizeEnvironment(rawEnv, keyPrefix)
     }
 
     @NonCPS
-    Map<String, String> normalizeEnvironment (String rawEnv){
+    Map<String, String> normalizeEnvironment (String rawEnv, String keyPrefix){
         return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
             Iterator kv = line.toString().tokenize('=').iterator()
             kvMap.put(keyPrefix + kv.next(), kv.hasNext() ? kv.next() : '')
