@@ -130,7 +130,7 @@ class FinalizeStage extends Stage {
         }
     }
 
-    private void pushRepos(IPipelineSteps steps, GitService git) {
+    private void pushRepos(IPipelineSteps steps, GitService git, ILogger logger) {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
         logger.debug("Start Push repos")
@@ -171,7 +171,7 @@ class FinalizeStage extends Stage {
         script.parallel(repoPushTasks)
     }
 
-    private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
+    private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git, ILogger logger) {
         def flattenedRepos = repos.flatten()
         def gatherCommitTasks = [ : ]
         logger.debug("Start gather execution commits")
@@ -197,7 +197,7 @@ class FinalizeStage extends Stage {
         script.parallel(gatherCommitTasks)
     }
 
-     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
+     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git, ILogger logger) {
         def flattenedRepos = repos.flatten()
         def repoIntegrateTasks = [ : ]
         logger.debug("Start itegration into main")
