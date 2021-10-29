@@ -1007,7 +1007,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForTIP(this.project.getComponents())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
-        def repositories = this.project.repositories.findAll{!COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())}
+        def repositories = this.project.repositories.findAll {
+            !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())
+        }
 
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
