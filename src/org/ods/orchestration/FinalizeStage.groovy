@@ -132,9 +132,10 @@ class FinalizeStage extends Stage {
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def repoPushTasks = flattenedRepos.collectEntries { repo ->
-            [
-                (repo.id): {
+        def repoPushTasks = [ : ]
+        logger.debug("Start Push repos")
+        for (Map repo : flattenedRepos){
+        repoPushTasks << (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         if (project.isWorkInProgress) {
                             git.pushRef(repo.branch)
@@ -147,23 +148,48 @@ class FinalizeStage extends Stage {
                         }
                     }
                 }
-            ]
         }
+        // def repoPushTasks = flattenedRepos.collectEntries { repo ->
+        //     [
+        //         (repo.id): {
+        //             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+        //                 if (project.isWorkInProgress) {
+        //                     git.pushRef(repo.branch)
+        //                 } else if (project.isAssembleMode) {
+        //                     git.createTag(project.targetTag)
+        //                     git.pushBranchWithTags(project.gitReleaseBranch)
+        //                 } else {
+        //                     git.createTag(project.targetTag)
+        //                     git.pushRef(project.targetTag)
+        //                 }
+        //             }
+        //         }
+        //     ]
+        // }
         repoPushTasks.failFast = true
         script.parallel(repoPushTasks)
     }
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
-            [
-                (repo.id): {
+        def gatherCommitTasks = [ : ]
+        logger.debug("Start gather execution commits")
+        for (Map repo : flattenedRepos){
+            gatherCommitTasks << (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
                         repo.data.git.createdExecutionCommit = git.commitSha
                     }
                 }
-            ]
         }
+        // def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
+        //     [
+        //         (repo.id): {
+        //             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+        //                 repo.data.git.createdExecutionCommit = git.commitSha
+        //             }
+        //         }
+        //     ]
+        // }
         gatherCommitTasks.failFast = true
         script.parallel(gatherCommitTasks)
     }
