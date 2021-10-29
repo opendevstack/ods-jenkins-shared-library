@@ -232,10 +232,16 @@ class FinalizeStage extends Stage {
         // record release manager repo state
         logger.debug "Finalize: Recording HEAD commits from repos ..."
         logger.debug "On release manager commit ${git.commitSha}"
-        def gitHeads = repos.flatten().collectEntries { repo ->
+        def flattenedRepos = repos.flatten()
+        def gitHeads = [ : ]
+        for (Map repo : flattenedRepos) {
             logger.debug "HEAD of repo '${repo.id}': ${repo.data.git.createdExecutionCommit}"
-            [(repo.id): (repo.data.git.createdExecutionCommit ?: '')]
+            gitHeads << [ (repo.id): (repo.data.git.createdExecutionCommit ?: '')]
         }
+        // def gitHeads = repos.flatten().collectEntries { repo ->
+        //     logger.debug "HEAD of repo '${repo.id}': ${repo.data.git.createdExecutionCommit}"
+        //     [(repo.id): (repo.data.git.createdExecutionCommit ?: '')]
+        // }
         def envState = [
             version: project.buildParams.version,
             changeId: project.buildParams.changeId,
