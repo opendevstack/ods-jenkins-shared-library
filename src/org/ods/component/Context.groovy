@@ -528,7 +528,8 @@ class Context implements IContext {
             }
             logger.debug("Normalizing ENV")
             return normalizeEnvironment(rawEnv, keyPrefix)
-        }catch(err){
+        }catch(java.io.NotSerializableException err){
+            logger.debug(err)
             return [:]
         }
     }
