@@ -521,6 +521,7 @@ class Context implements IContext {
             label: 'getting extension labels from current environment'
           ).trim()
 
+        logger.debug("Normalizing ENV size")
         if (rawEnv.size() == 0 ) {
             return [:]
         }
