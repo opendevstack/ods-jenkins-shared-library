@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
@@ -41,8 +42,8 @@ import static util.FixtureHelper.createProjectJUnitXmlTestResults
 class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"])
     private static final boolean GENERATE_EXPECTED_PDF_FILES = Boolean.parseBoolean(System.properties["generateExpectedPdfFiles"])
-    private static final String PROJECT_KEY = "OFI2004"
-    private static final String PROJECT_KEY_RELEASE_ID = "207"
+    private static final String PROJECT_KEY = "TES53"           //"TES53" "OFI2004"
+    private static final String PROJECT_KEY_RELEASE_ID = "123" //"207" "123"
     private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
     private static final Map<String, Map<Integer, Integer>> LINK_TESTS_IN_JIRA = ["OK": [1: 132, 2: 137, 3: 138, 4: 139, 5: 140, 6: 141, 7: 142, 8: 143], "KO": [:], "SKIPPED": [:]]
 
@@ -76,38 +77,59 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
             .createLeVADocumentUseCase()
 
         when: "the user creates a LeVA document"
-        Map data
-        if(doctype == "TCR"){
-            def xmlFile = Files.createTempFile("junit", ".xml").toFile()
-            xmlFile << "<?xml version='1.0' ?>\n" + createProjectJUnitXmlTestResults()
-
-            def testReportFiles = [xmlFile]
-            def testResults = new JUnitTestReportsUseCase(useCase.project, useCase.steps).parseTestReportFiles(testReportFiles, LINK_TESTS_IN_JIRA)
-            data = [
-                tests: [
-                    acceptance : [
-                        testReportFiles: testReportFiles,
-                        testResults    : testResults
-                    ],
-                    installation: [
-                        testReportFiles: testReportFiles,
-                        testResults    : testResults
-                    ],
-                    integration: [
-                        testReportFiles: testReportFiles,
-                        testResults    : testResults
-                    ]
-                ]
-            ]
-        }
-        useCase."create${doctype}"(null, data)
+        useCase."create${doctype}"()
 
         then: "the generated PDF is as expected"
         validatePDF(doctype, version)
 
         where:
-        doctype << [ "CSD", "DIL", "DTP", "RA",  "CFTP", "IVP", "SSDS", "TCP",  "TIP", "TCR"]
+        doctype << [ "CSD", "DIL", "DTP", "RA",  "CFTP", "IVP", "SSDS", "TCP",  "TIP"]
         version = "WIP"
+    }
+
+
+    @Unroll
+    def "create TCR"() {
+        given: "There's a LeVADocument service"
+        LeVADocumentUseCase useCase = getLeVADocumentUseCaseFactory(doctype, version)
+            .loadProject(setBuildParams(version))
+            .createLeVADocumentUseCase()
+
+        when: "the user creates a LeVA document"
+        def data = getTestResult(useCase, LINK_TESTS_IN_JIRA)
+
+        useCase.createTCR(null, data)
+
+        then: "the generated PDF is as expected"
+        validatePDF(doctype, version)
+
+        where:
+        doctype = "TCR"
+        version = "WIP"
+    }
+
+    private Map<String, Map<String, Map<String, Cloneable>>> getTestResult(LeVADocumentUseCase useCase, Map<String, Map<Integer, Integer>> linkTestsInJira) {
+        def xmlFile = new FixtureHelper().getResource("jUnitTestResult.xml")
+
+        def testReportFiles = [xmlFile]
+        def testResults = new JUnitTestReportsUseCase(useCase.project, useCase.steps).parseTestReportFiles(testReportFiles, linkTestsInJira)
+        Map data = [
+            tests: [
+                acceptance  : [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ],
+                installation: [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ],
+                integration : [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ]
+            ]
+        ]
+        return data
     }
 
     // TODO docs with params:  "DTR",  "CFTR", "IVR",  "TCR", "TIR"

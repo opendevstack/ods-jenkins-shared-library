@@ -94,23 +94,25 @@ class WiremockManager {
     private void updateVariablesInCreated(File file) {
         JsonBuilder jsonBuilderFromFile = getJsonFromText(file.text)
         String equalToJsonField = jsonBuilderFromFile.content?.request?.bodyPatterns[0]?.equalToJson
-        if (!equalToJsonField)
+        if (!equalToJsonField) {
             return
+        }
+        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = replaceRespondDataVariables(equalToJsonField).toString()
+        file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())
+    }
 
-        JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(equalToJsonField)
-
+    private JsonBuilder replaceRespondDataVariables(String stringRequest) {
+        JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(stringRequest)
         jsonBuilderFromEqualToJsonField.content.data.metadata.date_created = "\${json-unit.any-string}"
-        if(jsonBuilderFromEqualToJsonField.content.data.data?.integrationTestFiles){
+        if (jsonBuilderFromEqualToJsonField.content.data.data?.integrationTestFiles) {
             jsonBuilderFromEqualToJsonField.content.data.data.integrationTestFiles[0].name = "\${json-unit.any-string}"
             jsonBuilderFromEqualToJsonField.content.data.data.integrationTestFiles[0].path = "\${json-unit.any-string}"
         }
-        if(jsonBuilderFromEqualToJsonField.content.data.data?.acceptanceTestFiles){
+        if (jsonBuilderFromEqualToJsonField.content.data.data?.acceptanceTestFiles) {
             jsonBuilderFromEqualToJsonField.content.data.data.acceptanceTestFiles[0].name = "\${json-unit.any-string}"
             jsonBuilderFromEqualToJsonField.content.data.data.acceptanceTestFiles[0].path = "\${json-unit.any-string}"
         }
-        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderFromEqualToJsonField.toString()
-
-        file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())
+        return jsonBuilderFromEqualToJsonField
     }
 
     private JsonBuilder getJsonFromText(String text) {
