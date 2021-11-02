@@ -65,14 +65,14 @@ class FinalizeStage extends Stage {
             script.parallel(repoFinalizeTasks)
             logger.debug("Integrate into main branch")
             if (project.isAssembleMode && !project.isWorkInProgress) {
-                integrateIntoMainBranchRepos(steps, git, logger)
+                integrateIntoMainBranchRepos(steps, git)
             }
 
             logger.debug("Gatering commits")
-            gatherCreatedExecutionCommits(steps, git, logger)
+            gatherCreatedExecutionCommits(steps, git)
 
             if (!project.buildParams.rePromote) {
-                pushRepos(steps, git, logger)
+                pushRepos(steps, git)
                 recordAndPushEnvStateForReleaseManager(steps, logger, git)
             }
 
@@ -130,10 +130,9 @@ class FinalizeStage extends Stage {
         }
     }
 
-    private void pushRepos(IPipelineSteps steps, GitService git, ILogger logger) {
+    private void pushRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
         def repoPushTasks = [ : ]
-        logger.debug("Start Push repos")
         for (Map repo : flattenedRepos) {
             repoPushTasks << [ (repo.id): {
                 steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
@@ -150,31 +149,13 @@ class FinalizeStage extends Stage {
             }
             ]
         }
-        // def repoPushTasks = flattenedRepos.collectEntries { repo ->
-        //     [
-        //         (repo.id): {
-        //             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-        //                 if (project.isWorkInProgress) {
-        //                     git.pushRef(repo.branch)
-        //                 } else if (project.isAssembleMode) {
-        //                     git.createTag(project.targetTag)
-        //                     git.pushBranchWithTags(project.gitReleaseBranch)
-        //                 } else {
-        //                     git.createTag(project.targetTag)
-        //                     git.pushRef(project.targetTag)
-        //                 }
-        //             }
-        //         }
-        //     ]
-        // }
         repoPushTasks.failFast = true
         script.parallel(repoPushTasks)
     }
 
-    private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git, ILogger logger) {
+    private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
         def gatherCommitTasks = [ : ]
-        logger.debug("Start gather execution commits")
         for (Map repo : flattenedRepos) {
             gatherCommitTasks << [ (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
@@ -183,24 +164,14 @@ class FinalizeStage extends Stage {
                 }
             ]
             }
-            
-        // def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
-        //     [
-        //         (repo.id): {
-        //             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-        //                 repo.data.git.createdExecutionCommit = git.commitSha
-        //             }
-        //         }
-        //     ]
-        // }
+
         gatherCommitTasks.failFast = true
         script.parallel(gatherCommitTasks)
     }
 
-     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git, ILogger logger) {
+     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
         def repoIntegrateTasks = [ : ]
-        logger.debug("Start itegration into main")
         for (Map repo : flattenedRepos) {
             if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
                repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)
@@ -220,8 +191,6 @@ class FinalizeStage extends Stage {
                     }
                 }
                 ]
-            } else {
-                logger.debug("Reintegration will not be done for ${repo.id} with type ${repo.type}")
             }
         }
         repoIntegrateTasks.failFast = true
@@ -238,10 +207,6 @@ class FinalizeStage extends Stage {
             logger.debug "HEAD of repo '${repo.id}': ${repo.data.git.createdExecutionCommit}"
             gitHeads << [ (repo.id): (repo.data.git.createdExecutionCommit ?: '')]
         }
-        // def gitHeads = repos.flatten().collectEntries { repo ->
-        //     logger.debug "HEAD of repo '${repo.id}': ${repo.data.git.createdExecutionCommit}"
-        //     [(repo.id): (repo.data.git.createdExecutionCommit ?: '')]
-        // }
         def envState = [
             version: project.buildParams.version,
             changeId: project.buildParams.changeId,

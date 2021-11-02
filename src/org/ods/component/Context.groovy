@@ -530,25 +530,15 @@ class Context implements IContext {
                 script.sleep(waitTime)
             }
         }
-
-        logger.debug("Normalizing ENV size ")
         if (rawEnv.length() == 0 ) {
             return [:]
         }
-        logger.debug("Normalizing ENV")
         return normalizeEnvironment(rawEnv, keyPrefix)
         
     }
 
     @NonCPS
     Map<String,String> normalizeEnvironment (String rawEnv, String keyPrefix){
-       /* Map<String,String> envNormize = rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
-            Iterator kv = line.toString().tokenize('=').iterator()
-            kvMap.put(keyPrefix + kv.next(), kv.hasNext() ? kv.next() : '')
-            kvMap
-        }
-        return envNormize
-        */
         def lineSplitEnv = rawEnv.normalize().split(System.getProperty('line.separator'))
         Map normalizedEnv = [ : ]
         for (int lineC = 0; lineC < lineSplitEnv.size(); lineC++) {
