@@ -530,12 +530,20 @@ class Context implements IContext {
 
     @NonCPS
     Map<String,String> normalizeEnvironment (String rawEnv, String keyPrefix){
-        Map<String,String> envNormize = rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
+       /* Map<String,String> envNormize = rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
             Iterator kv = line.toString().tokenize('=').iterator()
             kvMap.put(keyPrefix + kv.next(), kv.hasNext() ? kv.next() : '')
             kvMap
         }
         return envNormize
+        */
+        def lineSplitEnv = rawEnv.normalize().split(System.getProperty('line.separator'))
+        Map normalizedEnv = [ : ]
+        for (int lineC = 0; lineC < lineSplitEnv.size(); lineC++) {
+            def splittedLine = lineSplitEnv[lineC].toString().tokenize('=')
+            normalizedEnv.put(keyPrefix + splittedLine[0], splittedLine[1])
+        }
+        return normalizedEnv
     }
 
     String getOpenshiftApplicationDomain () {
