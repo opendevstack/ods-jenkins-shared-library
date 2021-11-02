@@ -516,22 +516,24 @@ class Context implements IContext {
     }
 
     Map<String,String> getEnvParamsAndAddPrefix (String envNamePattern = 'ods.build.', String keyPrefix = '') {
+        String rawEnv = ''
         try{
-            String rawEnv = script.sh(
+            rawEnv = script.sh(
                 returnStdout: true, script: "env | grep ${envNamePattern} || true",
                 label: 'getting extension labels from current environment'
             ).trim()
-
-            logger.debug("Normalizing ENV size ")
-            if (rawEnv.length() == 0 ) {
-                return [:]
-            }
-            logger.debug("Normalizing ENV")
-            return normalizeEnvironment(rawEnv, keyPrefix)
         }catch(java.io.NotSerializableException err){
-            logger.debug(err)
+            logger.debug("${err}")
             return [:]
         }
+
+        logger.debug("Normalizing ENV size ")
+        if (rawEnv.length() == 0 ) {
+            return [:]
+        }
+        logger.debug("Normalizing ENV")
+        return normalizeEnvironment(rawEnv, keyPrefix)
+        
     }
 
     @NonCPS
