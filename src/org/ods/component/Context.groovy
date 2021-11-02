@@ -517,14 +517,18 @@ class Context implements IContext {
 
     Map<String,String> getEnvParamsAndAddPrefix (String envNamePattern = 'ods.build.', String keyPrefix = '') {
         String rawEnv = ''
-        try{
-            rawEnv = script.sh(
-                returnStdout: true, script: "env | grep ${envNamePattern} || true",
-                label: 'getting extension labels from current environment'
-            ).trim()
-        }catch(java.io.NotSerializableException err){
-            logger.debug("${err}")
-            return [:]
+        int retries = 5
+        def waitTime = 5 // seconds
+        while (rawEnv == '' && retries-- > 0) {
+            try{
+                rawEnv = script.sh(
+                    returnStdout: true, script: "env | grep ${envNamePattern} || true",
+                    label: 'getting extension labels from current environment'
+                ).trim()
+            }catch(java.io.NotSerializableException err){
+                logger.debug ("Hit jenkins serialization issue, attempt: ${5-retries}")
+                script.sleep(waitTime)
+            }
         }
 
         logger.debug("Normalizing ENV size ")
