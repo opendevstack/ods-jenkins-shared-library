@@ -60,8 +60,8 @@ class Context implements IContext {
         config.sonarQubeEdition = script.env.SONAR_EDITION ?: 'community'
 
         config.globalExtensionImageLabels = getExtensionBuildParams()
-        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
-            'JENKINS_MASTER_')
+        config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_MASTER_'))
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
 
@@ -164,8 +164,8 @@ class Context implements IContext {
             config.globalExtensionImageLabels = [:]
         }
         // get the build labels from the env running in ..
-        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
-            'JENKINS_AGENT_')
+        config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_AGENT_'))
     }
 
     boolean getDebug() {
