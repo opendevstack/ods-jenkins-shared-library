@@ -524,16 +524,18 @@ class Context implements IContext {
         if (rawEnv.size() == 0 ) {
             return [:]
         }
+        logger.debug("Normalizing ENV")
         return normalizeEnvironment(rawEnv, keyPrefix)
     }
 
     @NonCPS
-    Map<String, String> normalizeEnvironment (String rawEnv, String keyPrefix){
-        return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
+    Map<String,String> normalizeEnvironment (String rawEnv, String keyPrefix){
+        Map<String,String> envNormize = rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
             Iterator kv = line.toString().tokenize('=').iterator()
             kvMap.put(keyPrefix + kv.next(), kv.hasNext() ? kv.next() : '')
             kvMap
         }
+        return envNormize
     }
 
     String getOpenshiftApplicationDomain () {
