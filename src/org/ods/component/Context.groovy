@@ -59,17 +59,17 @@ class Context implements IContext {
 
         config.sonarQubeEdition = script.env.SONAR_EDITION ?: 'community'
 
-        // config.globalExtensionImageLabels = getExtensionBuildParams()
-        // config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
-        //     'JENKINS_MASTER_'))
+        config.globalExtensionImageLabels = getExtensionBuildParams()
+        config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_MASTER_'))
 
-        // logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
+        logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
 
-        // config.odsSharedLibVersion = script.sh(
-        //     script: "env | grep 'library.ods-jenkins-shared-library.version' | cut -d= -f2",
-        //     returnStdout: true,
-        //     label: 'getting ODS shared lib version'
-        // ).trim()
+        config.odsSharedLibVersion = script.sh(
+            script: "env | grep 'library.ods-jenkins-shared-library.version' | cut -d= -f2",
+            returnStdout: true,
+            label: 'getting ODS shared lib version'
+        ).trim()
 
         logger.debug 'Validating environment variables ...'
         if (!config.jobName) {
