@@ -89,6 +89,7 @@ class BuildStage extends Stage {
         if (project.isAssembleMode && project.isWorkInProgress &&
             (project.hasFailingTests() || failedRepos.size > 0)) {
             util.failBuild("Failing build as repositories contain errors!\nFailed: ${failedRepos}")
+            throw new Exception("Failing build as repositories contain errors!\nFailed: ${failedRepos}")
         }
     }
 
