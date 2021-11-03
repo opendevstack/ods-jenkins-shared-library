@@ -88,31 +88,19 @@ class WiremockManager {
 
     private cleanWiremockDatafiles() {
         log.info("cleanWiremock date_created field")
-        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {updateVariablesInCreated(it)}
+        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {updateDateCreated(it)}
     }
 
-    private void updateVariablesInCreated(File file) {
+    private void updateDateCreated(File file) {
         JsonBuilder jsonBuilderFromFile = getJsonFromText(file.text)
         String equalToJsonField = jsonBuilderFromFile.content?.request?.bodyPatterns[0]?.equalToJson
         if (!equalToJsonField) {
             return
         }
-        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = replaceRespondDataVariables(equalToJsonField).toString()
-        file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())
-    }
-
-    private JsonBuilder replaceRespondDataVariables(String stringRequest) {
-        JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(stringRequest)
+        JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(equalToJsonField)
         jsonBuilderFromEqualToJsonField.content.data.metadata.date_created = "\${json-unit.any-string}"
-        if (jsonBuilderFromEqualToJsonField.content.data.data?.integrationTestFiles) {
-            jsonBuilderFromEqualToJsonField.content.data.data.integrationTestFiles[0].name = "\${json-unit.any-string}"
-            jsonBuilderFromEqualToJsonField.content.data.data.integrationTestFiles[0].path = "\${json-unit.any-string}"
-        }
-        if (jsonBuilderFromEqualToJsonField.content.data.data?.acceptanceTestFiles) {
-            jsonBuilderFromEqualToJsonField.content.data.data.acceptanceTestFiles[0].name = "\${json-unit.any-string}"
-            jsonBuilderFromEqualToJsonField.content.data.data.acceptanceTestFiles[0].path = "\${json-unit.any-string}"
-        }
-        return jsonBuilderFromEqualToJsonField
+        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderFromEqualToJsonField.toString()
+        file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())
     }
 
     private JsonBuilder getJsonFromText(String text) {
