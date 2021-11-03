@@ -1,6 +1,5 @@
 package org.ods.orchestration.usecase
 
-
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
@@ -9,18 +8,14 @@ import org.junit.rules.TemporaryFolder
 import org.ods.core.test.PipelineSpecBase
 import org.ods.core.test.pdf.PdfCompare
 import org.ods.core.test.usecase.LeVADocumentUseCaseFactory
-import org.ods.core.test.wiremock.WiremockServers
 import org.ods.core.test.wiremock.WiremockManager
+import org.ods.core.test.wiremock.WiremockServers
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
 import spock.lang.Ignore
 import spock.lang.Unroll
 import util.FixtureHelper
-
-import java.nio.file.Files
-
-import static util.FixtureHelper.createProjectJUnitXmlTestResults
 
 /**
  * IMPORTANT: this test use Wiremock files to mock all the external interactions.
@@ -45,7 +40,17 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final String PROJECT_KEY = "TES53"           //"TES53" "OFI2004"
     private static final String PROJECT_KEY_RELEASE_ID = "123" //"207" "123"
     private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
-    private static final Map<String, Map<Integer, Integer>> LINK_TESTS_IN_JIRA = ["OK": [1: 132, 2: 137, 3: 138, 4: 139, 5: 140, 6: 141, 7: 142, 8: 143], "KO": [:], "SKIPPED": [:]]
+    private static final Map<String, String> LINK_TESTS_IN_JIRA = ['testOk1': '132',
+                                                                   'testOk2': '137',
+                                                                   'testOk3': '138',
+                                                                   'testOk4': '139',
+                                                                   'testOk5': '140',
+                                                                   'testOk6': '141',
+                                                                   'testOk7': '142',
+                                                                   'testOk8': '143',
+                                                                   'testKo1': '144',
+                                                                   'testKo2': '145',
+                                                                   'testSkipped1': '146']
 
     @Rule
     EnvironmentVariables env = new EnvironmentVariables()
@@ -108,30 +113,6 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         version = "WIP"
     }
 
-    private Map<String, Map<String, Map<String, Cloneable>>> getTestResult(LeVADocumentUseCase useCase, Map<String, Map<Integer, Integer>> linkTestsInJira) {
-        def xmlFile = new FixtureHelper().getResource("jUnitTestResult.xml")
-
-        def testReportFiles = [xmlFile]
-        def testResults = new JUnitTestReportsUseCase(useCase.project, useCase.steps).parseTestReportFiles(testReportFiles, linkTestsInJira)
-        Map data = [
-            tests: [
-                acceptance  : [
-                    testReportFiles: testReportFiles,
-                    testResults    : testResults
-                ],
-                installation: [
-                    testReportFiles: testReportFiles,
-                    testResults    : testResults
-                ],
-                integration : [
-                    testReportFiles: testReportFiles,
-                    testResults    : testResults
-                ]
-            ]
-        ]
-        return data
-    }
-
     // TODO docs with params:  "DTR",  "CFTR", "IVR",  "TCR", "TIR"
 
     @Ignore // until DTR", "TIR" are done
@@ -183,6 +164,30 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
             openShiftService,
             gitService,
             bitbucketTraceabilityUseCase)
+    }
+
+    private Map<String, Map<String, Map<String, Cloneable>>> getTestResult(LeVADocumentUseCase useCase, Map<String, String> linkTestsInJira) {
+        def xmlJUnitTest = new FixtureHelper().getResource("jUnitTestResult.xml")
+        def testReportFiles = [xmlJUnitTest]
+        def testResults = new JUnitTestReportsUseCase(useCase.project, useCase.steps)
+            .parseTestReportFiles(testReportFiles, linkTestsInJira)
+        Map data = [
+            tests: [
+                acceptance  : [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ],
+                installation: [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ],
+                integration : [
+                    testReportFiles: testReportFiles,
+                    testResults    : testResults
+                ]
+            ]
+        ]
+        return data
     }
 
     private boolean validatePDF(doctype, version, oveAllPrefix = "") {

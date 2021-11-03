@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import groovy.text.GStringTemplateEngine
 import org.ods.orchestration.parser.JUnitParser
 import org.ods.orchestration.util.Project
 import org.ods.util.IPipelineSteps
@@ -49,40 +50,24 @@ class JUnitTestReportsUseCase {
         return result
     }
 
-    Map parseTestReportFiles(List<File> files, Map<String, Map<Integer, Integer>> testStatus_Number_Jira = [:]) {
+    Map parseTestReportFiles(List<File> files, Map<String, String> linkTestsInJira = [:]) {
         def testResults = files.collect { file ->
-            JUnitParser.parseJUnitXML(replaceTestIDsInFile(file, testStatus_Number_Jira))
+            JUnitParser.parseJUnitXML(replaceTestIDsInFile(file, linkTestsInJira))
         }
-
         return this.combineTestResults(testResults)
-    }
-
-    private String replaceTestIDsInFile(File file, Map<String, Map<Integer, Integer>> testStatus_Number_Jira) {
-        String content = file.text.replaceAll('\\%PROJECT\\%', project.key)
-        int max = 0
-        testStatus_Number_Jira.each{
-            String status = it.key
-            it.value.each{
-                if ( max < it.value ) {
-                    max = it.value
-                }
-                content = content.replaceAll("\\%TEST_${status}_${it.key}\\%", String.valueOf(it.value))
-            }
-        }
-        while(content.matches('(?s).+\\%TEST_OK_\\d\\%.+')){
-            content = content.replaceFirst("\\%TEST_OK_\\d\\%", String.valueOf(++max))
-        }
-        while(content.matches('(?s).+\\%TEST_KO_\\d\\%.+')){
-            content = content.replaceFirst("\\%TEST_KO_\\d\\%", String.valueOf(++max))
-        }
-        while(content.matches('(?s).+\\%TEST_SKIPPED_\\d\\%.+')){
-            content = content.replaceFirst("\\%TEST_SKIPPED_\\d\\%", String.valueOf(++max))
-        }
-        file.text = content
-        return content
     }
 
     void reportTestReportsFromPathToJenkins(String path) {
         this.steps.junit("${path}/**/*.xml")
+    }
+
+    private String replaceTestIDsInFile(File file, Map<String, String> linkTestsInJira = [:]) {
+        if(linkTestsInJira) {
+            Map<String, String> bindMap = linkTestsInJira.clone()
+            bindMap.put('project', project.key)
+            def content = new GStringTemplateEngine().createTemplate(file).make(bindMap)
+            file.text = content.toString()
+        }
+        return file.text
     }
 }
