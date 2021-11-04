@@ -1,0 +1,32 @@
+{
+  "id" : "4a7f9d07-36d8-4374-b982-93ed62c19671",
+  "name" : "rest_api_2_issue_ofi2004-158",
+  "request" : {
+    "url" : "/rest/api/2/issue/OFI2004-158?fields=customfield_11602",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"expand\":\"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\",\"id\":\"51203\",\"self\":\"https://jira-dev.biscrum.com/rest/api/2/issue/51203\",\"key\":\"OFI2004-158\",\"fields\":{\"customfield_11602\":\"2\"}}",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Thu, 04 Nov 2021 14:20:25 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "920x92506x1",
+      "X-ASESSIONID" : "1i9pq6e",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "angel_2.martinez%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "4a7f9d07-36d8-4374-b982-93ed62c19671",
+  "persistent" : true,
+  "insertionIndex" : 43
+}

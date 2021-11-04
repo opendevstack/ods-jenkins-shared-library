@@ -1,10 +1,9 @@
 package org.ods.orchestration.usecase
 
-import groovy.json.JsonSlurper
+
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
-import org.junit.Test
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.PipelineSpecBase
@@ -19,8 +18,6 @@ import org.ods.services.OpenShiftService
 import spock.lang.Ignore
 import spock.lang.Unroll
 import util.FixtureHelper
-
-import java.nio.file.Files
 
 /**
  * IMPORTANT: this test use Wiremock files to mock all the external interactions.

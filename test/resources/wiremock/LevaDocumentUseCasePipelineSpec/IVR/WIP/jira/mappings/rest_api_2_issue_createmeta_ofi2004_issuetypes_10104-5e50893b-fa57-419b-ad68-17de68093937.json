@@ -1,0 +1,32 @@
+{
+  "id" : "5e50893b-fa57-419b-ad68-17de68093937",
+  "name" : "rest_api_2_issue_createmeta_ofi2004_issuetypes_10104",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/OFI2004/issuetypes/10104",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_issue_createmeta_ofi2004_issuetypes_10104-5e50893b-fa57-419b-ad68-17de68093937.json",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Thu, 04 Nov 2021 14:18:02 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "917x92272x1",
+      "X-ASESSIONID" : "1i9pq6e",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-AUSERNAME" : "angel_2.martinez%40boehringer-ingelheim.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "5e50893b-fa57-419b-ad68-17de68093937",
+  "persistent" : true,
+  "insertionIndex" : 5
+}

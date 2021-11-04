@@ -34,38 +34,6 @@ class TestDataIVRBuilder extends TestDataBuilder {
     }
 
     def getInstallationTestSuite(List<String> issueKeys) {
-        def tests = getTests(issueKeys)
-//        def tests = '''
-//            {
-//                "classname": "DemoInstallationSpec",
-//                "name": "OFI2004137 Installation",
-//                "time": "0.012",
-//                "skipped": false,
-//                "systemOut": "",
-//                "systemErr": "",
-//                "timestamp": "2021-10-18T11:26:22"
-//            },
-//            {
-//                "classname": "DemoInstallationSpec",
-//                "name": "OFI2004140 Installation",
-//                "time": "0.001",
-//                "skipped": false,
-//                "systemOut": "",
-//                "systemErr": "",
-//                "timestamp": "2021-10-18T11:26:22"
-//            },
-//            {
-//                "classname": "DemoInstallationSpec",
-//                "name": "OFI2004139 Installation",
-//                "time": "0.002",
-//                "skipped": false,
-//                "systemOut": "",
-//                "systemErr": "",
-//                "timestamp": "2021-10-18T11:26:22",
-//                "error": {
-//                "text": "This is an error."}
-//            }
-//            '''
         def jsonInstallationTestSuite = '''
                         {
                            "hostname": "pod-5dd03da0-9bdb-485c-97dc-55a3bc4c483c-dg573-flht4",
@@ -80,7 +48,7 @@ class TestDataIVRBuilder extends TestDataBuilder {
 
                            ],
                            "testcases": [
-                               ''' + tests + '''
+                               ''' + getTests(issueKeys) + '''
                            ],
                            "systemOut": "",
                            "systemErr": ""
