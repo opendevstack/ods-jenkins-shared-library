@@ -85,6 +85,19 @@ class LeVADocumentUseCase extends DocGenUseCase {
         'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
     ]
 
+    static List<String> COMPONENT_TYPE_IS_NOT_INSTALLED = [
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String,
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String
+    ]
+
+    static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component'
+    ]
+
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
     public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
     public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
@@ -558,8 +571,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         def risks = this.project.getRisks().collect { r ->
-            def mitigationsText = r.mitigations ? r.mitigations.join(", ") : "None"
-            def testsText = r.tests ? r.tests.join(", ") : "None"
+            def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
+            def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
             def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
             def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
             def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
@@ -660,10 +673,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForIPV(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def installedRepos = this.project.repositories.collect {
+            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories   : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections       : sections,
                 tests          : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
@@ -719,10 +736,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc =  this.computeKeysInDocForIVR(installationTestIssues)
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def installedRepos = this.project.repositories.collect {
+            it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
-                repositories      : this.project.repositories.collect { [id: it.id, type: it.type, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
+                repositories   : installedRepos.collect { [id: it.id, type: it.type, doInstall: it.doInstall, data: [git: [url: it.data.git == null ? null : it.data.git.url]]] },
                 sections          : sections,
                 tests             : SortUtil.sortIssuesByKey(installationTestIssues.collect { testIssue ->
                     [
@@ -936,7 +957,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 description   : this.convertImages(c.description ?: ''),
                 supplier      : c.supplier,
                 version       : c.version,
-                references    : c.references
+                references    : c.references,
+                doInstall     : c.doInstall
             ]
         }
 
@@ -966,7 +988,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
         ]
-
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
@@ -986,11 +1007,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def keysInDoc = this.computeKeysInDocForTIP(this.project.getComponents())
         def docHistory = this.getAndStoreDocumentHistory(documentType, keysInDoc)
 
+        def repositories = this.project.repositories.findAll {
+            !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())
+        }
+
         def data_ = [
             metadata: this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType]),
             data    : [
                 project_key : this.project.key,
-                repositories: this.project.repositories,
+                repositories: repositories.collect {
+                    it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+                },
                 sections    : sections,
                 documentHistory: docHistory?.getDocGenFormat() ?: [],
             ]
@@ -1022,6 +1049,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         def keysInDoc = ['Technology-' + repo.id]
         def docHistory = this.getAndStoreDocumentHistory(documentType + '-' + repo.id, keysInDoc)
+
+        repo << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo.type?.toLowerCase())]
 
         def data_ = [
             metadata     : this.getDocumentMetadata(this.DOCUMENT_TYPE_NAMES[documentType], repo),
@@ -1083,7 +1112,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 log: this.jenkins.getCurrentBuildLogAsText()
             ]
 
-            data_.repositories = this.project.repositories
+            data_.repositories = this.project.repositories.collect {
+                it << [ doInstall: !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(it.type?.toLowerCase())]
+            }
         }
 
         def uri = this.createOverallDocument('Overall-TIR-Cover', documentType, metadata, visitor, watermarkText)
@@ -1414,7 +1445,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     key               : component.name,
                     componentName     : component.name,
                     componentId       : metadata.id ?: 'N/A - part of this application',
-                    componentType     : (repo_.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'ODS Component' : 'Software',
+                    componentType     : INTERNAL_TO_EXT_COMPONENT_TYPES.get(repo_.type?.toLowerCase()),
+                    doInstall         : !COMPONENT_TYPE_IS_NOT_INSTALLED.contains(repo_.type?.toLowerCase()),
                     odsRepoType       : repo_.type?.toLowerCase(),
                     description       : metadata.description,
                     nameOfSoftware    : normComponentName ?: metadata.name,
@@ -1699,11 +1731,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def environment = this.project.buildParams.targetEnvironmentToken
-        def isHistoryUpdatedInThisEnvironment = { String doc ->
-            LeVADocumentScheduler.getFirstCreationEnvironment(doc) == environment
-        }
-
         def referencedDcocs = [
             DocumentType.CSD,
             DocumentType.SSDS,
@@ -1719,38 +1746,50 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         referencedDcocs.collectEntries { DocumentType dt ->
             def doc = dt as String
-            def version
-
-            if (! this.project.isVersioningEnabled) {
-                // TODO removeme in ODS 4.x
-                version = "${this.project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
-            } else {
-                version = this.project.getDocumentVersionFromHistories(doc)
-                if (!version) {
-                    // The document has not (yet) been generated in this pipeline run.
-                    def envs = Environment.values().collect { it.toString() }
-                    def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
-                    version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                    if (this.project.isWorkInProgress || isHistoryUpdatedInThisEnvironment(doc)) {
-                        // Either this is a developer preview or the history is to be updated in this environment.
-                        version += 1L
-                    }
-                }
-            }
-
-            if (this.project.isWorkInProgress) {
-                // If this is a developer preview, the document version is always a WIP, because,
-                // if we have the document history, it has already been updated to a new version.
-                version = "${version}-WIP"
-            }
+            def version = getVersion(this.project, doc)
 
             return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
 
     }
 
+    protected String getVersion(Project project, String doc) {
+        def version
+
+        if (!project.isVersioningEnabled) {
+            // TODO removeme in ODS 4.x
+            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
+        } else {
+            version = project.getDocumentVersionFromHistories(doc)
+            if (!version) {
+                // The document has not (yet) been generated in this pipeline run.
+                def envs = Environment.values().collect { it.toString() }
+                def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
+                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+                if (project.isWorkInProgress ||
+                        LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
+                        project.buildParams.targetEnvironmentToken ) {
+                    // Either this is a developer preview or the history is to be updated in this environment.
+                    version += 1L
+                }
+            }
+        }
+
+        if (project.isWorkInProgress) {
+            // If this is a developer preview, the document version is always a WIP, because,
+            // if we have the document history, it has already been updated to a new version.
+            version = "${version}-WIP"
+        }
+
+        return version as String
+    }
+
     @NonCPS
     private def computeKeysInDocForTCR(def data) {
         return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
+    protected String replaceDashToNonBreakableUnicode(theString) {
+        return theString?.replaceAll('-', '&#x2011;')
+    }
+
 }
