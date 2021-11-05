@@ -57,6 +57,10 @@
 - Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
 - Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
 - Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
+- Add support for ods-saas-service components ([#607](https://github.com/opendevstack/ods-jenkins-shared-library/pull/607))
+- Automatically change the date_created by Wiremock with a Wiremock wildcard ([#743](https://github.com/opendevstack/ods-jenkins-shared-library/pull/743))
+- Refactor and create unit test for LeVADocumentUseCase.getReferencedDocumentsVersion ([#744](https://github.com/opendevstack/ods-jenkins-shared-library/pull/744))
+- Remove from TIP non installed components([#751](https://github.com/opendevstack/ods-jenkins-shared-library/pull/751))
 
 ## [3.0] - 2020-08-11
 
