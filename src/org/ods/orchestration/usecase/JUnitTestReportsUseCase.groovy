@@ -9,8 +9,8 @@ import org.ods.orchestration.util.Project
 @SuppressWarnings(['JavaIoPackageAccess', 'EmptyCatchBlock'])
 class JUnitTestReportsUseCase {
 
-    private Project project
-    private IPipelineSteps steps
+    private final Project project
+    private final IPipelineSteps steps
 
     JUnitTestReportsUseCase(Project project, IPipelineSteps steps) {
         this.project = project

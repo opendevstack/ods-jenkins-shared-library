@@ -13,6 +13,8 @@ import org.ods.services.NexusService
 import groovy.json.JsonOutput
 import org.ods.util.AuthUtil
 
+import java.util.concurrent.ExecutionException
+
 class Pipeline implements Serializable {
 
     private GitService gitService
@@ -106,9 +108,9 @@ class Pipeline implements Serializable {
                                 context.assemble()
                                 break
                             } catch (err) {
-                                logger.debug("Hit Jenkins serialization issue, attempt ${5-retryAttempts}")
+                                logger.debug("Hit Jenkins serialization issue, attempt ${5 - retryAttempts}")
                                 if (retryAttempts == 1) {
-                                    throw new Exception("Maxed out 5 re-attempts, please re-executed")
+                                    throw new ExecutionException("Maxed out 5 re-attempts, please re-executed")
                                 }
                             }
                         }

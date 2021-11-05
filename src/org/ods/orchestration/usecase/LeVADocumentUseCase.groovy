@@ -960,7 +960,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
                 component.requirements = component.requirements.collect { r ->
-                    if (r == null){
+                    if (r == null) {
                         return
                     }
                     [key: r.key, name: r.name,
