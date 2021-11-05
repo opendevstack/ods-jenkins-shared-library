@@ -530,11 +530,11 @@ class Context implements IContext {
             return [:]
         }
 
-        return normalizeEnvironment(rawEnv, keyPrefix)        
+        return normalizeEnvironment(rawEnv, keyPrefix)
     }
 
     @NonCPS
-    Map<String,String> normalizeEnvironment (String rawEnv, String keyPrefix){
+    Map<String,String> normalizeEnvironment (String rawEnv, String keyPrefix) {
         def lineSplitEnv = rawEnv.normalize().split(System.getProperty('line.separator'))
         Map normalizedEnv = [ : ]
         for (int lineC = 0; lineC < lineSplitEnv.size(); lineC++) {
