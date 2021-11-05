@@ -30,7 +30,7 @@ class Util {
             try {
                 block()
             } catch (java.io.NotSerializableException err){
-                logger.debug ("Hit Jenkins serialization issue; attempt #: ${maxRetries - retries}")
+                script.echo ("WARN: Hit Jenkins serialization issue; attempt #: ${maxRetries - retries}")
                 script.sleep(waitTime)
             }
         }
