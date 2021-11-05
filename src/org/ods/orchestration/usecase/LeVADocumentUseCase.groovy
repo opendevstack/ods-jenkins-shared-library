@@ -960,6 +960,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .collect { component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
                 component.requirements = component.requirements.collect { r ->
+                    if (r == null){
+                        return
+                    }
                     [key: r.key, name: r.name,
                      reqDescription: this.convertImages(r.description), gampTopic: r.gampTopic ?: "uncategorized"]
                 }.groupBy { it.gampTopic.toLowerCase() }
