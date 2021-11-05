@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+
+## [4.0] - 2021-05-11
+
+### Added
 - Fixed the Developer Preview fails because "Duplicated Tests"
 - Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
 - Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
