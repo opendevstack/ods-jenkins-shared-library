@@ -152,7 +152,7 @@ class FinalizeStage extends Stage {
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
         def gatherCommitTasks = Util.collectEntries(repos.flatten(), { it.id }) {
-            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${it.id}") {
                 repo.data.git.createdExecutionCommit = git.commitSha
             }
         }
@@ -163,9 +163,6 @@ class FinalizeStage extends Stage {
 
      private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-
-        def repoIntegrateTasks = Util.collectEntries(repos.flatten(), { it.id }) {
-
 
         def repoIntegrateTasks = Util.findAll(repos.flatten()) {
             it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
