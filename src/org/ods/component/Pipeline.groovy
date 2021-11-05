@@ -99,7 +99,19 @@ class Pipeline implements Serializable {
                                 replace(wtfEnvBug, "${defaultDockerRegistry}/")
                             logger.warn ("Patched image via master env to: ${config.image}")
                         }
-                        context.assemble()
+                        int retryAttempts = 5
+                        while (retryAttempts-- > 0)
+                        {
+                            try {
+                                context.assemble()
+                                break
+                            } catch (err) {
+                                logger.debug("Hit Jenkins serialization issue, attempt ${5-retryAttempts}")
+                                if (retryAttempts == 1) {
+                                    throw new Exception("Maxed out 5 re-attempts, please re-executed")
+                                }
+                            }
+                        }
                         // register services after context was assembled
                         logger.debug('-> Registering & loading global services')
                         def registry = ServiceRegistry.instance

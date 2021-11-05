@@ -17,6 +17,7 @@ class JUnitTestReportsUseCase {
         this.steps = steps
     }
 
+    @NonCPS
     Map combineTestResults(List<Map> testResults) {
         def result = [ testsuites: [] ]
 
@@ -27,6 +28,7 @@ class JUnitTestReportsUseCase {
         return result
     }
 
+    @NonCPS
     int getNumberOfTestCases(Map testResults) {
         def result = 0
 
@@ -50,6 +52,7 @@ class JUnitTestReportsUseCase {
         return result
     }
 
+    @NonCPS
     Map parseTestReportFiles(List<File> files) {
         def testResults = files.collect { file ->
             JUnitParser.parseJUnitXML(file.text)
