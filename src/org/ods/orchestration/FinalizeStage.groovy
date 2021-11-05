@@ -161,12 +161,10 @@ class FinalizeStage extends Stage {
         script.parallel(gatherCommitTasks)
     }
 
-     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
-        def flattenedRepos = repos.flatten()
-
+    private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def repoIntegrateTasks = Util.findAll(repos.flatten()) {
             it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
-                it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA
+            it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA
         }
 
         repoIntegrateTasks = Util.collectEntries(repoIntegrateTasks, { it.id }) {
