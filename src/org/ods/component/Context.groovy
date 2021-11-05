@@ -60,8 +60,8 @@ class Context implements IContext {
         config.sonarQubeEdition = script.env.SONAR_EDITION ?: 'community'
 
         config.globalExtensionImageLabels = getExtensionBuildParams()
-        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
-            'JENKINS_MASTER_')
+        config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_MASTER_'))
 
         logger.debug("Got external build labels: ${config.globalExtensionImageLabels}")
 
@@ -164,8 +164,8 @@ class Context implements IContext {
             config.globalExtensionImageLabels = [:]
         }
         // get the build labels from the env running in ..
-        config.globalExtensionImageLabels << getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
-            'JENKINS_AGENT_')
+        config.globalExtensionImageLabels.putAll(getEnvParamsAndAddPrefix('OPENSHIFT_BUILD',
+            'JENKINS_AGENT_'))
     }
 
     boolean getDebug() {
@@ -516,20 +516,36 @@ class Context implements IContext {
     }
 
     Map<String,String> getEnvParamsAndAddPrefix (String envNamePattern = 'ods.build.', String keyPrefix = '') {
-        String rawEnv = script.sh(
-            returnStdout: true, script: "env | grep ${envNamePattern} || true",
-            label: 'getting extension labels from current environment'
-          ).trim()
-
-        if (rawEnv.size() == 0 ) {
+        String rawEnv = ''
+        int retries = 5
+        def waitTime = 5 // seconds
+        while (rawEnv == '' && retries-- > 0) {
+            try{
+                rawEnv = script.sh(
+                    returnStdout: true, script: "env | grep ${envNamePattern} || true",
+                    label: 'getting extension labels from current environment'
+                ).trim()
+            }catch(java.io.NotSerializableException err){
+                logger.debug ("Hit jenkins serialization issue, attempt: ${5-retries}")
+                script.sleep(waitTime)
+            }
+        }
+        if (rawEnv.length() == 0 ) {
             return [:]
         }
+        return normalizeEnvironment(rawEnv, keyPrefix)
+        
+    }
 
-        return rawEnv.normalize().split(System.getProperty('line.separator')).inject([ : ] ) { kvMap, line ->
-            Iterator kv = line.toString().tokenize('=').iterator()
-            kvMap.put(keyPrefix + kv.next(), kv.hasNext() ? kv.next() : '')
-            kvMap
+    @NonCPS
+    Map<String,String> normalizeEnvironment (String rawEnv, String keyPrefix){
+        def lineSplitEnv = rawEnv.normalize().split(System.getProperty('line.separator'))
+        Map normalizedEnv = [ : ]
+        for (int lineC = 0; lineC < lineSplitEnv.size(); lineC++) {
+            def splittedLine = lineSplitEnv[lineC].toString().tokenize('=')
+            normalizedEnv.put(keyPrefix + splittedLine[0], splittedLine[1])
         }
+        return normalizedEnv
     }
 
     String getOpenshiftApplicationDomain () {
