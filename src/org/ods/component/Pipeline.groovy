@@ -8,6 +8,7 @@ import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
+import org.ods.util.Util
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import groovy.json.JsonOutput
@@ -100,19 +101,13 @@ class Pipeline implements Serializable {
                                 replace(wtfEnvBug, "${defaultDockerRegistry}/")
                             logger.warn ("Patched image via master env to: ${config.image}")
                         }
-                        int retryAttempts = 5
-                        while (retryAttempts-- > 0)
-                        {
-                            try {
-                                context.assemble()
-                                break
-                            } catch (err) {
-                                logger.debug("Hit Jenkins serialization issue, attempt ${5-retryAttempts}")
-                                if (retryAttempts == 1) {
-                                    throw new Exception("Maxed out 5 re-attempts, please re-executed")
-                                }
-                            }
+
+                        def contextAssembled = false
+                        Util.executeAndRetryOnNonSerializableException(script, { !contextAssembled }) {
+                            context.assemble()
+                            contextAssembled = true
                         }
+
                         // register services after context was assembled
                         logger.debug('-> Registering & loading global services')
                         def registry = ServiceRegistry.instance

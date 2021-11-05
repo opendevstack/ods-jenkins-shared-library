@@ -12,6 +12,7 @@ import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
+import org.ods.util.Util
 
 import groovy.json.JsonOutput
 
@@ -131,39 +132,30 @@ class FinalizeStage extends Stage {
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
-        def flattenedRepos = repos.flatten()
-        def repoPushTasks = [ : ]
-        for (Map repo : flattenedRepos) {
-            repoPushTasks << [ (repo.id): {
-                steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                    if (project.isWorkInProgress) {
-                        git.pushRef(repo.branch)
-                    } else if (project.isAssembleMode) {
-                        git.createTag(project.targetTag)
-                        git.pushBranchWithTags(project.gitReleaseBranch)
-                    } else {
-                        git.createTag(project.targetTag)
-                        git.pushRef(project.targetTag)
-                    }
+        def repoPushTasks = Util.collectEntries(repos.flatten(), { it.id }) {
+            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${it.id}") {
+                if (project.isWorkInProgress) {
+                    git.pushRef(it.branch)
+                } else if (project.isAssembleMode) {
+                    git.createTag(project.targetTag)
+                    git.pushBranchWithTags(project.gitReleaseBranch)
+                } else {
+                    git.createTag(project.targetTag)
+                    git.pushRef(project.targetTag)
                 }
             }
-            ]
         }
+
         repoPushTasks.failFast = true
         script.parallel(repoPushTasks)
     }
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
-        def flattenedRepos = repos.flatten()
-        def gatherCommitTasks = [ : ]
-        for (Map repo : flattenedRepos) {
-            gatherCommitTasks << [ (repo.id): {
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                        repo.data.git.createdExecutionCommit = git.commitSha
-                    }
-                }
-            ]
+        def gatherCommitTasks = Util.collectEntries(repos.flatten(), { it.id }) {
+            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                repo.data.git.createdExecutionCommit = git.commitSha
             }
+        }
 
         gatherCommitTasks.failFast = true
         script.parallel(gatherCommitTasks)
@@ -171,28 +163,32 @@ class FinalizeStage extends Stage {
 
      private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def flattenedRepos = repos.flatten()
-        def repoIntegrateTasks = [ : ]
-        for (Map repo : flattenedRepos) {
-            if (repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
-               repo.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA)
-            {
-                repoIntegrateTasks << [ (repo.id): {
-                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
-                        def filesToCheckout = []
-                        if (steps.fileExists('openshift')) {
-                            filesToCheckout = ['openshift/ods-deployments.json']
-                        } else {
-                            filesToCheckout = [
-                                'openshift-exported/ods-deployments.json',
-                                'openshift-exported/template.yml'
-                            ]
-                        }
-                        git.mergeIntoMainBranch(project.gitReleaseBranch, repo.branch, filesToCheckout)
-                    }
+
+        def repoIntegrateTasks = Util.collectEntries(repos.flatten(), { it.id }) {
+
+
+        def repoIntegrateTasks = Util.findAll(repos.flatten()) {
+            it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
+                it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA
+        }
+
+        repoIntegrateTasks = Util.collectEntries(repoIntegrateTasks, { it.id }) {
+            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${it.id}") {
+                def filesToCheckout = []
+
+                if (steps.fileExists('openshift')) {
+                    filesToCheckout = ['openshift/ods-deployments.json']
+                } else {
+                    filesToCheckout = [
+                        'openshift-exported/ods-deployments.json',
+                        'openshift-exported/template.yml'
+                    ]
                 }
-                ]
+
+                git.mergeIntoMainBranch(project.gitReleaseBranch, it.branch, filesToCheckout)
             }
         }
+
         repoIntegrateTasks.failFast = true
         script.parallel(repoIntegrateTasks)
     }
@@ -201,12 +197,12 @@ class FinalizeStage extends Stage {
         // record release manager repo state
         logger.debug "Finalize: Recording HEAD commits from repos ..."
         logger.debug "On release manager commit ${git.commitSha}"
-        def flattenedRepos = repos.flatten()
-        def gitHeads = [ : ]
-        for (Map repo : flattenedRepos) {
-            logger.debug "HEAD of repo '${repo.id}': ${repo.data.git.createdExecutionCommit}"
-            gitHeads << [ (repo.id): (repo.data.git.createdExecutionCommit ?: '')]
+
+        def gitHeads = Util.collectEntries(repos.flatten(), { it.id }) {
+            logger.debug "HEAD of repo '${it.id}': ${it.data.git.createdExecutionCommit}"
+            return repo.data.git.createdExecutionCommit ?: ''
         }
+
         def envState = [
             version: project.buildParams.version,
             changeId: project.buildParams.changeId,

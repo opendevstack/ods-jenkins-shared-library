@@ -1,6 +1,7 @@
 package org.ods.component
 
 import org.ods.util.Logger
+import org.ods.util.Util
 import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
@@ -517,24 +518,19 @@ class Context implements IContext {
 
     Map<String,String> getEnvParamsAndAddPrefix (String envNamePattern = 'ods.build.', String keyPrefix = '') {
         String rawEnv = ''
-        int retries = 5
-        def waitTime = 5 // seconds
-        while (rawEnv == '' && retries-- > 0) {
-            try{
-                rawEnv = script.sh(
-                    returnStdout: true, script: "env | grep ${envNamePattern} || true",
-                    label: 'getting extension labels from current environment'
-                ).trim()
-            }catch(java.io.NotSerializableException err){
-                logger.debug ("Hit jenkins serialization issue, attempt: ${5-retries}")
-                script.sleep(waitTime)
-            }
+
+        Util.executeAndRetryOnNonSerializableException(script, { rawEnv == '' }) {
+            rawEnv = script.sh(
+                returnStdout: true, script: "env | grep ${envNamePattern} || true",
+                label: 'getting extension labels from current environment'
+            ).trim()
         }
+
         if (rawEnv.length() == 0 ) {
             return [:]
         }
-        return normalizeEnvironment(rawEnv, keyPrefix)
-        
+
+        return normalizeEnvironment(rawEnv, keyPrefix)        
     }
 
     @NonCPS
