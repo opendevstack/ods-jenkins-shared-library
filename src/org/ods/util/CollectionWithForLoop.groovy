@@ -5,7 +5,7 @@ import com.cloudbees.groovy.cps.NonCPS
 class CollectionWithForLoop {
 
     @NonCPS
-    static findAll(Collection c, Closure filter) {
+    static List findAll(Collection c, Closure filter) {
         def results = []
 
         for (def i = 0; i < c.size(); i++) {
@@ -18,7 +18,7 @@ class CollectionWithForLoop {
 
     @NonCPS
     static collectEntries(Collection c, Closure key, Closure value) {
-        def results = [:]
+        Map results = [:]
 
         for (def i = 0; i < c.size(); i++) {
             results[key(c[i])] = value(c[i])

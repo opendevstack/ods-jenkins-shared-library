@@ -3,6 +3,7 @@ package org.ods.orchestration.usecase
 import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.parser.JUnitParser
+import org.ods.util.CollectionWithForLoop
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 
@@ -19,9 +20,8 @@ class JUnitTestReportsUseCase {
 
     Map combineTestResults(List<Map> testResults) {
         def result = [ testsuites: [] ]
-
-        testResults.each { testResult ->
-            result.testsuites.addAll(testResult.testsuites)
+        for (def i = 0; i < testResults.size(); i++) {
+            result.testsuites.addAll(testResults[i].testsuites)
         }
 
         return result
@@ -33,7 +33,6 @@ class JUnitTestReportsUseCase {
         testResults.testsuites.each { testsuite ->
             result += testsuite.testcases.size()
         }
-
         return result
     }
 
@@ -51,10 +50,10 @@ class JUnitTestReportsUseCase {
     }
 
     Map parseTestReportFiles(List<File> files) {
-        def testResults = files.collect { file ->
-            JUnitParser.parseJUnitXML(file.text)
+        List<Map> testResults = []
+        for (def i = 0; i < files.size(); i++) {
+            testResults.add(JUnitParser.parseJUnitXML(files[i].text))
         }
-
         return this.combineTestResults(testResults)
     }
 
