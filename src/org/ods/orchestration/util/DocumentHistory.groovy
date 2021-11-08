@@ -325,6 +325,7 @@ class DocumentHistory {
         this.allIssuesAreValid = true
 
         def versionMap = this.computeEntryData(jiraData, projectVersion, keysInDocument)
+        logger.debug("parseJiraDataToDocumentHistoryEntry: versionMap = ${versionMap.toString()}")
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
@@ -341,7 +342,6 @@ class DocumentHistory {
             ]
         } as Map
         def retValue = this.computeActionsThatBelongToTheCurrentHistoryData(previousDocumentIssues, addUpdDisc, keysInDocument)
-        logger.debug("computeEntryData: retValue = ${retValue.toString()}")
         return retValue
     }
 
@@ -368,7 +368,6 @@ class DocumentHistory {
         if (issuesInDoc == null) {
             issuesInDoc = []
         }
-        logger.debug("computeActionsThatBelongToTheCurrentHistoryData: versionActions = ${versionActions.toMapString()}")
         // Traverse the collection of all the issues that belong to the current project version,
         // in order to determine which of them are to be included in the current history data.
         def issues = versionActions.collectEntries { issueType, actions ->
@@ -396,7 +395,6 @@ class DocumentHistory {
             }
             [(issueType): typeResult.flatten()]
         }
-        logger.debug("computeActionsThatBelongToTheCurrentHistoryData: issues = ${issues.toString()}")
         return issues
     }
 
