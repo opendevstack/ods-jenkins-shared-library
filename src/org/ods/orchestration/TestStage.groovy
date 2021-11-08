@@ -35,9 +35,9 @@ class TestStage extends Stage {
         ]
         def globalData = [
             tests: [
-                acceptance: globalStructure,
-                installation: globalStructure,
-                integration: globalStructure,
+                acceptance: globalStructure.clone(),
+                installation: globalStructure.clone(),
+                integration: globalStructure.clone(),
             ]
         ]
 
