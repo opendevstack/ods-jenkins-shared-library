@@ -53,12 +53,14 @@ class BuildStage extends Stage {
                         "- no unit tests results will be reported")
                 }
 
+                logger.info("levaDocScheduler.run start")
                 levaDocScheduler.run(
                     phase,
                     MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                     repo,
                     data
                 )
+                logger.info("levaDocScheduler.run end")
             }
         }
 

@@ -6,6 +6,8 @@ import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.util.ILogger
+import org.ods.util.Logger
 import org.ods.util.PipelineSteps
 
 class TestStage extends Stage {
@@ -23,6 +25,7 @@ class TestStage extends Stage {
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
+        ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.TEST
 
@@ -93,8 +96,10 @@ class TestStage extends Stage {
                 }
         }
         executeInParallel(executeRepos, generateDocuments)
+        logger.debug("TestStage execute test InParallel end")
 
         // Parse all test report files into a single data structure
+        logger.debug("tests.*.testResults = junit.parseTestReportFiles start")
         globalData.tests.acceptance.testResults = junit.parseTestReportFiles(
             globalData.tests.acceptance.testReportFiles
         )
@@ -104,6 +109,7 @@ class TestStage extends Stage {
         globalData.tests.integration.testResults = junit.parseTestReportFiles(
             globalData.tests.integration.testReportFiles
         )
+        logger.debug("tests.*.testResults = junit.parseTestReportFiles end")
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }

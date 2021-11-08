@@ -1,5 +1,6 @@
 package org.ods.component
 
+import org.ods.util.ShellWithRetry
 import org.ods.util.Logger
 import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
@@ -9,9 +10,13 @@ import org.ods.services.OpenShiftService
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurperClassic
 import groovy.json.JsonOutput
+import java.util.concurrent.ExecutionException
 
 @SuppressWarnings('MethodCount')
 class Context implements IContext {
+
+    static final int MAX_RETRIES = 5
+    static final int WAIT_TIME_SECONDS = 1
 
     final List excludeFromContextDebugConfig = ['nexusPassword', 'nexusUsername']
     // script is the context of the Jenkinsfile. That means that things like "sh" need to be called on script.
@@ -34,8 +39,27 @@ class Context implements IContext {
         this.localCheckoutEnabled = localCheckoutEnabled
     }
 
-    @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'MethodSize', 'Instanceof'])
     def assemble() {
+        int retry = 0
+        boolean executedWithErrors = true
+
+        while (executedWithErrors && retry++ < MAX_RETRIES) {
+            try {
+                assembleWithRetry()
+                executedWithErrors = false
+            } catch (java.io.NotSerializableException err) {
+                logger.warn ("WARN: Jenkins serialization issue; attempt #: ${retry}, when: context.assemble()")
+                script.sleep(WAIT_TIME_SECONDS)
+            }
+        }
+
+        if (executedWithErrors) {
+            throw new ExecutionException("Jenkins serialization issue, when: context.assemble()")
+        }
+    }
+
+    @SuppressWarnings(['AbcMetric', 'CyclomaticComplexity', 'MethodSize', 'Instanceof'])
+    def assembleWithRetry() {
         logger.debug 'Validating input ...'
         // branchToEnvironmentMapping must be given, but it is OK to be empty - e.g.
         // if the repository should not be deployed to OpenShift at all.

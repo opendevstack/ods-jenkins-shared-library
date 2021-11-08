@@ -7,6 +7,7 @@ import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
+import org.ods.util.CollectionWithForLoop
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger

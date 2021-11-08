@@ -959,10 +959,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
             .collect { component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
-                component.requirements = component.requirements.collect { r ->
-                    if (r == null) {
-                        return
-                    }
+                component.requirements = component.requirements.findAll{it != null}.collect { r ->
                     [key: r.key,
                      name: r.name,
                      reqDescription: this.convertImages(r.description),
@@ -1210,6 +1207,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
 
+    @NonCPS
     List<String> getSupportedDocuments() {
         return DocumentType.values().collect { it as String }
     }
