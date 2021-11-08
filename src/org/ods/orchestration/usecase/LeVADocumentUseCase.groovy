@@ -963,8 +963,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     if (r == null) {
                         return
                     }
-                    [key: r.key, name: r.name,
-                     reqDescription: this.convertImages(r.description), gampTopic: r.gampTopic ?: "uncategorized"]
+                    [key: r.key,
+                     name: r.name,
+                     reqDescription: this.convertImages(r.description),
+                     gampTopic: r.gampTopic ?: "uncategorized"
+                    ]
                 }.groupBy { it.gampTopic.toLowerCase() }
                     .collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
