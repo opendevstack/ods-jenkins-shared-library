@@ -8,7 +8,6 @@ import org.ods.util.GitCredentialStore
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
-import org.ods.util.Util
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import groovy.json.JsonOutput
@@ -102,11 +101,7 @@ class Pipeline implements Serializable {
                             logger.warn ("Patched image via master env to: ${config.image}")
                         }
 
-                        def contextAssembled = false
-                        Util.executeAndRetryOnNonSerializableException(script, { !contextAssembled }) {
-                            context.assemble()
-                            contextAssembled = true
-                        }
+                        context.assemble()
 
                         // register services after context was assembled
                         logger.debug('-> Registering & loading global services')

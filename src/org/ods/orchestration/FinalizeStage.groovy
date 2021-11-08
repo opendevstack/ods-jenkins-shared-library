@@ -8,11 +8,11 @@ import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
+import org.ods.util.CollectionWithForLoop
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.ods.util.ILogger
-import org.ods.util.Util
 
 import groovy.json.JsonOutput
 
@@ -132,7 +132,7 @@ class FinalizeStage extends Stage {
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
-        def repoPushTasks = Util.collectEntries(repos.flatten(), { it.id }) {
+        def repoPushTasks = CollectionWithForLoop.collectEntries(repos.flatten(), { it.id }) {
             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${it.id}") {
                 if (project.isWorkInProgress) {
                     git.pushRef(it.branch)
@@ -151,7 +151,7 @@ class FinalizeStage extends Stage {
     }
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
-        def gatherCommitTasks = Util.collectEntries(repos.flatten(), { it.id }) {
+        def gatherCommitTasks = CollectionWithForLoop.collectEntries(repos.flatten(), { it.id }) {
             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${it.id}") {
                 repo.data.git.createdExecutionCommit = git.commitSha
             }
@@ -162,12 +162,12 @@ class FinalizeStage extends Stage {
     }
 
     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
-        def repoIntegrateTasks = Util.findAll(repos.flatten()) {
+        def repoIntegrateTasks = CollectionWithForLoop.findAll(repos.flatten()) {
             it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
             it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA
         }
 
-        repoIntegrateTasks = Util.collectEntries(repoIntegrateTasks, { it.id }) {
+        repoIntegrateTasks = CollectionWithForLoop.collectEntries(repoIntegrateTasks, { it.id }) {
             steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${it.id}") {
                 def filesToCheckout = []
 
@@ -193,7 +193,7 @@ class FinalizeStage extends Stage {
         logger.debug "Finalize: Recording HEAD commits from repos ..."
         logger.debug "On release manager commit ${git.commitSha}"
 
-        def gitHeads = Util.collectEntries(repos.flatten(), { it.id }) {
+        def gitHeads = CollectionWithForLoop.collectEntries(repos.flatten(), { it.id }) {
             logger.debug "HEAD of repo '${it.id}': ${it.data.git.createdExecutionCommit}"
             return repo.data.git.createdExecutionCommit ?: ''
         }
