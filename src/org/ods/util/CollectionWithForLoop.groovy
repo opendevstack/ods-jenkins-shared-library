@@ -1,10 +1,7 @@
 package org.ods.util
 
-import com.cloudbees.groovy.cps.NonCPS
-
 class CollectionWithForLoop {
 
-    @NonCPS
     static List findAll(Collection c, Closure filter) {
         def results = []
 
@@ -16,8 +13,7 @@ class CollectionWithForLoop {
         return results
     }
 
-    @NonCPS
-    static collectEntries(Collection c, Closure key, Closure value) {
+    static Map collectEntries(Collection c, Closure key, Closure value) {
         Map results = [:]
 
         for (def i = 0; i < c.size(); i++) {

@@ -15,7 +15,7 @@ class ShellWithRetry {
         this.logger = logger
     }
 
-    def execute(Map shellParams) {
+    String execute(Map shellParams) {
         String returnScript
         int retry = 0
         boolean executedWithErrors = true
