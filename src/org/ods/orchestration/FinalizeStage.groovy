@@ -164,7 +164,8 @@ class FinalizeStage extends Stage {
     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
         def repoIntegrateTasks = CollectionWithForLoop.findAll(repos.flatten()) {
             it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
-            it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA
+            it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
+            it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE
         }
 
         repoIntegrateTasks = CollectionWithForLoop.collectEntries(repoIntegrateTasks, { it.id }) {
