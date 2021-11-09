@@ -3,7 +3,6 @@ package org.ods.orchestration.usecase
 import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.parser.JUnitParser
-import org.ods.util.CollectionWithForLoop
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.Project
 
@@ -63,4 +62,5 @@ class JUnitTestReportsUseCase {
     void reportTestReportsFromPathToJenkins(String path) {
         this.steps.junit("${path}/**/*.xml")
     }
+
 }
