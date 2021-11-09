@@ -7,7 +7,6 @@ import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.OpenShiftService
 import org.ods.services.GitService
-import org.ods.util.CollectionWithForLoop
 import org.ods.util.PipelineSteps
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
@@ -210,7 +209,7 @@ class FinalizeStage extends Stage {
         def envState = [
             version: project.buildParams.version,
             changeId: project.buildParams.changeId,
-            repositories: gitHeads
+            repositories: gitHeads,
         ]
         steps.writeFile(
             file: project.envStateFileName,
