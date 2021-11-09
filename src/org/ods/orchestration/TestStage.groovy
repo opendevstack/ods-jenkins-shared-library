@@ -46,7 +46,7 @@ class TestStage extends Stage {
                     testResults: [
                         testsuites: []
                     ],
-                ],
+                ]
             ]
         ]
 

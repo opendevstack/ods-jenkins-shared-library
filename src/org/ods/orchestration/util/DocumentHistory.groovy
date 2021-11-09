@@ -341,8 +341,7 @@ class DocumentHistory {
                 + (discontinuations[issueType] ?: [])
             ]
         } as Map
-        def retValue = this.computeActionsThatBelongToTheCurrentHistoryData(previousDocumentIssues, addUpdDisc, keysInDocument)
-        return retValue
+        return this.computeActionsThatBelongToTheCurrentHistoryData(previousDocumentIssues, addUpdDisc, keysInDocument)
     }
 
     /**

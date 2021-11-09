@@ -140,7 +140,7 @@ class DocumentHistoryEntry implements Map, Serializable {
         os.writeObject(this.delegate)
         def ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))
 
-        Map newDelegate = (Map) ois.readObject()
+        def newDelegate = ois.readObject()
         DocumentHistoryEntry result = new DocumentHistoryEntry(newDelegate,
             entryId, projectVersion, previousProjectVersion)
         result.rational = this.rational
