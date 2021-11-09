@@ -102,12 +102,14 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.CSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.BUILD): [
-            (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.TIP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.RA as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.CFTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.RA as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.TCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.TIP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.TRC as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
             (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
@@ -115,8 +117,6 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
         ],
         (MROPipelineUtil.PipelinePhases.TEST): [
-            (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.TRC as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.IVR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.CFTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.DIL as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
