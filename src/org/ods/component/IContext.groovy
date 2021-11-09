@@ -197,4 +197,5 @@ interface IContext {
 
     // get commit the working tree
     boolean getCommitGitWorkingTree ()
+
 }

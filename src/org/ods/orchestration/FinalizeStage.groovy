@@ -177,7 +177,7 @@ class FinalizeStage extends Stage {
                 } else {
                     filesToCheckout = [
                         'openshift-exported/ods-deployments.json',
-                        'openshift-exported/template.yml'
+                        'openshift-exported/template.yml',
                     ]
                 }
 

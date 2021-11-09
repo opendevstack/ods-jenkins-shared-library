@@ -2,7 +2,6 @@ package org.ods.component
 
 import org.ods.util.ShellWithRetry
 import org.ods.util.Logger
-import org.ods.util.Util
 import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
@@ -648,7 +647,7 @@ class Context implements IContext {
 
     private String commitHashForBuild(build) {
         return build
-            .getActions(hudson.plugins.git.util.BuildData.class)
+            .getActions(hudson.plugins.git.util.BuildData)
             .find { action -> action.getRemoteUrls().contains(config.gitUrl) }
             .getLastBuiltRevision().getSha1String()
     }

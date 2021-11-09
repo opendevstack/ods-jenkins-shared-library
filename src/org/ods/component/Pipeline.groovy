@@ -358,7 +358,7 @@ class Pipeline implements Serializable {
         return this.ciSkipEnabled && gitService.ciSkipInCommitMessage
     }
 
-    private def prepareAgentPodConfig(Map config) {
+    private void prepareAgentPodConfig(Map config) {
         if (!config.image && !config.imageStreamTag && !config.podContainers) {
             script.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
         }
