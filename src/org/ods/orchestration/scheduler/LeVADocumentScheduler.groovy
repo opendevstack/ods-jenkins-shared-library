@@ -81,7 +81,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ]
     ]
 
-    // Document types per pipeline phase with an optional lifecycle constraint
+    // Document types per repository type with an optional phase constraint
     private static Map REPSITORY_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
             (LeVADocumentUseCase.DocumentType.DTR as String): null,
@@ -96,7 +96,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:]
     ]
 
-    // Document types per repository type with an optional phase constraint
+    // Document types per pipeline phase with an optional lifecycle constraint
     private static Map PIPELINE_PHASES = [
         (MROPipelineUtil.PipelinePhases.INIT): [
             (LeVADocumentUseCase.DocumentType.CSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
