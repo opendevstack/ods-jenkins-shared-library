@@ -12,7 +12,7 @@ import org.ods.util.IPipelineSteps
 class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per GAMP category
-    private static Map GAMP_CATEGORIES = [
+    private final static Map GAMP_CATEGORIES = [
         "1": [
             LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.RA as String,
@@ -81,41 +81,8 @@ class LeVADocumentScheduler extends DocGenScheduler {
         ]
     ]
 
-    // Document types per pipeline phase with an optional lifecycle constraint
-    private static Map PIPELINE_PHASES = [
-        (MROPipelineUtil.PipelinePhases.INIT): [
-            (LeVADocumentUseCase.DocumentType.CSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
-        ],
-        (MROPipelineUtil.PipelinePhases.BUILD): [
-            (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
-            (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
-        ],
-        (MROPipelineUtil.PipelinePhases.DEPLOY): [
-            (LeVADocumentUseCase.DocumentType.TIP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
-        ],
-        (MROPipelineUtil.PipelinePhases.TEST): [
-            (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.RA as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.IVR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.CFTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.TRC as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.CFTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.DIL as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.TCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.TCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
-        ],
-        (MROPipelineUtil.PipelinePhases.RELEASE): [
-        ],
-        (MROPipelineUtil.PipelinePhases.FINALIZE): [
-            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
-        ]
-    ]
-
     // Document types per repository type with an optional phase constraint
-    private static Map REPSITORY_TYPES = [
+    private final static Map REPSITORY_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
             (LeVADocumentUseCase.DocumentType.DTR as String): null,
             (LeVADocumentUseCase.DocumentType.TIR as String): null
@@ -126,22 +93,55 @@ class LeVADocumentScheduler extends DocGenScheduler {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:]
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:],
+    ]
+
+    // Document types per pipeline phase with an optional lifecycle constraint
+    private final static Map PIPELINE_PHASES = [
+        (MROPipelineUtil.PipelinePhases.INIT): [
+            (LeVADocumentUseCase.DocumentType.CSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
+        ],
+        (MROPipelineUtil.PipelinePhases.BUILD): [
+            (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.TIP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.RA as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.CFTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.TCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+            (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
+        ],
+        (MROPipelineUtil.PipelinePhases.DEPLOY): [
+            (LeVADocumentUseCase.DocumentType.TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
+        ],
+        (MROPipelineUtil.PipelinePhases.TEST): [
+            (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.TRC as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.IVR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.CFTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.DIL as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
+            (LeVADocumentUseCase.DocumentType.TCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
+        ],
+        (MROPipelineUtil.PipelinePhases.RELEASE): [
+        ],
+        (MROPipelineUtil.PipelinePhases.FINALIZE): [
+            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
+        ],
     ]
 
     // Document types at the project level which require repositories
-    private static List REQUIRING_REPOSITORIES = [
+    private final static List REQUIRING_REPOSITORIES = [
         LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
         LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
         LeVADocumentUseCase.DocumentType.CFTR as String,
         LeVADocumentUseCase.DocumentType.IVR as String,
         LeVADocumentUseCase.DocumentType.TCP as String,
-        LeVADocumentUseCase.DocumentType.TCR as String
+        LeVADocumentUseCase.DocumentType.TCR as String,
     ]
 
     // Document types per environment token and label to track with Jira
     @SuppressWarnings('NonFinalPublicField')
-    public static Map ENVIRONMENT_TYPE = [
+    public final static Map ENVIRONMENT_TYPE = [
         "D": [
             (LeVADocumentUseCase.DocumentType.CSD as String)    : ["${LeVADocumentUseCase.DocumentType.CSD}"],
             (LeVADocumentUseCase.DocumentType.SSDS as String)   : ["${LeVADocumentUseCase.DocumentType.SSDS}"],
@@ -174,7 +174,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_P"]
-        ]
+        ],
     ]
 
     private final ILogger logger
@@ -324,6 +324,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         def documents = this.usecase.getSupportedDocuments()
         def environment = this.project.buildParams.targetEnvironmentToken
 
+        logger.debug("LeVADocumentScheduler stage: ${stage}")
         documents.each { documentType ->
             if (this.isDocumentApplicableForEnvironment(documentType, environment)) {
                 def args = [repo, data]

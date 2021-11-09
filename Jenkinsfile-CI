@@ -1,0 +1,126 @@
+/**
+ * Multibranch job that triggers the e2e main job for the current branch
+ */
+pipeline {
+    agent {
+        label('microCentos')
+    }
+    options {
+        skipDefaultCheckout(true)
+        ansiColor('xterm')
+        withFolderProperties()
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                cleanWs()
+                git credentialsId: env.E2E_REPO_CREDENTIALS_ID,
+                    branch: env.E2E_REPO_BRANCH,
+                    url: env.E2E_REPO_URL,
+                    changelog: false
+            }
+        }
+        stage("Create/Update e2e jobs") {
+            steps {
+                jobDsl targets: ['jenkins/B_dsl_ci_orchestrator.groovy','jenkins/C_dsl_ci_tests.groovy'].join('\n'),
+                    removedJobAction: 'DELETE',
+                    removedViewAction: 'DELETE',
+                    lookupStrategy: 'SEED_JOB',
+                    additionalParameters: [
+                        'basePathParam': getProjectName(),
+                        'branchParam': env.BRANCH_NAME,
+                        'testFilesParam': getTestFiles(),
+                        'testToIgnoreParam': env.TESTS_TO_IGNORE
+                    ]
+            }
+        }
+        stage("Tests") {
+            parallel {
+                stage('UT') {
+                    agent {
+                        label("box")
+                    }
+                    steps {
+                        checkoutSharedLibrary()
+                        gradle "clean test"
+                    }
+                    post {
+                        always {
+                            echoInfo ' Generating reports'
+                            junit 'build/test-results/**/*.xml'
+                        }
+                    }
+                }
+                stage("e2e") {
+                    steps {
+                        build job: "${getProjectName()}/e2e/${env.BRANCH_NAME}/01-Orchestrator",
+                            parameters: [string(name: "${getProjectName()}_branch", value: env.BRANCH_NAME)],
+                            wait: true
+                    }
+                }
+            }
+        }
+    }
+}
+
+def getProjectName(){
+    def allJob = env.JOB_NAME.tokenize('/') as String[]
+    return allJob[0]
+}
+
+def getTestFiles(){
+    def files = findFiles(glob: 'src/test/groovy/com/bi/**/*Spec.groovy')
+    echoInfo "----- ----- ----- ----- ----- ----- ----- -----"
+    echoInfo "A job will be created for every Spec file:"
+    files.each {
+        echo " ${it.path}"
+    }
+    echoInfo "----- ----- ----- ----- ----- ----- ----- -----"
+    return files
+}
+
+def checkoutSharedLibrary(){
+    retry(2) {
+        try {
+            cleanWs()
+            checkout scm
+        } catch (Exception exception) {
+            echoError "It seems a problem with the network => restarting oc "
+            restartOC()
+        }
+    }
+}
+
+def restartOC(){
+    echoInfo("restartOC start")
+    int retry = 0
+    while (restartOCTakesSometimeInSeconds()<60 && retry <5){
+        retry++
+    }
+}
+
+def restartOCTakesSometimeInSeconds(){
+    echoInfo("restartOCTakesSometimeInSeconds start")
+    Date startTime = new Date()
+    sh script:"/home/openshift/opendevstack/restart.sh", returnStatus:true
+    Date endTime = new Date()
+    int startupTime =  groovy.time.TimeCategory.minus(endTime, startTime).toMilliseconds()/1000
+    echoInfo("OC restart takes ${startupTime} seconds")
+    return startupTime
+}
+
+def echoInfo(msg){
+    echo "\033[32m ${msg} \033[0m"
+}
+
+def gradle(script, returnStatusParam=false){
+    sh "echo \"no_nexus=true\" > gradle.properties"
+    echoInfo "----- ----- ----- ----- ----- ----- ----- -----"
+    echoInfo "Starting gralde execution: ${script}"
+    def execResult = sh script:"./gradlew ${script}", returnStatus:returnStatusParam
+    if (returnStatusParam)
+        echoInfo "Execution return [${returnStatusParam}]"
+
+    echoInfo "----- ----- ----- ----- ----- ----- ----- -----"
+    return execResult
+}
