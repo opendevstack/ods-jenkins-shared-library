@@ -1,6 +1,5 @@
 package org.ods.component
 
-import org.ods.util.ShellWithRetry
 import org.ods.util.Logger
 import org.ods.services.ServiceRegistry
 import org.ods.services.BitbucketService
@@ -455,9 +454,7 @@ class Context implements IContext {
         }
         if (env) {
             config.environment = env
-            config.cloneSourceEnv = environmentExists(env)
-                ? false
-                : config.autoCloneEnvironmentsFromSourceMapping[env]
+            config.cloneSourceEnv = environmentExists(env) ? false : config.autoCloneEnvironmentsFromSourceMapping[env]
             logger.debug("Target env: ${env}, clone src: ${cloneSourceEnv}")
             return
         }
