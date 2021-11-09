@@ -974,7 +974,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -985,7 +985,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -1882,7 +1882,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -1893,7 +1893,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -2377,7 +2377,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -2388,7 +2388,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -3285,7 +3285,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -3296,7 +3296,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -3780,7 +3780,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -3791,7 +3791,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -4689,7 +4689,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -4700,7 +4700,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -5184,7 +5184,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -5195,7 +5195,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.SSDS | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
