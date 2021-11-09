@@ -1,6 +1,7 @@
 package util
 
 import groovy.json.JsonSlurperClassic
+import groovy.text.GStringTemplateEngine
 import groovy.transform.InheritConstructors
 
 import org.ods.services.GitService
@@ -884,5 +885,111 @@ class FixtureHelper {
     File getResource(String path) {
         path = path.startsWith('/') ? path : '/' + path
         new File(this.getClass().getResource(path).toURI())
+    }
+
+    static generateJUnitXMLFiles(bindings) {
+        def file = File.createTempFile("tir", "test")
+
+        file.append(FixtureHelper.createJUnitXMLTestResultsWithBindings(bindings))
+        return [
+            file
+        ]
+    }
+
+    static String createJUnitXMLTestResultsWithBindings(bindings) {
+        def templateText = """
+        <testsuites name="my-suites" tests="\${testno}" failures="\${failuresno}" errors="\${errorsno}">
+            <% tests.each { type -> %>
+                <testsuite name="\${type.key}" tests="\${type.value.testno}" failures="\${type.value.failuresno}" errors="\${type.value.errorsno}" skipped="\${type.value.skippedno}" timestamp="2020-03-08T20:49:53Z">
+                    <properties>
+                        <property name="my-property-a" value="my-property-a-value"/>
+                    </properties>
+                    <% type.value.issues?.each { test -> %>
+                        <% if (test.success) { %>
+                        <testcase name="\${test.key}-testcase" classname="app.MyTestCase" status="Succeeded" time="1"/>
+                        <% } %>
+                        <% if (!test.success && !test.skipped) { %>
+                            <testcase name="\${test.key}-testcase" classname="app.MyTestCase2" status="Error" time="2">
+                                <error type="my-error-type" message="my-error-message">This is an error.</error>
+                            </testcase>
+                        <% } %>
+                        <% if (test.skipped) { %>
+                        <testcase name="\${test.key}-testcase" classname="app.MyTestCase2" status="Missing" time="2">
+                            <skipped/>
+                        </testcase>
+                        <% } %>
+                    <% } %>
+                </testsuite>
+            <% } %>
+        </testsuites>
+        """
+        def engine = new GStringTemplateEngine()
+        def template = engine.createTemplate(templateText).make(bindings)
+        return template.toString()
+    }
+
+    static Map generateTestSuite(issues) {
+        def generated = [testsuites: []]
+        issues.groupBy { it.testsuite }.each {
+            generated.testsuites << [
+                hostname  : "pod-2139ba54-8ddb-4ce8-b151-2efe6148944e-mx7r4-451mb",
+                failures  : it.value.findAll { t -> !t.success }.size(),
+                tests     : it.value.size(),
+                name      : it.key,
+                errors    : it.value.findAll { t -> !t.success }.size(),
+                timestamp : "2021-10-28T11:18:58",
+                skipped   : it.value.findAll { t -> t.skipped }.size(),
+                properties: [],
+                testcases : it.value.collect { [classname: it.testsuite, name: it.testcase, time: 0.02, skipped: false, systemOut: null, systemErr: null, timestamp: "2021-10-28T11:18:35"] },
+                systemOut : null,
+                systemErr : null
+            ]
+
+        }
+        return generated
+    }
+
+    static Map generateNodes(bindings, testReportFiles) {
+        def nodes = [tests: [:]]
+        bindings.tests.each { it ->
+            println it.key
+            nodes.tests."${it.key}" = [testReportFiles: testReportFiles]
+            nodes.tests."${it.key}".testResults = generateTestSuite(it.value.issues)
+        }
+        return nodes
+    }
+
+    static Map createCFTRData(bindings) {
+        bindings.tests.acceptance?.with {
+            testno = issues?.size() ?: 0
+            errorsno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
+            failuresno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
+            skippedno = issues.findAll { it.skipped }.size() ?: 0
+        }
+
+        bindings.tests.installation?.with {
+            testno = issues.size() ?: 0
+            errorsno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
+            failuresno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
+            skippedno = issues.findAll { it.skipped }.size() ?: 0
+        }
+
+        bindings.tests.integration?.with {
+            testno = issues?.size() ?: 0
+            errorsno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
+            failuresno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
+            skippedno = issues.findAll { it.skipped }.size() ?: 0
+        }
+
+        bindings.tests.with {
+            bindings.testno =     (acceptance?.testno?:0) + (installation?.testno?:0) + (integration?.testno?:0)
+            bindings.errorsno =   (acceptance?.errorsno?:0) + (installation?.errorsno?:0) + (integration?.errorsno?:0)
+            bindings.failuresno = (acceptance?.failuresno?:0) + (installation?.failuresno?:0) + (integration?.failuresno?:0)
+            bindings.skippedno =  (acceptance?.skippedno?:0) + (installation?.skippedno?:0) + (integration?.skippedno?:0)
+
+        }
+
+        def testReportFiles = generateJUnitXMLFiles(bindings)
+        return FixtureHelper.generateNodes(bindings, testReportFiles)
     }
 }

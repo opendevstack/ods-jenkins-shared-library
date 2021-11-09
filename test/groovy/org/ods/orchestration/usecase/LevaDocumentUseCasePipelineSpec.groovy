@@ -82,6 +82,34 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     }
 
     // TODO docs with params:  "DTR",  "CFTR", "IVR",  "TCR", "TIR", "TRC"
+    def "create TIR"() {
+        given: "There's a LeVADocument service"
+        LeVADocumentUseCase useCase = getLeVADocumentUseCaseFactory(doctype, version)
+            .loadProject(setBuildParams(version))
+            .createLeVADocumentUseCase()
+
+        and: "Having these issues"
+        def bindings = [
+            tests: [
+                Installation: [
+                    issues: [
+                        [key: 'TEST1', success: true, testsuite: "DemoInstallation", testcase: "basicTest"],
+                        [key: 'OFI2004126', success: false, testsuite: "DemoInstallation", testcase: "OFI2004126_test"],
+                        [key: 'TEST2', skipped: true, testsuite: "DemoInstallationTest", testcase: "basicTest()"]
+                    ]
+                ]
+            ]
+        ]
+        when: "the user creates a LeVA document"
+        useCase.createCFTR(null, FixtureHelper.createCFTRData(bindings))
+
+        then: "the generated PDF is as expected"
+        validatePDF(doctype, version)
+
+        where:
+        version = "WIP"
+        doctype = "CFTR"
+    }
 
     @Ignore // until DTR", "TIR" are done
     @Unroll
