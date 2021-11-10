@@ -1025,7 +1025,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
+        def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType))
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
     }
