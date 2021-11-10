@@ -585,8 +585,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 name: r.name,
                 description: convertImages(r.description),
                 proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
-                requirements: requirements.each { logger.debug("DEBUG-NULL: ${it.name}") }
-                    .collect { it.name }.join("<br/>"),
+                requirements: requirements.collect { it.name }.join("<br/>"),
                 requirementsKey: requirements.collect { it.key }.join("<br/>"),
                 gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
                 probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
