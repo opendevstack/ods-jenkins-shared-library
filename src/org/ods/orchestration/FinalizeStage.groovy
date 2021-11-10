@@ -151,10 +151,15 @@ class FinalizeStage extends Stage {
     }
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
-        def gatherCommitTasks = CollectionWithForLoop.collectEntries(repos.flatten(), { it.id }) {
-            steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${it.id}") {
-                repo.data.git.createdExecutionCommit = git.commitSha
-            }
+        def flattenedRepos = repos.flatten()
+        def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
+            [
+                (repo.id): {
+                    steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
+                        repo.data.git.createdExecutionCommit = git.commitSha
+                    }
+                }
+            ]
         }
 
         gatherCommitTasks.failFast = true
