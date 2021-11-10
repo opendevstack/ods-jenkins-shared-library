@@ -6,6 +6,7 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
+import org.ods.orchestration.util.StringCleanup
 
 import java.net.URI
 
@@ -260,7 +261,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody()))
     }
 
     @NonCPS
@@ -289,7 +290,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody()))
     }
 
     @NonCPS
@@ -548,7 +549,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody()))
     }
 
     @NonCPS
