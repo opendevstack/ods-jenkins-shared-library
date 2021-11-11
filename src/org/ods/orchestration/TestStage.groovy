@@ -34,7 +34,8 @@ class TestStage extends Stage {
         ]
         globalData.tests.each {
             it.value.testReportFiles = []
-            it.value.testResults = [testsuites:[]]
+            it.value.testResults = [:]
+            it.value.testResults.testsuites = []
         }
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
@@ -42,7 +43,7 @@ class TestStage extends Stage {
 
         def postExecuteRepo = { steps_, repo ->
             if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                def data = [tests:null]
+                def data = [:]
                 data.tests = globalData.tests.clone()
                 data.tests.each {
                     it.value = getTestResults(steps, repo, it.key)
