@@ -6,6 +6,7 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
+import org.ods.orchestration.util.StringCleanup
 
 import java.net.URI
 
@@ -15,6 +16,10 @@ import org.apache.http.client.utils.URIBuilder
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
+
+    protected static Map CHARACTER_REMOVEABLE = [
+        '\u00A0': ' ',
+    ]
 
     URI baseURL
 
@@ -260,7 +265,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody(), CHARACTER_REMOVEABLE))
     }
 
     @NonCPS
@@ -289,7 +294,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody(), CHARACTER_REMOVEABLE))
     }
 
     @NonCPS
@@ -548,7 +553,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody(), CHARACTER_REMOVEABLE))
     }
 
     @NonCPS
@@ -718,4 +723,5 @@ class JiraService {
         }
         return true
     }
+
 }
