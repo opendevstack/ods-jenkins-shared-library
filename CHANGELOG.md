@@ -8,7 +8,7 @@
 - Fix RA table overflow replacing unicode character in jira keys ([#730](https://github.com/opendevstack/ods-jenkins-shared-library/pull/730))
 - Fix Cnes report is executed too soon in the Sonar Scanner stage ([#732](https://github.com/opendevstack/ods-jenkins-shared-library/issues/732))
 - Null error in SSDS ([#755](https://github.com/opendevstack/ods-jenkins-shared-library/pull/755))
- 
+- Remove non breakable spaces ([#766](https://github.com/opendevstack/ods-jenkins-shared-library/pull/766)) 
 ## [3.0] - 2020-08-11
 
 ### Added
