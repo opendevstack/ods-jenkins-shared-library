@@ -171,7 +171,8 @@ class FinalizeStage extends Stage {
         def flattenedRepos = repos.flatten()
         def repoIntegrateTasks = flattenedRepos
             .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
-               it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA }
+               it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
+               it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE }
             .collectEntries { repo ->
                 [
                     (repo.id): {
