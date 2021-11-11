@@ -1,7 +1,8 @@
 # Changelog
-
 ## Unreleased
+## [4.0] - 2021-05-11
 - While deploying on Qa with 1 bug, 3 bugs are reported instead of 1 (https://github.com/opendevstack/ods-jenkins-shared-library/pull/757)
+### Added
 - Fixed the Developer Preview fails because "Duplicated Tests"
 - Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
 - Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
@@ -49,7 +50,6 @@
 - Add support for ods-saas-service components ([#607](https://github.com/opendevstack/ods-jenkins-shared-library/pull/607))
 - Automatically change the date_created by Wiremock with a Wiremock wildcard ([#743](https://github.com/opendevstack/ods-jenkins-shared-library/pull/743))
 - Refactor and create unit test for LeVADocumentUseCase.getReferencedDocumentsVersion ([#744](https://github.com/opendevstack/ods-jenkins-shared-library/pull/744))
-- Remove from TIP non installed components([#751](https://github.com/opendevstack/ods-jenkins-shared-library/pull/751))
 
 ## [3.0] - 2020-08-11
 
