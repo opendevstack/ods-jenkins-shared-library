@@ -34,8 +34,7 @@ class TestStage extends Stage {
         ]
         globalData.tests.each {
             it.value.testReportFiles = []
-            it.value.testResults = [:]
-            it.value.testResults.testsuites = []
+            it.value.testResults = [ testsuites: [] ]
         }
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
@@ -46,7 +45,7 @@ class TestStage extends Stage {
                 def data = [:]
                 data.tests = globalData.tests.clone()
                 data.tests.each {
-                    it.value = getTestResults(steps, repo, it.key)
+                    it.value = getTestResults(steps, repo, it.key.capitalize())
                 }
 
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
@@ -55,7 +54,7 @@ class TestStage extends Stage {
                 globalData.tests.each {
                     it.value.testReportFiles.addAll(data.tests[it.key].testReportFiles)
                     it.value.testResults.testsuites.addAll(
-                        data.tests[it.key].testResults.testsuites)
+                        data.tests[it.key].testResults.testsuites as List)
                 }
             }
         }
