@@ -62,7 +62,7 @@ class JUnitTestReportsUseCase {
     }
 
     private String replaceTestIDsInFile(File file, Map<String, String> linkTestsInJira = [:]) {
-        if(linkTestsInJira) {
+        if (linkTestsInJira) {
             Map<String, String> bindMap = linkTestsInJira.clone()
             bindMap.put('project', project.key)
             def content = new GStringTemplateEngine().createTemplate(file).make(bindMap)
@@ -70,4 +70,5 @@ class JUnitTestReportsUseCase {
         }
         return file.text
     }
+
 }
