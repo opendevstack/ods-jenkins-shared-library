@@ -4,12 +4,6 @@ import com.github.tomakehurst.wiremock.client.*
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
-import org.apache.http.client.utils.URIBuilder
-
-import spock.lang.*
-
-import static util.FixtureHelper.*
-
 import util.*
 
 class JiraServiceSpec extends SpecHelper {
@@ -2357,5 +2351,16 @@ class JiraServiceSpec extends SpecHelper {
 
         cleanup:
         stopServer(server)
+    }
+
+    def "Remove nonbreakable white space"() {
+        given: 'String with nonbreakable white space'
+        def inputString = '\u00A0This\u00A0string\u00A0has\u00A0wrong\u00A0spaces\u00A0'
+
+        when: 'We remove the characters'
+        def outputString = JiraService.removeCharacters(inputString)
+
+        then: 'The characters were removed'
+        outputString == ' This string has wrong spaces '
     }
 }
