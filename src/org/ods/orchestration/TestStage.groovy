@@ -24,59 +24,38 @@ class TestStage extends Stage {
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-
         def phase = MROPipelineUtil.PipelinePhases.TEST
-
         def globalData = [
             tests: [
-                acceptance: [
-                    testReportFiles: [],
-                    testResults: [
-                        testsuites: []
-                    ],
-                ],
-                installation: [
-                    testReportFiles: [],
-                    testResults: [
-                        testsuites: []
-                    ],
-                ],
-                integration: [
-                    testReportFiles: [],
-                    testResults: [
-                        testsuites: []
-                    ],
-                ]
+                (Project.TestType.ACCEPTANCE.uncapitalize()): [:],
+                (Project.TestType.INSTALLATION.uncapitalize()): [:],
+                (Project.TestType.INTEGRATION.uncapitalize()): [:],
             ]
         ]
-
+        globalData.tests.each {
+            it.value.testReportFiles = []
+            it.value.testResults = [testsuites:[]]
+        }
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
         def postExecuteRepo = { steps_, repo ->
             if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                def data = [
-                    tests: [
-                        acceptance: getTestResults(steps, repo, Project.TestType.ACCEPTANCE),
-                        installation: getTestResults(steps, repo, Project.TestType.INSTALLATION),
-                        integration: getTestResults(steps, repo, Project.TestType.INTEGRATION),
-                    ]
-                ]
+                def data = [tests:null]
+                data.tests = globalData.tests.clone()
+                data.tests.each {
+                    it.value = getTestResults(steps, repo, it.key)
+                }
 
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
                 // Add the info of component to global data to maintain several e2e
-                globalData.tests.acceptance.testReportFiles.addAll(data.tests.acceptance.testReportFiles)
-                globalData.tests.installation.testReportFiles.addAll(data.tests.installation.testReportFiles)
-                globalData.tests.integration.testReportFiles.addAll(data.tests.integration.testReportFiles)
-
-                globalData.tests.acceptance.testResults.testsuites.addAll(
-                    data.tests.acceptance.testResults.testsuites)
-                globalData.tests.installation.testResults.testsuites.addAll(
-                    data.tests.installation.testResults.testsuites)
-                globalData.tests.integration.testResults.testsuites.addAll(
-                    data.tests.integration.testResults.testsuites)
+                globalData.tests.each {
+                    it.value.testReportFiles.addAll(data.tests[it.key].testReportFiles)
+                    it.value.testResults.testsuites.addAll(
+                        data.tests[it.key].testResults.testsuites)
+                }
             }
         }
 
@@ -94,32 +73,15 @@ class TestStage extends Stage {
         }
         executeInParallel(executeRepos, generateDocuments)
 
-        // Update Jira issues with global data
-        jira.reportTestResultsForProject(
-            [Project.TestType.INSTALLATION],
-            globalData.tests.installation.testResults
-        )
-
-        jira.reportTestResultsForProject(
-            [Project.TestType.INTEGRATION],
-            globalData.tests.integration.testResults
-        )
-
-        jira.reportTestResultsForProject(
-            [Project.TestType.ACCEPTANCE],
-            globalData.tests.acceptance.testResults
-        )
-
-        // Parse all test report files into a single data structure
-        globalData.tests.acceptance.testResults = junit.parseTestReportFiles(
-            globalData.tests.acceptance.testReportFiles
-        )
-        globalData.tests.installation.testResults = junit.parseTestReportFiles(
-            globalData.tests.installation.testReportFiles
-        )
-        globalData.tests.integration.testResults = junit.parseTestReportFiles(
-            globalData.tests.integration.testReportFiles
-        )
+        globalData.tests.each {
+            // Update Jira issues with global data
+            jira.reportTestResultsForProject(
+                [it.key.capitalize()],
+                it.value.testResults as Map
+            )
+            // Parse again all test report files into a single data structure
+            it.value.testResults = junit.parseTestReportFiles(it.value.testReportFiles as List<File>)
+        }
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }
