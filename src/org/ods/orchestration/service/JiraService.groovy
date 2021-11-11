@@ -6,6 +6,7 @@ import com.cloudbees.groovy.cps.NonCPS
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
+import org.ods.orchestration.util.StringCleanup
 
 import java.net.URI
 
@@ -24,15 +25,6 @@ class JiraService {
 
     String username
     String password
-
-    @NonCPS
-    static removeCharacters(inputString) {
-        def outputString = inputString
-        CHARACTER_REMOVEABLE.forEach { k, v ->
-            outputString = outputString.replaceAll(k, v)
-        }
-        return outputString
-    }
 
     JiraService(String baseURL, String username, String password) {
         if (!baseURL?.trim()) {
@@ -273,7 +265,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(removeCharacters(response.getBody()))
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody(), CHARACTER_REMOVEABLE))
     }
 
     @NonCPS
@@ -302,7 +294,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(removeCharacters(response.getBody()))
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody(), CHARACTER_REMOVEABLE))
     }
 
     @NonCPS
@@ -561,7 +553,7 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(removeCharacters(response.getBody()))
+        return new JsonSlurperClassic().parseText(StringCleanup.removeCharacters(response.getBody(), CHARACTER_REMOVEABLE))
     }
 
     @NonCPS
