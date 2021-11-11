@@ -48,7 +48,7 @@
 - Add support for ods-saas-service components ([#607](https://github.com/opendevstack/ods-jenkins-shared-library/pull/607))
 - Automatically change the date_created by Wiremock with a Wiremock wildcard ([#743](https://github.com/opendevstack/ods-jenkins-shared-library/pull/743))
 - Refactor and create unit test for LeVADocumentUseCase.getReferencedDocumentsVersion ([#744](https://github.com/opendevstack/ods-jenkins-shared-library/pull/744))
-
+- Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
 ## [3.0] - 2020-08-11
 
 ### Added
