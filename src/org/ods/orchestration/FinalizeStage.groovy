@@ -131,8 +131,7 @@ class FinalizeStage extends Stage {
     }
 
     private void pushRepos(IPipelineSteps steps, GitService git) {
-        def flattenedRepos = repos.flatten()
-        def repoPushTasks = flattenedRepos.collectEntries { repo ->
+        def repoPushTasks = repos.flatten().collectEntries { repo ->
             [
                 (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
@@ -154,8 +153,7 @@ class FinalizeStage extends Stage {
     }
 
     private void gatherCreatedExecutionCommits(IPipelineSteps steps, GitService git) {
-        def flattenedRepos = repos.flatten()
-        def gatherCommitTasks = flattenedRepos.collectEntries { repo ->
+        def gatherCommitTasks = repos.flatten().collectEntries { repo ->
             [
                 (repo.id): {
                     steps.dir("${steps.env.WORKSPACE}/${MROPipelineUtil.REPOS_BASE_DIR}/${repo.id}") {
@@ -170,10 +168,12 @@ class FinalizeStage extends Stage {
     }
 
     private void integrateIntoMainBranchRepos(IPipelineSteps steps, GitService git) {
-        def flattenedRepos = repos.flatten()
-        def repoIntegrateTasks = flattenedRepos
-            .findAll { it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
-               it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA }
+        def repoIntegrateTasks = repos.flatten()
+            .findAll {
+                it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST &&
+                it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA &&
+                it.type?.toLowerCase() != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE
+            }
             .collectEntries { repo ->
                 [
                     (repo.id): {
