@@ -10,7 +10,7 @@
 - Null error in SSDS ([#755](https://github.com/opendevstack/ods-jenkins-shared-library/pull/755))
 - Move TRC document creation to the begining of the process([#761](https://github.com/opendevstack/ods-jenkins-shared-library/pull/761))
 - Remove non breakable spaces ([#766](https://github.com/opendevstack/ods-jenkins-shared-library/pull/766)) 
-- Watermark to TRC
+- Watermark to TRC ([#771](https://github.com/opendevstack/ods-jenkins-shared-library/pull/771))
 
 ## [3.0] - 2020-08-11
 
