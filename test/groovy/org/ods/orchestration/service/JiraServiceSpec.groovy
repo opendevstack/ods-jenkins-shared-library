@@ -2358,4 +2358,5 @@ class JiraServiceSpec extends SpecHelper {
         cleanup:
         stopServer(server)
     }
+
 }
