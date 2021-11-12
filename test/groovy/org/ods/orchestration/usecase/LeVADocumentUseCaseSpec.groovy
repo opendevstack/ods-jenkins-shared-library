@@ -457,6 +457,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         def chapterData = ["sec1": [content: "myContent", status: "DONE", key:"DEMO-1"]]
         def uri = "http://nexus"
         def documentTemplate = "template"
+        def watermarkText = "WATERMARK"
 
         when:
         usecase.createTRC(null, data)
@@ -468,8 +469,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         2 * project.getSystemRequirements()
+        1 * usecase.getWatermarkText(documentType, _) >> watermarkText
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType], _)
-        1 * usecase.createDocument(documentType, null, _, [:], _, documentTemplate) >> uri
+        1 * usecase.createDocument(documentType, null, _, [:], _, documentTemplate, watermarkText) >> uri
         1 * usecase.getSectionsNotDone(documentType) >> []
         1 * usecase.updateJiraDocumentationTrackingIssue(documentType, uri, "${docHistory.getVersion()}")
     }
