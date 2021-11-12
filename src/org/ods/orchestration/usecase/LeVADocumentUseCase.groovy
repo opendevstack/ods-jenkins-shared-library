@@ -1223,6 +1223,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
 
+    @NonCPS
     List<String> getSupportedDocuments() {
         return DocumentType.values().collect { it as String }
     }
