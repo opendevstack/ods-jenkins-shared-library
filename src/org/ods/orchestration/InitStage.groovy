@@ -265,17 +265,17 @@ class InitStage extends Stage {
         def repos = project.repositories
         @SuppressWarnings('Indentation')
         Closure checkoutClosure =
-        {
-            script.parallel (
-                repos.collectEntries { repo ->
-                    logger.info("Loading Repository: ${repo}")
-                    if (envState?.repositories) {
-                        repo.data.envStateCommit = envState.repositories[repo.id] ?: ''
+            {
+                script.parallel (
+                    repos.collectEntries { repo ->
+                        logger.info("Loading Repository: ${repo}")
+                        if (envState?.repositories) {
+                            repo.data.envStateCommit = envState.repositories[repo.id] ?: ''
+                        }
+                        util.prepareCheckoutRepoNamedJob(repo)
                     }
-                    util.prepareCheckoutRepoNamedJob(repo)
-                }
-            )
-        }
+                )
+            }
 
         Closure loadClosure = {
             logger.debugClocked('Project#load')
@@ -287,9 +287,9 @@ class InitStage extends Stage {
                 && buildParams.version == 'WIP') {
                 throw new RuntimeException(
                     'Error: trying to deploy to Q or P without having defined a correct version. ' +
-                    "${buildParams.version} version value is not allowed for those environments. " +
-                    'If you are using Jira, please check that all values are set in the release manager issue. ' +
-                    "Build parameters obtained: ${buildParams}"
+                        "${buildParams.version} version value is not allowed for those environments. " +
+                        'If you are using Jira, please check that all values are set in the release manager issue. ' +
+                        "Build parameters obtained: ${buildParams}"
                 )
             }
 
@@ -299,12 +299,12 @@ class InitStage extends Stage {
                 } else if (project.buildParams.targetEnvironmentToken == 'Q') {
                     throw new RuntimeException(
                         "Git Tag '${project.targetTag}' already exists. " +
-                        "It can only be deployed again to 'Q' if build param 'rePromote' is set to 'true'."
+                            "It can only be deployed again to 'Q' if build param 'rePromote' is set to 'true'."
                     )
                 } else {
                     throw new RuntimeException(
                         "Git Tag '${project.targetTag}' already exists. " +
-                        "It cannot be deployed again to 'P'."
+                            "It cannot be deployed again to 'P'."
                     )
                 }
             }
@@ -360,14 +360,14 @@ class InitStage extends Stage {
                         } else if (project.buildParams.targetEnvironmentToken == 'Q') {
                             util.warnBuild(
                                 "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                "which has previously been promoted to 'Q'. If ${repo.data.envStateCommit} has been " +
-                                "promoted to 'P' as well, promotion to 'P' will fail. Proceed with caution."
+                                    "which has previously been promoted to 'Q'. If ${repo.data.envStateCommit} has been " +
+                                    "promoted to 'P' as well, promotion to 'P' will fail. Proceed with caution."
                             )
                         } else {
                             throw new RuntimeException(
                                 "${repo.id}@${repo.data.git.commit} is NOT a descendant of ${repo.data.envStateCommit}, " +
-                                "which has previously been promoted to 'P'. Ensure to merge everything that has been " +
-                                "promoted to 'P' into ${project.gitReleaseBranch}."
+                                    "which has previously been promoted to 'P'. Ensure to merge everything that has been " +
+                                    "promoted to 'P' into ${project.gitReleaseBranch}."
                             )
                         }
                     } else {
@@ -408,7 +408,7 @@ class InitStage extends Stage {
         if (project.buildParams.targetEnvironment == 'dev' && !os.envExists(targetProject)) {
             throw new RuntimeException(
                 "Target project ${targetProject} does not exist " +
-                "(versionedDevEnvsEnabled=${project.versionedDevEnvsEnabled})."
+                    "(versionedDevEnvsEnabled=${project.versionedDevEnvsEnabled})."
             )
         }
         project.setTargetProject(targetProject)
