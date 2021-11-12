@@ -57,12 +57,14 @@ class BuildStage extends Stage {
                         "- no unit tests results will be reported")
                 }
 
+                logger.info("levaDocScheduler.run start")
                 levaDocScheduler.run(
                     phase,
                     MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                     repo,
                     data
                 )
+                logger.info("levaDocScheduler.run end")
             }
         }
 
@@ -88,7 +90,9 @@ class BuildStage extends Stage {
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
         if (project.isAssembleMode && project.isWorkInProgress &&
             (project.hasFailingTests() || failedRepos.size > 0)) {
-            util.failBuild("Failing build as repositories contain errors!\nFailed: ${failedRepos}")
+            def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
+            util.failBuild(errMessage)
+            throw new IllegalStateException(errMessage)
         }
     }
 

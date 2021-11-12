@@ -1,7 +1,9 @@
 package org.ods.component
 
 import org.ods.PipelineScript
+import org.ods.util.ILogger
 import org.ods.util.Logger
+import org.ods.util.ShellWithRetry
 import spock.lang.*
 
 class ContextSpec extends Specification {
@@ -95,6 +97,49 @@ class ContextSpec extends Specification {
         branch                | existingEnv | expectedEnv
         'master'              | noEnv       | 'prod'
         'feature/foo-123-bar' | noEnv       | 'preview'
+    }
+
+    def "assemble with retry"() {
+        given:
+        Context context = Spy(new Context(script, null, logger) )
+
+        when:
+        context.assemble()
+
+        then:
+        1 * context.assembleWithRetry( ) >> { throw new NotSerializableException("error")}
+        1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
+
+        1 * context.assembleWithRetry( )>> { throw new NotSerializableException("error")}
+        1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
+
+        1 * context.assembleWithRetry( ) >> { return }
+    }
+
+    def "assemble with retry and error"() {
+        given:
+        Context context = Spy(new Context(script, null, logger) )
+
+        when:
+        context.assemble()
+
+        then:
+        1 * context.assembleWithRetry( ) >> { throw new NotSerializableException("error")}
+        1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
+
+        1 * context.assembleWithRetry( )>> { throw new NotSerializableException("error")}
+        1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
+
+        1 * context.assembleWithRetry( )>> { throw new NotSerializableException("error")}
+        1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
+
+        1 * context.assembleWithRetry( )>> { throw new NotSerializableException("error")}
+        1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
+
+        1 * context.assembleWithRetry( )>> { throw new NotSerializableException("error")}
+        1 * logger.warn{String it -> it.contains("WARN: Jenkins serialization issue")}
+
+        thrown java.util.concurrent.ExecutionException
     }
 
     // resets config.environment and call determineEnvironment on newly created Context object
