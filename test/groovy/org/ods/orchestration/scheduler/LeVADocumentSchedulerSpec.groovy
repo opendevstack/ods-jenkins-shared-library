@@ -1882,7 +1882,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -1893,7 +1893,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -3285,7 +3285,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -3296,7 +3296,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -4689,7 +4689,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.INIT     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || true
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.BUILD    | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
@@ -4700,7 +4700,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
-        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || true
+        LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.TEST     | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END           || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START        || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO  || false
         LeVADocumentUseCase.DocumentType.TRC | null | MROPipelineUtil.PipelinePhases.RELEASE  | MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO || false
@@ -5979,7 +5979,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTRC", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6171,6 +6170,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
         1 * usecase.invokeMethod("createRA", [null, null] as Object[])
         1 * usecase.invokeMethod('createTIP', [null, null] as Object[])
+        1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6182,7 +6182,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTRC", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6363,6 +6362,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod('createCFTP', [null, null] as Object[])
         1 * usecase.invokeMethod('createIVP', [null, null] as Object[])
         1 * usecase.invokeMethod('createTCP', [null, null] as Object[])
+        1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6421,7 +6421,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createSSDS", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTRC", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
 
         when:
@@ -6567,7 +6566,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTRC", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6627,7 +6625,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTRC", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
@@ -6707,7 +6704,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
         1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
         1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTRC", [[:], data] as Object[])
         0 * usecase.invokeMethod(*_)
     }
 
