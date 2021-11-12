@@ -100,7 +100,9 @@ class Pipeline implements Serializable {
                                 replace(wtfEnvBug, "${defaultDockerRegistry}/")
                             logger.warn ("Patched image via master env to: ${config.image}")
                         }
+
                         context.assemble()
+
                         // register services after context was assembled
                         logger.debug('-> Registering & loading global services')
                         def registry = ServiceRegistry.instance
@@ -356,7 +358,7 @@ class Pipeline implements Serializable {
         return this.ciSkipEnabled && gitService.ciSkipInCommitMessage
     }
 
-    private def prepareAgentPodConfig(Map config) {
+    private void prepareAgentPodConfig(Map config) {
         if (!config.image && !config.imageStreamTag && !config.podContainers) {
             script.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
         }
