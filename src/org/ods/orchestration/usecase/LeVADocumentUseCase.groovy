@@ -5,7 +5,14 @@ import groovy.xml.XmlUtil
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
-import org.ods.orchestration.util.*
+import org.ods.orchestration.util.DocumentHistory
+import org.ods.orchestration.util.Environment
+import org.ods.orchestration.util.LeVADocumentUtil
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PDFUtil
+import org.ods.orchestration.util.PipelineUtil
+import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.SortUtil
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
@@ -585,8 +592,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 name: r.name,
                 description: convertImages(r.description),
                 proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
-                requirements: requirements.collect { it.name }.join("<br/>"),
-                requirementsKey: requirements.collect { it.key }.join("<br/>"),
+                requirements: requirements.findAll{it != null}.collect { it.name }.join("<br/>"),
+                requirementsKey: requirements.findAll{it != null}.collect { it.key }.join("<br/>"),
                 gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
                 probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
                 severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
@@ -967,7 +974,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             .findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
             .collect { component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
-                component.requirements = component.requirements.collect { r ->
+                component.requirements = component.requirements.findAll{it != null}.collect { r ->
                     [key: r.key, name: r.name,
                      reqDescription: this.convertImages(r.description), gampTopic: r.gampTopic ?: "uncategorized"]
                 }.groupBy { it.gampTopic.toLowerCase() }
@@ -1216,6 +1223,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
 
+    @NonCPS
     List<String> getSupportedDocuments() {
         return DocumentType.values().collect { it as String }
     }
