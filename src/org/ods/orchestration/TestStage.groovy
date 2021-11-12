@@ -34,7 +34,7 @@ class TestStage extends Stage {
         def postExecuteRepo = { steps_, repo ->
             if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                 def data = getTestDataStructure()
-                // create shallow copy of the same structure and
+                // create local test Data with same structure and
                 // fill up with tests results for every type of test
                 data.tests.each {
                     Map testResult = getTestResults(steps, repo, it.key.capitalize())
