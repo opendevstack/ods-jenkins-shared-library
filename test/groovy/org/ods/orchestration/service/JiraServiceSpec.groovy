@@ -4,6 +4,12 @@ import com.github.tomakehurst.wiremock.client.*
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
+import org.apache.http.client.utils.URIBuilder
+
+import spock.lang.*
+
+import static util.FixtureHelper.*
+
 import util.*
 
 class JiraServiceSpec extends SpecHelper {
@@ -2352,5 +2358,4 @@ class JiraServiceSpec extends SpecHelper {
         cleanup:
         stopServer(server)
     }
-
 }
