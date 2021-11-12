@@ -15,6 +15,10 @@ class BitbucketTraceabilityUseCase {
     private static final String CSV_FILE = "source-code-review.csv"
     static final String CSV_FOLDER = "review"
     private static final int PAGE_LIMIT = 10
+    protected static Map CHARACTER_REMOVEABLE = [
+        '/': '/\u200B',
+        '@': '@\u200B',
+    ]
 
     private final BitbucketService bitbucketService
     private final IPipelineSteps steps
@@ -107,10 +111,6 @@ class BitbucketTraceabilityUseCase {
         return result
     }
 
-    protected static Map CHARACTER_REMOVEABLE = [
-        '/': '/\u200B',
-        '@': '@\u200B',
-    ]
     private void processCommits(String token, Map repo, Map commits, File file) {
         commits.values.each { commit ->
             Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
