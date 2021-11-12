@@ -32,6 +32,7 @@ class TestStage extends Stage {
                 (Project.TestType.INTEGRATION.uncapitalize()): [:],
             ]
         ]
+        // create structure for all type of tests
         globalData.tests.each {
             it.value.testReportFiles = []
             it.value.testResults = [ testsuites: [] ]
@@ -43,6 +44,8 @@ class TestStage extends Stage {
         def postExecuteRepo = { steps_, repo ->
             if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
                 def data = [:]
+                // create shallow copy of the same structure and
+                // fill up with tests results for every type of test
                 data.tests = globalData.tests.clone()
                 data.tests.each {
                     it.value = getTestResults(steps, repo, it.key.capitalize())
@@ -50,9 +53,9 @@ class TestStage extends Stage {
 
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
 
-                // Add the info of component to global data to maintain several e2e
+                // Add the test results of component to global data to maintain several e2e
                 globalData.tests.each {
-                    it.value.testReportFiles.addAll(data.tests[it.key].testReportFiles)
+                    it.value.testReportFiles.addAll(data.tests[it.key].testReportFiles as List)
                     it.value.testResults.testsuites.addAll(
                         data.tests[it.key].testResults.testsuites as List)
                 }
@@ -74,12 +77,12 @@ class TestStage extends Stage {
         executeInParallel(executeRepos, generateDocuments)
 
         globalData.tests.each {
-            // Update Jira issues with global data
+            // Update Jira issues with global data test results for every type of test
             jira.reportTestResultsForProject(
                 [it.key.capitalize()],
                 it.value.testResults as Map
             )
-            // Parse again all test report files into a single data structure
+            // Parse again all test report files into a single data structure for one type of test
             it.value.testResults = junit.parseTestReportFiles(it.value.testReportFiles as List<File>)
         }
 
