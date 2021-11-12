@@ -25,30 +25,21 @@ class TestStage extends Stage {
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def phase = MROPipelineUtil.PipelinePhases.TEST
-        def globalData = [
-            tests: [
-                (Project.TestType.ACCEPTANCE.uncapitalize()): [:],
-                (Project.TestType.INSTALLATION.uncapitalize()): [:],
-                (Project.TestType.INTEGRATION.uncapitalize()): [:],
-            ]
-        ]
-        // create structure for all type of tests
-        globalData.tests.each {
-            it.value.testReportFiles = []
-            it.value.testResults = [ testsuites: [] ]
-        }
+        def globalData = getTestDataStructure()
+
         def preExecuteRepo = { steps_, repo ->
             levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
         def postExecuteRepo = { steps_, repo ->
             if (repo.type?.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST) {
-                def data = [:]
+                def data = getTestDataStructure()
                 // create shallow copy of the same structure and
                 // fill up with tests results for every type of test
-                data.tests = globalData.tests.clone()
                 data.tests.each {
-                    it.value = getTestResults(steps, repo, it.key.capitalize())
+                    Map testResult = getTestResults(steps, repo, it.key.capitalize())
+                    it.value.testReportFiles = testResult.testReportFiles
+                    it.value.testResults = testResult.testResults
                 }
 
                 levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, repo)
@@ -87,6 +78,21 @@ class TestStage extends Stage {
         }
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
+    }
+
+    private Map getTestDataStructure() {
+        Map testData = [
+            tests: [
+                (Project.TestType.ACCEPTANCE.uncapitalize()): [:],
+                (Project.TestType.INSTALLATION.uncapitalize()): [:],
+                (Project.TestType.INTEGRATION.uncapitalize()): [:],
+            ]
+        ]
+        testData.tests.each {
+            it.value.testReportFiles = []
+            it.value.testResults = [ testsuites: [] ]
+        }
+        return testData
     }
 
 }
