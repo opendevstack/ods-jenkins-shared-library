@@ -1156,7 +1156,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
-        def watermarkText = this.getWatermarkText(this.project.hasWipJiraIssues())
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
