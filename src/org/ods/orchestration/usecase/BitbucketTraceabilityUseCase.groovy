@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
 import org.ods.util.IPipelineSteps
 
@@ -14,6 +15,10 @@ class BitbucketTraceabilityUseCase {
     private static final String CSV_FILE = "source-code-review.csv"
     static final String CSV_FOLDER = "review"
     private static final int PAGE_LIMIT = 10
+    protected static Map CHARACTER_REMOVEABLE = [
+        '/': '/\u200B',
+        '@': '@\u200B',
+    ]
 
     private final BitbucketService bitbucketService
     private final IPipelineSteps steps
@@ -65,15 +70,16 @@ class BitbucketTraceabilityUseCase {
             def reviewers = []
             info.reviewers.split(Record.REVIEWERS_DELIMITER).each {
                 def reviewerInfo = processCsvDeveloper(it)
-                reviewers << [reviewerName: reviewerInfo.name, reviewerEmail: reviewerInfo.email]
+                reviewers << [reviewerName: StringCleanup.removeCharacters(reviewerInfo.name, CHARACTER_REMOVEABLE),
+                              reviewerEmail: StringCleanup.removeCharacters(reviewerInfo.email, CHARACTER_REMOVEABLE)]
             }
 
             def commitInfo = [
                 date: info.commitDate,
-                authorName: authorInfo.name,
-                authorEmail: authorInfo.email,
+                authorName: StringCleanup.removeCharacters(authorInfo.name, CHARACTER_REMOVEABLE),
+                authorEmail: StringCleanup.removeCharacters(authorInfo.email, CHARACTER_REMOVEABLE),
                 reviewers: reviewers,
-                url: info.pullRequestUrl,
+                url: StringCleanup.removeCharacters(info.pullRequestUrl, CHARACTER_REMOVEABLE),
                 commit: info.commitSHA,
                 component: info.component,
             ]
@@ -150,14 +156,18 @@ class BitbucketTraceabilityUseCase {
     }
 
     private Developer getAuthor(Map author) {
-        return new Developer(author.name, author.emailAddress)
+        return new Developer(
+            author.name,
+            author.emailAddress)
     }
 
     private List getReviewers(List reviewers) {
         List<Developer> approvals = []
         reviewers.each {
             if (it.approved) {
-                approvals << new Developer(it.user.name, it.user.emailAddress)
+                approvals << new Developer(
+                    it.user.name,
+                    it.user.emailAddress)
             }
         }
 
