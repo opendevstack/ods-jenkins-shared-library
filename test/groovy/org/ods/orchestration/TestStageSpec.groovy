@@ -77,7 +77,7 @@ class TestStageSpec extends SpecHelper {
         steps.env >> [WORKSPACE: "", BUILD_ID: 1]
         jenkins.unstashFilesIntoPath(_, _, "JUnit XML Report") >> true
         junit.loadTestReportsFromPath(_) >> []
-        junit.parseTestReportFiles(_) >> [:]
+        junit.parseTestReportFiles(_) >> [ testsuites: [] ]
 
         when:
         testStage.run()
