@@ -981,7 +981,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     .collect { k, v -> [gampTopic: k, requirementsofTopic: v] }
 
                 return component
-            }
+        }
 
         if (!sections."sec10") sections."sec10" = [:]
         sections."sec10".modules = modules
@@ -1139,28 +1139,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         logger.debug("createTRC - repo:${repo}, data:${data}")
 
         def documentType = DocumentType.TRC as String
-
-        def acceptanceTestData = data.tests.acceptance
-        def installationTestData = data.tests.installation
-        def integrationTestData = data.tests.integration
-
         def sections = this.getDocumentSections(documentType)
         def systemRequirements = this.project.getSystemRequirements()
-
-        // Compute the test issues we do not consider done (not successful)
-        def testIssues = systemRequirements.collect { it.getResolvedTests() }.flatten().unique().findAll {
-            [Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION].contains(it.testType)
-        }
-
-        def combinedJunitTestResults = junit.combineTestResults(
-            [acceptanceTestData.testResults, installationTestData.testResults, integrationTestData.testResults])
-        this.computeTestDiscrepancies(null, testIssues, combinedJunitTestResults, false)
-
-        def testIssuesWip = testIssues.findAll { !it.status.equalsIgnoreCase("cancelled") && (!it.isSuccess || it.isUnexecuted) }
-
-        def hasFailingTestIssues = !testIssuesWip.isEmpty()
-
-        def watermarkText = this.getWatermarkText(documentType, hasFailingTestIssues || this.project.hasWipJiraIssues())
 
         systemRequirements = systemRequirements.collect { r ->
             def predecessors = r.expandedPredecessors.collect { [key: it.key, versions: it.versions.join(', ')] }
@@ -1189,6 +1169,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             ]
         ]
 
+        def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
         def uri = this.createDocument(documentType, null, data_, [:], null, getDocumentTemplateName(documentType), watermarkText)
         this.updateJiraDocumentationTrackingIssue(documentType, uri, docHistory?.getVersion() as String)
         return uri
