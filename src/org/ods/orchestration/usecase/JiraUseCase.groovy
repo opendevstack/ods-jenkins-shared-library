@@ -389,7 +389,7 @@ class JiraUseCase {
                     versionNumber = version.toLong()
                 } catch (NumberFormatException _) {
                     this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        "version. It contains value '${version}'.")
+                        " version. It contains value '${version}'.")
                 }
             }
 
