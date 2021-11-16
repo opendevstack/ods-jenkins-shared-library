@@ -147,7 +147,8 @@ class JiraUseCase {
               assignee: "Unassigned",
               dueDate: "",
               status: "TO DO",
-              tests: bugAffectedTestIssues.keySet() as List
+              tests: bugAffectedTestIssues.keySet() as List,
+              versions : [ "${this.project.versionFromReleaseStatusIssue}" ],
             ], Project.JiraDataItem.TYPE_BUGS)
 
             // Add JiraDataItem into the Jira data structure
