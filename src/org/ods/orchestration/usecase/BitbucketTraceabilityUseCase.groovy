@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
@@ -37,19 +38,28 @@ class BitbucketTraceabilityUseCase {
      */
     @SuppressWarnings(['JavaIoPackageAccess'])
     String generateSourceCodeReviewFile() {
+        File file = createReportFile()
+        processRepositories(file)
+        return file.absolutePath
+    }
+
+    private File createReportFile() {
         def file = new File("${steps.env.WORKSPACE}/${CSV_FOLDER}/${CSV_FILE}")
         if (file.exists()) {
             file.delete()
         }
         file.getParentFile().mkdirs()
         file.createNewFile()
+        return file
+    }
 
+    @NonCPS
+    private void processRepositories(File file) {
         def token = bitbucketService.getToken()
         List<Map> repos = getRepositories()
         repos.each {
             processRepo(token, it, file)
         }
-        return file.absolutePath
     }
 
     /**
@@ -59,6 +69,7 @@ class BitbucketTraceabilityUseCase {
      * @return List of commits
      */
     @SuppressWarnings(['JavaIoPackageAccess'])
+    @NonCPS
     List<Map> readSourceCodeReviewFile(String filePath) {
         def file = new File(filePath)
         def result = []
@@ -70,8 +81,10 @@ class BitbucketTraceabilityUseCase {
             def reviewers = []
             info.reviewers.split(Record.REVIEWERS_DELIMITER).each {
                 def reviewerInfo = processCsvDeveloper(it)
-                reviewers << [reviewerName: StringCleanup.removeCharacters(reviewerInfo.name, CHARACTER_REMOVEABLE),
-                              reviewerEmail: StringCleanup.removeCharacters(reviewerInfo.email, CHARACTER_REMOVEABLE)]
+                if (reviewerInfo){
+                    reviewers << [reviewerName: StringCleanup.removeCharacters(reviewerInfo.name, CHARACTER_REMOVEABLE),
+                                  reviewerEmail: StringCleanup.removeCharacters(reviewerInfo.email, CHARACTER_REMOVEABLE)]
+                }
             }
 
             def commitInfo = [
@@ -89,6 +102,7 @@ class BitbucketTraceabilityUseCase {
         return result
     }
 
+    @NonCPS
     private void processRepo(String token, Map repo, File file) {
         def nextPage = true
         def nextPageStart = 0
@@ -103,6 +117,7 @@ class BitbucketTraceabilityUseCase {
         }
     }
 
+    @NonCPS
     private List<Map> getRepositories() {
         List<Map> result = []
         this.project.getRepositories().each { repository ->
@@ -111,6 +126,7 @@ class BitbucketTraceabilityUseCase {
         return result
     }
 
+    @NonCPS
     private void processCommits(String token, Map repo, Map commits, File file) {
         commits.values.each { commit ->
             Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
@@ -128,6 +144,7 @@ class BitbucketTraceabilityUseCase {
         }
     }
 
+    @NonCPS
     private void writeCSVRecord(File file, Record record) {
         // Jenkins has his own idea how to concatenate Strings
         // Nor '' + '', nor "${}${}", nor StringBuilder nor StringBuffer works properly to
@@ -155,12 +172,14 @@ class BitbucketTraceabilityUseCase {
         file << record.END_LINE
     }
 
+    @NonCPS
     private Developer getAuthor(Map author) {
         return new Developer(
             author.name,
             author.emailAddress)
     }
 
+    @NonCPS
     private List getReviewers(List reviewers) {
         List<Developer> approvals = []
         reviewers.each {
@@ -174,11 +193,13 @@ class BitbucketTraceabilityUseCase {
         return approvals
     }
 
+    @NonCPS
     private String getDateWithFormat(Long timestamp) {
         Date dateObj =  new Date(timestamp)
         return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
     }
 
+    @NonCPS
     private Iterator processCsv(String data, String separator, List<String> columnNames) {
         return new CsvParser().parse(data,
             separator: separator,
@@ -186,6 +207,7 @@ class BitbucketTraceabilityUseCase {
             columnNames: columnNames, )
     }
 
+    @NonCPS
     private Object processCsvDeveloper(String data) {
         return processCsv(data, Developer.FIELD_SEPARATOR, ['name', 'email']).next()
     }
