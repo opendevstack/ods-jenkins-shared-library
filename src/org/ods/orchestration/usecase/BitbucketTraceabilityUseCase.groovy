@@ -36,30 +36,10 @@ class BitbucketTraceabilityUseCase {
      * for every merge event into the integration branch of every ODS component:
      * @return absolutePath of the created file
      */
-    @SuppressWarnings(['JavaIoPackageAccess'])
     String generateSourceCodeReviewFile() {
         File file = createReportFile()
         processRepositories(file)
         return file.absolutePath
-    }
-
-    private File createReportFile() {
-        def file = new File("${steps.env.WORKSPACE}/${CSV_FOLDER}/${CSV_FILE}")
-        if (file.exists()) {
-            file.delete()
-        }
-        file.getParentFile().mkdirs()
-        file.createNewFile()
-        return file
-    }
-
-    @NonCPS
-    private void processRepositories(File file) {
-        def token = bitbucketService.getToken()
-        List<Map> repos = getRepositories()
-        repos.each {
-            processRepo(token, it, file)
-        }
     }
 
     /**
@@ -81,9 +61,12 @@ class BitbucketTraceabilityUseCase {
             def reviewers = []
             info.reviewers.split(Record.REVIEWERS_DELIMITER).each {
                 def reviewerInfo = processCsvDeveloper(it)
-                if (reviewerInfo){
-                    reviewers << [reviewerName: StringCleanup.removeCharacters(reviewerInfo.name, CHARACTER_REMOVEABLE),
-                                  reviewerEmail: StringCleanup.removeCharacters(reviewerInfo.email, CHARACTER_REMOVEABLE)]
+                if (reviewerInfo) {
+                    reviewers <<
+                        [
+                            reviewerName: StringCleanup.removeCharacters(reviewerInfo.name, CHARACTER_REMOVEABLE),
+                            reviewerEmail: StringCleanup.removeCharacters(reviewerInfo.email, CHARACTER_REMOVEABLE)
+                        ]
                 }
             }
 
@@ -100,6 +83,26 @@ class BitbucketTraceabilityUseCase {
         }
 
         return result
+    }
+
+    @SuppressWarnings(['JavaIoPackageAccess'])
+    private File createReportFile() {
+        def file = new File("${steps.env.WORKSPACE}/${CSV_FOLDER}/${CSV_FILE}")
+        if (file.exists()) {
+            file.delete()
+        }
+        file.getParentFile().mkdirs()
+        file.createNewFile()
+        return file
+    }
+
+    @NonCPS
+    private void processRepositories(File file) {
+        def token = bitbucketService.getToken()
+        List<Map> repos = getRepositories()
+        repos.each {
+            processRepo(token, it, file)
+        }
     }
 
     @NonCPS
