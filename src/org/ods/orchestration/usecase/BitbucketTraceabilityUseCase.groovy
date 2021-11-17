@@ -115,7 +115,7 @@ class BitbucketTraceabilityUseCase {
         String answer
         try {
             answer = StringCleanup.removeCharacters(propertyMapper.getProperty(columnName), CHARACTER_REMOVEABLE)
-        } catch(Exception exception){
+        } catch (Exception exception) {
             answer = "N/A"
         }
         return answer
