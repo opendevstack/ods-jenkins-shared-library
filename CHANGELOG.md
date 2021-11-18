@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-## [4.0] - 2021-18-11
+## [4.0] - 2021-05-11
+- While deploying on Qa with 1 bug, 3 bugs are reported instead of 1 (https://github.com/opendevstack/ods-jenkins-shared-library/pull/757)
 
 ### Added
 - Fixed the Developer Preview fails because "Duplicated Tests"

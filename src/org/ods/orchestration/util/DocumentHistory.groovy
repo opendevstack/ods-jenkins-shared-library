@@ -325,6 +325,7 @@ class DocumentHistory {
         this.allIssuesAreValid = true
 
         def versionMap = this.computeEntryData(jiraData, projectVersion, keysInDocument)
+        logger.debug("parseJiraDataToDocumentHistoryEntry: versionMap = ${versionMap.toString()}")
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
