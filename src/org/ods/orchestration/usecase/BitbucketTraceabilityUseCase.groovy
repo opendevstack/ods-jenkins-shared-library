@@ -1,5 +1,8 @@
 package org.ods.orchestration.usecase
 
+import com.cloudbees.groovy.cps.NonCPS
+import com.xlson.groovycsv.CsvParser
+import com.xlson.groovycsv.PropertyMapper
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
@@ -8,8 +11,6 @@ import org.ods.util.IPipelineSteps
 import java.text.SimpleDateFormat
 
 @groovy.lang.Grab('com.xlson.groovycsv:groovycsv:1.3')
-import com.xlson.groovycsv.CsvParser
-
 class BitbucketTraceabilityUseCase {
 
     private static final String CSV_FILE = "source-code-review.csv"
@@ -35,20 +36,21 @@ class BitbucketTraceabilityUseCase {
      * for every merge event into the integration branch of every ODS component:
      * @return absolutePath of the created file
      */
-    @SuppressWarnings(['JavaIoPackageAccess'])
-    String generateSourceCodeReviewFile() {
-        def file = new File("${steps.env.WORKSPACE}/${CSV_FOLDER}/${CSV_FILE}")
-        if (file.exists()) {
-            file.delete()
-        }
-        file.getParentFile().mkdirs()
-        file.createNewFile()
+    List<Map> getPRMergeInfo() {
+        String csvFIleWithInfo = generateSourceCodeReviewFile()
+        return readSourceCodeReviewFile(csvFIleWithInfo)
+    }
 
-        def token = bitbucketService.getToken()
-        List<Map> repos = getRepositories()
-        repos.each {
-            processRepo(token, it, file)
-        }
+    /**
+     * Create a CSV file that contains the following records
+     * for every merge event into the integration branch of every ODS component:
+     * @return absolutePath of the created file
+     */
+
+    String generateSourceCodeReviewFile() {
+        String token = bitbucketService.getToken()
+        File file = createReportFile()
+        processRepositories(file, token)
         return file.absolutePath
     }
 
@@ -59,41 +61,105 @@ class BitbucketTraceabilityUseCase {
      * @return List of commits
      */
     @SuppressWarnings(['JavaIoPackageAccess'])
+    @NonCPS
     List<Map> readSourceCodeReviewFile(String filePath) {
         def file = new File(filePath)
         def result = []
-        def data = processCsv(file.text, Record.CSV,
-            ['commitDate', 'author', 'reviewers', 'pullRequestUrl', 'commitSHA', 'component'])
+        def data = processCsv(
+            file.text,
+            Record.CSV,
+            ['commitDate', 'author', 'reviewers', 'pullRequestUrl', 'commitSHA', 'component']
+        ).findAll { it != null }
 
-        for (info in data) {
-            def authorInfo = processCsvDeveloper(info.author)
-            def reviewers = []
-            info.reviewers.split(Record.REVIEWERS_DELIMITER).each {
-                def reviewerInfo = processCsvDeveloper(it)
-                reviewers << [reviewerName: StringCleanup.removeCharacters(reviewerInfo.name, CHARACTER_REMOVEABLE),
-                              reviewerEmail: StringCleanup.removeCharacters(reviewerInfo.email, CHARACTER_REMOVEABLE)]
-            }
-
-            def commitInfo = [
-                date: info.commitDate,
-                authorName: StringCleanup.removeCharacters(authorInfo.name, CHARACTER_REMOVEABLE),
-                authorEmail: StringCleanup.removeCharacters(authorInfo.email, CHARACTER_REMOVEABLE),
-                reviewers: reviewers,
-                url: StringCleanup.removeCharacters(info.pullRequestUrl, CHARACTER_REMOVEABLE),
-                commit: info.commitSHA,
-                component: info.component,
-            ]
-            result << commitInfo
+        def dataSize = data.size()
+        for (def i = 0; i < dataSize; i++) {
+            def info = data[i]
+            result << getCommitInfo(info)
         }
-
         return result
     }
 
+    @NonCPS
+    private Map<String, Object> getCommitInfo(info) {
+        def authorInfo = processCsvDeveloper(info.author)
+        def commitInfo = [
+            date: info.commitDate,
+            authorName: removeCharacters(authorInfo, "name"),
+            authorEmail: removeCharacters(authorInfo, "email"),
+            reviewers: getReviewers(info),
+            url: removeCharacters(info, "pullRequestUrl"),
+            commit: info.commitSHA,
+            component: info.component,
+        ]
+        return commitInfo
+    }
+
+    @NonCPS
+    private List getReviewers(PropertyMapper info) {
+        def reviewers = []
+        List infoReviewers = info.reviewers.split(Record.REVIEWERS_DELIMITER).findAll { it != null }
+        def dataSize = infoReviewers.size()
+        for (def i = 0; i < dataSize; i++) {
+            def infoReviewer = infoReviewers[i]
+            PropertyMapper reviewerInfo = processCsvDeveloper(infoReviewer)
+            String reviewerNameValue = removeCharacters(reviewerInfo, "name")
+            String reviewerEmailValue = removeCharacters(reviewerInfo, "email")
+            Map infoMap = [reviewerName: reviewerNameValue, reviewerEmail: reviewerEmailValue,]
+            reviewers.add(infoMap)
+        }
+        return reviewers
+    }
+
+    @NonCPS
+    private String removeCharacters(PropertyMapper propertyMapper, String columnName) {
+        String answer
+        try {
+            answer = StringCleanup.removeCharacters(propertyMapper.getProperty(columnName), CHARACTER_REMOVEABLE)
+        } catch (Exception exception) {
+            answer = "N/A"
+        }
+        return answer
+    }
+
+    @SuppressWarnings(['JavaIoPackageAccess'])
+    private File createReportFile() {
+        File file = new File("${steps.env.WORKSPACE}/${CSV_FOLDER}/${CSV_FILE}")
+        if (file.exists()) {
+            file.delete()
+        }
+        file.getParentFile().mkdirs()
+        file.createNewFile()
+        return file
+    }
+
+    @NonCPS
+    private void processRepositories(File file, String token) {
+        List<Map> repos = getRepositories()
+        int reposSize = repos.size()
+        for (def i = 0; i < reposSize; i++) {
+            def repo = repos[i]
+            processRepo(token, repo, file)
+        }
+    }
+
+    @NonCPS
+    private List<Map> getRepositories() {
+        List<Map> result = []
+        List<Map> repos = this.project.getRepositories()
+        int reposSize = repos.size()
+        for (def i = 0; i < reposSize; i++) {
+            def repository = repos[i]
+            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}", branch: repository.branch]
+        }
+        return result
+    }
+
+    @NonCPS
     private void processRepo(String token, Map repo, File file) {
-        def nextPage = true
-        def nextPageStart = 0
+        boolean nextPage = true
+        int nextPageStart = 0
         while (nextPage) {
-            def commits = bitbucketService.getCommitsForIntegrationBranch(token, repo.repo, PAGE_LIMIT, nextPageStart)
+            Map commits = bitbucketService.getCommitsForIntegrationBranch(token, repo.repo, PAGE_LIMIT, nextPageStart)
             if (commits.isLastPage) {
                 nextPage = false
             } else {
@@ -103,14 +169,7 @@ class BitbucketTraceabilityUseCase {
         }
     }
 
-    private List<Map> getRepositories() {
-        List<Map> result = []
-        this.project.getRepositories().each { repository ->
-            result << [repo: "${project.data.metadata.id.toLowerCase()}-${repository.id}", branch: repository.branch]
-        }
-        return result
-    }
-
+    @NonCPS
     private void processCommits(String token, Map repo, Map commits, File file) {
         commits.values.each { commit ->
             Map mergedPR = bitbucketService.getPRforMergedCommit(token, repo.repo, commit.id)
@@ -128,6 +187,7 @@ class BitbucketTraceabilityUseCase {
         }
     }
 
+    @NonCPS
     private void writeCSVRecord(File file, Record record) {
         // Jenkins has his own idea how to concatenate Strings
         // Nor '' + '', nor "${}${}", nor StringBuilder nor StringBuffer works properly to
@@ -155,12 +215,14 @@ class BitbucketTraceabilityUseCase {
         file << record.END_LINE
     }
 
+    @NonCPS
     private Developer getAuthor(Map author) {
         return new Developer(
             author.name,
             author.emailAddress)
     }
 
+    @NonCPS
     private List getReviewers(List reviewers) {
         List<Developer> approvals = []
         reviewers.each {
@@ -174,18 +236,19 @@ class BitbucketTraceabilityUseCase {
         return approvals
     }
 
+    @NonCPS
     private String getDateWithFormat(Long timestamp) {
         Date dateObj =  new Date(timestamp)
         return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
     }
 
+    @NonCPS
     private Iterator processCsv(String data, String separator, List<String> columnNames) {
-        return new CsvParser().parse(data,
-            separator: separator,
-            readFirstLine: true,
-            columnNames: columnNames, )
+        Map parseParams = [separator: separator, readFirstLine: true, columnNames: columnNames, ]
+        return CsvParser.parseCsv(parseParams, data)
     }
 
+    @NonCPS
     private Object processCsvDeveloper(String data) {
         return processCsv(data, Developer.FIELD_SEPARATOR, ['name', 'email']).next()
     }
