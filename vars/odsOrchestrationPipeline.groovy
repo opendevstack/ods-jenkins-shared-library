@@ -25,8 +25,8 @@ import org.ods.util.PipelineSteps
 @SuppressWarnings('AbcMetric')
 def call(Map config) {
     Unirest.config()
-        .socketTimeout(1200000)
-        .connectTimeout(120000)
+        .socketTimeout(6000000)
+        .connectTimeout(600000)
 
     def steps = new PipelineSteps(this)
 
