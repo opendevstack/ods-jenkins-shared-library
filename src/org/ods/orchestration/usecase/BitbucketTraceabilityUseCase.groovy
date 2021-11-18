@@ -48,8 +48,8 @@ class BitbucketTraceabilityUseCase {
      */
 
     String generateSourceCodeReviewFile() {
-        File file = createReportFile()
         String token = bitbucketService.getToken()
+        File file = createReportFile()
         processRepositories(file, token)
         return file.absolutePath
     }
