@@ -694,7 +694,7 @@ class JiraService {
 
         if (!versionName?.trim()) {
             throw new IllegalArgumentException('Error: unable to check project versions from Jira. ' +
-                '\'version\' is undefined.')
+                '\'versionName\' is undefined.')
         }
 
         def response = Unirest.get("${this.baseURL}/rest/platform/1.1/productreleases/{projectKey}/versions/{version}")

@@ -489,7 +489,7 @@ class OpenShiftResourceMetadata {
             if (chart != null) {
                 if (!chart.name || !chart.version) {
                     throw new IllegalArgumentException(
-                        "Invalid chart file ${config.chartDir}/Chart.yaml: vame=${chart.name}, version=${chart.version}"
+                        "Invalid chart file ${config.chartDir}/Chart.yaml: name=${chart.name}, version=${chart.version}"
                     )
                 }
                 // The following replacement is as per the specification of this label
