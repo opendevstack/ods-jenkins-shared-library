@@ -3,13 +3,12 @@ package util
 import groovy.json.JsonSlurperClassic
 import groovy.text.GStringTemplateEngine
 import groovy.transform.InheritConstructors
-
-import org.ods.services.GitService
 import org.apache.http.client.utils.URIBuilder
 import org.junit.contrib.java.lang.system.EnvironmentVariables
-import org.ods.orchestration.parser.*
-import org.ods.orchestration.usecase.*
-import org.ods.orchestration.util.*
+import org.ods.orchestration.parser.JUnitParser
+import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.util.Project
+import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
@@ -887,109 +886,64 @@ class FixtureHelper {
         new File(this.getClass().getResource(path).toURI())
     }
 
-    static generateJUnitXMLFiles(bindings) {
-        def file = File.createTempFile("tir", "test")
-
-        file.append(FixtureHelper.createJUnitXMLTestResultsWithBindings(bindings))
-        return [
-            file
-        ]
-    }
-
-    static String createJUnitXMLTestResultsWithBindings(bindings) {
-        def templateText = """
-        <testsuites name="my-suites" tests="\${testno}" failures="\${failuresno}" errors="\${errorsno}">
-            <% tests.each { type -> %>
-                <testsuite name="\${type.key}" tests="\${type.value.testno}" failures="\${type.value.failuresno}" errors="\${type.value.errorsno}" skipped="\${type.value.skippedno}" timestamp="2020-03-08T20:49:53Z">
-                    <properties>
-                        <property name="my-property-a" value="my-property-a-value"/>
-                    </properties>
-                    <% type.value.issues?.each { test -> %>
-                        <% if (test.success) { %>
-                        <testcase name="\${test.key}-testcase" classname="app.MyTestCase" status="Succeeded" time="1"/>
-                        <% } %>
-                        <% if (!test.success && !test.skipped) { %>
-                            <testcase name="\${test.key}-testcase" classname="app.MyTestCase2" status="Error" time="2">
-                                <error type="my-error-type" message="my-error-message">This is an error.</error>
-                            </testcase>
-                        <% } %>
-                        <% if (test.skipped) { %>
-                        <testcase name="\${test.key}-testcase" classname="app.MyTestCase2" status="Missing" time="2">
-                            <skipped/>
-                        </testcase>
-                        <% } %>
-                    <% } %>
-                </testsuite>
-            <% } %>
-        </testsuites>
-        """
-        def engine = new GStringTemplateEngine()
-        def template = engine.createTemplate(templateText).make(bindings)
-        return template.toString()
-    }
-
-    static Map generateTestSuite(issues) {
-        def generated = [testsuites: []]
-        issues.groupBy { it.testsuite }.each {
-            generated.testsuites << [
-                hostname  : "pod-2139ba54-8ddb-4ce8-b151-2efe6148944e-mx7r4-451mb",
-                failures  : it.value.findAll { t -> !t.success }.size(),
-                tests     : it.value.size(),
-                name      : it.key,
-                errors    : it.value.findAll { t -> !t.success }.size(),
-                timestamp : "2021-10-28T11:18:58",
-                skipped   : it.value.findAll { t -> t.skipped }.size(),
-                properties: [],
-                testcases : it.value.collect { [classname: it.testsuite, name: it.testcase, time: 0.02, skipped: false, systemOut: null, systemErr: null, timestamp: "2021-10-28T11:18:35"] },
-                systemOut : null,
-                systemErr : null
+    static Map createTIRData() {
+        def data = [
+            openshift: [
+                builds:                    [
+                    'demo-app-backend': [
+                        buildId: 'demo-app-backend-3',
+                        image:   '172.30.1.1:5000/t6-cd/demo-app-backend@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4'
+                    ]
+                ],
+                deployments:               [
+                    'demo-app-backend': [
+                        podName:                      'demo-app-backend-3-dshjl',
+                        podNamespace:                 't6-dev',
+                        podMetaDataCreationTimestamp: '2021-11-21T22:31:04Z',
+                        deploymentId:                 'demo-app-backend-3',
+                        podNode:                      'localhost', 'podIp': '172.17.0.39',
+                        podStatus:                    'Running',
+                        podStartupTimeStamp:          '2021-11-21T22:31:04Z',
+                        containers:                   [
+                            'demo-app-backend': '172.30.1.1:5000/t6-cd/demo-app-backend@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4'
+                        ]
+                    ]
+                ],
+                sonarqubeScanStashPath:    'scrr-report-demo-app-backend-1',
+                SCRR:                      'SCRR-t6-demo-app-backend.docx',
+                'SCRR-MD':                 'SCRR-t6-demo-app-backend.md',
+                testResultsFolder:         'build/test-results/test',
+                testResults:               '1',
+                xunitTestResultsStashPath: 'test-reports-junit-xml-demo-app-backend-1',
+                CREATED_BY_BUILD:          'WIP/1'
+            ],
+            documents: [:],
+            git:       [
+                branch:                  'master',
+                commit:                  '46a05fce73c811e74f4f96d8f418daa4246ace09',
+                previousCommit:          null,
+                previousSucessfulCommit: null,
+                url:                     'http://bitbucket.odsbox.lan:7990/scm/t6/t6-demo-app-backend.git',
+                baseTag:                 '',
+                targetTag:               ''
             ]
-
-        }
-        return generated
-    }
-
-    static Map generateNodes(bindings, testReportFiles) {
-        def nodes = [tests: [:]]
-        bindings.tests.each { it ->
-            println it.key
-            nodes.tests."${it.key}" = [testReportFiles: testReportFiles]
-            nodes.tests."${it.key}".testResults = generateTestSuite(it.value.issues)
-        }
-        return nodes
-    }
-
-    static Map createCFTRData(bindings) {
-        bindings.tests.acceptance?.with {
-            testno = issues?.size() ?: 0
-            errorsno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
-            failuresno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
-            skippedno = issues.findAll { it.skipped }.size() ?: 0
-        }
-
-        bindings.tests.installation?.with {
-            testno = issues.size() ?: 0
-            errorsno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
-            failuresno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
-            skippedno = issues.findAll { it.skipped }.size() ?: 0
-        }
-
-        bindings.tests.integration?.with {
-            testno = issues?.size() ?: 0
-            errorsno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
-            failuresno = issues.findAll { !it.success && !it.skipped }.size() ?: 0
-            skippedno = issues.findAll { it.skipped }.size() ?: 0
-        }
-
-        bindings.tests.with {
-            bindings.testno =     (acceptance?.testno?:0) + (installation?.testno?:0) + (integration?.testno?:0)
-            bindings.errorsno =   (acceptance?.errorsno?:0) + (installation?.errorsno?:0) + (integration?.errorsno?:0)
-            bindings.failuresno = (acceptance?.failuresno?:0) + (installation?.failuresno?:0) + (integration?.failuresno?:0)
-            bindings.skippedno =  (acceptance?.skippedno?:0) + (installation?.skippedno?:0) + (integration?.skippedno?:0)
-
-        }
-
-        def testReportFiles = generateJUnitXMLFiles(bindings)
-        return FixtureHelper.generateNodes(bindings, testReportFiles)
+        ]
+        def repo = [
+            id:             'demo-app-backend',
+            type:           'ods',
+            data:           data,
+            url:            'http://bitbucket.odsbox.lan:7990/scm/t6/t6-demo-app-backend.git',
+            branch:         'master',
+            pipelineConfig: [
+                dependencies: []
+            ],
+            metadata:       [
+                name:        'OpenJDK',
+                description: 'OpenJDK is a free and open-source implementation of the Java Platform, Standard Edition. Technologies: Spring Boot 2.1, OpenJDK 11, supplier:https://adoptopenjdk.net',
+                version:     '3.x',
+                type:        'ods'
+            ]
+        ]
+        return [repo: repo, data: data]
     }
 }
