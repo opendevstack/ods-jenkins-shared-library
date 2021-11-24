@@ -154,7 +154,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
             bitbucketTraceabilityUseCase)
     }
 
-    private boolean validatePDF(doctype, version, component = '') {
+    private boolean validatePDF(doctype, version, component = null) {
         unzipGeneratedArtifact(doctype, version, component)
         if (GENERATE_EXPECTED_PDF_FILES) {
             copyDocWhenRecording(doctype, version, component)
