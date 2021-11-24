@@ -40,6 +40,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final String PROJECT_KEY = "OFI2004"
     private static final String PROJECT_KEY_RELEASE_ID = "123"
     private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
+    private static final String OVERALL_PREFIX = 'OverAll'
 
     @Rule
     EnvironmentVariables env = new EnvironmentVariables()
@@ -82,7 +83,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     }
 
     @Unroll
-    def "create #doctype with data"() {
+    def "create #doctype with input params"() {
         given: "There's a LeVADocument service"
         def version = 'WIP'
         LeVADocumentUseCase useCase = getLeVADocumentUseCaseFactory(doctype, version)
@@ -94,7 +95,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         useCase."create${doctype}"(input.repo, input.data)
 
         then: "the generated PDF is as expected"
-        validatePDF(doctype, version)
+        validatePDF(doctype, version, component)
 
         where:
         doctype | component
@@ -102,7 +103,6 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         'TIR'   | 'thesecond'
     }
 
-    @Ignore // until DTR", "TIR" are done
     @Unroll
     def "create Overall #doctype"() {
         given: "There's a LeVADocument service"
@@ -114,10 +114,10 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         useCase."createOverall${doctype}"()
 
         then: "the generated PDF is as expected"
-        validatePDF(doctype, version, "OverAll")
+        validatePDF(doctype, version, 'overall')
 
         where:
-        doctype << ["DTR", "TIR"] // TODO IVR
+        doctype << ["TIR"] // TODO IVR
         version = "WIP"
     }
 
@@ -153,36 +153,58 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
             bitbucketTraceabilityUseCase)
     }
 
-    private boolean validatePDF(doctype, version, oveAllPrefix = "") {
-        unzipGeneratedArtifact(doctype, version)
+    private boolean validatePDF(doctype, version, component = '') {
+        unzipGeneratedArtifact(doctype, version, component)
         if (GENERATE_EXPECTED_PDF_FILES) {
-            copyDocWhenRecording(doctype, version, oveAllPrefix)
+            copyDocWhenRecording(doctype, version, component)
             return true
         } else {
-            def actualDoc = actualDoc(doctype, version)
-            def expectedDoc = expectedDoc(doctype, version, oveAllPrefix)
+            def actualDoc = actualDoc(doctype, version, component)
+            def expectedDoc = expectedDoc(doctype, version, component)
             return new PdfCompare(SAVED_DOCUMENTS).compare(actualDoc.absolutePath, expectedDoc.absolutePath)
         }
     }
 
-    private File actualDoc(doctype, version) {
-        new File("${tempFolder.getRoot()}/${doctype}-${PROJECT_KEY}-${version}-1.pdf")
+    private File actualDoc(doctype, version, component = null) {
+        def comp = ''
+        if (component && component != 'overall') {
+            comp = "${component}-"
+        }
+        new File("${tempFolder.getRoot()}/${doctype}-${PROJECT_KEY}-${comp}${version}-1.pdf")
     }
 
-    private Object unzipGeneratedArtifact(doctype, version) {
+    private Object unzipGeneratedArtifact(doctype, version, component = null) {
+        def comp = ''
+        if (component && component != 'overall') {
+            comp = "${component}-"
+        }
         new AntBuilder().unzip(
-            src: "${tempFolder.getRoot()}/workspace/artifacts/${doctype}-${PROJECT_KEY}-${version}-1.zip",
+            src: "${tempFolder.getRoot()}/workspace/artifacts/${doctype}-${PROJECT_KEY}-${comp}${version}-1.zip",
             dest: "${tempFolder.getRoot()}",
             overwrite: "true")
     }
 
-    private File expectedDoc(doctype, version, oveAllPrefix) {
-        new FixtureHelper().getResource("expected/${this.class.simpleName}/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
+    private File expectedDoc(doctype, version, component = null) {
+        def overallPrefix = ''
+        def comp = ''
+        if (component == 'overall') {
+            overallPrefix = OVERALL_PREFIX
+        } else if (component) {
+            comp = "${component}-"
+        }
+        new FixtureHelper().getResource("expected/${this.class.simpleName}/${overallPrefix}${doctype}-${PROJECT_KEY}-${comp}${version}-1.pdf")
     }
 
-    private void copyDocWhenRecording(doctype, version, oveAllPrefix) {
-        def expectedDoc = new File("test/resources/expected/${this.class.simpleName}/${oveAllPrefix}${doctype}-${PROJECT_KEY}-${version}-1.pdf")
-        FileUtils.copyFile(actualDoc(doctype, version), expectedDoc)
+    private void copyDocWhenRecording(doctype, version, component = null) {
+        def overallPrefix = ''
+        def comp = ''
+        if (component == 'overall') {
+            overallPrefix = OVERALL_PREFIX
+        } else if (component) {
+            comp = "${component}-"
+        }
+        def expectedDoc = new File("test/resources/expected/${this.class.simpleName}/${overallPrefix}${doctype}-${PROJECT_KEY}-${comp}${version}-1.pdf")
+        FileUtils.copyFile(actualDoc(doctype, version, component), expectedDoc)
     }
 
     def setBuildParams(version){
