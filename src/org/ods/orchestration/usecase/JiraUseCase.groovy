@@ -292,7 +292,7 @@ class JiraUseCase {
                 "${testMessage}. Test type: '${testTypes}'.\nTest results: ${testResults}")
         }
 
-        ogger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
+        logger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
         logger.debugClocked("${testComponent}-jira-fetch-tests-${testTypes}",
             "Found automated tests$testMessage. Test type: ${testTypes}: " +
@@ -305,11 +305,11 @@ class JiraUseCase {
             }
         }
 
-        logger.startClocked("${testLevel}-jira-report-tests-${testTypes}")
+        logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
         this.support.applyXunitTestResults(testIssues, testResults)
-        logger.debugClocked("${testLevel}-jira-report-tests-${testTypes}")
+        logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
-            logger.startClocked("${testLevel}-jira-report-bugs-${testTypes}")
+            logger.startClocked("${testComponent}-jira-report-bugs-${testTypes}")
             // Create bugs for erroneous test issues
             def errors = JUnitParser.Helper.getErrors(testResults)
             this.createBugsForFailedTestIssues(testIssues, errors, this.steps.env.RUN_DISPLAY_URL)
@@ -317,7 +317,7 @@ class JiraUseCase {
             // Create bugs for failed test issues
             def failures = JUnitParser.Helper.getFailures(testResults)
             this.createBugsForFailedTestIssues(testIssues, failures, this.steps.env.RUN_DISPLAY_URL)
-            logger.debugClocked("${testLevel}-jira-report-bugs-${testTypes}")
+            logger.debugClocked("${testComponent}-jira-report-bugs-${testTypes}")
         }
     }
 
