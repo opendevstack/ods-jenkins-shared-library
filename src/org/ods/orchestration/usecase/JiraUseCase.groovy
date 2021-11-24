@@ -285,17 +285,18 @@ class JiraUseCase {
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
-        def testLevel = "${componentName ?: 'project'}"
+        def testComponent = "${componentName ?: 'project'}"
+        def testMessage = componentName ? " for component '${componentName}'" : ''
         if (logger.debugMode) {
-            logger.debug('Reporting unit test results to corresponding test cases in Jira for' +
-              " '${testLevel}' type: '${testTypes}'\rresults: ${testResults}")
+            logger.debug('Reporting unit test results to corresponding test cases in Jira' +
+                "${testMessage}. Test type: '${testTypes}'.\nTest results: ${testResults}")
         }
 
-        logger.startClocked("${testLevel}-jira-fetch-tests-${testTypes}")
+        ogger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
-        logger.debugClocked("${testLevel}-jira-fetch-tests-${testTypes}",
-            "Found automated tests for ${(componentName ?: 'project')} type: ${testTypes}: " +
-            "${testIssues?.size()}")
+        logger.debugClocked("${testComponent}-jira-fetch-tests-${testTypes}",
+            "Found automated tests$testMessage. Test type: ${testTypes}: " +
+                "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
         this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
