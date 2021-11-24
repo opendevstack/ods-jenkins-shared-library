@@ -103,6 +103,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         'TIR'   | 'thesecond'
     }
 
+    @Ignore
     @Unroll
     def "create Overall #doctype"() {
         given: "There's a LeVADocument service"
@@ -117,7 +118,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         validatePDF(doctype, version, 'overall')
 
         where:
-        doctype << ["TIR"] // TODO IVR
+        doctype << ["DTR", "TIR"] // TODO IVR
         version = "WIP"
     }
 
