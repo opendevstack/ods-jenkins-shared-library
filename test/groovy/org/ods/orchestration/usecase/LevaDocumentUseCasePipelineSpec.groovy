@@ -38,7 +38,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"])
     private static final boolean GENERATE_EXPECTED_PDF_FILES = Boolean.parseBoolean(System.properties["generateExpectedPdfFiles"])
     private static final String PROJECT_KEY = "OFI2004"
-    private static final String PROJECT_KEY_RELEASE_ID = "207"
+    private static final String PROJECT_KEY_RELEASE_ID = "123"
     private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
 
     @Rule
@@ -82,22 +82,24 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     }
 
     @Unroll
-    def "create TIR"() {
+    def "create #doctype with data"() {
         given: "There's a LeVADocument service"
+        def version = 'WIP'
         LeVADocumentUseCase useCase = getLeVADocumentUseCaseFactory(doctype, version)
             .loadProject(setBuildParams(version))
             .createLeVADocumentUseCase()
 
         when: "the user creates a LeVA document"
-        def input = FixtureHelper.createTIRData()
-        useCase.createTIR(input.repo, input.data)
+        def input = FixtureHelper.createTIRData(component)
+        useCase."create${doctype}"(input.repo, input.data)
 
         then: "the generated PDF is as expected"
         validatePDF(doctype, version)
 
         where:
-        version = "WIP"
-        doctype = "TIR"
+        doctype | component
+        'TIR'   | 'thefirst'
+        'TIR'   | 'thesecond'
     }
 
     @Ignore // until DTR", "TIR" are done
