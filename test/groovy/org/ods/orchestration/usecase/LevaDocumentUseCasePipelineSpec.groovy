@@ -38,7 +38,7 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
     private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"])
     private static final boolean GENERATE_EXPECTED_PDF_FILES = Boolean.parseBoolean(System.properties["generateExpectedPdfFiles"])
     private static final String PROJECT_KEY = "OFI2004"
-    private static final String PROJECT_KEY_RELEASE_ID = "123"
+    private static final String PROJECT_KEY_RELEASE_ID = "207"
     private static final String SAVED_DOCUMENTS="build/reports/LeVADocs"
     private static final String OVERALL_PREFIX = 'OverAll'
 
