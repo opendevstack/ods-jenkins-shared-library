@@ -1,7 +1,8 @@
+import org.ods.util.UnirestConfig
+
 import java.nio.file.Paths
 
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
-import kong.unirest.Unirest
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
@@ -21,10 +22,7 @@ import org.ods.util.PipelineSteps
 
 @SuppressWarnings('AbcMetric')
 def call(Map config) {
-    Unirest.config()
-        .socketTimeout(6000000)
-        .connectTimeout(600000)
-
+    UnirestConfig.init()
     def steps = new PipelineSteps(this)
 
     def debug = config.get('debug', false)

@@ -12,6 +12,7 @@
 - Remove non breakable spaces ([#766](https://github.com/opendevstack/ods-jenkins-shared-library/pull/766)) 
 - Null error in RA ([#769](https://github.com/opendevstack/ods-jenkins-shared-library/pull/769))
 - Watermark to TRC ([#771](https://github.com/opendevstack/ods-jenkins-shared-library/pull/771))
+- Increase Socket Timeout on Pipeline Orchestrator [788](https://github.com/opendevstack/ods-jenkins-shared-library/pull/788)
 
 ## [3.0] - 2020-08-11
 
