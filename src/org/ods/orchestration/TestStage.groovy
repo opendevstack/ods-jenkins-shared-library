@@ -26,8 +26,6 @@ class TestStage extends Stage {
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
-        //ILogger logger = ServiceRegistry.instance.get(Logger)
-
         def phase = MROPipelineUtil.PipelinePhases.TEST
 
         def globalData = getTestDataStructure()
