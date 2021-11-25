@@ -1667,6 +1667,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Map getDocumentSections(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
+
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira.')
@@ -1680,7 +1681,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected Map getDocumentSectionsFileOptional(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
         sections = sections?.collectEntries { sec ->
-            [(sec.section): sec]
+            [(sec.section): sec + [content: this.convertImages(sec.content)]]
         }
         if (!sections || sections.isEmpty() ) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
@@ -1688,7 +1689,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 this.project.data.jira.undoneDocChapters = [:]
             }
             this.project.data.jira.undoneDocChapters[documentType] = this.computeSectionsNotDone(sections)
+            sections = sections?.collectEntries { key, sec ->
+                [(key): sec + [content: this.convertImages(sec.content)]]
+            }
         }
+
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira nor files.')
