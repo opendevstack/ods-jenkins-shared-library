@@ -90,6 +90,7 @@
 - verbosity of standard shared libary stages ([#196](https://github.com/opendevstack/ods-jenkins-shared-library/issues/196))
 - Allow easy configuration of compute resources ([#173](https://github.com/opendevstack/ods-jenkins-shared-library/issues/173))
 - Fix rollout race condition and display events in Jenkins log ([#385](https://github.com/opendevstack/ods-jenkins-shared-library/pull/385))
+- Fix image not shown in documents like TIR and DTR from Document Chapters ([#789](https://github.com/opendevstack/ods-jenkins-shared-library/pull/789))
 
 ### Changed
 - Lazily set OpenShift app domain ([#396](https://github.com/opendevstack/ods-jenkins-shared-library/pull/396))
