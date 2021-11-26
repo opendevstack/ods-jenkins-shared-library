@@ -6,8 +6,6 @@ import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.util.ILogger
-import org.ods.util.Logger
 import org.ods.util.PipelineSteps
 
 @SuppressWarnings(['AbcMetric'])
