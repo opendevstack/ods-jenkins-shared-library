@@ -77,12 +77,15 @@ class TestStageSpec extends SpecHelper {
         steps.env >> [WORKSPACE: "", BUILD_ID: 1]
         jenkins.unstashFilesIntoPath(_, _, "JUnit XML Report") >> true
         junit.loadTestReportsFromPath(_) >> []
-        junit.parseTestReportFiles(_) >> [:]
+        junit.parseTestReportFiles(_) >> [ testsuites: [] ]
 
         when:
         testStage.run()
 
         then:
+        1 * testStage.getTestResults(steps, _, Project.TestType.INSTALLATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
+        1 * testStage.getTestResults(steps, _, Project.TestType.INTEGRATION) >> [testReportFiles: [], testResults: [testsuites:[]]]
+        1 * testStage.getTestResults(steps, _, Project.TestType.ACCEPTANCE) >> [testReportFiles: [], testResults: [testsuites:[]]]
         1 * util.prepareExecutePhaseForReposNamedJob(MROPipelineUtil.PipelinePhases.TEST, project.repositories, _, _) >> { phase_, repos_, preExecuteRepo_, postExecuteRepo_ ->
             postExecuteRepo_.call(steps, [type: MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST] as Map)
             return []
