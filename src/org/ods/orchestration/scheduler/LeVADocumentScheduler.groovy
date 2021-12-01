@@ -12,7 +12,7 @@ import org.ods.util.IPipelineSteps
 class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per GAMP category
-    private static Map GAMP_CATEGORIES = [
+    private final static Map GAMP_CATEGORIES = [
         "1": [
             LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.RA as String,
@@ -78,11 +78,11 @@ class LeVADocumentScheduler extends DocGenScheduler {
             LeVADocumentUseCase.DocumentType.TCR as String,
             LeVADocumentUseCase.DocumentType.DIL as String,
             LeVADocumentUseCase.DocumentType.TRC as String,
-        ]
+        ],
     ]
 
     // Document types per GAMP category - for a saas only project
-    private static Map GAMP_CATEGORIES_SAAS_ONLY = [
+    private final static Map GAMP_CATEGORIES_SAAS_ONLY = [
         "3": [
             LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.RA as String,
@@ -104,7 +104,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             LeVADocumentUseCase.DocumentType.CFTR as String,
             LeVADocumentUseCase.DocumentType.DIL as String,
             LeVADocumentUseCase.DocumentType.TRC as String,
-        ]
+        ],
     ]
 
     // Document types per pipeline phase with an optional lifecycle constraint
@@ -141,7 +141,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
     ]
 
     // Document types per repository type with an optional phase constraint
-    private static Map REPSITORY_TYPES = [
+    private final static Map REPSITORY_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
             (LeVADocumentUseCase.DocumentType.DTR as String): null,
             (LeVADocumentUseCase.DocumentType.TIR as String): null
@@ -153,11 +153,11 @@ class LeVADocumentScheduler extends DocGenScheduler {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:]
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:],
     ]
 
     // Document types at the project level which require repositories
-    private static List REQUIRING_REPOSITORIES = [
+    private final static List REQUIRING_REPOSITORIES = [
         LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
         LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
         LeVADocumentUseCase.DocumentType.CFTR as String,
@@ -168,7 +168,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per environment token and label to track with Jira
     @SuppressWarnings('NonFinalPublicField')
-    public static Map ENVIRONMENT_TYPE = [
+    public final static Map ENVIRONMENT_TYPE = [
         "D": [
             (LeVADocumentUseCase.DocumentType.CSD as String)    : ["${LeVADocumentUseCase.DocumentType.CSD}"],
             (LeVADocumentUseCase.DocumentType.SSDS as String)   : ["${LeVADocumentUseCase.DocumentType.SSDS}"],
@@ -201,7 +201,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_P"]
-        ]
+        ],
     ]
 
     private final ILogger logger

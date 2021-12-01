@@ -804,7 +804,7 @@ class OpenShiftService {
      */
     String patch(String resource, Map<String, ?> patch, String path = null, String project = null) {
         if (!resource) {
-            throw new IllegalArgumentException('You must specify the resource to patch')
+            throw new IllegalArgumentException('You must specify the resource to path')
         }
         if (path != null && !path.startsWith('/')) {
             throw new IllegalArgumentException("The path must start with a slash. path == '${path}'")
