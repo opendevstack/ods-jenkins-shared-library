@@ -329,6 +329,7 @@ class DocumentHistory {
         if (!this.allIssuesAreValid){
             logger.warn(this.allIssuesAreNotValidMessage)
         }
+        logger.debug("parseJiraDataToDocumentHistoryEntry: versionMap = ${versionMap.toString()}")
         return new DocumentHistoryEntry(versionMap, this.latestVersionId, projectVersion, previousProjectVersion, '')
     }
 
