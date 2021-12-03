@@ -51,7 +51,11 @@
 - Refactor and create unit test for LeVADocumentUseCase.getReferencedDocumentsVersion ([#744](https://github.com/opendevstack/ods-jenkins-shared-library/pull/744))
 - Remove non breakable white space from Json response of JiraService ([760](https://github.com/opendevstack/ods-jenkins-shared-library/pull/760))
 - Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
+- Add breakable characters in SSDS Bitbucket data to let the render split the words ([#774])(https://github.com/opendevstack/ods-jenkins-shared-library/pull/774))
 - Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
+- Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
+- Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
+- Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
 
 ## [3.0] - 2020-08-11
 
@@ -80,6 +84,7 @@
 - verbosity of standard shared libary stages ([#196](https://github.com/opendevstack/ods-jenkins-shared-library/issues/196))
 - Allow easy configuration of compute resources ([#173](https://github.com/opendevstack/ods-jenkins-shared-library/issues/173))
 - Fix rollout race condition and display events in Jenkins log ([#385](https://github.com/opendevstack/ods-jenkins-shared-library/pull/385))
+- Fix image not shown in documents like TIR and DTR from Document Chapters ([#789](https://github.com/opendevstack/ods-jenkins-shared-library/pull/789))
 
 ### Changed
 - Lazily set OpenShift app domain ([#396](https://github.com/opendevstack/ods-jenkins-shared-library/pull/396))

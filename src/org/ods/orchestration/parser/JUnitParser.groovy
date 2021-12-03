@@ -143,14 +143,16 @@ class JUnitParser {
     static Map parseJUnitXML(String xml) {
         if (!xml || xml.isEmpty()) {
             throw new IllegalArgumentException(
-                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format."
+                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format:" +
+		" No XML or empty XML provided"
             )
         }
 
         def root = new XmlSlurper().parseText(xml)
         if (!["testsuites", "testsuite"].contains(root.name())) {
             throw new IllegalArgumentException(
-                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format."
+                "Error: unable to transform JUnit XML document to JSON. 'xml' is not in a valid JUnit XML format:" +
+		" Required attribute 'testsuite(s)' is missing."
             )
         }
 

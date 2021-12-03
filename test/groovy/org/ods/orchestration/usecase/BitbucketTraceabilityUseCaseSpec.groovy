@@ -8,6 +8,7 @@ import org.json.JSONArray
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -95,6 +96,11 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         given: "There are two Bitbucket repositories"
         def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
 
+        and: 'The characters to change'
+        Map CHARACTERS = [
+            '/': '/\u200B',
+            '@': '@\u200B',
+        ]
         when: "the source code review file is readed"
         def data = useCase.readSourceCodeReviewFile(
             new FixtureHelper().getResource(EXPECTED_BITBUCKET_CSV).getAbsolutePath())
@@ -105,7 +111,7 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         def jsonSlurper = new JsonSlurper()
         def expected = jsonSlurper.parse(expectedFile)
 
-        JSONAssert.assertJsonEquals(expected.toString(), result.toString())
+        JSONAssert.assertJsonEquals(StringCleanup.removeCharacters(expected.toString(), CHARACTERS), result.toString())
 
     }
 
