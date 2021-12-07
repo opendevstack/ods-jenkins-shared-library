@@ -1,5 +1,8 @@
 package org.ods.orchestration.usecase
 
+import static groovy.json.JsonOutput.prettyPrint
+import static groovy.json.JsonOutput.toJson
+
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.xml.XmlUtil
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
@@ -22,7 +25,10 @@ import org.ods.util.IPipelineSteps
 
 import java.time.LocalDateTime
 
-@SuppressWarnings(['IfStatementBraces',
+@SuppressWarnings([
+    'ClassSize',
+    'UnnecessaryDefInMethodDeclaration',
+    'IfStatementBraces',
     'LineLength',
     'AbcMetric',
     'Instanceof',
@@ -36,10 +42,12 @@ import java.time.LocalDateTime
     'UseCollectMany',
     'ParameterName',
     'TrailingComma',
-    'SpaceAroundMapEntryColon'])
+    'SpaceAroundMapEntryColon',
+    'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
+
         CSD,
         DIL,
         DTP,
@@ -58,6 +66,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         OVERALL_DTR,
         OVERALL_IVR,
         OVERALL_TIR
+
     }
 
     protected static Map DOCUMENT_TYPE_NAMES = [
@@ -1039,7 +1048,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
-        logger.debug("createTIR - repo:${repo}, data:${data}")
+        logger.debug("createTIR - repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(data))}")
 
         def documentType = DocumentType.TIR as String
 
@@ -1091,7 +1100,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 List documents = [document]
                 documents += codeReviewReport
                 // Merge the current document with the code review report
-                document = this.pdf.merge(documents)
+                return this.pdf.merge(this.steps.env.WORKSPACE, documents)
             }
             return document
         }
@@ -1137,7 +1146,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return data.collect { it.subMap(['key', 'risks', 'tests']).values()  }.flatten()
     }
 
-    String createTRC(Map repo, Map data) {
+    String createTRC(Map repo = null, Map data = null) {
         logger.debug("createTRC - repo:${repo}, data:${data}")
 
         def documentType = DocumentType.TRC as String

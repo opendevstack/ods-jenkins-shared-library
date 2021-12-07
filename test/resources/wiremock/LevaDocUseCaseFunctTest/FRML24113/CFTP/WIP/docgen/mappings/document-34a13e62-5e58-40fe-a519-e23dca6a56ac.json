@@ -1,0 +1,385 @@
+{
+    "id": "34a13e62-5e58-40fe-a519-e23dca6a56ac",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "CFTP-5",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Combined Functional and Requirements Testing Plan",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Combined Functional and Requirements Testing Plan, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "data": {
+                            "sections": {
+                                "sec13s2": {
+                                    "number": "13.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Abbreviations",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec13s2",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Abbreviation</th>\n<th class='confluenceTh'>Meaning</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">ODS</font></td>\n<td class='confluenceTd'><font color=\"blue\">OpenDevStack</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">EDP</font></td>\n<td class='confluenceTd'><font color=\"blue\">Enterprise Development Platform</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-99",
+                                    "status": "Done"
+                                },
+                                "sec13s1": {
+                                    "number": "13.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Definitions",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec13s1",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Term</th>\n<th class='confluenceTh'>Definition</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">Jenkins</font></td>\n<td class='confluenceTd'><font color=\"blue\">Build engine supplied by cloudbees - part of OpenDevStack (BI-IT-DEVSTACK)</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">xUnit</font></td>\n<td class='confluenceTd'><font color=\"blue\">Unit testing framework, aggregaults across multiple languages</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-98",
+                                    "status": "Done"
+                                },
+                                "sec12": {
+                                    "number": "12",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Functional and Requirements Testing Documentation",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec12",
+                                    "content": " ",
+                                    "key": "FRML24113-97",
+                                    "status": "Done"
+                                },
+                                "sec2": {
+                                    "number": "2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Scope",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec2",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184802/184802_image-2021-11-24-16-23-17-348.png\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-96",
+                                    "status": "Done"
+                                },
+                                "sec9": {
+                                    "number": "9",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Traceability Matrix",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec9",
+                                    "content": "<p><font color=\"blue\">The test coverage is captured in the traceability matrix which maps user requirements and functional specifications to test cases. The traceability matrix will be updated before test execution to include all functional and requirements test cases.</font></p>",
+                                    "key": "FRML24113-108",
+                                    "status": "Done"
+                                },
+                                "sec8s1": {
+                                    "number": "8.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Test Cases",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec8s1",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Risk Priority</th>\n<th class='confluenceTh'>Level of Testing</th>\n</tr>\n<tr>\n<td class='confluenceTd'><b>3</b></td>\n<td class='confluenceTd'><font color=\"blue\">No testing required</font></td>\n</tr>\n<tr>\n</tr>\n<tr>\n<td class='confluenceTd'><b>2</b></td>\n<td class='confluenceTd'><font color=\"blue\">Testing of functionality or requirements without challenge/boundary tests</font></td>\n</tr>\n<tr>\n</tr>\n<tr>\n<td class='confluenceTd'><b>1</b></td>\n<td class='confluenceTd'><font color=\"blue\">Full test of requirement or functionality including challenge/boundary tests (e.g. invalid, borderline or missing input values, out-of-order execution of functions, disconnected interfaces etc.)</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-107",
+                                    "status": "Done"
+                                },
+                                "sec7s2s2": {
+                                    "number": "7.2.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Scope of Non-Functional Testing",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec7s2s2",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184810/184810_image-2021-11-24-16-27-19-989.png\" height=\"175\" width=\"579\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-106",
+                                    "status": "Done"
+                                },
+                                "sec7s1s2": {
+                                    "number": "7.1.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Scope of Functional Testing",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec7s1s2",
+                                    "content": "<p><font color=\"blue\">The System name is commercial off-the-shelf software which was configured according to the configuration specification. Since some user requirements could not be fulfilled via configuration and therefore have been implemented by in-house developed customizations.<br/>\n * Functional testing will be performed to verify correct functionality of all customizations, i.e. functional specifications will be 100% covered by functional test cases.<br/>\n * Configuration specification will not be tested on a functional level, but only implicitly in acceptance test cases.<br/>\n * Standard product functionality will not be tested in functional testing since appropriate testing has already performed by the vendor. This has been verified in a vendor audit.</font></p>",
+                                    "key": "FRML24113-105",
+                                    "status": "Done"
+                                },
+                                "sec6s2": {
+                                    "number": "6.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Scope of Integration Testing",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6s2",
+                                    "content": "<p><font color=\"blue\">The System name is commercial off-the-shelf software which was configured according to the configuration specification. Since some user requirements could not be fulfilled via configuration and therefore have been implemented by in-house developed customizations.<br/>\n * Integration testing will be performed to verify correct functionality of all customizations, i.e. functional specifications will be 100% covered by functional test cases.<br/>\n * Configuration specification will not be tested on an integration level, but only implicitly in acceptance test cases.<br/>\n * Standard product functionality will not be tested in integration testing since appropriate testing has already performed by the vendor. This has been verified in a vendor audit.</font></p>",
+                                    "key": "FRML24113-104",
+                                    "status": "Done"
+                                },
+                                "sec5s2": {
+                                    "number": "5.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Test Procedure 2: Verification of Training Documentation",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5s2",
+                                    "content": "<p><font color=\"blue\">Before Integration Testing can start, the Integration Testing participants have to be trained in<br/>\n * the testing process<br/>\n * the use of the &lt;insert system name&gt; system</font></p>",
+                                    "key": "FRML24113-103",
+                                    "status": "Done"
+                                },
+                                "sec5": {
+                                    "number": "5",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Operational Qualification Activities and Training",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5",
+                                    "content": "<p><font color=\"blue\">Before test execution the testers will receive formal training on:<br/>\n * the testing process, including good documentation practice<br/>\n * a basic end user training for System name<br/>\n * an overview of the business processes supported by System name<br/>\n<br/>\nThe training will be documented and copies of the training records will be attached to the testing documentation package.</font></p>",
+                                    "key": "FRML24113-102",
+                                    "status": "Done"
+                                },
+                                "sec10": {
+                                    "number": "10",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Validation Environment",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec10",
+                                    "content": "<p><font color=\"blue\">Description of the Environment of the system that will be used for test execution.</font></p>",
+                                    "key": "FRML24113-101",
+                                    "status": "Done"
+                                },
+                                "sec15": {
+                                    "number": "15",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Document History",
+                                    "documents": [
+                                        "CFTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec15",
+                                    "content": "<p><font color=\"blue\">The following table provides extra history of the document.</font></p>\n\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Version</th>\n<th class='confluenceTh'>Date</th>\n<th class='confluenceTh'>Author</th>\n<th class='confluenceTh'>Reference</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>See summary of electronic document or signature page of printout.</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-100",
+                                    "status": "Done"
+                                }
+                            },
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 5,
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-34a13e62-5e58-40fe-a519-e23dca6a56ac.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "34a13e62-5e58-40fe-a519-e23dca6a56ac",
+    "persistent": true,
+    "insertionIndex": 1
+}

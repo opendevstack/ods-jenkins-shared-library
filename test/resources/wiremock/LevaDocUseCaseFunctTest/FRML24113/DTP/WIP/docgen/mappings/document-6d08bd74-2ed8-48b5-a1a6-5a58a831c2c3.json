@@ -1,0 +1,339 @@
+{
+    "id": "6d08bd74-2ed8-48b5-a1a6-5a58a831c2c3",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "DTP",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Software Development Testing Plan",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Software Development Testing Plan, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "data": {
+                            "sections": {
+                                "sec5s1": {
+                                    "number": "5.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Definitions",
+                                    "documents": [
+                                        "DTP",
+                                        "DTR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5s1",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Term</th>\n<th class='confluenceTh'>Definition</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">Jenkins</font></td>\n<td class='confluenceTd'><font color=\"blue\">Build engine supplied by cloudbees - part of OpenDevStack (BI-IT-DEVSTACK)</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">xUnit</font></td>\n<td class='confluenceTd'><font color=\"blue\">Unit testing framework, aggregaults across multiple languages</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-51",
+                                    "status": "Done"
+                                },
+                                "sec6": {
+                                    "number": "6",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Reference Document",
+                                    "documents": [
+                                        "DTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6",
+                                    "content": "<p><font color=\"blue\">N/A</font></p>",
+                                    "key": "FRML24113-55",
+                                    "status": "Done"
+                                },
+                                "sec7": {
+                                    "number": "7",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Document History",
+                                    "documents": [
+                                        "DTP"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec7",
+                                    "content": "<p><font color=\"blue\">The following table provides extra history of the document.</font></p>\n\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Version</th>\n<th class='confluenceTh'>Date</th>\n<th class='confluenceTh'>Author</th>\n<th class='confluenceTh'>Reference</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>See summary of electronic document or signature page of printout.</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-54",
+                                    "status": "Done"
+                                },
+                                "sec5s2": {
+                                    "number": "5.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Abbreviations",
+                                    "documents": [
+                                        "DTP",
+                                        "DTR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5s2",
+                                    "content": "<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Abbreviation</th>\n<th class='confluenceTh'>Meaning</th>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">ODS</font></td>\n<td class='confluenceTd'><font color=\"blue\">OpenDevStack</font></td>\n</tr>\n<tr>\n<td class='confluenceTd'><font color=\"blue\">EDP</font></td>\n<td class='confluenceTd'><font color=\"blue\">Enterprise Development Platform</font></td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-52",
+                                    "status": "Done"
+                                }
+                            },
+                            "tests": [
+                                {
+                                    "moduleName": "Technology-thefirst",
+                                    "testKey": "FRML24113-163",
+                                    "description": "<p>Test CONTINUED - Description</p>",
+                                    "systemRequirement": "FRML24113-162",
+                                    "softwareDesignSpec": "N/A",
+                                    "riskLevel": "N/A"
+                                },
+                                {
+                                    "moduleName": "Technology-thefirst",
+                                    "testKey": "FRML24113-185",
+                                    "description": "<p>Test ADDED - Description</p>",
+                                    "systemRequirement": "FRML24113-184",
+                                    "softwareDesignSpec": "N/A",
+                                    "riskLevel": "N/A"
+                                },
+                                {
+                                    "moduleName": "Technology-thefirst",
+                                    "testKey": "FRML24113-279",
+                                    "description": "Test Unit",
+                                    "systemRequirement": "N/A",
+                                    "softwareDesignSpec": "N/A",
+                                    "riskLevel": "N/A"
+                                },
+                                {
+                                    "moduleName": "Technology-release",
+                                    "testKey": "FRML24113-280",
+                                    "description": "<p>dasdsds</p>",
+                                    "systemRequirement": "N/A",
+                                    "softwareDesignSpec": "N/A",
+                                    "riskLevel": "N/A"
+                                }
+                            ],
+                            "modules": [
+                                {
+                                    "id": "thefirst",
+                                    "description": "myDescription-A",
+                                    "tests": "FRML24113-163, FRML24113-185, FRML24113-279"
+                                },
+                                {
+                                    "id": "thesecond",
+                                    "description": "myDescription-A",
+                                    "tests": "None defined"
+                                },
+                                {
+                                    "id": "spock",
+                                    "description": "myDescription-A",
+                                    "tests": "None defined"
+                                },
+                                {
+                                    "id": "release",
+                                    "description": "myDescription-A",
+                                    "tests": "FRML24113-280"
+                                }
+                            ],
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "requirements",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-184"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "tests",
+                                            "added": [
+                                                {
+                                                    "action": "add",
+                                                    "key": "FRML24113-185"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 5,
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "issueType": [
+                                        {
+                                            "type": "tests",
+                                            "added": [
+                                                {
+                                                    "key": "FRML24113-279",
+                                                    "action": "add"
+                                                },
+                                                {
+                                                    "key": "FRML24113-280",
+                                                    "action": "add"
+                                                }
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        },
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-6d08bd74-2ed8-48b5-a1a6-5a58a831c2c3.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "6d08bd74-2ed8-48b5-a1a6-5a58a831c2c3",
+    "persistent": true,
+    "insertionIndex": 1
+}

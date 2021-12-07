@@ -52,7 +52,7 @@ abstract class DocGenUseCase {
         // Create an archive with the document and raw data
         def artifacts = [
             "${pdfName}": document,
-            "raw/${basename}.json": JsonOutput.toJson(data).getBytes()
+            "raw/${basename}.json": JsonOutput.toJson(data).getBytes(),
         ]
         artifacts << files.collectEntries { path, contents ->
             [ path, contents ]
@@ -115,7 +115,7 @@ abstract class DocGenUseCase {
             metadata: metadata,
             data: [
                 sections: sections
-            ]
+            ],
         ]
 
         // Apply any data transformations, if provided
@@ -126,7 +126,7 @@ abstract class DocGenUseCase {
         // Create a cover page and merge all documents into one
         def modifier = { document ->
             documents.add(0, document)
-            return this.pdf.merge(documents)
+            return this.pdf.merge(this.steps.env.WORKSPACE, documents)
         }
 
         def result = this.createDocument(documentType, null, data, [:], modifier, templateName, watermarkText)
@@ -240,4 +240,5 @@ abstract class DocGenUseCase {
     abstract List<String> getSupportedDocuments()
 
     abstract boolean shouldCreateArtifact (String documentType, Map repo)
+
 }
