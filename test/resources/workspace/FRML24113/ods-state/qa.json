@@ -1,0 +1,9 @@
+{
+    "version": "3.0",
+    "changeId": "3.0",
+    "repositories": {
+        "thefirst": "88bb96d0373133ed1f7aa317053448617daedd71",
+        "thesecond": "15201b34b5682da9c378faf50e38222154a266bc",
+        "spock": "165227c07a79bb2c238ae2207091139b9f7350cb"
+    }
+}
