@@ -55,6 +55,7 @@
 - Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
 - Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
 - Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
+- erunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
 
 ## [3.0] - 2020-08-11
 
