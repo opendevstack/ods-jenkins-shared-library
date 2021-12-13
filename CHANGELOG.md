@@ -62,6 +62,7 @@
 - While deploying on Qa with 1 bug, 3 bugs are reported instead of 1 ([#757](https://github.com/opendevstack/ods-jenkins-shared-library/pull/757)
 - Increase Socket Timeout on Pipeline Orchestrator ([#781](https://github.com/opendevstack/ods-jenkins-shared-library/pull/781)
 - Increase Socket Timeout on Pipeline Orchestrator in NonCPS ([#782](https://github.com/opendevstack/ods-jenkins-shared-library/pull/782)
+- Fix Traceability matrix to not show Unit Tests ([#799](https://github.com/opendevstack/ods-jenkins-shared-library/pull/799)
 
 ## [3.0] - 2020-08-11
 
