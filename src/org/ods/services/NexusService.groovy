@@ -99,9 +99,9 @@ class NexusService {
         }
 
         if (repositoryType == 'pypi') {
-	    restCall = restCall.field("pypi.asset",
-                new ByteArrayInputStream(artifact), 
-                ContentType.create(contentType), 
+            restCall = restCall.field("pypi.asset",
+                new ByteArrayInputStream(artifact),
+                ContentType.create(contentType),
                 nexusParams['pypi.asset'].substring( nexusParams['pypi.asset'].lastIndexOf("/") + 1 ))
         }
 	else {
