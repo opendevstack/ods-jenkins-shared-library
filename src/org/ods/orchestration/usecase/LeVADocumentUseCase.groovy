@@ -1142,15 +1142,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sections = this.getDocumentSections(documentType)
         def systemRequirements = this.project.getSystemRequirements()
 
+        def testIssues = systemRequirements.collect { it.getResolvedTests() }.flatten().unique().findAll {
+            [Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION].contains(it.testType)
+        }
+
         systemRequirements = systemRequirements.collect { r ->
             def predecessors = r.expandedPredecessors.collect { [key: it.key, versions: it.versions.join(', ')] }
+            def testWithoutUnit = r.tests.collect()
+            // Only if test key from requirements are also in testIssues (Acceptance, Integration, Installation) but no
+            // Unit tests
+            testWithoutUnit.retainAll(testIssues.key)
             [
                 key         : r.key,
                 name        : r.name,
                 description : this.convertImages(r.description ?: ''),
                 techSpecs   : r.techSpecs.join(", "),
                 risks       : (r.getResolvedTechnicalSpecifications().risks + r.risks).flatten().unique().join(", "),
-                tests       : r.tests.join(", "),
+                tests       : testWithoutUnit.join(", "),
                 predecessors: predecessors,
             ]
         }
