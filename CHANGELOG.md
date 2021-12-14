@@ -56,6 +56,7 @@
 - Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
 - Add breakable characters in SSDS Bitbucket data to let the render split the words ([#774])(https://github.com/opendevstack/ods-jenkins-shared-library/pull/774))
 - Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
+- Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
 - Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
 - Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
 - Fix null in SSDS when no reviewer in a PR ([#779](https://github.com/opendevstack/ods-jenkins-shared-library/pull/779))
@@ -63,6 +64,7 @@
 - Increase Socket Timeout on Pipeline Orchestrator ([#781](https://github.com/opendevstack/ods-jenkins-shared-library/pull/781)
 - Increase Socket Timeout on Pipeline Orchestrator in NonCPS ([#782](https://github.com/opendevstack/ods-jenkins-shared-library/pull/782)
 - Fix Traceability matrix to not show Unit Tests ([#799](https://github.com/opendevstack/ods-jenkins-shared-library/pull/799)
+- Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
 
 ## [3.0] - 2020-08-11
 
