@@ -4,7 +4,7 @@ As a result, a Bitbucket Code Insight entry is added to the git commit (in Bitbu
 contains a link to the scan result on the Aqua platform. The Bitbucket Code Insight entry can be seen in a pull request.
 The pull request in Bitbucket shows the Code Insight of the latest commit of the PR.
 
-To get started, make sure you have a `ConfigMap` in your project-cd namespace in OpenShift that has these fields:
+To get started, make sure you have a `ConfigMap` in OpenDevStack project namespace (usually ods) in OpenShift that has these fields:
 ----
 ...
 metadata:
@@ -14,30 +14,36 @@ data:
   registry: <registry-name-in-aqua-platform>
   secretName: <secret-name-of-aqua-user-credentials>
   url: <aqua-platform-url>
+  enabled: <true/false>
+  nexusRepository: <name-repository-in-nexus-to-store-the-results>
+  alertEmails: <emails-to-send-notifications>
 ----
 
 . `registry`: Refers to a name for the image registry given in the Aqua platform by an Aqua platform admin.
-. `secretName`: Name of a `Secret` that contains the credentials of the Aqua platform user that is used for executing the scan. That user needs to have scanner rights.
+. `secretName`: Name of a `Secret` that contains the credentials of the Aqua platform user that is used for executing the scan. That user needs to have scanner rights. This field is optional, if the property doesn't exists the system will use the credential 'cd-user-with-password'.
 . `url`: Base URL of the Aqua platform (including scheme).
+. `enabled`: If true, the scan always occur in all projects. False to disable the scan.
+. `nexusRepository`: Name of the repository in Nexus instance to store the results of analysis in HTML format.
+. `alertEmails`: Optional field. It contains the emails splitted by ',' to send error notifications regarding with Aqua analysis (misconfigurations, etc...). The mail server must be configured in Jenkins to send the emails.
 
-Now, to use the stage, add it in your `Jenkinsfile`, e.g. like this:
+Is possible to disable the analysis at project level. for that is necessary to add in the `ConfigMap` new properties e.g. like this:
+
 ----
-) { context ->
-    ...
-    odsComponentStageScanWithAqua(context)
-    ...
-}
+...
+metadata:
+  name: aqua
+...
+data:
+  registry: <registry-name-in-aqua-platform>
+  secretName: <secret-name-of-aqua-user-credentials>
+  url: <aqua-platform-url>
+  enabled: <true/false>
+  nexusRepository: <name-repository-in-nexus-to-store-the-results>
+  alertEmails: <emails-to-send-notifications>
+  project.key1.enabled: <false>
+  project.key2.enabled: <false>
 ----
 
-== Options
+. `project.key1.enabled`: Property to indicate that key1 (being key1 the key of the project) has the aqua analysis disabled.
+. `project.key2.enabled`: The same but for key2 project.
 
-[cols="1,2"]
-|===
-| Option | Description
-{{range .Options}}
-
-| *{{.Name}}* +
-_{{.Type}}_
-|{{.Description}}
-{{end}}
-|===

@@ -119,8 +119,9 @@ class JiraUseCase {
         testFailures.each { failure ->
             // FIXME: this.project.versionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
             // than once. However, it's also called via this.getVersionFromReleaseStatusIssue in Project.groovy.
+            String version = this.project.versionFromReleaseStatusIssue
             def bug = this.jira.createIssueTypeBug(
-                this.project.jiraProjectKey, failure.type, failure.text, this.project.versionFromReleaseStatusIssue)
+                this.project.jiraProjectKey, failure.type, failure.text, version)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -147,7 +148,8 @@ class JiraUseCase {
               assignee: "Unassigned",
               dueDate: "",
               status: "TO DO",
-              tests: bugAffectedTestIssues.keySet() as List
+              tests: bugAffectedTestIssues.keySet() as List,
+              versions: [ "${version}" ]
             ], Project.JiraDataItem.TYPE_BUGS)
 
             // Add JiraDataItem into the Jira data structure
