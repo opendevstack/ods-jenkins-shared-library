@@ -94,7 +94,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     static List<String> COMPONENT_TYPE_IS_NOT_INSTALLED = [
         MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String,
-        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String,
+        MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB as String
     ]
 
     static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
