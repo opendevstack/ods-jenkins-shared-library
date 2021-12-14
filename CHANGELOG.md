@@ -58,6 +58,7 @@
 - Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
 - Fix Traceability matrix to not show Unit Tests ([#801](https://github.com/opendevstack/ods-jenkins-shared-library/pull/801)
 - Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
+- Introduce ods-library component type ([#603](https://github.com/opendevstack/ods-jenkins-shared-library/issues/603))
 
 ## [3.0] - 2020-08-11
 
