@@ -42,14 +42,6 @@ class JenkinsService {
             )
         }
 
-/*        def foundTests = script.sh(
-            script: """
-                ${logger.shellScriptDebugFlag}
-                ls -la ${XUNIT_SYSTEM_RESULT_DIR}/*.xml | wc -l
-            """,
-            returnStdout: true,
-            label: "Counting test results in ${XUNIT_SYSTEM_RESULT_DIR}"
-        ).trim() */
         def foundTests = 0
         script.dir (XUNIT_SYSTEM_RESULT_DIR) {
             foundTests = script.findFiles(glob : '**/.xml').size()
@@ -74,7 +66,7 @@ class JenkinsService {
                 allowEmpty: true
             )
         } else {
-            logger.debug 'No xUnit results for stashing'
+            logger.info 'No xUnit results for stashing'
         }
 
         return contextresultMap
