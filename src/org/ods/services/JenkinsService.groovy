@@ -21,12 +21,12 @@ class JenkinsService {
         if (customXunitResultsDir?.trim()?.length() > 0) {
             logger.debug "Overwritten testresult location: ${customXunitResultsDir}"
             xUnitResultDir = customXunitResultsDir.trim()
-            if (!fileExists(xUnitResultDir)) {
+            if (!script.fileExists(xUnitResultDir)) {
                 throw new IOException ("Cannot use custom test directory '${xUnitResultDir}' that does not exist!")
             }
         }
 
-        if (!fileExists(XUNIT_SYSTEM_RESULT_DIR)) {
+        if (!script.fileExists(XUNIT_SYSTEM_RESULT_DIR)) {
             script.sh(script: "mkdir -p ${XUNIT_SYSTEM_RESULT_DIR}", label: "creating test directory")
         }
 
@@ -51,8 +51,8 @@ class JenkinsService {
             label: "Counting test results in ${XUNIT_SYSTEM_RESULT_DIR}"
         ).trim() */
         def foundTests = 0
-        dir (XUNIT_SYSTEM_RESULT_DIR) {
-            foundTests = findFiles(glob : '**/.xml').size()
+        script.dir (XUNIT_SYSTEM_RESULT_DIR) {
+            foundTests = script.findFiles(glob : '**/.xml').size()
         }
 
         logger.debug "Found ${foundTests} test files in '${XUNIT_SYSTEM_RESULT_DIR}'"
