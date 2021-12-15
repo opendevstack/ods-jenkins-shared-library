@@ -44,7 +44,7 @@ dependencies:
   - A
 ```
 
-The library supports the following repository types: `ods`, `ods-infra`, `ods-service`, `ods-saas-service`, and `ods-test`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
+The library supports the following repository types: `ods`, `ods-infra`, `ods-service`, `ods-saas-service`, `ods-test` and `ods-library`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
 
 ```
 id: PHOENIX
@@ -84,6 +84,10 @@ This type designates ODS components designed for _running services_ of arbitrary
 ==== Repository Type: ods-test
 
 This type designates ODS components designed for _running automated tests against a live application_. Such components are based on quickstarters whose names start with `e2e-`.
+
+==== Repository Type: ods-library
+
+This type designates ODS components designed for _library components_. Such components are only build in dev (WIP and assemble mode), and are needed for other components to be built.
 
 === Automated Resolution of Repository Git URL
 
