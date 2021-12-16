@@ -26,7 +26,7 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument
 
 import java.nio.file.Paths
 
-@SuppressWarnings(['JavaIoPackageAccess', 'LineLength'])
+@SuppressWarnings(['JavaIoPackageAccess', 'LineLength', 'UnnecessaryObjectReferences'])
 class PDFUtil {
 
     @NonCPS

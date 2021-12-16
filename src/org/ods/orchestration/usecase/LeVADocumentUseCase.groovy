@@ -170,7 +170,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             def updatedReqs = reqs.collect { req ->
                 def epics = req.getResolvedEpics()
-                def epic = !epics.isEmpty() ? epics.first() : null
+                def epic = epics.isEmpty() ? null : epics.first()
 
                 return [
                     key             : req.key,
@@ -834,7 +834,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testIssue.isSuccess = false
                 testIssue.isUnexecuted = true
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
-                testIssue.actualResult = !testIssue.isUnexecuted ? "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below." : "Not executed"
+                testIssue.actualResult = testIssue.isUnexecuted ? "Not executed" : "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below."
             }
         }
 
@@ -1548,7 +1548,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<String> getJiraTrackingIssueLabelsForDocTypeAndEnvs(String documentType, List<String> envs = null) {
         def labels = []
 
-        def environments = (envs) ? envs : this.project.buildParams.targetEnvironmentToken
+        def environments = envs ?: this.project.buildParams.targetEnvironmentToken
         environments.each { env ->
             LeVADocumentScheduler.ENVIRONMENT_TYPE[env].get(documentType).each { label ->
                 labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
@@ -1767,16 +1767,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
-
     }
 
     protected String getVersion(Project project, String doc) {
         def version
 
-        if (!project.isVersioningEnabled) {
-            // TODO removeme in ODS 4.x
-            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
-        } else {
+        if (project.isVersioningEnabled) {
             version = project.getDocumentVersionFromHistories(doc)
             if (!version) {
                 // The document has not (yet) been generated in this pipeline run.
@@ -1790,6 +1786,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     version += 1L
                 }
             }
+        } else {
+            // TODO removeme in ODS 4.x
+            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
         }
 
         if (project.isWorkInProgress) {
