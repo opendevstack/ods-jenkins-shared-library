@@ -589,32 +589,34 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.project.getEnumDictionary(category)[value as String]
         }
 
-        def risks = this.project.getRisks().findAll{it != null}.collect { r ->
-            def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
-            def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
-            def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
-            def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
-            def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
-            def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
-            def probabilityOfDetection = obtainEnum("ProbabilityOfDetection", r.probabilityOfDetection)
-            def riskPriority = obtainEnum("RiskPriority", r.riskPriority)
+        def risks = this.project.getRisks()
+            .findAll {  it != null }
+            .collect { r ->
+                def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
+                def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
+                def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
+                def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
+                def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
+                def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
+                def probabilityOfDetection = obtainEnum("ProbabilityOfDetection", r.probabilityOfDetection)
+                def riskPriority = obtainEnum("RiskPriority", r.riskPriority)
 
-            return [
-                key: r.key,
-                name: r.name,
-                description: convertImages(r.description),
-                proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
-                requirements: requirements.findAll{it != null}.collect { it.name }.join("<br/>"),
-                requirementsKey: requirements.findAll{it != null}.collect { it.key }.join("<br/>"),
-                gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
-                probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
-                severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
-                probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
-                riskPriority: riskPriority ? riskPriority.value : "N/A",
-                riskPriorityNumber: r.riskPriorityNumber ?: "N/A",
-                riskComment: r.riskComment ? r.riskComment : "N/A",
-            ]
-        }
+                return [
+                    key: r.key,
+                    name: r.name,
+                    description: convertImages(r.description),
+                    proposedMeasures: "Mitigations: ${ mitigationsText }<br/>Tests: ${ testsText }",
+                    requirements: requirements.findAll {it != null }.collect { it.name }.join("<br/>"),
+                    requirementsKey: requirements.findAll {it != null }.collect { it.key }.join("<br/>"),
+                    gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
+                    probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
+                    severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
+                    probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
+                    riskPriority: riskPriority ? riskPriority.value : "N/A",
+                    riskPriorityNumber: r.riskPriorityNumber ?: "N/A",
+                    riskComment: r.riskComment ? r.riskComment : "N/A",
+                ]
+            }
 
         def proposedMeasuresDesription = this.project.getRisks().collect { r ->
             (r.getResolvedTests().collect {
