@@ -240,7 +240,5 @@
 - Verbose mode (#30)
 - `stageUpdateOpenshiftBuild` - Use `stageStartOpenShiftBuild` instead (#8)
 
-
 ## [0.1.0] - 2018-07-27
-
 Initial release.
