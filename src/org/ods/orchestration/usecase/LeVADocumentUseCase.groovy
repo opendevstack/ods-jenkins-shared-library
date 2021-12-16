@@ -38,6 +38,8 @@ import java.time.LocalDateTime
     'UnusedMethodParameter',
     'UnusedVariable',
     'ParameterCount',
+    'ParameterReassignment',
+    'UnnecessaryElseStatement',
     'NonFinalPublicField',
     'PropertyName',
     'MethodCount',
