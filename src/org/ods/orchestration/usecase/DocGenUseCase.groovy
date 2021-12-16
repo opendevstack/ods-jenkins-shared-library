@@ -166,7 +166,7 @@ abstract class DocGenUseCase {
             return [found: false]
         }
         String resurrectedBuild
-        if (!!repo.data.openshift.resurrectedBuild) {
+        if (repo.data.openshift.resurrectedBuild) {
             resurrectedBuild = repo.data.openshift.resurrectedBuild
             this.steps.echo "Using ${documentType} from jenkins build: ${resurrectedBuild}" +
                 " for repo: ${repo.id}"
