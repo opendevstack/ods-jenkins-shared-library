@@ -34,6 +34,7 @@ import java.time.LocalDateTime
     'AbcMetric',
     'Instanceof',
     'VariableName',
+    'DuplicateListLiteral',
     'UnusedMethodParameter',
     'UnusedVariable',
     'ParameterCount',
@@ -606,8 +607,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     name: r.name,
                     description: convertImages(r.description),
                     proposedMeasures: "Mitigations: ${ mitigationsText }<br/>Tests: ${ testsText }",
-                    requirements: requirements.findAll {it != null }.collect { it.name }.join("<br/>"),
-                    requirementsKey: requirements.findAll {it != null }.collect { it.key }.join("<br/>"),
+                    requirements: requirements.findAll { it != null }.collect { it.name }.join("<br/>"),
+                    requirementsKey: requirements.findAll { it != null }.collect { it.key }.join("<br/>"),
                     gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
                     probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
                     severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
@@ -626,7 +627,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }.flatten()
 
         if (!sections."sec4s2s1") sections."sec4s2s1" = [:]
-        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION"?: 'n/a'
+        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION" ?: 'n/a'
 
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
 
@@ -985,10 +986,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Get the components that we consider modules in SSDS (the ones you have to code)
         def modules = componentsMetadata
-            .findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
-            .collect { component ->
+            .findAll {  it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+            .collect {  component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
-                component.requirements = component.requirements.findAll{it != null}.collect { r ->
+                component.requirements = component.requirements.findAll { it != null }.collect { r ->
                     [key: r.key, name: r.name,
                      reqDescription: this.convertImages(r.description), gampTopic: r.gampTopic ?: "uncategorized"]
                 }.groupBy { it.gampTopic.toLowerCase() }
@@ -1419,7 +1420,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     /**
      * This computes the information related to the components (modules) that are being developed
-     * @param documentType
+     * @documentType documentType
      * @return component metadata with software design specs, requirements and info comming from the component repo
      */
     protected Map computeComponentMetadata(String documentType) {
