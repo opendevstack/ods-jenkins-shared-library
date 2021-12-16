@@ -28,6 +28,7 @@ import java.time.LocalDateTime
 @SuppressWarnings([
     'ClassSize',
     'UnnecessaryDefInMethodDeclaration',
+    'UnnecessaryCollectCall',
     'IfStatementBraces',
     'LineLength',
     'AbcMetric',
