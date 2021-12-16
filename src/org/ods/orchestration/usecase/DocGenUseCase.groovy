@@ -10,7 +10,12 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.Project
 
-@SuppressWarnings(['AbstractClassWithPublicConstructor', 'LineLength', 'ParameterCount', 'GStringAsMapKey'])
+@SuppressWarnings([
+    'AbstractClassWithPublicConstructor',
+    'LineLength',
+    'ParameterCount',
+    'GStringAsMapKey',
+    'DuplicateMapLiteral'])
 abstract class DocGenUseCase {
 
     static final String RESURRECTED = "resurrected"
