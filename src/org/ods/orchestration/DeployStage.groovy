@@ -86,7 +86,7 @@ class DeployStage extends Stage {
                 def targetEnvironment = project.buildParams.targetEnvironment
                 def targetProject = project.targetProject
                 def installableRepos = this.project.repositories.findAll { repo ->
-                    util.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
+                    MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                 }
                 logger.info("Deploying project '${project.key}' into environment '${targetEnvironment}'" +
                     " installable repos? ${installableRepos.size()}")
