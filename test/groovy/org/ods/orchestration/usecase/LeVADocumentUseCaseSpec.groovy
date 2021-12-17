@@ -1050,7 +1050,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
 
         odsRepoType << ['ods-test', 'ods-saas-service', 'ods']
         componentTypeLong = LeVADocumentUseCase.INTERNAL_TO_EXT_COMPONENT_TYPES.get(odsRepoType)
-        doInstall = MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.get(odsRepoType)
+        doInstall = MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(odsRepoType)
 
         techSpecsParam << ['''
           {
