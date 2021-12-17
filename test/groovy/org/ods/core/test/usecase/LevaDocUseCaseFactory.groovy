@@ -74,7 +74,10 @@ class LevaDocUseCaseFactory {
             def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
             project.load(gitService, jiraUseCase)
             project.data.openshift.targetApiUrl = "https://openshift-sample"
-            project.repositories.each { repo -> repo.metadata = loadMetadata(repo) }
+            project.repositories.each { repo ->
+                repo.metadata = loadMetadata(repo)
+                repo.doInstall = MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
+            }
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
             throw e

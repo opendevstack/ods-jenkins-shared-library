@@ -37,6 +37,12 @@ class MROPipelineUtil extends PipelineUtil {
             PHASE_EXECUTOR_TYPE_MAKEFILE,
             PHASE_EXECUTOR_TYPE_SHELLSCRIPT
         ]
+
+        static final List<String> INSTALLABLE_REPO_TYPES = [
+            REPO_TYPE_ODS_CODE as String,
+            REPO_TYPE_ODS_SERVICE as String,
+            REPO_TYPE_ODS_INFRA as String
+        ]
     }
 
     class PipelineEnvs {
@@ -337,7 +343,7 @@ class MROPipelineUtil extends PipelineUtil {
                     if (preExecute) {
                         preExecute(this.steps, repo)
                     }
-
+                    repo.doInstall = PipelineConfig.INSTALLABLE_REPO_TYPES.contains(repo.type)
                     if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_CODE) {
                         if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir, false)
@@ -376,7 +382,7 @@ class MROPipelineUtil extends PipelineUtil {
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_TEST) {
                         if (this.project.isAssembleMode && name == PipelinePhases.INIT) {
-                            this.logger.debug("Repo '${repo.id}', init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
+                            this.logger.debug("Repo '${repo.id}' is of type ODS Test Component, init phase - configured hook: '${repo.pipelineConfig?.initJenkinsFile}'")
                             if (repo.pipelineConfig?.initJenkinsFile) {
                                 executeODSComponent(repo, baseDir, true, repo.pipelineConfig?.initJenkinsFile)
                                 // hacky - but the only way possible - we know it's only one.
