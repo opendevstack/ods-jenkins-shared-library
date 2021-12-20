@@ -265,7 +265,7 @@ class ScanWithSonarStage extends Stage {
         bitbucket.createCodeInsightReport(data, context.repoName, context.gitCommit)
     }
 
-    @SuppressWarnings('FileCreateTempFile')
+    @SuppressWarnings(['FileCreateTempFile', 'JavaIoPackageAccess'])
     private File generateTempFileFromReport(String report) {
         // Using File directly over report path doesn't work
         File file = File.createTempFile("temp", ".md", new File(steps.env.WORKSPACE as String))
