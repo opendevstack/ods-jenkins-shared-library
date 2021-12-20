@@ -13,7 +13,7 @@ class PipelineSteps implements IPipelineSteps {
     private Map env = [:]
 
     PipelineSteps() {
-        env.WORKSPACE = System.getProperty("java.io.tmpdir")
+        env.WORKSPACE = new File("test/resources/workspace").getAbsolutePath()
     }
 
     void archiveArtifacts(String artifacts) {

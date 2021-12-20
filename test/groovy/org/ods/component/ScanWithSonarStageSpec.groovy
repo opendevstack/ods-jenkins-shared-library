@@ -64,7 +64,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
     def "archive report in Nexus"() {
         given:
         def stage = createStage()
-        def file = File.createTempFile("temp", ".md", new File(System.getProperty("java.io.tmpdir") as String))
+        def file = File.createTempFile("temp", ".md", new File("test/resources/workspace"))
 
         when:
         stage.generateAndArchiveReportInNexus(file, "leva-documentation")
