@@ -56,6 +56,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.WORKSPACE =  new File("test/resources/workspace").getAbsolutePath()
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
@@ -86,6 +87,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.WORKSPACE =  new File("test/resources/workspace").getAbsolutePath()
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
@@ -130,6 +132,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.WORKSPACE =  new File("test/resources/workspace").getAbsolutePath()
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod("readJSON", [ Map ]) { Map args ->
