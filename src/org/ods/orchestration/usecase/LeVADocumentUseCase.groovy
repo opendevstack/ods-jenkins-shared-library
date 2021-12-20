@@ -577,7 +577,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.project.getEnumDictionary(category)[value as String]
         }
 
-        def risks = this.project.getRisks().collect { r ->
+        def risks = this.project.getRisks().findAll{it != null}.collect { r ->
             def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
             def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
             def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
@@ -810,7 +810,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testIssue.timestamp = testIssue.isUnexecuted ? "N/A" : testCase.timestamp
                 testIssue.isUnexecuted = false
                 testIssue.actualResult = testIssue.isSuccess ? "Expected result verified by automated test" :
-                                         testIssue.isUnexecuted ? "Not executed" : "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below."
+                    testIssue.isUnexecuted ? "Not executed" : "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below."
             }
         }
 
@@ -933,7 +933,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     String createSSDS(Map repo = null, Map data = null) {
         def documentType = DocumentType.SSDS as String
 
-        def bbInfo = this.bbt.readSourceCodeReviewFile(this.bbt.generateSourceCodeReviewFile())
+        def bbInfo = this.bbt.getPRMergeInfo()
         def sections = this.getDocumentSections(documentType)
         def watermarkText = this.getWatermarkText(documentType, this.project.hasWipJiraIssues())
 
@@ -1142,15 +1142,23 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sections = this.getDocumentSections(documentType)
         def systemRequirements = this.project.getSystemRequirements()
 
+        def testIssues = systemRequirements.collect { it.getResolvedTests() }.flatten().unique().findAll {
+            [Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION].contains(it.testType)
+        }
+
         systemRequirements = systemRequirements.collect { r ->
             def predecessors = r.expandedPredecessors.collect { [key: it.key, versions: it.versions.join(', ')] }
+            def testWithoutUnit = r.tests.collect()
+            // Only if test key from requirements are also in testIssues (Acceptance, Integration, Installation) but no
+            // Unit tests
+            testWithoutUnit.retainAll(testIssues.key)
             [
                 key         : r.key,
                 name        : r.name,
                 description : this.convertImages(r.description ?: ''),
                 techSpecs   : r.techSpecs.join(", "),
                 risks       : (r.getResolvedTechnicalSpecifications().risks + r.risks).flatten().unique().join(", "),
-                tests       : r.tests.join(", "),
+                tests       : testWithoutUnit.join(", "),
                 predecessors: predecessors,
             ]
         }
@@ -1667,6 +1675,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     protected Map getDocumentSections(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
+
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira.')
@@ -1680,7 +1689,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected Map getDocumentSectionsFileOptional(String documentType) {
         def sections = this.project.getDocumentChaptersForDocument(documentType)
         sections = sections?.collectEntries { sec ->
-            [(sec.section): sec]
+            [(sec.section): sec + [content: this.convertImages(sec.content)]]
         }
         if (!sections || sections.isEmpty() ) {
             sections = this.levaFiles.getDocumentChapterData(documentType)
@@ -1688,7 +1697,11 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 this.project.data.jira.undoneDocChapters = [:]
             }
             this.project.data.jira.undoneDocChapters[documentType] = this.computeSectionsNotDone(sections)
+            sections = sections?.collectEntries { key, sec ->
+                [(key): sec + [content: this.convertImages(sec.content)]]
+            }
         }
+
         if (!sections) {
             throw new RuntimeException("Error: unable to create ${documentType}. " +
                 'Could not obtain document chapter data from Jira nor files.')
@@ -1756,8 +1769,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
                 version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
                 if (project.isWorkInProgress ||
-                        LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
-                        project.buildParams.targetEnvironmentToken ) {
+                    LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
+                    project.buildParams.targetEnvironmentToken ) {
                     // Either this is a developer preview or the history is to be updated in this environment.
                     version += 1L
                 }

@@ -471,7 +471,6 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
         return tokenMap
     }
 
-    @NonCPS
     String getToken() {
         withTokenCredentials { username, token -> return token}
     }
@@ -489,6 +488,7 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
         return queryRepo(token, request, 0, 0)
     }
 
+    @NonCPS
     private Map queryRepo(String token, String request, int limit, int nextPageStart) {
         Map<String, String> headers = buildHeaders(token)
         def httpRequest = Unirest.get(request).headers(headers)
@@ -502,13 +502,14 @@ repos/${repo}/commits/${gitCommit}/reports/${data.key}"""
 
         response.ifFailure {
             def message = 'Error: unable to get data from Bitbucket responded with code: ' +
-                    "'${response.getStatus()}' and message: '${response.getBody()}'."
+                "'${response.getStatus()}' and message: '${response.getBody()}'."
             throw new RuntimeException(message)
         }
 
         return new JsonSlurperClassic().parseText(response.getBody())
     }
 
+    @NonCPS
     private Map<String, String> buildHeaders(String token) {
         Map<String, String> headers = [:]
         headers.put("accept", "application/json")

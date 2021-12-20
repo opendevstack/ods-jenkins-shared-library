@@ -3,7 +3,7 @@
 ## Unreleased
 
 ## [4.0] - 2021-05-11
-- While deploying on Qa with 1 bug, 3 bugs are reported instead of 1 (https://github.com/opendevstack/ods-jenkins-shared-library/pull/757)
+
 ### Added
 - Fixed the Developer Preview fails because "Duplicated Tests"
 - Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
@@ -56,8 +56,15 @@
 - Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
 - Add breakable characters in SSDS Bitbucket data to let the render split the words ([#774])(https://github.com/opendevstack/ods-jenkins-shared-library/pull/774))
 - Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
+- Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
 - Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
 - Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
+- Fix null in SSDS when no reviewer in a PR ([#779](https://github.com/opendevstack/ods-jenkins-shared-library/pull/779))
+- While deploying on Qa with 1 bug, 3 bugs are reported instead of 1 ([#757](https://github.com/opendevstack/ods-jenkins-shared-library/pull/757)
+- Increase Socket Timeout on Pipeline Orchestrator ([#781](https://github.com/opendevstack/ods-jenkins-shared-library/pull/781)
+- Increase Socket Timeout on Pipeline Orchestrator in NonCPS ([#782](https://github.com/opendevstack/ods-jenkins-shared-library/pull/782)
+- Fix Traceability matrix to not show Unit Tests ([#799](https://github.com/opendevstack/ods-jenkins-shared-library/pull/799)
+- Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
 - Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
 
 ## [3.0] - 2020-08-11
@@ -87,6 +94,7 @@
 - verbosity of standard shared libary stages ([#196](https://github.com/opendevstack/ods-jenkins-shared-library/issues/196))
 - Allow easy configuration of compute resources ([#173](https://github.com/opendevstack/ods-jenkins-shared-library/issues/173))
 - Fix rollout race condition and display events in Jenkins log ([#385](https://github.com/opendevstack/ods-jenkins-shared-library/pull/385))
+- Fix image not shown in documents like TIR and DTR from Document Chapters ([#789](https://github.com/opendevstack/ods-jenkins-shared-library/pull/789))
 
 ### Changed
 - Lazily set OpenShift app domain ([#396](https://github.com/opendevstack/ods-jenkins-shared-library/pull/396))
