@@ -26,7 +26,7 @@ import java.nio.file.Paths
         'PublicMethodsBeforeNonPublicMethods'])
 class Project {
 
-    private static final String DEFAULT_TEMPLATE_VERSION = '1.2'
+    static final String DEFAULT_TEMPLATE_VERSION = '1.2'
 
     class JiraDataItem implements Map, Serializable {
         static final String TYPE_BUGS = 'bugs'
