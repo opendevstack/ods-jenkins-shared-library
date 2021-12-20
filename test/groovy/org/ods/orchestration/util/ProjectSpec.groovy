@@ -387,7 +387,7 @@ class ProjectSpec extends SpecHelper {
             [
                 "LeVADocs": [
                     GAMPCategory: 5,
-                    templatesVersion: "1.1"
+                    templatesVersion: "${Project.DEFAULT_TEMPLATE_VERSION}"
                 ]
             ]
         ]
@@ -423,7 +423,7 @@ class ProjectSpec extends SpecHelper {
         then:
         project.getCapability("LeVADocs") == [
             GAMPCategory: 5,
-            templatesVersion: "1.1"
+            templatesVersion: "${Project.DEFAULT_TEMPLATE_VERSION}"
         ]
 
         when:
@@ -1508,7 +1508,7 @@ class ProjectSpec extends SpecHelper {
         def result = project.init()
 
         then:
-        result.getCapability("LeVADocs").templatesVersion == "1.1"
+        result.getCapability("LeVADocs").templatesVersion == Project.DEFAULT_TEMPLATE_VERSION
 
         cleanup:
         metadataFile.delete()
