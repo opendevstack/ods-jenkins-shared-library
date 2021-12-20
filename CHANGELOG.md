@@ -58,6 +58,7 @@
 - Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
 - Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
 - Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
+- Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
 
 ## [3.0] - 2020-08-11
 
