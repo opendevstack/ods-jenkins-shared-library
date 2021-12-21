@@ -2,7 +2,6 @@
 
 ## Unreleased
 - Prevent Jenkins nonCPS error after reporting bug  ([#776](https://github.com/opendevstack/ods-jenkins-shared-library/pull/776))
-- Prevent Jenkins nonCPS error after reporting bug  ([#776](https://github.com/opendevstack/ods-jenkins-shared-library/pull/776))
 - Fixed the Developer Preview fails because "Duplicated Tests"
 - Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
 - Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
@@ -60,6 +59,8 @@
 - Fix Traceability matrix to not show Unit Tests ([#801](https://github.com/opendevstack/ods-jenkins-shared-library/pull/801)
 - Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
 - Introduce ods-library component type ([#603](https://github.com/opendevstack/ods-jenkins-shared-library/issues/603))
+- RM: deploy phase verifies target project and login, even if there are only non-installable components([#810](https://github.com/opendevstack/ods-jenkins-shared-library/issues/810))
+- RM: test-stage fails /with unstash exception/ if no installation/integration/acceptance test results are provided([#811](https://github.com/opendevstack/ods-jenkins-shared-library/issues/811))
 - Release Manager references v1.1 SLC Docs templates ([#798](https://github.com/opendevstack/ods-jenkins-shared-library/issues/798))
 - Fix Traceability matrix null ([#818](https://github.com/opendevstack/ods-jenkins-shared-library/pull/818)
 - Problems with temporal folder in tests ([#819](https://github.com/opendevstack/ods-jenkins-shared-library/pull/819)
