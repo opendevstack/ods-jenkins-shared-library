@@ -1,0 +1,36 @@
+{
+  "id" : "b43a244c-6252-4a9c-b358-42e06747486d",
+  "name" : "rest_api_2_issue_frml24113-25",
+  "request" : {
+    "url" : "/rest/api/2/issue/FRML24113-25?fields=customfield_19208",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"expand\":\"renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations\",\"id\":\"367008\",\"self\":\"https://jira-qa.biscrum.com/rest/api/2/issue/367008\",\"key\":\"FRML24113-25\",\"fields\":{\"customfield_19208\":\"1\"}}",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Mon, 13 Dec 2021 20:20:55 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1280x3157424x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=73C67122F9897804ADBD1CAFB171E70F; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_f4042a9e34dd14ae5241270170c25f1a807c53ac_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "cknw9e",
+      "X-AUSERNAME" : "useDomain%40server.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "b43a244c-6252-4a9c-b358-42e06747486d",
+  "persistent" : true,
+  "scenarioName" : "scenario-53-rest-api-2-issue-FRML24113-25",
+  "requiredScenarioState" : "Started",
+  "newScenarioState" : "scenario-53-rest-api-2-issue-FRML24113-25-2",
+  "insertionIndex" : 73
+}

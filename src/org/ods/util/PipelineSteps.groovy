@@ -40,6 +40,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.echo("${dateTimeString} ${message}")
     }
 
+    def findFiles(Map config) {
+        return this.context.findFiles(config)
+    }
+
     def getCurrentBuild() {
         return this.context.currentBuild
     }

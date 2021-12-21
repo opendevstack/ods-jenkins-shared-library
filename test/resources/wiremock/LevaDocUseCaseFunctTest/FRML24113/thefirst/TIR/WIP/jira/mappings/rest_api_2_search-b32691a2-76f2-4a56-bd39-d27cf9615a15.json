@@ -1,0 +1,38 @@
+{
+  "id" : "b32691a2-76f2-4a56-bd39-d27cf9615a15",
+  "name" : "rest_api_2_search",
+  "request" : {
+    "url" : "/rest/api/2/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"jql\":\"project = FRML24113 AND issuetype = 'Documentation'\",\"maxResults\":1000}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_search-b32691a2-76f2-4a56-bd39-d27cf9615a15.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Mon, 13 Dec 2021 20:14:45 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1274x3157063x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=F10B22DBC2A6833934F7B637D7DBC784; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_66e5e74c1bcf294fb21e0dfa02553d354b1a34cd_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "1guikgv",
+      "X-AUSERNAME" : "useDomain%40server.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "b32691a2-76f2-4a56-bd39-d27cf9615a15",
+  "persistent" : true,
+  "insertionIndex" : 21
+}

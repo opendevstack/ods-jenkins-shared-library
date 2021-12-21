@@ -35,6 +35,10 @@ class WiremockManager {
     }
 
     WiremockManager startServer(boolean recording = false, String targetURLParam = null) {
+        if (recording){
+            cleanExistingRecords()
+        }
+
         wireMockServer = new WireMockServer(
             WireMockConfiguration
                 .wireMockConfig()
@@ -45,8 +49,8 @@ class WiremockManager {
         log.info("startServer WireMockServer:[{}:{}] usingFilesUnderDirectory:[{}]", serverType, wireMockServer.baseUrl(), pathToFiles)
 
         if (recording) {
+            wireMockServer.resetAll()
             String targetURL = getTargetURL(targetURLParam)
-            cleanExistingRecords()
             log.info("startServer recording:[{}] targetURL:[{}]",recording, targetURL)
             wireMockServer.startRecording(WireMock.recordSpec().forTarget(targetURL).build())
             this.recording = recording
@@ -76,8 +80,8 @@ class WiremockManager {
     }
 
     private void cleanExistingRecords() {
-        wireMockServer.resetAll()
         try {
+            log.info("Clean directory $pathToFiles");
             FileUtils.cleanDirectory(new File(pathToFiles));
         } catch (Exception ex) {
             log.warn("Exception deleting Files: " + ex);
@@ -97,10 +101,26 @@ class WiremockManager {
         if (!equalToJsonField)
             return
 
-        JsonBuilder jsonBuilderFromEqualToJsonField = getJsonFromText(equalToJsonField)
+        JsonBuilder jsonBuilderField = getJsonFromText(equalToJsonField)
 
-        jsonBuilderFromEqualToJsonField.content[0].data.metadata.date_created = "\${json-unit.any-string}"
-        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderFromEqualToJsonField.toString()
+        jsonBuilderField.content[0].data.metadata.date_created = "\${json-unit.any-string}"
+        if (jsonBuilderField.content[0].data.data.repo){
+            jsonBuilderField.content[0].data.data.repo?.data?.tests?.unit?.testReportFiles[0]?.with {
+                freeSpace = "\${json-unit.any-number}"
+                canonicalPath = "\${json-unit.any-string}"
+                usableSpace = "\${json-unit.any-number}"
+                totalSpace = "\${json-unit.any-number}"
+                path = "\${json-unit.any-string}"
+                absolutePath = "\${json-unit.any-string}"
+                parent = "\${json-unit.any-string}"
+            }
+            jsonBuilderField.content[0].data.data?.testFiles?.each { testFile ->
+                testFile.path = "\${json-unit.any-string}"
+
+            }
+        }
+
+        jsonBuilderFromFile.content.request.bodyPatterns[0].equalToJson = jsonBuilderField.content[0]
 
         file.text = JsonOutput.prettyPrint(jsonBuilderFromFile.toString())
     }

@@ -1,0 +1,92 @@
+{
+    "id": "cf80ffb9-5fe7-4074-84c4-5c83cc949526",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "Overall-Cover",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Overall Software Development Testing Report",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Overall Software Development Testing Report, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "data": {
+                            "sections": [
+                                {
+                                    "heading": "DTR for component: thefirst (merged)"
+                                },
+                                {
+                                    "heading": "DTR for component: thesecond (merged)"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-cf80ffb9-5fe7-4074-84c4-5c83cc949526.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "cf80ffb9-5fe7-4074-84c4-5c83cc949526",
+    "persistent": true,
+    "insertionIndex": 1
+}

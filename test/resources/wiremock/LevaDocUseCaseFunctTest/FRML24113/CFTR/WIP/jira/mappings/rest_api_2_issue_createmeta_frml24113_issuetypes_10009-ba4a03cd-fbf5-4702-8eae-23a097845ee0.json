@@ -1,0 +1,33 @@
+{
+  "id" : "ba4a03cd-fbf5-4702-8eae-23a097845ee0",
+  "name" : "rest_api_2_issue_createmeta_frml24113_issuetypes_10009",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/FRML24113/issuetypes/10009",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_issue_createmeta_frml24113_issuetypes_10009-ba4a03cd-fbf5-4702-8eae-23a097845ee0.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Mon, 13 Dec 2021 20:11:43 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "1271x3156888x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=88E476A8924A3C94362BE4729E5A8108; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_5f224281c4796b763426cbbfbc6a50fc3eddd6c9_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "z853er",
+      "X-AUSERNAME" : "useDomain%40server.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "ba4a03cd-fbf5-4702-8eae-23a097845ee0",
+  "persistent" : true,
+  "insertionIndex" : 6
+}

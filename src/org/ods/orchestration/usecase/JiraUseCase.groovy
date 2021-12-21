@@ -119,8 +119,9 @@ class JiraUseCase {
         testFailures.each { failure ->
             // FIXME: this.project.versionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
             // than once. However, it's also called via this.getVersionFromReleaseStatusIssue in Project.groovy.
+            String version = this.project.versionFromReleaseStatusIssue
             def bug = this.jira.createIssueTypeBug(
-                this.project.jiraProjectKey, failure.type, failure.text, this.project.versionFromReleaseStatusIssue)
+                this.project.jiraProjectKey, failure.type, failure.text, version)
 
             // Maintain a list of all Jira test issues affected by the current bug
             def bugAffectedTestIssues = [:]
@@ -147,7 +148,8 @@ class JiraUseCase {
               assignee: "Unassigned",
               dueDate: "",
               status: "TO DO",
-              tests: bugAffectedTestIssues.keySet() as List
+              tests: bugAffectedTestIssues.keySet() as List,
+              versions: [ "${version}" ]
             ], Project.JiraDataItem.TYPE_BUGS)
 
             // Add JiraDataItem into the Jira data structure
@@ -300,17 +302,18 @@ class JiraUseCase {
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
-        def testLevel = "${componentName ?: 'project'}"
+        def testComponent = "${componentName ?: 'project'}"
+        def testMessage = componentName ? " for component '${componentName}'" : ''
         if (logger.debugMode) {
-            logger.debug('Reporting unit test results to corresponding test cases in Jira for' +
-              " '${testLevel}' type: '${testTypes}'\rresults: ${testResults}")
+            logger.debug('Reporting unit test results to corresponding test cases in Jira' +
+                "${testMessage}. Test type: '${testTypes}'.\nTest results: ${testResults}")
         }
 
-        logger.startClocked("${testLevel}-jira-fetch-tests-${testTypes}")
+        logger.startClocked("${testComponent}-jira-fetch-tests-${testTypes}")
         def testIssues = this.project.getAutomatedTests(componentName, testTypes)
-        logger.debugClocked("${testLevel}-jira-fetch-tests-${testTypes}",
-            "Found automated tests for ${(componentName ?: 'project')} type: ${testTypes}: " +
-            "${testIssues?.size()}")
+        logger.debugClocked("${testComponent}-jira-fetch-tests-${testTypes}",
+            "Found automated tests$testMessage. Test type: ${testTypes}: " +
+                "${testIssues?.size()}")
 
         this.util.warnBuildIfTestResultsContainFailure(testResults)
         this.matchTestIssuesAgainstTestResults(testIssues, testResults, null) { unexecutedJiraTests ->
@@ -319,11 +322,11 @@ class JiraUseCase {
             }
         }
 
-        logger.startClocked("${testLevel}-jira-report-tests-${testTypes}")
+        logger.startClocked("${testComponent}-jira-report-tests-${testTypes}")
         this.support.applyXunitTestResults(testIssues, testResults)
-        logger.debugClocked("${testLevel}-jira-report-tests-${testTypes}")
+        logger.debugClocked("${testComponent}-jira-report-tests-${testTypes}")
         if (['Q', 'P'].contains(this.project.buildParams.targetEnvironmentToken)) {
-            logger.startClocked("${testLevel}-jira-report-bugs-${testTypes}")
+            logger.startClocked("${testComponent}-jira-report-bugs-${testTypes}")
             // Create bugs for erroneous test issues
             def errors = JUnitParser.Helper.getErrors(testResults)
             this.createBugsForFailedTestIssues(testIssues, errors, this.steps.env.RUN_DISPLAY_URL)
@@ -331,7 +334,7 @@ class JiraUseCase {
             // Create bugs for failed test issues
             def failures = JUnitParser.Helper.getFailures(testResults)
             this.createBugsForFailedTestIssues(testIssues, failures, this.steps.env.RUN_DISPLAY_URL)
-            logger.debugClocked("${testLevel}-jira-report-bugs-${testTypes}")
+            logger.debugClocked("${testComponent}-jira-report-bugs-${testTypes}")
         }
     }
 
@@ -389,7 +392,7 @@ class JiraUseCase {
                     versionNumber = version.toLong()
                 } catch (NumberFormatException _) {
                     this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        "version. It contains value '${version}'.")
+                        " version. It contains value '${version}'.")
                 }
             }
 
