@@ -1130,9 +1130,14 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def sections = this.getDocumentSections(documentType)
         def systemRequirements = this.project.getSystemRequirements()
 
-        def testIssues = systemRequirements.collect { it.getResolvedTests() }.flatten().unique().findAll {
-            [Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION].contains(it.testType)
-        }
+        def testIssues = systemRequirements
+            .collect { it.getResolvedTests() }
+            .flatten().unique().findAll{it != null}
+            .findAll {
+                [Project.TestType.ACCEPTANCE,
+                 Project.TestType.INSTALLATION,
+                 Project.TestType.INTEGRATION].contains(it.testType)
+            }
 
         systemRequirements = systemRequirements.collect { r ->
             def predecessors = r.expandedPredecessors.collect { [key: it.key, versions: it.versions.join(', ')] }
