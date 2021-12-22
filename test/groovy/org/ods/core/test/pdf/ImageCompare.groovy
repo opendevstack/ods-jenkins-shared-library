@@ -18,7 +18,6 @@ class ImageCompare {
         final int[] p1 = img1.getRGB(0, 0, width, height, null, 0, width)
         final int[] p2 = img2.getRGB(0, 0, width, height, null, 0, width)
         if(!(java.util.Arrays.equals(p1, p2))){
-            log.debug("Compared images - does not match")
             saveImage(imageDiff(p1, p2, width, height), fileName)
             return false
         }
