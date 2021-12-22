@@ -46,7 +46,12 @@ class PdfCompare {
             for (int iPage = 0; iPage < endPage; iPage++) {
                 BufferedImage image1 = pdfRenderer1.renderImageWithDPI(iPage, DPI, ImageType.RGB)
                 BufferedImage image2 = pdfRenderer2.renderImageWithDPI(iPage, DPI, ImageType.RGB)
-                result = result & imageCompare.compareAndHighlightDiffInNewImage(image1, image2, errorFileName(file1, iPage))
+                def errorFile = errorFileName(file1, iPage)
+                def compareResult = imageCompare.compareAndHighlightDiffInNewImage(image1, image2, errorFile)
+                if (!compareResult){
+                    log.error("Error in test, see the image file with pdf difference:$errorFile")
+                }
+                result = result & compareResult
             }
         } catch (Exception e) {
             throw new RuntimeException("Error comparing files", e)
@@ -59,13 +64,11 @@ class PdfCompare {
     }
 
     private String errorFileName(String file1, int iPage) {
-        String fileName = this.imageDestinationPath +
+        return  this.imageDestinationPath +
             File.separator +
             new File(file1).getName().replace(PDF, "_") +
             (iPage + 1) +
             DIFF
-        log.error("Error in test, see the image file with pdf difference:$fileName")
-        return fileName
     }
 
     private int getPageCount(String file) throws IOException{
