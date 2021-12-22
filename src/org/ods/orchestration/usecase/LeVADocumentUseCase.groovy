@@ -22,24 +22,33 @@ import org.ods.util.IPipelineSteps
 
 import java.time.LocalDateTime
 
-@SuppressWarnings(['IfStatementBraces',
+@SuppressWarnings([
+    'ClassSize',
+    'UnnecessaryDefInMethodDeclaration',
+    'UnnecessaryCollectCall',
+    'IfStatementBraces',
     'LineLength',
     'AbcMetric',
     'Instanceof',
     'VariableName',
+    'DuplicateListLiteral',
     'UnusedMethodParameter',
     'UnusedVariable',
     'ParameterCount',
+    'ParameterReassignment',
+    'UnnecessaryElseStatement',
     'NonFinalPublicField',
     'PropertyName',
     'MethodCount',
     'UseCollectMany',
     'ParameterName',
     'TrailingComma',
-    'SpaceAroundMapEntryColon'])
+    'SpaceAroundMapEntryColon',
+    'PublicMethodsBeforeNonPublicMethods'])
 class LeVADocumentUseCase extends DocGenUseCase {
 
     enum DocumentType {
+
         CSD,
         DIL,
         DTP,
@@ -58,6 +67,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         OVERALL_DTR,
         OVERALL_IVR,
         OVERALL_TIR
+
     }
 
     protected static Map DOCUMENT_TYPE_NAMES = [
@@ -157,7 +167,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def requirementsForDocument = reqsGroupedByGampTopic.collectEntries { gampTopic, reqs ->
             def updatedReqs = reqs.collect { req ->
                 def epics = req.getResolvedEpics()
-                def epic = !epics.isEmpty() ? epics.first() : null
+                def epic = epics.isEmpty() ? null : epics.first()
 
                 return [
                     key             : req.key,
@@ -577,32 +587,34 @@ class LeVADocumentUseCase extends DocGenUseCase {
             return this.project.getEnumDictionary(category)[value as String]
         }
 
-        def risks = this.project.getRisks().findAll{it != null}.collect { r ->
-            def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
-            def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
-            def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
-            def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
-            def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
-            def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
-            def probabilityOfDetection = obtainEnum("ProbabilityOfDetection", r.probabilityOfDetection)
-            def riskPriority = obtainEnum("RiskPriority", r.riskPriority)
+        def risks = this.project.getRisks()
+            .findAll {  it != null }
+            .collect { r ->
+                def mitigationsText = this.replaceDashToNonBreakableUnicode(r.mitigations ? r.mitigations.join(", ") : "None")
+                def testsText = this.replaceDashToNonBreakableUnicode(r.tests ? r.tests.join(", ") : "None")
+                def requirements = (r.getResolvedSystemRequirements() + r.getResolvedTechnicalSpecifications())
+                def gxpRelevance = obtainEnum("GxPRelevance", r.gxpRelevance)
+                def probabilityOfOccurrence = obtainEnum("ProbabilityOfOccurrence", r.probabilityOfOccurrence)
+                def severityOfImpact = obtainEnum("SeverityOfImpact", r.severityOfImpact)
+                def probabilityOfDetection = obtainEnum("ProbabilityOfDetection", r.probabilityOfDetection)
+                def riskPriority = obtainEnum("RiskPriority", r.riskPriority)
 
-            return [
-                key: r.key,
-                name: r.name,
-                description: convertImages(r.description),
-                proposedMeasures: "Mitigations: ${mitigationsText}<br/>Tests: ${testsText}",
-                requirements: requirements.findAll{it != null}.collect { it.name }.join("<br/>"),
-                requirementsKey: requirements.findAll{it != null}.collect { it.key }.join("<br/>"),
-                gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
-                probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
-                severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
-                probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
-                riskPriority: riskPriority ? riskPriority.value : "N/A",
-                riskPriorityNumber: r.riskPriorityNumber ?: "N/A",
-                riskComment: r.riskComment ? r.riskComment : "N/A",
-            ]
-        }
+                return [
+                    key: r.key,
+                    name: r.name,
+                    description: convertImages(r.description),
+                    proposedMeasures: "Mitigations: ${ mitigationsText }<br/>Tests: ${ testsText }",
+                    requirements: requirements.findAll { it != null }.collect { it.name }.join("<br/>"),
+                    requirementsKey: requirements.findAll { it != null }.collect { it.key }.join("<br/>"),
+                    gxpRelevance: gxpRelevance ? gxpRelevance."short" : "None",
+                    probabilityOfOccurrence: probabilityOfOccurrence ? probabilityOfOccurrence."short" : "None",
+                    severityOfImpact: severityOfImpact ? severityOfImpact."short" : "None",
+                    probabilityOfDetection: probabilityOfDetection ? probabilityOfDetection."short" : "None",
+                    riskPriority: riskPriority ? riskPriority.value : "N/A",
+                    riskPriorityNumber: r.riskPriorityNumber ?: "N/A",
+                    riskComment: r.riskComment ? r.riskComment : "N/A",
+                ]
+            }
 
         def proposedMeasuresDesription = this.project.getRisks().collect { r ->
             (r.getResolvedTests().collect {
@@ -612,7 +624,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }.flatten()
 
         if (!sections."sec4s2s1") sections."sec4s2s1" = [:]
-        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION"?: 'n/a'
+        sections."sec4s2s1".nonGxpEvaluation = this.project.getProjectProperties()."PROJECT.NON-GXP_EVALUATION" ?: 'n/a'
 
         if (!sections."sec4s2s2") sections."sec4s2s2" = [:]
 
@@ -819,7 +831,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 testIssue.isSuccess = false
                 testIssue.isUnexecuted = true
                 testIssue.comment = testIssue.isUnexecuted ? "This Test Case has not been executed" : ""
-                testIssue.actualResult = !testIssue.isUnexecuted ? "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below." : "Not executed"
+                testIssue.actualResult = testIssue.isUnexecuted ? "Not executed" : "Test failed. Correction will be tracked by Jira issue task \"bug\" listed below."
             }
         }
 
@@ -971,10 +983,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
         // Get the components that we consider modules in SSDS (the ones you have to code)
         def modules = componentsMetadata
-            .findAll { it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
-            .collect { component ->
+            .findAll {  it.odsRepoType.toLowerCase() == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE.toLowerCase() }
+            .collect {  component ->
                 // We will set-up a double loop in the template. For moustache limitations we need to have lists
-                component.requirements = component.requirements.findAll{it != null}.collect { r ->
+                component.requirements = component.requirements.findAll { it != null }.collect { r ->
                     [key: r.key, name: r.name,
                      reqDescription: this.convertImages(r.description), gampTopic: r.gampTopic ?: "uncategorized"]
                 }.groupBy { it.gampTopic.toLowerCase() }
@@ -1037,7 +1049,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     @SuppressWarnings('CyclomaticComplexity')
     String createTIR(Map repo, Map data) {
-        logger.debug("createTIR - repo:${repo}, data:${data}")
+        logger.debug("createTIR - repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(data))}")
 
         def documentType = DocumentType.TIR as String
 
@@ -1410,7 +1422,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     /**
      * This computes the information related to the components (modules) that are being developed
-     * @param documentType
+     * @documentType documentType
      * @return component metadata with software design specs, requirements and info comming from the component repo
      */
     protected Map computeComponentMetadata(String documentType) {
@@ -1538,7 +1550,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private List<String> getJiraTrackingIssueLabelsForDocTypeAndEnvs(String documentType, List<String> envs = null) {
         def labels = []
 
-        def environments = (envs) ? envs : this.project.buildParams.targetEnvironmentToken
+        def environments = envs ?: this.project.buildParams.targetEnvironmentToken
         environments.each { env ->
             LeVADocumentScheduler.ENVIRONMENT_TYPE[env].get(documentType).each { label ->
                 labels.add("${JiraUseCase.LabelPrefix.DOCUMENT}${label}")
@@ -1757,16 +1769,12 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
             return [(doc): "${this.project.buildParams.configItem} / ${version}"]
         }
-
     }
 
     protected String getVersion(Project project, String doc) {
         def version
 
-        if (!project.isVersioningEnabled) {
-            // TODO removeme in ODS 4.x
-            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
-        } else {
+        if (project.isVersioningEnabled) {
             version = project.getDocumentVersionFromHistories(doc)
             if (!version) {
                 // The document has not (yet) been generated in this pipeline run.
@@ -1780,6 +1788,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     version += 1L
                 }
             }
+        } else {
+            // TODO removeme in ODS 4.x
+            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
         }
 
         if (project.isWorkInProgress) {
