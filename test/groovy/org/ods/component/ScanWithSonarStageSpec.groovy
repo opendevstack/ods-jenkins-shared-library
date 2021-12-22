@@ -7,6 +7,7 @@ import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.Logger
+import util.FixtureHelper
 import vars.test_helper.PipelineSpockTestBase
 
 import java.nio.file.Paths
@@ -79,7 +80,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         given:
         def tempFolderPath = tempFolder.getRoot().absolutePath
         def stage = createStage(tempFolderPath)
-        def file =  Paths.get(tempFolderPath, "temp.md").toFile()
+        def file =  new FixtureHelper().getResource("Test.md")
 
         when:
         stage.generateAndArchiveReportInNexus(file, "leva-documentation")
