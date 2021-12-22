@@ -1,5 +1,8 @@
 package org.ods.orchestration.usecase
 
+import static groovy.json.JsonOutput.prettyPrint
+import static groovy.json.JsonOutput.toJson
+
 import com.cloudbees.groovy.cps.NonCPS
 import groovy.xml.XmlUtil
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
@@ -1101,7 +1104,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 List documents = [document]
                 documents += codeReviewReport
                 // Merge the current document with the code review report
-                document = this.pdf.merge(documents)
+                return this.pdf.merge(this.steps.env.WORKSPACE, documents)
             }
             return document
         }
@@ -1147,7 +1150,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
         return data.collect { it.subMap(['key', 'risks', 'tests']).values()  }.flatten()
     }
 
-    String createTRC(Map repo, Map data) {
+    String createTRC(Map repo = null, Map data = null) {
         logger.debug("createTRC - repo:${repo}, data:${data}")
 
         def documentType = DocumentType.TRC as String

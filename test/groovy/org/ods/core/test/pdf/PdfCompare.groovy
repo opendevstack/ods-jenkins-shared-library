@@ -44,7 +44,6 @@ class PdfCompare {
             PDFRenderer pdfRenderer2 = new PDFRenderer(doc2)
 
             for (int iPage = 0; iPage < endPage; iPage++) {
-                log.trace("Comparing Page No : " + (iPage + 1))
                 BufferedImage image1 = pdfRenderer1.renderImageWithDPI(iPage, DPI, ImageType.RGB)
                 BufferedImage image2 = pdfRenderer2.renderImageWithDPI(iPage, DPI, ImageType.RGB)
                 result = result & imageCompare.compareAndHighlightDiffInNewImage(image1, image2, errorFileName(file1, iPage))
@@ -65,7 +64,7 @@ class PdfCompare {
             new File(file1).getName().replace(PDF, "_") +
             (iPage + 1) +
             DIFF
-        log.info("See file with pdf difference:$fileName")
+        log.error("Error in test, see the image file with pdf difference:$fileName")
         return fileName
     }
 
