@@ -1,3 +1,4 @@
+
 package org.ods.core.test.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
@@ -66,12 +67,11 @@ class WiremockManager {
         log.info("tearDown")
 
         wireMockServer.stop();
-        if (this.recording) {
+        if (recording) {
             try {
                 SnapshotRecordResult recording = wireMockServer.stopRecording()
-                log.info("record files:[{}]", recording.stubMappings)
-                if (recording && serverType == "docgen")
-                    cleanWiremockDatafiles()
+                log.info("record files:[{}]", recording.stubMappings?.size())
+                cleanWiremockDatafiles()
             }catch(Exception e){
                 log.error("stopRecording error", e)
                 throw new RuntimeException("Error when stopRecording", e)
@@ -92,13 +92,36 @@ class WiremockManager {
 
     private cleanWiremockDatafiles() {
         log.info("cleanWiremock date_created field")
-        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {updateDateCreated(it)}
+        Map replaceAllMap = prepareReplaceMap()
+        new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
+            replaceFileInText(it, replaceAllMap)
+            updateDateCreated(it)
+        }
+        new File("${pathToFiles}/${FILES_ROOT}").eachFileRecurse() {replaceFileInText(it, replaceAllMap)}
+    }
+
+    private Map prepareReplaceMap() {
+        Map replaceAllMap = ["${System.properties['domainUser']}"  : 'dummyUser']
+        Map customReplaceAllMap = (System.properties['wiremock.textToReplace'] as String).tokenize(',')
+            .collectEntries {
+                List value = it.tokenize(':')
+                return [value[0], value[1]]
+            }
+        replaceAllMap += customReplaceAllMap
+        return replaceAllMap
+    }
+
+    private void replaceFileInText(File file, Map replaceAllMap) {
+        replaceAllMap.each {
+            if (file.text.contains(it.key))
+                file.text = file.text.replace(it.key, it.value)
+        }
     }
 
     private void updateDateCreated(File file) {
         JsonBuilder jsonBuilderFromFile = getJsonFromText(file.text)
         String equalToJsonField = jsonBuilderFromFile.content?.request?.bodyPatterns?.equalToJson
-        if (!equalToJsonField)
+        if (!equalToJsonField || !equalToJsonField.contains("date_created") || equalToJsonField.contains("json-unit.any-string"))
             return
 
         JsonBuilder jsonBuilderField = getJsonFromText(equalToJsonField)
