@@ -134,6 +134,7 @@ test {
     systemProperty "domainPassword", project.findProperty('domainPassword')?: "openshift"
     systemProperty "nexusUser", project.findProperty('nexusUser')?: "openshift"
     systemProperty "nexusPassword", project.findProperty('nexusPassword')?: "openshift"
+    systemProperty "wiremock.textToReplace", project.findProperty('wiremock.textToReplace')?: ""
 }
 
 codenarc {

@@ -4,7 +4,6 @@ import org.apache.commons.io.FileUtils
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.pdf.PdfCompare
 import org.ods.core.test.usecase.RepoDataBuilder
-import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.workspace.TestsReports
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
@@ -50,7 +49,7 @@ class PipelineProcess {
             copyDocWhenRecording()
             return true
         } else {
-            return new PdfCompare(savedDocuments).compare(
+            return new PdfCompare(savedDocuments).compareAreEqual(
                 actualDoc().absolutePath,
                 expectedDoc(projectFixture.component).absolutePath
             )
