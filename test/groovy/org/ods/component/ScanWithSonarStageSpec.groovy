@@ -9,6 +9,8 @@ import org.ods.services.SonarQubeService
 import org.ods.util.Logger
 import vars.test_helper.PipelineSpockTestBase
 
+import java.nio.file.Paths
+
 class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
     @Rule
@@ -77,7 +79,7 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
         given:
         def tempFolderPath = tempFolder.getRoot().absolutePath
         def stage = createStage(tempFolderPath)
-        def file = File.createTempFile("temp", ".md")
+        def file =  Paths.get(tempFolderPath, "temp.md").toFile()
 
         when:
         stage.generateAndArchiveReportInNexus(file, "leva-documentation")
