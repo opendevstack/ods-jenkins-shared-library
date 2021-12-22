@@ -8,8 +8,6 @@ import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
 
-import java.nio.file.Paths
-
 @SuppressWarnings('ParameterCount')
 @TypeChecked
 class ScanWithSonarStage extends Stage {
