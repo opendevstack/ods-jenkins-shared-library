@@ -1,5 +1,7 @@
 package org.ods.component
 
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import org.ods.PipelineScript
 import org.ods.services.BitbucketService
 import org.ods.services.NexusService
@@ -9,9 +11,18 @@ import vars.test_helper.PipelineSpockTestBase
 
 class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
-    ScanWithSonarStage createStage() {
+    @Rule
+    public TemporaryFolder tempFolder
+
+    @Override
+    protected String readResource(String name) {
+        return super.readResource(name)
+    }
+
+    ScanWithSonarStage createStage(tempFolderPath) {
         def script = Spy(PipelineScript)
         def steps = Spy(util.PipelineSteps)
+        steps.env.WORKSPACE = tempFolderPath
         def logger = Spy(new Logger(steps, false))
         IContext context = new Context(steps,
             [componentId: "component1",
@@ -51,7 +62,8 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
     def "generate temp file from report file"() {
         given:
-        def stage = createStage()
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def stage = createStage(tempFolderPath)
 
         when:
         def file = stage.generateTempFileFromReport("report.md")
@@ -63,7 +75,8 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
     def "archive report in Nexus"() {
         given:
-        def stage = createStage()
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def stage = createStage(tempFolderPath)
         def file = File.createTempFile("temp", ".md")
 
         when:
@@ -77,7 +90,8 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
     def "create Bitbucket Insight report - PASS"() {
         given:
-        def stage = createStage()
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def stage = createStage(tempFolderPath)
         def data = [
             key: ScanWithSonarStage.BITBUCKET_SONARQUBE_REPORT_KEY,
             title: "SonarQube",
@@ -107,7 +121,8 @@ class ScanWithSonarStageSpec extends PipelineSpockTestBase {
 
     def "create Bitbucket Insight report - FAIL"() {
         given:
-        def stage = createStage()
+        def tempFolderPath = tempFolder.getRoot().absolutePath
+        def stage = createStage(tempFolderPath)
         def data = [
             key: ScanWithSonarStage.BITBUCKET_SONARQUBE_REPORT_KEY,
             title: "SonarQube",
