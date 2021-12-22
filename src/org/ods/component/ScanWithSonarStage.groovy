@@ -8,6 +8,8 @@ import org.ods.services.NexusService
 import org.ods.services.SonarQubeService
 import org.ods.util.ILogger
 
+import java.nio.file.Paths
+
 @SuppressWarnings('ParameterCount')
 @TypeChecked
 class ScanWithSonarStage extends Stage {
@@ -267,7 +269,7 @@ class ScanWithSonarStage extends Stage {
 
     @SuppressWarnings('FileCreateTempFile')
     private File generateTempFileFromReport(String report) {
-        File file = new File("${steps.env.WORKSPACE}/sonarReport.md")
+        File file =  Paths.get(this.steps.env.WORKSPACE.toString(), "sonarReport.md").toFile()
         file.write(steps.readFile(file: report) as String)
         return file
     }
