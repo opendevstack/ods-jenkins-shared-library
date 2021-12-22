@@ -61,6 +61,7 @@
 - Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
 - Introduce ods-library component type ([#603](https://github.com/opendevstack/ods-jenkins-shared-library/issues/603))
 - Release Manager references v1.1 SLC Docs templates ([#798](https://github.com/opendevstack/ods-jenkins-shared-library/issues/798))
+- Fix Traceability matrix null ([#818](https://github.com/opendevstack/ods-jenkins-shared-library/pull/818)
 
 ## [3.0] - 2020-08-11
 
