@@ -267,7 +267,8 @@ class ScanWithSonarStage extends Stage {
 
     @SuppressWarnings(['JavaIoPackageAccess', 'FileCreateTempFile'])
     private File generateTempFileFromReport(String report) {
-        File file = new File(this.steps.env.WORKSPACE.toString(), "sonarReport.md")
+        new File(this.steps.env.WORKSPACE.toString()).mkdirs()
+        File file = new File("${this.steps.env.WORKSPACE}/sonarReport.md")
         file.write(steps.readFile(file: report) as String)
         return file
     }

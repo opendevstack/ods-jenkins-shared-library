@@ -226,7 +226,6 @@
 ### Fixed
 - Serialization error when branch prefix is used in environment mapping ([#58](https://github.com/opendevstack/ods-jenkins-shared-library/pull/58))
 
-
 ## [1.0.0] - 2018-12-03
 
 ### Added
@@ -247,7 +246,6 @@
 ### Removed
 - Verbose mode (#30)
 - `stageUpdateOpenshiftBuild` - Use `stageStartOpenShiftBuild` instead (#8)
-
 
 ## [0.1.0] - 2018-07-27
 
