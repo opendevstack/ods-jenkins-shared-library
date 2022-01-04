@@ -323,7 +323,9 @@ class GitService {
     void mergeIntoMainBranch(String branchToMerge, String mainBranch, List<String> filesToCheckout) {
         switchToOriginTrackingBranch(mainBranch)
         checkoutAndCommitFiles(branchToMerge, filesToCheckout, "ODS RM merge from ${branchToMerge} [ci skip]")
-        script.sh("git merge ${branchToMerge}")
+        script.sh("""
+            git merge ${branchToMerge} --no-edit -m "ODS RM branch ${branchToMerge} into ${mainBranch} [ci skip]"
+        """)
         pushRef(mainBranch)
         script.sh("git checkout ${branchToMerge}")
     }
