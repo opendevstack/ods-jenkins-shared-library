@@ -6,12 +6,7 @@ import groovy.transform.TypeCheckingMode
 import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.services.GitService
-import org.ods.services.OpenShiftService
-import org.ods.services.ServiceRegistry
-import org.ods.services.GitService
-import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.MROPipelineUtil
 
 // Finalize Non ODS comnponents in 'dev' - largely a dummy commit.
 @TypeChecked
@@ -34,7 +29,9 @@ class FinalizeNonOdsComponent {
             "\r${commitBuildReference()}"
         def noFilesToStage = []
         logger.debugClocked("record-git-${repo.id}", (null as String))
-        git.commit(noFilesToStage, "${commitMessage} [ci skip]")
+        steps.dir(baseDir) {
+            git.commit(noFilesToStage, "${commitMessage} [ci skip]")
+        }
         logger.debugClocked("record-git-${repo.id}", (null as String))
     }
 
