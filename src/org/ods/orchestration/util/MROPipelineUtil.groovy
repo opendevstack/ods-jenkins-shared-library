@@ -13,6 +13,7 @@ import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.DeploymentDescriptor
 import org.ods.orchestration.phases.DeployOdsComponent
 import org.ods.orchestration.phases.FinalizeOdsComponent
+import org.ods.orchestration.phases.FinalizeNonOdsComponent
 import org.yaml.snakeyaml.Yaml
 
 @InheritConstructors
@@ -359,12 +360,16 @@ class MROPipelineUtil extends PipelineUtil {
                             executeODSComponent(repo, baseDir)
                         } else if (this.project.isPromotionMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
+                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Infrastructure as Code Component/Configuration Management. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
                     } else if (repo.type?.toLowerCase() == PipelineConfig.REPO_TYPE_ODS_LIB) {
                         if (this.project.isAssembleMode && name == PipelinePhases.BUILD) {
                             executeODSComponent(repo, baseDir)
+                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS library. Nothing to do in phase '${name}' for target environment'${targetEnvToken}'.")
                         }
@@ -392,6 +397,8 @@ class MROPipelineUtil extends PipelineUtil {
                             }
                         } else if (name == PipelinePhases.TEST) {
                             executeODSComponent(repo, baseDir)
+                        } else if (this.project.isAssembleMode && name == PipelinePhases.FINALIZE) {
+                            new FinalizeNonOdsComponent(project, steps, git, logger).run(repo, baseDir)
                         } else {
                             this.logger.debug("Repo '${repo.id}' is of type ODS Test Component. Nothing to do in phase '${name}' for target environment '${targetEnvToken}'.")
                         }
