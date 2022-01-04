@@ -1,0 +1,39 @@
+id: frml24113
+name: Project frml24113
+description: Description of frml24113.
+
+services:
+  bitbucket:
+    credentials:
+      id: frml24113-cd-cd-user-with-password
+
+# Uncomment (below) to connect to jira
+  jira:
+   credentials:
+      id: frml24113-cd-cd-user-with-password
+  nexus:
+    repository:
+      name: leva-documentation
+
+repositories:
+  - id: thefirst
+    name: frml24113-thefirst
+    type: ods
+  - id: thesecond
+    name: frml24113-thesecond
+    type: ods
+  - id: spock
+    name: frml24113-spock
+    type: ods-test
+  - id: release
+    name: frml24113-release
+    type: ods
+# Uncomment (below) to generate documents
+capabilities:
+  - Zephyr
+  - LeVADocs:
+      GAMPCategory: 5
+      templatesVersion: "1.2"
+
+# Uncomment (below) to allow partial rebuilding during development
+# allowPartialRebuild: true

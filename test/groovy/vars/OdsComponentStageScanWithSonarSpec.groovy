@@ -2,6 +2,8 @@ package vars
 
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
 import groovy.lang.MissingPropertyException
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import org.ods.component.Context
 import org.ods.component.IContext
 import org.ods.services.BitbucketService
@@ -13,6 +15,9 @@ import vars.test_helper.PipelineSpockTestBase
 import spock.lang.*
 
 class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
+
+    @Rule
+    public TemporaryFolder tempFolder
 
   private Logger logger = Mock(Logger)
 
@@ -56,6 +61,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.WORKSPACE = tempFolder.getRoot().absolutePath
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
@@ -86,6 +92,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.WORKSPACE = tempFolder.getRoot().absolutePath
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> ""}
@@ -130,6 +137,7 @@ class OdsComponentStageScanWithSonarSpec extends PipelineSpockTestBase {
 
     when:
     def script = loadScript('vars/odsComponentStageScanWithSonar.groovy')
+    script.env.WORKSPACE = tempFolder.getRoot().absolutePath
     helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
     helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
     helper.registerAllowedMethod("readJSON", [ Map ]) { Map args ->
