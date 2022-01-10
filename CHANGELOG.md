@@ -67,6 +67,9 @@
 - Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
 - Fix Traceability matrix null error ([#817](https://github.com/opendevstack/ods-jenkins-shared-library/pull/817)
 - Fix temporal folder ([#821](https://github.com/opendevstack/ods-jenkins-shared-library/pull/821)
+- rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
+- RM: test component causes new jenkins (run) instance after branch is created for release 
+([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
 
 ## [3.0] - 2020-08-11
 
