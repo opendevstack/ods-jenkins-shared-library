@@ -15,6 +15,7 @@
 - Increase Socket Timeout on Pipeline Orchestrator [788](https://github.com/opendevstack/ods-jenkins-shared-library/pull/788)
 - Fix Traceability matrix to not show Unit Tests ([#800](https://github.com/opendevstack/ods-jenkins-shared-library/pull/800)
 - Fix Traceability matrix NULL ([#817](https://github.com/opendevstack/ods-jenkins-shared-library/pull/817)
+- rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
 
 ## [3.0] - 2020-08-11
 
