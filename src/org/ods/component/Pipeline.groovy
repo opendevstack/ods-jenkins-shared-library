@@ -163,7 +163,7 @@ class Pipeline implements Serializable {
                             updateBuildStatus('NOT_BUILT')
                             setBitbucketBuildStatus('SUCCESSFUL')
                             return this
-                        }                        
+                        }
                     }
                 }
             } catch (err) {
