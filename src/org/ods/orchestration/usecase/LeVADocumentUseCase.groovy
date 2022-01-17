@@ -910,7 +910,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests: SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : this.convertImages(testIssue.description ?: ''),
+                        description : this.convertImages(testIssue.description ?: testIssue.name),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : sortTestSteps(testIssue.steps)
@@ -919,7 +919,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 acceptanceTests : SortUtil.sortIssuesByKey(acceptanceTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : this.convertImages(testIssue.description ?: ''),
+                        description : this.convertImages(testIssue.description ?: testIssue.name),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : "N/A",
                         steps       : sortTestSteps(testIssue.steps)
