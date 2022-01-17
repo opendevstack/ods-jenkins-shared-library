@@ -17,31 +17,26 @@ class InfrastructureService {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    public int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
+    public int runMake(String rule, Map environmentVars = [:], String tfBackendS3Key = null, String workspace = null) {
         logger.info "Running 'make ${rule}'..."
+
         int status = 1
-        steps.withEnv(setEnv(environmentVars, tfBackendS3Key, workspace))
-        {
-            withCredentials((environmentVars.credentials.key as String).toLowerCase(),
-                            (environmentVars.credentials.secret as String).toLowerCase()) {
-                status = steps.sh(
-                    label: 'Infrastructure Makefile',
-                    returnStatus: true,
-                    script: """
-                        set +e && \
-                        eval \"\$(rbenv init -)\" && \
-                        make ${rule} && \
-                        set -e
-                    """
-                ) as int
+        if (environmentVars.isEmpty()) {
+            status = runMakeStep(rule)
+        } else {
+            steps.withEnv(setEnv(environmentVars, tfBackendS3Key, workspace))
+            {
+                withCredentials((environmentVars.credentials.key as String).toLowerCase(),
+                                (environmentVars.credentials.secret as String).toLowerCase()) {
+                    status = runMakeStep(rule)
+                }
             }
         }
         return status
     }
 
-    public int runMake(String rule) {
-        logger.info "Running 'make ${rule}'..."
-        int status = 1
+    private int runMakeStep(String rule) {
+        int status
         status = steps.sh(
             label: 'Infrastructure Makefile',
             returnStatus: true,

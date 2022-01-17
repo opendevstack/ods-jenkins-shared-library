@@ -47,23 +47,24 @@ class InfrastructureStage extends Stage {
         }
     }
 
+    // called from odsComponentStageInfrustructureAWS execute
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
-        if (runMakeWithEnv("test", environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
+        if (runMake("test", environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
             script.error("AWS IaC - Testing stage failed!")
         }
         if (stackDeploy) {
-            if (runMakeWithEnv("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
+            if (runMake("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("AWS IaC - Plan stage failed!")
             }
-            if (runMakeWithEnv("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
+            if (runMake("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("AWS IaC - Deploy stage failed!")
             }
-            if (runMakeWithEnv("smoke-test",
+            if (runMake("smoke-test",
                               environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("AWS IaC - Smoke-test stage failed!")
             }
-            if (runMake("install-report") != 0) {
+            if (runMake("install-report", [:], null as String, null as String) != 0) {
                 script.error("AWS IaC - Report stage failed!")
             }
 
@@ -87,20 +88,15 @@ class InfrastructureStage extends Stage {
         return
     }
 
-    private int runMake(String rule) {
-        logger.startClocked(options.resourceName)
-        int returnCode = infrastructure.runMake(rule)
-        logResult(rule, returnCode)
-        logger.infoClocked(options.resourceName, "AWS Infrastructure as Code (via Makefile)")
-        return returnCode
-    }
-
-    private int runMakeWithEnv(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
-        logger.startClocked(options.resourceName)
-        int returnCode = infrastructure.runMakeWithEnv(rule, environmentVars, tfBackendS3Key, workspace)
-        logResult(rule, returnCode)
-        logger.infoClocked(options.resourceName, "AWS Infrastructure as Code (via Makefile)")
-        return returnCode
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private int runMake(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
+        script.stage("AWS IaC - ${rule}") {
+            logger.startClocked(options.resourceName)
+            int returnCode = infrastructure.runMake(rule, environmentVars, tfBackendS3Key, workspace)
+            logResult(rule, returnCode)
+            logger.infoClocked(options.resourceName, "AWS Infrastructure as Code (via Makefile)")
+            return returnCode
+        }
     }
 
     private logResult(String rule, int returnCode) {
