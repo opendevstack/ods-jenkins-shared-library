@@ -66,6 +66,7 @@
 - Fix Traceability matrix null ([#818](https://github.com/opendevstack/ods-jenkins-shared-library/pull/818)
 - Problems with temporal folder in tests ([#819](https://github.com/opendevstack/ods-jenkins-shared-library/pull/819)
 - Improve Wiremok logs ([#809](https://github.com/opendevstack/ods-jenkins-shared-library/pull/809)
+- Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
 
 ## [3.0] - 2020-08-11
 
