@@ -76,7 +76,7 @@ class BuildStage extends Stage {
         Closure executeRepos = {
             util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
                 .each { group ->
-                    group.failFast = true
+                    group.failFast = !project.isWorkInProgress // false in WIP, true in other case
                     script.parallel(group)
                 }
         }
