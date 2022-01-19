@@ -574,7 +574,7 @@ class JiraUseCaseSpec extends SpecHelper {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Error: found duplicated Jira tests. Check tests with key: [JIRA-1, JIRA-2]'
+        e.message == 'Error: the following test cases are implemented multiple times each: JIRA-1, JIRA-2.'
     }
 
     def "match Jira test issues against test results having duplicate test results with flag check duplicate to false"() {

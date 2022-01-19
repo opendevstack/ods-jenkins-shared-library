@@ -53,9 +53,11 @@
 - Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
 - Add breakable characters in SSDS Bitbucket data to let the render split the words ([#774])(https://github.com/opendevstack/ods-jenkins-shared-library/pull/774))
 - Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
+- Set test summary for empty description in TCP ([816](https://github.com/opendevstack/ods-jenkins-shared-library/pull/816))
 - Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
 - Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
 - Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
+- rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
 - Fix Traceability matrix to not show Unit Tests ([#801](https://github.com/opendevstack/ods-jenkins-shared-library/pull/801)
 - Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
 - Introduce ods-library component type ([#603](https://github.com/opendevstack/ods-jenkins-shared-library/issues/603))
@@ -68,6 +70,7 @@
 - rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
 - RM: test component causes new jenkins (run) instance after branch is created for release 
 ([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
+- Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
 
 ## [3.0] - 2020-08-11
 
