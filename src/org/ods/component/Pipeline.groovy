@@ -157,11 +157,13 @@ class Pipeline implements Serializable {
 
                     skipCi = isCiSkip()
                     if (skipCi) {
-                        logger.info 'Skipping build due to [ci skip], [skip ci] or ***NO_CI***' +
-                            'in the commit message ...'
-                        updateBuildStatus('NOT_BUILT')
-                        setBitbucketBuildStatus('SUCCESSFUL')
-                        return
+                        script.stage('odsPipeline (ci skip) finished') {
+                            logger.info 'Skipping build due to [ci skip], [skip ci] or ***NO_CI***' +
+                                ' in the commit message ...'
+                            updateBuildStatus('NOT_BUILT')
+                            setBitbucketBuildStatus('SUCCESSFUL')
+                            return this
+                        }
                     }
                 }
             } catch (err) {

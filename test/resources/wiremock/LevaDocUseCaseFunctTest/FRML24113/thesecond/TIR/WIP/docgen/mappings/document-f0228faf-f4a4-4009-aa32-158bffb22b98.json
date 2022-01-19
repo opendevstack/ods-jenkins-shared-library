@@ -1,0 +1,332 @@
+{
+    "id": "f0228faf-f4a4-4009-aa32-158bffb22b98",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "TIR",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113: thesecond",
+                            "description": "Description of frml24113.",
+                            "type": "Technical Installation Report",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "branch": "master",
+                                "commit": "46a05fce73c811e74f4f96d8f418daa4246ace09",
+                                "previousCommit": null,
+                                "previousSucessfulCommit": null,
+                                "url": "http://bitbucket.odsbox.lan:7990/scm/ofi2004/ofi2004-thesecond.git",
+                                "baseTag": "",
+                                "targetTag": ""
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Technical Installation Report, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "deployNote": "Components were built & deployed during installation.",
+                        "openShiftData": {
+                            "builds": {
+                                "thesecond": {
+                                    "buildId": "thesecond-3",
+                                    "image": "172.30.1.1:5000/ofi2004-cd/thesecond@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4"
+                                }
+                            },
+                            "deployments": {
+                                "thesecond": {
+                                    "podName": "thesecond-3-dshjl",
+                                    "podNamespace": "ofi2004-dev",
+                                    "podMetaDataCreationTimestamp": "2021-11-21T22:31:04Z",
+                                    "deploymentId": "thesecond-3",
+                                    "podNode": "localhost",
+                                    "podIp": "172.17.0.39",
+                                    "podStatus": "Running",
+                                    "podStartupTimeStamp": "2021-11-21T22:31:04Z",
+                                    "containers": {
+                                        "thesecond": "172.30.1.1:5000/ofi2004-cd/thesecond@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4"
+                                    }
+                                }
+                            }
+                        },
+                        "testResults": {
+                            "installation": null
+                        },
+                        "data": {
+                            "repo": {
+                                "id": "thesecond",
+                                "type": "ods",
+                                "data": {
+                                    "tests": {
+                                        "unit": {
+                                            "testReportFiles": [
+                                                
+                                            ],
+                                            "testResults": {
+                                                "testsuites": [
+                                                    
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "openshift": {
+                                        "builds": {
+                                            "thesecond": {
+                                                "buildId": "thesecond-3",
+                                                "image": "172.30.1.1:5000/ofi2004-cd/thesecond@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4"
+                                            }
+                                        },
+                                        "deployments": {
+                                            "thesecond": {
+                                                "podName": "thesecond-3-dshjl",
+                                                "podNamespace": "ofi2004-dev",
+                                                "podMetaDataCreationTimestamp": "2021-11-21T22:31:04Z",
+                                                "deploymentId": "thesecond-3",
+                                                "podNode": "localhost",
+                                                "podIp": "172.17.0.39",
+                                                "podStatus": "Running",
+                                                "podStartupTimeStamp": "2021-11-21T22:31:04Z",
+                                                "containers": {
+                                                    "thesecond": "172.30.1.1:5000/ofi2004-cd/thesecond@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4"
+                                                }
+                                            }
+                                        },
+                                        "sonarqubeScanStashPath": "scrr-report-thesecond-1",
+                                        "SCRR": "SCRR-ofi2004-thesecond.docx",
+                                        "SCRR-MD": "SCRR-ofi2004-thesecond.md",
+                                        "testResultsFolder": "build/test-results/test",
+                                        "testResults": "1",
+                                        "xunitTestResultsStashPath": "test-reports-junit-xml-thesecond-1",
+                                        "CREATED_BY_BUILD": "WIP/1"
+                                    },
+                                    "documents": {
+                                        
+                                    },
+                                    "git": {
+                                        "branch": "master",
+                                        "commit": "46a05fce73c811e74f4f96d8f418daa4246ace09",
+                                        "previousCommit": null,
+                                        "previousSucessfulCommit": null,
+                                        "url": "http://bitbucket.odsbox.lan:7990/scm/ofi2004/ofi2004-thesecond.git",
+                                        "baseTag": "",
+                                        "targetTag": ""
+                                    }
+                                },
+                                "url": "http://bitbucket.odsbox.lan:7990/scm/ofi2004/ofi2004-thesecond.git",
+                                "branch": "master",
+                                "pipelineConfig": {
+                                    "dependencies": [
+                                        
+                                    ]
+                                },
+                                "metadata": {
+                                    "name": "OpenJDK",
+                                    "description": "OpenJDK is a free and open-source implementation of the Java Platform, Standard Edition. Technologies: Spring Boot 2.1, OpenJDK 11, supplier:https://adoptopenjdk.net",
+                                    "version": "3.x",
+                                    "type": "ods"
+                                }
+                            },
+                            "sections": {
+                                "sec7": {
+                                    "number": "7",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Document History",
+                                    "documents": [
+                                        "TIR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec7",
+                                    "content": "<p><font color=\"blue\">The following table provides extra history of the document.</font></p>\n\n<div class='table-wrap'>\n<table class='confluenceTable'><tbody>\n<tr>\n<th class='confluenceTh'>Version</th>\n<th class='confluenceTh'>Date</th>\n<th class='confluenceTh'>Author</th>\n<th class='confluenceTh'>Reference</th>\n</tr>\n<tr>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>See summary of electronic document or signature page of printout.</td>\n<td class='confluenceTd'>&nbsp;</td>\n<td class='confluenceTd'>&nbsp;</td>\n</tr>\n</tbody></table>\n</div>\n",
+                                    "key": "FRML24113-88",
+                                    "status": "Done"
+                                },
+                                "sec6": {
+                                    "number": "6",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Reference Documents",
+                                    "documents": [
+                                        "TIR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec6",
+                                    "content": " ",
+                                    "key": "FRML24113-87",
+                                    "status": "Done"
+                                },
+                                "sec5s2": {
+                                    "number": "5.2",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Abbreviations",
+                                    "documents": [
+                                        "TIR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5s2",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184806/184806_image-2021-11-24-16-24-13-147.png\" height=\"742\" width=\"1182\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-86",
+                                    "status": "Done"
+                                },
+                                "sec5s1": {
+                                    "number": "5.1",
+                                    "predecessors": [
+                                        
+                                    ],
+                                    "heading": "Definitions",
+                                    "documents": [
+                                        "TIR"
+                                    ],
+                                    "versions": [
+                                        "1.0"
+                                    ],
+                                    "section": "sec5s1",
+                                    "content": "<p><span class=\"image-wrap\" style=\"\"><img src=\"https://jira-qa.biscrum.com/secure/attachment/184816/184816_image-2021-11-24-17-06-37-578.png\" height=\"364\" width=\"419\" style=\"border: 0px solid black\" /></span></p>",
+                                    "key": "FRML24113-85",
+                                    "status": "Done"
+                                }
+                            },
+                            "documentHistory": [
+                                {
+                                    "entryId": 1,
+                                    "rational": "Initial document version."
+                                },
+                                {
+                                    "entryId": 2,
+                                    "rational": "Modifications for project version '2.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 3,
+                                    "rational": "Modifications for project version '3.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 4,
+                                    "rational": "Modifications for project version '4.0'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "entryId": 5,
+                                    "rational": "Modifications for project version '4.0'. This document version invalidates the changes done in document version '4'.",
+                                    "issueType": [
+                                        {
+                                            "type": "documentation chapters",
+                                            "added": [
+                                                
+                                            ],
+                                            "changed": [
+                                                
+                                            ],
+                                            "discontinued": [
+                                                
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-f0228faf-f4a4-4009-aa32-158bffb22b98.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "f0228faf-f4a4-4009-aa32-158bffb22b98",
+    "persistent": true,
+    "insertionIndex": 1
+}

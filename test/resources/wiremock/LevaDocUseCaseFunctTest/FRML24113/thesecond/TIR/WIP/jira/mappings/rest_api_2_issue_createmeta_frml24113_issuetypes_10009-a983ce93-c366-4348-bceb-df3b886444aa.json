@@ -1,0 +1,33 @@
+{
+  "id" : "a983ce93-c366-4348-bceb-df3b886444aa",
+  "name" : "rest_api_2_issue_createmeta_frml24113_issuetypes_10009",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/FRML24113/issuetypes/10009",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_api_2_issue_createmeta_frml24113_issuetypes_10009-a983ce93-c366-4348-bceb-df3b886444aa.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Thu, 23 Dec 2021 06:34:56 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "454x3886068x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=B7F9D0158F230BF95143B34AE4BDA470; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_306b59f7bae336a6ca3fd9432c185dd46b93465c_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "x8j06y",
+      "X-AUSERNAME" : "sergio.sacristan%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "a983ce93-c366-4348-bceb-df3b886444aa",
+  "persistent" : true,
+  "insertionIndex" : 6
+}

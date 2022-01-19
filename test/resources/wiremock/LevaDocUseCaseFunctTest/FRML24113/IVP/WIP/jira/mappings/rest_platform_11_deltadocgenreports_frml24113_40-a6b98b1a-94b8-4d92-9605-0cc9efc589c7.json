@@ -1,0 +1,33 @@
+{
+  "id" : "a6b98b1a-94b8-4d92-9605-0cc9efc589c7",
+  "name" : "rest_platform_11_deltadocgenreports_frml24113_40",
+  "request" : {
+    "url" : "/rest/platform/1.1/deltadocgenreports/FRML24113/4.0",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "rest_platform_11_deltadocgenreports_frml24113_40-a6b98b1a-94b8-4d92-9605-0cc9efc589c7.json",
+    "headers" : {
+      "Server" : "nginx/1.8.1",
+      "Date" : "Thu, 23 Dec 2021 06:29:06 GMT",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "X-AREQUESTID" : "449x3885828x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : [ "max-age=31536000", "max-age=15768000" ],
+      "Set-Cookie" : [ "JSESSIONID=B71B987D04C218B939B9A59E6116DEAB; Path=/; Secure; HttpOnly", "atlassian.xsrf.token=BW8I-UASU-MVFU-WO2W_7e6974895cb2e5a553d45b848e0d4258c892c01b_lin; Path=/; Secure" ],
+      "X-Seraph-LoginReason" : "OK",
+      "X-ASESSIONID" : "txicxg",
+      "X-AUSERNAME" : "sergio.sacristan%40domain.com",
+      "Cache-Control" : "no-cache, no-store, no-transform",
+      "Vary" : "User-Agent"
+    }
+  },
+  "uuid" : "a6b98b1a-94b8-4d92-9605-0cc9efc589c7",
+  "persistent" : true,
+  "insertionIndex" : 15
+}
