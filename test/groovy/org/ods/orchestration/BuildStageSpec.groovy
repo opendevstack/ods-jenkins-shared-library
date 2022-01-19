@@ -94,7 +94,6 @@ class BuildStageSpec extends SpecHelper {
         1 * util.failBuild(_)
         IllegalStateException ex = thrown()
         ex.message == 'Failing build as repositories contain errors!\nFailed: []'
-
     }
 
 }
