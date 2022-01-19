@@ -946,6 +946,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // needed for unroll and overwrite types
         def testRepo = project.repositories.find {repo -> repo.id == 'demo-app-catalogue'}
         testRepo.type = odsRepoType
+        testRepo.doInstall = doInstall
         this.logger.debug("repos: ${testRepo} / ${odsRepoType} / ${componentTypeLong} / ${doInstall}")
 
         def version = (odsRepoType == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'WIP' : '1.0'
@@ -1023,9 +1024,13 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             "SSDS-5",
             "1.0",
             {
+                log.info("should / is: \n -${it.data.sections.sec1}\n -${expectedDocs}")
                 assert it.data.sections.sec1 == expectedDocs
+                log.info("should / is: \n -${it.data.sections.sec5s1.components[0]}\n -${expectedComponents}")
                 assert it.data.sections.sec5s1.components[0] == expectedComponents
+                log.info("should / is: \n -${it.data.sections.sec3s1.specifications[0]}\n -${expectedSpecifications}")
                 assert it.data.sections.sec3s1.specifications[0] == expectedSpecifications
+                log.info("should / is: \n -${it.data.sections.sec10.modules[0]}\n -${expectedModules}")
                 assert it.data.sections.sec10.modules[0] == expectedModules
             }
         ) >> pdfDoc // TODO replace this pdf with the real expected one
@@ -1043,9 +1048,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                      "Only systemDesignSpec",
                      "Both softwareDesignSpec & systemDesignSpec"]
 
-        odsRepoType << ['ods-test', 'ods-saas-service', 'ods-test']
+        odsRepoType << ['ods-test', 'ods-saas-service', 'ods']
         componentTypeLong = LeVADocumentUseCase.INTERNAL_TO_EXT_COMPONENT_TYPES.get(odsRepoType)
-        doInstall = !LeVADocumentUseCase.COMPONENT_TYPE_IS_NOT_INSTALLED.contains(odsRepoType)
+        doInstall = MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(odsRepoType)
 
         techSpecsParam << ['''
           {
