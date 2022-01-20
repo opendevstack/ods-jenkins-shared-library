@@ -267,7 +267,7 @@ class Project {
     protected ILogger logger
     protected Map config
     protected String targetProject
-    protected Boolean isVersioningEnabled = false
+    protected Boolean isVersioningEnabled = true
 
     protected Map data = [:]
 
@@ -346,10 +346,7 @@ class Project {
         // Get more info of the versions from Jira
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
 
-        def version = null
-        if (this.isVersioningEnabled) {
-            version = this.getVersionName()
-        }
+        def version = this.getVersionName()
 
         // FIXME: contrary to the comment below, the bug data from this method is still relevant
         // implementation needs to be cleaned up and bug data should be delivered through plugin's
@@ -358,8 +355,11 @@ class Project {
         this.data.jira = this.convertJiraDataToJiraDataItems(this.data.jira)
         this.data.jiraResolved = this.resolveJiraDataItemReferences(this.data.jira)
 
-        this.data.jira.trackingDocs = this.loadJiraDataTrackingDocs(version)
-        this.data.jira.trackingDocsForHistory = this.loadJiraDataTrackingDocs()
+        def trackingDocs = this.loadJiraDataTrackingDocs()
+        this.data.jira.trackingDocsForHistory = trackingDocs
+        this.data.jira.trackingDocs = trackingDocs.findAll { key, value ->
+            value.fixVersion == version
+        }
         this.data.jira.undone = this.computeWipJiraIssues(this.data.jira)
         this.data.jira.undoneDocChapters = this.computeWipDocChapterPerDocument(this.data.jira)
 
@@ -547,10 +547,6 @@ class Project {
         !getIsPromotionMode()
     }
 
-    boolean getIsVersioningEnabled() {
-        isVersioningEnabled
-    }
-
     static boolean isPromotionMode(String targetEnvironmentToken) {
         ['Q', 'P'].contains(targetEnvironmentToken)
     }
@@ -720,18 +716,12 @@ class Project {
 
     @NonCPS
     List<Map> getDocumentTrackingIssues(List<String> labels) {
-        def result = []
-
+        def labelSet = labels.collect { it.toLowerCase() } as Set<String>
         def issues = this.getDocumentTrackingIssues()
-        labels.each { label ->
-            issues.each { issue ->
-                if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
-                    result << [key: issue.key, status: issue.status]
-                }
-            }
+        def matched = issues.findAll { issue ->
+            issue.labels.collect { it.toLowerCase() }.find { labelSet.contains(it) } != null
         }
-
-        return result.unique()
+        return matched
     }
 
     @NonCPS
@@ -741,18 +731,12 @@ class Project {
 
     @NonCPS
     List<Map> getDocumentTrackingIssuesForHistory(List<String> labels) {
-        def result = []
-
+        def labelSet = labels.collect { it.toLowerCase() } as Set<String>
         def issues = this.getDocumentTrackingIssuesForHistory()
-        labels.each { label ->
-            issues.each { issue ->
-                if (issue.labels.collect { it.toLowerCase() }.contains(label.toLowerCase())) {
-                    result << [key: issue.key, status: issue.status]
-                }
-            }
+        def matched = issues.findAll { issue ->
+            issue.labels.collect { it.toLowerCase() }.find { labelSet.contains(it) } != null
         }
-
-        return result.unique()
+        return matched
     }
 
     @NonCPS
@@ -1088,39 +1072,17 @@ class Project {
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
-            // FIXME: getVersionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
-            // than once. However, it's also called via this.project.versionFromReleaseStatusIssue in JiraUseCase.groovy.
-            def currentVersion = this.getVersionFromReleaseStatusIssue() // TODO why is param.version not sufficient here?
+            def currentVersion = buildParams.changeId
 
-            this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)
-            if (this.isVersioningEnabled) {
-                // We detect the correct version even if the build is WIP
-                logger.info("Project has versioning enabled.")
-                result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
-            } else {
-                // TODO remove in ODS 4.0 version
-                logger.info("Versioning not supported for this release")
-                result = this.loadFullJiraData(projectKey)
-            }
+            // We detect the correct version even if the build is WIP
+            result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
         }
 
         return result
     }
 
     protected String getVersionFromReleaseStatusIssue() {
-        // TODO review if it's possible to use Project.getVersionName()?
-        return this.jiraUseCase.getVersionFromReleaseStatusIssue()
-    }
-
-    protected Map loadFullJiraData(String projectKey) {
-        def result = this.jiraUseCase.jira.getDocGenData(projectKey)
-        if (result?.project?.id == null) {
-            throw new IllegalArgumentException(
-                    "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
-        }
-        def docChapterData = this.getDocumentChapterData(projectKey)
-        result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
-        return result
+        return this.versionName
     }
 
     protected Map loadVersionJiraData(String projectKey, String versionName) {
@@ -1137,14 +1099,7 @@ class Project {
 
     protected Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
         def docChapters = this.jiraUseCase.getDocumentChapterData(projectKey, versionName)
-        if (docChapters.isEmpty() && !this.isVersioningEnabled) {
-            //TODO remove for ODS 4.0
-            //If versioning is not enabled, the query should always return results. If not, there is an issue with
-            // the jira project itself.
-            throw new IllegalStateException("Error: could not find document chapters for project ${projectKey}.")
-        } else {
-            return docChapters
-        }
+        return docChapters
     }
 
     protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
@@ -1242,28 +1197,24 @@ class Project {
         }
     }
 
-    protected Map loadJiraDataTrackingDocs(String versionName = null) {
+    protected Map loadJiraDataTrackingDocs() {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
+        def documentationTrackingIssueFields = this.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
+        def documentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION].id as String
+
         def jql = "project = ${this.jiraProjectKey} AND issuetype = '${JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING}'"
 
-        if (versionName) {
-            jql = jql + " AND fixVersion = '${versionName}'"
-        }
-
         def jqlQuery = [
-            jql: jql
+            jql: jql,
+            validateQuery: 'false', // Deprecated. Newer versions of Jira use 'none' for this, but our Jira seems older.
+            fields: ['summary', 'description', 'status', 'labels', 'fixVersions', documentVersionField]
         ]
 
         def jiraIssues = this.jiraUseCase.jira.getIssuesForJQLQuery(jqlQuery)
         if (jiraIssues.isEmpty()) {
-            def message = "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}'"
-            if (versionName) {
-                message += " for version '${versionName}'"
-            }
-            message += "."
-
+            def message = "Error: Jira data does not include references to items of type '${JiraDataItem.TYPE_DOCTRACKING}.'"
             throw new IllegalArgumentException(message)
         }
 
@@ -1276,6 +1227,8 @@ class Project {
                     description: jiraIssue.fields.description,
                     status: jiraIssue.fields.status.name,
                     labels: jiraIssue.fields.labels,
+                    fixVersion: jiraIssue.fields.fixVersions?.first().name,
+                    docVersion: jiraIssue.fields[documentVersionField],
                 ],
             ]
         }
@@ -1285,14 +1238,14 @@ class Project {
         if (!this.jiraUseCase) return [:]
         if (!this.jiraUseCase.jira) return [:]
 
-        def jiraIssueTypes = this.jiraUseCase.jira.getIssueTypes(this.jiraProjectKey)
-        return jiraIssueTypes.values.collectEntries { jiraIssueType ->
+        def jiraCreateMeta = this.jiraUseCase.jira.getCreateMeta(this.jiraProjectKey)
+        return jiraCreateMeta.projects.first().issuetypes.collectEntries { jiraIssueType ->
             [
                 jiraIssueType.name,
                 [
                     id: jiraIssueType.id,
                     name: jiraIssueType.name,
-                    fields: this.jiraUseCase.jira.getIssueTypeMetadata(this.jiraProjectKey, jiraIssueType.id).values.collectEntries { value ->
+                    fields: jiraIssueType.fields.collectEntries { key, value ->
                         [
                             value.name,
                             [
@@ -1721,9 +1674,9 @@ class Project {
     private Map addKeyAndVersionToComponentsWithout(Map jiraData) {
         def currentVersion = jiraData.version
         (jiraData[JiraDataItem.TYPE_COMPONENTS] ?: [:]).each { k, component ->
-            jiraData[JiraDataItem.TYPE_COMPONENTS][k].key = k
+            component.key = k
             if (! component.versions) {
-                jiraData[JiraDataItem.TYPE_COMPONENTS][k].versions = [currentVersion]
+                component.versions = [currentVersion]
             }
         }
         jiraData

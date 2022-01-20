@@ -63,30 +63,26 @@ class JiraUseCase {
         def matchedHandler = { result ->
             result.each { testIssue, testCase ->
                 def issueLabels = [TestIssueLabels.Succeeded as String]
-                if (testCase.skipped || testCase.error || testCase.failure) {
-                    if (testCase.error) {
-                        issueLabels = [TestIssueLabels.Error as String]
-                    }
-
-                    if (testCase.failure) {
-                        issueLabels = [TestIssueLabels.Failed as String]
-                    }
-
-                    if (testCase.skipped) {
-                        issueLabels = [TestIssueLabels.Skipped as String]
-                    }
+                if (testCase.error) {
+                    issueLabels = [TestIssueLabels.Error as String]
                 }
 
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect { it.toString() })
-                this.jira.addLabelsToIssue(testIssue.key, issueLabels)
+                if (testCase.failure) {
+                    issueLabels = [TestIssueLabels.Failed as String]
+                }
+
+                if (testCase.skipped) {
+                    issueLabels = [TestIssueLabels.Skipped as String]
+                }
+
+                this.jira.setIssueLabels(testIssue.key, issueLabels)
             }
         }
 
         // Handle Jira test issues for which no corresponding test exists in testResults
         def unmatchedHandler = { result ->
             result.each { testIssue ->
-                this.jira.removeLabelsFromIssue(testIssue.key, TestIssueLabels.values().collect { it.toString() })
-                this.jira.addLabelsToIssue(testIssue.key, [TestIssueLabels.Missing as String])
+                this.jira.setIssueLabels(testIssue.key, [TestIssueLabels.Missing as String])
             }
         }
 
@@ -117,8 +113,6 @@ class JiraUseCase {
         if (!this.jira) return
 
         testFailures.each { failure ->
-            // FIXME: this.project.versionFromReleaseStatusIssue loads data from Jira and should therefore be called not more
-            // than once. However, it's also called via this.getVersionFromReleaseStatusIssue in Project.groovy.
             String version = this.project.versionFromReleaseStatusIssue
             def bug = this.jira.createIssueTypeBug(
                 this.project.jiraProjectKey, failure.type, failure.text, version)
@@ -378,24 +372,30 @@ class JiraUseCase {
 
     }
 
+    // This is a cache for the method getLatestDocVersionId. Do not use outside of that method.
+    private final docVersions = new HashMap<String, Long>(64)
+
     Long getLatestDocVersionId(List<Map> trackingIssues) {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(IssueTypes.DOCUMENTATION_TRACKING)
         def documentVersionField = documentationTrackingIssueFields[CustomIssueFields.DOCUMENT_VERSION].id as String
 
         // We will use the biggest ID available
         def versionList = trackingIssues.collect { issue ->
-            def versionNumber = 0L
+            def versionNumber = docVersions[issue.key]
+            if (versionNumber == null) {
+                versionNumber = 0L
 
-            def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
-            if (version) {
-                try {
-                    versionNumber = version.toLong()
-                } catch (NumberFormatException _) {
-                    this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
-                        " version. It contains value '${version}'.")
+                def version = this.jira.getTextFieldsOfIssue(issue.key as String, [documentVersionField])?.getAt(documentVersionField)
+                if (version) {
+                    try {
+                        versionNumber = version.toLong()
+                    } catch (NumberFormatException _) {
+                        this.logger.warn("Document tracking issue '${issue.key}' does not contain a valid numerical" +
+                            " version. It contains value '${version}'.")
+                    }
                 }
+                docVersions[issue.key] = versionNumber
             }
-
             return versionNumber
         }
 
