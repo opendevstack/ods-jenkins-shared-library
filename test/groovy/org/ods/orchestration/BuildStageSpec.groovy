@@ -2,11 +2,9 @@ package org.ods.orchestration
 
 import org.ods.PipelineScript
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.services.JenkinsService
 import org.ods.services.ServiceRegistry
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
@@ -23,8 +21,6 @@ class BuildStageSpec extends SpecHelper {
     PipelineScript script
     MROPipelineUtil util
     JiraUseCase jira
-    JUnitTestReportsUseCase junit
-    JenkinsService jenkins
     LeVADocumentScheduler levaDocScheduler
     ILogger logger
 
@@ -37,9 +33,7 @@ class BuildStageSpec extends SpecHelper {
         project = Spy(createProject())
         util = Mock(MROPipelineUtil)
         jira = Mock(JiraUseCase)
-        junit = Mock(JUnitTestReportsUseCase)
-        jenkins = Mock(JenkinsService)
-        logger = new Logger(script, !!script.env.DEBUG)
+        logger = new Logger(script, true)
         createService()
         buildStage = Spy(new BuildStage(script, project, project.repositories, null))
     }
@@ -51,8 +45,6 @@ class BuildStageSpec extends SpecHelper {
         registry.add(LeVADocumentScheduler, levaDocScheduler)
         registry.add(MROPipelineUtil, util)
         registry.add(JiraUseCase, jira)
-        registry.add(JUnitTestReportsUseCase, junit)
-        registry.add(JenkinsService, jenkins)
         registry.add(Logger, logger)
 
         return registry
