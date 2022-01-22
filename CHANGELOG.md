@@ -71,6 +71,7 @@
 - RM: test component causes new jenkins (run) instance after branch is created for release 
 ([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
 - Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
+- Remove support for EDP 1.0 projects in the Release Manager ([#748](https://github.com/opendevstack/ods-jenkins-shared-library/pull/748))
 
 ## [3.0] - 2020-08-11
 

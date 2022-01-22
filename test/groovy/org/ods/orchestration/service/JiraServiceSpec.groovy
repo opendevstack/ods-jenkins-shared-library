@@ -1008,10 +1008,11 @@ class JiraServiceSpec extends SpecHelper {
     }
 
 
-    Map getDocGenDataRequestData(Map mixins = [:]) {
+    Map getDeltaDocGenDataRequestData(Map mixins = [:]) {
         def result = [
             data: [
-                projectKey: "DEMO"
+                projectKey: "DEMO",
+                version: "1.0"
             ],
             headers: [
                 "Accept": "application/json"
@@ -1020,12 +1021,12 @@ class JiraServiceSpec extends SpecHelper {
             username: "username"
         ]
 
-        result.path = "/rest/platform/1.0/docgenreports/${result.data.projectKey}"
+        result.path = "/rest/platform/1.1/deltadocgenreports/${result.data.projectKey}/${result.data.version}"
 
         return result << mixins
     }
 
-    Map getDocGenDataResponseData(Map mixins = [:]) {
+    Map getDeltaDocGenDataResponseData(Map mixins = [:]) {
         def result = [
             body: JsonOutput.toJson([
                 project: [:],
@@ -1042,14 +1043,14 @@ class JiraServiceSpec extends SpecHelper {
 
     def "get doc gen data with invalid project key"() {
         given:
-        def request = getDocGenDataRequestData()
-        def response = getDocGenDataResponseData()
+        def request = getDeltaDocGenDataRequestData()
+        def response = getDeltaDocGenDataResponseData()
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getDocGenData(null)
+        def result = service.getDeltaDocGenData(null, request.data.version)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -1061,14 +1062,14 @@ class JiraServiceSpec extends SpecHelper {
 
     def "get doc gen data"() {
         given:
-        def request = getDocGenDataRequestData()
-        def response = getDocGenDataResponseData()
+        def request = getDeltaDocGenDataRequestData()
+        def response = getDeltaDocGenDataResponseData()
 
         def server = createServer(WireMock.&get, request, response)
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        def result = service.getDocGenData("DEMO")
+        def result = service.getDeltaDocGenData("DEMO", request.data.version)
 
         then:
         result == [
@@ -1085,8 +1086,8 @@ class JiraServiceSpec extends SpecHelper {
 
     def "get doc gen data with HTTP 400 failure"() {
         given:
-        def request = getDocGenDataRequestData()
-        def response = getDocGenDataResponseData([
+        def request = getDeltaDocGenDataRequestData()
+        def response = getDeltaDocGenDataResponseData([
             body: "Sorry, doesn't work!",
             status: 400
         ])
@@ -1095,7 +1096,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.getDocGenData("DEMO")
+        service.getDeltaDocGenData("DEMO", request.data.version)
 
         then:
         def e = thrown(RuntimeException)
@@ -1107,8 +1108,8 @@ class JiraServiceSpec extends SpecHelper {
 
     def "get doc gen data with HTTP 404 failure"() {
         given:
-        def request = getDocGenDataRequestData()
-        def response = getDocGenDataResponseData([
+        def request = getDeltaDocGenDataRequestData()
+        def response = getDeltaDocGenDataResponseData([
             status: 404
         ])
 
@@ -1116,7 +1117,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.getDocGenData("DEMO")
+        service.getDeltaDocGenData("DEMO", request.data.version)
 
         then:
         def e = thrown(RuntimeException)
@@ -1128,8 +1129,8 @@ class JiraServiceSpec extends SpecHelper {
 
     def "get doc gen data with HTTP 500 failure"() {
         given:
-        def request = getDocGenDataRequestData()
-        def response = getDocGenDataResponseData([
+        def request = getDeltaDocGenDataRequestData()
+        def response = getDeltaDocGenDataResponseData([
             body: "Sorry, doesn't work!",
             status: 500
         ])
@@ -1138,7 +1139,7 @@ class JiraServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         when:
-        service.getDocGenData("DEMO")
+        service.getDeltaDocGenData("DEMO", request.data.version)
 
         then:
         def e = thrown(RuntimeException)
