@@ -282,11 +282,6 @@ class JiraUseCase {
         }
     }
 
-    private boolean mustRun(testIssue) {
-        return !project.promotingToProd() ||
-            testIssue.testType?.equalsIgnoreCase(Project.TestType.INSTALLATION)
-    }
-
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
         if (!this.jira) return
 
@@ -392,6 +387,11 @@ class JiraUseCase {
             "${trackingIssues.collect { it.key } }")
 
         return result
+    }
+
+    private boolean mustRun(testIssue) {
+        return !project.promotingToProd() ||
+            testIssue.testType?.equalsIgnoreCase(Project.TestType.INSTALLATION)
     }
 
     private void walkTestIssuesAndTestResults(List testIssues, Map testResults, Closure visitor) {
