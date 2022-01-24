@@ -16,6 +16,7 @@
 - Fix Traceability matrix to not show Unit Tests ([#800](https://github.com/opendevstack/ods-jenkins-shared-library/pull/800)
 - Fix Traceability matrix NULL ([#817](https://github.com/opendevstack/ods-jenkins-shared-library/pull/817)
 - rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
+- Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 
 ## [3.0] - 2020-08-11
 

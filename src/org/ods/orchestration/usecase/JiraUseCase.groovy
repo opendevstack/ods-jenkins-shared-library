@@ -268,7 +268,7 @@ class JiraUseCase {
         }
 
         testIssues.each { testIssue ->
-            if (!result.matched.keySet().contains(testIssue)) {
+            if (!result.matched.keySet().contains(testIssue) && mustRun(testIssue)) {
                 result.unmatched << testIssue
             }
         }
@@ -280,6 +280,11 @@ class JiraUseCase {
         if (unmatchedHandler) {
             unmatchedHandler(result.unmatched)
         }
+    }
+
+    private boolean mustRun(testIssue) {
+        return !project.promotingToProd() ||
+            testIssue.testType?.equalsIgnoreCase(Project.TestType.INSTALLATION)
     }
 
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
