@@ -281,7 +281,7 @@ class JiraUseCase {
         }
 
         testIssues.each { testIssue ->
-            if (!result.matched.keySet().contains(testIssue)) {
+            if (!result.matched.keySet().contains(testIssue) && mustRun(testIssue)) {
                 result.unmatched << testIssue
             }
         }
@@ -297,6 +297,16 @@ class JiraUseCase {
         if (checkDuplicateTestResults && duplicatesKeys) {
             throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.");
         }
+    }
+
+    private boolean mustRun(testIssue) {
+        return !(project.buildParams?.targetEnvironmentToken == 'P' &&
+            (testIssue.testType?.toLowerCase() in
+                [
+                    Project.TestType.ACCEPTANCE.toLowerCase(),
+                    Project.TestType.INTEGRATION.toLowerCase()
+                ]
+            ))
     }
 
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {
