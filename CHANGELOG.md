@@ -71,6 +71,7 @@
 - RM: test component causes new jenkins (run) instance after branch is created for release 
 ([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
 - Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
+- Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 
 ## [3.0] - 2020-08-11
 
