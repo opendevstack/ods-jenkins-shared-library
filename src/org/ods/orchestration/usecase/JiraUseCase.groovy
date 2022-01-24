@@ -300,13 +300,8 @@ class JiraUseCase {
     }
 
     private boolean mustRun(testIssue) {
-        return !(project.promotingToProd() &&
-            (testIssue.testType?.toLowerCase() in
-                [
-                    Project.TestType.ACCEPTANCE.toLowerCase(),
-                    Project.TestType.INTEGRATION.toLowerCase()
-                ]
-            ))
+        return !project.promotingToProd() ||
+            testIssue.testType?.equalsIgnoreCase(Project.TestType.INSTALLATION)
     }
 
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {

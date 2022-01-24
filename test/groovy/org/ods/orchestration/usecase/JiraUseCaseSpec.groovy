@@ -568,10 +568,10 @@ class JiraUseCaseSpec extends SpecHelper {
         def mismatchedHandler = { result ->
             mismatched = result.collect { it.key }
         }
-        def targetEnvironmentToken = project.data.buildParams.targetEnvironmentToken
         project.data.buildParams.targetEnvironmentToken = 'P'
 
         when:
+        testIssues[4].testType = Project.TestType.INSTALLATION
         usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
         def expectedMatched = [
             "JIRA-1": "JIRA1_my-testcase-1",
@@ -581,24 +581,6 @@ class JiraUseCaseSpec extends SpecHelper {
         ]
 
         def expectedMismatched = [
-            "JIRA-5"
-        ]
-
-        then:
-        matched == expectedMatched
-        mismatched == expectedMismatched
-
-        when:
-        testIssues[4].testType = Project.TestType.INSTALLATION
-        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
-        expectedMatched = [
-            "JIRA-1": "JIRA1_my-testcase-1",
-            "JIRA-2": "JIRA2_my-testcase-2",
-            "JIRA-3": "JIRA3_my-testcase-3",
-            "JIRA-4": "JIRA4_my-testcase-4"
-        ]
-
-        expectedMismatched = [
             "JIRA-5"
         ]
 
@@ -638,8 +620,21 @@ class JiraUseCaseSpec extends SpecHelper {
         matched == expectedMatched
         mismatched == expectedMismatched
 
-        cleanup:
-        project.data.buildParams.targetEnvironmentToken = targetEnvironmentToken
+        when:
+        testIssues[4].testType = Project.TestType.UNIT
+        usecase.matchTestIssuesAgainstTestResults(testIssues, testResults, matchedHandler, mismatchedHandler)
+        expectedMatched = [
+            "JIRA-1": "JIRA1_my-testcase-1",
+            "JIRA-2": "JIRA2_my-testcase-2",
+            "JIRA-3": "JIRA3_my-testcase-3",
+            "JIRA-4": "JIRA4_my-testcase-4"
+        ]
+
+        expectedMismatched = []
+
+        then:
+        matched == expectedMatched
+        mismatched == expectedMismatched
     }
 
     def "match Jira test issues against test results having duplicate test results"() {
