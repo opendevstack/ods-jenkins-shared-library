@@ -300,7 +300,7 @@ class JiraUseCase {
     }
 
     private boolean mustRun(testIssue) {
-        return !(project.buildParams?.targetEnvironmentToken == 'P' &&
+        return !(project.promotingToProd() &&
             (testIssue.testType?.toLowerCase() in
                 [
                     Project.TestType.ACCEPTANCE.toLowerCase(),
