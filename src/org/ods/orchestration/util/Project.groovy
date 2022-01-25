@@ -547,6 +547,10 @@ class Project {
         ['Q', 'P'].contains(targetEnvironmentToken)
     }
 
+    boolean promotingToProd() {
+        buildParams.targetEnvironmentToken == 'P'
+    }
+
     boolean getIsWorkInProgress() {
         isWorkInProgress(buildParams.version)
     }
