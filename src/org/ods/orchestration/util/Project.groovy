@@ -1076,7 +1076,10 @@ class Project {
         ]
 
         if (this.jiraUseCase && this.jiraUseCase.jira) {
-            def currentVersion = buildParams.changeId
+            def currentVersion = buildParams.changeId ?: 'UNDEFINED'
+            if (currentVersion == 'UNDEFINED' && buildParams.releaseStatusJiraIssueKey) {
+                currentVersion = jiraUseCase.getVersionFromReleaseStatusIssue()
+            }
 
             // We detect the correct version even if the build is WIP
             result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
