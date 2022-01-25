@@ -1649,14 +1649,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION]
 
-        if (this.project.isVersioningEnabled) {
-            if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
-                // In case of generating a final document, we add the label for the version that should be released
-                this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
-                    [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
-            }
-        } else {
-            // TODO removeme for ODS 4.0
+        if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
+            // In case of generating a final document, we add the label for the version that should be released
             this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
                 [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
         }
@@ -1761,25 +1755,18 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     protected String getVersion(Project project, String doc) {
-        def version
-
-        if (project.isVersioningEnabled) {
-            version = project.getDocumentVersionFromHistories(doc)
-            if (!version) {
-                // The document has not (yet) been generated in this pipeline run.
-                def envs = Environment.values().collect { it.toString() }
-                def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
-                version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-                if (project.isWorkInProgress ||
-                    LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
-                    project.buildParams.targetEnvironmentToken ) {
-                    // Either this is a developer preview or the history is to be updated in this environment.
-                    version += 1L
-                }
+        def version = project.getDocumentVersionFromHistories(doc)
+        if (!version) {
+            // The document has not (yet) been generated in this pipeline run.
+            def envs = Environment.values().collect { it.toString() }
+            def trackingIssues =  this.getDocumentTrackingIssuesForHistory(doc, envs)
+            version = this.jiraUseCase.getLatestDocVersionId(trackingIssues)
+            if (project.isWorkInProgress ||
+                LeVADocumentScheduler.getFirstCreationEnvironment(doc) ==
+                project.buildParams.targetEnvironmentToken ) {
+                // Either this is a developer preview or the history is to be updated in this environment.
+                version += 1L
             }
-        } else {
-            // TODO removeme in ODS 4.x
-            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
         }
 
         if (project.isWorkInProgress) {

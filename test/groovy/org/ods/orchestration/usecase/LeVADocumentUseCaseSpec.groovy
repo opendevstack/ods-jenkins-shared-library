@@ -1449,14 +1449,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
 
         project.data.jira.trackingDocs << trackingIssues
+        this.project.isDeveloperPreviewMode() >> false
+        this.project.hasWipJiraIssues() >> false
 
         when:
         usecase.updateJiraDocumentationTrackingIssue(documentType, message, "1")
 
         then:
         1 * usecase.getSectionsNotDone(documentType) >> []
-        (1.._) * this.project.isDeveloperPreviewMode() >> false
-        (1.._) * this.project.hasWipJiraIssues() >> false
 
         then:
         1 * usecase.updateValidDocVersionInJira("TRK-1", "1")
@@ -1673,7 +1673,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "referenced documents version"() {
         given:
         def project = Stub(Project)
-        project.isVersioningEnabled >> true
         project.getDocumentVersionFromHistories('CSD') >> 3L
         project.getDocumentVersionFromHistories('DTR') >> 4L
         project.buildParams >> [targetEnvironmentToken: 'D', configItem: 'ConfigItem']
@@ -1720,27 +1719,9 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
     }
 
-    def "get version if versioning not enabled"() {
-        given:
-        def project = Stub(Project)
-        project.isVersioningEnabled >> false
-        project.buildParams >> [version: '3']
-        steps.env.BUILD_NUMBER = '56'
-        def jiraService = Stub(JiraService)
-        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
-
-        when:
-        def version = useCase.getVersion(project, 'CSD')
-
-        then:
-        version == '3-56'
-    }
-
     def "get version from histories not WIP"() {
         given:
         def project = Stub(Project)
-        project.isVersioningEnabled >> true
         project.getDocumentVersionFromHistories('CSD') >> 3L
         def jiraService = Stub(JiraService)
         def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
@@ -1756,7 +1737,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "get version from histories WIP"() {
         given:
         def project = Stub(Project)
-        project.isVersioningEnabled >> true
         project.isWorkInProgress >> true
         project.getDocumentVersionFromHistories('CSD') >> 3L
         def jiraService = Stub(JiraService)
@@ -1773,7 +1753,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "get version new version WIP"() {
         given:
         def project = Stub(Project)
-        project.isVersioningEnabled >> true
         project.isWorkInProgress >> true
         project.getDocumentVersionFromHistories('CSD') >> null
         def jiraService = Stub(JiraService)
@@ -1792,7 +1771,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "get version new version not WIP in first environment"() {
         given:
         def project = Stub(Project)
-        project.isVersioningEnabled >> true
         project.buildParams >> [targetEnvironmentToken: 'D']
         project.getDocumentVersionFromHistories('CSD') >> null
         def jiraService = Stub(JiraService)
@@ -1811,7 +1789,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "get version new version not WIP in second environment"() {
         given:
         def project = Stub(Project)
-        project.isVersioningEnabled >> true
         project.buildParams >> [targetEnvironmentToken: 'Q']
         project.getDocumentVersionFromHistories('CSD') >> null
         def jiraService = Stub(JiraService)

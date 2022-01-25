@@ -267,7 +267,6 @@ class Project {
     protected ILogger logger
     protected Map config
     protected String targetProject
-    protected Boolean isVersioningEnabled = false
 
     protected Map data = [:]
 
@@ -346,10 +345,7 @@ class Project {
         // Get more info of the versions from Jira
         this.data.jira.project.version = this.loadCurrentVersionDataFromJira()
 
-        def version = null
-        if (this.isVersioningEnabled) {
-            version = this.getVersionName()
-        }
+        def version = this.getVersionName()
 
         // FIXME: contrary to the comment below, the bug data from this method is still relevant
         // implementation needs to be cleaned up and bug data should be delivered through plugin's
@@ -545,10 +541,6 @@ class Project {
 
     boolean getIsAssembleMode() {
         !getIsPromotionMode()
-    }
-
-    boolean getIsVersioningEnabled() {
-        isVersioningEnabled
     }
 
     static boolean isPromotionMode(String targetEnvironmentToken) {
@@ -1062,23 +1054,6 @@ class Project {
         ]
     }
 
-    /**
-     * Checks if the JIRA version supports the versioning feature
-     * If jira or JiraUsecase is not enabled -> false
-     * If templates version is 1.0 -> false
-     * Otherwise, check from Jira
-     * @ true if versioning is enabled
-     */
-    boolean checkIfVersioningIsEnabled(String projectKey, String versionName) {
-        if (!this.jiraUseCase) return false
-        if (!this.jiraUseCase.jira) return false
-        def levaDocsCapability = this.getCapability('LeVADocs')
-        if (levaDocsCapability.templatesVersion == '1.0') {
-            return false
-        }
-        return this.jiraUseCase.jira.isVersionEnabledForDelta(projectKey, versionName)
-    }
-
     protected Map loadJiraData(String projectKey) {
         def result = [
                 components: [:],
@@ -1096,16 +1071,8 @@ class Project {
             // than once. However, it's also called via this.project.versionFromReleaseStatusIssue in JiraUseCase.groovy.
             def currentVersion = this.getVersionFromReleaseStatusIssue() // TODO why is param.version not sufficient here?
 
-            this.isVersioningEnabled = this.checkIfVersioningIsEnabled(projectKey, currentVersion)
-            if (this.isVersioningEnabled) {
-                // We detect the correct version even if the build is WIP
-                logger.info("Project has versioning enabled.")
-                result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
-            } else {
-                // TODO remove in ODS 4.0 version
-                logger.info("Versioning not supported for this release")
-                result = this.loadFullJiraData(projectKey)
-            }
+            // We detect the correct version even if the build is WIP
+            result = this.loadJiraDataForCurrentVersion(projectKey, currentVersion)
         }
 
         return result
@@ -1114,17 +1081,6 @@ class Project {
     protected String getVersionFromReleaseStatusIssue() {
         // TODO review if it's possible to use Project.getVersionName()?
         return this.jiraUseCase.getVersionFromReleaseStatusIssue()
-    }
-
-    protected Map loadFullJiraData(String projectKey) {
-        def result = this.jiraUseCase.jira.getDocGenData(projectKey)
-        if (result?.project?.id == null) {
-            throw new IllegalArgumentException(
-                    "Error: unable to load documentation generation data from Jira. 'project.id' is undefined.")
-        }
-        def docChapterData = this.getDocumentChapterData(projectKey)
-        result << [(JiraDataItem.TYPE_DOCS as String): docChapterData]
-        return result
     }
 
     protected Map loadVersionJiraData(String projectKey, String versionName) {
@@ -1139,16 +1095,9 @@ class Project {
         return result
     }
 
-    protected Map<String, Map> getDocumentChapterData(String projectKey, String versionName = null) {
+    protected Map<String, Map> getDocumentChapterData(String projectKey, String versionName) {
         def docChapters = this.jiraUseCase.getDocumentChapterData(projectKey, versionName)
-        if (docChapters.isEmpty() && !this.isVersioningEnabled) {
-            //TODO remove for ODS 4.0
-            //If versioning is not enabled, the query should always return results. If not, there is an issue with
-            // the jira project itself.
-            throw new IllegalStateException("Error: could not find document chapters for project ${projectKey}.")
-        } else {
-            return docChapters
-        }
+        return docChapters
     }
 
     protected Map loadJiraDataForCurrentVersion(String projectKey, String versionName) {
