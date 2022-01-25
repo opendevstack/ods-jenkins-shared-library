@@ -1596,7 +1596,10 @@ class LeVADocumentUseCase extends DocGenUseCase {
         }
 
         jiraIssues.each { Map jiraIssue ->
-            this.updateValidDocVersionInJira(jiraIssue.key as String, documentVersionId)
+            if(this.updateValidDocVersionInJira(jiraIssue.key as String, documentVersionId)) {
+                // The update is only done when not in developer preview mode
+                jiraIssue.docVersion = documentVersionId
+            }
             this.jiraUseCase.jira.appendCommentToIssue(jiraIssue.key as String, msg)
         }
     }
@@ -1645,21 +1648,17 @@ class LeVADocumentUseCase extends DocGenUseCase {
         environment
     }
 
-    protected void updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {
+    protected boolean updateValidDocVersionInJira(String jiraIssueKey, String docVersionId) {
         def documentationTrackingIssueFields = this.project.getJiraFieldsForIssueType(JiraUseCase.IssueTypes.DOCUMENTATION_TRACKING)
         def documentationTrackingIssueDocumentVersionField = documentationTrackingIssueFields[JiraUseCase.CustomIssueFields.DOCUMENT_VERSION]
 
-        if (this.project.isVersioningEnabled) {
-            if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
-                // In case of generating a final document, we add the label for the version that should be released
-                this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
-                    [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
-            }
-        } else {
-            // TODO removeme for ODS 4.0
+        if (!this.project.isDeveloperPreviewMode() && !this.project.hasWipJiraIssues()) {
+            // In case of generating a final document, we add the label for the version that should be released
             this.jiraUseCase.jira.updateTextFieldsOnIssue(jiraIssueKey,
                 [(documentationTrackingIssueDocumentVersionField.id): "${docVersionId}"])
+            return true
         }
+        return false
     }
 
     protected List<Map> getDocumentTrackingIssues(String documentType, List<String> environments = null) {
@@ -1717,21 +1716,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
     }
 
     /**
-     * Gets the valid or to be valid document version either from the current project (for documents created
-     * together) or from Jira for documents generated in another environments.
-     * @param document to be gathered the id of
-     * @return string with the valid id
-     */
-    protected Long getLatestDocVersionId(String document, List<String> environments = null) {
-        if (this.project.historyForDocumentExists(document)) {
-            this.project.getHistoryForDocument(document).getVersion()
-        } else {
-            def trackingIssues =  this.getDocumentTrackingIssuesForHistory(document, environments)
-            this.jiraUseCase.getLatestDocVersionId(trackingIssues)
-        }
-    }
-
-    /**
      * gets teh document version IDS at the start ... can't do that...
      * @return Map
      */
@@ -1763,7 +1747,9 @@ class LeVADocumentUseCase extends DocGenUseCase {
     protected String getVersion(Project project, String doc) {
         def version
 
-        if (project.isVersioningEnabled) {
+        if (this.project.historyForDocumentExists(doc)) {
+            version = this.project.getHistoryForDocument(doc).getVersion()
+        } else {
             version = project.getDocumentVersionFromHistories(doc)
             if (!version) {
                 // The document has not (yet) been generated in this pipeline run.
@@ -1777,9 +1763,6 @@ class LeVADocumentUseCase extends DocGenUseCase {
                     version += 1L
                 }
             }
-        } else {
-            // TODO removeme in ODS 4.x
-            version = "${project.buildParams.version}-${this.steps.env.BUILD_NUMBER}"
         }
 
         if (project.isWorkInProgress) {
@@ -1795,6 +1778,8 @@ class LeVADocumentUseCase extends DocGenUseCase {
     private def computeKeysInDocForTCR(def data) {
         return data.collect { it.subMap(['key', 'requirements', 'bugs']).values() }.flatten()
     }
+
+    @NonCPS
     protected String replaceDashToNonBreakableUnicode(theString) {
         return theString?.replaceAll('-', '&#x2011;')
     }

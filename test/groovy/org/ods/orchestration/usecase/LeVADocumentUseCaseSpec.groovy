@@ -1457,9 +1457,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         1 * usecase.getSectionsNotDone(documentType) >> []
         (1.._) * this.project.isDeveloperPreviewMode() >> false
         (1.._) * this.project.hasWipJiraIssues() >> false
-
-        then:
-        1 * usecase.updateValidDocVersionInJira("TRK-1", "1")
+        1 * usecase.updateValidDocVersionInJira("TRK-1", "1") >> true
     }
 
     def "does not update document version in Jira documentation tracking issue when run is developer preview"() {
@@ -1718,23 +1716,6 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
             TIR: 'ConfigItem / 2-WIP',
             TIP: 'ConfigItem / 2-WIP',
         ]
-    }
-
-    def "get version if versioning not enabled"() {
-        given:
-        def project = Stub(Project)
-        project.isVersioningEnabled >> false
-        project.buildParams >> [version: '3']
-        steps.env.BUILD_NUMBER = '56'
-        def jiraService = Stub(JiraService)
-        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
-        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
-
-        when:
-        def version = useCase.getVersion(project, 'CSD')
-
-        then:
-        version == '3-56'
     }
 
     def "get version from histories not WIP"() {

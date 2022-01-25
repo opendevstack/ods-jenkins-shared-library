@@ -115,6 +115,7 @@ class LevaDocUseCaseFactory {
         steps.env.WORKSPACE = tmpWorkspace.absolutePath
         steps.env.RUN_DISPLAY_URL =""
         steps.env.version = buildParams.version
+        steps.env.releaseStatusJiraIssueKey = buildParams.releaseStatusJiraIssueKey
         steps.env.configItem = "Functional-Test"
         steps.env.RELEASE_PARAM_VERSION = "3.0"
         steps.env.BUILD_NUMBER = "666"

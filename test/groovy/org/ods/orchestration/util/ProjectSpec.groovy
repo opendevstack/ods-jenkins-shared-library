@@ -476,7 +476,8 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == [
-            [key: "NET-318", status: "DONE"]
+            [key: "NET-318", name: 'Technical Installation Plan', description: 'C-TIP', status: "DONE",
+             labels: ['Doc:TIP'], fixVersion: '1.0']
         ]
 
         when:
@@ -484,9 +485,12 @@ class ProjectSpec extends SpecHelper {
 
         then:
         result == [
-            [key: "NET-318", status: "DONE"],
-            [key: "NET-7", status: "DONE"],
-            [key: "NET-20", status: "DONE"]
+            [key: "NET-318", name: 'Technical Installation Plan', description: 'C-TIP', status: "DONE",
+             labels: ['Doc:TIP'], fixVersion: '1.0'],
+            [key: "NET-20", name: 'Technical Installation Plan for P', description: 'C-TIP for P', status: "DONE",
+             labels: ['Doc:TIP_P'], fixVersion: '1.0'],
+            [key: "NET-7", name: 'Technical Installation Plan for Q', description: 'C-TIP for Q', status: "DONE",
+             labels: ['Doc:TIP_Q'], fixVersion: '1.0']
         ]
     }
 
@@ -972,7 +976,7 @@ class ProjectSpec extends SpecHelper {
         1 * project.convertJiraDataToJiraDataItems(_)
         1 * project.resolveJiraDataItemReferences(_)
         1 * project.loadJiraDataBugs(*_) >> createProjectJiraDataBugs()
-        2 * project.loadJiraDataTrackingDocs(*_) >> createProjectJiraDataDocs()
+        1 * project.loadJiraDataTrackingDocs(*_) >> createProjectJiraDataDocs()
         1 * project.loadJiraDataIssueTypes() >> createProjectJiraDataIssueTypes()
         1 * jiraUseCase.updateJiraReleaseStatusBuildNumber()
 
@@ -1196,10 +1200,9 @@ class ProjectSpec extends SpecHelper {
         jiraIssue1.renderedFields.description = "<html>1-description</html>"
 
         def jira = Mock(JiraService) {
-            getDocGenData(_) >> {
+            getDeltaDocGenData(*_) >> {
                 return docGenData
             }
-            isVersionEnabledForDelta(*_) >> { return false }
             searchByJQLQuery(*_) >> { return [ issues: [jiraIssue1]]}
             getTextFieldsOfIssue(*_) >> { return [field_0: [name: "1"]]}
         }
@@ -1565,48 +1568,6 @@ class ProjectSpec extends SpecHelper {
 
         cleanup:
         metadataFile.delete()
-    }
-
-    def "use old docGen report when version is not enabled for the feature"() {
-        setup:
-        def versionEnabled
-        def jiraServiceStubs = { JiraService it ->
-            it.isVersionEnabledForDelta(*_) >> {
-                return versionEnabled
-            }
-            it.getDocGenData(*_) >> { return [project:[id:"1"]] }
-            it.getDeltaDocGenData(*_) >> { return [project:[id:"1"]] }
-            it.getTextFieldsOfIssue(*_) >> { return [field_0: [name: "1"]]}
-        }
-        project = setupWithJiraService(jiraServiceStubs)
-        project.data.jira = [issueTypes: [
-            (JiraUseCase.IssueTypes.RELEASE_STATUS): [ fields: [
-                (JiraUseCase.CustomIssueFields.RELEASE_VERSION): [id: "field_0"],
-            ]]
-        ]]
-
-        when:
-        versionEnabled = false
-        project.loadJiraData("projectKey")
-
-        then:
-        1 * project.getDocumentChapterData(_) >> [:]
-        1 * project.getVersionFromReleaseStatusIssue()
-        0 * project.loadJiraDataForCurrentVersion(*_)
-        1 * project.loadFullJiraData(_)
-
-        when:
-        versionEnabled = true
-        project.loadJiraData("DEMO")
-
-        then:
-        1 * project.getVersionFromReleaseStatusIssue() >> '1'
-
-        then:
-        1 * project.loadJiraDataForCurrentVersion(*_)
-        1 * project.getDocumentChapterData(*_) >> [:]
-        0 * project.loadFullJiraData(_)
-
     }
 
     def "load saved data from the previousVersion"() {
@@ -2327,7 +2288,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jiraResolved = project.resolveJiraDataItemReferences(project.data.jira)
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
@@ -2395,7 +2355,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> firstVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
         then:
@@ -2458,7 +2417,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2530,7 +2488,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadSavedJiraData(_) >> storedData
         1 * project.loadVersionJiraData(*_) >> newVersionData
 
@@ -2592,7 +2549,6 @@ class ProjectSpec extends SpecHelper {
         project.data.jira = project.loadJiraData("my-project")
 
         then:
-        1 * project.getVersionFromReleaseStatusIssue() >> secondVersion
         1 * project.loadVersionJiraData(*_) >> newVersionData
         1 * project.loadSavedJiraData(_) >> storedData
 
