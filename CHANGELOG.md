@@ -18,6 +18,7 @@
 - Allow to redeploy to D, Q and P, by setting repromote to true by default and creating tags only if they do not exist ([#926](https://github.com/opendevstack/ods-jenkins-shared-library/pull/926))
 - Fixed errors in library (Null pointers and Serialization) ([#941](https://github.com/opendevstack/ods-jenkins-shared-library/pull/941))
 - Fixed document history path in IVP and IVR ([#944](https://github.com/opendevstack/ods-jenkins-shared-library/pull/944))
+- Better handling of Unit tests in D and DevPreview ([827](https://github.com/opendevstack/ods-jenkins-shared-library/pull/827))
 
 ## [4.0] - 2021-05-11
 
@@ -97,7 +98,7 @@
 - fix Aqua integration fails for future versions ([#875](https://github.com/opendevstack/ods-jenkins-shared-library/issues/875))
 - Fix return image build info in odsComponentStageBuildOpenShiftImage ([#909](https://github.com/opendevstack/ods-jenkins-shared-library/issues/909))
 - fix nexus pypi upload ([#812](https://github.com/opendevstack/ods-jenkins-shared-library/issues/812))
-- Fix when the git checkout raise an Exception, the RM is not informed because the Registry is not initialized. ([#938]https://github.com/opendevstack/ods-jenkins-shared-library/issues/938) 
+- Fix when the git checkout raise an Exception, the RM is not informed because the Registry is not initialized. ([#938]https://github.com/opendevstack/ods-jenkins-shared-library/issues/938)
 
 ## [3.0] - 2020-08-11
 
