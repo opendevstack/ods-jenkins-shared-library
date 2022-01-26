@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-- Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
+- Improve error message when two coded tests are linked to the same test issue ([#835](https://github.com/opendevstack/ods-jenkins-shared-library/pull/835))
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 
 ## [4.0] - 2021-05-11
