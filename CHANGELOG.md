@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Improve error message when two coded tests are linked to the same test issue ([#835](https://github.com/opendevstack/ods-jenkins-shared-library/pull/835))
+- Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 
 ## [4.0] - 2021-05-11
 
@@ -65,6 +67,11 @@
 - Increase Socket Timeout on Pipeline Orchestrator in NonCPS ([#782](https://github.com/opendevstack/ods-jenkins-shared-library/pull/782)
 - Fix Traceability matrix to not show Unit Tests ([#799](https://github.com/opendevstack/ods-jenkins-shared-library/pull/799)
 - Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
+- Fix Traceability matrix null error ([#817](https://github.com/opendevstack/ods-jenkins-shared-library/pull/817)
+- Fix temporal folder ([#821](https://github.com/opendevstack/ods-jenkins-shared-library/pull/821)
+- rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
+- RM: test component causes new jenkins (run) instance after branch is created for release 
+([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
 - Fixed uploading of artifacts to 'pypi' repositories ([#785](https://github.com/opendevstack/ods-jenkins-shared-library/issues/785))
 
 ## [3.0] - 2020-08-11
@@ -225,7 +232,6 @@
 ### Fixed
 - Serialization error when branch prefix is used in environment mapping ([#58](https://github.com/opendevstack/ods-jenkins-shared-library/pull/58))
 
-
 ## [1.0.0] - 2018-12-03
 
 ### Added
@@ -246,7 +252,6 @@
 ### Removed
 - Verbose mode (#30)
 - `stageUpdateOpenshiftBuild` - Use `stageStartOpenShiftBuild` instead (#8)
-
 
 ## [0.1.0] - 2018-07-27
 

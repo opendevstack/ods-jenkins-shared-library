@@ -48,3 +48,4 @@ data:
 
 . `project.key1.enabled`: Property to indicate that key1 (being key1 the key of the project) has the aqua analysis disabled.
 . `project.key2.enabled`: The same but for key2 project.
+

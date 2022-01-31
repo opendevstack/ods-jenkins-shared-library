@@ -1,5 +1,8 @@
 package org.ods.orchestration.util
 
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -17,6 +20,9 @@ import util.*
 
 class PipelineUtilSpec extends SpecHelper {
 
+    @Rule
+    public TemporaryFolder tempFolder
+
     Project project
     IPipelineSteps steps
     PipelineUtil util
@@ -31,9 +37,12 @@ class PipelineUtilSpec extends SpecHelper {
     }
 
     def "archive artifact"() {
-        when:
+        given:
+        steps.env.WORKSPACE = tempFolder.getRoot().absolutePath
         def path = "${steps.env.WORKSPACE}/myPath"
         def data = "data".bytes
+
+        when:
         util.archiveArtifact(path, data)
 
         then:
