@@ -35,9 +35,9 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         JENKINS_MASTER_OPENSHIFT_BUILD_NAMESPACE: 'ods'
     ]
 
-    def "Run successfully only test"() {
+    def "Run successfully without target environment"() {
         given:
-        def c = config // + [environment: 'dev']
+        def c = config
         IContext context = new Context(null, c, logger)
 
         InfrastructureService infrastructureService = Stub(InfrastructureService.class)
@@ -53,6 +53,40 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readJSON', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readYaml', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertJobStatusSuccess()
+    }
+
+    def "Run successfully with target environment"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+
+        InfrastructureService infrastructureService = Stub(InfrastructureService.class)
+        infrastructureService.scanViaCli(*_) >> 0
+        ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
+
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        bitbucketService.createCodeInsightReport(*_) >> null
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageInfrastructureAWS.groovy')
+        helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('readYaml', [ Map ]) { [
+            account: "anAwsAccount",
+            credentials: [key: "aKey", secret: "aSecret"]
+        ] }
+        helper.registerAllowedMethod('readJSON', [ Map ]) { [
+            meta_environment: "development"
+        ] }
         helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
