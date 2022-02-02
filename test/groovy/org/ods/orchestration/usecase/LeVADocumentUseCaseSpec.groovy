@@ -1775,7 +1775,8 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
     def "getTestDescription"(testIssue, expected) {
         given:
         LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
-            null, null, null, null, null, null, null, null, null, null, null)
+            null, null, null, null, null, null, null,
+            null, null)
 
         when:
         def result = leVADocumentUseCase.getTestDescription(testIssue)
