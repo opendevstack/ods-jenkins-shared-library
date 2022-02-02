@@ -847,7 +847,7 @@ class LeVADocumentUseCase extends DocGenUseCase {
                 integrationTests    : SortUtil.sortIssuesByKey(integrationTestIssues.collect { testIssue ->
                     [
                         key         : testIssue.key,
-                        description : this.convertImages(testIssue.description ?: ''),
+                        description : this.convertImages(getTestDescription(testIssue)),
                         requirements: testIssue.requirements ? testIssue.requirements.join(", ") : "N/A",
                         isSuccess   : testIssue.isSuccess,
                         bugs        : testIssue.bugs ? testIssue.bugs.join(", ") : (testIssue.comment ? "": "N/A"),
