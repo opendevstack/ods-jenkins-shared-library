@@ -1,54 +1,11 @@
 package org.ods.orchestration.usecase
 
+import org.ods.util.ILogger
+
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
 
-import com.cloudbees.groovy.cps.NonCPS
-import groovy.xml.XmlUtil
-import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.service.DocGenService
-import org.ods.orchestration.service.LeVADocumentChaptersFileService
-import org.ods.orchestration.util.DocumentHistory
-import org.ods.orchestration.util.Environment
-import org.ods.orchestration.util.LeVADocumentUtil
-import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.PDFUtil
-import org.ods.orchestration.util.PipelineUtil
-import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.SortUtil
-import org.ods.services.GitService
-import org.ods.services.JenkinsService
-import org.ods.services.NexusService
-import org.ods.services.OpenShiftService
-import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
-
-import java.time.LocalDateTime
-
-@SuppressWarnings([
-    'ClassSize',
-    'UnnecessaryDefInMethodDeclaration',
-    'UnnecessaryCollectCall',
-    'IfStatementBraces',
-    'LineLength',
-    'AbcMetric',
-    'Instanceof',
-    'VariableName',
-    'DuplicateListLiteral',
-    'UnusedMethodParameter',
-    'UnusedVariable',
-    'ParameterCount',
-    'ParameterReassignment',
-    'UnnecessaryElseStatement',
-    'NonFinalPublicField',
-    'PropertyName',
-    'MethodCount',
-    'UseCollectMany',
-    'ParameterName',
-    'TrailingComma',
-    'SpaceAroundMapEntryColon',
-    'PublicMethodsBeforeNonPublicMethods'])
-class LeVADocumentUseCase extends DocGenUseCase {
+class LeVADocumentUseCase {
 
     enum DocumentType {
 
@@ -73,186 +30,106 @@ class LeVADocumentUseCase extends DocGenUseCase {
 
     }
 
-    protected static Map DOCUMENT_TYPE_NAMES = [
-        (DocumentType.CSD as String)        : 'Combined Specification Document',
-        (DocumentType.DIL as String)        : 'Discrepancy Log',
-        (DocumentType.DTP as String)        : 'Software Development Testing Plan',
-        (DocumentType.DTR as String)        : 'Software Development Testing Report',
-        (DocumentType.CFTP as String)       : 'Combined Functional and Requirements Testing Plan',
-        (DocumentType.CFTR as String)       : 'Combined Functional and Requirements Testing Report',
-        (DocumentType.IVP as String)        : 'Configuration and Installation Testing Plan',
-        (DocumentType.IVR as String)        : 'Configuration and Installation Testing Report',
-        (DocumentType.RA as String)         : 'Risk Assessment',
-        (DocumentType.TRC as String)        : 'Traceability Matrix',
-        (DocumentType.SSDS as String)       : 'System and Software Design Specification',
-        (DocumentType.TCP as String)        : 'Test Case Plan',
-        (DocumentType.TCR as String)        : 'Test Case Report',
-        (DocumentType.TIP as String)        : 'Technical Installation Plan',
-        (DocumentType.TIR as String)        : 'Technical Installation Report',
-        (DocumentType.OVERALL_DTR as String): 'Overall Software Development Testing Report',
-        (DocumentType.OVERALL_IVR as String): 'Overall Configuration and Installation Testing Report',
-        (DocumentType.OVERALL_TIR as String): 'Overall Technical Installation Report',
-    ]
-
-    static GAMP_CATEGORY_SENSITIVE_DOCS = [
-        DocumentType.SSDS as String,
-        DocumentType.CSD as String,
-        DocumentType.CFTP as String,
-        DocumentType.CFTR as String
-    ]
-
-    static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
-        'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
-    ]
-
-    static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB            as String) : 'ODS library component'
-    ]
-
-    public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
-    public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
-    public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
-
-    private final JiraUseCase jiraUseCase
-    private final JUnitTestReportsUseCase junit
-    private final LeVADocumentChaptersFileService levaFiles
-    private final OpenShiftService os
-    private final SonarQubeUseCase sq
-    private final BitbucketTraceabilityUseCase bbt
     private final ILogger logger
 
-    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen,
-                        JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit,
-                        LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os,
-                        PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt, ILogger logger) {
-        super(project, steps, util, docGen, nexus, pdf, jenkins)
-        this.jiraUseCase = jiraUseCase
-        this.junit = junit
-        this.levaFiles = levaFiles
-        this.os = os
-        this.sq = sq
-        this.bbt = bbt
+    LeVADocumentUseCase(ILogger logger) {
         this.logger = logger
     }
 
-    @NonCPS
-    private def getReqsWithNoGampTopic(def requirements) {
-        return requirements.findAll { it.gampTopic == null }
-    }
-
-    @NonCPS
-    private def getReqsGroupedByGampTopic(def requirements) {
-        return requirements.findAll { it.gampTopic != null }
-            .groupBy { it.gampTopic.toLowerCase() }
-    }
-
-    @SuppressWarnings('CyclomaticComplexity')
-    String createCSD(Map repo = null, Map data = null) {
+    String createCSD(Map data) {
 
         return uri
     }
 
-    String createDTP(Map repo = null, Map data = null) {
+    String createDTP(Map data) {
 
         return uri
     }
 
-    String createDTR(Map repo, Map data) {
-        logger.debug("createDTR - repo:${repo}, data:${data}")
+    String createDTR(Map data) {
+        logger.debug("createDTR - data:${data}")
 
 
     }
 
-    String createOverallDTR(Map repo = null, Map data = null) {
+    String createOverallDTR(Map data) {
 
         return uri
     }
 
-    String createDIL(Map repo = null, Map data = null) {
+    String createDIL(Map data) {
 
         return uri
     }
 
-    String createCFTP(Map repo = null, Map data = null) {
+    String createCFTP(Map data) {
 
         return uri
     }
 
-    @SuppressWarnings('CyclomaticComplexity')
-    String createCFTR(Map repo = null, Map data) {
+    String createCFTR(Map data) {
         logger.debug("createCFTR - data:${data}")
 
+        return uri
+    }
+
+    String createRA(Map data) {
 
         return uri
     }
 
-    String createRA(Map repo = null, Map data = null) {
-
+    String createIVP(Map data) {
         return uri
     }
 
-    String createIVP(Map repo = null, Map data = null) {
-        return uri
-    }
-
-    String createIVR(Map repo = null, Map data) {
+    String createIVR(Map data) {
         logger.debug("createIVR - data:${data}")
 
 
         return uri
     }
 
-    @SuppressWarnings('CyclomaticComplexity')
-    String createTCR(Map repo = null, Map data) {
+    String createTCR(Map data) {
         logger.debug("createTCR - data:${data}")
 
         return uri
     }
 
-    String createTCP(Map repo = null, Map data = null) {
+    String createTCP(Map data) {
         String documentType = DocumentType.TCP as String
 
-
         return uri
     }
 
-    String createSSDS(Map repo = null, Map data = null) {
+    String createSSDS(Map data) {
         def documentType = DocumentType.SSDS as String
 
-
         return uri
     }
 
-    String createTIP(Map repo = null, Map data = null) {
+    String createTIP(Map data) {
         def documentType = DocumentType.TIP as String
 
 
         return uri
     }
 
-    @SuppressWarnings('CyclomaticComplexity')
-    String createTIR(Map repo, Map data) {
-        logger.debug("createTIR - repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(data))}")
+    String createTIR(Map data) {
+        logger.debug("createTIR - data:${prettyPrint(toJson(data))}")
 
         def documentType = DocumentType.TIR as String
 
 
     }
 
-    String createOverallTIR(Map repo = null, Map data = null) {
+    String createOverallTIR(Map data) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
 
         return uri
     }
 
-    String createTRC(Map repo = null, Map data = null) {
-        logger.debug("createTRC - repo:${repo}, data:${data}")
-
+    String createTRC(Map data) {
+        logger.debug("createTRC - data:${data}")
 
         return uri
     }

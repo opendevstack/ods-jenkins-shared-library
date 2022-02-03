@@ -2,7 +2,7 @@ package org.ods.orchestration.scheduler
 
 import com.cloudbees.groovy.cps.NonCPS
 
-import org.ods.orchestration.usecase.DocGenUseCase
+import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
@@ -14,9 +14,9 @@ abstract class DocGenScheduler {
     protected Project project
     protected IPipelineSteps steps
     protected MROPipelineUtil util
-    protected DocGenUseCase usecase
+    protected LeVADocumentUseCase usecase
 
-    DocGenScheduler(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenUseCase usecase) {
+    DocGenScheduler(Project project, IPipelineSteps steps, MROPipelineUtil util, LeVADocumentUseCase usecase) {
         this.project = project
         this.steps = steps
         this.util = util
