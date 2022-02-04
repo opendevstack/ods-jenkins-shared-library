@@ -1,157 +1,157 @@
 package org.ods.orchestration.usecase
 
+import au.com.dius.pact.consumer.PactVerificationResult
+import au.com.dius.pact.consumer.dsl.DslPart
+import au.com.dius.pact.consumer.dsl.PactDslJsonBody
 import au.com.dius.pact.consumer.groovy.PactBuilder
+import groovy.util.logging.Slf4j
 import groovyx.net.http.RESTClient
 import spock.lang.Specification
+import spock.lang.Unroll
 
+/**
+ * BUILD_ID: The current build id, such as "2005-08-22_23-59-59" (YYYY-MM-DD_hh-mm-ss)
+ * BUILD_NUMBER: The current build number, such as `153`
+ */
+@Slf4j
 class LeVADocumentUseCaseSpec extends Specification {
 
-    def "CreateCSD"() {
-        expect:
-        new PactBuilder()
-            .with {
-                serviceConsumer "createCSD"
-                hasPactWith "LevaDocController"
-                port 8080
+    @Unroll
+    def "create #docType with default params"() {
+        given:
+        PactBuilder docGenLevaDoc = contractDefinition()
+        createInteraction(docGenLevaDoc, docType)
+        docGenLevaDoc {
+            withBody([prettyPrint:true], defaultBodyParams())
+        }
+        createResponse(docGenLevaDoc)
 
-                uponReceiving('buildDocument CSD')
-                withAttributes(method: 'post', path: "/levaDoc/projectId/build/CSD")
-                withBody {
-                    keyLike "build",  {
-                        targetEnvironment string("dev")
-                        projectKey string("TEST_PROJECT_ID")
-                        targetEnvironment string("dev")
-                        targetEnvironmentToken string("D")
-                        version string("WIP")
-                        configItem string("BI-IT-DEVSTACK")
-                        changeDescription string("changeDescription")
-                        changeId string("changeId")
-                        rePromote asBoolean("false")
-                        releaseStatusJiraIssueKey numeric(1)
-                        runDisplayUrl  string("changeId")
-                        releaseParamVersion "3.0"
-                        BUILD_NUMBER "666"
-                        BUILD_URL "https//jenkins-sample"
-                        JOB_NAME "ofi2004-cd/ofi2004-cd-release-master"
-                        BUILD_ID "1"
-                    }
-                }
-                willRespondWith(
-                    status: 200,
-                    headers: ['Content-Type': 'application/json'],
-                )
-                withBody {
-                    nexusURL string("http://lalala")
-                }
+        when:
+        PactVerificationResult result = executeTest(docGenLevaDoc, docType)
 
-                runTestAndVerify {
-                    def client = new RESTClient('http://localhost:8080/')
-                    def response = client.post(
-                        path:  "/levaDoc/projectId/build/CSD",
-                        body: [
-                            build: [targetEnvironment: "dev"]
-                        ],
-                        requestContentType: 'application/json'
-                    )
-                    assert response.status == 200
-                    assert response.contentType == 'application/json'
-                    assert response.data == ['nexusURL': "http://lalala"]
-                }
-            }
+        then:
+        result instanceof PactVerificationResult.Ok
+
+        where:
+        docType << ["CSD", "DIL", "DTP", "RA", "CFTP", "IVP", "SSDS", "TCP", "TIP", "TRC"]
     }
 
-    def "CreateDTP"() {
+    private Object executeTest(PactBuilder docGenLevaDoc, docType) {
+        docGenLevaDoc.runTest {  context ->
+            Object response = callLeVADocumentUseCaseMethod(docType, context.url)
+            assert response.status == 200
+            assert response.contentType == 'application/json'
+            assert response.data == [nexusURL: "http://lalala"]
+        }
     }
 
-    def "CreateDTR"() {
+    private Object createResponse(PactBuilder docGenLevaDoc) {
+        docGenLevaDoc {
+            willRespondWith(
+                status: 200,
+                headers: ['Content-Type': 'application/json'],
+                body: [nexusURL: "http://lalala"]
+            )
+        }
     }
 
-    def "CreateOverallDTR"() {
+    private Object createInteraction(PactBuilder docGenLevaDoc, docType) {
+        docGenLevaDoc {
+            given('a docGen state')
+            uponReceiving("createDocument ${docType}")
+            withAttributes(method: 'post', path: "/levaDoc/projectId/build/${docType}")
+        }
     }
 
-    def "CreateDIL"() {
+    private Object contractDefinition() {
+        new PactBuilder().build {
+            serviceConsumer "buildDocument.defaultParams"
+            hasPactWith "createDoc.defaultParams"
+        }
     }
 
-    def "CreateCFTP"() {
+    private Object callLeVADocumentUseCaseMethod(String docType, wiremockURL) {
+        // Replace this code to a call LeVADocumentUseCase....
+        // We need to generate the data using sharedLib functions not as in this example
+        // leVADocumentService."create${docType}"(data)
+        def client = new RESTClient(wiremockURL)
+        def response = client.post(
+            path: "/levaDoc/projectId/build/${docType}",
+            body: buildFixtureData(),
+            requestContentType: 'application/json'
+        )
+        return response
     }
 
-    def "CreateCFTR"() {
-    }
-
-    def "CreateRA"() {
-    }
-
-    def "CreateIVP"() {
-    }
-
-    def "CreateIVR"() {
-    }
-
-    def "CreateTCR"() {
-    }
-
-    def "CreateTCP"() {
-    }
-
-    def "CreateSSDS"() {
-    }
-
-    def "CreateTIP"() {
-    }
-
-    def "CreateTIR"() {
-    }
-
-    def "CreateOverallTIR"() {
-    }
-
-    def "CreateTRC"() {
-    }
-
-    private Map buildParams() {
-        Map projectFixture = [:]
-        projectFixture.project = "project"
-        projectFixture.docType = "docType"
-        projectFixture.version = "version"
-        projectFixture.releaseKey = "releaseKey"
-        return buildFixtureData(projectFixture)
-    }
-
-    Map buildFixtureData(Map projectFixture){
+    Map buildFixtureData(){
         Map data = [:]
-        data.projectBuild =  "${projectFixture.project}-1"
-        data.documentType = projectFixture.docType
-        data.jobParams = buildJobParams(projectFixture)
-        data.env = getEnvVariables()
+        data.build = buildParams()
         data.git =  buildGitData()
         data.openshift = [targetApiUrl:"https://openshift-sample"]
-
         return data
     }
 
-    private Map<String, String> buildJobParams(Map projectFixture){
+    private Map buildParams() {
         return  [
-            projectKey: projectFixture.project,
             targetEnvironment: "dev",
             targetEnvironmentToken: "D",
-            version: "${projectFixture.version}",
+            version: "1",
             configItem: "BI-IT-DEVSTACK",
             changeDescription: "changeDescription",
             changeId: "changeId",
-            rePromote: "false",
-            releaseStatusJiraIssueKey: projectFixture.releaseKey
+            rePromote: false,
+            releaseStatusJiraIssueKey: 9999,
+            runDisplayUrl : "",
+            releaseParamVersion : "3.0",
+            buildId : "2005-08-22_23-59-59",
+            buildURL : "https://jenkins-sample",
+            jobName : "ofi2004-cd/ofi2004-cd-release-master"
         ]
     }
 
     private Map<String, String> buildGitData() {
         return  [
             commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
-            url: "https://bitbucket/scm/ofi2004/ofi2004-release.git", //  new GitService().getOriginUrl()
+            repoURL: "https://bitbucket/scm/ofi2004/ofi2004-release.git", //  new GitService().getOriginUrl()
             baseTag: "ods-generated-v3.0-3.0-0b11-D",
             targetTag: "ods-generated-v3.0-3.0-0b11-D",
             author: "s2o",
             message: "Swingin' The Bottle",
-            time: "2021-04-20T14:58:31.042152",
+            commitTime: "2021-04-20T14:58:31.042152",
         ]
+    }
+
+    private Closure defaultBodyParams(){
+        Closure bodyParams = {
+            keyLike "build", {
+                targetEnvironment string("dev")
+                targetEnvironmentToken string("D")
+                version string("WIP")
+                configItem string("BI-IT-DEVSTACK")
+                changeDescription string("changeDescription")
+                changeId string("changeId")
+                rePromote bool(false)
+                releaseStatusJiraIssueKey numeric(1)
+                runDisplayUrl string("changeId")
+                releaseParamVersion string("3.0")
+                buildId string("2005-08-22_23-59-59")
+                buildURL url("https//jenkins-sample")
+                jobName string("ofi2004-cd/ofi2004-cd-release-master")
+            }
+            keyLike "git", {
+                commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
+                repoURL url("https://bitbucket/scm/ofi2004/ofi2004-release.git")
+                baseTag string("ods-generated-v3.0-3.0-0b11-D")
+                targetTag string("ods-generated-v3.0-3.0-0b11-D")
+                author string("s2o")
+                message string("Swingin' The Bottle")
+                commitTime string("2021-04-20T14:58:31.042152")
+                // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
+            }
+            keyLike "openshift", {
+                targetApiUrl url("https://openshift-sample")
+            }
+        }
+        return bodyParams
     }
 }
