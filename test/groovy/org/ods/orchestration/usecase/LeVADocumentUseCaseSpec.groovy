@@ -1,66 +1,39 @@
 package org.ods.orchestration.usecase
 
 import au.com.dius.pact.consumer.PactVerificationResult
-import au.com.dius.pact.consumer.dsl.DslPart
-import au.com.dius.pact.consumer.dsl.PactDslJsonBody
 import au.com.dius.pact.consumer.groovy.PactBuilder
 import groovy.util.logging.Slf4j
 import groovyx.net.http.RESTClient
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-
 /**
  * BUILD_ID: The current build id, such as "2005-08-22_23-59-59" (YYYY-MM-DD_hh-mm-ss)
  * BUILD_NUMBER: The current build number, such as `153`
+ *
+ * Sample to develop a new contract with the help of IntelliJ:
+ *   /* new PactBuilder().with{
+ withBody {
+ status url("OK")
+ }
+ }
  */
 @Slf4j
 class LeVADocumentUseCaseSpec extends Specification {
 
-    @Unroll
-    def "create #docType with default params"() {
+    def "create with default params"() {
         given:
         PactBuilder docGenLevaDoc = contractDefinition()
-        createInteraction(docGenLevaDoc, docType)
-        docGenLevaDoc {
-            withBody([prettyPrint:true], defaultBodyParams())
-        }
-        createResponse(docGenLevaDoc)
+        createInteractions(docGenLevaDoc, docTypes)
 
         when:
-        PactVerificationResult result = executeTest(docGenLevaDoc, docType)
+        def result = executeTest(docGenLevaDoc, docTypes)
 
         then:
-        result instanceof PactVerificationResult.Ok
+        assert result instanceof PactVerificationResult.Ok
 
         where:
-        docType << ["CSD", "DIL", "DTP", "RA", "CFTP", "IVP", "SSDS", "TCP", "TIP", "TRC"]
-    }
-
-    private Object executeTest(PactBuilder docGenLevaDoc, docType) {
-        docGenLevaDoc.runTest {  context ->
-            Object response = callLeVADocumentUseCaseMethod(docType, context.url)
-            assert response.status == 200
-            assert response.contentType == 'application/json'
-            assert response.data == [nexusURL: "http://lalala"]
-        }
-    }
-
-    private Object createResponse(PactBuilder docGenLevaDoc) {
-        docGenLevaDoc {
-            willRespondWith(
-                status: 200,
-                headers: ['Content-Type': 'application/json'],
-                body: [nexusURL: "http://lalala"]
-            )
-        }
-    }
-
-    private Object createInteraction(PactBuilder docGenLevaDoc, docType) {
-        docGenLevaDoc {
-            given('a docGen state')
-            uponReceiving("createDocument ${docType}")
-            withAttributes(method: 'post', path: "/levaDoc/projectId/build/${docType}")
-        }
+        docTypes =["CSD", "DIL", "DTP", "RA", "CFTP", "IVP", "SSDS", "TCP", "TIP", "TRC"]
     }
 
     private Object contractDefinition() {
@@ -70,17 +43,90 @@ class LeVADocumentUseCaseSpec extends Specification {
         }
     }
 
+    private  void createInteractions(PactBuilder docGenLevaDoc, List<String> docTypes) {
+        Map params = projectData()
+        for (docType in docTypes){
+            createInteraction(docGenLevaDoc, params, docType)
+        }
+    }
+
+    private void createInteraction(PactBuilder docGenLevaDoc, Map params, String docType) {
+        String urlRetunFile = "repository/leva-documentation/frml24113-WIP/${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+        docGenLevaDoc {
+            params.docType = docType
+            given("project with data:", params)
+            uponReceiving("a request for /buildDocument for document ${docType}")
+            withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+            withBody([prettyPrint: true], defaultBodyParams())
+            willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
+            withBody {
+                nexusURL url("http://lalala", urlRetunFile)
+            }
+        }
+    }
+
+    private Closure defaultBodyParams(){
+        return {
+            keyLike "build", {
+                targetEnvironment string("dev")
+                targetEnvironmentToken string("D")
+                version string("WIP")
+                configItem string("BI-IT-DEVSTACK")
+                changeDescription string("changeDescription")
+                changeId string("changeId")
+                rePromote bool(false)
+                releaseStatusJiraIssueKey string("FRML24113-230")
+                runDisplayUrl string("changeId")
+                releaseParamVersion string("3.0")
+                buildId string("2022-01-22_23-59-59")
+                buildURL url("https//jenkins-sample")
+                jobName string("ofi2004-cd/ofi2004-cd-release-master")
+            }
+            keyLike "git", {
+                commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
+                repoURL url("https://bitbucket/scm/ofi2004/ofi2004-release.git")
+                releaseManagerBranch string("refs/tags/CHG0066328")
+                baseTag string("ods-generated-v3.0-3.0-0b11-D")
+                targetTag string("ods-generated-v3.0-3.0-0b11-D")
+                author string("s2o")
+                message string("Swingin' The Bottle")
+                commitTime string("2021-04-20T14:58:31.042152")
+                // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
+            }
+            keyLike "openshift", {
+                targetApiUrl url("https://openshift-sample")
+            }
+        }
+    }
+
+    private def executeTest(PactBuilder docGenLevaDoc, List<String> docTypes) {
+        return docGenLevaDoc.runTest {  wiremockServer ->
+            for (docType in docTypes){
+                String urlReturnPath = "repository/leva-documentation/frml24113-WIP/${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+                Object response = callLeVADocumentUseCaseMethod(docType, wiremockServer.url)
+                assert response.status == 200
+                assert response.contentType == 'application/json'
+                assert response.data == [nexusURL: "http://lalala/${urlReturnPath}"]
+            }
+        }
+    }
+
     private Object callLeVADocumentUseCaseMethod(String docType, wiremockURL) {
         // Replace this code to a call LeVADocumentUseCase....
         // We need to generate the data using sharedLib functions not as in this example
-        // leVADocumentService."create${docType}"(data)
+        // leVADocumentUseCase"create${docType}"(data)
         def client = new RESTClient(wiremockURL)
+        def data = projectData()
         def response = client.post(
-            path: "/levaDoc/projectId/build/${docType}",
+            path: "/levaDoc/${data.project}/${data.buildNumber}/${docType}",
             body: buildFixtureData(),
             requestContentType: 'application/json'
         )
         return response
+    }
+
+    Map projectData(){
+        return [project:"FRML24113", buildNumber:"666", version: "WIP"]
     }
 
     Map buildFixtureData(){
@@ -100,10 +146,10 @@ class LeVADocumentUseCaseSpec extends Specification {
             changeDescription: "changeDescription",
             changeId: "changeId",
             rePromote: false,
-            releaseStatusJiraIssueKey: 9999,
+            releaseStatusJiraIssueKey: "FRML24113-230",
             runDisplayUrl : "",
             releaseParamVersion : "3.0",
-            buildId : "2005-08-22_23-59-59",
+            buildId : "2022-01-22_23-59-59",
             buildURL : "https://jenkins-sample",
             jobName : "ofi2004-cd/ofi2004-cd-release-master"
         ]
@@ -113,6 +159,7 @@ class LeVADocumentUseCaseSpec extends Specification {
         return  [
             commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
             repoURL: "https://bitbucket/scm/ofi2004/ofi2004-release.git", //  new GitService().getOriginUrl()
+            releaseManagerBranch: "refs/tags/CHG0066328",
             baseTag: "ods-generated-v3.0-3.0-0b11-D",
             targetTag: "ods-generated-v3.0-3.0-0b11-D",
             author: "s2o",
@@ -121,37 +168,4 @@ class LeVADocumentUseCaseSpec extends Specification {
         ]
     }
 
-    private Closure defaultBodyParams(){
-        Closure bodyParams = {
-            keyLike "build", {
-                targetEnvironment string("dev")
-                targetEnvironmentToken string("D")
-                version string("WIP")
-                configItem string("BI-IT-DEVSTACK")
-                changeDescription string("changeDescription")
-                changeId string("changeId")
-                rePromote bool(false)
-                releaseStatusJiraIssueKey numeric(1)
-                runDisplayUrl string("changeId")
-                releaseParamVersion string("3.0")
-                buildId string("2005-08-22_23-59-59")
-                buildURL url("https//jenkins-sample")
-                jobName string("ofi2004-cd/ofi2004-cd-release-master")
-            }
-            keyLike "git", {
-                commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
-                repoURL url("https://bitbucket/scm/ofi2004/ofi2004-release.git")
-                baseTag string("ods-generated-v3.0-3.0-0b11-D")
-                targetTag string("ods-generated-v3.0-3.0-0b11-D")
-                author string("s2o")
-                message string("Swingin' The Bottle")
-                commitTime string("2021-04-20T14:58:31.042152")
-                // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
-            }
-            keyLike "openshift", {
-                targetApiUrl url("https://openshift-sample")
-            }
-        }
-        return bodyParams
-    }
 }

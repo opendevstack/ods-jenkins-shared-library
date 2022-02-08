@@ -30,7 +30,8 @@ class FakeProject extends Project {
     protected static String METADATA_FILE_NAME = new FixtureHelper().getResource("/project-metadata.yml").getAbsolutePath()
 
     @Override
-    Project init() {
+    Project init(def gitReleaseManagerBranch) {
+        this.data.gitReleaseManagerBranch = gitReleaseManagerBranch
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
 
@@ -145,7 +146,7 @@ class FixtureHelper {
         steps.env.WORKSPACE = ""
 
         return new FakeProject(steps, new Logger(steps, true))
-            .init()
+            .init("refs/tags/CHG0066328")
             .load(new FakeGitUtil(steps, null), null)
     }
 

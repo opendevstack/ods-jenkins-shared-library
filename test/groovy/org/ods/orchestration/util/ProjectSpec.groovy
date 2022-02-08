@@ -347,7 +347,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
+        project.init("refs/tags/CHG0066328")
         project.setOpenShiftData('https://api.example.openshift.com:443')
 
         then:
@@ -379,7 +379,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
+        project.init("refs/tags/CHG0066328")
 
         then:
         project.getCapabilities() == [
@@ -415,7 +415,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
+        project.init("refs/tags/CHG0066328")
 
         then:
         project.getCapability("Zephyr")
@@ -455,7 +455,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        project.init()
+        project.init("refs/tags/CHG0066328")
 
         then:
         project.hasCapability("Zephyr")
@@ -663,7 +663,7 @@ class ProjectSpec extends SpecHelper {
             "loadJiraDataBugs": {
                 return [:]
             }
-        ]).init()
+        ]).init("refs/tags/CHG0066328")
 
         when:
         project.load(git, jiraUseCase)
@@ -715,7 +715,7 @@ class ProjectSpec extends SpecHelper {
                     ]
                 ]
             }
-        ]).init()
+        ]).init("refs/tags/CHG0066328")
 
         when:
         project.load(git, jiraUseCase)
@@ -772,7 +772,7 @@ class ProjectSpec extends SpecHelper {
                     ]
                 ]
             }
-        ]).init()
+        ]).init("refs/tags/CHG0066328")
 
         when:
         project.load(git, jiraUseCase)
@@ -829,7 +829,7 @@ class ProjectSpec extends SpecHelper {
             "loadJiraDataBugs": {
                 return [:]
             }
-        ]).init()
+        ]).init("refs/tags/CHG0066328")
 
         when:
         project.load(git, jiraUseCase)
@@ -887,7 +887,7 @@ class ProjectSpec extends SpecHelper {
                     ]
                 ]
             }
-        ]).init()
+        ]).init("refs/tags/CHG0066328")
         project.data.buildParams.version = "1.0"
         when:
         project.load(git, jiraUseCase)
@@ -1477,7 +1477,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        def result = project.init()
+        def result = project.init("refs/tags/CHG0066328")
 
         then:
         result.getCapability("LeVADocs").GAMPCategory == 5
@@ -1505,7 +1505,7 @@ class ProjectSpec extends SpecHelper {
         """
 
         when:
-        def result = project.init()
+        def result = project.init("refs/tags/CHG0066328")
 
         then:
         result.getCapability("LeVADocs").templatesVersion == Project.DEFAULT_TEMPLATE_VERSION

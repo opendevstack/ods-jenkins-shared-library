@@ -284,7 +284,8 @@ class Project {
         this.data.documentHistories = [:]
     }
 
-    Project init() {
+    Project init(def gitReleaseManagerBranch) {
+        this.data.gitReleaseManagerBranch = gitReleaseManagerBranch
         this.data.buildParams = this.loadBuildParams(steps)
         this.data.metadata = this.loadMetadata(METADATA_FILE_NAME)
         return this

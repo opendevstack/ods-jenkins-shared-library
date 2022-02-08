@@ -46,6 +46,7 @@ class InitStage extends Stage {
         logger.startClocked("git-releasemanager-${STAGE_NAME}")
         // git checkout
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
+        def gitReleaseManagerBranch
         if (!Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
@@ -65,6 +66,7 @@ class InitStage extends Stage {
                     )
                 }
                 logger.info("Checkout release manager repository @ ${baseTag}")
+                gitReleaseManagerBranch = "refs/tags/${baseTag}"
                 git.checkout(
                     "refs/tags/${baseTag}",
                     [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
@@ -73,6 +75,7 @@ class InitStage extends Stage {
             } else {
                 if (git.remoteBranchExists(gitReleaseBranch)) {
                     logger.info("Checkout release manager repository @ ${gitReleaseBranch}")
+                    gitReleaseManagerBranch = "*/${gitReleaseBranch}"
                     git.checkout(
                         "*/${gitReleaseBranch}",
                         [[$class: 'LocalBranch', localBranch: gitReleaseBranch]],
@@ -86,7 +89,7 @@ class InitStage extends Stage {
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
 
         logger.debug 'Load build params and metadata file information'
-        project.init()
+        project.init(gitReleaseManagerBranch)
 
         logger.debug'Register global services'
         def registry = ServiceRegistry.instance

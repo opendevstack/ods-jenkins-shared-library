@@ -1,6 +1,15 @@
 package org.ods.orchestration.usecase
 
+import org.ods.orchestration.service.DocGenService
+import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PDFUtil
+import org.ods.orchestration.util.Project
+import org.ods.services.JenkinsService
+import org.ods.services.NexusService
+import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
@@ -30,9 +39,28 @@ class LeVADocumentUseCase {
 
     }
 
+    public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
+    public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
+    public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
+
+    private final JiraUseCase jiraUseCase
+    private final JUnitTestReportsUseCase junit
+    private final LeVADocumentChaptersFileService levaFiles
+    private final OpenShiftService os
+    private final SonarQubeUseCase sq
+    private final BitbucketTraceabilityUseCase bbt
     private final ILogger logger
 
-    LeVADocumentUseCase(ILogger logger) {
+    LeVADocumentUseCase(Project project, IPipelineSteps steps, MROPipelineUtil util, DocGenService docGen,
+                        JenkinsService jenkins, JiraUseCase jiraUseCase, JUnitTestReportsUseCase junit,
+                        LeVADocumentChaptersFileService levaFiles, NexusService nexus, OpenShiftService os,
+                        PDFUtil pdf, SonarQubeUseCase sq, BitbucketTraceabilityUseCase bbt, ILogger logger) {
+        this.jiraUseCase = jiraUseCase
+        this.junit = junit
+        this.levaFiles = levaFiles
+        this.os = os
+        this.sq = sq
+        this.bbt = bbt
         this.logger = logger
     }
 
