@@ -53,35 +53,6 @@ class LeVADocumentUseCaseSpec extends Specification {
         docType << ["CSD", "DIL", "DTP", "RA", "CFTP", "IVP", "SSDS", "TCP", "TIP", "TRC"]
     }
 
-    private Object contractDefinition() {
-        new PactBuilder().build {
-            serviceConsumer "buildDocument.defaultParams"
-            hasPactWith "createDoc.defaultParams"
-        }
-    }
-
-    private  void createInteractions(PactBuilder docGenLevaDoc, List<String> docTypes) {
-        Map params = projectData()
-        for (docType in docTypes){
-            createInteraction(docGenLevaDoc, params, docType)
-        }
-    }
-
-    private void createInteraction(PactBuilder docGenLevaDoc, Map params, String docType) {
-        String urlRetunFile = "repository/leva-documentation/frml24113-WIP/${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
-        docGenLevaDoc {
-            params.docType = docType
-            given("project with data:", params)
-            uponReceiving("a request for /buildDocument for document ${docType}")
-            withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
-            withBody([prettyPrint: true], defaultBodyParams())
-            willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-            withBody {
-                nexusURL url("http://lalala", urlRetunFile)
-            }
-        }
-    }
-
     private Closure defaultBodyParams(){
         return {
             keyLike "build", {
@@ -112,18 +83,6 @@ class LeVADocumentUseCaseSpec extends Specification {
             }
             keyLike "openshift", {
                 targetApiUrl url("https://openshift-sample")
-            }
-        }
-    }
-
-    private def executeTest(PactBuilder docGenLevaDoc, List<String> docTypes) {
-        return docGenLevaDoc.runTest {  wiremockServer ->
-            for (docType in docTypes){
-                String urlReturnPath = "repository/leva-documentation/frml24113-WIP/${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
-                Object response = callLeVADocumentUseCaseMethod(docType, wiremockServer.url)
-                assert response.status == 200
-                assert response.contentType == 'application/json'
-                assert response.data == [nexusURL: "http://lalala/${urlReturnPath}"]
             }
         }
     }
