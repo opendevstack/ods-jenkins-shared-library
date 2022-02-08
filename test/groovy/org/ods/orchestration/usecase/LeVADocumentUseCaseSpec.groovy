@@ -23,17 +23,34 @@ class LeVADocumentUseCaseSpec extends Specification {
 
     def "create with default params"() {
         given:
-        PactBuilder docGenLevaDoc = contractDefinition()
-        createInteractions(docGenLevaDoc, docTypes)
+        Map params = projectData(docType)
+        String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+        String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
-        when:
-        def result = executeTest(docGenLevaDoc, docTypes)
+        expect:
+        new PactBuilder()
+            .with {
+                serviceConsumer "buildDocument.defaultParams"
+                hasPactWith "createDoc.defaultParams"
+                given("project with data:", params)
+                uponReceiving("a request for /buildDocument ${docType}")
+                withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+                withBody([prettyPrint:true], defaultBodyParams())
+                willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
+                withBody {
+                    nexusURL  url("http://lalala", urlReturnFile)
+                }
 
-        then:
-        assert result instanceof PactVerificationResult.Ok
+                runTestAndVerify {  context ->
+                    Object response = callLeVADocumentUseCaseMethod(docType, context.url)
+                    assert response.status == 200
+                    assert response.contentType == 'application/json'
+                    assert response.data == [nexusURL: "http://lalala/${urlReturnFile}"]
+                }
+            }
 
         where:
-        docTypes =["CSD", "DIL", "DTP", "RA", "CFTP", "IVP", "SSDS", "TCP", "TIP", "TRC"]
+        docType << ["CSD", "DIL", "DTP", "RA", "CFTP", "IVP", "SSDS", "TCP", "TIP", "TRC"]
     }
 
     private Object contractDefinition() {
@@ -125,8 +142,8 @@ class LeVADocumentUseCaseSpec extends Specification {
         return response
     }
 
-    Map projectData(){
-        return [project:"FRML24113", buildNumber:"666", version: "WIP"]
+    Map projectData(docType){
+        return [project:"FRML24113", buildNumber:"666", version: "WIP", docType: docType]
     }
 
     Map buildFixtureData(){
