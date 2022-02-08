@@ -21,7 +21,7 @@ import spock.lang.Unroll
 @Slf4j
 class LeVADocumentUseCaseSpec extends Specification {
 
-    def "create with default params"() {
+    def "create documents with default params"() {
         given:
         Map params = projectData(docType)
         String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
