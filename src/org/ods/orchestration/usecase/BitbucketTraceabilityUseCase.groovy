@@ -27,12 +27,17 @@ class BitbucketTraceabilityUseCase {
     }
 
     /**
-     * Create a CSV file that contains the following records
-     * for every merge event into the integration branch of every ODS component:
-     * @return absolutePath of the created file
+     * Obtain the information of all the merged pull requests for all the project repositories.
+     * @return a Map with the pull request information for each entry found.
      */
     List<Map> getPRMergeInfo() {
-        def mergeInfo = processRepositories().collect { record ->
+        String token = bitbucketService.getToken()
+        return obtainMergeInfo(token)
+    }
+
+    @NonCPS
+    private List<Map> obtainMergeInfo(String token) {
+        def mergeInfo = processRepositories(token).collect { record ->
             return [
                 date: record.commitDate,
                 authorName: sanitize(record.author.name),
@@ -57,8 +62,7 @@ class BitbucketTraceabilityUseCase {
     }
 
     @NonCPS
-    private List<Record> processRepositories() {
-        String token = bitbucketService.getToken()
+    private List<Record> processRepositories(String token) {
         def records = []
         List<Map> repos = getRepositories()
         int reposSize = repos.size()
