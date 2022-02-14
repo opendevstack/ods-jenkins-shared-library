@@ -3,8 +3,17 @@ package org.ods.orchestration.usecase
 import au.com.dius.pact.consumer.groovy.PactBuilder
 import groovy.util.logging.Slf4j
 import groovyx.net.http.RESTClient
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.services.GitService
+import org.ods.services.JenkinsService
+import org.ods.services.OpenShiftService
+import spock.lang.Specification
+import spock.lang.Unroll
+import util.FixtureHelper
 
 /**
  * BUILD_ID: The current build id, such as "2005-08-22_23-59-59" (YYYY-MM-DD_hh-mm-ss)
@@ -19,9 +28,19 @@ import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
  */
 
 @Slf4j
-class LeVADocumentUseCaseSpec extends LevaDocUseCaseFunctTest {
+class LeVADocumentUseCaseSpec extends Specification {
 
-    def "create documents with default params"() {
+    @Rule
+    public TemporaryFolder tempFolder
+
+    LevaDocWiremock levaDocWiremock
+
+    def cleanup() {
+        levaDocWiremock?.tearDownWiremock()
+    }
+
+    @Unroll
+    def "create documents with contract default params: #projectFixture.docType"() {
         given:
         String docTypeGroup = "defaultParams"
         String docType = projectFixture.getDocType()
@@ -53,17 +72,13 @@ class LeVADocumentUseCaseSpec extends LevaDocUseCaseFunctTest {
     }
 
     private void assertRequestResturn(response, String urlReturnFile) {
-        assert response.status == 200
-        assert response.contentType == 'application/json'
-        assert response.data == [nexusURL: "http://lalala/${urlReturnFile}"]
+        assert response == "http://lalala/${urlReturnFile}"
     }
 
     private Object callLeVADocumentUseCaseMethod(ProjectFixture projectFixture, wiremockURL) {
-        // TODO uncomment to call real LeVADocumentUseCase.create...
-        // System.setProperty("docGen.url", wiremockURL)
-        // LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
-        // return useCase."create${projectFixture.docType}"()
-        return restClient(projectFixture, wiremockURL)
+        System.setProperty("docGen.url", wiremockURL)
+        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
+        return useCase."create${projectFixture.docType}"()
     }
 
     private Closure defaultBodyParams(){
@@ -116,43 +131,26 @@ class LeVADocumentUseCaseSpec extends LevaDocUseCaseFunctTest {
         return [project:"FRML24113", buildNumber:"666", version: "WIP", docType: docType]
     }
 
-    Map buildFixtureData(){
-        Map data = [:]
-        data.build = buildParams()
-        data.git =  buildGitData()
-        data.openshift = [targetApiUrl:"https://openshift-sample"]
-        return data
-    }
+    private LevaDocUseCaseFactory getLevaDocUseCaseFactory(ProjectFixture projectFixture) {
+        levaDocWiremock = new LevaDocWiremock()
+        levaDocWiremock.setUpWireMock(projectFixture, tempFolder.root)
 
-    private Map buildParams() {
-        return  [
-            targetEnvironment: "dev",
-            targetEnvironmentToken: "D",
-            version: "1",
-            configItem: "BI-IT-DEVSTACK",
-            changeDescription: "changeDescription",
-            changeId: "changeId",
-            rePromote: false,
-            releaseStatusJiraIssueKey: "FRML24113-230",
-            runDisplayUrl : "",
-            releaseParamVersion : "3.0",
-            buildId : "2022-01-22_23-59-59",
-            buildURL : "https://jenkins-sample",
-            jobName : "ofi2004-cd/ofi2004-cd-release-master"
-        ]
-    }
+        // Mocks generation (spock don't let you add this outside a Spec)
+        JenkinsService jenkins = Mock(JenkinsService)
+        jenkins.unstashFilesIntoPath(_, _, _) >> true
+        OpenShiftService openShiftService = Mock(OpenShiftService)
+        GitService gitService = Mock(GitService)
+        BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(null, null, null))
+        bbT.generateSourceCodeReviewFile() >> new FixtureHelper()
+            .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()
 
-    private Map<String, String> buildGitData() {
-        return  [
-            commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
-            repoURL: "https://bitbucket/scm/ofi2004/ofi2004-release.git", //  new GitService().getOriginUrl()
-            releaseManagerBranch: "refs/tags/CHG0066328",
-            baseTag: "ods-generated-v3.0-3.0-0b11-D",
-            targetTag: "ods-generated-v3.0-3.0-0b11-D",
-            author: "s2o",
-            message: "Swingin' The Bottle",
-            commitTime: "2021-04-20T14:58:31.042152",
-        ]
+        return new LevaDocUseCaseFactory(
+            levaDocWiremock,
+            gitService,
+            tempFolder,
+            jenkins,
+            openShiftService,
+            bbT)
     }
 
 }

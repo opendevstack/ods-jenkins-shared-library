@@ -28,6 +28,7 @@ class DocGenService {
 
     @NonCPS
     Map createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
+        System.println("hola")
         def response = Unirest.post("${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}")
             .routeParam("projectId", projectId)
             .routeParam("build", buildNumber)

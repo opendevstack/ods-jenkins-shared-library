@@ -46,7 +46,7 @@ class LevaDocWiremock {
 
         String component = (projectFixture.component) ? "/${projectFixture.component}" : ""
         String scenarioPath = "${projectKey}${component}/${doctype}/${projectFixture.version}"
-        docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(RECORD)
+       // docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(RECORD)
         jiraServer = WiremockServers.JIRA.build().withScenario(scenarioPath).startServer(RECORD)
         nexusServer = WiremockServers.NEXUS.build().withScenario(scenarioPath).startServer(RECORD)
         bitbucketServer = WiremockServers.BITBUCKET.build().withScenario(scenarioPath).startServer(RECORD)

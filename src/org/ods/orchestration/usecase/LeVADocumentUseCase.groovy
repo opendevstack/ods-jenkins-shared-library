@@ -34,6 +34,9 @@ class LeVADocumentUseCase {
     private final JenkinsService jenkins
     private final NexusService nexus
     private final PDFUtil pdf
+    private final String projectId
+    private final String buildNumber
+
     enum DocumentType {
 
         CSD,
@@ -134,20 +137,49 @@ class LeVADocumentUseCase {
         this.sq = sq
         this.bbt = bbt
         this.logger = logger
+        this.projectId = project.data.buildParams.projectKey
+        this.buildNumber = project.steps.env.BUILD_NUMBER
     }
 
     @SuppressWarnings('CyclomaticComplexity')
     String createCSD(Map repo = null, Map data = null) {
-        def documentType = DocumentType.CSD as String
-        def uri = ""
-        return uri
+        return createDocWithDefaultParams(DocumentType.CSD)
+    }
+
+    String createDIL(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.DIL)
     }
 
     String createDTP(Map repo = null, Map data = null) {
-        def documentType = DocumentType.DTP as String
-        def uri = ""
+        return createDocWithDefaultParams(DocumentType.DTP)
+    }
 
-        return uri
+    String createRA(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.RA)
+    }
+
+    String createCFTP(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.CFTP)
+    }
+
+    String createIVP(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.IVP)
+    }
+
+    String createSSDS(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.SSDS)
+    }
+
+    String createTCP(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.TCP)
+    }
+
+    String createTIP(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.TIP)
+    }
+
+    String createTCR(Map repo = null, Map data) {
+        return createDocWithDefaultParams(DocumentType.TRC)
     }
 
     String createDTR(Map repo, Map data) {
@@ -162,20 +194,6 @@ class LeVADocumentUseCase {
         return uri
     }
 
-    String createDIL(Map repo = null, Map data = null) {
-        def documentType = DocumentType.DIL as String
-
-        def uri = ""
-        return uri
-    }
-
-    String createCFTP(Map repo = null, Map data = null) {
-        def documentType = DocumentType.CFTP as String
-        def uri = ""
-        return uri
-    }
-
-    @SuppressWarnings('CyclomaticComplexity')
     String createCFTR(Map repo = null, Map data) {
         logger.debug("createCFTR - data:${data}")
 
@@ -183,45 +201,8 @@ class LeVADocumentUseCase {
         return uri
     }
 
-    String createRA(Map repo = null, Map data = null) {
-        def documentType = DocumentType.RA as String
-        def uri = ""
-        return uri
-    }
-
-    String createIVP(Map repo = null, Map data = null) {
-        def documentType = DocumentType.IVP as String
-        def uri = ""
-        return uri
-    }
-
     String createIVR(Map repo = null, Map data) {
         logger.debug("createIVR - data:${data}")
-        def uri = ""
-        return uri
-    }
-
-    @SuppressWarnings('CyclomaticComplexity')
-    String createTCR(Map repo = null, Map data) {
-        logger.debug("createTCR - data:${data}")
-        def uri = ""
-        return uri
-    }
-
-    String createTCP(Map repo = null, Map data = null) {
-        String documentType = DocumentType.TCP as String
-        def uri = ""
-        return uri
-    }
-
-    String createSSDS(Map repo = null, Map data = null) {
-        def documentType = DocumentType.SSDS as String
-        def uri = ""
-        return uri
-    }
-
-    String createTIP(Map repo = null, Map data = null) {
-        def documentType = DocumentType.TIP as String
         def uri = ""
         return uri
     }
@@ -250,6 +231,58 @@ class LeVADocumentUseCase {
     @NonCPS
     List<String> getSupportedDocuments() {
         return DocumentType.values().collect { it as String }
+    }
+
+    private String createDocWithDefaultParams(DocumentType documentType) {
+        logger.info("create document ${documentType} start")
+        Map data = getDefaultParams()
+        Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), data)
+        logger.info("create document ${documentType} return:${document.nexusURL}")
+        return document.nexusURL
+    }
+
+    Map getDefaultParams() {
+        // TODO implement it
+        buildFixtureData()
+    }
+
+    Map buildFixtureData(){
+        Map data = [:]
+        data.build = buildParams()
+        data.git =  buildGitData()
+        data.openshift = [targetApiUrl:"https://openshift-sample"]
+        return data
+    }
+
+    private Map buildParams() {
+        return  [
+            targetEnvironment: "dev",
+            targetEnvironmentToken: "D",
+            version: "1",
+            configItem: "BI-IT-DEVSTACK",
+            changeDescription: "changeDescription",
+            changeId: "changeId",
+            rePromote: false,
+            releaseStatusJiraIssueKey: "FRML24113-230",
+            runDisplayUrl : "",
+            releaseParamVersion : "3.0",
+            buildId : "2022-01-22_23-59-59",
+            buildURL : "https://jenkins-sample",
+            jobName : "ofi2004-cd/ofi2004-cd-release-master"
+        ]
+    }
+
+    private Map<String, String> buildGitData() {
+        return  [
+            commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+            repoURL: "https://bitbucket/scm/ofi2004/ofi2004-release.git", //  new GitService().getOriginUrl()
+            releaseManagerBranch: "refs/tags/CHG0066328",
+            baseTag: "ods-generated-v3.0-3.0-0b11-D",
+            targetTag: "ods-generated-v3.0-3.0-0b11-D",
+            author: "s2o",
+            message: "Swingin' The Bottle",
+            commitTime: "2021-04-20T14:58:31.042152",
+        ]
     }
 
 

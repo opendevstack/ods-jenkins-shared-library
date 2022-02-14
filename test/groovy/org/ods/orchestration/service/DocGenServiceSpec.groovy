@@ -6,48 +6,6 @@ import util.SpecHelper
 
 class DocGenServiceSpec extends SpecHelper {
 
-    DocGenService createService(int port) {
-        return new DocGenService("http://localhost:${port}")
-    }
-
-    Map createDocumentRequestData(Map mixins = [:]) {
-        def projectId = 'PRJ1'
-        def build = '2'
-        def levaDocType = 'CSD'
-
-        def result = [
-            data   : [
-                data       : [a: 1, b: 2, c: 3],
-                projectId  : "PRJ1",
-                build      : "2",
-                levaDocType: "CSD"
-            ],
-            headers: [
-                "Accept"      : "application/json",
-                "Content-Type": "application/json"
-            ],
-            path   : "/levaDoc/${projectId}/${build}/${levaDocType}"
-        ]
-
-        result.body = JsonOutput.toJson(result.data.data)
-
-        return result << mixins
-    }
-
-    Map createDocumentResponseData(Map mixins = [:]) {
-        def result = [
-            body   : JsonOutput.toJson([
-                nexusURL: 'http://nexus-url/doc'
-            ]),
-            headers: [
-                "Content-Type": "application/json"
-            ],
-            status : 200
-        ]
-
-        return result << mixins
-    }
-
     def "instantiate with invalid baseURL"() {
         when:
         new DocGenService(null)
@@ -131,4 +89,47 @@ class DocGenServiceSpec extends SpecHelper {
         cleanup:
         stopServer(server)
     }
+
+    DocGenService createService(int port) {
+        return new DocGenService("http://localhost:${port}")
+    }
+
+    Map createDocumentRequestData(Map mixins = [:]) {
+        def projectId = 'PRJ1'
+        def build = '2'
+        def levaDocType = 'CSD'
+
+        def result = [
+            data   : [
+                data       : [a: 1, b: 2, c: 3],
+                projectId  : "PRJ1",
+                build      : "2",
+                levaDocType: "CSD"
+            ],
+            headers: [
+                "Accept"      : "application/json",
+                "Content-Type": "application/json"
+            ],
+            path   : "/levaDoc/${projectId}/${build}/${levaDocType}"
+        ]
+
+        result.body = JsonOutput.toJson(result.data.data)
+
+        return result << mixins
+    }
+
+    Map createDocumentResponseData(Map mixins = [:]) {
+        def result = [
+            body   : JsonOutput.toJson([
+                nexusURL: 'http://nexus-url/doc'
+            ]),
+            headers: [
+                "Content-Type": "application/json"
+            ],
+            status : 200
+        ]
+
+        return result << mixins
+    }
+
 }

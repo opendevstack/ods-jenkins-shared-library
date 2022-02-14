@@ -72,7 +72,8 @@ class LevaDocUseCaseFactory {
 
     LeVADocumentUseCase build(){
         String nexusUrl = levaDocWiremock.nexusServer.server().baseUrl()
-        String docGenUrl = levaDocWiremock.docGenServer.server().baseUrl()
+       // String docGenUrl = levaDocWiremock.docGenServer.server().baseUrl()
+        String docGenUrl = System.properties["docGen.url"]
         def nexusService = new NexusService(nexusUrl, "user", "password")
         return new LeVADocumentUseCase
             (
