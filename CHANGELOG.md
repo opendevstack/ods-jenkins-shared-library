@@ -74,6 +74,7 @@
 - Better handling of Unit tests in D and DevPreview ([827](https://github.com/opendevstack/ods-jenkins-shared-library/pull/827))
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 - Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Set test summary for empty description in TCR for acceptance tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
 
 ## [3.0] - 2020-08-11
 
