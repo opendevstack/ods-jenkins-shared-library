@@ -6,6 +6,7 @@ import groovy.transform.builder.Builder
 @ToString(includePackage = false, includeNames=true, ignoreNulls = true)
 @Builder
 class ProjectFixture {
+
     String project
     String releaseKey
     String version
@@ -22,4 +23,5 @@ class ProjectFixture {
             .validation(project.validation as String)
             .docType(docType)
     }
+
 }

@@ -28,7 +28,7 @@ import util.FixtureHelper
  */
 
 @Slf4j
-class LeVADocumentUseCaseSpec extends Specification {
+class LeVADocumentUseCasePactSpec extends Specification {
 
     @Rule
     public TemporaryFolder tempFolder
@@ -63,16 +63,12 @@ class LeVADocumentUseCaseSpec extends Specification {
                 }
                 runTestAndVerify {  context ->
                     Object response = callLeVADocumentUseCaseMethod(projectFixture, context.url)
-                    assertRequestResturn(response, urlReturnFile)
+                    assert response == "http://lalala/${urlReturnFile}"
                 }
             }
 
         where:
         projectFixture << new DocTypeProjectFixture().getProjects()
-    }
-
-    private void assertRequestResturn(response, String urlReturnFile) {
-        assert response == "http://lalala/${urlReturnFile}"
     }
 
     private Object callLeVADocumentUseCaseMethod(ProjectFixture projectFixture, wiremockURL) {
@@ -92,7 +88,7 @@ class LeVADocumentUseCaseSpec extends Specification {
                 changeId string("changeId")
                 rePromote bool(false)
                 releaseStatusJiraIssueKey string("FRML24113-230")
-                runDisplayUrl string("changeId")
+                runDisplayUrl url("https://jenkins-sample/blabla")
                 releaseParamVersion string("3.0")
                 buildId string("2022-01-22_23-59-59")
                 buildURL url("https//jenkins-sample")
@@ -113,18 +109,6 @@ class LeVADocumentUseCaseSpec extends Specification {
                 targetApiUrl url("https://openshift-sample")
             }
         }
-    }
-
-    private Object restClient(ProjectFixture projectFixture, wiremockURL) {
-        def docType = projectFixture.docType
-        def client = new RESTClient(wiremockURL)
-        def data = projectData(docType)
-        def response = client.post(
-            path: "/levaDoc/${data.project}/${data.buildNumber}/${docType}",
-            body: buildFixtureData(),
-            requestContentType: 'application/json'
-        )
-        return response
     }
 
     Map projectData(docType){

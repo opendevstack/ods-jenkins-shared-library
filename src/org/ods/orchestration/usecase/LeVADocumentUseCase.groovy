@@ -137,7 +137,7 @@ class LeVADocumentUseCase {
         this.sq = sq
         this.bbt = bbt
         this.logger = logger
-        this.projectId = project.data.buildParams.projectKey
+        this.projectId = project.getJiraProjectKey()
         this.buildNumber = project.steps.env.BUILD_NUMBER
     }
 
@@ -176,6 +176,10 @@ class LeVADocumentUseCase {
 
     String createTIP(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.TIP)
+    }
+
+    String createTRC(Map repo = null, Map data = null) {
+        return createDocWithDefaultParams(DocumentType.TRC)
     }
 
     String createTCR(Map repo = null, Map data) {
@@ -220,14 +224,6 @@ class LeVADocumentUseCase {
         return uri
     }
 
-    String createTRC(Map repo = null, Map data = null) {
-        logger.debug("createTRC - repo:${repo}, data:${data}")
-
-        def documentType = DocumentType.TRC as String
-        def uri = ""
-        return uri
-    }
-
     @NonCPS
     List<String> getSupportedDocuments() {
         return DocumentType.values().collect { it as String }
@@ -242,7 +238,6 @@ class LeVADocumentUseCase {
     }
 
     Map getDefaultParams() {
-        // TODO implement it
         buildFixtureData()
     }
 
@@ -256,34 +251,33 @@ class LeVADocumentUseCase {
 
     private Map buildParams() {
         return  [
-            targetEnvironment: "dev",
-            targetEnvironmentToken: "D",
-            version: "1",
-            configItem: "BI-IT-DEVSTACK",
-            changeDescription: "changeDescription",
-            changeId: "changeId",
-            rePromote: false,
+            targetEnvironment:  project.data.buildParams.targetEnvironment,
+            targetEnvironmentToken: project.data.buildParams.targetEnvironmentToken,
+            version: project.data.buildParams.version,
+            configItem:  project.data.buildParams.configItem,
+            changeDescription: project.data.buildParams.changeDescription,
+            changeId: project.data.buildParams.changeId,
+            rePromote: project.data.buildParams.rePromote,
             releaseStatusJiraIssueKey: "FRML24113-230",
-            runDisplayUrl : "",
-            releaseParamVersion : "3.0",
-            buildId : "2022-01-22_23-59-59",
-            buildURL : "https://jenkins-sample",
-            jobName : "ofi2004-cd/ofi2004-cd-release-master"
+            runDisplayUrl : project.steps.env.RUN_DISPLAY_URL,
+            releaseParamVersion : project.steps.env.RELEASE_PARAM_VERSION,
+            buildId : project.steps.env.BUILD_ID,
+            buildURL : project.steps.env.BUILD_URL,
+            jobName : project.steps.env.JOB_NAME
         ]
     }
 
     private Map<String, String> buildGitData() {
         return  [
-            commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
-            repoURL: "https://bitbucket/scm/ofi2004/ofi2004-release.git", //  new GitService().getOriginUrl()
-            releaseManagerBranch: "refs/tags/CHG0066328",
-            baseTag: "ods-generated-v3.0-3.0-0b11-D",
-            targetTag: "ods-generated-v3.0-3.0-0b11-D",
-            author: "s2o",
-            message: "Swingin' The Bottle",
-            commitTime: "2021-04-20T14:58:31.042152",
+            commit: project.data.git.commit,
+            repoURL: project.data.git.url,
+            releaseManagerBranch: project.data.gitReleaseManagerBranch,
+            baseTag:  project.data.git.baseTag,
+            targetTag: project.data.git.targetTag,
+            author: project.data.git.author,
+            message: project.data.git.message,
+            commitTime: project.data.git.time,
         ]
     }
-
 
 }

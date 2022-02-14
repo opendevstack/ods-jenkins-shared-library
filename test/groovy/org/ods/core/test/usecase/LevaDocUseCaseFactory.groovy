@@ -95,13 +95,11 @@ class LevaDocUseCaseFactory {
     }
 
     private Project buildProject(ProjectFixture projectFixture, ILogger logger) {
-        Map buildParams = dataFixture.buildParams(projectFixture)
-        steps.env = dataFixture.loadEnvData(buildParams)
-
         Project.METADATA_FILE_NAME = 'metadata.yml'
+        steps.env = dataFixture.loadEnvData(projectFixture)
         def project = new Project(steps, logger, [:]).init("refs/tags/CHG0066328")
-        project.data.metadata.id = buildParams.projectKey
-        project.data.buildParams = buildParams
+        project.data.metadata.id = projectFixture.project
+        project.data.buildParams =  dataFixture.buildParams(projectFixture)
         project.data.git = dataFixture.buildGitData()
         return project
     }

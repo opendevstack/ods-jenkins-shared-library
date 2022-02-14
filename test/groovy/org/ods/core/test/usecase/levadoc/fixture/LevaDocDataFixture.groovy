@@ -19,15 +19,16 @@ class LevaDocDataFixture {
     }
 
     Map buildParams(ProjectFixture projectFixture){
-        Map buildParams = [:]
-        buildParams.projectKey = projectFixture.project
-        buildParams.targetEnvironment = "dev"
-        buildParams.targetEnvironmentToken = "D"
-        buildParams.version = "${projectFixture.version}"
-        buildParams.configItem = "BI-IT-DEVSTACK"
-        buildParams.releaseStatusJiraIssueKey = projectFixture.releaseKey
-        log.info "loadProject with:[${buildParams}]"
-        return buildParams
+        return [
+            changeDescription: "changeDescription",
+            changeId: "changeId",
+            configItem:  "BI-IT-DEVSTACK",
+            releaseStatusJiraIssueKey: projectFixture.releaseKey,
+            targetEnvironment:  "dev",
+            targetEnvironmentToken: "D",
+            version: projectFixture.version,
+            rePromote: false,
+        ]
     }
 
     def buildGitData() {
@@ -53,13 +54,13 @@ class LevaDocDataFixture {
         ]
     }
 
-    def loadEnvData(buildParams){
-        File tmpWorkspace = setTemporalWorkspace(buildParams)
+    def loadEnvData(ProjectFixture projectFixture){
+        File tmpWorkspace = setTemporalWorkspace(projectFixture.project)
         return  [
-            BUILD_ID: "1",
+            BUILD_ID:"2022-01-22_23-59-59",
             WORKSPACE: tmpWorkspace.absolutePath,
-            RUN_DISPLAY_URL:"",
-            version: buildParams.version,
+            RUN_DISPLAY_URL:"https://jenkins-sample/blabla",
+            version: projectFixture.version,
             configItem: "Functional-Test",
             RELEASE_PARAM_VERSION: "3.0",
             BUILD_NUMBER: "666",
@@ -95,10 +96,10 @@ class LevaDocDataFixture {
         return new TestsReports(steps, junitReportsUseCase)
     }
 
-    private File setTemporalWorkspace(LinkedHashMap<Object, Object> buildParams) {
+    private File setTemporalWorkspace(String project) {
         File tmpWorkspace = new FileTreeBuilder(tempFolder).dir("workspace")
         System.setProperty("java.io.tmpdir", tmpWorkspace.absolutePath)
-        FileUtils.copyDirectory(new File("test/resources/workspace/${buildParams.projectKey}"), tmpWorkspace)
+        FileUtils.copyDirectory(new File("test/resources/workspace/${project}"), tmpWorkspace)
         return tmpWorkspace
     }
 }
