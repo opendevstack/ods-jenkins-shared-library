@@ -16,15 +16,16 @@ import spock.lang.Unroll
 import util.FixtureHelper
 
 /**
- * BUILD_ID: The current build id, such as "2005-08-22_23-59-59" (YYYY-MM-DD_hh-mm-ss)
- * BUILD_NUMBER: The current build number, such as `153`
+ * Creates Consumer Contract Testing and validate LeVADocumentUse
  *
- * Sample to develop a new contract with the help of IntelliJ:
- *   /* new PactBuilder().with{
- withBody {
- status url("OK")
- }
- }
+ * The generated contract is in target/pacts/ and if you change the contract
+ *  you should copy it to https://github.com/opendevstack/ods-document-generation-svc
+ *  path: src/test/resources/pacts/
+ *
+ * TIP:
+ *  BUILD_ID: The current build id, such as "2005-08-22_23-59-59" (YYYY-MM-DD_hh-mm-ss)
+ *  BUILD_NUMBER: The current build number, such as `153`
+ *
  */
 
 @Slf4j
@@ -40,7 +41,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     @Unroll
-    def "create documents with contract default params: #projectFixture.docType"() {
+    def "Consumer contract test docType:#projectFixture.docType (docType with default params)"() {
         given:
         String docTypeGroup = "defaultParams"
         String docType = projectFixture.getDocType()
@@ -48,7 +49,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
         String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
-        expect:
+        expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
             .with {
                 serviceConsumer "buildDocument.${docTypeGroup}"
