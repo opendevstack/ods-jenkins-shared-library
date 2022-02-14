@@ -74,6 +74,8 @@
 - rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
 - RM: test component causes new jenkins (run) instance after branch is created for release 
 ([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
+- Set test summary for empty description in TCR for integration tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Set test summary for empty description in TCR for acceptance tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/844))
 
 ## [3.0] - 2020-08-11
 
