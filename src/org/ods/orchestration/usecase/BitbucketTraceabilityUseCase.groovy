@@ -37,23 +37,39 @@ class BitbucketTraceabilityUseCase {
 
     @NonCPS
     private List<Map> obtainMergeInfo(String token) {
-        def mergeInfo = processRepositories(token).collect { record ->
-            return [
+        List<Record> records = processRepositories(token)
+        int numRecords = records.size()
+        def mergeInfo = new ArrayList(numRecords)
+        for (int i = 0; i < numRecords; i++) {
+            def record = records[i]
+            def entry = [
                 date: record.commitDate,
                 authorName: sanitize(record.author.name),
                 authorEmail: sanitize(record.author.mail),
-                reviewers: record.reviewers.collect { reviewer ->
-                    return [
-                        reviewerName: sanitize(reviewer.name),
-                        reviewerEmail: sanitize(reviewer.mail),
-                    ]
-                },
+                reviewers: obtainReviewers(record),
                 url: sanitize(record.mergeRequestURL),
                 commit: record.mergeCommitSHA,
                 component: record.componentName,
             ]
+            mergeInfo << entry
         }
         return mergeInfo
+    }
+
+    @NonCPS
+    private List<Map> obtainReviewers(Record record) {
+        List<Developer> reviewers = record.reviewers
+        int numReviewers = reviewers.size()
+        def reviewerInfo = new ArrayList(numReviewers)
+        for (int i = 0; i < numReviewers; i++) {
+            def reviewer = reviewers[i]
+            def entry = [
+                reviewerName: sanitize(reviewer.name),
+                reviewerEmail: sanitize(reviewer.mail),
+            ]
+            reviewerInfo << entry
+        }
+        return reviewerInfo
     }
 
     @NonCPS
