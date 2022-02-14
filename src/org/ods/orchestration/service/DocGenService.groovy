@@ -1,16 +1,11 @@
 package org.ods.orchestration.service
 
-@Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
+@Grab(group = "com.konghq", module = "unirest-java", version = "2.4.03", classifier = "standalone")
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
-
-import java.net.URI
-
 import kong.unirest.Unirest
-
 import org.apache.http.client.utils.URIBuilder
 
 class DocGenService {
@@ -32,37 +27,29 @@ class DocGenService {
     }
 
     @NonCPS
-    byte[] createDocument(String type, String version, Map data) {
-        def response = Unirest.post("${this.baseURL}/document")
+    Map createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
+        def response = Unirest.post("${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}")
+            .routeParam("projectId", projectId)
+            .routeParam("build", buildNumber)
+            .routeParam("levaDocType", levaDocType)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .body(JsonOutput.toJson([
-                metadata: [
-                    type: type,
-                    version: version
-                ],
-                data: data
-            ]))
+            .body(JsonOutput.toJson(data))
             .asString()
 
         response.ifFailure {
-            def message = "Error: unable to create document '${type} (v${version})'. " +
+            def message = "Error: unable to create document '${levaDocType}'. " +
                 "DocGen responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to create document '${type} (v${version})'. " +
+                message = "Error: unable to create document '${levaDocType}'. " +
                     "DocGen could not be found at: '${this.baseURL}'."
             }
 
             throw new RuntimeException(message)
         }
 
-        def result = new JsonSlurperClassic().parseText(response.getBody())
-        return decodeBase64(result.data)
+        return new JsonSlurperClassic().parseText(response.getBody())
     }
 
-    @NonCPS
-    private static byte[] decodeBase64(String base64String) {
-        return Base64.decoder.decode(base64String)
-    }
 }

@@ -1,14 +1,8 @@
 package org.ods.orchestration.service
 
-import com.github.tomakehurst.wiremock.client.*
-
+import com.github.tomakehurst.wiremock.client.WireMock
 import groovy.json.JsonOutput
-
-import org.apache.http.client.utils.URIBuilder
-
-import spock.lang.*
-
-import util.*
+import util.SpecHelper
 
 class DocGenServiceSpec extends SpecHelper {
 
@@ -17,39 +11,38 @@ class DocGenServiceSpec extends SpecHelper {
     }
 
     Map createDocumentRequestData(Map mixins = [:]) {
+        def projectId = 'PRJ1'
+        def build = '2'
+        def levaDocType = 'CSD'
+
         def result = [
-            data: [
-                data: [ a: 1, b: 2, c: 3 ],
-                type: "myType",
-                version: "0.1"
+            data   : [
+                data       : [a: 1, b: 2, c: 3],
+                projectId  : "PRJ1",
+                build      : "2",
+                levaDocType: "CSD"
             ],
             headers: [
-                "Accept": "application/json",
+                "Accept"      : "application/json",
                 "Content-Type": "application/json"
             ],
-            path: "/document"
+            path   : "/levaDoc/${projectId}/${build}/${levaDocType}"
         ]
 
-        result.body = JsonOutput.toJson([
-            metadata: [
-                type: result.data.type,
-                version: result.data.version
-            ],
-            data: result.data.data
-        ])
+        result.body = JsonOutput.toJson(result.data.data)
 
         return result << mixins
     }
 
     Map createDocumentResponseData(Map mixins = [:]) {
         def result = [
-            body: JsonOutput.toJson([
-                data: encodeBase64("PDF".bytes)
+            body   : JsonOutput.toJson([
+                nexusURL: 'http://nexus-url/doc'
             ]),
             headers: [
                 "Content-Type": "application/json"
             ],
-            status: 200
+            status : 200
         ]
 
         return result << mixins
@@ -87,10 +80,10 @@ class DocGenServiceSpec extends SpecHelper {
         def service = createService(server.port())
 
         when:
-        def result = service.createDocument(request.data.type, request.data.version, request.data.data)
+        def result = service.createDocument(request.data.projectId, request.data.build, request.data.levaDocType, request.data.data)
 
         then:
-        result == "PDF".bytes
+        result == [nexusURL: 'http://nexus-url/doc']
 
         cleanup:
         stopServer(server)
@@ -107,11 +100,11 @@ class DocGenServiceSpec extends SpecHelper {
         def service = createService(server.port())
 
         when:
-        service.createDocument(request.data.type, request.data.version, request.data.data)
+        service.createDocument(request.data.projectId, request.data.build, request.data.levaDocType, request.data.data)
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create document 'myType (v0.1)'. DocGen could not be found at: 'http://localhost:${server.port()}'."
+        e.message == "Error: unable to create document '${request.data.levaDocType}'. DocGen could not be found at: 'http://localhost:${server.port()}'."
 
         cleanup:
         stopServer(server)
@@ -121,7 +114,7 @@ class DocGenServiceSpec extends SpecHelper {
         given:
         def request = createDocumentRequestData()
         def response = createDocumentResponseData([
-            body: "Sorry, doesn't work!",
+            body  : "Sorry, doesn't work!",
             status: 500
         ])
 
@@ -129,11 +122,11 @@ class DocGenServiceSpec extends SpecHelper {
         def service = createService(server.port())
 
         when:
-        service.createDocument(request.data.type, request.data.version, request.data.data)
+        service.createDocument(request.data.projectId, request.data.build, request.data.levaDocType, request.data.data)
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Error: unable to create document 'myType (v0.1)'. DocGen responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
+        e.message == "Error: unable to create document '${request.data.levaDocType}'. DocGen responded with code: '${response.status}' and message: 'Sorry, doesn\'t work!'."
 
         cleanup:
         stopServer(server)
