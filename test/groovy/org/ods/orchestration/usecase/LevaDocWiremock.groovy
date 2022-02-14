@@ -1,16 +1,12 @@
 package org.ods.orchestration.usecase
 
 import groovy.util.logging.Slf4j
-import org.apache.http.client.utils.URIBuilder
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.wiremock.WiremockManager
 import org.ods.core.test.wiremock.WiremockServers
 import org.ods.orchestration.service.JiraService
-import org.ods.services.BitbucketService
 import org.ods.services.NexusService
 import org.springframework.stereotype.Component
-
-import javax.inject.Inject
 
 @Slf4j
 @Component
@@ -46,7 +42,7 @@ class LevaDocWiremock {
 
         String component = (projectFixture.component) ? "/${projectFixture.component}" : ""
         String scenarioPath = "${projectKey}${component}/${doctype}/${projectFixture.version}"
-       // docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(RECORD)
+        docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(RECORD)
         jiraServer = WiremockServers.JIRA.build().withScenario(scenarioPath).startServer(RECORD)
         nexusServer = WiremockServers.NEXUS.build().withScenario(scenarioPath).startServer(RECORD)
         bitbucketServer = WiremockServers.BITBUCKET.build().withScenario(scenarioPath).startServer(RECORD)

@@ -2,7 +2,6 @@ package org.ods.orchestration.usecase
 
 import au.com.dius.pact.consumer.groovy.PactBuilder
 import groovy.util.logging.Slf4j
-import groovyx.net.http.RESTClient
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
@@ -63,7 +62,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     nexusURL  url("http://lalala", urlReturnFile)
                 }
                 runTestAndVerify {  context ->
-                    Object response = callLeVADocumentUseCaseMethod(projectFixture, context.url)
+                    String response = executeLeVADocumentUseCaseMethod(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
                 }
             }
@@ -72,9 +71,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
         projectFixture << new DocTypeProjectFixture().getProjects()
     }
 
-    private Object callLeVADocumentUseCaseMethod(ProjectFixture projectFixture, wiremockURL) {
-        System.setProperty("docGen.url", wiremockURL)
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
+    private String executeLeVADocumentUseCaseMethod(ProjectFixture projectFixture, String wiremockURL) {
+        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         return useCase."create${projectFixture.docType}"()
     }
 
