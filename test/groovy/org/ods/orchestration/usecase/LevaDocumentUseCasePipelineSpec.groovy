@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
@@ -10,6 +11,7 @@ import org.ods.core.test.pdf.PdfCompare
 import org.ods.core.test.usecase.LeVADocumentUseCaseFactory
 import org.ods.core.test.wiremock.WiremockServers
 import org.ods.core.test.wiremock.WiremockManager
+import org.ods.orchestration.util.StringCleanup
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
@@ -119,8 +121,28 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         GitService gitService = Mock(GitService)
         jenkins.unstashFilesIntoPath(_, _, "SonarQube Report") >> true
         BitbucketTraceabilityUseCase bitbucketTraceabilityUseCase = Spy(new BitbucketTraceabilityUseCase(null, null, null))
-        bitbucketTraceabilityUseCase.generateSourceCodeReviewFile() >> new FixtureHelper()
-            .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()
+        def expectedFile = new FixtureHelper()
+            .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_JSON)
+        def jsonSlurper = new JsonSlurper()
+        List<Map> expectedData = jsonSlurper.parse(expectedFile)
+        def sanitizedData = expectedData.collect { pr ->
+            return [
+                date: pr.date,
+                authorName: sanitize(pr.authorName),
+                authorEmail: sanitize(pr.authorEmail),
+                reviewers: pr.reviewers.collect { reviewer ->
+                    return [
+                        reviewerName: sanitize(reviewer.reviewerName),
+                        reviewerEmail: sanitize(reviewer.reviewerEmail),
+                    ]
+                },
+                url: sanitize(pr.url),
+                commit: pr.commit,
+                component: pr.component,
+            ]
+        }
+        bitbucketTraceabilityUseCase.getPRMergeInfo() >> sanitizedData
+
         return new LeVADocumentUseCaseFactory(
             jiraServer,
             docGenServer,
@@ -176,5 +198,13 @@ class LevaDocumentUseCasePipelineSpec extends PipelineSpecBase {
         buildParams.releaseStatusJiraIssueKey = "${PROJECT_KEY}-${PROJECT_KEY_RELEASE_ID}"
         return buildParams
     }
+
+    private String sanitize(String s) {
+        return s ? StringCleanup.removeCharacters(s, [
+            '/': '/\u200B',
+            '@': '@\u200B',
+        ]) : 'N/A'
+    }
+
 }
 
