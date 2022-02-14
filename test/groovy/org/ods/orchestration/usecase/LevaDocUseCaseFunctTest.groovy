@@ -1,5 +1,6 @@
 package org.ods.orchestration.usecase
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -9,8 +10,8 @@ import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithComponent
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithTestData
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixturesOverall
-import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
@@ -192,8 +193,27 @@ class LevaDocUseCaseFunctTest extends Specification {
         GitService gitService = Mock(GitService)
         BitbucketService bitbucketService = Mock(BitbucketService)
         BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(bitbucketService, null, null))
-        bbT.generateSourceCodeReviewFile() >> new FixtureHelper()
-            .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()
+        def expectedFile = new FixtureHelper()
+            .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_JSON)
+        def jsonSlurper = new JsonSlurper()
+        List<Map> expectedData = jsonSlurper.parse(expectedFile)
+        def sanitizedData = expectedData.collect { pr ->
+            return [
+                date: pr.date,
+                authorName: sanitize(pr.authorName),
+                authorEmail: sanitize(pr.authorEmail),
+                reviewers: pr.reviewers.collect { reviewer ->
+                    return [
+                        reviewerName: sanitize(reviewer.reviewerName),
+                        reviewerEmail: sanitize(reviewer.reviewerEmail),
+                    ]
+                },
+                url: sanitize(pr.url),
+                commit: pr.commit,
+                component: pr.component,
+            ]
+        }
+        bbT.getPRMergeInfo() >> sanitizedData
 
         LevaDocUseCaseFactory levaDocUseCaseFactory = new LevaDocUseCaseFactory(
             levaDocWiremock,
@@ -207,6 +227,13 @@ class LevaDocUseCaseFunctTest extends Specification {
 
         return levaDocUseCaseFactory.build(projectFixture, useExpectedComponentDocs)
 
+    }
+
+    private String sanitize(String s) {
+        return s ? StringCleanup.removeCharacters(s, [
+            '/': '/\u200B',
+            '@': '@\u200B',
+        ]) : 'N/A'
     }
 
 }

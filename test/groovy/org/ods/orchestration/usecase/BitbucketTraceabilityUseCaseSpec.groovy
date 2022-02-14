@@ -1,10 +1,8 @@
 package org.ods.orchestration.usecase
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
-import net.sf.json.groovy.JsonSlurper
-import net.sf.json.test.JSONAssert
 import org.apache.commons.io.FileUtils
-import org.json.JSONArray
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.orchestration.util.Project
@@ -18,11 +16,8 @@ import org.ods.core.test.LoggerStub
 import util.PipelineSteps
 import org.ods.core.test.wiremock.BitbucketServiceMock
 
-import static org.assertj.core.api.Assertions.*
-
 @Slf4j
 class BitbucketTraceabilityUseCaseSpec extends Specification {
-    static final String EXPECTED_BITBUCKET_CSV = "expected/bitbucket.csv"
     private static final String EXPECTED_BITBUCKET_JSON = "expected/bitbucket.json"
 
     // Change for local development or CI testing
@@ -84,43 +79,37 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
 
         when: "the source code review file is generated"
-        def actualFile = useCase.generateSourceCodeReviewFile()
+        def actualData = useCase.getPRMergeInfo()
 
         then: "the generated file is as the expected csv file"
-        reportInfo "Generated csv file:<br/>${readSomeLines(actualFile)}"
-        def expectedFile = new FixtureHelper().getResource(EXPECTED_BITBUCKET_CSV)
-        assertThat(new File(actualFile)).exists().isFile().hasSameTextualContentAs(expectedFile);
-    }
-
-    def "Read the csv source code review file"() {
-        given: "There are two Bitbucket repositories"
-        def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
-
-        and: 'The characters to change'
-        Map CHARACTERS = [
-            '/': '/\u200B',
-            '@': '@\u200B',
-        ]
-        when: "the source code review file is readed"
-        def data = useCase.readSourceCodeReviewFile(
-            new FixtureHelper().getResource(EXPECTED_BITBUCKET_CSV).getAbsolutePath())
-        JSONArray result = new JSONArray(data)
-
-        then: "the data contains the same csv info"
         def expectedFile = new FixtureHelper().getResource(EXPECTED_BITBUCKET_JSON)
         def jsonSlurper = new JsonSlurper()
-        def expected = jsonSlurper.parse(expectedFile)
-
-        JSONAssert.assertJsonEquals(StringCleanup.removeCharacters(expected.toString(), CHARACTERS), result.toString())
+        List<Map> expectedData = jsonSlurper.parse(expectedFile)
+        def sanitizedData = expectedData.collect { pr ->
+            return [
+                date: pr.date,
+                authorName: sanitize(pr.authorName),
+                authorEmail: sanitize(pr.authorEmail),
+                reviewers: pr.reviewers.collect { reviewer ->
+                    return [
+                        reviewerName: sanitize(reviewer.reviewerName),
+                        reviewerEmail: sanitize(reviewer.reviewerEmail),
+                    ]
+                },
+                url: sanitize(pr.url),
+                commit: pr.commit,
+                component: pr.component,
+            ]
+        }
+        actualData == sanitizedData
 
     }
 
-    private String readSomeLines(String filePath){
-        File file = new File(filePath)
-        def someLines = 3
-        String lines = ""
-        file.withReader { r -> while( someLines-- > 0 && (( lines += r.readLine() + "<br/>" ) != null));}
-        lines += "..."
-        return lines
+    private String sanitize(String s) {
+        return s ? StringCleanup.removeCharacters(s, [
+            '/': '/\u200B',
+            '@': '@\u200B',
+        ]) : 'N/A'
     }
+
 }
