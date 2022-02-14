@@ -68,7 +68,7 @@ class FinalizeStage extends Stage {
                 integrateIntoMainBranchRepos(steps, git)
             }
 
-            logger.debug("Gathering commits")
+            logger.debug("Gatering commits")
             gatherCreatedExecutionCommits(steps, git)
 
             if (!project.buildParams.rePromote) {

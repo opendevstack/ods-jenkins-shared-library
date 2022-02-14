@@ -9,46 +9,57 @@ package org.ods.core.test.wiremock
 enum WiremockServers {
     SONAR_QU {
         WiremockManager build() {
-            new WiremockManager("sonarQu", System.properties["sonarQuURL"])
+            new WiremockManager("sonarQu", System.properties["sonar.url"])
         };
         String getUser(){
-            return System.properties["domainUser"]
+            return System.properties["sonar.username"]
         };
         String getPassword(){
-            return System.properties["domainPassword"]
+            return System.properties["sonar.password"]
         }
     },
     JIRA {
         WiremockManager build() {
-            new WiremockManager("jira", System.properties["jiraURL"])
+            new WiremockManager("jira", System.properties["jira.url"])
         };
         String getUser(){
-            return System.properties["domainUser"]
+            return System.properties["jira.username"]
         };
         String getPassword(){
-            return System.properties["domainPassword"]
+            return System.properties["jira.password"]
         }
     },
     NEXUS {
         WiremockManager build() {
-            new WiremockManager("nexus", System.properties["nexusURL"])
+            new WiremockManager("nexus", System.properties["nexus.url"])
         };
         String getUser(){
-            return System.properties["nexusUser"]
+            return System.properties["nexus.username"]
         };
         String getPassword(){
-            return System.properties["nexusPassword"]
+            return System.properties["nexus.password"]
         }
     },
     DOC_GEN {
         WiremockManager build() {
-            new WiremockManager("docgen", System.properties["docGenURL"])
+            new WiremockManager("docgen", System.properties["docGen.url"])
         };
         String getUser(){
-            return ""
+            return "docGen.username"
         };
         String getPassword(){
-            return ""
+            return "docGen.password"
+        }
+    },
+    BITBUCKET {
+        WiremockManager build() {
+            new WiremockManager("bitbucket", System.properties["bitbucket.url"])
+        };
+        String getUser(){
+            return "bitbucket.username"
+        };
+        String getPassword(){
+            return "bitbucket.password"
         }
     }
 

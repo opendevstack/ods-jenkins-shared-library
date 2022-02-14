@@ -17,7 +17,7 @@ class BitbucketService {
     private final def script
 
     // Bae URL of Bitbucket server, such as "https://bitbucket.example.com".
-    private final String bitbucketUrl
+    String bitbucketUrl
 
     // Name of Bitbucket project, such as "foo".
     // This name is also the prefix for OpenShift projects ("foo-cd", "foo-dev", ...).

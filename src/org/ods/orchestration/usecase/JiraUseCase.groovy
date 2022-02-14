@@ -260,7 +260,7 @@ class JiraUseCase {
     void matchTestIssuesAgainstTestResults(List testIssues, Map testResults,
                                            Closure matchedHandler, Closure unmatchedHandler = null,
                                            boolean checkDuplicateTestResults = true) {
-        def duplicateKeysErrorMessage = "Error: the following test cases are implemented multiple times each: "
+        def duplicateKeysErrorMessage = "Error: found duplicated Jira tests. Check tests with key: "
         def duplicatesKeys = []
 
         def result = [
@@ -281,7 +281,7 @@ class JiraUseCase {
         }
 
         testIssues.each { testIssue ->
-            if (!result.matched.keySet().contains(testIssue) && mustRun(testIssue)) {
+            if (!result.matched.keySet().contains(testIssue)) {
                 result.unmatched << testIssue
             }
         }
@@ -295,13 +295,8 @@ class JiraUseCase {
         }
 
         if (checkDuplicateTestResults && duplicatesKeys) {
-            throw new IllegalStateException("${duplicateKeysErrorMessage}${duplicatesKeys.join(', ')}.");
+            throw new IllegalStateException(duplicateKeysErrorMessage + duplicatesKeys);
         }
-    }
-
-    private boolean mustRun(testIssue) {
-        return !project.promotingToProd() ||
-            testIssue.testType?.equalsIgnoreCase(Project.TestType.INSTALLATION)
     }
 
     void reportTestResultsForComponent(String componentName, List<String> testTypes, Map testResults) {

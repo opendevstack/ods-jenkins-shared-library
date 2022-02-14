@@ -76,8 +76,7 @@ class BuildStage extends Stage {
         Closure executeRepos = {
             util.prepareExecutePhaseForReposNamedJob(phase, repos, preExecuteRepo, postExecuteRepo)
                 .each { group ->
-                    // FailFast only if not WIP
-                    group.failFast = !project.isWorkInProgress
+                    group.failFast = true
                     script.parallel(group)
                 }
         }
@@ -89,13 +88,11 @@ class BuildStage extends Stage {
         // - this will only apply in case of WIP! - otherwise failfast is configured, and hence
         // the build will have failed beforehand
         def failedRepos = repos.flatten().findAll { it.data?.failedStage }
-        if (project.hasFailingTests() || failedRepos.size > 0) {
+        if (project.isAssembleMode && project.isWorkInProgress &&
+            (project.hasFailingTests() || failedRepos.size > 0)) {
             def errMessage = "Failing build as repositories contain errors!\nFailed: ${failedRepos}"
             util.failBuild(errMessage)
-            // If we are not in Developer Preview raise a exception
-            if (!project.isWorkInProgress) {
-                throw new IllegalStateException(errMessage)
-            }
+            throw new IllegalStateException(errMessage)
         }
     }
 

@@ -35,7 +35,7 @@ class WiremockManager {
         return this
     }
 
-    WiremockManager startServer(boolean recording = false, String targetURLParam = null) {
+    WiremockManager startServer(boolean recording) {
         if (recording){
             cleanExistingRecords()
         }
@@ -45,21 +45,18 @@ class WiremockManager {
                 .wireMockConfig()
                 .usingFilesUnderDirectory(pathToFiles)
                 .dynamicPort()
+                .enableBrowserProxying(true)
         )
         wireMockServer.start()
-        log.info("startServer WireMockServer:[{}:{}] usingFilesUnderDirectory:[{}]", serverType, wireMockServer.baseUrl(), pathToFiles)
+        log.info("WireMockServer: [{}:{}]", serverType, wireMockServer.baseUrl())
+        log.info("WireMockServer: [{}] targetURL:[{}]", serverType, defaultURL)
+        log.info("WireMockServer: [{}] pathToFiles:[{}]", serverType, pathToFiles)
 
-        if (recording) {
-            wireMockServer.resetAll()
-            String targetURL = getTargetURL(targetURLParam)
-            log.info("startServer recording:[{}] targetURL:[{}]",recording, targetURL)
-            wireMockServer.startRecording(WireMock.recordSpec().forTarget(targetURL).build())
-            this.recording = recording
-        }
+        setUpRecordMode(recording, wireMockServer, defaultURL)
         return this
     }
 
-    WireMockServer mock(){
+    WireMockServer server(){
         return wireMockServer
     }
 
@@ -96,12 +93,14 @@ class WiremockManager {
         new File("${pathToFiles}/${MAPPINGS_ROOT}").eachFileRecurse() {
             replaceFileInText(it, replaceAllMap)
             updateDateCreated(it)
+            log.debug("File " + it.getAbsolutePath() + " contents: ")
+            log.debug(it.text)
         }
         new File("${pathToFiles}/${FILES_ROOT}").eachFileRecurse() {replaceFileInText(it, replaceAllMap)}
     }
 
     private Map prepareReplaceMap() {
-        Map replaceAllMap = ["${System.properties['domainUser']}"  : 'dummyUser']
+        Map replaceAllMap = ["${System.properties['domainUser']}"  : "\\\"dummyUser\\\""]
         Map customReplaceAllMap = (System.properties['wiremock.textToReplace'] as String).tokenize(',')
             .collectEntries {
                 List value = it.tokenize(':')
@@ -154,11 +153,12 @@ class WiremockManager {
         return builder
     }
 
-    private String getTargetURL(String targetURLParam) {
-        String targetUrl = targetURLParam?:defaultURL
-        if (!targetUrl)
-            throw new RuntimeException("startServer needs the 'targetUrl' when recording")
-
-        return targetUrl
+    private void setUpRecordMode(boolean recording, WireMockServer wireMockServer, String targetURL) {
+        if (recording) {
+            log.info("WireMockServer:[{}] - RECORD MODE!!!!")
+            wireMockServer.resetAll()
+            wireMockServer.startRecording(WireMock.recordSpec().forTarget(targetURL).build())
+            this.recording = recording
+        }
     }
 }

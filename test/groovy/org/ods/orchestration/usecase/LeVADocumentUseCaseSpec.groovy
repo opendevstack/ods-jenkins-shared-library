@@ -1,12 +1,11 @@
 package org.ods.orchestration.usecase
 
-import au.com.dius.pact.consumer.PactVerificationResult
 import au.com.dius.pact.consumer.groovy.PactBuilder
 import groovy.util.logging.Slf4j
 import groovyx.net.http.RESTClient
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
+import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
+import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+
 /**
  * BUILD_ID: The current build id, such as "2005-08-22_23-59-59" (YYYY-MM-DD_hh-mm-ss)
  * BUILD_NUMBER: The current build number, such as `153`
@@ -18,11 +17,14 @@ import spock.lang.Unroll
  }
  }
  */
+
 @Slf4j
-class LeVADocumentUseCaseSpec extends Specification {
+class LeVADocumentUseCaseSpec extends LevaDocUseCaseFunctTest {
 
     def "create documents with default params"() {
         given:
+        String docTypeGroup = "defaultParams"
+        String docType = projectFixture.getDocType()
         Map params = projectData(docType)
         String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
         String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
@@ -30,8 +32,8 @@ class LeVADocumentUseCaseSpec extends Specification {
         expect:
         new PactBuilder()
             .with {
-                serviceConsumer "buildDocument.defaultParams"
-                hasPactWith "createDoc.defaultParams"
+                serviceConsumer "buildDocument.${docTypeGroup}"
+                hasPactWith "createDoc.${docTypeGroup}"
                 given("project with data:", params)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
@@ -40,17 +42,28 @@ class LeVADocumentUseCaseSpec extends Specification {
                 withBody {
                     nexusURL  url("http://lalala", urlReturnFile)
                 }
-
                 runTestAndVerify {  context ->
-                    Object response = callLeVADocumentUseCaseMethod(docType, context.url)
-                    assert response.status == 200
-                    assert response.contentType == 'application/json'
-                    assert response.data == [nexusURL: "http://lalala/${urlReturnFile}"]
+                    Object response = callLeVADocumentUseCaseMethod(projectFixture, context.url)
+                    assertRequestResturn(response, urlReturnFile)
                 }
             }
 
         where:
-        docType << ["CSD", "DIL", "DTP", "RA", "CFTP", "IVP", "SSDS", "TCP", "TIP", "TRC"]
+        projectFixture << new DocTypeProjectFixture().getProjects()
+    }
+
+    private void assertRequestResturn(response, String urlReturnFile) {
+        assert response.status == 200
+        assert response.contentType == 'application/json'
+        assert response.data == [nexusURL: "http://lalala/${urlReturnFile}"]
+    }
+
+    private Object callLeVADocumentUseCaseMethod(ProjectFixture projectFixture, wiremockURL) {
+        // TODO uncomment to call real LeVADocumentUseCase.create...
+        // System.setProperty("docGen.url", wiremockURL)
+        // LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
+        // return useCase."create${projectFixture.docType}"()
+        return restClient(projectFixture, wiremockURL)
     }
 
     private Closure defaultBodyParams(){
@@ -87,12 +100,10 @@ class LeVADocumentUseCaseSpec extends Specification {
         }
     }
 
-    private Object callLeVADocumentUseCaseMethod(String docType, wiremockURL) {
-        // Replace this code to a call LeVADocumentUseCase....
-        // We need to generate the data using sharedLib functions not as in this example
-        // leVADocumentUseCase"create${docType}"(data)
+    private Object restClient(ProjectFixture projectFixture, wiremockURL) {
+        def docType = projectFixture.docType
         def client = new RESTClient(wiremockURL)
-        def data = projectData()
+        def data = projectData(docType)
         def response = client.post(
             path: "/levaDoc/${data.project}/${data.buildNumber}/${docType}",
             body: buildFixtureData(),
