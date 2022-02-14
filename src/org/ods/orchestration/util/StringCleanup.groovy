@@ -5,11 +5,11 @@ import com.cloudbees.groovy.cps.NonCPS
 class StringCleanup {
 
     @NonCPS
-    static removeCharacters(inputString, characters) {
-        def outputString = inputString
-        characters.forEach { k, v ->
-            outputString = outputString.replaceAll(k, v)
+    static removeCharacters(String inputString, Map characters) {
+        def replacements = characters.collectEntries { k, v ->
+            def toReplace = k in String ? k.charAt(0) : k
+            return [(toReplace): v]
         }
-        return outputString
+        return inputString.collectReplacements { replacements[it] }
     }
 }
