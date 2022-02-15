@@ -1,29 +1,20 @@
 package org.ods.orchestration.usecase
 
-import static groovy.json.JsonOutput.prettyPrint
-import static groovy.json.JsonOutput.toJson
-
 import com.cloudbees.groovy.cps.NonCPS
-import groovy.xml.XmlUtil
-import org.ods.orchestration.scheduler.LeVADocumentScheduler
+import org.ods.orchestration.mapper.DefaultLeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
-import org.ods.orchestration.util.DocumentHistory
-import org.ods.orchestration.util.Environment
-import org.ods.orchestration.util.LeVADocumentUtil
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
-import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.SortUtil
-import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 
-import java.time.LocalDateTime
+import static groovy.json.JsonOutput.prettyPrint
+import static groovy.json.JsonOutput.toJson
 
 class LeVADocumentUseCase {
 
@@ -89,7 +80,7 @@ class LeVADocumentUseCase {
     ]
 
     static Map<String, Map> DOCUMENT_TYPE_FILESTORAGE_EXCEPTIONS = [
-        'SCRR-MD' : [storage: 'pdf', content: 'pdf' ]
+        'SCRR-MD': [storage: 'pdf', content: 'pdf']
     ]
 
     static List<String> COMPONENT_TYPE_IS_NOT_INSTALLED = [
@@ -99,12 +90,12 @@ class LeVADocumentUseCase {
     ]
 
     static Map<String, String> INTERNAL_TO_EXT_COMPONENT_TYPES = [
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE   as String) : 'SAAS Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST           as String) : 'Automated tests',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE        as String) : '3rd Party Service Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE           as String) : 'ODS Software Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA          as String) : 'Infrastructure as Code Component',
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB            as String) : 'ODS library component'
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE as String): 'SAAS Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST as String)        : 'Automated tests',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE as String)     : '3rd Party Service Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE as String)        : 'ODS Software Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA as String)       : 'Infrastructure as Code Component',
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB as String)         : 'ODS library component'
     ]
 
     public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
@@ -141,7 +132,6 @@ class LeVADocumentUseCase {
         this.buildNumber = project.steps.env.BUILD_NUMBER
     }
 
-    @SuppressWarnings('CyclomaticComplexity')
     String createCSD(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.CSD)
     }
@@ -238,46 +228,7 @@ class LeVADocumentUseCase {
     }
 
     Map getDefaultParams() {
-        buildFixtureData()
-    }
-
-    Map buildFixtureData(){
-        Map data = [:]
-        data.build = buildParams()
-        data.git =  buildGitData()
-        data.openshift = [targetApiUrl:"https://openshift-sample"]
-        return data
-    }
-
-    private Map buildParams() {
-        return  [
-            targetEnvironment:  project.data.buildParams.targetEnvironment,
-            targetEnvironmentToken: project.data.buildParams.targetEnvironmentToken,
-            version: project.data.buildParams.version,
-            configItem:  project.data.buildParams.configItem,
-            changeDescription: project.data.buildParams.changeDescription,
-            changeId: project.data.buildParams.changeId,
-            rePromote: project.data.buildParams.rePromote,
-            releaseStatusJiraIssueKey: "FRML24113-230",
-            runDisplayUrl : project.steps.env.RUN_DISPLAY_URL,
-            releaseParamVersion : project.steps.env.RELEASE_PARAM_VERSION,
-            buildId : project.steps.env.BUILD_ID,
-            buildURL : project.steps.env.BUILD_URL,
-            jobName : project.steps.env.JOB_NAME
-        ]
-    }
-
-    private Map<String, String> buildGitData() {
-        return  [
-            commit: project.data.git.commit,
-            repoURL: project.data.git.url,
-            releaseManagerBranch: project.data.gitReleaseManagerBranch,
-            baseTag:  project.data.git.baseTag,
-            targetTag: project.data.git.targetTag,
-            author: project.data.git.author,
-            message: project.data.git.message,
-            commitTime: project.data.git.time,
-        ]
+        return new DefaultLeVADocumentParamsMapper(this.project, this.steps).build()
     }
 
 }
