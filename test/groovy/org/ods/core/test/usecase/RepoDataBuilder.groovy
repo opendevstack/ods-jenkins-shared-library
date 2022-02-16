@@ -21,7 +21,8 @@ class RepoDataBuilder {
                         podNamespace:                 'ofi2004-dev',
                         podMetaDataCreationTimestamp: '2021-11-21T22:31:04Z',
                         deploymentId:                 "${component}-3",
-                        podNode:                      'localhost', 'podIp': '172.17.0.39',
+                        podNode:                      'localhost',
+                        podIp:                        '172.17.0.39',
                         podStatus:                    'Running',
                         podStartupTimeStamp:          '2021-11-21T22:31:04Z',
                         containers:                   [
