@@ -1,7 +1,9 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import org.ods.orchestration.mapper.ComponentDataLeVADocumentParamsMapper
 import org.ods.orchestration.mapper.DefaultLeVADocumentParamsMapper
+import org.ods.orchestration.mapper.TestDataLeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.util.MROPipelineUtil
@@ -177,9 +179,7 @@ class LeVADocumentUseCase {
     }
 
     String createDTR(Map repo, Map data) {
-        logger.debug("createDTR - repo:${repo}, data:${data}")
-        def uri = ""
-        return uri
+        return createDocWithComponentDataParams(DocumentType.DTR, repo, data)
     }
 
     String createOverallDTR(Map repo = null, Map data = null) {
@@ -202,10 +202,7 @@ class LeVADocumentUseCase {
     }
 
     String createTIR(Map repo, Map data) {
-        logger.debug("createTIR - repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(data))}")
-        def documentType = DocumentType.TIR as String
-        def uri = ""
-        return uri
+        return createDocWithComponentDataParams(DocumentType.TIR, repo, data)
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {
@@ -227,8 +224,32 @@ class LeVADocumentUseCase {
         return document.nexusURL
     }
 
+    private String createDocWithTestDataParams(DocumentType documentType, Map testData) {
+        logger.info("create document ${documentType} start, data:${prettyPrint(toJson(testData))}")
+        Map data = getTestDataParams(testData)
+        Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), data)
+        logger.info("create document ${documentType} return:${document.nexusURL}")
+        return document.nexusURL
+    }
+
+    private String createDocWithComponentDataParams(DocumentType documentType, Map repo, Map testData) {
+        logger.info("create document ${documentType} start, repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(testData))}")
+        Map data = getComponentDataParams(testData, repo)
+        Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), data)
+        logger.info("create document ${documentType} return:${document.nexusURL}")
+        return document.nexusURL
+    }
+
     Map getDefaultParams() {
         return new DefaultLeVADocumentParamsMapper(this.project, this.steps).build()
+    }
+
+    Map getTestDataParams(Map testData) {
+        return new TestDataLeVADocumentParamsMapper(this.project, this.steps, testData).build()
+    }
+
+    Map getComponentDataParams(Map testData, Map repo) {
+        return new ComponentDataLeVADocumentParamsMapper(this.project, this.steps, testData, repo).build()
     }
 
 }
