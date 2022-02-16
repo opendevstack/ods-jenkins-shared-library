@@ -2,6 +2,8 @@ package org.ods.services
 
 import org.ods.util.ILogger
 
+import java.nio.file.StandardCopyOption
+
 class JenkinsService {
 
     private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
@@ -76,6 +78,17 @@ class JenkinsService {
         StringWriter writer = new StringWriter()
         this.script.currentBuild.getRawBuild().getLogText().writeHtmlTo(0, writer)
         return writer.getBuffer().toString()
+    }
+
+    String getCurrentBuildLogAsPlainTextFile (String fileName) {
+        java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
+        String workspacePath = this.script.env.WORKSPACE
+        File targetFolder = new File(workspacePath)
+        File targetFile = new File(fileName, targetFolder)
+
+        java.nio.file.Files.copy(is, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        return targetFile.toPath()
     }
 
     String getCurrentBuildLogAsText () {
