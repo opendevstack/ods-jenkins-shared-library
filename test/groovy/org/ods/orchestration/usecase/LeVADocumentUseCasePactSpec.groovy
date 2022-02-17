@@ -5,13 +5,11 @@ import groovy.util.logging.Slf4j
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
-import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithComponent
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithTestData
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
-import org.ods.core.test.workspace.TestsReports
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
