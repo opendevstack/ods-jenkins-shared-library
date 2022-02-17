@@ -80,15 +80,9 @@ class JenkinsService {
         return writer.getBuffer().toString()
     }
 
-    String getCurrentBuildLogAsPlainTextFile (String fileName) {
+    InputStream getCurrentBuildLogInputStream () {
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        String workspacePath = this.script.env.WORKSPACE
-        File targetFolder = new File(workspacePath)
-        File targetFile = new File(fileName, targetFolder)
-
-        java.nio.file.Files.copy(is, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        return targetFile.toPath()
+        return is
     }
 
     String getCurrentBuildLogAsText () {

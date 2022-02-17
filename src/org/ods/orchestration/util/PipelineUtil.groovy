@@ -93,6 +93,24 @@ class PipelineUtil {
         return result
     }
 
+    byte[] createZipArtifact(String name, Map<String, InputStream> files, boolean doCreateArtifact = true) {
+        if (!name?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
+        }
+
+        if (files == null) {
+            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'files' is undefined.")
+        }
+
+        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
+        def result = this.createZipFile(path, files)
+        if (doCreateArtifact) {
+            this.archiveArtifact(path, result)
+        }
+
+        return result
+    }
+
     void createAndStashArtifact(String stashName, byte[] file) {
         if (!stashName?.trim()) {
             throw new IllegalArgumentException("Error: unable to stash artifact. 'stashName' is undefined.")
@@ -132,6 +150,30 @@ class PipelineUtil {
             def params = new ZipParameters()
             params.setFileNameInZip(filePath)
             zipFile.addStream(new ByteArrayInputStream(fileData), params)
+        }
+
+        return new File(path).getBytes()
+    }
+
+    @NonCPS
+    byte[] createZipFile(String path, Map<String, InputStream> files) {
+        if (!path?.trim()) {
+            throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined.")
+        }
+
+        if (files == null) {
+            throw new IllegalArgumentException("Error: unable to create Zip file. 'files' is undefined.")
+        }
+
+        // Create parent directory if needed
+        this.createDirectory(new File(path).getParent())
+
+        // Create the Zip file
+        def zipFile = new ZipFile(path)
+        files.each { filePath, inputStream ->
+            def params = new ZipParameters()
+            params.setFileNameInZip(filePath)
+            zipFile.addStream(inputStream, params)
         }
 
         return new File(path).getBytes()

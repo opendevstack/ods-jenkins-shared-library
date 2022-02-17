@@ -208,7 +208,29 @@ class LeVADocumentUseCase {
     String createOverallTIR(Map repo = null, Map data = null) {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
         def uri = ""
+
+        uploadJenkinsJobLog(repo.repo)
         return uri
+    }
+
+    private uploadJenkinsJobLog(String componentId) {
+        String fileName = "jenkinsJobLog"
+        InputStream logInputStream = this.jenkins.getCurrentBuildLogInputStream()
+        Map<String, InputStream> files = new HashMap<String, InputStream>()
+        files.put(fileName + ".txt", logInputStream)
+        byte[] zipArtifact = util.createZipArtifact(fileName + ".zip", files, true)
+
+        String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
+        URI report = this.nexus.storeArtifact(
+            "${nexusRepository}",
+            "${this.projectId}/${componentId}/${this.buildNumber}",
+            "${fileName}.html",
+            zipArtifact, "application/octet-binary")
+        // "text/html"
+
+        logger.info "Report stored in: ${report}"
+
+        return report
     }
 
     @NonCPS
