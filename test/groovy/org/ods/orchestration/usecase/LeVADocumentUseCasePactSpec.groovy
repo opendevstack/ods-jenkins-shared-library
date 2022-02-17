@@ -8,7 +8,10 @@ import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithComponent
+import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithTestData
+import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.core.test.workspace.TestsReports
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
@@ -28,7 +31,6 @@ import util.FixtureHelper
  *  BUILD_NUMBER: The current build number, such as `153`
  *
  */
-
 @Slf4j
 class LeVADocumentUseCasePactSpec extends Specification {
 
@@ -74,7 +76,39 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     @Unroll
-    def "Consumer contract test docType:#projectFixture.docType (for component #projectFixture.component and project: #projectFixture.project)"() {
+    def "Consumer contract test docType:#projectFixture.docType (for #projectFixture.component and project: #projectFixture.project) with test data"() {
+        given:
+        String docTypeGroup = "testData"
+        String docType = projectFixture.getDocType()
+        Map params = projectData(docType)
+        String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+        String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
+
+        expect: "Build the contract and execute against the generated wiremock"
+        new PactBuilder()
+            .with {
+                serviceConsumer "buildDocument.${docTypeGroup}"
+                hasPactWith "createDoc.${docTypeGroup}"
+                given("project with data:", params)
+                uponReceiving("a request for /buildDocument ${docType}")
+                withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+                withBody([prettyPrint:true], defaultBodyParamsWithTests())
+                willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
+                withBody {
+                    nexusURL  url("http://lalala", urlReturnFile)
+                }
+                runTestAndVerify {  context ->
+                    String response = executeLeVADocumentUseCaseMethodWithTestData(projectFixture, context.url)
+                    assert response == "http://lalala/${urlReturnFile}"
+                }
+            }
+
+        where:
+        projectFixture << new DocTypeProjectFixtureWithTestData().getProjects()
+    }
+
+    @Unroll
+    def "Consumer contract test docType:#projectFixture.docType (for component #projectFixture.component and project: #projectFixture.project) with test data and component"() {
         given:
         String docTypeGroup = "component"
         String docType = projectFixture.getDocType()
@@ -110,11 +144,21 @@ class LeVADocumentUseCasePactSpec extends Specification {
         return useCase."create${projectFixture.docType}"()
     }
 
+    private String executeLeVADocumentUseCaseMethodWithTestData(ProjectFixture projectFixture, String wiremockURL) {
+        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
+        LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
+        Map repo = fixture.getInputParamsModule(projectFixture,useCase)
+        Map tests = repo.data.tests
+        return useCase."create${projectFixture.docType}"(null, tests)
+    }
+
     private String executeLeVADocumentUseCaseMethodWithComponent(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
-        Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.getComponent())
-        //TODO tests data
-        return useCase."create${projectFixture.docType}"(repo, [tests: 'cosas'])
+        LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
+        Map repo = fixture.getInputParamsModule(projectFixture,useCase)
+        Map tests = repo.data.tests
+        repo.data.remove('tests')
+        return useCase."create${projectFixture.docType}"(repo, tests)
     }
 
     private Closure defaultBodyParams(){
@@ -151,18 +195,63 @@ class LeVADocumentUseCasePactSpec extends Specification {
         }
     }
 
-    Closure defaultBodyParamsWithComponent(component) {
+    Closure defaultBodyParamsWithTests() {
         return {
             keyLike "tests", {
-                tests string("cosas")
+                keyLike "unit", {
+                    testReportFiles eachLike() {
+                        parent string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test")
+                        name string("TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
+                        path string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
+                        absolutePath string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
+                        totalSpace numeric(53660876800)
+                        hidden bool(false)
+                        usableSpace numeric(12417183744)
+                        canonicalPath string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
+                        invalid bool(false)
+                        freeSpace numeric(12417183744)
+                        file bool(true)
+                        freeSpace numeric(12417183744)
+                        file bool(true)
+                        absolute bool(true)
+                        prefixLength numeric(1)
+                        directory bool(false)
+                    }
+                    keyLike "testResults", {
+                        testsuites eachLike() {
+                            name string("com.boehringer.frml24113.thefirst.ThefirstApplicationTests")
+                            hostname string("pod-78fd40da-2e86-47bd-b56f-0dabb3231971-mw77k-tv93m")
+                            timestamp string("2021-12-07T12:07:56")
+                            systemErr string("")
+                            testcases eachLike() {
+                                name string("FRML24113163_workingunittest()")
+                                timestamp string("2021-12-07T12:07:56")
+                                systemErr string("")
+                                systemOut string("")
+                                skipped bool(false)
+                                time string("0.612")
+                                classname string("com.boehringer.frml24113.thefirst.ThefirstApplicationTests")
+                            }
+                            tests string("2")
+                            systemOut string("12:07:42.161 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils")
+                            skipped string("0")
+                            errors string("0")
+                            'properties' eachLike([])
+                            failures string("0")
+                            time string("0.677")
+                        }
+                    }
+                }
             }
+        } << defaultBodyParams()
+    }
+
+    Closure defaultBodyParamsWithComponent(component) {
+        return {
             keyLike "repo", {
                 id string("theFirst")
                 type string("ods")
                 keyLike "data", {
-                    keyLike "tests", {
-                        unit eachLike([])
-                    }
                     keyLike "openshift", {
                         keyLike "builds", {
                             keyLike "${component}", {
@@ -217,7 +306,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     type string("ods")
                 }
             }
-        } << defaultBodyParams()
+        } << defaultBodyParamsWithTests()
     }
 
     Map projectData(docType){

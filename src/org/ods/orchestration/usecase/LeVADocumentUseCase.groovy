@@ -175,7 +175,7 @@ class LeVADocumentUseCase {
     }
 
     String createTCR(Map repo = null, Map data) {
-        return createDocWithDefaultParams(DocumentType.TRC)
+        return createDocWithTestDataParams(DocumentType.TCR, data)
     }
 
     String createDTR(Map repo, Map data) {
@@ -189,16 +189,11 @@ class LeVADocumentUseCase {
     }
 
     String createCFTR(Map repo = null, Map data) {
-        logger.debug("createCFTR - data:${data}")
-
-        def uri = ""
-        return uri
+        return createDocWithTestDataParams(DocumentType.CFTR, data)
     }
 
     String createIVR(Map repo = null, Map data) {
-        logger.debug("createIVR - data:${data}")
-        def uri = ""
-        return uri
+        return createDocWithTestDataParams(DocumentType.IVR, data)
     }
 
     String createTIR(Map repo, Map data) {
@@ -216,28 +211,25 @@ class LeVADocumentUseCase {
         return DocumentType.values().collect { it as String }
     }
 
-    private String createDocWithDefaultParams(DocumentType documentType) {
-        logger.info("create document ${documentType} start")
-        Map data = getDefaultParams()
-        Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), data)
+    private String createDoc(DocumentType documentType, Map params) {
+        Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), params)
         logger.info("create document ${documentType} return:${document.nexusURL}")
         return document.nexusURL
+    }
+
+    private String createDocWithDefaultParams(DocumentType documentType) {
+        logger.info("create document ${documentType} start")
+        return createDoc(documentType, getDefaultParams())
     }
 
     private String createDocWithTestDataParams(DocumentType documentType, Map testData) {
         logger.info("create document ${documentType} start, data:${prettyPrint(toJson(testData))}")
-        Map data = getTestDataParams(testData)
-        Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), data)
-        logger.info("create document ${documentType} return:${document.nexusURL}")
-        return document.nexusURL
+        return createDoc(documentType, getTestDataParams(testData))
     }
 
     private String createDocWithComponentDataParams(DocumentType documentType, Map repo, Map testData) {
         logger.info("create document ${documentType} start, repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(testData))}")
-        Map data = getComponentDataParams(testData, repo)
-        Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), data)
-        logger.info("create document ${documentType} return:${document.nexusURL}")
-        return document.nexusURL
+        return createDoc(documentType, getComponentDataParams(testData, repo))
     }
 
     Map getDefaultParams() {
@@ -251,5 +243,4 @@ class LeVADocumentUseCase {
     Map getComponentDataParams(Map testData, Map repo) {
         return new ComponentDataLeVADocumentParamsMapper(this.project, this.steps, testData, repo).build()
     }
-
 }
