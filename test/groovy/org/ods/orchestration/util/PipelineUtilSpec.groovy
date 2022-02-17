@@ -4,6 +4,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -194,6 +195,113 @@ class PipelineUtilSpec extends SpecHelper {
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Zip file. 'files' is undefined."
     }
+
+    def "create Zip artifact from InputStreams"() {
+        given:
+        File logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
+        File logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
+
+        when:
+        def name = "myZipArtifact"
+        FileInputStream isFile1 = new FileInputStream(logFile1.getAbsolutePath())
+        FileInputStream isFile2 = new FileInputStream(logFile1.getAbsolutePath())
+        WeakPair<String, InputStream> file1 = new WeakPair<>("logFile1", isFile1)
+        WeakPair<String, InputStream> file2 = new WeakPair<>("logFile1", isFile2)
+        WeakPair<String, InputStream> [] files = [file1, file2]
+        def result = util.createZipArtifact(name, files)
+
+        then:
+        1 * util.createZipFile(*_)
+
+        then:
+        1 * util.archiveArtifact(*_)
+
+        then:
+        result.size() != 0
+
+        cleanup:
+        logFile1.delete()
+        logFile2.delete()
+    }
+
+    def "create Zip artifact with invalid name from InputStreams"() {
+        when:
+        WeakPair<String, InputStream> [] files = [:]
+        util.createZipArtifact(null, files)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to create Zip artifact. 'name' is undefined."
+
+        when:
+        util.createZipArtifact("", [:])
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to create Zip artifact. 'name' is undefined."
+    }
+
+    def "create Zip artifact with invalid files from InputStreams"() {
+        when:
+        WeakPair<String, InputStream> [] files = null
+        util.createZipArtifact("myZipArtifact", files)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to create Zip artifact. 'files' is undefined."
+    }
+
+    def "create Zip file from InputStreams"() {
+        given:
+        File logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
+        File logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
+
+        when:
+        def path = "${steps.env.WORKSPACE}/my.zip"
+        FileInputStream isFile1 = new FileInputStream(logFile1.getAbsolutePath())
+        FileInputStream isFile2 = new FileInputStream(logFile1.getAbsolutePath())
+        WeakPair<String, InputStream> file1 = new WeakPair<>("logFile1", isFile1)
+        WeakPair<String, InputStream> file2 = new WeakPair<>("logFile1", isFile2)
+        WeakPair<String, InputStream> [] files = [file1, file2]
+
+        def result = util.createZipFile(path, files)
+
+        then:
+        result.size() != 0
+
+        cleanup:
+        logFile1.delete()
+        logFile2.delete()
+        Paths.get(path).toFile().delete()
+    }
+
+    def "create Zip file from InputStreams with invalid name"() {
+        when:
+        WeakPair<String, InputStream> [] files = [:]
+        util.createZipFile(null, files)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to create Zip file. 'path' is undefined."
+
+        when:
+        util.createZipFile("", files)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to create Zip file. 'path' is undefined."
+    }
+
+    def "create Zip file from InputStreams with invalid files"() {
+        when:
+        WeakPair<String, InputStream> [] files = null
+        util.createZipFile("my.zip", files)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Error: unable to create Zip file. 'files' is undefined."
+    }
+
 
     def "execute block and fail build"() {
         given:

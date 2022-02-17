@@ -4,7 +4,6 @@ package org.ods.orchestration.util
 @Grab('org.yaml:snakeyaml:1.24')
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 
@@ -93,7 +92,7 @@ class PipelineUtil {
         return result
     }
 
-    byte[] createZipArtifact(String name, Map<String, InputStream> files, boolean doCreateArtifact = true) {
+    byte[] createZipArtifact(String name, WeakPair<String, InputStream> [] files, boolean doCreateArtifact = true) {
         if (!name?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
         }
@@ -156,7 +155,7 @@ class PipelineUtil {
     }
 
     @NonCPS
-    byte[] createZipFile(String path, Map<String, InputStream> files) {
+    byte[] createZipFile(String path, WeakPair<String, InputStream>[] files) {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined.")
         }
@@ -170,7 +169,9 @@ class PipelineUtil {
 
         // Create the Zip file
         def zipFile = new ZipFile(path)
-        files.each { filePath, inputStream ->
+        files.each { pair ->
+            String filePath = pair.getFirst()
+            InputStream inputStream = pair.getSecond()
             def params = new ZipParameters()
             params.setFileNameInZip(filePath)
             zipFile.addStream(inputStream, params)

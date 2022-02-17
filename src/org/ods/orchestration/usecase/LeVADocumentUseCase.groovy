@@ -9,6 +9,7 @@ import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.util.WeakPair
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
@@ -204,15 +205,15 @@ class LeVADocumentUseCase {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
         def uri = ""
 
-        uploadJenkinsJobLog(repo.repo)
+        uploadJenkinsJobLog((String) repo.repo)
         return uri
     }
 
     private uploadJenkinsJobLog(String componentId) {
         String fileName = "jenkinsJobLog"
         InputStream logInputStream = this.jenkins.getCurrentBuildLogInputStream()
-        Map<String, InputStream> files = new HashMap<String, InputStream>()
-        files.put(fileName + ".txt", logInputStream)
+        WeakPair<String, InputStream> file = new WeakPair<String, InputStream>(fileName + ".txt", logInputStream)
+        WeakPair<String, InputStream> [] files = [ file ]
         byte[] zipArtifact = util.createZipArtifact(fileName + ".zip", files, true)
 
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
