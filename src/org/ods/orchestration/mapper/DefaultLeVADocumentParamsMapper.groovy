@@ -6,10 +6,12 @@ import org.ods.util.IPipelineSteps
 class DefaultLeVADocumentParamsMapper {
     private final Project project
     private final IPipelineSteps steps
+    private final Map data
 
-    DefaultLeVADocumentParamsMapper(Project project, IPipelineSteps steps) {
+    DefaultLeVADocumentParamsMapper(Project project, IPipelineSteps steps, Map data = [:]) {
         this.project = project
         this.steps = steps
+        this.data = data
     }
 
     Map build() {
@@ -42,6 +44,6 @@ class DefaultLeVADocumentParamsMapper {
             openshift: [
                 targetApiUrl: this.project.getOpenShiftApiUrl() //TODO is different?
             ]
-        ]
+        ] << data
     }
 }

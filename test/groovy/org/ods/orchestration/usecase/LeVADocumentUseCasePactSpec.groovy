@@ -5,11 +5,7 @@ import groovy.util.logging.Slf4j
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
-import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
-import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithComponent
-import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithTestData
-import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
-import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.core.test.usecase.levadoc.fixture.*
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
@@ -58,12 +54,12 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", params)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
-                withBody([prettyPrint:true], defaultBodyParams())
+                withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody {
-                    nexusURL  url("http://lalala", urlReturnFile)
+                    nexusURL url("http://lalala", urlReturnFile)
                 }
-                runTestAndVerify {  context ->
+                runTestAndVerify { context ->
                     String response = executeLeVADocumentUseCaseMethod(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
                 }
@@ -90,12 +86,12 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", params)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
-                withBody([prettyPrint:true], defaultBodyParamsWithTests())
+                withBody([prettyPrint: true], defaultBodyParamsWithTests())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody {
-                    nexusURL  url("http://lalala", urlReturnFile)
+                    nexusURL url("http://lalala", urlReturnFile)
                 }
-                runTestAndVerify {  context ->
+                runTestAndVerify { context ->
                     String response = executeLeVADocumentUseCaseMethodWithTestData(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
                 }
@@ -122,12 +118,12 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", params)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
-                withBody([prettyPrint:true], defaultBodyParamsWithComponent(projectFixture.getComponent()))
+                withBody([prettyPrint: true], defaultBodyParamsWithComponent(projectFixture.getComponent()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody {
-                    nexusURL  url("http://lalala", urlReturnFile)
+                    nexusURL url("http://lalala", urlReturnFile)
                 }
-                runTestAndVerify {  context ->
+                runTestAndVerify { context ->
                     String response = executeLeVADocumentUseCaseMethodWithComponent(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
                 }
@@ -145,7 +141,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     private String executeLeVADocumentUseCaseMethodWithTestData(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = fixture.getInputParamsModule(projectFixture,useCase)
+        Map repo = fixture.getInputParamsModule(projectFixture, useCase)
         Map tests = repo.data.tests
         return useCase."create${projectFixture.docType}"(null, tests)
     }
@@ -153,13 +149,13 @@ class LeVADocumentUseCasePactSpec extends Specification {
     private String executeLeVADocumentUseCaseMethodWithComponent(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = fixture.getInputParamsModule(projectFixture,useCase)
+        Map repo = fixture.getInputParamsModule(projectFixture, useCase)
         Map tests = repo.data.tests
         repo.data.remove('tests')
         return useCase."create${projectFixture.docType}"(repo, tests)
     }
 
-    private Closure defaultBodyParams(){
+    private Closure defaultBodyParams() {
         return {
             keyLike "build", {
                 targetEnvironment string("dev")
@@ -307,8 +303,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
         } << defaultBodyParamsWithTests()
     }
 
-    Map projectData(docType){
-        return [project:"FRML24113", buildNumber:"666", version: "WIP", docType: docType]
+    Map projectData(docType) {
+        return [project: "FRML24113", buildNumber: "666", version: "WIP", docType: docType]
     }
 
     private LevaDocUseCaseFactory getLevaDocUseCaseFactory(ProjectFixture projectFixture) {
