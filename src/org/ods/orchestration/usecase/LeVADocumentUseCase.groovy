@@ -205,11 +205,11 @@ class LeVADocumentUseCase {
         def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
         def uri = ""
 
-        uploadJenkinsJobLog((String) repo.repo)
+        uploadJenkinsJobLog()
         return uri
     }
 
-    private uploadJenkinsJobLog(String componentId) {
+    private uploadJenkinsJobLog() {
         String fileName = "jenkinsJobLog"
         InputStream logInputStream = this.jenkins.getCurrentBuildLogInputStream()
         WeakPair<String, InputStream> file = new WeakPair<String, InputStream>(fileName + ".txt", logInputStream)
@@ -219,8 +219,8 @@ class LeVADocumentUseCase {
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
             "${nexusRepository}",
-            "${this.projectId}/${componentId}/${this.buildNumber}",
-            "${fileName}.html",
+            "${this.projectId}/${this.buildNumber}",
+            "${fileName}.zip",
             zipArtifact, "application/octet-binary")
         // "text/html"
 
