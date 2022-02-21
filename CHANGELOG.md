@@ -5,6 +5,8 @@
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 - Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
 - Remove call to a cps method from a non_cps method ([852](https://github.com/opendevstack/ods-jenkins-shared-library/pull/852))
+- JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#894](https://github.com/opendevstack/ods-jenkins-shared-library/issues/849))
+
 ## [4.0] - 2021-05-11
 
 ### Added
