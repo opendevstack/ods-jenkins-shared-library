@@ -184,9 +184,7 @@ class LeVADocumentUseCase {
     }
 
     String createOverallDTR(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
-        def uri = ""
-        return uri
+        createDocWithDefaultParams(DocumentType.OVERALL_DTR)
     }
 
     String createCFTR(Map repo = null, Map data) {
@@ -202,11 +200,8 @@ class LeVADocumentUseCase {
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
-        def uri = ""
-
         uploadJenkinsJobLog()
-        return uri
+        return createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
 
     private uploadJenkinsJobLog() {

@@ -133,9 +133,46 @@ class LeVADocumentUseCasePactSpec extends Specification {
         projectFixture << new DocTypeProjectFixtureWithComponent().getProjects()
     }
 
+    @Unroll
+    def "Consumer contract test docType:OVERALL_#projectFixture.docType (docType -overall- with default params)"() {
+        given:
+        String docTypeGroup = "overall"
+        String docType = "OVERALL_${projectFixture.getDocType()}"
+        Map params = projectData(docType)
+        String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+        String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
+
+        expect: "Build the contract and execute against the generated wiremock"
+        new PactBuilder()
+            .with {
+                serviceConsumer "buildDocument.${docTypeGroup}"
+                hasPactWith "createDoc.${docTypeGroup}"
+                given("project with data:", params)
+                uponReceiving("a request for /buildDocument ${docType}")
+                withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
+                withBody([prettyPrint: true], defaultBodyParams())
+                willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
+                withBody {
+                    nexusURL url("http://lalala", urlReturnFile)
+                }
+                runTestAndVerify { context ->
+                    String response = executeLeVADocumentUseCaseOverallMethod(projectFixture, context.url)
+                    assert response == "http://lalala/${urlReturnFile}"
+                }
+            }
+
+        where:
+        projectFixture << new DocTypeProjectFixturesOverall().getProjects()
+    }
+
     private String executeLeVADocumentUseCaseMethod(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         return useCase."create${projectFixture.docType}"()
+    }
+
+    private String executeLeVADocumentUseCaseOverallMethod(ProjectFixture projectFixture, String wiremockURL) {
+        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
+        return useCase."createOverall${projectFixture.docType}"()
     }
 
     private String executeLeVADocumentUseCaseMethodWithTestData(ProjectFixture projectFixture, String wiremockURL) {
