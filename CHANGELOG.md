@@ -76,6 +76,7 @@
 - Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
 - Set test summary for empty description in TCR for acceptance tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/844))
 - Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
+- Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ## [3.0] - 2020-08-11
 
