@@ -184,9 +184,7 @@ class LeVADocumentUseCase {
     }
 
     String createOverallDTR(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_DTR as String]
-        def uri = ""
-        return uri
+        createDocWithDefaultParams(DocumentType.OVERALL_DTR)
     }
 
     String createCFTR(Map repo = null, Map data) {
@@ -202,10 +200,10 @@ class LeVADocumentUseCase {
     }
 
     String createOverallTIR(Map repo = null, Map data = null) {
-        def documentTypeName = DOCUMENT_TYPE_NAMES[DocumentType.OVERALL_TIR as String]
-        def uri = ""
+        // TODO review the repo: https://github.com/opendevstack/ods-jenkins-shared-library/blob/master/src/org/ods/orchestration/usecase/LeVADocumentUseCase.groovy#L1125
+        //uploadJenkinsJobLog((String) repo.repo)
+        def uri = createDocWithDefaultParams(DocumentType.OVERALL_TIR)
 
-        uploadJenkinsJobLog((String) repo.repo)
         return uri
     }
 
