@@ -202,9 +202,7 @@ class LeVADocumentUseCase {
     String createOverallTIR(Map repo = null, Map data = null) {
         // TODO review the repo: https://github.com/opendevstack/ods-jenkins-shared-library/blob/master/src/org/ods/orchestration/usecase/LeVADocumentUseCase.groovy#L1125
         //uploadJenkinsJobLog((String) repo.repo)
-        def uri = createDocWithDefaultParams(DocumentType.OVERALL_TIR)
-
-        return uri
+        return createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
 
     private uploadJenkinsJobLog(String componentId) {
