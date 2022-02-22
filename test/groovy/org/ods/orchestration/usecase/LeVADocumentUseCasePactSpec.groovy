@@ -351,6 +351,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         // Mocks generation (spock don't let you add this outside a Spec)
         JenkinsService jenkins = Mock(JenkinsService)
         jenkins.unstashFilesIntoPath(_, _, _) >> true
+        jenkins.getCurrentBuildLogInputStream() >> new ByteArrayInputStream()
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
         BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(null, null, null))
