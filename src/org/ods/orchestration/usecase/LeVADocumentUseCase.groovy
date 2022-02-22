@@ -28,7 +28,6 @@ class LeVADocumentUseCase {
     private final JenkinsService jenkins
     private final NexusService nexus
     private final PDFUtil pdf
-    private final String buildNumber
 
     enum DocumentType {
 
@@ -130,7 +129,6 @@ class LeVADocumentUseCase {
         this.sq = sq
         this.bbt = bbt
         this.logger = logger
-        this.buildNumber = project.steps.env.BUILD_NUMBER
     }
 
     String createCSD(Map repo = null, Map data = null) {
@@ -205,6 +203,7 @@ class LeVADocumentUseCase {
     private uploadJenkinsJobLog() {
         String fileName = "jenkinsJobLog"
         String projectId = project.getJiraProjectKey()
+        String buildNumber = project.steps.env.BUILD_NUMBER
 
         InputStream logInputStream = this.jenkins.getCurrentBuildLogInputStream()
         WeakPair<String, InputStream> file = new WeakPair<String, InputStream>(fileName + ".txt", logInputStream)
@@ -214,7 +213,7 @@ class LeVADocumentUseCase {
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
             "${nexusRepository}",
-            "${projectId}/${this.buildNumber}",
+            "${projectId}/${buildNumber}",
             "${fileName}.zip",
             zipArtifact, "application/octet-binary")
         // "text/html"
@@ -231,6 +230,7 @@ class LeVADocumentUseCase {
 
     private String createDoc(DocumentType documentType, Map params) {
         String projectId = project.getJiraProjectKey()
+        String buildNumber = project.steps.env.BUILD_NUMBER
         Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), params)
         logger.info("create document ${documentType} return:${document.nexusURL}")
         return document.nexusURL
