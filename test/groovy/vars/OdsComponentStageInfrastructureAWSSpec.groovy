@@ -41,7 +41,7 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         IContext context = new Context(null, c, logger)
 
         InfrastructureService infrastructureService = Stub(InfrastructureService.class)
-        infrastructureService.scanViaCli(*_) >> 0
+        infrastructureService.runMake(*_) >> 0
         ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
 
         BitbucketService bitbucketService = Stub(BitbucketService.class)
@@ -70,7 +70,7 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         IContext context = new Context(null, c, logger)
 
         InfrastructureService infrastructureService = Stub(InfrastructureService.class)
-        infrastructureService.scanViaCli(*_) >> 0
+        infrastructureService.runMake(*_) >> 0
         ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
 
         BitbucketService bitbucketService = Stub(BitbucketService.class)
@@ -98,4 +98,47 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         assertJobStatusSuccess()
     }
 
+    def "Run failed when runMake fails"() {
+        given:
+        def c = config + [environment: 'dev']
+        IContext context = new Context(null, c, logger)
+
+        InfrastructureService infrastructureService = Stub(InfrastructureService.class)
+        infrastructureService.runMake(rule, *_) >> 1
+        ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
+
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        bitbucketService.createCodeInsightReport(*_) >> null
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageInfrastructureAWS.groovy')
+        helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('readYaml', [ Map ]) { [
+            account: "anAwsAccount",
+            credentials: [key: "aKey", secret: "aSecret"]
+        ] }
+        helper.registerAllowedMethod('readJSON', [ Map ]) { [
+            meta_environment: "development"
+        ] }
+        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context)
+
+        then:
+        printCallStack()
+        assertCallStackContains(errorMessage)
+        assertJobStatusFailure()
+
+        where:
+        rule                || errorMessage
+        'create-tfvars'     || 'Creation of tfvars failed!'
+        'test'              || 'AWS IaC - Testing stage failed!'
+        'plan'              || 'AWS IaC - Plan stage failed!'
+        'deploy'            || 'AWS IaC - Deploy stage failed!'
+        'smoke-test'        || 'AWS IaC - Smoke-test stage failed!'
+        'install-report'    || 'AWS IaC - Report stage failed!'
+    }
 }
