@@ -76,7 +76,7 @@
 - Integrate with new DocGen service, which implements all functionality previously in LevaDocUseCase.
 - Removes NonCPS to CPS methods call in DocGenScheduler and LeVADocumentScheduler.
 - Uses Nexus to store test results and jenkins job logs. Keys of tests urls sent to docGen go always in lower case. Pact Tests architecture fixed.
-
+- Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ## [3.0] - 2020-08-11
 
