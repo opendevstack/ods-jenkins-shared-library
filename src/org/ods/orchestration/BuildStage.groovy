@@ -2,6 +2,7 @@ package org.ods.orchestration
 
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
+import org.ods.orchestration.util.JobResultsUploadToNexus
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import org.ods.services.ServiceRegistry
@@ -47,6 +48,10 @@ class BuildStage extends Stage {
                         [Project.TestType.UNIT],
                         data.tests.unit.testResults
                     )
+
+                    // JobResultsUploadToNexus jobResultsUploadToNexus = new JobResultsUploadToNexus()
+                    // jobResultsUploadToNexus.uploadUnitTestsResults(project, data.tests.unit.testReportFiles as List<File>)
+
                     // we check in any case ... (largely because the above call will
                     // return immediatly when no jira adapter is configured).
                     // this  will set failedTests if any xunit tests have failed
