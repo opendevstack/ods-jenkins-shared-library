@@ -16,5 +16,9 @@ class ServiceRegistry {
     def clear() {
         registry.clear()
     }
+  
+    def getAllServices() {
+        return registry
+    }
 
 }
