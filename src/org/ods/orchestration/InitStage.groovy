@@ -1,5 +1,6 @@
 package org.ods.orchestration
 
+import org.ods.orchestration.util.JobResultsUploadToNexus
 import org.ods.services.ServiceRegistry
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
@@ -243,6 +244,15 @@ class InitStage extends Stage {
                 logger
             )
         )
+
+        registry.add(JobResultsUploadToNexus,
+            new JobResultsUploadToNexus(
+                registry.get(MROPipelineUtil),
+                registry.get(NexusService),
+                logger
+            )
+        )
+         jobResultsUploadToNexus = new JobResultsUploadToNexus()
 
         git.configureUser()
         steps.withCredentials(
