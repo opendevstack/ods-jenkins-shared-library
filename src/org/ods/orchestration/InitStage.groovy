@@ -252,7 +252,6 @@ class InitStage extends Stage {
                 logger
             )
         )
-         jobResultsUploadToNexus = new JobResultsUploadToNexus()
 
         git.configureUser()
         steps.withCredentials(
