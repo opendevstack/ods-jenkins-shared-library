@@ -13,5 +13,5 @@ class InfrastructureOptions extends Options {
      * Name of `BuildConfig`/`ImageStream` to use (defaults to `context.componentId`). */
     String resourceName
     String envPath
-    
+
 }

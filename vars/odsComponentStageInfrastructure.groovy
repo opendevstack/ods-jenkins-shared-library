@@ -49,7 +49,7 @@ def call(IContext context, Map config = [:]) {
     }
     if (!infrastructureService.CLOUD_PROVIDERS.contains(config.cloudProvider)) {
         error "Cloud provider value does not exist!"
-    } 
+    }
     if (!config.resourceName) {
         config.resourceName = context.componentId
     }
