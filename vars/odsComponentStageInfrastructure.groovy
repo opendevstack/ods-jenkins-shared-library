@@ -47,6 +47,9 @@ def call(IContext context, Map config = [:]) {
     if (!config.cloudProvider) {
         config.cloudProvider = infrastructureService.CLOUD_PROVIDER_AWS
     }
+    if (!infrastructureService.CLOUD_PROVIDERS.contains(config.cloudProvider)) {
+        error "Cloud provider value does not exist!"
+    } 
     if (!config.resourceName) {
         config.resourceName = context.componentId
     }
