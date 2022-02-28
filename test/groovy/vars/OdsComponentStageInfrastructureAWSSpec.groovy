@@ -138,7 +138,7 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         'test'              || 'AWS IaC - Testing stage failed!'
         'plan'              || 'AWS IaC - Plan stage failed!'
         'deploy'            || 'AWS IaC - Deploy stage failed!'
-        'smoke-test'        || 'AWS IaC - Smoke-test stage failed!'
+        'deployment-test'   || 'AWS IaC - Deployment-Test stage failed!'
         'install-report'    || 'AWS IaC - Report stage failed!'
     }
 }

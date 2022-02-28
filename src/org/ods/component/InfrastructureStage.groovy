@@ -60,9 +60,9 @@ class InfrastructureStage extends Stage {
             if (runMake("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("AWS IaC - Deploy stage failed!")
             }
-            if (runMake("smoke-test",
+            if (runMake("deployment-test",
                               environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
-                script.error("AWS IaC - Smoke-test stage failed!")
+                script.error("AWS IaC - Deployment-Test stage failed!")
             }
             if (runMake("install-report", [:], null as String, null as String) != 0) {
                 script.error("AWS IaC - Report stage failed!")
