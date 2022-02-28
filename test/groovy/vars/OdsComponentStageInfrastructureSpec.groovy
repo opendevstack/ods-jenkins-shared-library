@@ -13,7 +13,7 @@ import org.ods.util.Logger
 import spock.lang.Shared
 import vars.test_helper.PipelineSpockTestBase
 
-class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
+class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
     private Logger logger = Mock(Logger)
 
     @Shared
@@ -49,7 +49,7 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(BitbucketService, bitbucketService)
 
         when:
-        def script = loadScript('vars/odsComponentStageInfrastructureAWS.groovy')
+        def script = loadScript('vars/odsComponentStageInfrastructure.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readJSON', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readYaml', [ Map ]) { Map args -> }
@@ -78,7 +78,7 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(BitbucketService, bitbucketService)
 
         when:
-        def script = loadScript('vars/odsComponentStageInfrastructureAWS.groovy')
+        def script = loadScript('vars/odsComponentStageInfrastructure.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readYaml', [ Map ]) { [
             account: "anAwsAccount",
@@ -112,7 +112,7 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         ServiceRegistry.instance.add(BitbucketService, bitbucketService)
 
         when:
-        def script = loadScript('vars/odsComponentStageInfrastructureAWS.groovy')
+        def script = loadScript('vars/odsComponentStageInfrastructure.groovy')
         helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('readYaml', [ Map ]) { [
             account: "anAwsAccount",
@@ -135,10 +135,12 @@ class OdsComponentStageInfrastructureAWSSpec extends PipelineSpockTestBase {
         where:
         rule                || errorMessage
         'create-tfvars'     || 'Creation of tfvars failed!'
-        'test'              || 'AWS IaC - Testing stage failed!'
-        'plan'              || 'AWS IaC - Plan stage failed!'
-        'deploy'            || 'AWS IaC - Deploy stage failed!'
-        'deployment-test'   || 'AWS IaC - Deployment-Test stage failed!'
-        'install-report'    || 'AWS IaC - Report stage failed!'
+        'test'              || 'IaC - Testing stage failed!'
+        'plan'              || 'IaC - Plan stage failed!'
+        'deploy'            || 'IaC - Deploy stage failed!'
+        'deployment-test'   || 'IaC - Deployment-Test stage failed!'
+        'install-report'    || 'IaC - Report stage failed!'
     }
 }
+
+

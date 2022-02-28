@@ -8,7 +8,7 @@ import org.ods.util.ILogger
 @TypeChecked
 class InfrastructureStage extends Stage {
 
-    static final String STAGE_NAME = 'AWS Infrastructure as Code (IaC)'
+    static final String STAGE_NAME = 'Infrastructure as Code (IaC)'
     private final def script
 
     private final InfrastructureService infrastructure
@@ -47,25 +47,25 @@ class InfrastructureStage extends Stage {
         }
     }
 
-    // called from odsComponentStageInfrustructureAWS execute
+    // called from odsComponentStageInfrustructure execute
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
         if (runMake("test", environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
-            script.error("AWS IaC - Testing stage failed!")
+            script.error("IaC - Testing stage failed!")
         }
         if (stackDeploy) {
             if (runMake("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
-                script.error("AWS IaC - Plan stage failed!")
+                script.error("IaC - Plan stage failed!")
             }
             if (runMake("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
-                script.error("AWS IaC - Deploy stage failed!")
+                script.error("IaC - Deploy stage failed!")
             }
             if (runMake("deployment-test",
                               environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
-                script.error("AWS IaC - Deployment-Test stage failed!")
+                script.error("IaC - Deployment-Test stage failed!")
             }
             if (runMake("install-report", [:], null as String, null as String) != 0) {
-                script.error("AWS IaC - Report stage failed!")
+                script.error("IaC - Report stage failed!")
             }
 
             script.stash(
@@ -90,11 +90,11 @@ class InfrastructureStage extends Stage {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private int runMake(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
-        script.stage("AWS IaC - ${rule}") {
+        script.stage("IaC - ${rule}") {
             logger.startClocked(options.resourceName)
             int returnCode = infrastructure.runMake(rule, environmentVars, tfBackendS3Key, workspace)
             logResult(rule, returnCode)
-            logger.infoClocked(options.resourceName, "AWS Infrastructure as Code (via Makefile)")
+            logger.infoClocked(options.resourceName, "Infrastructure as Code (via Makefile)")
             return returnCode
         }
     }
@@ -102,13 +102,13 @@ class InfrastructureStage extends Stage {
     private logResult(String rule, int returnCode) {
         switch (returnCode) {
             case 0:
-                logger.info "Finished AWS IaC make ${rule} successfully!"
+                logger.info "Finished IaC make ${rule} successfully!"
                 break
             case 1:
-                logger.info "AWS IaC make ${rule} failed. See logs for further information."
+                logger.info "IaC make ${rule} failed. See logs for further information."
                 break
             default:
-                logger.info "AWS IaC make ${rule} unknown return code: ${returnCode}"
+                logger.info "IaC make ${rule} unknown return code: ${returnCode}"
         }
     }
 

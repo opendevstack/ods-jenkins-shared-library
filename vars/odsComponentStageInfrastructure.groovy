@@ -44,12 +44,16 @@ def call(IContext context, Map config = [:]) {
         GitCredentialStore.configureAndStore(this, context.bitbucketUrl, username, pw)
     }
 
+    if (!config.cloudProvider) {
+        config.cloudProvider = infrastructureService.CLOUD_PROVIDER_AWS
+    }
     if (!config.resourceName) {
         config.resourceName = context.componentId
     }
     if (!config.envPath) {
         config.envPath = "./environments"
     }
+    // TODO: once we have other cloud providers move some initialisation logic to service
     def environmentVarsTesting  = steps.readYaml(file: "${config.envPath}/testing.yml")
     def environmentVars = null
     def tfVars = null

@@ -10,6 +10,10 @@ class InfrastructureService {
 
     private final IPipelineSteps steps
     private final ILogger logger
+    static final String CLOUD_PROVIDER_AWS = 'AWS'
+    static final List CLOUD_PROVIDERS = [
+        CLOUD_PROVIDER_AWS,
+    ]
 
     InfrastructureService(IPipelineSteps steps, ILogger logger) {
         this.steps = steps
