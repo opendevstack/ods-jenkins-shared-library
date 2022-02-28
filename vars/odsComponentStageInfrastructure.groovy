@@ -54,16 +54,16 @@ def call(IContext context, Map config = [:]) {
         config.envPath = "./environments"
     }
     // TODO: once we have other cloud providers move some initialisation logic to service
-    def environmentVarsTesting  = steps.readYaml(file: "${config.envPath}/testing.yml")
+    def environmentVarsTesting  = readYaml(file: "${config.envPath}/testing.yml")
     def environmentVars = null
     def tfVars = null
 
     if (context.environment) {
-        environmentVars = steps.readYaml(file: "${config.envPath}/${context.environment}.yml")
+        environmentVars = readYaml(file: "${config.envPath}/${context.environment}.yml")
 
         // handle environment specific variables
         // copy json from ${config.envPath}/${context.environment}.auto.tfvars.json to /
-        if (steps.fileExists("${config.envPath}/${context.environment}.json")) {
+        if (fileExists("${config.envPath}/${context.environment}.json")) {
             withEnv(["VARIABLESFILE=${config.envPath}/${context.environment}.json"])
             {
                 def statusVarEnv = sh(
@@ -80,7 +80,7 @@ def call(IContext context, Map config = [:]) {
         if (status != 0) {
             error "Creation of tfvars failed!"
         }
-        tfVars = steps.readJSON(file: "terraform.tfvars.json")
+        tfVars = readJSON(file: "terraform.tfvars.json")
     } else {
         logger.info("No deployment target set. Only Testing Sandbox stage will be executed.")
     }
