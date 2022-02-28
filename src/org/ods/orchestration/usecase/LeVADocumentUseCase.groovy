@@ -6,6 +6,7 @@ import org.ods.orchestration.mapper.DefaultLeVADocumentParamsMapper
 import org.ods.orchestration.mapper.TestDataLeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
+import org.ods.orchestration.util.DocumentHistoryEntry
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.Project
@@ -132,7 +133,9 @@ class LeVADocumentUseCase {
     }
 
     String createCSD(Map repo = null, Map data = null) {
-        return createDocWithDefaultParams(DocumentType.CSD)
+        DocumentType documentType = DocumentType.CSD
+        List<DocumentHistoryEntry> docHistoryList = createDocWithDefaultParams(documentType)
+        this.project.setHistoryForDocument(docHistoryList, documentType)
     }
 
     String createDIL(Map repo = null, Map data = null) {
@@ -228,7 +231,7 @@ class LeVADocumentUseCase {
         return DocumentType.values().collect { it as String }
     }
 
-    private String createDoc(DocumentType documentType, Map params) {
+    private List<DocumentHistoryEntry> createDoc(DocumentType documentType, Map params) {
         String projectId = project.getJiraProjectKey()
         String buildNumber = project.steps.env.BUILD_NUMBER
         Map document = docGen.createDocument(projectId, buildNumber, documentType.toString(), params)
@@ -236,7 +239,7 @@ class LeVADocumentUseCase {
         return document.nexusURL
     }
 
-    private String createDocWithDefaultParams(DocumentType documentType) {
+    private List<DocumentHistoryEntry> createDocWithDefaultParams(DocumentType documentType) {
         logger.info("create document ${documentType} start")
         return createDoc(documentType, getDefaultParams())
     }
