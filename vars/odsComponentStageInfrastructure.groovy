@@ -44,11 +44,8 @@ def call(IContext context, Map config = [:]) {
         GitCredentialStore.configureAndStore(this, context.bitbucketUrl, username, pw)
     }
 
-    if (!config.cloudProvider) {
-        config.cloudProvider = infrastructureService.CLOUD_PROVIDER_AWS
-    }
     if (!infrastructureService.CLOUD_PROVIDERS.contains(config.cloudProvider)) {
-        error "Cloud provider value does not exist!"
+        error "Cloud provider ${config.cloudProvider} not in supported list: ${infrastructureService.CLOUD_PROVIDERS}"
     }
     if (!config.resourceName) {
         config.resourceName = context.componentId

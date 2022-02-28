@@ -38,6 +38,7 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
     def "Run successfully without target environment"() {
         given:
         def c = config
+        def options = [ cloudProvider: 'AWS' ]
         IContext context = new Context(null, c, logger)
 
         InfrastructureService infrastructureService = Stub(InfrastructureService.class)
@@ -57,7 +58,7 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
-        script.call(context)
+        script.call(context, options)
 
         then:
         printCallStack()
@@ -67,6 +68,7 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
     def "Run successfully with target environment"() {
         given:
         def c = config + [environment: 'dev']
+        def options = [ cloudProvider: 'AWS' ]
         IContext context = new Context(null, c, logger)
 
         InfrastructureService infrastructureService = Stub(InfrastructureService.class)
@@ -91,7 +93,7 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
-        script.call(context)
+        script.call(context, options)
 
         then:
         printCallStack()
@@ -101,6 +103,7 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
     def "Run failed when runMake fails"() {
         given:
         def c = config + [environment: 'dev']
+        def options = [ cloudProvider: 'AWS' ]
         IContext context = new Context(null, c, logger)
 
         InfrastructureService infrastructureService = Stub(InfrastructureService.class)
@@ -125,7 +128,7 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
         helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
-        script.call(context)
+        script.call(context, options)
 
         then:
         printCallStack()
@@ -141,6 +144,50 @@ class OdsComponentStageInfrastructureSpec extends PipelineSpockTestBase {
         'deployment-test'   || 'IaC - Deployment-Test stage failed!'
         'install-report'    || 'IaC - Report stage failed!'
     }
+
+    def "Run failed when no right cloud provider"() {
+        given:
+        def c = config + [environment: 'dev']
+        def options = [ cloudProvider: cloudProvider ]
+        IContext context = new Context(null, c, logger)
+
+        InfrastructureService infrastructureService = Stub(InfrastructureService.class)
+        infrastructureService.runMake(*_) >> 0
+        ServiceRegistry.instance.add(InfrastructureService, infrastructureService)
+
+        BitbucketService bitbucketService = Stub(BitbucketService.class)
+        bitbucketService.createCodeInsightReport(*_) >> null
+        ServiceRegistry.instance.add(BitbucketService, bitbucketService)
+
+        when:
+        def script = loadScript('vars/odsComponentStageInfrastructure.groovy')
+        helper.registerAllowedMethod('readFile', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('readYaml', [ Map ]) { [
+            account: "anAwsAccount",
+            credentials: [key: "aKey", secret: "aSecret"]
+        ] }
+        helper.registerAllowedMethod('readJSON', [ Map ]) { [
+            meta_environment: "development"
+        ] }
+        helper.registerAllowedMethod('sh', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('archiveArtifacts', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('stash', [ Map ]) { Map args -> }
+        helper.registerAllowedMethod('emailext', [ Map ]) { Map args -> }
+        script.call(context, options)
+
+        then:
+        printCallStack()
+        assertCallStackContains(errorMessage)
+        assertJobStatusFailure()
+
+        where:
+        cloudProvider       || errorMessage
+        'AWSS'              || "Cloud provider AWSS not in supported list: ${InfrastructureService.CLOUD_PROVIDERS}"
+        'AW'                || "Cloud provider AW not in supported list: ${InfrastructureService.CLOUD_PROVIDERS}"
+        ''                  || "Cloud provider  not in supported list: ${InfrastructureService.CLOUD_PROVIDERS}"
+        null                || "Cloud provider null not in supported list: ${InfrastructureService.CLOUD_PROVIDERS}"
+    }
+
 }
 
 
