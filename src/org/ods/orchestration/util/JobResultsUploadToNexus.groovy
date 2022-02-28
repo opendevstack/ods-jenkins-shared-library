@@ -5,6 +5,7 @@ import org.ods.services.NexusService
 import org.ods.util.ILogger
 
 import java.nio.file.Files
+import java.nio.file.Path
 
 class JobResultsUploadToNexus {
 
@@ -18,25 +19,31 @@ class JobResultsUploadToNexus {
         this.logger = logger
     }
 
-    void uploadUnitTestsResults(Project project, List<File> filesList) {
+    String uploadUnitTestsResults(Project project, List<File> filesList) {
 
-        String fileName = "jenkinsJobUnitTests"
+        if (filesList.size() <= 0) {
+            logger.warn("Not found unit tests to upload to Nexus.")
+            return null
+        }
+        String fileName = "jenkinsJobUnitTests.zip"
         String projectId = project.getJiraProjectKey()
         String buildNumber = project.steps.env.BUILD_NUMBER
 
-        File tmpZipFile = Files.createTempFile(fileName, ".zip")
+        Path tmpZipFileFolder = Files.createTempDirectory("tmp_folder")
+        File tmpZipFile = new File(fileName, tmpZipFileFolder.toFile())
         def zipFile = new ZipFile(tmpZipFile)
         zipFile.addFiles(filesList)
-        byte[] zipArtifact = util.createZipArtifact(fileName + ".zip", filesList, true)
+        byte[] zipFileBytes = tmpZipFile.getBytes()
 
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
             "${nexusRepository}",
             "${projectId}/${buildNumber}",
             "${fileName}.zip",
-            tmpZipFile.getBytes(), "application/octet-binary")
+            zipFileBytes, "application/octet-binary")
         // "text/html"
 
         logger.info "Unit tests results stored in: ${report}"
+        return report.toString()
     }
 }
