@@ -32,14 +32,14 @@ class JobResultsUploadToNexus {
         File tmpZipFile = new File(fileName, tmpZipFileFolder.toFile())
         def zipFile = new ZipFile(tmpZipFile)
         zipFile.addFiles(filesList)
-        byte[] zipFileBytes = tmpZipFile.getBytes()
 
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
             "${nexusRepository}",
             "${projectId}/${buildNumber}",
-            "${fileName}.zip",
-            zipFileBytes, "application/octet-binary")
+            fileName,
+            tmpZipFile.getBytes(),
+            "application/octet-binary")
         // "text/html"
 
         logger.info "Unit tests results stored in: ${report}"
