@@ -47,7 +47,7 @@ class InitStage extends Stage {
         logger.startClocked("git-releasemanager-${STAGE_NAME}")
         // git checkout
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
-        def gitReleaseManagerBranch
+        def gitReleaseManagerBranch = "WIP"
         if (!Project.isWorkInProgress(buildParams.version)) {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
