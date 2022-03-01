@@ -50,7 +50,9 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
 
-                    jobResultsUploadToNexus.uploadUnitTestsResults(project, data.tests.unit.testReportFiles as List<File>)
+                    project.data.build.unitTestResultsURL = jobResultsUploadToNexus.uploadUnitTestsResults(
+                        project,
+                        data.tests.unit.testReportFiles as List<File>)
 
                     // we check in any case ... (largely because the above call will
                     // return immediatly when no jira adapter is configured).

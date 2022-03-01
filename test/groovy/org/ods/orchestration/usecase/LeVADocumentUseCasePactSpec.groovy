@@ -208,16 +208,17 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildId string("2022-01-22_23-59-59")
                 buildURL url("https//jenkins-sample")
                 jobName string("ofi2004-cd/ofi2004-cd-release-master")
+                unitTestResultsURL url("https//nexus-sample")
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
-                repoURL url("https://bitbucket/scm/ofi2004/ofi2004-release.git")
+                releaseManagerRepo string("ofi2004-release")
                 releaseManagerBranch string("refs/tags/CHG0066328")
                 baseTag string("ods-generated-v3.0-3.0-0b11-D")
                 targetTag string("ods-generated-v3.0-3.0-0b11-D")
                 author string("s2o")
                 message string("Swingin' The Bottle")
-                commitTime string("2021-04-20T14:58:31.042152")
+                time string("2021-04-20T14:58:31.042152")
                 // commitTime timestamp(FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm.ssZZXX").pattern, "2021-04-20T14:58:31.042152")
             }
             keyLike "openshift", {

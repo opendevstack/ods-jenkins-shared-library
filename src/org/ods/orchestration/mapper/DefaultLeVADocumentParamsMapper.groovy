@@ -29,17 +29,18 @@ class DefaultLeVADocumentParamsMapper {
                 releaseParamVersion      : this.steps.env.RELEASE_PARAM_VERSION,
                 buildId                  : this.steps.env.BUILD_ID, // TODO is different?
                 buildURL                 : this.steps.env.BUILD_URL, // TODO is different?
-                jobName                  : this.steps.env.JOB_NAME
+                jobName                  : this.steps.env.JOB_NAME,
+                unitTestResultsURL        : this.project.data.build.unitTestResultsURL,
             ],
             git      : [
                 commit              : this.project.gitData.commit,
-                repoURL             : this.project.gitData.url, // TODO is different?
+                releaseManagerRepo  : "ofi2004-release", // TODO s2o
                 releaseManagerBranch: this.project.data.gitReleaseManagerBranch,
                 baseTag             : this.project.gitData.baseTag,
                 targetTag           : this.project.gitData.targetTag,
                 author              : this.project.gitData.author,
                 message             : this.project.gitData.message,
-                commitTime          : this.project.gitData.time, // TODO is different?
+                time          : this.project.gitData.time,
             ],
             openshift: [
                 targetApiUrl: this.project.getOpenShiftApiUrl() //TODO is different?

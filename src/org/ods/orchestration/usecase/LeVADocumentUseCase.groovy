@@ -255,7 +255,9 @@ class LeVADocumentUseCase {
     }
 
     Map getDefaultParams() {
-        return new DefaultLeVADocumentParamsMapper(this.project, this.steps).build()
+        DefaultLeVADocumentParamsMapper mapper = new DefaultLeVADocumentParamsMapper(this.project, this.steps)
+        Map<String, LinkedHashMap<String, Object>> build = mapper.build()
+        return build
     }
 
     Map getTestDataParams(Map testData) {

@@ -18,25 +18,25 @@ class JobResultsUploadToNexus {
         this.logger = logger
     }
 
-    void uploadUnitTestsResults(Project project, List<File> filesList) {
-
+    String uploadUnitTestsResults(Project project, List<File> filesList) {
         String fileName = "jenkinsJobUnitTests"
         String projectId = project.getJiraProjectKey()
         String buildNumber = project.steps.env.BUILD_NUMBER
+        String reportFile = "${fileName}.zip"
 
-        File tmpZipFile = Files.createTempFile(fileName, ".zip")
+        File tmpZipFile = Files.createTempFile(reportFile)
         def zipFile = new ZipFile(tmpZipFile)
         zipFile.addFiles(filesList)
-        byte[] zipArtifact = util.createZipArtifact(fileName + ".zip", filesList, true)
+        util.createZipArtifact(reportFile, filesList, true)
 
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
             "${nexusRepository}",
             "${projectId}/${buildNumber}",
-            "${fileName}.zip",
+            reportFile,
             tmpZipFile.getBytes(), "application/octet-binary")
-        // "text/html"
 
-        logger.info "Unit tests results stored in: ${report}"
+        logger.info "Tests results stored in: ${report}"
+        return report.toString()
     }
 }

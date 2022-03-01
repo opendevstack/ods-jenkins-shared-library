@@ -34,7 +34,8 @@ class LevaDocDataFixture {
     def buildGitData() {
         return  [
             commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
-            url: "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+            releaseManagerRepo: "ofi2004-release",
+            releaseManagerBranch: "refs/tags/CHG0066328",
             baseTag: "ods-generated-v3.0-3.0-0b11-D",
             targetTag: "ods-generated-v3.0-3.0-0b11-D",
             author: "s2o",
