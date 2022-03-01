@@ -42,7 +42,7 @@ class JobResultsUploadToNexus {
             "application/octet-binary")
         // "text/html"
 
-        logger.info "Unit tests results stored in: ${report}"
+        logger.info "Tests results stored in: ${report}"
         return report.toString()
     }
 }
