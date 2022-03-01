@@ -24,7 +24,6 @@ class BuildStage extends Stage {
         def jira = ServiceRegistry.instance.get(JiraUseCase)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
-        def jobResultsUploadToNexus = ServiceRegistry.instance.get(JobResultsUploadToNexus)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
         def phase = MROPipelineUtil.PipelinePhases.BUILD
@@ -50,9 +49,7 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
 
-                    project.data.build.unitTestResultsURL = jobResultsUploadToNexus.uploadUnitTestsResults(
-                        project,
-                        data.tests.unit.testReportFiles as List<File>)
+
 
                     // we check in any case ... (largely because the above call will
                     // return immediatly when no jira adapter is configured).

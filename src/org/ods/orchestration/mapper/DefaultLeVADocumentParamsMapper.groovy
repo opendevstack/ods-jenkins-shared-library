@@ -30,7 +30,7 @@ class DefaultLeVADocumentParamsMapper {
                 buildId                  : this.steps.env.BUILD_ID, // TODO is different?
                 buildURL                 : this.steps.env.BUILD_URL, // TODO is different?
                 jobName                  : this.steps.env.JOB_NAME,
-                unitTestResultsURL       : this.project.data.build.unitTestResultsURL,
+                testResultsURLs          : this.project.data.build.testResultsURLs,
             ],
             git      : [
                 commit              : this.project.gitData.commit,

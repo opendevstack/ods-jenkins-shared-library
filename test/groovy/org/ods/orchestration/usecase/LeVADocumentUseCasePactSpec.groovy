@@ -208,7 +208,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildId string("2022-01-22_23-59-59")
                 buildURL url("https//jenkins-sample")
                 jobName string("ofi2004-cd/ofi2004-cd-release-master")
-                unitTestResultsURL url("https//nexus-sample")
+                testResultsURLs url("https//nexus-sample")
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")

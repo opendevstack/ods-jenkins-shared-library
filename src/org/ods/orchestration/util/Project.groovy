@@ -279,6 +279,7 @@ class Project {
         this.data.build = [
             hasFailingTests: false,
             hasUnexecutedJiraTests: false,
+            testResultsURLs: [:],
         ]
 
         this.data.documentHistories = [:]

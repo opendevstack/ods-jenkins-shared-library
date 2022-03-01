@@ -19,12 +19,12 @@ class JobResultsUploadToNexus {
         this.logger = logger
     }
 
-    String uploadUnitTestsResults(Project project, List<File> filesList) {
+    String uploadTestsResults(Project.TestType testType, Project project, List<File> filesList, String repoId="") {
         if (filesList.size() <= 0) {
             logger.warn("Not found unit tests to upload to Nexus.")
             return null
         }
-        String fileName = "jenkinsJobUnitTests.zip"
+        String fileName = "${testType.toString()}-${project}-${repoId}.zip"
         String projectId = project.getJiraProjectKey()
         String buildNumber = project.steps.env.BUILD_NUMBER
 
@@ -36,13 +36,13 @@ class JobResultsUploadToNexus {
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
             "${nexusRepository}",
-            "${projectId}/${buildNumber}",
+            "${projectId}/${repoId}/${buildNumber}",
             fileName,
             tmpZipFile.getBytes(),
             "application/octet-binary")
         // "text/html"
 
-        logger.info "Tests results stored in: ${report}"
+        logger.info "Tests results of type ${testType} stored in: ${report}"
         return report.toString()
     }
 }

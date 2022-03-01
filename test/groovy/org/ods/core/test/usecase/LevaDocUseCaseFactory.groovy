@@ -62,7 +62,8 @@ class LevaDocUseCaseFactory {
             def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
             project.load(gitService, jiraUseCase)
             project.data.openshift.targetApiUrl = "https://openshift-sample"
-            project.data.build.unitTestResultsURL = "https//nexus-sample/unit"
+            project.data.build.testResultsURLs = [:]
+            project.data.build.testResultsURLs["unit"] = "https//nexus-sample/unit"
             project.repositories.each { repo -> repo.metadata = dataFixture.loadMetadata(repo) }
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
