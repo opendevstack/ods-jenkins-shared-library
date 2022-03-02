@@ -40,7 +40,7 @@ class JobResultsUploadToNexus {
             "${nexusRepository}",
             "${projectId}/${repoId}/${buildNumber}",
             fileName,
-            tmpZipFile.getBytes(),
+            filePath.getBytes(),
             "application/octet-binary")
         // "text/html"
 

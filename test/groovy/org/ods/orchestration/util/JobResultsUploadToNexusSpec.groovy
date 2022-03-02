@@ -33,22 +33,31 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         nexus = Mock(NexusService)
         util = Mock(MROPipelineUtil)
 
-        jobResultsUploadToNexus = Spy( new JobResultsUploadToNexus(util, nexus, logger))
+        jobResultsUploadToNexus = Spy(new JobResultsUploadToNexus(util, nexus, logger))
     }
 
     def "empty list of files to upload test"() {
         given:
         def uri = new URI("http://lalala")
-        Path tmpFolder = Files.createTempDirectory("test")
+        Path tmpFolder = Files.createTempDirectory("testEmptyFolder")
         String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
-        List<File> list = new ArrayList()
+        String repoId = "SharedLibTestsRepo"
+        String testType = "unit"
+        String projectId = project.getJiraProjectKey()
+        String buildNumber = project.steps.env.BUILD_NUMBER
+        String nexusRepoPath = "${projectId}/${repoId}/${buildNumber}"
+        String fileName = "${testType}-${projectId}-${repoId}.zip"
         when:
         // jobResultsUploadToNexus.uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="")
-        def result = jobResultsUploadToNexus.uploadTestsResults("unit", project, tmpFolderPath, "someRepo")
+        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, repoId)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
-        1 * nexus.storeArtifact(*_) >> uri
+        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
         result == uri.toString()
+
+        cleanup:
+        // Files.deleteIfExists(tmpFolder)
+        tmpFolder.toFile().deleteDir()
     }
 
     def "upload of some files"() {
@@ -56,16 +65,57 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         def uri = new URI("http://lalala")
         Path tmpFolder = Files.createTempDirectory("test")
         String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
+        String repoId = ""
+        String testType = "acceptance"
+        String projectId = project.getJiraProjectKey()
+        String buildNumber = project.steps.env.BUILD_NUMBER
+        String nexusRepoPath = "${projectId}/${repoId}/${buildNumber}"
+        String fileName = "${testType}-${projectId}-${repoId}.zip"
+
         Files.createTempFile(tmpFolder, "file_1", ".txt") << "Welcome "
         Files.createTempFile(tmpFolder, "file_2", ".txt") << "to the test"
         Files.createTempFile(tmpFolder, "file_3", ".txt") << "contents."
 
         // nexus.storeArtifact()
         when:
-        def result = jobResultsUploadToNexus.uploadTestsResults("acceptance", project, tmpFolderPath)
+        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
-        1 * nexus.storeArtifact(*_) >> uri
+        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
         result == uri.toString()
+
+        cleanup:
+        tmpFolder.toFile().deleteDir()
+    }
+
+    def "upload to real nexus server"() {
+        given:
+        String nexusUrl = System.properties["nexus.url"]
+        String nexusUsername = System.properties["nexus.username"]
+        String nexusPassword = System.properties["nexus.password"]
+        nexus = Spy(new NexusService(nexusUrl, nexusUsername, nexusPassword))
+        jobResultsUploadToNexus = Spy(new JobResultsUploadToNexus(util, nexus, logger))
+
+        def uri = new URI("http://lalala")
+        Path tmpFolder = Files.createTempDirectory("testEmptyFolder")
+        String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
+        String repoId = "SharedLibTestsRepo"
+        String testType = "unit"
+        String projectId = project.getJiraProjectKey()
+        String buildNumber = project.steps.env.BUILD_NUMBER
+        String nexusRepoPath = "${projectId}/${repoId}/${buildNumber}"
+        String fileName = "${testType}-${projectId}-${repoId}.zip"
+        when:
+        // jobResultsUploadToNexus.uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="")
+        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, repoId)
+        then:
+        0 * logger.warn("Not found unit tests to upload to Nexus.")
+        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
+        result == uri.toString()
+
+        cleanup:
+        // Files.deleteIfExists(tmpFolder)
+        tmpFolder.toFile().deleteDir()
+
     }
 }
