@@ -31,7 +31,7 @@ class ProjectMessageUtilSpec extends SpecHelper  {
         metadataFile = new FixtureHelper().getResource("/project-metadata.yml")
         Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
-        project = createProject().init( "refs/tags/CHG0066328").load(git, jiraUseCase)
+        project = createProject().init( "refs/heads/master").load(git, jiraUseCase)
     }
 
     def createProject(Map<String, Closure> mixins = [:]) {

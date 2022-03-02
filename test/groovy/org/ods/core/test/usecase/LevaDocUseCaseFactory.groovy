@@ -6,6 +6,7 @@ import org.ods.core.test.LoggerStub
 import org.ods.core.test.jira.JiraServiceForWireMock
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.core.test.wiremock.WiremockServers
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
@@ -77,7 +78,7 @@ class LevaDocUseCaseFactory {
             docGenUrl = levaDocWiremock.docGenServer.server().baseUrl()
         }
         String nexusUrl = levaDocWiremock.nexusServer.server().baseUrl()
-        def nexusService = new NexusService(nexusUrl, "user", "password")
+        def nexusService = new NexusService(nexusUrl, WiremockServers.NEXUS.getUser(), WiremockServers.NEXUS.getPassword())
         return new LeVADocumentUseCase
             (
                 project,
@@ -100,7 +101,7 @@ class LevaDocUseCaseFactory {
     private Project buildProject(ProjectFixture projectFixture, ILogger logger) {
         Project.METADATA_FILE_NAME = 'metadata.yml'
         steps.env = dataFixture.loadEnvData(projectFixture)
-        def project = new Project(steps, logger, [:]).init("refs/tags/CHG0066328")
+        def project = new Project(steps, logger, [:]).init("refs/heads/master")
         project.data.metadata.id = projectFixture.project
         project.data.buildParams =  dataFixture.buildParams(projectFixture)
         project.data.git = dataFixture.buildGitData()
@@ -109,6 +110,6 @@ class LevaDocUseCaseFactory {
 
     private JiraServiceForWireMock buildJiraServiceForWireMock() {
         String jiraUrl = levaDocWiremock.jiraServer.server().baseUrl()
-        new JiraServiceForWireMock(jiraUrl, "user", "password")
+        new JiraServiceForWireMock(jiraUrl, WiremockServers.JIRA.getUser(), WiremockServers.JIRA.getPassword())
     }
 }

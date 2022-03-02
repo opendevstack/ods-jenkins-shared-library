@@ -43,7 +43,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         String docTypeGroup = "defaultParams"
         String docType = projectFixture.getDocType()
         Map params = projectData(docType)
-        String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+        String generatedFile = "${docType}-ORDGP-WIP-2022-01-22_23-59-59.zip"
         String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
         expect: "Build the contract and execute against the generated wiremock"
@@ -103,7 +103,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         String docTypeGroup = "component"
         String docType = projectFixture.getDocType()
         Map params = projectData(docType)
-        String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+        String generatedFile = "${docType}-ORDGP-WIP-2022-01-22_23-59-59.zip"
         String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
         expect: "Build the contract and execute against the generated wiremock"
@@ -133,7 +133,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
         String docTypeGroup = "overall"
         String docType = "OVERALL_${projectFixture.getDocType()}"
         Map params = projectData(docType)
-        String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
+        String generatedFile = "${docType}-ORDGP-WIP-2022-01-22_23-59-59.zip"
         String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
         expect: "Build the contract and execute against the generated wiremock"
@@ -184,8 +184,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
         return useCase."create${projectFixture.docType}"(repo, tests)
     }
 
-    // Syntax documentation:
-    // https://docs.pact.io/implementation_guides/jvm/consumer/groovy/
     private Closure defaultBodyParams() {
         return {
             keyLike "build", {
@@ -196,20 +194,21 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 changeDescription string("changeDescription")
                 changeId string("changeId")
                 rePromote bool(false)
-                releaseStatusJiraIssueKey string("FRML24113-230")
+                releaseStatusJiraIssueKey string("ORDGP-123")
                 runDisplayUrl url("https://jenkins-sample/blabla")
-                releaseParamVersion string("3.0")
+                releaseParamVersion string("1.0")
                 buildId string("2022-01-22_23-59-59")
                 buildURL url("https//jenkins-sample")
-                jobName string("ofi2004-cd/ofi2004-cd-release-master")
+                jobName string("ordgp-cd/ordgp-cd-release-master")
                 testResultsURLs {
                     keyLike 'unit', url("https//nexus-sample")
                 }
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
-                releaseManagerRepo string("ofi2004-release")
-                releaseManagerBranch string("refs/tags/CHG0066328")
+                repoURL url("https://bitbucket-dev.biscrum.com/scm/ordgp/ordgp-releasemanager.git")
+                releaseManagerBranch string("refs/heads/master")
+                releaseManagerRepo string("ordgp-releasemanager")
                 baseTag string("ods-generated-v3.0-3.0-0b11-D")
                 targetTag string("ods-generated-v3.0-3.0-0b11-D")
                 author string("s2o")
@@ -252,7 +251,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                             timestamp string("2021-12-07T12:07:56")
                             systemErr string("")
                             testcases eachLike() {
-                                name string("FRML24113163_workingunittest()")
+                                name string("ORDGP163_workingunittest()")
                                 timestamp string("2021-12-07T12:07:56")
                                 systemErr string("")
                                 systemOut string("")
@@ -284,7 +283,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                         keyLike "builds", {
                             keyLike "${component}", {
                                 buildId string("theFirst-3")
-                                image string("172.30.1.1:5000/ofi2004-cd/teFirst@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
+                                image string("172.30.1.1:5000/ordgp-cd/teFirst@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
                             }
                         }
                         keyLike "deployments", {
@@ -299,13 +298,13 @@ class LeVADocumentUseCasePactSpec extends Specification {
                                 podStartupTimeStamp string("2021-11-21T22:31:04Z")
                                 podIp string("172.17.0.39")
                                 keyLike "containers", {
-                                    "${component}" string("172.30.1.1:5000/ofi2004-cd/therFirst@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
+                                    "${component}" string("172.30.1.1:5000/ordgp-cd/therFirst@sha256:f6bc9aaed8a842a8e0a4f7e69b044a12c69e057333cd81906c08fd94be044ac4")
                                 }
                             }
                         }
                         sonarqubeScanStashPath string("scrr-report-theFirst-1")
-                        'SCRR' string("SCRR-ofi2004-theFirst.docx")
-                        'SCRR-MD' string("SCRR-ofi2004-theFirst.md")
+                        'SCRR' string("SCRR-ordgp-theFirst.docx")
+                        'SCRR-MD' string("SCRR-ordgp-theFirst.md")
                         testResultsFolder string("build/test-results/test")
                         testResults string("1")
                         xunitTestResultsStashPath string("test-reports-junit-xml-theFirst-1")
@@ -317,12 +316,12 @@ class LeVADocumentUseCasePactSpec extends Specification {
                         commit string("")
                         previousCommit nullValue()
                         previousSucessfulCommit nullValue()
-                        url url("http://bitbucket.odsbox.lan:7990/scm/ofi2004/ofi2004-theFirst.git")
+                        url url("http://bitbucket.odsbox.lan:7990/scm/ordgp/ordgp-theFirst.git")
                         baseTag string("")
                         targetTag string("")
                     }
                 }
-                url url("http://bitbucket.odsbox.lan:7990/scm/ofi2004/ofi2004-theFirst.git")
+                url url("http://bitbucket.odsbox.lan:7990/scm/ordgp/ordgp-theFirst.git")
                 branch string("master")
                 keyLike "pipelineConfig", {
                     dependencies eachLike([])
@@ -344,7 +343,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     Map projectData(docType) {
-        return [project: "FRML24113", buildNumber: "666", version: "WIP", docType: docType]
+        return [project: "ORDGP", buildNumber: "666", version: "WIP", docType: docType]
     }
 
     private LevaDocUseCaseFactory getLevaDocUseCaseFactory(ProjectFixture projectFixture) {

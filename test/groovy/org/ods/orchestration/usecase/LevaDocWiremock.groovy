@@ -49,11 +49,11 @@ class LevaDocWiremock {
     }
 
     JiraService getJiraService(){
-        return new JiraService(jiraServer.server().baseUrl(), "user", "password")
+        return new JiraService(jiraServer.server().baseUrl(), WiremockServers.JIRA.getUser(), WiremockServers.JIRA.getPassword())
     }
 
     NexusService getNexusService(){
-        return new NexusService(nexusServer.server().baseUrl(), "user", "password")
+        return new NexusService(nexusServer.server().baseUrl(), WiremockServers.NEXUS.getUser(), WiremockServers.NEXUS.getPassword())
     }
 
 }
