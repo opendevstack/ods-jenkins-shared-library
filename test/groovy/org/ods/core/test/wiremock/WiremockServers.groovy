@@ -45,10 +45,10 @@ enum WiremockServers {
             new WiremockManager("docgen", System.properties["docGen.url"])
         };
         String getUser(){
-            return "docGen.username"
+            return System.properties["docGen.username"]
         };
         String getPassword(){
-            return "docGen.password"
+            return System.properties["docGen.password"]
         }
     },
     BITBUCKET {
@@ -56,10 +56,10 @@ enum WiremockServers {
             new WiremockManager("bitbucket", System.properties["bitbucket.url"])
         };
         String getUser(){
-            return "bitbucket.username"
+            return System.properties["bitbucket.username"]
         };
         String getPassword(){
-            return "bitbucket.password"
+            return System.properties["bitbucket.password"]
         }
     }
 

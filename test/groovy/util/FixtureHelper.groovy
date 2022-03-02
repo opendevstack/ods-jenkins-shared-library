@@ -146,7 +146,7 @@ class FixtureHelper {
         steps.env.WORKSPACE = ""
 
         return new FakeProject(steps, new Logger(steps, true))
-            .init("refs/tags/CHG0066328")
+            .init("refs/heads/master")
             .load(new FakeGitUtil(steps, null), null)
     }
 

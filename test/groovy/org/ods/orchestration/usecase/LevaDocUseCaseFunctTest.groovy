@@ -13,6 +13,7 @@ import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
+import org.ods.util.UnirestConfig
 import spock.lang.Specification
 import spock.lang.Unroll
 import util.FixtureHelper
@@ -51,6 +52,10 @@ class LevaDocUseCaseFunctTest extends Specification {
     public TemporaryFolder tempFolder
 
     LevaDocWiremock levaDocWiremock
+
+    def setup() {
+        UnirestConfig.init()
+    }
 
     def cleanup() {
         levaDocWiremock?.tearDownWiremock()
