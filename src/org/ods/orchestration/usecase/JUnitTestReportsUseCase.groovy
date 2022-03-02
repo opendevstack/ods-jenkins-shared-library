@@ -45,7 +45,9 @@ class JUnitTestReportsUseCase {
             new File(path).traverse(nameFilter: ~/.*\.xml$/, type: groovy.io.FileType.FILES) { file ->
                 result << file
             }
-        } catch (FileNotFoundException e) {}
+        } catch (FileNotFoundException e) {
+
+        }
 
         return result
     }

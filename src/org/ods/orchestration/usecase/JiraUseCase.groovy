@@ -13,20 +13,26 @@ import org.ods.orchestration.util.Project.JiraDataItem
 class JiraUseCase {
 
     class IssueTypes {
+
         static final String DOCUMENTATION_TRACKING = 'Documentation'
         static final String DOCUMENTATION_CHAPTER = 'Documentation Chapter'
         static final String RELEASE_STATUS = 'Release Status'
+
     }
 
     class CustomIssueFields {
+
         static final String CONTENT = 'EDP Content'
         static final String HEADING_NUMBER = 'EDP Heading Number'
         static final String DOCUMENT_VERSION = 'Document Version'
         static final String RELEASE_VERSION = 'ProductRelease Version'
+
     }
 
     class LabelPrefix {
+
         static final String DOCUMENT = 'Doc:'
+
     }
 
     enum TestIssueLabels {
@@ -232,8 +238,8 @@ class JiraUseCase {
                     content: content?.replaceAll("\u00a0", " ") ?: " ",
                     status: issue.fields.status.name,
                     key: issue.key as String,
-                    predecessors: predecessorLinks.isEmpty()? [] : predecessorLinks,
-                    versions: versionName? [versionName] : [],
+                    predecessors: predecessorLinks.isEmpty() ? [] : predecessorLinks,
+                    versions: versionName ? [versionName] : [],
                 ]
             ]
         }
