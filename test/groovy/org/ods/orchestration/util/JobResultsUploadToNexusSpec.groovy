@@ -110,7 +110,7 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, repoId)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
-        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
+        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary")
         result == uri.toString()
 
         cleanup:
