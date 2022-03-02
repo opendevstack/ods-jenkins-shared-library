@@ -7,6 +7,7 @@ import org.ods.util.ILogger
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 class JobResultsUploadToNexus {
 
@@ -21,17 +22,18 @@ class JobResultsUploadToNexus {
     }
 
     String uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="") {
-
         String projectId = project.getJiraProjectKey()
         String fileName = "${testType}-${projectId}-${repoId}.zip"
         String buildNumber = project.steps.env.BUILD_NUMBER
 
         Path tmpZipFileFolder = Files.createTempDirectory("tmp_folder")
-        File tmpZipFile = new File(fileName, tmpZipFileFolder.toFile())
-        def zipFile = new ZipFile(tmpZipFile)
+        Path filePath = Paths.get(tmpZipFileFolder.toString(), fileName)
+        Path folderToAdd = Paths.get(testReportsUnstashPath)
+
+        def zipFile = new ZipFile(filePath.toString())
         ZipParameters zipParameters = new ZipParameters()
         zipParameters.setIncludeRootFolder(false)
-        zipFile.addFolder(new File(testReportsUnstashPath), zipParameters)
+        zipFile.addFolder(folderToAdd.toFile(), zipParameters)
 
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
