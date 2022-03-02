@@ -122,9 +122,9 @@ class Stage {
         // TODO: Here
         String testResultsKey = type + repo.id ? "-" + repo.id : ""
         project.data.build.testResultsURLs[testResultsKey] = jobResultsUploadToNexus.uploadTestsResults(
-            Project.TestType.UNIT,
+            type,
             project,
-            data.tests.unit.testReportFiles as List<File>,
+            testReportsUnstashPath,
             repo.id)
 
         def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)

@@ -1,6 +1,7 @@
 package org.ods.orchestration.util
 
 import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.model.ZipParameters
 import org.ods.services.NexusService
 import org.ods.util.ILogger
 
@@ -19,19 +20,18 @@ class JobResultsUploadToNexus {
         this.logger = logger
     }
 
-    String uploadTestsResults(Project.TestType testType, Project project, List<File> filesList, String repoId="") {
-        if (filesList.size() <= 0) {
-            logger.warn("Not found unit tests to upload to Nexus.")
-            return null
-        }
-        String fileName = "${testType.toString()}-${project}-${repoId}.zip"
+    String uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="") {
+
         String projectId = project.getJiraProjectKey()
+        String fileName = "${testType}-${projectId}-${repoId}.zip"
         String buildNumber = project.steps.env.BUILD_NUMBER
 
         Path tmpZipFileFolder = Files.createTempDirectory("tmp_folder")
         File tmpZipFile = new File(fileName, tmpZipFileFolder.toFile())
         def zipFile = new ZipFile(tmpZipFile)
-        zipFile.addFiles(filesList)
+        ZipParameters zipParameters = new ZipParameters()
+        zipParameters.setIncludeRootFolder(false)
+        zipFile.addFolder(new File(testReportsUnstashPath), zipParameters)
 
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(

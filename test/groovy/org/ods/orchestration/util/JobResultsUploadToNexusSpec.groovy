@@ -38,27 +38,31 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
 
     def "empty list of files to upload test"() {
         given:
+        def uri = new URI("http://lalala")
+        Path tmpFolder = Files.createTempDirectory("test")
+        String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
         List<File> list = new ArrayList()
         when:
-        def result = jobResultsUploadToNexus.uploadUnitTestsResults(project, list)
+        // jobResultsUploadToNexus.uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="")
+        def result = jobResultsUploadToNexus.uploadTestsResults("unit", project, tmpFolderPath, "someRepo")
         then:
-        1 * logger.warn("Not found unit tests to upload to Nexus.")
-        0 * nexus.storeArtifact(*_)
-        result == null
+        0 * logger.warn("Not found unit tests to upload to Nexus.")
+        1 * nexus.storeArtifact(*_) >> uri
+        result == uri.toString()
     }
 
     def "upload of some files"() {
         given:
         def uri = new URI("http://lalala")
-        Path tmpFilePath1 = Files.createTempFile("file_1", ".txt")
-        Path tmpFilePath2 = Files.createTempFile("file_2", ".txt")
-        Path tmpFilePath3 = Files.createTempFile("file_3", ".txt")
-
-        def list = [tmpFilePath1.toFile(), tmpFilePath2.toFile(), tmpFilePath3.toFile()]
+        Path tmpFolder = Files.createTempDirectory("test")
+        String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
+        Files.createTempFile(tmpFolder, "file_1", ".txt") << "Welcome "
+        Files.createTempFile(tmpFolder, "file_2", ".txt") << "to the test"
+        Files.createTempFile(tmpFolder, "file_3", ".txt") << "contents."
 
         // nexus.storeArtifact()
         when:
-        def result = jobResultsUploadToNexus.uploadUnitTestsResults(project, list)
+        def result = jobResultsUploadToNexus.uploadTestsResults("acceptance", project, tmpFolderPath)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
         1 * nexus.storeArtifact(*_) >> uri
