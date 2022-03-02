@@ -56,9 +56,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody {
-                    nexusURL url("http://lalala", urlReturnFile)
-                }
+                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
                 runTestAndVerify { context ->
                     String response = executeLeVADocumentUseCaseMethod(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
@@ -88,9 +86,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParamsWithTests())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody {
-                    nexusURL url("http://lalala", urlReturnFile)
-                }
+                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
                 runTestAndVerify { context ->
                     String response = executeLeVADocumentUseCaseMethodWithTestData(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
@@ -120,9 +116,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParamsWithComponent(projectFixture.getComponent()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody {
-                    nexusURL url("http://lalala", urlReturnFile)
-                }
+                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
                 runTestAndVerify { context ->
                     String response = executeLeVADocumentUseCaseMethodWithComponent(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
@@ -152,9 +146,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody {
-                    nexusURL url("http://lalala", urlReturnFile)
-                }
+                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
                 runTestAndVerify { context ->
                     String response = executeLeVADocumentUseCaseOverallMethod(projectFixture, context.url)
                     assert response == "http://lalala/${urlReturnFile}"
@@ -211,7 +203,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildURL url("https//jenkins-sample")
                 jobName string("ofi2004-cd/ofi2004-cd-release-master")
                 testResultsURLs {
-                    keyLike 'unit', '' url("https//nexus-sample")
+                    keyLike 'unit', url("https//nexus-sample")
                 }
             }
             keyLike "git", {
@@ -345,9 +337,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
         } << defaultBodyParamsWithTests()
     }
 
-    Closure defaultDocGenerationResponse() {
+    Closure defaultDocGenerationResponse(String urlReturnFile) {
         return {
-
+            nexusURL eachLike(){ url("http://lalala", urlReturnFile) }
         }
     }
 
