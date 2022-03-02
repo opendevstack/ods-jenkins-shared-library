@@ -20,6 +20,7 @@ import org.ods.util.IPipelineSteps
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
 
+@SuppressWarnings(['SpaceAroundMapEntryColon', 'PropertyName', 'ParameterCount'])
 class LeVADocumentUseCase {
 
     private final Project project
@@ -100,9 +101,9 @@ class LeVADocumentUseCase {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB as String)         : 'ODS library component'
     ]
 
-    public static String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
-    public static String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
-    public static String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
+    public static final String DEVELOPER_PREVIEW_WATERMARK = 'Developer Preview'
+    public static final String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
+    public static final String WORK_IN_PROGRESS_DOCUMENT_MESSAGE = 'Attention: this document is work in progress!'
 
     private final JiraUseCase jiraUseCase
     private final JUnitTestReportsUseCase junit
@@ -132,49 +133,49 @@ class LeVADocumentUseCase {
         this.logger = logger
     }
 
-    String createCSD(Map repo = null, Map data = null) {
+    String createCSD() {
         DocumentType documentType = DocumentType.CSD
         List<DocumentHistoryEntry> docHistoryList = createDocWithDefaultParams(documentType)
         this.project.setHistoryForDocument(docHistoryList, documentType)
     }
 
-    String createDIL(Map repo = null, Map data = null) {
+    String createDIL() {
         return createDocWithDefaultParams(DocumentType.DIL)
     }
 
-    String createDTP(Map repo = null, Map data = null) {
+    String createDTP() {
         return createDocWithDefaultParams(DocumentType.DTP)
     }
 
-    String createRA(Map repo = null, Map data = null) {
+    String createRA() {
         return createDocWithDefaultParams(DocumentType.RA)
     }
 
-    String createCFTP(Map repo = null, Map data = null) {
+    String createCFTP() {
         return createDocWithDefaultParams(DocumentType.CFTP)
     }
 
-    String createIVP(Map repo = null, Map data = null) {
+    String createIVP() {
         return createDocWithDefaultParams(DocumentType.IVP)
     }
 
-    String createSSDS(Map repo = null, Map data = null) {
+    String createSSDS() {
         return createDocWithDefaultParams(DocumentType.SSDS)
     }
 
-    String createTCP(Map repo = null, Map data = null) {
+    String createTCP() {
         return createDocWithDefaultParams(DocumentType.TCP)
     }
 
-    String createTIP(Map repo = null, Map data = null) {
+    String createTIP() {
         return createDocWithDefaultParams(DocumentType.TIP)
     }
 
-    String createTRC(Map repo = null, Map data = null) {
+    String createTRC() {
         return createDocWithDefaultParams(DocumentType.TRC)
     }
 
-    String createTCR(Map repo = null, Map data) {
+    String createTCR(Map data) {
         return createDocWithTestDataParams(DocumentType.TCR, data)
     }
 
@@ -182,15 +183,15 @@ class LeVADocumentUseCase {
         return createDocWithComponentDataParams(DocumentType.DTR, repo, data)
     }
 
-    String createOverallDTR(Map repo = null, Map data = null) {
+    String createOverallDTR() {
         createDocWithDefaultParams(DocumentType.OVERALL_DTR)
     }
 
-    String createCFTR(Map repo = null, Map data) {
+    String createCFTR(Map data) {
         return createDocWithTestDataParams(DocumentType.CFTR, data)
     }
 
-    String createIVR(Map repo = null, Map data) {
+    String createIVR(Map data) {
         return createDocWithTestDataParams(DocumentType.IVR, data)
     }
 
@@ -198,7 +199,7 @@ class LeVADocumentUseCase {
         return createDocWithComponentDataParams(DocumentType.TIR, repo, data)
     }
 
-    String createOverallTIR(Map repo = null, Map data = null) {
+    String createOverallTIR() {
         uploadJenkinsJobLog()
         return createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
@@ -250,7 +251,8 @@ class LeVADocumentUseCase {
     }
 
     private String createDocWithComponentDataParams(DocumentType documentType, Map repo, Map testData) {
-        logger.info("create document ${documentType} start, repo:${prettyPrint(toJson(repo))}, data:${prettyPrint(toJson(testData))}")
+        logger.info("create document ${documentType} start")
+        logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(testData))}")
         return createDoc(documentType, getComponentDataParams(testData, repo))
     }
 

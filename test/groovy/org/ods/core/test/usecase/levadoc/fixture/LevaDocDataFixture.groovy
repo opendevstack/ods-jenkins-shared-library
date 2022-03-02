@@ -34,8 +34,9 @@ class LevaDocDataFixture {
     def buildGitData() {
         return  [
             commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
-            releaseManagerRepo: "ofi2004-release",
-            releaseManagerBranch: "refs/tags/CHG0066328",
+            url: "https://bitbucket-dev.biscrum.com/scm/ordgp/ordgp-releasemanager.git",
+            releaseManagerRepo: "ordgp-release",
+            releaseManagerBranch: "refs/heads/master",
             baseTag: "ods-generated-v3.0-3.0-0b11-D",
             targetTag: "ods-generated-v3.0-3.0-0b11-D",
             author: "s2o",
@@ -66,7 +67,7 @@ class LevaDocDataFixture {
             RELEASE_PARAM_VERSION: "3.0",
             BUILD_NUMBER: "666",
             BUILD_URL: "https://jenkins-sample",
-            JOB_NAME: "ofi2004-cd/ofi2004-cd-release-master"
+            JOB_NAME: "ordgp-cd/ordgp-cd-release-master"
         ]
     }
 

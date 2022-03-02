@@ -14,6 +14,7 @@ class DefaultLeVADocumentParamsMapper {
         this.data = data
     }
 
+    @SuppressWarnings(['AbcMetric', 'SpaceAroundMapEntryColon'])
     Map build() {
         return [
             build    : [
@@ -34,7 +35,8 @@ class DefaultLeVADocumentParamsMapper {
             ],
             git      : [
                 commit              : this.project.gitData.commit,
-                releaseManagerRepo  : "ofi2004-release", // TODO s2o
+                repoURL             : this.project.gitData.url, // TODO is different?
+                releaseManagerRepo  : "ordgp-releasemanager", // TODO s2o
                 releaseManagerBranch: this.project.data.gitReleaseManagerBranch,
                 baseTag             : this.project.gitData.baseTag,
                 targetTag           : this.project.gitData.targetTag,
