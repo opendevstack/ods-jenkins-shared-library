@@ -9,9 +9,9 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 ext {
-    nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_URL') ?: System.getenv('NEXUS_HOST')
-    nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
-    nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
+    nexus_url = project.findProperty('nexus.url') ?: System.getenv('NEXUS_URL') ?: System.getenv('NEXUS_HOST')
+    nexus_user = project.findProperty('nexus.username') ?: System.getenv('NEXUS_USERNAME')
+    nexus_pw = project.findProperty('nexus.password') ?: System.getenv('NEXUS_PASSWORD')
     no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
 }
 
@@ -128,15 +128,17 @@ test {
     jvmArgs "-XX:MaxPermSize=256m"
     systemProperty "testRecordMode", project.findProperty('testRecordMode')?: false
     systemProperty "generateExpectedPdfFiles", project.findProperty('generateExpectedPdfFiles')?: false
-    systemProperty "nexusURL", project.findProperty('nexusURL')?: "http://nexus.odsbox.lan:7990"
-    systemProperty "sonarQuURL", project.findProperty('sonarQuURL')?: "http://sonar.odsbox.lan:7990"
-    systemProperty "bitbucketURL", project.findProperty('bitbucketURL')?: "http://bitbucket.odsbox.lan:7990"
-    systemProperty "docGenURL", project.findProperty('docGenURL')?: "http://docgen.odsbox.lan:8080"
-    systemProperty "jiraURL", project.findProperty('jiraURL')?: "http://jira.odsbox.lan:8080"
-    systemProperty "domainUser", project.findProperty('domainUser')?: "openshift"
+    systemProperty "nexus.url", project.findProperty('nexus.url')?: "http://nexus.odsbox.lan:7990"
+    systemProperty "sonarQu.url", project.findProperty('sonarQu.url')?: "http://sonar.odsbox.lan:7990"
+    systemProperty "bitbucket.url", project.findProperty('bitbucket.url')?: "http://bitbucket.odsbox.lan:7990"
+    systemProperty "docGen.url", project.findProperty('docGen.url')?: "http://docgen.odsbox.lan:8080"
+    systemProperty "jira.url", project.findProperty('jira.url')?: "http://jira.odsbox.lan:8080"
+    systemProperty "jira.username", project.findProperty('jira.username')?: "angel_2.martinez@boehringer-ingelheim.com"
+    systemProperty "jira.password", project.findProperty('jira.password')?: "Boehringer98M!"
+    systemProperty "domain.user", project.findProperty('domain.user')?: "openshift"
     systemProperty "domainPassword", project.findProperty('domainPassword')?: "openshift"
-    systemProperty "nexusUser", project.findProperty('nexusUser')?: "openshift"
-    systemProperty "nexusPassword", project.findProperty('nexusPassword')?: "openshift"
+    systemProperty "nexus.username", project.findProperty('nexus.username')?: "openshift"
+    systemProperty "nexus.password", project.findProperty('nexus.password')?: "openshift"
     systemProperty "wiremock.textToReplace", project.findProperty('wiremock.textToReplace')?: ""
 }
 
