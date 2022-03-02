@@ -192,6 +192,8 @@ class LeVADocumentUseCasePactSpec extends Specification {
         return useCase."create${projectFixture.docType}"(repo, tests)
     }
 
+    // Syntax documentation:
+    // https://docs.pact.io/implementation_guides/jvm/consumer/groovy/
     private Closure defaultBodyParams() {
         return {
             keyLike "build", {
@@ -208,7 +210,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildId string("2022-01-22_23-59-59")
                 buildURL url("https//jenkins-sample")
                 jobName string("ofi2004-cd/ofi2004-cd-release-master")
-                testResultsURLs url("https//nexus-sample")
+                testResultsURLs {
+                    keyLike 'unit', '' url("https//nexus-sample")
+                }
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
@@ -339,6 +343,12 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 }
             }
         } << defaultBodyParamsWithTests()
+    }
+
+    Closure defaultDocGenerationResponse() {
+        return {
+
+        }
     }
 
     Map projectData(docType) {
