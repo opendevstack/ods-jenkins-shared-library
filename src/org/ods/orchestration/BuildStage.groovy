@@ -48,8 +48,6 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
 
-
-
                     // we check in any case ... (largely because the above call will
                     // return immediatly when no jira adapter is configured).
                     // this  will set failedTests if any xunit tests have failed

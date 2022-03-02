@@ -17,4 +17,5 @@ abstract class AbstractJiraUseCaseSupport {
     }
 
     abstract void applyXunitTestResults(List testIssues, Map testResults)
+
 }
