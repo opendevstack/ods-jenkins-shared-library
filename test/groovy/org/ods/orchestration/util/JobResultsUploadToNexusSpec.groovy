@@ -99,14 +99,13 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         String testType = "unit"
         String projectId = "ordgp"
         String buildNumber = "666"
-        String fileName = "${testType}-${projectId}-${repoId}.zip"
+
         when:
-        // jobResultsUploadToNexus.uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="")
         def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber, repoId)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
-        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, "ordgp/ordgp-releasemanager/666", "unit-net-ordgp-releasemanager.zip", _, "application/octet-binary")
-//        result == uri.toString()
+        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, "net/ordgp-releasemanager/666", "unit-net-ordgp-releasemanager.zip", _, "application/octet-binary")
+        result == uri.toString()
 
         cleanup:
         // Files.deleteIfExists(tmpFolder)
