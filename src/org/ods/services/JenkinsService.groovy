@@ -2,8 +2,6 @@ package org.ods.services
 
 import org.ods.util.ILogger
 
-import java.nio.file.StandardCopyOption
-
 class JenkinsService {
 
     private static final String XUNIT_SYSTEM_RESULT_DIR = 'build/test-results/test'
