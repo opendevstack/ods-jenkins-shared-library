@@ -89,13 +89,13 @@ class Stage {
         script.parallel (executors)
     }
 
-    Map getTestResults(def steps, Map repo, String type = 'unit') {
+    Map getTestResults(def steps, Map repo, String typeIn = 'unit') {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def jobResultsUploadToNexus = ServiceRegistry.instance.get(JobResultsUploadToNexus)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
-        type = type.toLowerCase()
+        String type = typeIn.toLowerCase()
         def testReportsPath = "${PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR}/${repo.id}/${type}"
 
         logger.debug("Collecting JUnit XML Reports ('${type}') for ${repo.id}")
@@ -178,12 +178,14 @@ class Stage {
             new File(path).traverse(nameFilter: ~/.*\.log$/, type: groovy.io.FileType.FILES) { file ->
                 result << file
             }
-        } catch (FileNotFoundException e) {}
+        } catch (FileNotFoundException e) {
+
+        }
 
         return result
     }
 
-    protected def runOnAgentPod(boolean condition, Closure block) {
+    protected void runOnAgentPod(boolean condition, Closure block) {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         if (condition) {
             def bitbucket = ServiceRegistry.instance.get(BitbucketService)
