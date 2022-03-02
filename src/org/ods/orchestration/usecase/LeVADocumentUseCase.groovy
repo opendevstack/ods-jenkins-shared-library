@@ -20,7 +20,7 @@ import org.ods.util.IPipelineSteps
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
 
-@SuppressWarnings(['SpaceAroundMapEntryColon', 'PropertyName', 'ParameterCount'])
+@SuppressWarnings(['SpaceAroundMapEntryColon', 'PropertyName', 'ParameterCount', 'UnusedMethodParameter'])
 class LeVADocumentUseCase {
 
     private final Project project

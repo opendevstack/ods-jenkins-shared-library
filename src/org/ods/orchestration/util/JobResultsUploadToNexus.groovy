@@ -21,7 +21,8 @@ class JobResultsUploadToNexus {
         this.logger = logger
     }
 
-    String uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String buildId, String repoId = "") {
+    String uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String buildId,
+                              String repoId = "") {
         repoId = repoId.toLowerCase()
         String projectId = project.getJiraProjectKey().toLowerCase()
         String fileName = "${testType}-${projectId}-${repoId}.zip"
@@ -42,7 +43,6 @@ class JobResultsUploadToNexus {
             fileName,
             filePath.getBytes(),
             "application/octet-binary")
-        // "text/html"
 
         logger.info "Tests results of type ${testType} stored in: ${report}"
         return report.toString()
