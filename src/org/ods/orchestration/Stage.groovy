@@ -125,6 +125,7 @@ class Stage {
             type,
             project,
             testReportsUnstashPath,
+            project.steps.env.BUILD_NUMBER,
             repo.id)
 
         def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)

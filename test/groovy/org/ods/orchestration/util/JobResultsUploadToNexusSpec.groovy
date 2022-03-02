@@ -2,14 +2,10 @@ package org.ods.orchestration.util
 
 import groovy.util.logging.Slf4j
 import org.ods.core.test.LoggerStub
-import org.ods.services.GitService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
-import org.ods.util.IPipelineSteps
-import org.ods.util.Logger
 import util.SpecHelper
 
-import java.lang.reflect.Array
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -41,15 +37,15 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         def uri = new URI("http://lalala")
         Path tmpFolder = Files.createTempDirectory("testEmptyFolder")
         String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
-        String repoId = "SharedLibTestsRepo"
+        String repoId = "shared-lib-tests"
         String testType = "unit"
-        String projectId = project.getJiraProjectKey()
-        String buildNumber = project.steps.env.BUILD_NUMBER
+        String projectId = project.getJiraProjectKey().toLowerCase()
+        String buildNumber = "666"
         String nexusRepoPath = "${projectId}/${repoId}/${buildNumber}"
         String fileName = "${testType}-${projectId}-${repoId}.zip"
         when:
         // jobResultsUploadToNexus.uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="")
-        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, repoId)
+        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber, repoId)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
         1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
@@ -68,7 +64,7 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         String repoId = ""
         String testType = "acceptance"
         String projectId = project.getJiraProjectKey()
-        String buildNumber = project.steps.env.BUILD_NUMBER
+        String buildNumber = "666"
         String nexusRepoPath = "${projectId}/${repoId}/${buildNumber}"
         String fileName = "${testType}-${projectId}-${repoId}.zip"
 
@@ -78,7 +74,7 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
 
         // nexus.storeArtifact()
         when:
-        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath)
+        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
         1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
@@ -99,19 +95,18 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         def uri = new URI("http://lalala")
         Path tmpFolder = Files.createTempDirectory("testEmptyFolder")
         String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
-        String repoId = "SharedLibTestsRepo"
+        String repoId = "ordgp-releasemanager"
         String testType = "unit"
-        String projectId = project.getJiraProjectKey()
-        String buildNumber = project.steps.env.BUILD_NUMBER
-        String nexusRepoPath = "${projectId}/${repoId}/${buildNumber}"
+        String projectId = "ordgp"
+        String buildNumber = "666"
         String fileName = "${testType}-${projectId}-${repoId}.zip"
         when:
         // jobResultsUploadToNexus.uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="")
-        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, repoId)
+        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber, repoId)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
-        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
-        result == uri.toString()
+        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, "ordgp/ordgp-releasemanager/666", "unit-net-ordgp-releasemanager.zip", _, "application/octet-binary")
+//        result == uri.toString()
 
         cleanup:
         // Files.deleteIfExists(tmpFolder)

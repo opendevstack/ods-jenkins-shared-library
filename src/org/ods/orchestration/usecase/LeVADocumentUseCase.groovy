@@ -133,49 +133,49 @@ class LeVADocumentUseCase {
         this.logger = logger
     }
 
-    String createCSD() {
+    String createCSD(Map repo = null, Map data = null) {
         DocumentType documentType = DocumentType.CSD
         List<DocumentHistoryEntry> docHistoryList = createDocWithDefaultParams(documentType)
-        this.project.setHistoryForDocument(docHistoryList, documentType)
+        this.project.setHistoryForDocument(docHistoryList, documentType.name())
     }
 
-    String createDIL() {
+    String createDIL(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.DIL)
     }
 
-    String createDTP() {
+    String createDTP(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.DTP)
     }
 
-    String createRA() {
+    String createRA(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.RA)
     }
 
-    String createCFTP() {
+    String createCFTP(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.CFTP)
     }
 
-    String createIVP() {
+    String createIVP(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.IVP)
     }
 
-    String createSSDS() {
+    String createSSDS(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.SSDS)
     }
 
-    String createTCP() {
+    String createTCP(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.TCP)
     }
 
-    String createTIP() {
+    String createTIP(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.TIP)
     }
 
-    String createTRC() {
+    String createTRC(Map repo = null, Map data = null) {
         return createDocWithDefaultParams(DocumentType.TRC)
     }
 
-    String createTCR(Map data) {
+    String createTCR(Map repo = null, Map data) {
         return createDocWithTestDataParams(DocumentType.TCR, data)
     }
 
@@ -183,15 +183,15 @@ class LeVADocumentUseCase {
         return createDocWithComponentDataParams(DocumentType.DTR, repo, data)
     }
 
-    String createOverallDTR() {
+    String createOverallDTR(Map repo = null, Map data = null) {
         createDocWithDefaultParams(DocumentType.OVERALL_DTR)
     }
 
-    String createCFTR(Map data) {
+    String createCFTR(Map repo = null, Map data) {
         return createDocWithTestDataParams(DocumentType.CFTR, data)
     }
 
-    String createIVR(Map data) {
+    String createIVR(Map repo = null, Map data) {
         return createDocWithTestDataParams(DocumentType.IVR, data)
     }
 
@@ -199,14 +199,14 @@ class LeVADocumentUseCase {
         return createDocWithComponentDataParams(DocumentType.TIR, repo, data)
     }
 
-    String createOverallTIR() {
+    String createOverallTIR(Map repo = null, Map data = null) {
         uploadJenkinsJobLog()
         return createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
 
     private uploadJenkinsJobLog() {
-        String fileName = "jenkinsJobLog"
-        String projectId = project.getJiraProjectKey()
+        String fileName = "jenkins-job-log"
+        String projectId = project.getJiraProjectKey().toLowerCase()
         String buildNumber = project.steps.env.BUILD_NUMBER
 
         InputStream logInputStream = this.jenkins.getCurrentBuildLogInputStream()
