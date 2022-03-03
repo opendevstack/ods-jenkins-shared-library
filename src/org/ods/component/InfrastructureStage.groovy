@@ -85,7 +85,7 @@ class InfrastructureStage extends Stage {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private int runMakeStage(String rule, String cloudProvider, Map environmentVars, String tfBackendS3Key, String workspace) {
-        script.stage("{cloudProvider} IaC - ${rule}") {
+        script.stage("${cloudProvider} IaC - ${rule}") {
             logger.startClocked(options.resourceName)
             int returnCode = infrastructure.runMake(rule, environmentVars, tfBackendS3Key, workspace)
             logResult(rule, returnCode)
