@@ -1,0 +1,29 @@
+{
+  "id" : "1dc06acc-1c7a-4e93-b1aa-96960598a61e",
+  "name" : "rest_api_2_issue_createmeta_ordgp_issuetypes",
+  "request" : {
+    "url" : "/rest/api/2/issue/createmeta/ORDGP/issuetypes",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 401,
+    "bodyFileName" : "rest_api_2_issue_createmeta_ordgp_issuetypes-1dc06acc-1c7a-4e93-b1aa-96960598a61e.txt",
+    "headers" : {
+      "Server" : "nginx/1.20.1",
+      "Date" : "Thu, 03 Mar 2022 09:28:24 GMT",
+      "Content-Type" : "text/html;charset=UTF-8",
+      "X-AREQUESTID" : "628x116336x1",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "X-Seraph-LoginReason" : "AUTHENTICATED_FAILED",
+      "WWW-Authenticate" : "OAuth realm=\"https%3A%2F%2Fjira-dev.biscrum.com\""
+    }
+  },
+  "uuid" : "1dc06acc-1c7a-4e93-b1aa-96960598a61e",
+  "persistent" : true,
+  "insertionIndex" : 1
+}
