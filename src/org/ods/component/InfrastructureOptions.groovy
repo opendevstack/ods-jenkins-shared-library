@@ -12,6 +12,8 @@ class InfrastructureOptions extends Options {
     /**
      * Name of `BuildConfig`/`ImageStream` to use (defaults to `context.componentId`). */
     String resourceName
+    /**
+     * Name of infrastructure service environment folder path to use (defaults to `./environments`). */
     String envPath
 
 }

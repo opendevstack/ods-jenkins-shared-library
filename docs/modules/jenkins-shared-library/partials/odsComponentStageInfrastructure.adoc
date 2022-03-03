@@ -34,7 +34,7 @@ _String_
 
 | *envPath* +
 _String_
-|
+|Name of infrastructure service environment folder path to use (defaults to `./environments`).
 
 
 | *resourceName* +
