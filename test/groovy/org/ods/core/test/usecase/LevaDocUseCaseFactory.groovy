@@ -64,7 +64,11 @@ class LevaDocUseCaseFactory {
             project.load(gitService, jiraUseCase)
             project.data.openshift.targetApiUrl = "https://openshift-sample"
             project.data.build.testResultsURLs = [:]
-            project.data.build.testResultsURLs["unit"] = "https//nexus-sample/unit"
+            project.data.build.testResultsURLs[Project.TestType.UNIT + "-Repo1"] = "https//nexus-sample/unit"
+            project.data.build.testResultsURLs[Project.TestType.UNIT + "-Repo2"] = "https//nexus-sample/unit"
+            project.data.build.testResultsURLs[Project.TestType.ACCEPTANCE] = "https//nexus-sample/unit"
+            project.data.build.testResultsURLs[Project.TestType.INSTALLATION] = "https//nexus-sample/unit"
+            project.data.build.testResultsURLs[Project.TestType.INTEGRATION] = "https//nexus-sample/unit"
             project.repositories.each { repo -> repo.metadata = dataFixture.loadMetadata(repo) }
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
