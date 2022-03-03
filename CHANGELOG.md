@@ -77,6 +77,7 @@
 - Removes NonCPS to CPS methods call in DocGenScheduler and LeVADocumentScheduler.
 - Uses Nexus to store test results and jenkins job logs. Keys of tests urls sent to docGen go always in lower case. Pact Tests architecture fixed.
 - Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
+- JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#850](https://github.com/opendevstack/ods-jenkins-shared-library/pull/850))
 
 ## [3.0] - 2020-08-11
 

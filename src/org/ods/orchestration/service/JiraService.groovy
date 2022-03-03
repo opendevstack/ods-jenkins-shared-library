@@ -232,6 +232,10 @@ class JiraService {
     }
 
     Map createIssueTypeBug(String projectKey, String summary, String description, String fixVersion = null) {
+        if (!description?.trim()) {
+            description = 'N/A - please check logs'
+        }
+
         return createIssueType("Bug", projectKey, summary, description, fixVersion)
     }
 
