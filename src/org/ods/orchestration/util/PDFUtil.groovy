@@ -5,8 +5,6 @@ package org.ods.orchestration.util
 @Grab('org.apache.pdfbox:pdfbox:2.0.17')
 @Grab('org.apache.poi:poi:4.0.1')
 
-import org.ods.orchestration.util.MarkdownUtil
-
 import com.cloudbees.groovy.cps.NonCPS
 
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter
@@ -26,7 +24,9 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState
 import org.apache.pdfbox.util.Matrix
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 
-@SuppressWarnings(['JavaIoPackageAccess', 'LineLength'])
+import java.nio.file.Paths
+
+@SuppressWarnings(['JavaIoPackageAccess', 'LineLength', 'UnnecessaryObjectReferences'])
 class PDFUtil {
 
     @NonCPS
@@ -70,6 +70,19 @@ class PDFUtil {
     }
 
     @NonCPS
+    byte[] convertFromMarkdown(String markdownContent, Boolean landscape = false) {
+        def result
+
+        try {
+            result = new MarkdownUtil().toPDF(markdownContent, landscape)
+        } catch (e) {
+            throw new RuntimeException("Error: unable to convert Markdown document to PDF: ${e.message}").initCause(e)
+        }
+
+        return result
+    }
+
+    @NonCPS
     byte[] convertFromWordDoc(File wordDoc) {
         def result
 
@@ -95,11 +108,11 @@ class PDFUtil {
     }
 
     @NonCPS
-    byte[] merge(List<byte[]> files) {
+    byte[] merge(String workspacePath, List<byte[]> files) {
         def result
-
-        def tmp = Files.createTempFile('merged', '.pdf').toFile()
+        File tmp
         try {
+            tmp = Files.createTempFile(Paths.get(workspacePath), "merge", "pdf").toFile()
             def merger = new PDFMergerUtility()
             merger.setDestinationStream(new FileOutputStream(tmp))
 
@@ -112,7 +125,7 @@ class PDFUtil {
         } catch (e) {
             throw new RuntimeException("Error: unable to merge PDF documents: ${e.message}").initCause(e)
         } finally {
-            tmp.delete()
+            tmp?.delete()
         }
 
         return result

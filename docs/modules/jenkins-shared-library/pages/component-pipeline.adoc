@@ -54,6 +54,10 @@ include::partial$odsComponentFindOpenShiftImageOrElse.adoc[leveloffset=+2]
 
 include::partial$odsComponentStageScanWithSonar.adoc[leveloffset=+2]
 
+=== odsComponentStageScanWithAqua
+
+include::partial$odsComponentStageScanWithAqua.adoc[leveloffset=+2]
+
 === odsComponentStageScanWithSnyk
 
 include::partial$odsComponentStageScanWithSnyk.adoc[leveloffset=+2]

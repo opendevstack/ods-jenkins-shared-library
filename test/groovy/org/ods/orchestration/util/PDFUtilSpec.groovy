@@ -1,5 +1,8 @@
 package org.ods.orchestration.util
 
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -12,6 +15,9 @@ import static util.FixtureHelper.*
 import util.*
 
 class PDFUtilSpec extends SpecHelper {
+
+    @Rule
+    public TemporaryFolder tempFolder
 
     def "add watermark text"() {
         given:
@@ -78,7 +84,7 @@ class PDFUtilSpec extends SpecHelper {
         def docFile2 = new FixtureHelper().getResource("Test-2.pdf")
 
         when:
-        def result = util.merge([docFile1.bytes, docFile2.bytes])
+        def result = util.merge(tempFolder.getRoot().absolutePath, [docFile1.bytes, docFile2.bytes])
 
         then:
         new String(result).startsWith("%PDF-1.4\n")

@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Prevent Jenkins nonCPS error after reporting bug  ([#776](https://github.com/opendevstack/ods-jenkins-shared-library/pull/776))
+- Fixed the Developer Preview fails because "Duplicated Tests"
+- Throw exception when two coded tests are linked to the same test issue (https://github.com/opendevstack/ods-jenkins-shared-library/pull/737)
 - Add functional test to LevaDoc  ([#697](https://github.com/opendevstack/ods-jenkins-shared-library/pull/697))
 - Throw controlled exception when testIssue has no component assigned  ([#693](https://github.com/opendevstack/ods-jenkins-shared-library/pull/693))
 - Fix sort tests steps in TCP and TCR documentsn ([#652](https://github.com/opendevstack/ods-jenkins-shared-library/pull/652))
@@ -43,6 +46,37 @@
 - Fix by default sonarQu should analyzePullRequests:false ([#663](https://github.com/opendevstack/ods-jenkins-shared-library/issues/663))
 - Fix RA table overflow replacing unicode character in jira keys ([#735](https://github.com/opendevstack/ods-jenkins-shared-library/pull/735))
 - Fix Cnes report is executed too soon in the Sonar Scanner stage ([#732](https://github.com/opendevstack/ods-jenkins-shared-library/issues/732))
+- Add support for ods-saas-service components ([#607](https://github.com/opendevstack/ods-jenkins-shared-library/pull/607))
+- Automatically change the date_created by Wiremock with a Wiremock wildcard ([#743](https://github.com/opendevstack/ods-jenkins-shared-library/pull/743))
+- Refactor and create unit test for LeVADocumentUseCase.getReferencedDocumentsVersion ([#744](https://github.com/opendevstack/ods-jenkins-shared-library/pull/744))
+- Remove non breakable white space from Json response of JiraService ([760](https://github.com/opendevstack/ods-jenkins-shared-library/pull/760))
+- Rollback changes filtering components for TIP ([#762](https://github.com/opendevstack/ods-jenkins-shared-library/pull/762))
+- Add breakable characters in SSDS Bitbucket data to let the render split the words ([#774])(https://github.com/opendevstack/ods-jenkins-shared-library/pull/774))
+- Fix SerializationException, Fix NULL in SSDS generation and Fix SaaS bug in FinalizeStage ([#756](https://github.com/opendevstack/ods-jenkins-shared-library/pull/756))
+- Set test summary for empty description in TCP ([816](https://github.com/opendevstack/ods-jenkins-shared-library/pull/816))
+- Change some Exception messages for clarity, consistency and typos ([780](https://github.com/opendevstack/ods-jenkins-shared-library/pull/780))
+- Fix null in RA ([#772](https://github.com/opendevstack/ods-jenkins-shared-library/pull/772))
+- Change document generation order ([#773](https://github.com/opendevstack/ods-jenkins-shared-library/pull/773))
+- rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
+- Fix Traceability matrix to not show Unit Tests ([#801](https://github.com/opendevstack/ods-jenkins-shared-library/pull/801)
+- Update Aqua doc ([#803](https://github.com/opendevstack/ods-jenkins-shared-library/pull/803))
+- Introduce ods-library component type ([#603](https://github.com/opendevstack/ods-jenkins-shared-library/issues/603))
+- RM: deploy phase verifies target project and login, even if there are only non-installable components([#810](https://github.com/opendevstack/ods-jenkins-shared-library/issues/810))
+- RM: test-stage fails /with unstash exception/ if no installation/integration/acceptance test results are provided([#811](https://github.com/opendevstack/ods-jenkins-shared-library/issues/811))
+- Release Manager references v1.1 SLC Docs templates ([#798](https://github.com/opendevstack/ods-jenkins-shared-library/issues/798))
+- Fix Traceability matrix null ([#818](https://github.com/opendevstack/ods-jenkins-shared-library/pull/818)
+- Problems with temporal folder in tests ([#819](https://github.com/opendevstack/ods-jenkins-shared-library/pull/819)
+- Improve Wiremock logs ([#809](https://github.com/opendevstack/ods-jenkins-shared-library/pull/809)
+- rerunning of master pipeline after dev release via release-manager ([#793](https://github.com/opendevstack/ods-jenkins-shared-library/pull/793))
+- RM: test component causes new jenkins (run) instance after branch is created for release 
+([#823](https://github.com/opendevstack/ods-jenkins-shared-library/issues/823))
+- Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
+- Better handling of Unit tests in D and DevPreview ([827](https://github.com/opendevstack/ods-jenkins-shared-library/pull/827))
+- Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
+- Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Set test summary for empty description in TCR for acceptance tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/844))
+- Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
+- Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
 - Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
 
 ## [3.0] - 2020-08-11
@@ -72,6 +106,7 @@
 - verbosity of standard shared libary stages ([#196](https://github.com/opendevstack/ods-jenkins-shared-library/issues/196))
 - Allow easy configuration of compute resources ([#173](https://github.com/opendevstack/ods-jenkins-shared-library/issues/173))
 - Fix rollout race condition and display events in Jenkins log ([#385](https://github.com/opendevstack/ods-jenkins-shared-library/pull/385))
+- Fix image not shown in documents like TIR and DTR from Document Chapters ([#789](https://github.com/opendevstack/ods-jenkins-shared-library/pull/789))
 
 ### Changed
 - Lazily set OpenShift app domain ([#396](https://github.com/opendevstack/ods-jenkins-shared-library/pull/396))

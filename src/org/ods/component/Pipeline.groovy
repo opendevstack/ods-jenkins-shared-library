@@ -100,7 +100,9 @@ class Pipeline implements Serializable {
                                 replace(wtfEnvBug, "${defaultDockerRegistry}/")
                             logger.warn ("Patched image via master env to: ${config.image}")
                         }
+
                         context.assemble()
+
                         // register services after context was assembled
                         logger.debug('-> Registering & loading global services')
                         def registry = ServiceRegistry.instance
@@ -155,11 +157,13 @@ class Pipeline implements Serializable {
 
                     skipCi = isCiSkip()
                     if (skipCi) {
-                        logger.info 'Skipping build due to [ci skip], [skip ci] or ***NO_CI***' +
-                            'in the commit message ...'
-                        updateBuildStatus('NOT_BUILT')
-                        setBitbucketBuildStatus('SUCCESSFUL')
-                        return
+                        script.stage('odsPipeline (ci skip) finished') {
+                            logger.info 'Skipping build due to [ci skip], [skip ci] or ***NO_CI***' +
+                                ' in the commit message ...'
+                            updateBuildStatus('NOT_BUILT')
+                            setBitbucketBuildStatus('SUCCESSFUL')
+                            return this
+                        }
                     }
                 }
             } catch (err) {
@@ -356,7 +360,7 @@ class Pipeline implements Serializable {
         return this.ciSkipEnabled && gitService.ciSkipInCommitMessage
     }
 
-    private def prepareAgentPodConfig(Map config) {
+    private void prepareAgentPodConfig(Map config) {
         if (!config.image && !config.imageStreamTag && !config.podContainers) {
             script.error "One of 'image', 'imageStreamTag' or 'podContainers' is required"
         }

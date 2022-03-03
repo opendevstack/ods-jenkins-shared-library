@@ -12,7 +12,7 @@ import org.ods.util.IPipelineSteps
 class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per GAMP category
-    private static Map GAMP_CATEGORIES = [
+    private final static Map GAMP_CATEGORIES = [
         "1": [
             LeVADocumentUseCase.DocumentType.CSD as String,
             LeVADocumentUseCase.DocumentType.RA as String,
@@ -78,44 +78,70 @@ class LeVADocumentScheduler extends DocGenScheduler {
             LeVADocumentUseCase.DocumentType.TCR as String,
             LeVADocumentUseCase.DocumentType.DIL as String,
             LeVADocumentUseCase.DocumentType.TRC as String,
-        ]
+        ],
+    ]
+
+    // Document types per GAMP category - for a saas only project
+    private final static Map GAMP_CATEGORIES_SAAS_ONLY = [
+        "3": [
+            LeVADocumentUseCase.DocumentType.CSD as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
+            LeVADocumentUseCase.DocumentType.CFTP as String,
+            LeVADocumentUseCase.DocumentType.CFTR as String,
+            LeVADocumentUseCase.DocumentType.TCP as String,
+            LeVADocumentUseCase.DocumentType.TCR as String,
+            LeVADocumentUseCase.DocumentType.DIL as String,
+            LeVADocumentUseCase.DocumentType.TRC as String,
+        ],
+        "4": [
+            LeVADocumentUseCase.DocumentType.CSD as String,
+            LeVADocumentUseCase.DocumentType.RA as String,
+            LeVADocumentUseCase.DocumentType.SSDS as String,
+            LeVADocumentUseCase.DocumentType.TCP as String,
+            LeVADocumentUseCase.DocumentType.TCR as String,
+            LeVADocumentUseCase.DocumentType.CFTP as String,
+            LeVADocumentUseCase.DocumentType.CFTR as String,
+            LeVADocumentUseCase.DocumentType.DIL as String,
+            LeVADocumentUseCase.DocumentType.TRC as String,
+        ],
     ]
 
     // Document types per pipeline phase with an optional lifecycle constraint
-    private static Map PIPELINE_PHASES = [
+    private final static Map PIPELINE_PHASES = [
         (MROPipelineUtil.PipelinePhases.INIT): [
             (LeVADocumentUseCase.DocumentType.CSD as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.BUILD): [
             (LeVADocumentUseCase.DocumentType.DTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.TIP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.RA as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.CFTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.TCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+            (LeVADocumentUseCase.DocumentType.TRC as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
+            (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.DEPLOY): [
-            (LeVADocumentUseCase.DocumentType.TIP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
         ],
         (MROPipelineUtil.PipelinePhases.TEST): [
-            (LeVADocumentUseCase.DocumentType.SSDS as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.RA as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.IVP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.IVR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.CFTP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.TRC as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.CFTR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
             (LeVADocumentUseCase.DocumentType.DIL as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.TCP as String): MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START,
             (LeVADocumentUseCase.DocumentType.TCR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.RELEASE): [
         ],
         (MROPipelineUtil.PipelinePhases.FINALIZE): [
             (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String): MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END
-        ]
+        ],
     ]
 
     // Document types per repository type with an optional phase constraint
-    private static Map REPSITORY_TYPES = [
+    private final static Map REPSITORY_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
             (LeVADocumentUseCase.DocumentType.DTR as String): null,
             (LeVADocumentUseCase.DocumentType.TIR as String): null
@@ -123,14 +149,16 @@ class LeVADocumentScheduler extends DocGenScheduler {
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE): [:],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
             (LeVADocumentUseCase.DocumentType.TIR as String): null
         ],
-        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:]
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:],
+        (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_LIB): [:],
     ]
 
     // Document types at the project level which require repositories
-    private static List REQUIRING_REPOSITORIES = [
+    private final static List REQUIRING_REPOSITORIES = [
         LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
         LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
         LeVADocumentUseCase.DocumentType.CFTR as String,
@@ -141,7 +169,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
 
     // Document types per environment token and label to track with Jira
     @SuppressWarnings('NonFinalPublicField')
-    public static Map ENVIRONMENT_TYPE = [
+    public final static Map ENVIRONMENT_TYPE = [
         "D": [
             (LeVADocumentUseCase.DocumentType.CSD as String)    : ["${LeVADocumentUseCase.DocumentType.CSD}"],
             (LeVADocumentUseCase.DocumentType.SSDS as String)   : ["${LeVADocumentUseCase.DocumentType.SSDS}"],
@@ -174,7 +202,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
             (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
             (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_P"]
-        ]
+        ],
     ]
 
     private final ILogger logger
@@ -222,8 +250,25 @@ class LeVADocumentScheduler extends DocGenScheduler {
         return previousEnvironment ?: environment
     }
 
+    @NonCPS
+    private boolean isProjectOneSAASRepoOnly () {
+        if (!(this.project.repositories.findAll{ repo ->
+            repo.type == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE}).isEmpty()) {
+            return (this.project.repositories.findAll{ repo ->
+                (repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE &&
+                repo.type != MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST)
+            }).isEmpty()
+        } else {
+            return false
+        }
+    }
+
     private boolean isDocumentApplicableForGampCategory(String documentType, String gampCategory) {
         return this.GAMP_CATEGORIES[gampCategory].contains(documentType)
+    }
+
+    private boolean isDocumentApplicableForSAASOnlyGampCategory(String documentType, String gampCategory) {
+        return this.GAMP_CATEGORIES_SAAS_ONLY[gampCategory].contains(documentType)
     }
 
     private boolean isDocumentApplicableForPipelinePhaseAndLifecycleStage(String documentType, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage) {
@@ -244,11 +289,18 @@ class LeVADocumentScheduler extends DocGenScheduler {
     }
 
     private boolean isDocumentApplicableForProject(String documentType, String gampCategory, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage) {
-        if (!this.GAMP_CATEGORIES.keySet().contains(gampCategory)) {
-            throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported.")
+        def result
+        if (isProjectOneSAASRepoOnly()) {
+            if (!this.GAMP_CATEGORIES_SAAS_ONLY.keySet().contains(gampCategory)) {
+                throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported for SAAS systems.")
+            }
+            result = isDocumentApplicableForSAASOnlyGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
+        } else {
+            if (!this.GAMP_CATEGORIES.keySet().contains(gampCategory)) {
+                throw new IllegalArgumentException("Error: unable to assert applicability of document type '${documentType}' for project '${this.project.key}' in phase '${phase}'. The GAMP category '${gampCategory}' is not supported for non-SAAS systems.")
+            }
+            result = isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
         }
-
-        def result = isDocumentApplicableForGampCategory(documentType, gampCategory) && isDocumentApplicableForPipelinePhaseAndLifecycleStage(documentType, phase, stage) && isProjectLevelDocument(documentType)
         if (isDocumentRequiringRepositories(documentType)) {
             result = result && !this.project.repositories.isEmpty()
         }

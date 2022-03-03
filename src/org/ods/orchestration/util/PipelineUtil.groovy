@@ -95,11 +95,11 @@ class PipelineUtil {
 
     void createAndStashArtifact(String stashName, byte[] file) {
         if (!stashName?.trim()) {
-            throw new IllegalArgumentException("Error: unable to stash artifact. 'name' is undefined.")
+            throw new IllegalArgumentException("Error: unable to stash artifact. 'stashName' is undefined.")
         }
 
         if (file == null) {
-            throw new IllegalArgumentException("Error: unable to stash artifact. 'files' is undefined.")
+            throw new IllegalArgumentException("Error: unable to stash artifact. 'file' is undefined.")
         }
 
         def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${stashName}".toString()

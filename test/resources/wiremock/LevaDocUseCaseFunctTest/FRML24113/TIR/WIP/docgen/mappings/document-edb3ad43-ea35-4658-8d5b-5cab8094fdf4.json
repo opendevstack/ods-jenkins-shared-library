@@ -1,0 +1,195 @@
+{
+    "id": "edb3ad43-ea35-4658-8d5b-5cab8094fdf4",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "Overall-TIR-Cover",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Overall Technical Installation Report",
+                            "version": "3.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "releaseStatusJiraIssueKey": "FRML24113-230"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / 5-WIP",
+                                "SSDS": "BI-IT-DEVSTACK / 5-WIP",
+                                "RA": "BI-IT-DEVSTACK / 5-WIP",
+                                "TRC": "BI-IT-DEVSTACK / 4-WIP",
+                                "DTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "DTR": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTP": "BI-IT-DEVSTACK / 5-WIP",
+                                "CFTR": "BI-IT-DEVSTACK / 4-WIP",
+                                "TIR": "BI-IT-DEVSTACK / 5-WIP",
+                                "TIP": "BI-IT-DEVSTACK / 5-WIP"
+                            },
+                            "header": [
+                                "Overall Technical Installation Report, Config Item: BI-IT-DEVSTACK",
+                                "Doc ID/Version: see auto-generated cover page"
+                            ]
+                        },
+                        "data": {
+                            "sections": [
+                                {
+                                    "heading": "Installed Component Summary"
+                                },
+                                {
+                                    "heading": "Jenkins Build Log"
+                                },
+                                {
+                                    "heading": "TIR for component: thefirst (merged)"
+                                },
+                                {
+                                    "heading": "TIR for component: thesecond (merged)"
+                                }
+                            ],
+                            "jenkinsData": {
+                                "log": null
+                            },
+                            "repositories": [
+                                {
+                                    "id": "thefirst",
+                                    "type": "ods",
+                                    "data": {
+                                        "openshift": {
+                                            
+                                        },
+                                        "documents": {
+                                            "TIR": "TIR-WIP-1.pdf"
+                                        }
+                                    },
+                                    "url": "frml24113-thefirst.git",
+                                    "branch": "master",
+                                    "metadata": {
+                                        "id": "thefirst",
+                                        "name": null,
+                                        "description": "myDescription-A",
+                                        "supplier": "mySupplier-A",
+                                        "version": "myVersion-A",
+                                        "references": "myReferences-A"
+                                    },
+                                    "doInstall": true
+                                },
+                                {
+                                    "id": "thesecond",
+                                    "type": "ods",
+                                    "data": {
+                                        "openshift": {
+                                            
+                                        },
+                                        "documents": {
+                                            "TIR": "TIR-WIP-1.pdf"
+                                        }
+                                    },
+                                    "url": "frml24113-thesecond.git",
+                                    "branch": "master",
+                                    "metadata": {
+                                        "id": "thesecond",
+                                        "name": null,
+                                        "description": "myDescription-A",
+                                        "supplier": "mySupplier-A",
+                                        "version": "myVersion-A",
+                                        "references": "myReferences-A"
+                                    },
+                                    "doInstall": true
+                                },
+                                {
+                                    "id": "spock",
+                                    "type": "ods-test",
+                                    "data": {
+                                        "openshift": {
+                                            
+                                        },
+                                        "documents": {
+                                            
+                                        }
+                                    },
+                                    "url": "frml24113-spock.git",
+                                    "branch": "master",
+                                    "metadata": {
+                                        "id": "spock",
+                                        "name": null,
+                                        "description": "myDescription-A",
+                                        "supplier": "mySupplier-A",
+                                        "version": "myVersion-A",
+                                        "references": "myReferences-A"
+                                    },
+                                    "doInstall": false
+                                },
+                                {
+                                    "id": "release",
+                                    "type": "ods",
+                                    "data": {
+                                        "openshift": {
+                                            
+                                        },
+                                        "documents": {
+                                            
+                                        }
+                                    },
+                                    "url": "frml24113-release.git",
+                                    "branch": "master",
+                                    "metadata": {
+                                        "id": "release",
+                                        "name": null,
+                                        "description": "myDescription-A",
+                                        "supplier": "mySupplier-A",
+                                        "version": "myVersion-A",
+                                        "references": "myReferences-A"
+                                    },
+                                    "doInstall": true
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-edb3ad43-ea35-4658-8d5b-5cab8094fdf4.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "edb3ad43-ea35-4658-8d5b-5cab8094fdf4",
+    "persistent": true,
+    "insertionIndex": 1
+}

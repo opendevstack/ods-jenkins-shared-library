@@ -749,7 +749,7 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         1 * project.getAutomatedTestsTypeAcceptance() >> acceptanceTestIssues
         1 * project.getAutomatedTestsTypeIntegration() >> integrationTestIssues
-        1 * usecase.computeTestDiscrepancies("Integration and Acceptance Tests", SortUtil.sortIssuesByKey(acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([data.tests.acceptance.testResults, data.tests.integration.testResults]))
+        1 * usecase.computeTestDiscrepancies("Integration and Acceptance Tests", SortUtil.sortIssuesByKey(acceptanceTestIssues + integrationTestIssues), junit.combineTestResults([data.tests.acceptance.testResults, data.tests.integration.testResults]), false   )
         1 * usecase.getDocumentMetadata(LeVADocumentUseCase.DOCUMENT_TYPE_NAMES[documentType])
         1 * usecase.getDocumentTemplateName(documentType) >> documentTemplate
         1 * usecase.createDocument(documentType, null, _, files, null, documentTemplate, watermarkText) >> uri
@@ -942,6 +942,15 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         project.data.jira.techSpecs["NET-128"] = new JsonSlurper().parseText(techSpecsParam)
 
         def systemDesignSpec = project.data.jira.techSpecs["NET-128"]["systemDesignSpec"]
+
+        // needed for unroll and overwrite types
+        def testRepo = project.repositories.find {repo -> repo.id == 'demo-app-catalogue'}
+        testRepo.type = odsRepoType
+        testRepo.doInstall = doInstall
+        this.logger.debug("repos: ${testRepo} / ${odsRepoType} / ${componentTypeLong} / ${doInstall}")
+
+        def version = (odsRepoType == MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE) ? 'WIP' : '1.0'
+
         def expectedSpecifications = systemDesignSpec
                                     ? ["key":"NET-128",
                                       "req_key":"NET-125",
@@ -949,22 +958,24 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                                     : null
         def expectedComponents = ["key":"Technology-demo-app-catalogue",
                                   "nameOfSoftware":"demo-app-catalogue",
-                                  "componentType":"ODS Component",
+                                  "componentType":componentTypeLong,
                                   "componentId":"N/A - part of this application",
                                   "description":"Some description for demo-app-catalogue",
                                   "supplier":"https://github.com/microservices-demo/",
-                                  "version":"WIP",
-                                  "references":"N/A"]
+                                  "version":version,
+                                  "references":"N/A",
+                                  "doInstall":doInstall]
         def expectedModules = ["key":"Technology-demo-app-catalogue",
                                "componentName":"Technology-demo-app-catalogue",
                                "componentId":"N/A - part of this application",
-                               "componentType":"ODS Component",
-                               "odsRepoType":"ods",
+                               "componentType":componentTypeLong,
+                               "doInstall":doInstall,
+                               "odsRepoType":odsRepoType,
                                "description":"Some description for demo-app-catalogue",
                                "nameOfSoftware":"demo-app-catalogue",
                                "references":"N/A",
                                "supplier":"https://github.com/microservices-demo/",
-                               "version":"WIP",
+                               "version":version,
                                "requirements":[
                                    ["gampTopic":"performance requirements",
                                     "requirementsofTopic":[
@@ -978,7 +989,12 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
                                    ["key":"NET-128",
                                     "softwareDesignSpec":"Implement the system using a loosely coupled micro services architecture for improved extensibility and maintainability."
                                    ]]]
-        def expectedDocs =  ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent"]
+
+        if (!doInstall) {
+            expectedModules = null
+        }
+
+        def expectedDocs = ["number":"1", "documents":["SSDS"], "section":"sec1", "version":"1.0", "key":"DOC-1", "name": "name", "content":"myContent"]
 
         log.info "Using temporal folder:${tempFolder.getRoot()}"
         steps.env.BUILD_ID = "1"
@@ -1001,13 +1017,20 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         then:
         answer == uri.toString()
 
+        // headsup -> if any of the asserts fail - you'll get a nullpointer (doc watermarks can't be rendered, null doc!!!)
+        // java.lang.RuntimeException: Error: unable to add watermark to PDF document: Ambiguous method overloading for method org.apache.pdfbox.pdmodel.PDDocument#load.
+        // Cannot resolve which method to invoke for [null] due to overlapping prototypes between:
         1 * docGen.createDocument(
             "SSDS-5",
             "1.0",
             {
+                log.info("should / is: \n -${it.data.sections.sec1}\n -${expectedDocs}")
                 assert it.data.sections.sec1 == expectedDocs
-                assert it.data.sections.sec3s1.specifications[0] == expectedSpecifications
+                log.info("should / is: \n -${it.data.sections.sec5s1.components[0]}\n -${expectedComponents}")
                 assert it.data.sections.sec5s1.components[0] == expectedComponents
+                log.info("should / is: \n -${it.data.sections.sec3s1.specifications[0]}\n -${expectedSpecifications}")
+                assert it.data.sections.sec3s1.specifications[0] == expectedSpecifications
+                log.info("should / is: \n -${it.data.sections.sec10.modules[0]}\n -${expectedModules}")
                 assert it.data.sections.sec10.modules[0] == expectedModules
             }
         ) >> pdfDoc // TODO replace this pdf with the real expected one
@@ -1021,9 +1044,14 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         // TODO compare the pdf result with the expected one (https://github.com/vinsguru/pdf-util)
 
         where:
-        scenario << ["Neither  systemDesignSpec nor softwareDesignSpec",
+        scenario << ["Neither systemDesignSpec nor softwareDesignSpec",
                      "Only systemDesignSpec",
                      "Both softwareDesignSpec & systemDesignSpec"]
+
+        odsRepoType << ['ods-test', 'ods-saas-service', 'ods']
+        componentTypeLong = LeVADocumentUseCase.INTERNAL_TO_EXT_COMPONENT_TYPES.get(odsRepoType)
+        doInstall = MROPipelineUtil.PipelineConfig.INSTALLABLE_REPO_TYPES.contains(odsRepoType)
+
         techSpecsParam << ['''
           {
             "key": "NET-128",
@@ -1692,6 +1720,113 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         ]
     }
 
+    def "get version if versioning not enabled"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> false
+        project.buildParams >> [version: '3']
+        steps.env.BUILD_NUMBER = '56'
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, steps, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        version == '3-56'
+    }
+
+    def "get version from histories not WIP"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.getDocumentVersionFromHistories('CSD') >> 3L
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        version == '3'
+    }
+
+    def "get version from histories WIP"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.isWorkInProgress >> true
+        project.getDocumentVersionFromHistories('CSD') >> 3L
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        version == '3-WIP'
+    }
+
+    def "get version new version WIP"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.isWorkInProgress >> true
+        project.getDocumentVersionFromHistories('CSD') >> null
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        jiraUseCase.getLatestDocVersionId(_) >> 4L
+        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
+        version == '5-WIP'
+    }
+
+    def "get version new version not WIP in first environment"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.buildParams >> [targetEnvironmentToken: 'D']
+        project.getDocumentVersionFromHistories('CSD') >> null
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        jiraUseCase.getLatestDocVersionId(_) >> 4L
+        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
+        version == '5'
+    }
+
+    def "get version new version not WIP in second environment"() {
+        given:
+        def project = Stub(Project)
+        project.isVersioningEnabled >> true
+        project.buildParams >> [targetEnvironmentToken: 'Q']
+        project.getDocumentVersionFromHistories('CSD') >> null
+        def jiraService = Stub(JiraService)
+        def jiraUseCase = Spy(new JiraUseCase(null, null, null, jiraService, null))
+        jiraUseCase.getLatestDocVersionId(_) >> 4L
+        def useCase = Spy(new LeVADocumentUseCase(project, null, null, null, null, jiraUseCase, null, null, null, null, null, null, null, null))
+
+        when:
+        def version = useCase.getVersion(project, 'CSD')
+
+        then:
+        1 * useCase.getDocumentTrackingIssuesForHistory('CSD', _) >> []
+        version == '4'
+    }
+
     def "requirements are properly sorted and indexed by epic and key"() {
         given:
         def updatedReqs = [
@@ -1766,4 +1901,22 @@ class LeVADocumentUseCaseSpec extends SpecHelper {
         'ab-c-d'  | 'ab&#x2011;c&#x2011;d'
     }
 
+    def "getTestDescription"(testIssue, expected) {
+        given:
+        LeVADocumentUseCase leVADocumentUseCase = new LeVADocumentUseCase(null, null, null,
+            null, null, null, null, null, null, null, null, null, null, null)
+
+        when:
+        def result = leVADocumentUseCase.getTestDescription(testIssue)
+
+        then:
+        result == expected
+
+        where:
+        testIssue                                      |       expected
+        [name: '',description: '']                     |       'N/A'
+        [name: 'NAME',description: '']                 |       'NAME'
+        [name: '',description: 'DESCRIPTION']          |       'DESCRIPTION'
+        [name: 'NAME',description: 'DESCRIPTION']      |       'DESCRIPTION'
+    }
 }

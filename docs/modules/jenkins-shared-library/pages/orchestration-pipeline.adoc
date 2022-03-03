@@ -44,7 +44,7 @@ dependencies:
   - A
 ```
 
-The library supports the following repository types: `ods`, `ods-service`, and `ods-test`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
+The library supports the following repository types: `ods`, `ods-infra`, `ods-service`, `ods-saas-service`, `ods-test` and `ods-library`. Setting a repository type is required so the orchestrator can make correct assumptions based on the nature of the component at hand:
 
 ```
 id: PHOENIX
@@ -69,13 +69,25 @@ This type designates ODS components designed for _code development_. Such reposi
 
 If you use this type ODS expects to find JUnit XML test results. If you do not have any test results the pipeline will fail. If you are deploying something where JUnit XML test results are not available consider using <<Repository Type: ods-service>>.
 
+==== Repository Type: ods-infra
+
+This type designates ODS components designed for _consuming on-prem or cloud services_ of arbitrary type using infrastructure as code. Such components are based on quickstarters whose names start with `infra-`.
+
+==== Repository Type: ods-saas-service
+
+This type designates ODS components designed for _documenting vendor-provided SaaS services_.
+
 ==== Repository Type: ods-service
 
-This type designates ODS components designed for _running some service_. Examples include repositories based on the `airflow-cluster` quickstarter.
+This type designates ODS components designed for _running services_ of arbitrary type. Examples include repositories based on the `airflow-cluster` quickstarter.
 
 ==== Repository Type: ods-test
 
-This type designates ODS components designed for _running automated tests against a live application_. Such repositories are based on quickstarters whose names start with `e2e-`.
+This type designates ODS components designed for _running automated tests against a live application_. Such components are based on quickstarters whose names start with `e2e-`.
+
+==== Repository Type: ods-library
+
+This type designates ODS components designed for _library components_. Such components are only build in dev (WIP and assemble mode), and are needed for other components to be built.
 
 === Automated Resolution of Repository Git URL
 
