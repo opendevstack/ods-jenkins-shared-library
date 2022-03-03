@@ -1,0 +1,39 @@
+id: ordgp
+name: Project ordgp
+description: Description of ordgp.
+
+services:
+  bitbucket:
+    credentials:
+      id: ordgp-cd-cd-user-with-password
+
+# Uncomment (below) to connect to jira
+  jira:
+    credentials:
+      id: ordgp-cd-cd-user-with-password
+  nexus:
+    repository:
+      name: leva-documentation
+
+repositories:
+  - id: backend
+    name: ordgp-backend
+    type: ods
+  - id: frontend
+    name: ordgp-frontend
+    type: ods
+  - id: test
+    name: ordgp-test
+    type: ods-test
+  - id: releasemanager
+    name: ordgp-releasemanager
+
+# Uncomment (below) to generate documents
+capabilities:
+  - Zephyr
+  - LeVADocs:
+      GAMPCategory: 5
+      templatesVersion: "1.2"
+
+# Uncomment (below) to allow partial rebuilding during development
+# allowPartialRebuild: true
