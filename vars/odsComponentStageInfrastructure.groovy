@@ -58,7 +58,7 @@ def call(IContext context, Map config = [:]) {
     def environmentVars = null
     def tfVars = null
 
-    if (context.environment) {
+    if (!!context.environment) {
         environmentVars = readYaml(file: "${config.envPath}/${context.environment}.yml")
 
         // handle environment specific variables

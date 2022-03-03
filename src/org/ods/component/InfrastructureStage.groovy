@@ -14,7 +14,6 @@ class InfrastructureStage extends Stage {
     private final InfrastructureService infrastructure
     private final InfrastructureOptions options
 
-    private final Boolean stackDeploy
     private final String tfBackendS3Key
     private final Map tfVars
     private final Map environmentVars
@@ -30,16 +29,12 @@ class InfrastructureStage extends Stage {
         this.script = script
         this.options = new InfrastructureOptions(config)
         this.infrastructure = infrastructure
-        this.stackDeploy = true
         this.environmentVarsTesting = environmentVarsTesting
         this.environmentVars = null
         this.tfVars = null
         this.tfBackendS3Key = null
 
-        if (!context.environment) {
-            this.stackDeploy = false
-        }
-        if (this.stackDeploy) {
+        if (!!context.environment) {
             this.environmentVars = environmentVars
             this.tfBackendS3Key =
                 "${environmentVars.account}/${context.projectId}/${context.componentId}/${context.environment}"
@@ -53,7 +48,7 @@ class InfrastructureStage extends Stage {
         if (runMake("test", environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
             script.error("IaC - Testing stage failed!")
         }
-        if (stackDeploy) {
+        if (!!context.environment) {
             if (runMake("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("IaC - Plan stage failed!")
             }
