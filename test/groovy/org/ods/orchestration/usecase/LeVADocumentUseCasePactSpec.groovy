@@ -38,13 +38,11 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     @Unroll
-    def "Consumer contract test docType:#projectFixture.docType (docType with default params)"() {
+    def "docType:#projectFixture.docType (docType with default params)"() {
         given:
         String docTypeGroup = "defaultParams"
         String docType = projectFixture.getDocType()
         Map params = projectData(docType)
-        String generatedFile = "${docType}-ORDGP-WIP-2022-01-22_23-59-59.zip"
-        String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -56,10 +54,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
+                withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    String response = executeLeVADocumentUseCaseMethod(projectFixture, context.url)
-                    assert response == "http://lalala/${urlReturnFile}"
+                    executeLeVADocumentUseCaseMethod(projectFixture, context.url as String)
                 }
             }
 
@@ -68,13 +65,11 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     @Unroll
-    def "Consumer contract test docType:#projectFixture.docType (for #projectFixture.component and project: #projectFixture.project) with test data"() {
+    def "docType:#projectFixture.docType (for #projectFixture.component and project: #projectFixture.project) with test data"() {
         given:
         String docTypeGroup = "testData"
         String docType = projectFixture.getDocType()
         Map params = projectData(docType)
-        String generatedFile = "${docType}-FRML24113-WIP-2022-01-22_23-59-59.zip"
-        String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -86,10 +81,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParamsWithTests())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
+                withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    String response = executeLeVADocumentUseCaseMethodWithTestData(projectFixture, context.url)
-                    assert response == "http://lalala/${urlReturnFile}"
+                    executeLeVADocumentUseCaseMethodWithTestData(projectFixture, context.url as String)
                 }
             }
 
@@ -98,13 +92,11 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     @Unroll
-    def "Consumer contract test docType:#projectFixture.docType (for component #projectFixture.component and project: #projectFixture.project) with test data and component"() {
+    def "docType:#projectFixture.docType (for component #projectFixture.component and project: #projectFixture.project) with test data and component"() {
         given:
         String docTypeGroup = "component"
         String docType = projectFixture.getDocType()
         Map params = projectData(docType)
-        String generatedFile = "${docType}-ORDGP-WIP-2022-01-22_23-59-59.zip"
-        String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -116,10 +108,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParamsWithComponent(projectFixture.getComponent()))
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
+                withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    String response = executeLeVADocumentUseCaseMethodWithComponent(projectFixture, context.url)
-                    assert response == "http://lalala/${urlReturnFile}"
+                    executeLeVADocumentUseCaseMethodWithComponent(projectFixture, context.url as String)
                 }
             }
 
@@ -128,13 +119,11 @@ class LeVADocumentUseCasePactSpec extends Specification {
     }
 
     @Unroll
-    def "Consumer contract test docType:OVERALL_#projectFixture.docType (docType -overall- with default params)"() {
+    def "docType:OVERALL_#projectFixture.docType (docType -overall- with default params)"() {
         given:
         String docTypeGroup = "overall"
         String docType = "OVERALL_${projectFixture.getDocType()}"
         Map params = projectData(docType)
-        String generatedFile = "${docType}-ORDGP-WIP-2022-01-22_23-59-59.zip"
-        String urlReturnFile = "repository/leva-documentation/${params.project.toLowerCase()}-${params.version}/${generatedFile}"
 
         expect: "Build the contract and execute against the generated wiremock"
         new PactBuilder()
@@ -146,10 +135,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
                 withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
-                withBody([prettyPrint: true], defaultDocGenerationResponse(urlReturnFile))
+                withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
-                    String response = executeLeVADocumentUseCaseOverallMethod(projectFixture, context.url)
-                    assert response == "http://lalala/${urlReturnFile}"
+                    executeLeVADocumentUseCaseOverallMethod(projectFixture, context.url as String)
                 }
             }
 
@@ -157,9 +145,9 @@ class LeVADocumentUseCasePactSpec extends Specification {
         projectFixture << new DocTypeProjectFixturesOverall().getProjects()
     }
 
-    private String executeLeVADocumentUseCaseMethod(ProjectFixture projectFixture, String wiremockURL) {
+    private void executeLeVADocumentUseCaseMethod(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
-        return useCase."create${projectFixture.docType}"()
+        useCase."create${projectFixture.docType}"()
     }
 
     private String executeLeVADocumentUseCaseOverallMethod(ProjectFixture projectFixture, String wiremockURL) {
@@ -336,14 +324,15 @@ class LeVADocumentUseCasePactSpec extends Specification {
         } << defaultBodyParamsWithTests()
     }
 
-    Closure defaultDocGenerationResponse(String urlReturnFile) {
+    Closure defaultDocGenerationResponse() {
         return {
-            nexusURL eachLike(){ url("http://lalala", urlReturnFile) }
+            nexusURL eachLike(){ url("http://lalala") }
+            [root]
         }
     }
 
     Map projectData(docType) {
-        return [project: "ORDGP", buildNumber: "666", version: "WIP", docType: docType]
+        return [project: "FRML24113", buildNumber: "666", version: "WIP", docType: docType]
     }
 
     private LevaDocUseCaseFactory getLevaDocUseCaseFactory(ProjectFixture projectFixture) {

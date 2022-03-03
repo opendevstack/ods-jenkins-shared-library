@@ -1,5 +1,6 @@
 package org.ods.orchestration
 
+import org.ods.orchestration.mapper.LeVADocumentParamsMapper
 import org.ods.orchestration.util.JobResultsUploadToNexus
 import org.ods.services.ServiceRegistry
 import org.ods.services.JenkinsService
@@ -216,21 +217,15 @@ class InitStage extends Stage {
             )
         )
 
+        registry.add(LeVADocumentParamsMapper, new LeVADocumentParamsMapper(registry.get(Project)))
+
         registry.add(LeVADocumentUseCase,
             new LeVADocumentUseCase(
                 registry.get(Project),
-                registry.get(PipelineSteps),
-                registry.get(MROPipelineUtil),
                 registry.get(DocGenService),
                 registry.get(JenkinsService),
-                registry.get(JiraUseCase),
-                registry.get(JUnitTestReportsUseCase),
-                registry.get(LeVADocumentChaptersFileService),
                 registry.get(NexusService),
-                registry.get(OpenShiftService),
-                registry.get(PDFUtil),
-                registry.get(SonarQubeUseCase),
-                registry.get(BitbucketTraceabilityUseCase),
+                registry.get(LeVADocumentParamsMapper),
                 logger
             )
         )

@@ -7,6 +7,7 @@ import org.ods.core.test.jira.JiraServiceForWireMock
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.wiremock.WiremockServers
+import org.ods.orchestration.mapper.LeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
@@ -82,18 +83,10 @@ class LevaDocUseCaseFactory {
         return new LeVADocumentUseCase
             (
                 project,
-                steps,
-                project.jiraUseCase.util,
                 new DocGenService(docGenUrl),
                 jenkins,
-                project.jiraUseCase,
-                new JUnitTestReportsUseCase(project, steps),
-                new LeVADocumentChaptersFileService(steps),
                 nexusService,
-                os,
-                new PDFUtil(),
-                new SonarQubeUseCase(project, steps, nexusService),
-                bbt,
+                new LeVADocumentParamsMapper(project),
                 new LoggerStub(log)
             )
     }
