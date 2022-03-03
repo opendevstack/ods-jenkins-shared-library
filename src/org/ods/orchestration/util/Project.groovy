@@ -188,7 +188,8 @@ class Project {
         private List<JiraDataItem> getResolvedReferences(String type) {
             // Reference this within jiraResolved (contains readily resolved references to other entities)
             def item = Project.this.data.jiraResolved[this.type][this.key]
-            return item && item[type] ? item[type] : []
+            def references = item && item[type] ? item[type] : []
+            return references.findAll { it != null }
         }
 
         @NonCPS
@@ -1429,31 +1430,39 @@ class Project {
 
     @NonCPS
     protected Map resolveJiraDataItemReferences(Map data, List<String> jiraTypes) {
-        def result = [:]
-
-        data.each { type, values ->
+        Map result = [:]
+        data.each { String type, values ->
             if (!jiraTypes.contains(type)) {
                 return
             }
 
             result[type] = [:]
-
-            values.each { key, item ->
-                result[type][key] = [:]
-
-                jiraTypes.each { referenceType ->
-                    if (item.containsKey(referenceType)) {
-                        result[type][key][referenceType] = []
-
-                        item[referenceType].eachWithIndex { referenceKey, index ->
-                            result[type][key][referenceType][index] = data[referenceType][referenceKey]
-                        }
-                    }
-                }
+            values.each { String key, Map item ->
+                updateResultType(result, type, key, jiraTypes, item, data)
             }
         }
 
         return result
+    }
+
+    @NonCPS
+    private void updateResultType(Map result, String type, String key, List<String> jiraTypes, Map item, Map data) {
+        result[type][key] = [:]
+        jiraTypes.each { referenceType ->
+            if (item.containsKey(referenceType)) {
+                updateResultTypeKey(item, referenceType, result, type, key, data)
+            }
+        }
+    }
+
+    @NonCPS
+    private void updateResultTypeKey(Map item, String referenceType, Map result, String type, String key, Map data) {
+        result[type][key][referenceType] = []
+        item[referenceType].eachWithIndex { referenceKey, index ->
+            if (data[referenceType][referenceKey] != null) {
+                result[type][key][referenceType][index] = data[referenceType][referenceKey]
+            }
+        }
     }
 
     void setHasFailingTests(boolean status) {
