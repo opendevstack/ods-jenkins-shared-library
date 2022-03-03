@@ -1437,7 +1437,7 @@ class Project {
             }
 
             result[type] = [:]
-            values.each { String key, Map item ->
+            values.each { String key, JiraDataItem item ->
                 updateResultType(result, type, key, jiraTypes, item, data)
             }
         }
@@ -1446,7 +1446,12 @@ class Project {
     }
 
     @NonCPS
-    private void updateResultType(Map result, String type, String key, List<String> jiraTypes, Map item, Map data) {
+    protected void updateResultType(Map result,
+                                    String type,
+                                    String key,
+                                    List<String> jiraTypes,
+                                    JiraDataItem item,
+                                    Map data) {
         result[type][key] = [:]
         jiraTypes.each { referenceType ->
             if (item.containsKey(referenceType)) {
@@ -1456,7 +1461,12 @@ class Project {
     }
 
     @NonCPS
-    private void updateResultTypeKey(Map item, String referenceType, Map result, String type, String key, Map data) {
+    protected void updateResultTypeKey(JiraDataItem item,
+                                       String referenceType,
+                                       Map result,
+                                       String type,
+                                       String key,
+                                       Map data) {
         result[type][key][referenceType] = []
         item[referenceType].eachWithIndex { referenceKey, index ->
             if (data[referenceType][referenceKey] != null) {
