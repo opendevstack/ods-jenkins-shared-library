@@ -9,9 +9,11 @@
 #
 #
 projects:
-  - id: ORDGP
-    releaseId: ORDGP-123
-    version: DEV
+  - id: FRML24113
+    releaseId: FRML24113-230
+    version: WIP
     validation: >
       ### Project validates
-      * Images in documents
+      * Large images
+      * Discontinue tests
+
