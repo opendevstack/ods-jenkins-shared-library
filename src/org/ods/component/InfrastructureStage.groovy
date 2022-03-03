@@ -45,14 +45,17 @@ class InfrastructureStage extends Stage {
     // called from odsComponentStageInfrustructure execute
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
-        if (runMakeStage("test", this.options.cloudProvider, environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
+        if (runMakeStage("test", this.options.cloudProvider,
+                          environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
             script.error("IaC - Testing stage failed!")
         }
         if (!!context.environment) {
-            if (runMakeStage("plan", this.options.cloudProvider, environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
+            if (runMakeStage("plan", this.options.cloudProvider,
+                              environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("IaC - Plan stage failed!")
             }
-            if (runMakeStage("deploy", this.options.cloudProvider, environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
+            if (runMakeStage("deploy", this.options.cloudProvider,
+                              environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("IaC - Deploy stage failed!")
             }
             if (runMakeStage("deployment-test", this.options.cloudProvider,
@@ -84,7 +87,12 @@ class InfrastructureStage extends Stage {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private int runMakeStage(String rule, String cloudProvider, Map environmentVars, String tfBackendS3Key, String workspace) {
+    private int runMakeStage(
+                    String rule,
+                    String cloudProvider,
+                    Map environmentVars,
+                    String tfBackendS3Key,
+                    String workspace) {
         script.stage("${cloudProvider} IaC - ${rule}") {
             logger.startClocked(options.resourceName)
             int returnCode = infrastructure.runMake(rule, environmentVars, tfBackendS3Key, workspace)
