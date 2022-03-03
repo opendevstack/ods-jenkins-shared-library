@@ -45,21 +45,21 @@ class InfrastructureStage extends Stage {
     // called from odsComponentStageInfrustructure execute
     @TypeChecked(TypeCheckingMode.SKIP)
     protected run() {
-        if (runMake("test", environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
+        if (runMakeStage("test", this.options.cloudProvider, environmentVarsTesting, tfBackendS3Key, null as String) != 0) {
             script.error("IaC - Testing stage failed!")
         }
         if (!!context.environment) {
-            if (runMake("plan", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
+            if (runMakeStage("plan", this.options.cloudProvider, environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("IaC - Plan stage failed!")
             }
-            if (runMake("deploy", environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
+            if (runMakeStage("deploy", this.options.cloudProvider, environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("IaC - Deploy stage failed!")
             }
-            if (runMake("deployment-test",
+            if (runMakeStage("deployment-test", this.options.cloudProvider,
                               environmentVars, tfBackendS3Key, tfVars['meta_environment'] as String) != 0) {
                 script.error("IaC - Deployment-Test stage failed!")
             }
-            if (runMake("install-report", [:], null as String, null as String) != 0) {
+            if (runMakeStage("install-report", this.options.cloudProvider, [:], null as String, null as String) != 0) {
                 script.error("IaC - Report stage failed!")
             }
 
@@ -84,8 +84,8 @@ class InfrastructureStage extends Stage {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private int runMake(String rule, Map environmentVars, String tfBackendS3Key, String workspace) {
-        script.stage("IaC - ${rule}") {
+    private int runMakeStage(String rule, String cloudProvider, Map environmentVars, String tfBackendS3Key, String workspace) {
+        script.stage("{cloudProvider} IaC - ${rule}") {
             logger.startClocked(options.resourceName)
             int returnCode = infrastructure.runMake(rule, environmentVars, tfBackendS3Key, workspace)
             logResult(rule, returnCode)
