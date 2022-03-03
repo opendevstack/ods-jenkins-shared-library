@@ -96,20 +96,34 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         Path tmpFolder = Files.createTempDirectory("testEmptyFolder")
         String tmpFolderPath = tmpFolder.toFile().getAbsolutePath()
         String repoId = "ordgp-releasemanager"
-        String testType = "unit"
-        String projectId = "ordgp"
-        String buildNumber = "666"
+        String buildId = "666"
+
+        String projectId = project.getJiraProjectKey()
+        def jiraServices = project.getServices()
+        jiraServices.jira.project = "ordgp"
+        projectId = project.getJiraProjectKey()
+
+        String fileName = "${testType}-${projectId}-${repoId}.zip".toLowerCase()
+        String nexusDirectory = "${projectId}/${repoId}/${buildId}".toLowerCase()
 
         when:
-        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber, repoId)
+        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildId, repoId)
         then:
         0 * logger.warn("Not found unit tests to upload to Nexus.")
-        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, "net/ordgp-releasemanager/666", "unit-net-ordgp-releasemanager.zip", _, "application/octet-binary")
-        result == uri.toString()
+        1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusDirectory, fileName, _, "application/octet-binary")
+        log.info("URL: " + result)
+        result.endsWith("/repository/leva-documentation/" + nexusDirectory + "/" + fileName)
+        // Example: /repository/leva-documentation/ordgp/ordgp-releasemanager/666/unit-ordgp-ordgp-releasemanager.zip
+        // == uri.toString()
 
         cleanup:
         // Files.deleteIfExists(tmpFolder)
         tmpFolder.toFile().deleteDir()
+
+        where:
+        testType << [ Project.TestType.UNIT, Project.TestType.ACCEPTANCE, Project.TestType.INSTALLATION, Project.TestType.INTEGRATION ]
+
+
 
     }
 }

@@ -23,9 +23,10 @@ class JobResultsUploadToNexus {
 
     String uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String buildId,
                               String repoId = "") {
-        repoId = repoId.toLowerCase()
-        String projectId = project.getJiraProjectKey().toLowerCase()
-        String fileName = "${testType}-${projectId}-${repoId}.zip"
+
+        String projectId = project.getJiraProjectKey()
+        String fileName = "${testType}-${projectId}-${repoId}.zip".toLowerCase()
+        String nexusDirectory = "${projectId}/${repoId}/${buildId}".toLowerCase()
 
         Path tmpZipFileFolder = Files.createTempDirectory("tmp_folder")
         Path filePath = Paths.get(tmpZipFileFolder.toString(), fileName)
@@ -39,7 +40,7 @@ class JobResultsUploadToNexus {
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
         URI report = this.nexus.storeArtifact(
             "${nexusRepository}",
-            "${projectId}/${repoId}/${buildId}",
+            nexusDirectory,
             fileName,
             filePath.getBytes(),
             "application/octet-binary")
