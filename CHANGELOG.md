@@ -78,6 +78,7 @@
 - Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
 - Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
 - JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#850](https://github.com/opendevstack/ods-jenkins-shared-library/pull/850))
+- Fix resolveJiraDataItemReferences create list with null  ([#865](https://github.com/opendevstack/ods-jenkins-shared-library/pull/865))
 
 ## [3.0] - 2020-08-11
 
