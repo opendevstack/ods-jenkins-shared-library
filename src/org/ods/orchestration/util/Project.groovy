@@ -1470,8 +1470,9 @@ class Project {
                                        Map data) {
         result[type][key][referenceType] = []
         item[referenceType].eachWithIndex { referenceKey, index ->
-            if (data[referenceType][referenceKey] != null) {
-                result[type][key][referenceType][index] = data[referenceType][referenceKey]
+            def value = data[referenceType][referenceKey]
+            if (value != null) {
+                result[type][key][referenceType][index] = value
             }
         }
     }
