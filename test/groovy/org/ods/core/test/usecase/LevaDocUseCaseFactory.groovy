@@ -64,18 +64,32 @@ class LevaDocUseCaseFactory {
             def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
             project.load(gitService, jiraUseCase)
             project.data.openshift.targetApiUrl = "https://openshift-sample"
-            project.data.build.testResultsURLs = [:]
-            project.data.build.testResultsURLs[Project.TestType.UNIT + "-Repo1"] = "https//nexus-sample/unit"
-            project.data.build.testResultsURLs[Project.TestType.UNIT + "-Repo2"] = "https//nexus-sample/unit"
-            project.data.build.testResultsURLs[Project.TestType.ACCEPTANCE] = "https//nexus-sample/unit"
-            project.data.build.testResultsURLs[Project.TestType.INSTALLATION] = "https//nexus-sample/unit"
-            project.data.build.testResultsURLs[Project.TestType.INTEGRATION] = "https//nexus-sample/unit"
+            project.data.build.testResultsURLs = generateTestResultURLs()
             project.repositories.each { repo -> repo.metadata = dataFixture.loadMetadata(repo) }
         } catch(RuntimeException e){
             log.error("setup error:${e.getMessage()}", e)
             throw e
         }
         return this
+    }
+
+    Map<String, Map<String, String>> generateTestResultURLs() {
+        def result = [:]
+
+        result[Project.TestType.UNIT + "-Repo1"] = testStructure("Unit")
+        result[Project.TestType.UNIT + "-Repo2"] = testStructure("Unit")
+        result[Project.TestType.ACCEPTANCE] = testStructure("Unit")
+        result[Project.TestType.INSTALLATION] = testStructure("Unit")
+        result[Project.TestType.INTEGRATION] = testStructure("Unit")
+
+    }
+
+    Map<String, String> generateTestStruct(String type) {
+        Map<String, String> result = [:]
+        result["url"] = "https//nexus-sample/${type}"
+        result["type"] = "${type}"
+        result["path"] = "path-to-the-files"
+
     }
 
     LeVADocumentUseCase build(String docGenUrl = null){

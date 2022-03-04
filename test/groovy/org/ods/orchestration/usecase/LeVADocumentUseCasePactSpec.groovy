@@ -6,6 +6,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
 import org.ods.core.test.usecase.levadoc.fixture.*
+import org.ods.orchestration.util.Project
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
@@ -188,8 +189,27 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 buildId string("2022-01-22_23-59-59")
                 buildURL url("https//jenkins-sample")
                 jobName string("ordgp-cd/ordgp-cd-release-master")
-                testResultsURLs {
-                    keyLike 'unit', url("https//nexus-sample")
+                keyLike "testResultsURLs", {
+                    keyLike "acceptance", {
+                        url url("https//nexus-sample")
+                        type string("Acceptance")
+                        path string("path1")
+                    }
+                    keyLike "installation", {
+                        url url("https//nexus-sample")
+                        type string("Installation")
+                        path string("path2")
+                    }
+                    keyLike "integration", {
+                        url url("https//nexus-sample")
+                        type string("Integration")
+                        path string("path3")
+                    }
+                    keyLike "unit", {
+                        url url("https//nexus-sample")
+                        type string("Unit")
+                        path string("path4")
+                    }
                 }
             }
             keyLike "git", {
@@ -327,7 +347,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     Closure defaultDocGenerationResponse() {
         return {
             nexusURL eachLike(){ url("http://lalala") }
-            [root]
+            [ tempFolder.root ]
         }
     }
 

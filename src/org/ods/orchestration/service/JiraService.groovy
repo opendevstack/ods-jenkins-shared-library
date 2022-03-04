@@ -351,7 +351,16 @@ class JiraService {
             throw new RuntimeException(message)
         }
 
-        return new JsonSlurperClassic().parseText(response.getBody())
+        String responseBody = response.getBody() as String
+
+        // Kept just to get what causes problems.
+        try {
+            return new JsonSlurperClassic().parseText(responseBody)
+        } catch (RuntimeException e) {
+            System.err.println("Error parsing Jira response. Jira Response: ")
+            System.err.println(responseBody)
+            throw e
+        }
     }
 
     @NonCPS
