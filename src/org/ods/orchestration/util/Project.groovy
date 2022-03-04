@@ -21,6 +21,7 @@ import java.nio.file.Paths
         'CyclomaticComplexity',
         'GStringAsMapKey',
         'ImplementationAsType',
+        'ParameterCount',
         'UseCollectMany',
         'MethodCount',
         'PublicMethodsBeforeNonPublicMethods'])
