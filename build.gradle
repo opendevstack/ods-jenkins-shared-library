@@ -126,19 +126,28 @@ test {
     systemProperty 'com.athaydes.spockframework.report.projectVersion', version
     maxHeapSize = "2048m"
     jvmArgs "-XX:MaxPermSize=256m"
+
     systemProperty "testRecordMode", project.findProperty('testRecordMode')?: false
     systemProperty "generateExpectedPdfFiles", project.findProperty('generateExpectedPdfFiles')?: false
-    systemProperty "nexus.url", project.findProperty('nexus.url')?: "http://nexus.odsbox.lan:7990"
-    systemProperty "sonarQu.url", project.findProperty('sonarQu.url')?: "http://sonar.odsbox.lan:7990"
+
+    systemProperty "sonarQuURL", project.findProperty('sonarQuURL')?: "http://sonar.odsbox.lan:7990"
+
     systemProperty "bitbucket.url", project.findProperty('bitbucket.url')?: "http://bitbucket.odsbox.lan:7990"
+    systemProperty "bitbucket.username", project.findProperty('bitbucket.username')?: "openshift"
+    systemProperty "bitbucket.password", project.findProperty('bitbucket.password')?: "openshift"
+
     systemProperty "docGen.url", project.findProperty('docGen.url')?: "http://docgen.odsbox.lan:8080"
+    systemProperty "docGen.username", project.findProperty('docGen.username')?: "openshift"
+    systemProperty "docGen.password", project.findProperty('docGen.password')?: "openshift"
+
     systemProperty "jira.url", project.findProperty('jira.url')?: "http://jira.odsbox.lan:8080"
     systemProperty "jira.username", project.findProperty('jira.username')?: "openshift"
     systemProperty "jira.password", project.findProperty('jira.password')?: "openshift"
-    systemProperty "domain.user", project.findProperty('domain.user')?: "openshift"
-    systemProperty "domainPassword", project.findProperty('domainPassword')?: "openshift"
+
+    systemProperty "nexus.url", project.findProperty('nexus.url')?:  "http://nexus.odsbox.lan:7990"
     systemProperty "nexus.username", project.findProperty('nexus.username')?: "openshift"
     systemProperty "nexus.password", project.findProperty('nexus.password')?: "openshift"
+
     systemProperty "wiremock.textToReplace", project.findProperty('wiremock.textToReplace')?: ""
 }
 

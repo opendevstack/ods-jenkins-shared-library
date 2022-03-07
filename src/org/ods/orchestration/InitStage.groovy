@@ -243,8 +243,7 @@ class InitStage extends Stage {
         registry.add(JobResultsUploadToNexus,
             new JobResultsUploadToNexus(
                 registry.get(MROPipelineUtil),
-                registry.get(NexusService),
-                logger
+                registry.get(NexusService)
             )
         )
 

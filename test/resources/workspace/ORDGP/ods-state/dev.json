@@ -1,9 +1,0 @@
-{
-    "version": "WIP",
-    "changeId": "1.0",
-    "repositories": {
-        "backend": "27eb2abe4554932afa94f9a40a72d2165158ae6b",
-        "frontend": "c385c58ed1e65b1a62be56f8ceb1eb0ed7fdf293",
-        "test": "3e9ed20ad8199d1918747615bd883eab81b03d59"
-    }
-}

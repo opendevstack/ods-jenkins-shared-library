@@ -1,5 +1,6 @@
 package org.ods.orchestration.util
 
+import com.cloudbees.groovy.cps.NonCPS
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.ods.services.NexusService
@@ -13,15 +14,17 @@ class JobResultsUploadToNexus {
 
     private final MROPipelineUtil util
     private final NexusService nexus
-    private final ILogger logger
 
-    JobResultsUploadToNexus(MROPipelineUtil util, NexusService nexus, ILogger logger) {
+    JobResultsUploadToNexus(MROPipelineUtil util, NexusService nexus) {
         this.util = util
         this.nexus = nexus
-        this.logger = logger
     }
 
-    String uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String buildId,
+    @NonCPS
+    String uploadTestsResults(String testType,
+                              Project project,
+                              URI testReportsUnstashPath,
+                              String buildId,
                               String repoId = "") {
         repoId = repoId.toLowerCase()
         String projectId = project.getJiraProjectKey().toLowerCase()
@@ -44,7 +47,6 @@ class JobResultsUploadToNexus {
             filePath.getBytes(),
             "application/octet-binary")
 
-        logger.info "Tests results of type ${testType} stored in: ${report}"
         return report.toString()
     }
 }

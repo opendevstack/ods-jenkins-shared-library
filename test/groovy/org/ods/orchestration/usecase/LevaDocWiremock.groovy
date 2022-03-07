@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import groovy.util.logging.Slf4j
+import org.ods.core.test.service.BitbucketReleaseManagerService
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.wiremock.WiremockManager
 import org.ods.core.test.wiremock.WiremockServers

@@ -8,7 +8,8 @@ class DocTypeProjectFixturesOverall extends DocTypeProjectFixtureBase {
 
     def addDocTypes(Map project, List projects) {
         docTypes.each { docType ->
-            projects.add(ProjectFixture.getProjectFixtureBuilder(project, docType).overall(true).build())
+            if (project.docsToTest.contains(docType))
+                projects.add(ProjectFixture.getProjectFixtureBuilder(project, docType).overall(true).build())
         }
     }
 

@@ -139,7 +139,7 @@ class LeVADocumentUseCase {
     }
 
     void createOverallTIR(Map repo = null, Map data = null) {
-        uploadJenkinsJobLog()
+        project.data.jenkinLog =  uploadJenkinsJobLog()
         createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
 
@@ -178,7 +178,7 @@ class LeVADocumentUseCase {
         logger.info("create document ${documentType} end")
     }
 
-    private void uploadJenkinsJobLog() {
+    private String uploadJenkinsJobLog() {
         String fileName = JENKINS_LOG
         String nexusPath = "${project.getJiraProjectKey().toLowerCase()}/${project.steps.env.BUILD_NUMBER}"
 
@@ -199,6 +199,7 @@ class LeVADocumentUseCase {
         )
 
         logger.info "Report stored in: ${report.toString()}"
+        return report.toString()
     }
 
 }

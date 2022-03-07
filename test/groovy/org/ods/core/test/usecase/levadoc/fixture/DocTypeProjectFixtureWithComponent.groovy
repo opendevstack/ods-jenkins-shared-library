@@ -1,27 +1,23 @@
 package org.ods.core.test.usecase.levadoc.fixture
 
-
-import org.yaml.snakeyaml.Yaml
-
 class DocTypeProjectFixtureWithComponent extends DocTypeProjectFixtureBase {
 
     DocTypeProjectFixtureWithComponent() {
-        super( [ "TIR", "DTR"])
+        super( [ "DTR", "TIR"])
     }
 
     @Override
     List addDocTypes(Map project, List projects) {
         docTypes.each { docType ->
-           addModules(project, docType, projects)
+            if (project.docsToTest.contains(docType))
+                addModules(project, docType as String, projects)
         }
     }
 
     private void addModules(Map project, String docType, List projects) {
-        def meta = new Yaml().load(new File("test/resources/workspace/${project.id}/metadata.yml").text)
-        meta.repositories.each { repo ->
-            if (notIsReleaseModule(repo)) {
-                projects.add(ProjectFixture.getProjectFixtureBuilder(project, docType).component(repo.id as String).build())
-            }
+        List<String> components = project.components.split("\\s*,\\s*")
+        components.each { repo ->
+            projects.add(ProjectFixture.getProjectFixtureBuilder(project, docType).component(repo).build())
         }
     }
 

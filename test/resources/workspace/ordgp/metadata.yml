@@ -15,20 +15,18 @@ services:
     repository:
       name: leva-documentation
 
-repositories:
+repositories: 
   - id: backend
     name: ordgp-backend
     type: ods
   - id: frontend
     name: ordgp-frontend
-    type: ods
+    type: ods  
   - id: test
     name: ordgp-test
     type: ods-test
-  - id: releasemanager
-    name: ordgp-releasemanager
 
-# Uncomment (below) to generate documents
+# Uncomment (below) to generate documents	  
 capabilities:
   - Zephyr
   - LeVADocs:

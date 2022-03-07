@@ -21,15 +21,10 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
     JobResultsUploadToNexus jobResultsUploadToNexus
 
     def setup() {
-        logger = Spy(new LoggerStub(log))
-        //logger = Mock(Logger)
-
         project = createProject()
-        // nexus = Stub(NexusService)
         nexus = Mock(NexusService)
         util = Mock(MROPipelineUtil)
-
-        jobResultsUploadToNexus = Spy(new JobResultsUploadToNexus(util, nexus, logger))
+        jobResultsUploadToNexus = Spy(new JobResultsUploadToNexus(util, nexus))
     }
 
     def "empty list of files to upload test"() {
@@ -43,16 +38,16 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         String buildNumber = "666"
         String nexusRepoPath = "${projectId}/${repoId}/${buildNumber}"
         String fileName = "${testType}-${projectId}-${repoId}.zip"
+
         when:
-        // jobResultsUploadToNexus.uploadTestsResults(String testType, Project project, def testReportsUnstashPath, String repoId="")
-        def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber, repoId)
+        def result = jobResultsUploadToNexus
+            .uploadTestsResults(testType, project, tmpFolderPath, buildNumber, repoId)
+
         then:
-        0 * logger.warn("Not found unit tests to upload to Nexus.")
         1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
         result == uri.toString()
 
         cleanup:
-        // Files.deleteIfExists(tmpFolder)
         tmpFolder.toFile().deleteDir()
     }
 
@@ -72,11 +67,10 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         Files.createTempFile(tmpFolder, "file_2", ".txt") << "to the test"
         Files.createTempFile(tmpFolder, "file_3", ".txt") << "contents."
 
-        // nexus.storeArtifact()
         when:
         def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber)
+
         then:
-        0 * logger.warn("Not found unit tests to upload to Nexus.")
         1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, nexusRepoPath, fileName, _, "application/octet-binary") >> uri
         result == uri.toString()
 
@@ -90,7 +84,7 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
         String nexusUsername = System.properties["nexus.username"]
         String nexusPassword = System.properties["nexus.password"]
         nexus = Spy(new NexusService(nexusUrl, nexusUsername, nexusPassword))
-        jobResultsUploadToNexus = Spy(new JobResultsUploadToNexus(util, nexus, logger))
+        jobResultsUploadToNexus = Spy(new JobResultsUploadToNexus(util, nexus))
 
         def uri = new URI("http://lalala")
         Path tmpFolder = Files.createTempDirectory("testEmptyFolder")
@@ -102,13 +96,12 @@ class JobResultsUploadToNexusSpec extends SpecHelper {
 
         when:
         def result = jobResultsUploadToNexus.uploadTestsResults(testType, project, tmpFolderPath, buildNumber, repoId)
+
         then:
-        0 * logger.warn("Not found unit tests to upload to Nexus.")
         1 * nexus.storeArtifact(NexusService.DEFAULT_NEXUS_REPOSITORY, "net/ordgp-releasemanager/666", "unit-net-ordgp-releasemanager.zip", _, "application/octet-binary")
         result == uri.toString()
 
         cleanup:
-        // Files.deleteIfExists(tmpFolder)
         tmpFolder.toFile().deleteDir()
 
     }

@@ -2,6 +2,7 @@ package org.ods.core.test.usecase.levadoc.fixture
 
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
+import org.ods.core.test.service.BitbucketReleaseManagerService
 import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.workspace.TestsReports
 import org.ods.orchestration.usecase.JUnitTestReportsUseCase
@@ -9,8 +10,12 @@ import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Project
 import org.ods.util.IPipelineSteps
 
+import java.nio.file.Paths
+
 @Slf4j
 class LevaDocDataFixture {
+
+    private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"] as String)
 
     private final File tempFolder
 
@@ -57,7 +62,7 @@ class LevaDocDataFixture {
     }
 
     def loadEnvData(ProjectFixture projectFixture){
-        File tmpWorkspace = setTemporalWorkspace(projectFixture.project)
+        File tmpWorkspace = setTemporalWorkspace(projectFixture)
         return  [
             BUILD_ID:"2022-01-22_23-59-59",
             WORKSPACE: tmpWorkspace.absolutePath,
@@ -68,6 +73,15 @@ class LevaDocDataFixture {
             BUILD_NUMBER: "666",
             BUILD_URL: "https://jenkins-sample",
             JOB_NAME: "ordgp-cd/ordgp-cd-release-master"
+        ]
+    }
+
+    Map<String, String> getTestResultsUrls() {
+        return [
+            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/unit-ordgp-ordgp-releasemanager.zip",
+            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/acceptance-ordgp-ordgp-releasemanager.zip",
+            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/installation-ordgp-ordgp-releasemanager.zip",
+            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/integration-ordgp-ordgp-releasemanager.zip",
         ]
     }
 
@@ -98,10 +112,24 @@ class LevaDocDataFixture {
         return new TestsReports(steps, junitReportsUseCase)
     }
 
-    private File setTemporalWorkspace(String project) {
+    private File setTemporalWorkspace(ProjectFixture projectFixture) {
         File tmpWorkspace = new FileTreeBuilder(tempFolder).dir("workspace")
         System.setProperty("java.io.tmpdir", tmpWorkspace.absolutePath)
-        FileUtils.copyDirectory(new File("test/resources/workspace/${project}"), tmpWorkspace)
+        File workspace =  Paths.get("test/resources/workspace/${projectFixture.project}").toFile()
+        if (RECORD){
+            workspace.mkdirs()
+            downloadReleaseManagerRepo(projectFixture, workspace)
+        }
+         FileUtils.copyDirectory(workspace, tmpWorkspace)
         return tmpWorkspace
     }
+
+    private downloadReleaseManagerRepo(ProjectFixture projectFixture, File tempFolder) {
+        new BitbucketReleaseManagerService().downloadRepo(
+            projectFixture.project,
+            projectFixture.releaseManagerRepo,
+            projectFixture.releaseManagerBranch,
+            tempFolder.absolutePath)
+    }
+
 }

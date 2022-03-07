@@ -1,0 +1,8 @@
+// See https://www.opendevstack.org/ods-documentation/ for usage and customization.
+
+@Library('ods-jenkins-shared-library@4.x') _
+
+odsOrchestrationPipeline(
+  debug: true,
+  odsImageTag: '4.x'
+)
