@@ -69,6 +69,8 @@ interface IPipelineSteps {
 
     def sshUserPrivateKey(Map credentialsData)
 
+    def string(Map credentialsData)
+
     def withCredentials(List credentialsList, Closure block)
 
     def unwrap()
