@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DemoIntegration" tests="3" skipped="0" failures="0" errors="0" timestamp="2022-03-01T11:22:24" hostname="pod-3d3cc6d9-b447-4430-a9eb-92909af215a9-drsw3-px7pm" time="0.009">
+  <properties/>
+  <testcase name="ORDGP143_basic test" classname="DemoIntegration" time="0.008"/>
+  <testcase name="ORDGP144_basic test" classname="DemoIntegration" time="0.0"/>
+  <testcase name="ORDGP145_basic test" classname="DemoIntegration" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

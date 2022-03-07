@@ -1,9 +1,8 @@
 package org.ods.orchestration
 
 import org.ods.PipelineScript
-import org.ods.orchestration.TestStage
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
-import org.ods.orchestration.util.JobResultsUploadToNexus
+
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.ServiceRegistry
@@ -30,7 +29,6 @@ class TestStageSpec extends SpecHelper {
     JenkinsService jenkins
     LeVADocumentScheduler levaDocScheduler
     NexusService nexusService
-    JobResultsUploadToNexus jobResultsUploadToNexus
     ILogger logger
 
     def phase = MROPipelineUtil.PipelinePhases.TEST
@@ -45,7 +43,6 @@ class TestStageSpec extends SpecHelper {
         junit = Mock(JUnitTestReportsUseCase)
         jenkins = Mock(JenkinsService)
         nexusService = Mock(NexusService)
-        jobResultsUploadToNexus = Mock(JobResultsUploadToNexus)
         logger = new Logger(script, !!script.env.DEBUG)
         createService()
         testStage = Spy(new TestStage(script, project, project.repositories, null))
@@ -60,7 +57,7 @@ class TestStageSpec extends SpecHelper {
         registry.add(JiraUseCase, jira)
         registry.add(JUnitTestReportsUseCase, junit)
         registry.add(JenkinsService, jenkins)
-        registry.add(JobResultsUploadToNexus, jobResultsUploadToNexus)
+        registry.add(NexusService, nexusService)
         registry.add(Logger, logger)
 
         return registry

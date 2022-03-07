@@ -4,7 +4,13 @@ package org.ods.services
 
 import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
+
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class NexusService {
 
@@ -177,6 +183,44 @@ class NexusService {
             throw new RuntimeException ("Could not retrieve data from '${urlToDownload}'")
         }
         return !response.getBody().contains('\"items\" : [ ]')
+    }
+
+    @NonCPS
+    String uploadTestsResults(String testType,
+                              String projectId,
+                              URI testReportsUnstashPath,
+                              String buildId,
+                              String repoId = "") {
+
+        String fileName = getFileName(repoId, testType)
+        String nexusDirectory = "${projectId}/${repoId}/${buildId}".toLowerCase()
+
+        Path tmpZipFileFolder = Files.createTempDirectory("tmp_folder")
+        Path filePath = Paths.get(tmpZipFileFolder.toString(), fileName)
+        Path folderToAdd = Paths.get(testReportsUnstashPath)
+
+        def zipFile = new ZipFile(filePath.toString())
+        ZipParameters zipParameters = new ZipParameters()
+        zipParameters.setIncludeRootFolder(false)
+        zipFile.addFolder(folderToAdd.toFile(), zipParameters)
+
+        String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
+        URI report = this.storeArtifact(
+            "${nexusRepository}",
+            nexusDirectory,
+            fileName,
+            filePath.getBytes(),
+            "application/octet-binary")
+
+        return report.toString()
+    }
+
+    private String getFileName(String repoId, String testType) {
+        if (testType == "Unit") {
+            return ((repoId != null) ? "${testType}-${repoId}.zip" : testType).toLowerCase()
+        }
+
+        return "${testType}.zip".toLowerCase()
     }
 
 }

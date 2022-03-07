@@ -1,14 +1,25 @@
 package org.ods.services
 
-import com.github.tomakehurst.wiremock.client.*
-
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.apache.http.client.utils.URIBuilder
-import org.ods.services.NexusService
-import spock.lang.*
-
-import util.*
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.Project
+import util.SpecHelper
 
 class NexusServiceSpec extends SpecHelper {
+
+    NexusService service
+    MROPipelineUtil util
+
+    @Rule
+    TemporaryFolder temporaryFolder = new TemporaryFolder()
+
+    def setup() {
+        temporaryFolder.create()
+        util = Mock(MROPipelineUtil)
+    }
 
     NexusService createService(int port, String username, String password) {
         return new NexusService("http://localhost:${port}", username, password)
@@ -221,4 +232,46 @@ class NexusServiceSpec extends SpecHelper {
         stopServer(server)
     }
 
+    def "uploadTestsResults"(def testType, def expectedFile) {
+        given:
+        String repoId = "backend"
+        String buildId = "666"
+        String projectId = "ordgp"
+        String fileName = "${testType}.zip".toLowerCase()
+
+        def request = [
+            data: [
+                directory: "/leva-documentation/${projectId}/${repoId}/${buildId}",
+                name: "${fileName}",
+                repository: "${repoId}",
+            ],
+            password: "password",
+            path: "/service/rest/v1/components*",
+            username: "username"
+        ]
+        def response = storeArtifactResponseData([
+            status: 204
+        ])
+
+        def server = createServer(WireMock.&post, request, response)
+        def service = createService(server.port(), request.username, request.password)
+
+        String expectedResult = "http://localhost:${server.port()}/repository/leva-documentation/${projectId}/${repoId}/${buildId}/${expectedFile}.zip"
+
+        when:
+        def result = service.uploadTestsResults(testType, projectId, temporaryFolder.getRoot().toURI(), buildId, repoId)
+
+        then:
+        result == expectedResult
+
+        cleanup:
+        stopServer(server)
+
+        where:
+        testType                        |   expectedFile
+        Project.TestType.UNIT           |   "unit-backend"
+        Project.TestType.ACCEPTANCE     |   "acceptance"
+        Project.TestType.INSTALLATION   |   "installation"
+        Project.TestType.INTEGRATION    |   "integration"
+    }
 }

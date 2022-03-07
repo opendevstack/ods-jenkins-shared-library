@@ -1,7 +1,7 @@
 package org.ods.orchestration
 
 import com.cloudbees.groovy.cps.NonCPS
-import org.ods.orchestration.util.JobResultsUploadToNexus
+import org.ods.services.NexusService
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PipelineUtil
@@ -92,7 +92,7 @@ class Stage {
     Map getTestResults(def steps, Map repo, String typeIn = 'unit') {
         def jenkins = ServiceRegistry.instance.get(JenkinsService)
         def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
-        def jobResultsUploadToNexus = ServiceRegistry.instance.get(JobResultsUploadToNexus)
+        def nexusService = ServiceRegistry.instance.get(NexusService)
         ILogger logger = ServiceRegistry.instance.get(Logger)
 
         String type = typeIn.toLowerCase()
@@ -121,10 +121,10 @@ class Stage {
 
         // TODO: Here
         String testResultsKey = type + repo.id ? "-" + repo.id : ""
-        project.data.build.testResultsURLs[testResultsKey] = jobResultsUploadToNexus.uploadTestsResults(
+        project.data.build.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
             type,
-            project,
-            testReportsUnstashPath,
+            project.getJiraProjectKey(),
+            new URI(testReportsUnstashPath),
             project.steps.env.BUILD_NUMBER,
             repo.id)
 
