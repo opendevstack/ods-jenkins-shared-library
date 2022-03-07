@@ -73,11 +73,14 @@
 - Improve error message when two coded tests are linked to the same test issue ([#826](https://github.com/opendevstack/ods-jenkins-shared-library/pull/826))
 - Better handling of Unit tests in D and DevPreview ([827](https://github.com/opendevstack/ods-jenkins-shared-library/pull/827))
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
-- Integrate with new DocGen service, which implements all functionality previously in LevaDocUseCase.
-- Removes NonCPS to CPS methods call in DocGenScheduler and LeVADocumentScheduler.
-- Uses Nexus to store test results and jenkins job logs. Keys of tests urls sent to docGen go always in lower case. Pact Tests architecture fixed.
+- Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Set test summary for empty description in TCR for acceptance tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/844))
+- Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
 - Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
 - JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#850](https://github.com/opendevstack/ods-jenkins-shared-library/pull/850))
+- Fix resolveJiraDataItemReferences create list with null  ([#865](https://github.com/opendevstack/ods-jenkins-shared-library/pull/865))
+- Add new Infrastructure Service ([#740](https://github.com/opendevstack/ods-jenkins-shared-library/pull/740))
+
 
 ## [3.0] - 2020-08-11
 

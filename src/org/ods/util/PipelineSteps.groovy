@@ -152,6 +152,10 @@ class PipelineSteps implements IPipelineSteps, Serializable {
         this.context.sshUserPrivateKey(credentialsData)
     }
 
+    def string(Map credentialsData) {
+        this.context.string(credentialsData)
+    }
+
     def withCredentials(List credentialsList, Closure block) {
         this.context.withCredentials(credentialsList, block)
     }
