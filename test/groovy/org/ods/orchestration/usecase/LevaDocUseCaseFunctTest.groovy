@@ -132,7 +132,7 @@ class LevaDocUseCaseFunctTest extends Specification {
     }
 
     @Unroll
-    def "upload #projectFixture.project workspace xunit to nexus"() {
+    def "upload #projectFixture.project workspace xunit folder to nexus"() {
         given:
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
@@ -158,11 +158,11 @@ class LevaDocUseCaseFunctTest extends Specification {
         acceptanceRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/acceptance.zip")
         integrationRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/integration.zip")
         installationRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/installation.zip")
-        frontendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/frontend/${buildId}/unit-frontend.zip")
-        backendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/backend/${buildId}/unit-backend.zip")
+        frontendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/unit-frontend.zip")
+        backendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/unit-backend.zip")
 
         where:
-        projectFixture << new DocTypeProjectFixtureWithComponent().getProjects()
+        projectFixture << new DocTypeProjectFixture().getProjects()
     }
 
     private LevaDocUseCaseFactory getLevaDocUseCaseFactory(ProjectFixture projectFixture) {
