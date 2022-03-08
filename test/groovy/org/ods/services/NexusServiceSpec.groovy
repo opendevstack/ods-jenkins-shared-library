@@ -259,7 +259,7 @@ class NexusServiceSpec extends SpecHelper {
         String expectedResult = "http://localhost:${server.port()}/repository/leva-documentation/${projectId}/${repoId}/${buildId}/${expectedFile}.zip"
 
         when:
-        def result = service.uploadTestsResults(testType, projectId, temporaryFolder.getRoot().toURI(), buildId, repoId)
+        def result = service.uploadTestsResults(testType, projectId, temporaryFolder.getRoot().toURI(), temporaryFolder.getRoot().getAbsolutePath(), buildId, repoId)
 
         then:
         result == expectedResult

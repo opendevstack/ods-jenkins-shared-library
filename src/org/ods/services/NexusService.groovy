@@ -3,12 +3,12 @@ package org.ods.services
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import com.cloudbees.groovy.cps.NonCPS
+import com.google.common.base.Strings
 import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -189,35 +189,39 @@ class NexusService {
     String uploadTestsResults(String testType,
                               String projectId,
                               URI testReportsUnstashPath,
+                              String workspacePath,
                               String buildId,
                               String repoId = "") {
 
         String fileName = getFileName(repoId, testType)
-        String nexusDirectory = "${projectId}/${repoId}/${buildId}".toLowerCase()
-
-        Path tmpZipFileFolder = Files.createTempDirectory("tmp_folder")
-        Path filePath = Paths.get(tmpZipFileFolder.toString(), fileName)
-        Path folderToAdd = Paths.get(testReportsUnstashPath)
-
-        def zipFile = new ZipFile(filePath.toString())
-        ZipParameters zipParameters = new ZipParameters()
-        zipParameters.setIncludeRootFolder(false)
-        zipFile.addFolder(folderToAdd.toFile(), zipParameters)
-
+        Path zipFilePath = createTemporalZipFile(workspacePath, fileName, testReportsUnstashPath)
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
+        String nexusDirectory = "${projectId}/${buildId}".toLowerCase()
+
         URI report = this.storeArtifact(
             "${nexusRepository}",
             nexusDirectory,
             fileName,
-            filePath.getBytes(),
+            zipFilePath.getBytes(),
             "application/octet-binary")
 
         return report.toString()
     }
 
+    private Path createTemporalZipFile(String workspacePath, String fileName, URI testReportsUnstashPath) {
+        Path tempZipFilePath = Paths.get(workspacePath, fileName)
+
+        def zipFile = new ZipFile(tempZipFilePath.toString())
+        ZipParameters zipParameters = new ZipParameters()
+        zipParameters.setIncludeRootFolder(false)
+        zipFile.addFolder(Paths.get(testReportsUnstashPath).toFile(), zipParameters)
+
+        return zipFile.getFile().toPath()
+    }
+
     private String getFileName(String repoId, String testType) {
         if (testType == "Unit") {
-            return ((repoId != null) ? "${testType}-${repoId}.zip" : testType).toLowerCase()
+            return ((!Strings.isNullOrEmpty(repoId)) ? "${testType}-${repoId}.zip" : testType).toLowerCase()
         }
 
         return "${testType}.zip".toLowerCase()

@@ -125,6 +125,7 @@ class Stage {
             type,
             project.getJiraProjectKey(),
             new URI(testReportsUnstashPath),
+            ${steps.env.WORKSPACE},
             project.steps.env.BUILD_NUMBER,
             repo.id)
 
