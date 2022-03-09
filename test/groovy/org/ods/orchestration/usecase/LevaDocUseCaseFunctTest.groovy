@@ -132,12 +132,10 @@ class LevaDocUseCaseFunctTest extends Specification {
     }
 
     @Unroll
-    def "upload #projectFixture.project workspace xunit folder to nexus"() {
+    def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
-
-        when:
         def projectKey = "${projectFixture.project}".toUpperCase()
         def xunitFilesPathUnitBackend = Paths.get("test/resources/workspace/${projectKey}/xunit/backend/unit/build/test-results/test").toUri()
         def xunitFilesPathUnitFrontend = Paths.get("test/resources/workspace/${projectKey}/xunit/frontend/unit/build/test-results/test").toUri()
@@ -148,11 +146,15 @@ class LevaDocUseCaseFunctTest extends Specification {
         String projectId = projectFixture.project
         String workspacePath = tempFolder.getRoot().getAbsolutePath()
 
+        when:
         def frontendUnitRes = useCase.nexus.uploadTestsResults("Unit", projectId, xunitFilesPathUnitFrontend, workspacePath, buildId, "frontend")
         def backendUnitRes = useCase.nexus.uploadTestsResults("Unit", projectId, xunitFilesPathUnitBackend, workspacePath, buildId, "backend")
         def acceptanceRes = useCase.nexus.uploadTestsResults("Acceptance", projectId, xunitFilesPathAcceptance, workspacePath, buildId)
         def integrationRes = useCase.nexus.uploadTestsResults("Integration", projectId, xunitFilesPathIntegration, workspacePath, buildId)
         def installationRes = useCase.nexus.uploadTestsResults("Installation", projectId, xunitFilesPathInstallation, workspacePath, buildId)
+
+        InputStream jenkinsJobLogInputStream = Paths.get("test/resources/workspace/${projectKey}/jenkins-job-log.zip").toFile().newDataInputStream()
+        def jenkinsLogJobRes = useCase.uploadJenkinsJobLog(projectKey, buildId, jenkinsJobLogInputStream)
 
         then:
         acceptanceRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/acceptance.zip")
@@ -160,6 +162,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         installationRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/installation.zip")
         frontendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/unit-frontend.zip")
         backendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/unit-backend.zip")
+        jenkinsLogJobRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/jenkins-job-log.zip")
 
         where:
         projectFixture << new DocTypeProjectFixture().getProjects()

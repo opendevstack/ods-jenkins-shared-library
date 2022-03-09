@@ -139,7 +139,10 @@ class LeVADocumentUseCase {
     }
 
     void createOverallTIR(Map repo = null, Map data = null) {
-        project.data.jenkinLog =  uploadJenkinsJobLog()
+        project.data.jenkinLog =  uploadJenkinsJobLog(
+            project.getJiraProjectKey(),
+            project.steps.env.BUILD_NUMBER,
+            jenkins.getCurrentBuildLogInputStream())
         createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
 
@@ -178,12 +181,11 @@ class LeVADocumentUseCase {
         logger.info("create document ${documentType} end")
     }
 
-    private String uploadJenkinsJobLog() {
+    private String uploadJenkinsJobLog(String projectKey, String buildNumber, InputStream jenkinsJobLog) {
         String fileName = JENKINS_LOG
-        String nexusPath = "${project.getJiraProjectKey().toLowerCase()}/${project.steps.env.BUILD_NUMBER}"
+        String nexusPath = "${projectKey.toLowerCase()}/${buildNumber}"
 
-        InputStream logInputStream = this.jenkins.getCurrentBuildLogInputStream()
-        WeakPair<String, InputStream> file = new WeakPair<String, InputStream>(fileName + ".txt", logInputStream)
+        WeakPair<String, InputStream> file = new WeakPair<String, InputStream>(fileName + ".txt", jenkinsJobLog)
         WeakPair<String, InputStream> [] files = [ file ]
 
         String logFileZipped = "${fileName}.zip"
