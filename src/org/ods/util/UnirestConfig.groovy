@@ -11,8 +11,8 @@ class UnirestConfig {
     }
   
     @NonCPS
-  static void shutdown() {
-      	Unirest.shutdown()
+    static void shutdown() {
+        Unirest.shutDown()
     }
 
 }
