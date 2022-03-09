@@ -30,6 +30,7 @@ def call(Map config) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
+  	logger.dumpCurrentStopwatchSize()
     def git = new GitService(steps, logger)
 
     def odsImageTag = config.odsImageTag
@@ -81,37 +82,41 @@ def call(Map config) {
         withPodTemplate(odsImageTag, steps, alwaysPullImage) {
             logger.debugClocked('pod-template')
             withEnv (envs) {
-                def result
-                def cannotContinueAsHasOpenIssuesInClosingRelease = false
-                try {
-                    result = new InitStage(this, project, repos, startAgentStage).execute()
-                } catch (OpenIssuesException ex) {
-                    cannotContinueAsHasOpenIssuesInClosingRelease = true
+              	try {
+                  def result
+                  def cannotContinueAsHasOpenIssuesInClosingRelease = false
+                  try {
+                      result = new InitStage(this, project, repos, startAgentStage).execute()
+                  } catch (OpenIssuesException ex) {
+                      cannotContinueAsHasOpenIssuesInClosingRelease = true
+                  }
+                  if (cannotContinueAsHasOpenIssuesInClosingRelease) {
+                      logger.warn('Cannot continue as it has open issues in the release.')
+                      return
+                  }
+                  if (result) {
+                      project = result.project
+                      repos = result.repos
+                      if (!startAgentStage) {
+                          startAgentStage = result.startAgent
+                      }
+                  } else {
+                      logger.warn('Skip pipeline as no project/repos computed')
+                      return
+                  }
+
+                  new BuildStage(this, project, repos, startAgentStage).execute()
+
+                  new DeployStage(this, project, repos, startAgentStage).execute()
+
+                  new TestStage(this, project, repos, startAgentStage).execute()
+
+                  new ReleaseStage(this, project, repos).execute()
+
+                  new FinalizeStage(this, project, repos).execute()
+                } finally {
+                  logger.resetStopwatch()
                 }
-                if (cannotContinueAsHasOpenIssuesInClosingRelease) {
-                    logger.warn('Cannot continue as it has open issues in the release.')
-                    return
-                }
-                if (result) {
-                    project = result.project
-                    repos = result.repos
-                    if (!startAgentStage) {
-                        startAgentStage = result.startAgent
-                    }
-                } else {
-                    logger.warn('Skip pipeline as no project/repos computed')
-                    return
-                }
-
-                new BuildStage(this, project, repos, startAgentStage).execute()
-
-                new DeployStage(this, project, repos, startAgentStage).execute()
-
-                new TestStage(this, project, repos, startAgentStage).execute()
-
-                new ReleaseStage(this, project, repos).execute()
-
-                new FinalizeStage(this, project, repos).execute()
             }
         }
     }
