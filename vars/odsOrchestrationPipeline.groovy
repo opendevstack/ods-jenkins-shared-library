@@ -118,6 +118,7 @@ def call(Map config) {
                   logger.resetStopwatch()
                   project.clear()
                   ServiceRegistry.instance.clear()
+                  Unirest.shutdown()
                   project = null
                 }
             }
