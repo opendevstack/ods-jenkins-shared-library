@@ -9,5 +9,10 @@ class UnirestConfig {
     static void init() {
         Unirest.config().socketTimeout(6000000).connectTimeout(600000)
     }
+  
+    @NonCPS
+  static void shutdown() {
+      	Unirest.shutdown()
+    }
 
 }
