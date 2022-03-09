@@ -115,13 +115,15 @@ def call(Map config) {
 
                   new FinalizeStage(this, project, repos).execute()
                 } finally {
-                  logger.debug('-- SHUTTING DOWN RM --')
+                  logger.debug('-- SHUTTING DOWN RM (including forced GC) --')
                   logger.resetStopwatch()
                   project.clear()
                   ServiceRegistry.instance.clear()
                   UnirestConfig.shutdown()
                   project = null
+                  result = null
                   steps = null
+                  System.gc()
                 }
             }
         }
