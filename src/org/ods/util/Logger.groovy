@@ -79,6 +79,7 @@ class Logger implements ILogger, Serializable {
     }
   
   	def resetStopwatch () {
+		dumpCurrentStopwatchSize()
       	clockStore.clear()
       	dumpCurrentStopwatchSize()
   	}
