@@ -4,6 +4,9 @@
 - Improve error message when two coded tests are linked to the same test issue ([#835](https://github.com/opendevstack/ods-jenkins-shared-library/pull/835))
 - Fix RM: *found unexecuted Jira tests* error during promote2Production when functional test only runs on D and QA ([#832](https://github.com/opendevstack/ods-jenkins-shared-library/pull/832))
 - Set test summary for empty description in TCR ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
+- Remove call to a cps method from a non_cps method ([852](https://github.com/opendevstack/ods-jenkins-shared-library/pull/852))
+- JiraService.createIssueType(JiraService.groovy:194) fails when description is missing ([#894](https://github.com/opendevstack/ods-jenkins-shared-library/issues/849))
+- Fix resolveJiraDataItemReferences create list with null  ([#864](https://github.com/opendevstack/ods-jenkins-shared-library/pull/864))
 
 ## [4.0] - 2021-05-11
 
@@ -77,6 +80,7 @@
 - Set test summary for empty description in TCR for integration tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/837))
 - Set test summary for empty description in TCR for acceptance tests ([#837](https://github.com/opendevstack/ods-jenkins-shared-library/pull/844))
 - Fix the SCR table in SSDS (chapter 2.3) appears cut off ([#843](https://github.com/opendevstack/ods-jenkins-shared-library/pull/843))
+- Drop prerelease of antora page version in 4.x (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ## [3.0] - 2020-08-11
 

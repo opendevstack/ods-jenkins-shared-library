@@ -73,5 +73,14 @@ class Logger implements ILogger, Serializable {
             return "[${component}] ${message ?: ''}"
         }
     }
+  
+  	def dumpCurrentStopwatchSize() {
+      	debug("Stopwatch size: ${clockStore.size()}")
+    }
+  
+  	def resetStopwatch () {
+      	clockStore.clear()
+      	dumpCurrentStopwatchSize()
+  	}
 
 }
