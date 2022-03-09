@@ -47,87 +47,89 @@ def call(Map config) {
     def repos = []
 
     logger.startClocked('orchestration-master-node')
-    node ('master') {
-        logger.debugClocked('orchestration-master-node')
-        // Clean workspace from previous runs
-        [
-            PipelineUtil.ARTIFACTS_BASE_DIR,
-            PipelineUtil.SONARQUBE_BASE_DIR,
-            PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
-            MROPipelineUtil.REPOS_BASE_DIR,
-        ].each { name ->
-            logger.debug("Cleaning workspace directory '${name}' from previous runs")
-            Paths.get(env.WORKSPACE, name).toFile().deleteDir()
-        }
+  
+  	try {
+      node ('master') {
+          logger.debugClocked('orchestration-master-node')
+          // Clean workspace from previous runs
+          [
+              PipelineUtil.ARTIFACTS_BASE_DIR,
+              PipelineUtil.SONARQUBE_BASE_DIR,
+              PipelineUtil.XUNIT_DOCUMENTS_BASE_DIR,
+              MROPipelineUtil.REPOS_BASE_DIR,
+          ].each { name ->
+              logger.debug("Cleaning workspace directory '${name}' from previous runs")
+              Paths.get(env.WORKSPACE, name).toFile().deleteDir()
+          }
 
-        logger.startClocked('pipeline-git-releasemanager')
-        def scmBranches = scm.branches
-        def branch = scmBranches[0]?.name
-        if (branch && !branch.startsWith('*/')) {
-            scmBranches = [[name: "*/${branch}"]]
-        }
+          logger.startClocked('pipeline-git-releasemanager')
+          def scmBranches = scm.branches
+          def branch = scmBranches[0]?.name
+          if (branch && !branch.startsWith('*/')) {
+              scmBranches = [[name: "*/${branch}"]]
+          }
 
-        // checkout local branch
-        git.checkout(
-            scmBranches,
-            [[$class: 'LocalBranch', localBranch: '**']],
-            scm.userRemoteConfigs,
-            scm.doGenerateSubmoduleConfigurations
-            )
-        logger.debugClocked('pipeline-git-releasemanager')
+          // checkout local branch
+          git.checkout(
+              scmBranches,
+              [[$class: 'LocalBranch', localBranch: '**']],
+              scm.userRemoteConfigs,
+              scm.doGenerateSubmoduleConfigurations
+              )
+          logger.debugClocked('pipeline-git-releasemanager')
 
-        def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
+          def envs = Project.getBuildEnvironment(steps, debug, versionedDevEnvsEnabled)
 
-        logger.startClocked('pod-template')
-        withPodTemplate(odsImageTag, steps, alwaysPullImage) {
-            logger.debugClocked('pod-template')
-            withEnv (envs) {
-              	try {
-                  def result
-                  def cannotContinueAsHasOpenIssuesInClosingRelease = false
-                  try {
-                      result = new InitStage(this, project, repos, startAgentStage).execute()
-                  } catch (OpenIssuesException ex) {
-                      cannotContinueAsHasOpenIssuesInClosingRelease = true
-                  }
-                  if (cannotContinueAsHasOpenIssuesInClosingRelease) {
-                      logger.warn('Cannot continue as it has open issues in the release.')
-                      return
-                  }
-                  if (result) {
-                      project = result.project
-                      repos = result.repos
-                      if (!startAgentStage) {
-                          startAgentStage = result.startAgent
-                      }
-                  } else {
-                      logger.warn('Skip pipeline as no project/repos computed')
-                      return
-                  }
-
-                  new BuildStage(this, project, repos, startAgentStage).execute()
-
-                  new DeployStage(this, project, repos, startAgentStage).execute()
-
-                  new TestStage(this, project, repos, startAgentStage).execute()
-
-                  new ReleaseStage(this, project, repos).execute()
-
-                  new FinalizeStage(this, project, repos).execute()
-                } finally {
-                  logger.debug('-- SHUTTING DOWN RM (including forced GC) --')
-                  logger.resetStopwatch()
-                  project.clear()
-                  ServiceRegistry.instance.clear()
-                  UnirestConfig.shutdown()
-                  project = null
-                  result = null
-                  steps = null
-                  System.gc()
+          logger.startClocked('pod-template')
+          withPodTemplate(odsImageTag, steps, alwaysPullImage) {
+              logger.debugClocked('pod-template')
+              withEnv (envs) {
+                def result
+                def cannotContinueAsHasOpenIssuesInClosingRelease = false
+                try {
+                    result = new InitStage(this, project, repos, startAgentStage).execute()
+                } catch (OpenIssuesException ex) {
+                    cannotContinueAsHasOpenIssuesInClosingRelease = true
                 }
-            }
-        }
-    }
+                if (cannotContinueAsHasOpenIssuesInClosingRelease) {
+                    logger.warn('Cannot continue as it has open issues in the release.')
+                    return
+                }
+                if (result) {
+                    project = result.project
+                    repos = result.repos
+                    if (!startAgentStage) {
+                        startAgentStage = result.startAgent
+                    }
+                } else {
+                    logger.warn('Skip pipeline as no project/repos computed')
+                    return
+                }
+
+                new BuildStage(this, project, repos, startAgentStage).execute()
+
+                new DeployStage(this, project, repos, startAgentStage).execute()
+
+                new TestStage(this, project, repos, startAgentStage).execute()
+
+                new ReleaseStage(this, project, repos).execute()
+
+                new FinalizeStage(this, project, repos).execute()
+              }
+          }
+      }
+    } finally {
+      logger.debug('-- SHUTTING DOWN RM (..) --')
+      logger.resetStopwatch()
+      project.clear()
+      ServiceRegistry.instance.clear()
+      UnirestConfig.shutdown()
+      project = null
+      git = null
+      logger = null
+      repos = null
+      steps = null
+    }      
 }
 
 @SuppressWarnings('GStringExpressionWithinString')
