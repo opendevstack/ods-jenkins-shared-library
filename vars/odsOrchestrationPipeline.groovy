@@ -116,6 +116,7 @@ def call(Map config) {
                   new FinalizeStage(this, project, repos).execute()
                 } finally {
                   logger.resetStopwatch()
+                  ServiceRegistry.instance.clear()
                 }
             }
         }
