@@ -124,10 +124,6 @@ class RolloutOpenShiftDeploymentStage extends Stage {
             retagImages(context.targetProject, getBuiltImages())
 
             if (steps.fileExists("${options.chartDir}/Chart.yaml")) {
-                if (context.triggeredByOrchestrationPipeline) {
-                    steps.error "Helm cannot be used in the orchestration pipeline yet."
-                    return
-                }
                 refreshResources = true
                 helmUpgrade(context.targetProject)
             } else if (steps.fileExists(options.openshiftDir)) {
