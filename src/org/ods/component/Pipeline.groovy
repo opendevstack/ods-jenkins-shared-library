@@ -286,6 +286,15 @@ class Pipeline implements Serializable {
                             "ODS Build Artifacts '${context.componentId}': " +
                             "\r${JsonOutput.prettyPrint(JsonOutput.toJson(context.getBuildArtifactURIs()))}"
                         )
+                        if (!!!script.env.MULTI_REPO_BUILD) {
+                          	// cleanup
+                            logger.debug('-- SHUTTING DOWN RM (..) --')
+                            logger.resetStopwatch()
+                            ServiceRegistry.instance.clear()
+                            this.script = null
+                            this.steps = null
+                            this.logger = null                          
+                        }
                     }
                 }
             }
