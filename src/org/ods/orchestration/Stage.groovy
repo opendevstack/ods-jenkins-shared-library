@@ -132,8 +132,6 @@ class Stage {
         def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
 
         return [
-            // Load JUnit test report files from path
-            testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
             testResults: junit.parseTestReportFiles(testReportFiles),
         ]

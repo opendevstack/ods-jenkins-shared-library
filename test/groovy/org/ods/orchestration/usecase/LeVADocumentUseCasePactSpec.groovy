@@ -80,7 +80,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", params)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParamsWithTests())
+                withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
@@ -230,57 +230,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
         }
     }
 
-    Closure defaultBodyParamsWithTests() {
-        return {
-            keyLike "tests", {
-                keyLike "unit", {
-                    testReportFiles eachLike() {
-                        parent string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test")
-                        name string("TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        path string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        absolutePath string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        totalSpace numeric(53660876800)
-                        hidden bool(false)
-                        usableSpace numeric(12417183744)
-                        canonicalPath string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        invalid bool(false)
-                        freeSpace numeric(12417183744)
-                        file bool(true)
-                        freeSpace numeric(12417183744)
-                        file bool(true)
-                        absolute bool(true)
-                        prefixLength numeric(1)
-                        directory bool(false)
-                    }
-                    keyLike "testResults", {
-                        testsuites eachLike() {
-                            name string("com.boehringer.frml24113.thefirst.ThefirstApplicationTests")
-                            hostname string("pod-78fd40da-2e86-47bd-b56f-0dabb3231971-mw77k-tv93m")
-                            timestamp string("2021-12-07T12:07:56")
-                            systemErr string("")
-                            testcases eachLike() {
-                                name string("ORDGP163_workingunittest()")
-                                timestamp string("2021-12-07T12:07:56")
-                                systemErr string("")
-                                systemOut string("")
-                                skipped bool(false)
-                                time string("0.612")
-                                classname string("com.boehringer.frml24113.thefirst.ThefirstApplicationTests")
-                            }
-                            tests string("2")
-                            systemOut string("12:07:42.161 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils")
-                            skipped string("0")
-                            errors string("0")
-                            'properties' eachLike([])
-                            failures string("0")
-                            time string("0.677")
-                        }
-                    }
-                }
-            }
-        } << defaultBodyParams()
-    }
-
     Closure defaultBodyParamsWithComponent(component) {
         return {
             keyLike "repo", {
@@ -341,7 +290,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     type string("ods")
                 }
             }
-        } << defaultBodyParamsWithTests()
+        } << defaultBodyParams()
     }
 
     Closure defaultDocGenerationResponse() {
