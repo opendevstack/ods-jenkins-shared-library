@@ -9,6 +9,7 @@ import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Project
 import org.ods.util.IPipelineSteps
+import util.PipelineSteps
 
 import java.nio.file.Paths
 
@@ -36,11 +37,11 @@ class LevaDocDataFixture {
         ]
     }
 
-    def buildGitData() {
+    def buildGitData(ProjectFixture projectFixture) {
         return  [
             commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
             url: "https://bitbucket-dev.biscrum.com/scm/ordgp/ordgp-releasemanager.git",
-            releaseManagerRepo: "ordgp-release",
+            releaseManagerRepo: projectFixture.releaseManagerRepo,
             releaseManagerBranch: "refs/heads/master",
             baseTag: "ods-generated-v3.0-3.0-0b11-D",
             targetTag: "ods-generated-v3.0-3.0-0b11-D",
@@ -78,16 +79,16 @@ class LevaDocDataFixture {
 
     Map<String, String> getTestResultsUrls() {
         return [
-            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/unit-ordgp-ordgp-releasemanager.zip",
-            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/acceptance-ordgp-ordgp-releasemanager.zip",
-            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/installation-ordgp-ordgp-releasemanager.zip",
-            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/ordgp-releasemanager/666/integration-ordgp-ordgp-releasemanager.zip",
+            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/unit-backend.zip",
+            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/acceptance.zip",
+            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/installation.zip",
+            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/integration.zip",
         ]
     }
 
     Map getInputParamsModule(ProjectFixture projectFixture, LeVADocumentUseCase useCase) {
         Map input = RepoDataBuilder.getRepoForComponent(projectFixture.component)
-        input.data.tests << [unit: testReports(useCase.project, useCase.steps).getResults(projectFixture.component, "unit")]
+        input.data.tests << [unit: testReports(useCase.project, new PipelineSteps()).getResults(projectFixture.component, "unit")]
         return input
     }
 
@@ -104,7 +105,7 @@ class LevaDocDataFixture {
     }
 
     Map getAllResults(LeVADocumentUseCase useCase) {
-        return testReports(useCase.project, useCase.steps).getAllResults(useCase.project.repositories)
+        return testReports(useCase.project, new PipelineSteps()).getAllResults(useCase.project.repositories)
     }
 
     private TestsReports testReports(Project project, IPipelineSteps steps) {

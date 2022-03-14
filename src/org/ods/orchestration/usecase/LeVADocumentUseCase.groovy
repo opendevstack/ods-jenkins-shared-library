@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import org.apache.commons.lang3.StringUtils
 import org.ods.orchestration.mapper.LeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.util.DocumentHistoryEntry
@@ -114,8 +115,8 @@ class LeVADocumentUseCase {
         createDocWithDefaultParams(DocumentType.TRC)
     }
 
-    void createTCR(Map repo = null, Map data) {
-        createDocWithTestDataParams(DocumentType.TCR, data)
+    void createTCR(Map repo = null, Map data = null) {
+        createDocWithTestDataParams(DocumentType.TCR)
     }
 
     void createDTR(Map repo, Map data) {
@@ -139,10 +140,12 @@ class LeVADocumentUseCase {
     }
 
     void createOverallTIR(Map repo = null, Map data = null) {
-        project.data.jenkinLog =  uploadJenkinsJobLog(
-            project.getJiraProjectKey(),
-            project.steps.env.BUILD_NUMBER,
-            jenkins.getCurrentBuildLogInputStream())
+        if (StringUtils.isEmpty(project.data.jenkinLog)) {
+            project.data.jenkinLog = uploadJenkinsJobLog(
+                project.getJiraProjectKey(),
+                project.steps.env.BUILD_NUMBER,
+                jenkins.getCurrentBuildLogInputStream())
+        }
         createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
 

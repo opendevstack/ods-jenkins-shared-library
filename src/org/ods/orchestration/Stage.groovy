@@ -119,7 +119,6 @@ class Stage {
             )
         }
 
-        // TODO: Here
         String testResultsKey = type + repo.id ? "-" + repo.id : ""
         project.data.build.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
             type,

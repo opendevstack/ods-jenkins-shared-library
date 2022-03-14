@@ -36,7 +36,7 @@ class DocGenService {
     }
 
     @NonCPS
-    Map createDocumentOverall(String projectId, String buildNumber, String levaDocType, Map data) {
+    List<DocumentHistoryEntry> createDocumentOverall(String projectId, String buildNumber, String levaDocType, Map data) {
         String url = "${this.baseURL}/levaDoc/{projectId}/{build}/overall/{levaDocType}"
         return doRequest(url, projectId, buildNumber, levaDocType, data)
     }
