@@ -97,7 +97,7 @@ class LevaDocUseCaseFactory {
         def project = new Project(steps, logger, [:]).init("refs/heads/master")
         project.data.metadata.id = projectFixture.project
         project.data.buildParams =  dataFixture.buildParams(projectFixture)
-        project.data.git = dataFixture.buildGitData()
+        project.data.git = dataFixture.buildGitData(projectFixture)
         return project
     }
 

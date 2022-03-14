@@ -120,6 +120,10 @@ class LevaDocUseCaseFunctTest extends Specification {
         given: "There's a LeVADocument service"
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
+        if (LeVADocumentUseCase.DocumentType.TIR.name().equals(projectFixture.docType)) {
+            def nexusUrl = System.properties["nexus.url"]
+            useCase.project.data.jenkinLog = "${nexusUrl}/repository/leva-documentation/${projectFixture.project}/666/jenkins-job-log.zip"
+        }
 
         when: "the user creates a LeVA document"
         useCase."createOverall${projectFixture.docType}"()

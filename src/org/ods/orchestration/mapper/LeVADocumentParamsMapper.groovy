@@ -23,8 +23,8 @@ class LeVADocumentParamsMapper {
     private LinkedHashMap<String, Object> mapGitData() {
         [
             commit              : this.project.gitData.commit,
-            repoURL             : this.project.gitData.url, // TODO is different?
-            releaseManagerRepo  : "ordgp-releasemanager", // TODO s2o
+            repoURL             : this.project.gitData.url,
+            releaseManagerRepo  : this.project.gitData.releaseManagerRepo,
             releaseManagerBranch: this.project.data.gitReleaseManagerBranch,
             baseTag             : this.project.gitData.baseTag,
             targetTag           : this.project.gitData.targetTag,
