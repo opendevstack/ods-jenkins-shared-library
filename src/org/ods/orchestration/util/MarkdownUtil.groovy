@@ -1,5 +1,6 @@
 package org.ods.orchestration.util
 
+@GrabConfig(autoDownload=false)
 @Grab('com.vladsch.flexmark:flexmark-all:0.60.2')
 
 import com.cloudbees.groovy.cps.NonCPS
