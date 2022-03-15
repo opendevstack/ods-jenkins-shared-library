@@ -116,7 +116,7 @@ class LeVADocumentUseCase {
     }
 
     void createTCR(Map repo = null, Map data = null) {
-        createDocWithTestDataParams(DocumentType.TCR)
+        createDocWithTestDataParams(DocumentType.TCR, data)
     }
 
     void createDTR(Map repo, Map data) {
@@ -150,21 +150,25 @@ class LeVADocumentUseCase {
     }
 
     private void createDocWithDefaultParams(DocumentType documentType) {
+        logger.info("create document ${documentType} start ")
         createDoc(documentType, leVADocumentParamsMapper.build())
+        logger.info("create document ${documentType} end")
     }
 
     private void createDocWithTestDataParams(DocumentType documentType, Map testData) {
         logger.info("create document ${documentType} start, data:${prettyPrint(toJson(testData))}")
         createDoc(documentType, leVADocumentParamsMapper.build(testData))
+        logger.info("create document ${documentType} end")
     }
 
     private void createDocWithComponentDataParams(DocumentType documentType, Map repo, Map testData) {
         logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(testData))}")
         createDoc(documentType, leVADocumentParamsMapper.build([tests: testData, repo: repo]))
+        logger.info("create document ${documentType} end")
     }
 
+    @NonCPS
     private void createDoc(DocumentType documentType, Map params) {
-        logger.info("create document ${documentType} start")
         if (documentType.name().startsWith(OVERALL)){
             docGen.createDocumentOverall(
                 project.getJiraProjectKey(),
@@ -181,7 +185,7 @@ class LeVADocumentUseCase {
                 this.project.setHistoryForDocument(docHistoryList, documentType.name())
             }
         }
-        logger.info("create document ${documentType} end")
+
     }
 
     private String uploadJenkinsJobLog(String projectKey, String buildNumber, InputStream jenkinsJobLog) {
