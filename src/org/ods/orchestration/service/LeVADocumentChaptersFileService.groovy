@@ -1,5 +1,6 @@
 package org.ods.orchestration.service
 
+@GrabConfig(autoDownload=false)
 @Grab('org.yaml:snakeyaml:1.24')
 
 import java.nio.file.Paths

@@ -1,5 +1,6 @@
 package org.ods.services
 
+@GrabConfig(autoDownload=false)
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import groovy.json.JsonSlurperClassic

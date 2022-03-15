@@ -3,6 +3,7 @@ import org.ods.util.UnirestConfig
 
 import java.nio.file.Paths
 
+@GrabConfig(autoDownload=false)
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
 
 import org.ods.orchestration.util.PipelineUtil
