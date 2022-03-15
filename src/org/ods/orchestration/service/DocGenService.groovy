@@ -32,13 +32,14 @@ class DocGenService {
     List<DocumentHistoryEntry> createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
         String url = "${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}"
         Object response = doRequest(url, projectId, buildNumber, levaDocType, data)
-        return LEVADocResponseMapper.parse(response)
+        String parsedBody = new JsonSlurperClassic().parseText(response.getBody() as String)
+        return LEVADocResponseMapper.parse(parsedBody)
     }
 
     @NonCPS
-    List<DocumentHistoryEntry> createDocumentOverall(String projectId, String buildNumber, String levaDocType, Map data) {
+    void createDocumentOverall(String projectId, String buildNumber, String levaDocType, Map data) {
         String url = "${this.baseURL}/levaDoc/{projectId}/{build}/overall/{levaDocType}"
-        return doRequest(url, projectId, buildNumber, levaDocType, data)
+        doRequest(url, projectId, buildNumber, levaDocType, data)
     }
 
     @NonCPS
@@ -54,7 +55,7 @@ class DocGenService {
         response.ifFailure {
             checkError(levaDocType, response)
         }
-        return new JsonSlurperClassic().parseText(response.getBody())
+        return response
     }
 
     @NonCPS
