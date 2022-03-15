@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
+import jdk.nashorn.internal.ir.annotations.Ignore
 import org.apache.commons.lang3.StringUtils
 import org.ods.orchestration.mapper.LeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
@@ -188,6 +189,8 @@ class LeVADocumentUseCase {
 
     }
 
+    // This test is only used to upload the parts we need to run docGen tests.
+    @Ignore
     private String uploadJenkinsJobLog(String projectKey, String buildNumber, InputStream jenkinsJobLog) {
         String fileName = JENKINS_LOG
         String nexusPath = "${projectKey.toLowerCase()}/${buildNumber}"

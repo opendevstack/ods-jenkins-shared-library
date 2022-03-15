@@ -1,6 +1,7 @@
 package org.ods.orchestration.usecase
 
 import groovy.util.logging.Slf4j
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
@@ -135,6 +136,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         projectFixture << new DocTypeProjectFixturesOverall().getProjects()
     }
 
+    @Ignore
     @Unroll
     def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
