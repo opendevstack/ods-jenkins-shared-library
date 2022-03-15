@@ -3,6 +3,7 @@ package org.ods.orchestration.scheduler
 import com.cloudbees.groovy.cps.NonCPS
 
 import org.ods.orchestration.usecase.DocGenUseCase
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 import org.ods.util.IPipelineSteps
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
@@ -42,10 +43,10 @@ abstract class DocGenScheduler {
     protected abstract boolean isDocumentApplicable(
         String documentType,
         String phase,
-        MROPipelineUtil.PipelinePhaseLifecycleStage stage,
+        PipelinePhaseLifecycleStage stage,
         Map repo = null)
 
-    void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
+    void run(String phase, PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
         def documents = this.usecase.getSupportedDocuments()
         documents.each { documentType ->
             def args = [repo, data]

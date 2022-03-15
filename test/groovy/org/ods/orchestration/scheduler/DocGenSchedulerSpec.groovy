@@ -31,7 +31,7 @@ class DocGenSchedulerSpec extends SpecHelper {
         String getDocumentTemplatesVersion() {
             return "0.1"
         }
-        
+
         Map getFiletypeForDocumentType (String documentType) {
             return [storage: 'zip', content: 'pdf']
         }
@@ -46,7 +46,7 @@ class DocGenSchedulerSpec extends SpecHelper {
             super(project, steps, util, docGen)
         }
 
-        protected boolean isDocumentApplicable(String documentType, String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null) {
+        protected boolean isDocumentApplicable(String documentType, String phase, PipelinePhaseLifecycleStage stage, Map repo = null) {
             return true
         }
     }
@@ -66,57 +66,57 @@ class DocGenSchedulerSpec extends SpecHelper {
         def data = [ a: 1, b: 2, c: 3 ]
 
         when:
-        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        scheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         then:
         1 * usecase.getSupportedDocuments()
 
         then:
-        1 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * scheduler.isDocumentApplicable("A", phase, PipelinePhaseLifecycleStage.PRE_END, null)
         1 * usecase.createA()
 
         then:
-        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * scheduler.isDocumentApplicable("B", phase, PipelinePhaseLifecycleStage.PRE_END, null)
         1 * usecase.createB(null)
 
         then:
-        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * scheduler.isDocumentApplicable("C", phase, PipelinePhaseLifecycleStage.PRE_END, null)
         1 * usecase.createC(null,  null)
 
         when:
-        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        scheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END, repo)
 
         then:
         1 * usecase.getSupportedDocuments()
 
         then:
-        0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        0 * scheduler.isDocumentApplicable("A", phase, PipelinePhaseLifecycleStage.PRE_END, PipelinePhaseLifecycleStage.PRE_END, repo)
         0 * usecase.createA()
 
         then:
-        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        1 * scheduler.isDocumentApplicable("B", phase, PipelinePhaseLifecycleStage.PRE_END, repo)
         1 * usecase.createB(repo)
 
         then:
-        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        1 * scheduler.isDocumentApplicable("C", phase, PipelinePhaseLifecycleStage.PRE_END, repo)
         1 * usecase.createC(repo,  null)
 
         when:
-        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo, data)
+        scheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END, repo, data)
 
         then:
         1 * usecase.getSupportedDocuments()
 
         then:
-        0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        0 * scheduler.isDocumentApplicable("A", phase, PipelinePhaseLifecycleStage.PRE_END, repo)
         0 * usecase.createA()
 
         then:
-        0 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        0 * scheduler.isDocumentApplicable("B", phase, PipelinePhaseLifecycleStage.PRE_END, repo)
         0 * usecase.createB(repo)
 
         then:
-        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        1 * scheduler.isDocumentApplicable("C", phase, PipelinePhaseLifecycleStage.PRE_END, repo)
         1 * usecase.createC(repo,  data)
     }
 }
