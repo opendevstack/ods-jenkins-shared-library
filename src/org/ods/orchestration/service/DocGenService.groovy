@@ -32,7 +32,7 @@ class DocGenService {
     List<DocumentHistoryEntry> createDocument(String projectId, String buildNumber, String levaDocType, Map data) {
         String url = "${this.baseURL}/levaDoc/{projectId}/{build}/{levaDocType}"
         Object response = doRequest(url, projectId, buildNumber, levaDocType, data)
-        String parsedBody = new JsonSlurperClassic().parseText(response.getBody() as String)
+        Object parsedBody = new JsonSlurperClassic().parseText(response.getBody() as String)
         return LEVADocResponseMapper.parse(parsedBody)
     }
 
