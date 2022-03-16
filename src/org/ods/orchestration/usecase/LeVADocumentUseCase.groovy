@@ -128,11 +128,11 @@ class LeVADocumentUseCase {
         createDocWithDefaultParams(DocumentType.OVERALL_DTR)
     }
 
-    void createCFTR(Map repo = null, Map data) {
+    void createCFTR(Map repo = null, Map data = null) {
         createDocWithTestDataParams(DocumentType.CFTR, data)
     }
 
-    void createIVR(Map repo = null, Map data) {
+    void createIVR(Map repo = null, Map data = null) {
         createDocWithTestDataParams(DocumentType.IVR, data)
     }
 
@@ -156,10 +156,9 @@ class LeVADocumentUseCase {
         logger.info("create document ${documentType} end")
     }
 
+    @Deprecated
     private void createDocWithTestDataParams(DocumentType documentType, Map testData) {
-        logger.info("create document ${documentType} start, data:${prettyPrint(toJson(testData))}")
-        createDoc(documentType, leVADocumentParamsMapper.build(testData))
-        logger.info("create document ${documentType} end")
+        createDocWithDefaultParams(documentType)
     }
 
     private void createDocWithComponentDataParams(DocumentType documentType, Map repo, Map testData) {

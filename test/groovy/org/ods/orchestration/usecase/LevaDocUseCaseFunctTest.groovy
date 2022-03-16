@@ -77,23 +77,13 @@ class LevaDocUseCaseFunctTest extends Specification {
         true // TODO
 
         where: "Doctypes creation without params"
-        projectFixture << new DocTypeProjectFixture().getProjects()
+        projectFixture << getAllProjectFixtures()
     }
 
-    @Unroll
-    def "create #projectFixture.docType with tests files for project: #projectFixture.project"() {
-        given: "There's a LeVADocument service"
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
-        Map data = new LevaDocDataFixture(tempFolder.getRoot()).getAllResults(useCase)
-
-        when: "the user creates a LeVA document"
-        useCase."create${projectFixture.docType}"(null, data)
-
-        then: "the generated PDF is as expected"
-        true // TODO
-
-        where: "Doctypes creation with data params"
-        projectFixture << new DocTypeProjectFixtureWithTestData().getProjects()
+    private List<ProjectFixture> getAllProjectFixtures() {
+        List<ProjectFixture> projects = new DocTypeProjectFixture().getProjects()
+        projects.addAll(new DocTypeProjectFixtureWithTestData().getProjects())
+        return projects
     }
 
     @Unroll

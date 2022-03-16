@@ -4,12 +4,7 @@ import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.ods.core.test.service.BitbucketReleaseManagerService
 import org.ods.core.test.usecase.RepoDataBuilder
-import org.ods.core.test.workspace.TestsReports
-import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
-import org.ods.orchestration.util.Project
-import org.ods.util.IPipelineSteps
-import util.PipelineSteps
 
 import java.nio.file.Paths
 
@@ -88,7 +83,6 @@ class LevaDocDataFixture {
 
     Map getInputParamsModule(ProjectFixture projectFixture, LeVADocumentUseCase useCase) {
         Map input = RepoDataBuilder.getRepoForComponent(projectFixture.component)
-        input.data.tests << [unit: testReports(useCase.project, new PipelineSteps()).getResults(projectFixture.component, "unit")]
         return input
     }
 
@@ -102,15 +96,6 @@ class LevaDocDataFixture {
                 repo.data.documents[projectFixture.docType] =  "/blablabla"
             }
         }
-    }
-
-    Map getAllResults(LeVADocumentUseCase useCase) {
-        return testReports(useCase.project, new PipelineSteps()).getAllResults(useCase.project.repositories)
-    }
-
-    private TestsReports testReports(Project project, IPipelineSteps steps) {
-        def junitReportsUseCase = new JUnitTestReportsUseCase(project, steps)
-        return new TestsReports(steps, junitReportsUseCase)
     }
 
     private File setTemporalWorkspace(ProjectFixture projectFixture) {
