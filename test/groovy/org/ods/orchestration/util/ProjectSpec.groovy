@@ -2700,13 +2700,13 @@ class ProjectSpec extends SpecHelper {
             [(key): [ documents: docs, status: status, key: key ]]
         }
 
-        def data = [(Project.JiraDataItem.TYPE_DOCS):
+        def data = [(Project.JiraDataItem.TYPE_DOCS):(
             issue('done1', Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD', 'SSDS']) +
                 issue('done2', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
                 issue('canceled', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
                 issue('undone1', 'WORK IN PROGress', ['CSD', 'SSDS']) +
                 issue('undone2', 'Some custom status', ['SSDS']) +
-                issue('undone3', 'TO DO', ['DTP'])
+                issue('undone3', 'TO DO', ['DTP']))
         ]
         def expected = [ CSD: ['undone1'], SSDS: ['undone1', 'undone2'], DTP: ['undone3']]
 
