@@ -118,9 +118,8 @@ def call(Map config) {
               }
           }
       }
-      return null
     } finally {
-      logger.debug('-- SHUTTING DOWN RM (.. incl classloader) --')
+      logger.debug('-- SHUTTING DOWN RM (.. incl classloader HACK!!!!!) --')
       logger.resetStopwatch()
       project.clear()
       ServiceRegistry.instance.clear()
