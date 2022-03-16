@@ -100,14 +100,18 @@ class WiremockManager {
     }
 
     private Map prepareReplaceMap() {
-        Map replaceAllMap = ["${System.properties['domainUser']}"  : "\\\"dummyUser\\\""]
-        Map customReplaceAllMap = (System.properties['wiremock.textToReplace'] as String).tokenize(',')
-            .collectEntries {
-                List value = it.tokenize(':')
-                return [value[0], value[1]]
-            }
-        replaceAllMap += customReplaceAllMap
-        return replaceAllMap
+        List domainUsers = ["bitbucket.username", "nexus.username", "jira.username"]
+        Map replaceAllMap = [:]
+        domainUsers.each {
+            replaceAllMap[(System.properties[it])] =  "dummyUser"
+        }
+        replaceAllMap["boehringer-ingelheim"] = "domain"
+
+        (System.properties['wiremock.textToReplace'] as String).tokenize(',').each {
+            List value = it.tokenize(':')
+            replaceAllMap[value[0]] =  value[1]
+        }
+        return replaceAllMap.findAll { it != null && it.key != null}
     }
 
     private void replaceFileInText(File file, Map replaceAllMap) {
