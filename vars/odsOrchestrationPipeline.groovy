@@ -130,6 +130,8 @@ def call(Map config) {
       logger = null
       repos = null
       steps = null
+      // HACK!!!!!
+      ((GroovyClassLoader)this.class.getClassLoader()).close()
     }      
 }
 
