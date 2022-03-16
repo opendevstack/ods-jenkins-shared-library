@@ -136,7 +136,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         projectFixture << new DocTypeProjectFixturesOverall().getProjects()
     }
 
-    @Unroll
+    // @Unroll
     @Ignore
     def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
