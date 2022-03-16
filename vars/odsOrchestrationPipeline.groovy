@@ -119,8 +119,9 @@ def call(Map config) {
               }
           }
       }
+      return null
     } finally {
-      logger.debug('-- SHUTTING DOWN RM (..) --')
+      logger.debug('-- SHUTTING DOWN RM (.. incl classloader) --')
       logger.resetStopwatch()
       project.clear()
       ServiceRegistry.instance.clear()
@@ -131,6 +132,7 @@ def call(Map config) {
       steps = null
       // HACK!!!!!
       GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
+      logger.debug("${classloader} - parent ${classloader.getParent()}")
       logger.debug("Currently loaded classes ${classloader.getLoadedClasses().size()}")
       classloader.clearCache()
       classloader.close()
@@ -180,9 +182,5 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-try {
-  	println 'returning'
-	return this
-} finally {
-  	println 'returned'
-}
+return this
+
