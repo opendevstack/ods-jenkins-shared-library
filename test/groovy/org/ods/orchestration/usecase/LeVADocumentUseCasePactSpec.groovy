@@ -2,6 +2,7 @@ package org.ods.orchestration.usecase
 
 import au.com.dius.pact.consumer.groovy.PactBuilder
 import groovy.util.logging.Slf4j
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
@@ -26,6 +27,8 @@ import util.FixtureHelper
  *  BUILD_NUMBER: The current build number, such as `153`
  *
  */
+
+@Ignore
 @Slf4j
 class LeVADocumentUseCasePactSpec extends Specification {
 
