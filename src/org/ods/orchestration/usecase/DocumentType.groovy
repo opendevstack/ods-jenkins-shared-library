@@ -1,6 +1,6 @@
 package org.ods.orchestration.usecase
 
-public enum DocumentType {
+enum DocumentType {
 
     CSD,
     DIL,

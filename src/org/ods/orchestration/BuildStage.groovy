@@ -28,7 +28,7 @@ class BuildStage extends Stage {
         def phase = MROPipelineUtil.PipelinePhases.BUILD
 
         def preExecuteRepo = { steps_, repo ->
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
         }
 
         def postExecuteRepo = { steps_, repo ->
@@ -60,7 +60,7 @@ class BuildStage extends Stage {
                 logger.info("levaDocScheduler.run start")
                 levaDocScheduler.run(
                     phase,
-                    MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                    PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                     repo,
                     data
                 )
@@ -69,7 +69,7 @@ class BuildStage extends Stage {
         }
 
         Closure generateDocuments = {
-            levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+            levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
         }
 
         // Execute phase for each repository
@@ -81,7 +81,7 @@ class BuildStage extends Stage {
                 }
         }
         executeInParallel(executeRepos, generateDocuments)
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         // in case of WIP we fail AFTER all pieces have been executed - so we can report as many
         // failed unit tests as possible

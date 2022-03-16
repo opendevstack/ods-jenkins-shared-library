@@ -39,10 +39,10 @@ class DeployStage extends Stage {
                 script.node {
                     script.sh "cp -r ${standardWorkspace}/docs ${script.env.WORKSPACE} | true"
                     script.sh "cp -r ${standardWorkspace}/projectData ${script.env.WORKSPACE} | true"
-                    levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+                    levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
                 }
             } else {
-                levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
+                levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_EXECUTE_REPO, repo)
             }
         }
 
@@ -61,7 +61,7 @@ class DeployStage extends Stage {
 
                     levaDocScheduler.run(
                         phase,
-                        MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                        PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                         repo,
                         repo.data
                     )
@@ -74,7 +74,7 @@ class DeployStage extends Stage {
 
                 levaDocScheduler.run(
                     phase,
-                    MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+                    PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
                     repo,
                     repo.data
                 )
@@ -114,7 +114,7 @@ class DeployStage extends Stage {
             }
 
             Closure generateDocuments = {
-                levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
+                levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.POST_START)
             }
 
             // Execute phase for each repository
@@ -128,7 +128,7 @@ class DeployStage extends Stage {
             executeInParallel(executeRepos, generateDocuments)
         }
 
-        levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        levaDocScheduler.run(phase, PipelinePhaseLifecycleStage.PRE_END)
     }
 
     private void loadOdsInfraTypeData (Map repo) {

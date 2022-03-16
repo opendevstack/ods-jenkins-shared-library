@@ -416,7 +416,7 @@ class InitStage extends Stage {
         logger.debug 'Compute groups of repository configs for convenient parallelization'
         repos = util.computeRepoGroups(repos)
 
-        registry.get(LeVADocumentScheduler).run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+        registry.get(LeVADocumentScheduler).run(phase, PipelinePhaseLifecycleStage.PRE_END)
 
         return [project: project, repos: repos, startAgent: stageToStartAgent]
     }

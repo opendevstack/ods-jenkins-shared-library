@@ -1,6 +1,6 @@
 package org.ods.orchestration.util;
 
-public enum PipelinePhaseLifecycleStage {
+enum PipelinePhaseLifecycleStage {
     POST_START,
     PRE_EXECUTE_REPO,
     POST_EXECUTE_REPO,

@@ -16,193 +16,193 @@ class LeVADocumentScheduler extends DocGenScheduler {
     // Document types per GAMP category
     private static Map GAMP_CATEGORIES = [
         "1": [
-            LeVADocumentUseCase.DocumentType.CSD as String,
-            LeVADocumentUseCase.DocumentType.RA as String,
-            LeVADocumentUseCase.DocumentType.SSDS as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
-            LeVADocumentUseCase.DocumentType.TIR as String,
-            LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
-            LeVADocumentUseCase.DocumentType.IVP as String,
-            LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.CFTP as String,
-            LeVADocumentUseCase.DocumentType.CFTR as String,
-            LeVADocumentUseCase.DocumentType.TCP as String,
-            LeVADocumentUseCase.DocumentType.TCR as String,
-            LeVADocumentUseCase.DocumentType.DIL as String,
+            DocumentType.CSD as String,
+            DocumentType.RA as String,
+            DocumentType.SSDS as String,
+            DocumentType.TIP as String,
+            DocumentType.TIR as String,
+            DocumentType.OVERALL_TIR as String,
+            DocumentType.IVP as String,
+            DocumentType.IVR as String,
+            DocumentType.CFTP as String,
+            DocumentType.CFTR as String,
+            DocumentType.TCP as String,
+            DocumentType.TCR as String,
+            DocumentType.DIL as String,
         ],
         "3": [
-            LeVADocumentUseCase.DocumentType.CSD as String,
-            LeVADocumentUseCase.DocumentType.RA as String,
-            LeVADocumentUseCase.DocumentType.SSDS as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
-            LeVADocumentUseCase.DocumentType.TIR as String,
-            LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
-            LeVADocumentUseCase.DocumentType.IVP as String,
-            LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.CFTP as String,
-            LeVADocumentUseCase.DocumentType.CFTR as String,
-            LeVADocumentUseCase.DocumentType.TCP as String,
-            LeVADocumentUseCase.DocumentType.TCR as String,
-            LeVADocumentUseCase.DocumentType.DIL as String,
-            LeVADocumentUseCase.DocumentType.TRC as String,
+            DocumentType.CSD as String,
+            DocumentType.RA as String,
+            DocumentType.SSDS as String,
+            DocumentType.TIP as String,
+            DocumentType.TIR as String,
+            DocumentType.OVERALL_TIR as String,
+            DocumentType.IVP as String,
+            DocumentType.IVR as String,
+            DocumentType.CFTP as String,
+            DocumentType.CFTR as String,
+            DocumentType.TCP as String,
+            DocumentType.TCR as String,
+            DocumentType.DIL as String,
+            DocumentType.TRC as String,
         ],
         "4": [
-            LeVADocumentUseCase.DocumentType.CSD as String,
-            LeVADocumentUseCase.DocumentType.RA as String,
-            LeVADocumentUseCase.DocumentType.SSDS as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
-            LeVADocumentUseCase.DocumentType.TIR as String,
-            LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
-            LeVADocumentUseCase.DocumentType.IVP as String,
-            LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.TCP as String,
-            LeVADocumentUseCase.DocumentType.TCR as String,
-            LeVADocumentUseCase.DocumentType.CFTP as String,
-            LeVADocumentUseCase.DocumentType.CFTR as String,
-            LeVADocumentUseCase.DocumentType.DIL as String,
-            LeVADocumentUseCase.DocumentType.TRC as String,
+            DocumentType.CSD as String,
+            DocumentType.RA as String,
+            DocumentType.SSDS as String,
+            DocumentType.TIP as String,
+            DocumentType.TIR as String,
+            DocumentType.OVERALL_TIR as String,
+            DocumentType.IVP as String,
+            DocumentType.IVR as String,
+            DocumentType.TCP as String,
+            DocumentType.TCR as String,
+            DocumentType.CFTP as String,
+            DocumentType.CFTR as String,
+            DocumentType.DIL as String,
+            DocumentType.TRC as String,
         ],
         "5": [
-            LeVADocumentUseCase.DocumentType.CSD as String,
-            LeVADocumentUseCase.DocumentType.RA as String,
-            LeVADocumentUseCase.DocumentType.SSDS as String,
-            LeVADocumentUseCase.DocumentType.DTP as String,
-            LeVADocumentUseCase.DocumentType.DTR as String,
-            LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
-            LeVADocumentUseCase.DocumentType.TIP as String,
-            LeVADocumentUseCase.DocumentType.TIR as String,
-            LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
-            LeVADocumentUseCase.DocumentType.IVP as String,
-            LeVADocumentUseCase.DocumentType.IVR as String,
-            LeVADocumentUseCase.DocumentType.CFTP as String,
-            LeVADocumentUseCase.DocumentType.CFTR as String,
-            LeVADocumentUseCase.DocumentType.TCP as String,
-            LeVADocumentUseCase.DocumentType.TCR as String,
-            LeVADocumentUseCase.DocumentType.DIL as String,
-            LeVADocumentUseCase.DocumentType.TRC as String,
+            DocumentType.CSD as String,
+            DocumentType.RA as String,
+            DocumentType.SSDS as String,
+            DocumentType.DTP as String,
+            DocumentType.DTR as String,
+            DocumentType.OVERALL_DTR as String,
+            DocumentType.TIP as String,
+            DocumentType.TIR as String,
+            DocumentType.OVERALL_TIR as String,
+            DocumentType.IVP as String,
+            DocumentType.IVR as String,
+            DocumentType.CFTP as String,
+            DocumentType.CFTR as String,
+            DocumentType.TCP as String,
+            DocumentType.TCR as String,
+            DocumentType.DIL as String,
+            DocumentType.TRC as String,
         ]
     ]
 
     // Document types per GAMP category - for a saas only project
     private static Map GAMP_CATEGORIES_SAAS_ONLY = [
         "3": [
-            LeVADocumentUseCase.DocumentType.CSD as String,
-            LeVADocumentUseCase.DocumentType.RA as String,
-            LeVADocumentUseCase.DocumentType.SSDS as String,
-            LeVADocumentUseCase.DocumentType.CFTP as String,
-            LeVADocumentUseCase.DocumentType.CFTR as String,
-            LeVADocumentUseCase.DocumentType.TCP as String,
-            LeVADocumentUseCase.DocumentType.TCR as String,
-            LeVADocumentUseCase.DocumentType.DIL as String,
-            LeVADocumentUseCase.DocumentType.TRC as String,
+            DocumentType.CSD as String,
+            DocumentType.RA as String,
+            DocumentType.SSDS as String,
+            DocumentType.CFTP as String,
+            DocumentType.CFTR as String,
+            DocumentType.TCP as String,
+            DocumentType.TCR as String,
+            DocumentType.DIL as String,
+            DocumentType.TRC as String,
         ],
         "4": [
-            LeVADocumentUseCase.DocumentType.CSD as String,
-            LeVADocumentUseCase.DocumentType.RA as String,
-            LeVADocumentUseCase.DocumentType.SSDS as String,
-            LeVADocumentUseCase.DocumentType.TCP as String,
-            LeVADocumentUseCase.DocumentType.TCR as String,
-            LeVADocumentUseCase.DocumentType.CFTP as String,
-            LeVADocumentUseCase.DocumentType.CFTR as String,
-            LeVADocumentUseCase.DocumentType.DIL as String,
-            LeVADocumentUseCase.DocumentType.TRC as String,
+            DocumentType.CSD as String,
+            DocumentType.RA as String,
+            DocumentType.SSDS as String,
+            DocumentType.TCP as String,
+            DocumentType.TCR as String,
+            DocumentType.CFTP as String,
+            DocumentType.CFTR as String,
+            DocumentType.DIL as String,
+            DocumentType.TRC as String,
         ]
     ]
 
     // Document types per pipeline phase with an optional lifecycle constraint
     private final static Map PIPELINE_PHASES = [
         (MROPipelineUtil.PipelinePhases.INIT): [
-            (LeVADocumentUseCase.DocumentType.CSD as String): PipelinePhaseLifecycleStage.PRE_END
+            (DocumentType.CSD as String): PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.BUILD): [
-            (LeVADocumentUseCase.DocumentType.DTP as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.TIP as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.RA as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.IVP as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.CFTP as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.TCP as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.DTR as String): PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
-            (LeVADocumentUseCase.DocumentType.TRC as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.SSDS as String): PipelinePhaseLifecycleStage.POST_START,
-            (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String): PipelinePhaseLifecycleStage.PRE_END
+            (DocumentType.DTP as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.TIP as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.RA as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.IVP as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.CFTP as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.TCP as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.DTR as String): PipelinePhaseLifecycleStage.POST_EXECUTE_REPO,
+            (DocumentType.TRC as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.SSDS as String): PipelinePhaseLifecycleStage.POST_START,
+            (DocumentType.OVERALL_DTR as String): PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.DEPLOY): [
-            (LeVADocumentUseCase.DocumentType.TIR as String): PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
+            (DocumentType.TIR as String): PipelinePhaseLifecycleStage.POST_EXECUTE_REPO
         ],
         (MROPipelineUtil.PipelinePhases.TEST): [
-            (LeVADocumentUseCase.DocumentType.IVR as String): PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.CFTR as String): PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.DIL as String): PipelinePhaseLifecycleStage.PRE_END,
-            (LeVADocumentUseCase.DocumentType.TCR as String): PipelinePhaseLifecycleStage.PRE_END
+            (DocumentType.IVR as String): PipelinePhaseLifecycleStage.PRE_END,
+            (DocumentType.CFTR as String): PipelinePhaseLifecycleStage.PRE_END,
+            (DocumentType.DIL as String): PipelinePhaseLifecycleStage.PRE_END,
+            (DocumentType.TCR as String): PipelinePhaseLifecycleStage.PRE_END
         ],
         (MROPipelineUtil.PipelinePhases.RELEASE): [
         ],
         (MROPipelineUtil.PipelinePhases.FINALIZE): [
-            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String): PipelinePhaseLifecycleStage.PRE_END
+            (DocumentType.OVERALL_TIR as String): PipelinePhaseLifecycleStage.PRE_END
         ],
     ]
 
     // Document types per repository type with an optional phase constraint
     private static Map REPSITORY_TYPES = [
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_CODE): [
-            (LeVADocumentUseCase.DocumentType.DTR as String): null,
-            (LeVADocumentUseCase.DocumentType.TIR as String): null
+            (DocumentType.DTR as String): null,
+            (DocumentType.TIR as String): null
         ],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_INFRA): [
-            (LeVADocumentUseCase.DocumentType.TIR as String): null
+            (DocumentType.TIR as String): null
         ],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SAAS_SERVICE): [:],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_SERVICE): [
-            (LeVADocumentUseCase.DocumentType.TIR as String): null
+            (DocumentType.TIR as String): null
         ],
         (MROPipelineUtil.PipelineConfig.REPO_TYPE_ODS_TEST): [:]
     ]
 
     // Document types at the project level which require repositories
     private static List REQUIRING_REPOSITORIES = [
-        LeVADocumentUseCase.DocumentType.OVERALL_DTR as String,
-        LeVADocumentUseCase.DocumentType.OVERALL_TIR as String,
-        LeVADocumentUseCase.DocumentType.CFTR as String,
-        LeVADocumentUseCase.DocumentType.IVR as String,
-        LeVADocumentUseCase.DocumentType.TCP as String,
-        LeVADocumentUseCase.DocumentType.TCR as String
+        DocumentType.OVERALL_DTR as String,
+        DocumentType.OVERALL_TIR as String,
+        DocumentType.CFTR as String,
+        DocumentType.IVR as String,
+        DocumentType.TCP as String,
+        DocumentType.TCR as String
     ]
 
     // Document types per environment token and label to track with Jira
     @SuppressWarnings('NonFinalPublicField')
     public static Map ENVIRONMENT_TYPE = [
         "D": [
-            (LeVADocumentUseCase.DocumentType.CSD as String)    : ["${LeVADocumentUseCase.DocumentType.CSD}"],
-            (LeVADocumentUseCase.DocumentType.SSDS as String)   : ["${LeVADocumentUseCase.DocumentType.SSDS}"],
-            (LeVADocumentUseCase.DocumentType.RA as String)     : ["${LeVADocumentUseCase.DocumentType.RA}"],
-            (LeVADocumentUseCase.DocumentType.TIP as String)    : ["${LeVADocumentUseCase.DocumentType.TIP}_Q",
-                                                                    "${LeVADocumentUseCase.DocumentType.TIP}_P"],
-            (LeVADocumentUseCase.DocumentType.TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}"],
-            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}"],
-            (LeVADocumentUseCase.DocumentType.IVP as String)    : ["${LeVADocumentUseCase.DocumentType.IVP}_Q",
-                                                                    "${LeVADocumentUseCase.DocumentType.IVP}_P"],
-            (LeVADocumentUseCase.DocumentType.CFTP as String)   : ["${LeVADocumentUseCase.DocumentType.CFTP}"],
-            (LeVADocumentUseCase.DocumentType.TCP as String)    : ["${LeVADocumentUseCase.DocumentType.TCP}"],
-            (LeVADocumentUseCase.DocumentType.DTP as String)    : ["${LeVADocumentUseCase.DocumentType.DTP}"],
-            (LeVADocumentUseCase.DocumentType.DTR as String)    : ["${LeVADocumentUseCase.DocumentType.DTR}"],
-            (LeVADocumentUseCase.DocumentType.OVERALL_DTR as String)    : ["${LeVADocumentUseCase.DocumentType.DTR}"],
+            (DocumentType.CSD as String)    : ["${DocumentType.CSD}"],
+            (DocumentType.SSDS as String)   : ["${DocumentType.SSDS}"],
+            (DocumentType.RA as String)     : ["${DocumentType.RA}"],
+            (DocumentType.TIP as String)    : ["${DocumentType.TIP}_Q",
+                                                                    "${DocumentType.TIP}_P"],
+            (DocumentType.TIR as String)    : ["${DocumentType.TIR}"],
+            (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}"],
+            (DocumentType.IVP as String)    : ["${DocumentType.IVP}_Q",
+                                                                    "${DocumentType.IVP}_P"],
+            (DocumentType.CFTP as String)   : ["${DocumentType.CFTP}"],
+            (DocumentType.TCP as String)    : ["${DocumentType.TCP}"],
+            (DocumentType.DTP as String)    : ["${DocumentType.DTP}"],
+            (DocumentType.DTR as String)    : ["${DocumentType.DTR}"],
+            (DocumentType.OVERALL_DTR as String)    : ["${DocumentType.DTR}"],
         ],
         "Q": [
-            (LeVADocumentUseCase.DocumentType.TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_Q"],
-            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_Q"],
-            (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_Q"],
-            (LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_Q"],
-            (LeVADocumentUseCase.DocumentType.CFTR as String)   : ["${LeVADocumentUseCase.DocumentType.CFTR}"],
-            (LeVADocumentUseCase.DocumentType.TCR as String)    : ["${LeVADocumentUseCase.DocumentType.TCR}"],
-            (LeVADocumentUseCase.DocumentType.TRC as String)    : ["${LeVADocumentUseCase.DocumentType.TRC}"],
-            (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_Q"]
+            (DocumentType.TIR as String)    : ["${DocumentType.TIR}_Q"],
+            (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}_Q"],
+            (DocumentType.IVR as String)    : ["${DocumentType.IVR}_Q"],
+            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_Q"],
+            (DocumentType.CFTR as String)   : ["${DocumentType.CFTR}"],
+            (DocumentType.TCR as String)    : ["${DocumentType.TCR}"],
+            (DocumentType.TRC as String)    : ["${DocumentType.TRC}"],
+            (DocumentType.DIL as String)    : ["${DocumentType.DIL}_Q"]
         ],
         "P": [
-            (LeVADocumentUseCase.DocumentType.TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_P"],
-            (LeVADocumentUseCase.DocumentType.OVERALL_TIR as String)    : ["${LeVADocumentUseCase.DocumentType.TIR}_P"],
-            (LeVADocumentUseCase.DocumentType.IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
-            (LeVADocumentUseCase.DocumentType.OVERALL_IVR as String)    : ["${LeVADocumentUseCase.DocumentType.IVR}_P"],
-            (LeVADocumentUseCase.DocumentType.DIL as String)    : ["${LeVADocumentUseCase.DocumentType.DIL}_P"]
+            (DocumentType.TIR as String)    : ["${DocumentType.TIR}_P"],
+            (DocumentType.OVERALL_TIR as String)    : ["${DocumentType.TIR}_P"],
+            (DocumentType.IVR as String)    : ["${DocumentType.IVR}_P"],
+            (DocumentType.OVERALL_IVR as String)    : ["${DocumentType.IVR}_P"],
+            (DocumentType.DIL as String)    : ["${DocumentType.DIL}_P"]
         ]
     ]
 
@@ -307,7 +307,7 @@ class LeVADocumentScheduler extends DocGenScheduler {
         }
 
         // Applicable for certain document types only if the Jira service is configured in the release manager configuration
-        if ([LeVADocumentUseCase.DocumentType.CSD, LeVADocumentUseCase.DocumentType.SSDS, LeVADocumentUseCase.DocumentType.CFTP, LeVADocumentUseCase.DocumentType.CFTR, LeVADocumentUseCase.DocumentType.IVP, LeVADocumentUseCase.DocumentType.IVR, LeVADocumentUseCase.DocumentType.DIL, LeVADocumentUseCase.DocumentType.TCP, LeVADocumentUseCase.DocumentType.TCR, LeVADocumentUseCase.DocumentType.RA, LeVADocumentUseCase.DocumentType.TRC].contains(documentType as DocumentType)) {
+        if ([DocumentType.CSD, DocumentType.SSDS, DocumentType.CFTP, DocumentType.CFTR, DocumentType.IVP, DocumentType.IVR, DocumentType.DIL, DocumentType.TCP, DocumentType.TCR, DocumentType.RA, DocumentType.TRC].contains(documentType as DocumentType)) {
             result = result && this.project.services?.jira != null
         }
 

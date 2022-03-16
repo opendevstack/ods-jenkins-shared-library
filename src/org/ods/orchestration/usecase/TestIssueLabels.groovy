@@ -1,6 +1,6 @@
 package org.ods.orchestration.usecase;
 
-public enum TestIssueLabels {
+enum TestIssueLabels {
     Error,
     Failed,
     Missing,
