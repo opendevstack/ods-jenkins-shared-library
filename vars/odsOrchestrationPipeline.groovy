@@ -31,7 +31,7 @@ def call(Map config) {
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
   	logger.dumpCurrentStopwatchSize()
-    logger.debug("Classloader: ${this.class.getClassLoader()}")
+    logger.debug("Classloader: ${this.class.getClassLoader()}, ${this.class.getClassLoader() instanceof GroovyClassLoader}")
     def git = new GitService(steps, logger)
 
     def odsImageTag = config.odsImageTag
