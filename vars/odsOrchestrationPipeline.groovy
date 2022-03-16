@@ -132,8 +132,9 @@ def call(Map config) {
       // HACK!!!!!
       GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
       logger.debug("Currently loaded classes ${classloader.getLoadedClasses().size()}")
+      classloader.clearCache()
       classloader.close()
-      logger.debug("After closes: loaded classes ${classloader.getLoadedClasses().size()}")
+      logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
       logger = null
     }      
 }
@@ -179,4 +180,9 @@ private withPodTemplate(String odsImageTag, IPipelineSteps steps, boolean always
     }
 }
 
-return this
+try {
+  	println 'returning'
+	return this
+} finally {
+  	println 'returned'
+}
