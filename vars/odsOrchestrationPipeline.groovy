@@ -132,7 +132,7 @@ def call(Map config) {
       // HACK!!!!!
       GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
       logger.debug("${classloader} - parent ${classloader.getParent()}")
-      logger.debug("Currently loaded classpath ${loader.getClassPath()}")
+      logger.debug("Currently loaded classpath ${classloader.getClassPath()}")
       logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
       classloader.clearCache()
       classloader.close()
