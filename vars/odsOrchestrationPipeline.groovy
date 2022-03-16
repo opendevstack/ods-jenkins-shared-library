@@ -31,8 +31,6 @@ def call(Map config) {
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
   	logger.dumpCurrentStopwatchSize()
-  	GroovyClassLoader loader = this.class.getClassLoader()
-    logger.debug("Classloader: ${loader}, ${loader.getClassPath()}")
     def git = new GitService(steps, logger)
 
     def odsImageTag = config.odsImageTag
@@ -134,6 +132,7 @@ def call(Map config) {
       // HACK!!!!!
       GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
       logger.debug("${classloader} - parent ${classloader.getParent()}")
+      logger.debug("Currently loaded classpath ${loader.getClassPath()}")
       logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
       classloader.clearCache()
       classloader.close()
