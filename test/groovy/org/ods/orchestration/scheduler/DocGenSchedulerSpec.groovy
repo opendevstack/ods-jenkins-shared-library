@@ -1,5 +1,6 @@
 package org.ods.orchestration.scheduler
 
+import groovy.util.logging.Slf4j
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.orchestration.service.*
@@ -15,14 +16,13 @@ import static util.FixtureHelper.*
 
 import util.*
 
+@Slf4j
 class DocGenSchedulerSpec extends SpecHelper {
 
     class DocGenUseCaseImpl extends LeVADocumentUseCase {
-        DocGenUseCaseImpl() {
-            super(null, null, null, null,
-                null, null, null,
-                null, null, null,
-                null, null, null, null)
+
+        DocGenUseCaseImpl(Project project) {
+            super(project, null, null, null, null, log as ILogger)
         }
 
         void createA() {}
@@ -58,11 +58,13 @@ class DocGenSchedulerSpec extends SpecHelper {
 
     def "run"() {
         given:
-        def project = createProject()
+        MROPipelineUtil util = Mock(MROPipelineUtil)
+        JiraUseCase jiraUseCase = Mock(JiraUseCase)
+        // Spy(new JiraUseCase(null, null, util, null, log))
+        def project = createProject(jiraUseCase)
 
         def steps = Spy(util.PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def usecase = Spy(new DocGenUseCaseImpl())
+        def usecase = Spy(new DocGenUseCaseImpl(project))
         def scheduler = Spy(new DocGenSchedulerImpl(project, steps, util, usecase))
 
         // Test Parameters
