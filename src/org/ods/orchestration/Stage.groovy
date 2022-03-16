@@ -120,11 +120,12 @@ class Stage {
         }
 
         String testResultsKey = type + repo.id ? "-" + repo.id : ""
+        String workspacePath = "${steps.env.WORKSPACE}"
         project.data.build.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
             type,
             project.getJiraProjectKey(),
             new URI(testReportsUnstashPath),
-            ${steps.env.WORKSPACE},
+            workspacePath,
             project.steps.env.BUILD_NUMBER,
             repo.id)
 
