@@ -1,14 +1,12 @@
-import org.ods.orchestration.usecase.OpenIssuesException
-import org.ods.util.UnirestConfig
-
-import java.nio.file.Paths
-
 @GrabConfig(autoDownload=false)
 @Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
+
+import java.nio.file.Paths
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
+import org.ods.orchestration.usecase.OpenIssuesException
 import org.ods.orchestration.InitStage
 import org.ods.orchestration.BuildStage
 import org.ods.orchestration.DeployStage
@@ -22,6 +20,7 @@ import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
+import org.ods.util.UnirestConfig
 
 @SuppressWarnings('AbcMetric')
 def call(Map config) {
