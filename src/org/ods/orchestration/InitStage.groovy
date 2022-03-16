@@ -13,6 +13,7 @@ import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.GitTag
 import org.ods.orchestration.util.MROPipelineUtil
+import org.ods.orchestration.util.PipelinePhaseLifecycleStage
 
 import org.ods.util.GitCredentialStore
 import org.ods.util.PipelineSteps
