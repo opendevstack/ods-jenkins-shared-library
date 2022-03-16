@@ -127,11 +127,14 @@ def call(Map config) {
       UnirestConfig.shutdown()
       project = null
       git = null
-      logger = null
       repos = null
       steps = null
       // HACK!!!!!
-      ((GroovyClassLoader)this.class.getClassLoader()).close()
+      GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
+      logger.debug("Currently loaded classes ${classloader.getLoadedClasses().size()}")
+      classloader.close()
+      logger.debug("After closes: loaded classes ${classloader.getLoadedClasses().size()}")
+      logger = null
     }      
 }
 
