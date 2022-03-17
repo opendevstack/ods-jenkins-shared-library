@@ -1,4 +1,5 @@
 import org.ods.component.Pipeline
+import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 
 def call(Map config, Closure body) {
@@ -13,6 +14,10 @@ def call(Map config, Closure body) {
     def pipeline = new Pipeline(this, logger)
 
     pipeline.execute(config, body)
+
+    ServiceRegistry.instance.clear()
+
+    ServiceRegistry.removeInstance()
 }
 
 return this

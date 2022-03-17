@@ -1,9 +1,16 @@
 package org.ods.services
 
-@Singleton
+import java.util.concurrent.ConcurrentHashMap
+
 class ServiceRegistry {
 
-    private final registry = [:]
+    private final Map registry = new ConcurrentHashMap()
+
+    public static ServiceRegistry instance = new ServiceRegistry()
+
+    static def removeInstance() {
+        instance = null;
+    }
 
     void add(Class<?> type, def service) {
         registry[type.name] = service
@@ -16,9 +23,6 @@ class ServiceRegistry {
     def clear() {
         registry.clear()
     }
-  
-    def getAllServices() {
-        return registry
-    }
+
 
 }
