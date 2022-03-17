@@ -257,9 +257,10 @@ class NexusServiceSpec extends SpecHelper {
         def service = createService(server.port(), request.username, request.password)
 
         String expectedResult = "http://localhost:${server.port()}/repository/leva-documentation/${projectId}/${buildId}/${expectedFile}.zip"
+        String nexusDirectory = service.getNexusDirectory(projectId, buildId)
 
         when:
-        def result = service.uploadTestsResults(testType, projectId, temporaryFolder.getRoot().toURI(), temporaryFolder.getRoot().getAbsolutePath(), buildId, repoId)
+        def result = service.uploadTestsResults(testType, temporaryFolder.getRoot().toURI(), temporaryFolder.getRoot().getAbsolutePath(), nexusDirectory, repoId)
 
         then:
         result == expectedResult
