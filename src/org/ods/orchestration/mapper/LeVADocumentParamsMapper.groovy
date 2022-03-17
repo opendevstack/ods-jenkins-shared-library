@@ -20,7 +20,7 @@ class LeVADocumentParamsMapper {
         ] << data
     }
 
-    private LinkedHashMap<String, Object> mapGitData() {
+    private Map<String, Object> mapGitData() {
         [
             commit              : this.project.gitData.commit,
             repoURL             : this.project.gitData.url,
