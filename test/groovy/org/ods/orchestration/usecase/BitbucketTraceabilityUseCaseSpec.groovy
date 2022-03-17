@@ -7,24 +7,16 @@ import org.apache.commons.io.FileUtils
 import org.json.JSONArray
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ods.core.test.jira.BitbucketServiceForWireMock
-import org.ods.core.test.usecase.ProjectFactory
-import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
-import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
-import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
-import org.ods.core.test.wiremock.WiremockManager
-import org.ods.core.test.wiremock.WiremockServers
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.StringCleanup
 import org.ods.services.BitbucketService
-import org.ods.services.GitService
+import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
-import org.ods.util.UnirestConfig
 import spock.lang.Specification
 import util.FixtureHelper
 import org.ods.core.test.LoggerStub
 import util.PipelineSteps
-import org.ods.core.test.jira.JiraServiceForWireMock
+import org.ods.core.test.wiremock.BitbucketServiceMock
 
 import static org.assertj.core.api.Assertions.*
 
@@ -33,45 +25,62 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
     static final String EXPECTED_BITBUCKET_CSV = "expected/bitbucket.csv"
     private static final String EXPECTED_BITBUCKET_JSON = "expected/bitbucket.json"
 
-    LevaDocWiremock levaDocWiremock
+    // Change for local development or CI testing
+    private static final Boolean RECORD_WIREMOCK = false
+    private static final String BB_URL_TO_RECORD = "http://bitbucket.odsbox.lan:7990/"
+    private static final String BB_TOKEN = ""
+    private static final String PROJECT_KEY = "EDPT3"
 
     @Rule
     public TemporaryFolder tempFolder
 
+    BitbucketServiceMock bitbucketServiceMock
     IPipelineSteps steps
-    GitService gitService
-    JiraServiceForWireMock jiraServiceForWireMock
-    LoggerStub loggerStub
+    Project project
+    ILogger logger
+    BitbucketService bitbucketService
 
     def setup() {
         log.info "Using temporal folder:${tempFolder.getRoot()}"
 
         steps = new PipelineSteps()
         steps.env.WORKSPACE = tempFolder.getRoot().absolutePath
+        logger = new LoggerStub(log)
+        project = buildProject(logger)
+        bitbucketServiceMock = new BitbucketServiceMock().setUp("csv").startServer(RECORD_WIREMOCK, BB_URL_TO_RECORD)
+        bitbucketService = Spy(
+                new BitbucketService(
+                        null,
+                        bitbucketServiceMock.getWireMockServer().baseUrl(),
+                        PROJECT_KEY,
+                        "passwordCredentialsId",
+                        logger))
+        bitbucketService.getToken() >> BB_TOKEN
+    }
 
-        gitService = Mock(GitService)
+    def buildProject(logger) {
+        FileUtils.copyDirectory(new FixtureHelper().getResource("workspace/metadata.yml").parentFile, tempFolder.getRoot())
 
-        loggerStub = new LoggerStub(log)
-        UnirestConfig.init()
+        steps.env.BUILD_ID = "1"
+        steps.env.WORKSPACE = "${tempFolder.getRoot().absolutePath}"
+
+        def project = new Project(steps, logger, [:])
+        project.data.metadata = project.loadMetadata("metadata.yml")
+        project.data.metadata.id = PROJECT_KEY
+        project.data.buildParams = [:]
+        project.data.buildParams.targetEnvironment = "dev"
+        project.data.buildParams.targetEnvironmentToken = "D"
+        project.data.buildParams.version = "WIP"
+        project.data.buildParams.releaseStatusJiraIssueKey = "${PROJECT_KEY}-123"
+        return project
     }
 
     def cleanup() {
-        levaDocWiremock?.tearDownWiremock()
+        bitbucketServiceMock.tearDown()
     }
 
     def "Generate the csv source code review file"() {
         given: "There are two Bitbucket repositories"
-
-        ProjectFactory projectFactory = new ProjectFactory(steps, gitService, jiraServiceForWireMock, loggerStub)
-        LevaDocDataFixture levaDocDataFixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Project project = projectFactory.loadProject(projectFixture, levaDocDataFixture).getProject()
-        fixProject(project, projectFixture)
-
-        levaDocWiremock = new LevaDocWiremock()
-        levaDocWiremock.setUpWireMock(projectFixture, tempFolder.root)
-        WiremockManager bitBucketServer = levaDocWiremock.getBitbucketServer()
-        BitbucketService bitbucketService = getBitbucketService(projectFixture.project)
-
         def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
 
         when: "the source code review file is generated"
@@ -81,22 +90,10 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         reportInfo "Generated csv file:<br/>${readSomeLines(actualFile)}"
         def expectedFile = new FixtureHelper().getResource(EXPECTED_BITBUCKET_CSV)
         assertThat(new File(actualFile)).exists().isFile().hasSameTextualContentAs(expectedFile);
-
-        where:
-        projectFixture << new DocTypeProjectFixture().getProjects()
     }
 
     def "Read the csv source code review file"() {
         given: "There are two Bitbucket repositories"
-        ProjectFactory projectFactory = new ProjectFactory(steps, gitService, jiraServiceForWireMock, loggerStub)
-        LevaDocDataFixture levaDocDataFixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Project project = projectFactory.loadProject(projectFixture, levaDocDataFixture).getProject()
-        fixProject(project, projectFixture)
-
-        levaDocWiremock = new LevaDocWiremock()
-        levaDocWiremock.setUpWireMock(projectFixture, tempFolder.root)
-        BitbucketService bitbucketService = getBitbucketService(projectFixture.project)
-
         def useCase = new BitbucketTraceabilityUseCase(bitbucketService, steps, project)
 
         and: 'The characters to change'
@@ -116,8 +113,6 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
 
         JSONAssert.assertJsonEquals(StringCleanup.removeCharacters(expected.toString(), CHARACTERS), result.toString())
 
-        where:
-        projectFixture << new DocTypeProjectFixture().getProjects()
     }
 
     private String readSomeLines(String filePath){
@@ -127,20 +122,5 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
         file.withReader { r -> while( someLines-- > 0 && (( lines += r.readLine() + "<br/>" ) != null));}
         lines += "..."
         return lines
-    }
-
-    private void fixProject(Project project, ProjectFixture projectFixture) {
-        FileUtils.copyDirectory(new FixtureHelper().getResource("workspace/metadata.yml").parentFile, tempFolder.getRoot())
-
-        steps.env.BUILD_ID = "1"
-        steps.env.WORKSPACE = "${tempFolder.getRoot().absolutePath}"
-
-    }
-
-    private BitbucketService getBitbucketService(String project) {
-        String bitBucketURL = levaDocWiremock.nexusServer.server().baseUrl()
-        BitbucketService bitbucketService = new BitbucketServiceForWireMock(
-            bitBucketURL, WiremockServers.BITBUCKET.getUser(), WiremockServers.BITBUCKET.getPassword(), project, loggerStub)
-
     }
 }
