@@ -1,5 +1,6 @@
 package org.ods.orchestration.util
 
+@GrabConfig(autoDownload=false)
 @Grab('net.lingala.zip4j:zip4j:2.1.1')
 @Grab('org.yaml:snakeyaml:1.24')
 
