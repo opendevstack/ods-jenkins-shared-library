@@ -1,5 +1,8 @@
 package org.ods.util
 
+@GrabConfig(autoDownload=false)
+@Grab(group='com.konghq', module='unirest-java', version='2.4.03', classifier='standalone')
+
 import com.cloudbees.groovy.cps.NonCPS
 import kong.unirest.Unirest
 
