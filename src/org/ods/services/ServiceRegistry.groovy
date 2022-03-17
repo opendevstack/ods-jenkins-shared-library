@@ -4,12 +4,13 @@ import java.util.concurrent.ConcurrentHashMap
 
 class ServiceRegistry {
 
-    private final Map registry = new ConcurrentHashMap()
+    private Map registry = new ConcurrentHashMap()
 
     public static ServiceRegistry instance = new ServiceRegistry()
 
     static def removeInstance() {
-        instance = null;
+        instance.registry = null
+        instance = null
     }
 
     void add(Class<?> type, def service) {
@@ -24,5 +25,8 @@ class ServiceRegistry {
         registry.clear()
     }
 
+    def getAllServices() {
+        return registry
+    }
 
 }

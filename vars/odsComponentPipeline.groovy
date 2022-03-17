@@ -15,9 +15,6 @@ def call(Map config, Closure body) {
 
     pipeline.execute(config, body)
 
-    ServiceRegistry.instance.clear()
-
-    ServiceRegistry.removeInstance()
 }
 
 return this
