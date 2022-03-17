@@ -117,7 +117,7 @@ class LeVADocumentUseCase {
     }
 
     void createTCR(Map repo = null, Map data = null) {
-        createDocWithTestDataParams(DocumentType.TCR, data)
+        createDocWithDefaultParams(DocumentType.TCR, data)
     }
 
     void createDTR(Map repo, Map data) {
@@ -129,11 +129,11 @@ class LeVADocumentUseCase {
     }
 
     void createCFTR(Map repo = null, Map data = null) {
-        createDocWithTestDataParams(DocumentType.CFTR, data)
+        createDocWithDefaultParams(DocumentType.CFTR, data)
     }
 
     void createIVR(Map repo = null, Map data = null) {
-        createDocWithTestDataParams(DocumentType.IVR, data)
+        createDocWithDefaultParams(DocumentType.IVR, data)
     }
 
     void createTIR(Map repo, Map data) {
@@ -154,11 +154,6 @@ class LeVADocumentUseCase {
         logger.info("create document ${documentType} start ")
         createDoc(documentType, leVADocumentParamsMapper.build())
         logger.info("create document ${documentType} end")
-    }
-
-    @Deprecated
-    private void createDocWithTestDataParams(DocumentType documentType, Map testData) {
-        createDocWithDefaultParams(documentType)
     }
 
     private void createDocWithComponentDataParams(DocumentType documentType, Map repo, Map testData) {
