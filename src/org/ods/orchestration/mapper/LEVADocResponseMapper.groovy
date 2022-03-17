@@ -6,7 +6,7 @@ import org.ods.orchestration.util.DocumentHistoryEntry
 class LEVADocResponseMapper {
 
     @NonCPS
-    static List<DocumentHistoryEntry> parse(historyListParsed){
+    static List<DocumentHistoryEntry> parse(historyListParsed) {
         List<DocumentHistoryEntry> historyList = []
         historyListParsed.each { entry ->
             DocumentHistoryEntry historyEntry = new DocumentHistoryEntry(
@@ -19,4 +19,5 @@ class LEVADocResponseMapper {
         }
         return historyList
     }
+
 }

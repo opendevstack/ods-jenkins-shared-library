@@ -16,7 +16,7 @@ class LeVADocumentParamsMapper {
             git: mapGitData(),
             openshift: [
                 targetApiUrl: this.project.getOpenShiftApiUrl() //TODO is different?
-            ]
+            ],
         ] << data
     }
 
@@ -34,7 +34,7 @@ class LeVADocumentParamsMapper {
         ]
     }
 
-    private LinkedHashMap<String, Object> mapBuildData() {
+    private Map<String, Object> mapBuildData() {
         [
             targetEnvironment: this.project.buildParams.targetEnvironment,
             targetEnvironmentToken: this.project.buildParams.targetEnvironmentToken,
