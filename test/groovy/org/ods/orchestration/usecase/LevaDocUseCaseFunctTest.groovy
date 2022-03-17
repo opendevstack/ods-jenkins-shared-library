@@ -158,7 +158,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         def installationRes = useCase.nexus.uploadTestsResults("Installation", projectId, xunitFilesPathInstallation, workspacePath, buildId)
 
         InputStream jenkinsJobLogInputStream = Paths.get("test/resources/workspace/${projectKey}/jenkins-job-log.zip").toFile().newDataInputStream()
-        def jenkinsLogJobRes = useCase.uploadJenkinsJobLog(projectKey, buildId, jenkinsJobLogInputStream)
+        def jenkinsLogJobRes = useCase.nexus.uploadJenkinsJobLog(projectKey, buildId, jenkinsJobLogInputStream, useCase.util)
 
         then:
         acceptanceRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildId}/acceptance.zip")

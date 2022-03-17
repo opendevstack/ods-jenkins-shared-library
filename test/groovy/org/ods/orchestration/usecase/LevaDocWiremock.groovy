@@ -1,10 +1,10 @@
 package org.ods.orchestration.usecase
 
 import groovy.util.logging.Slf4j
-import org.ods.core.test.service.BitbucketReleaseManagerService
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.wiremock.WiremockManager
 import org.ods.core.test.wiremock.WiremockServers
+import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.service.JiraService
 import org.ods.services.NexusService
 import org.springframework.stereotype.Component
@@ -41,8 +41,9 @@ class LevaDocWiremock {
         log.info "Using GENERATE_EXPECTED_PDF_FILES:${GENERATE_EXPECTED_PDF_FILES}"
         log.info "Using temporal folder:${tempFolder.absolutePath}"
 
+        String overall = (projectFixture.overall) ? "/overall" : ""
         String component = (projectFixture.component) ? "/${projectFixture.component}" : ""
-        String scenarioPath = "${projectKey}${component}/${doctype}/${projectFixture.version}"
+        String scenarioPath = "${projectKey}${component}/${doctype}${overall}/${projectFixture.version}"
         docGenServer = WiremockServers.DOC_GEN.build().withScenario(scenarioPath).startServer(RECORD)
         jiraServer = WiremockServers.JIRA.build().withScenario(scenarioPath).startServer(RECORD)
         nexusServer = WiremockServers.NEXUS.build().withScenario(scenarioPath).startServer(RECORD)
@@ -57,4 +58,7 @@ class LevaDocWiremock {
         return new NexusService(nexusServer.server().baseUrl(), WiremockServers.NEXUS.getUser(), WiremockServers.NEXUS.getPassword())
     }
 
+    DocGenService getDocGenService(){
+        return new DocGenService(docGenServer.server().baseUrl())
+    }
 }
