@@ -3,16 +3,11 @@ package org.ods.orchestration.service
 @Grab(group="com.konghq", module="unirest-java", version="2.4.03", classifier="standalone")
 
 import com.cloudbees.groovy.cps.NonCPS
-
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurperClassic
-import org.ods.orchestration.util.StringCleanup
-
-import java.net.URI
-
 import kong.unirest.Unirest
-
 import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.util.StringCleanup
 
 @SuppressWarnings(['LineLength', 'ParameterName'])
 class JiraService {
@@ -145,10 +140,10 @@ class JiraService {
                         name: linkType
                     ],
                     inwardIssue: [
-                        key: inwardIssue.key
+                        key: inwardIssue.key,
                     ],
                     outwardIssue: [
-                        key: outwardIssue.key
+                        key: outwardIssue.key,
                     ]
                 ]
             ))
@@ -353,14 +348,7 @@ class JiraService {
 
         String responseBody = response.getBody() as String
 
-        // Kept just to get what causes problems.
-        try {
-            return new JsonSlurperClassic().parseText(responseBody)
-        } catch (RuntimeException e) {
-            System.err.println("Error parsing Jira response. Jira Response: ")
-            System.err.println(responseBody)
-            throw e
-        }
+        return new JsonSlurperClassic().parseText(responseBody)
     }
 
     @NonCPS
@@ -715,7 +703,7 @@ class JiraService {
 
         response.ifFailure {
             if (response.getStatus() == 400) {
-                if(response.getBody().contains("Invalid project versionName.")) {
+                if (response.getBody().contains("Invalid project versionName.")) {
                     return false
                 }
             }

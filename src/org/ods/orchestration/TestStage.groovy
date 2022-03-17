@@ -3,7 +3,6 @@ package org.ods.orchestration
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
-import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.PipelineSteps
@@ -21,7 +20,6 @@ class TestStage extends Stage {
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
-        def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def phase = MROPipelineUtil.PipelinePhases.TEST
