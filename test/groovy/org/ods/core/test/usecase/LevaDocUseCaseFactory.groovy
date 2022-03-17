@@ -38,7 +38,6 @@ class LevaDocUseCaseFactory {
     private Project project
     private BitbucketTraceabilityUseCase bbt
     private IPipelineSteps steps
-    private LevaDocDataFixture dataFixture
 
     LevaDocUseCaseFactory(LevaDocWiremock levaDocWiremock,
                           GitService gitService,
@@ -53,24 +52,14 @@ class LevaDocUseCaseFactory {
         this.jenkins = jenkins
         this.tempFolder = tempFolder
         this.steps = new PipelineSteps()
-        this.dataFixture = new LevaDocDataFixture(tempFolder.root)
     }
 
     def loadProject(ProjectFixture projectFixture) {
-        try {
-            def logger = new LoggerStub(log)
-            project = buildProject(projectFixture, logger)
-            def util = new MROPipelineUtil(project, steps, null, logger)
-            def jiraUseCase = new JiraUseCase(project, steps, util, buildJiraServiceForWireMock(), logger)
-            project.load(gitService, jiraUseCase)
-            project.data.openshift.targetApiUrl = "https://openshift-sample"
-            project.data.build.testResultsURLs = [:]
-            project.data.build.testResultsURLs = dataFixture.getTestResultsUrls()
-            project.repositories.each { repo -> repo.metadata = dataFixture.loadMetadata(repo) }
-        } catch(RuntimeException e){
-            log.error("setup error:${e.getMessage()}", e)
-            throw e
-        }
+        LevaDocDataFixture dataFixture = new LevaDocDataFixture(tempFolder.root)
+        JiraServiceForWireMock jiraServiceForWireMock = buildJiraServiceForWireMock()
+
+        ProjectFactory projectFactory = new ProjectFactory(steps, gitService, jiraServiceForWireMock, new LoggerStub(log))
+        project = projectFactory.loadProject(projectFixture, dataFixture).getProject()
         return this
     }
 
@@ -89,16 +78,6 @@ class LevaDocUseCaseFactory {
                 new LeVADocumentParamsMapper(project),
                 new LoggerStub(log)
             )
-    }
-
-    private Project buildProject(ProjectFixture projectFixture, ILogger logger) {
-        Project.METADATA_FILE_NAME = 'metadata.yml'
-        steps.env = dataFixture.loadEnvData(projectFixture)
-        def project = new Project(steps, logger, [:]).init("refs/heads/master")
-        project.data.metadata.id = projectFixture.project
-        project.data.buildParams =  dataFixture.buildParams(projectFixture)
-        project.data.git = dataFixture.buildGitData(projectFixture)
-        return project
     }
 
     private JiraServiceForWireMock buildJiraServiceForWireMock() {
