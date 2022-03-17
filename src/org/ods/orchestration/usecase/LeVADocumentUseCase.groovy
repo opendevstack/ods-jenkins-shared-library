@@ -117,7 +117,7 @@ class LeVADocumentUseCase {
     }
 
     void createTCR(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.TCR, data)
+        createDocWithDefaultParams(DocumentType.TCR)
     }
 
     void createDTR(Map repo, Map data) {
@@ -129,11 +129,11 @@ class LeVADocumentUseCase {
     }
 
     void createCFTR(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.CFTR, data)
+        createDocWithDefaultParams(DocumentType.CFTR)
     }
 
     void createIVR(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.IVR, data)
+        createDocWithDefaultParams(DocumentType.IVR)
     }
 
     void createTIR(Map repo, Map data) {
