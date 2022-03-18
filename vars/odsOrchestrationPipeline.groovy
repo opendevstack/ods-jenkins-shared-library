@@ -1,5 +1,5 @@
 import java.nio.file.Paths
-import java.lang.reflect.Field
+import java.lang.reflect.*
 import java.lang.ClassLoader
 
 import org.ods.orchestration.util.PipelineUtil
@@ -142,7 +142,16 @@ def call(Map config) {
             loaderF.setAccessible(true);
             logger.debug("current size ${loaderF.get(classloader).size()}")
             loaderF.get(classloader).clear()
-            logger.debug("current cleared")
+            logger.debug("current cleared, now kicking parent CL")
+
+            Field loaderParentF = ClassLoader.class.getDeclaredField("parent")
+            loaderParentF.setAccessible(true);
+
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
+
+            loaderParentF.set(classloader, null);    
         } catch (Exception e) {
             logger.debug("e: ${e}")
         }
