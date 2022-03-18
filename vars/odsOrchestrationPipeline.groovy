@@ -140,6 +140,7 @@ def call(Map config) {
             logger.debug("current (CleanGroovyCl): ${classloader.getClass()}")
             Field loaderF = ClassLoader.class.getDeclaredField("classes")
             loaderF.setAccessible(true);
+            logger.debug("current size ${loaderF.get(classloader).size()}")
             loaderF.get(classloader).clear()
             logger.debug("current cleared")
         } catch (Exception e) {
@@ -149,6 +150,7 @@ def call(Map config) {
             logger.debug("current parent (timingClassloader): ${classloader.getParent()}")
             Field loaderFP = ClassLoader.class.getDeclaredField("classes")
             loaderFP.setAccessible(true);
+            logger.debug("current parent size ${loaderF.get(classloader.getParent()).size()}")
             loaderFP.get(classloader.getParent()).clear()
             logger.debug("current parent cleared")
         } catch (Exception e) {
