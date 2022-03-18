@@ -26,7 +26,7 @@ class BitbucketTraceabilityUseCaseSpec extends Specification {
     private static final String EXPECTED_BITBUCKET_JSON = "expected/bitbucket.json"
 
     // Change for local development or CI testing
-    private static final Boolean RECORD_WIREMOCK = true
+    private static final Boolean RECORD_WIREMOCK = false
     private static final String BB_URL_TO_RECORD = "http://bitbucket.odsbox.lan:7990/"
     private static final String BB_TOKEN = ""
     private static final String PROJECT_KEY = "EDPT3"
