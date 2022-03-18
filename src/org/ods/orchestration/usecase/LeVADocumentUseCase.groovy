@@ -1,14 +1,12 @@
 package org.ods.orchestration.usecase
 
 import com.cloudbees.groovy.cps.NonCPS
-import jdk.nashorn.internal.ir.annotations.Ignore
 import org.apache.commons.lang3.StringUtils
 import org.ods.orchestration.mapper.LeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
 import org.ods.orchestration.util.DocumentHistoryEntry
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
-import org.ods.orchestration.util.WeakPair
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
@@ -19,9 +17,7 @@ import static groovy.json.JsonOutput.toJson
 @SuppressWarnings(['SpaceAroundMapEntryColon', 'PropertyName', 'ParameterCount', 'UnusedMethodParameter'])
 class LeVADocumentUseCase {
 
-    public static final String CONTENT_TYPE = "application/octet-binary"
     public static final String OVERALL = "OVERALL"
-    public static final String JENKINS_LOG = "jenkins-job-log"
 
     enum DocumentType {
 
@@ -142,10 +138,11 @@ class LeVADocumentUseCase {
 
     void createOverallTIR(Map repo = null, Map data = null) {
         if (StringUtils.isEmpty(project.data.jenkinLog)) {
-            project.data.jenkinLog = uploadJenkinsJobLog(
+            project.data.jenkinLog = nexus.uploadJenkinsJobLog(
                 project.getJiraProjectKey(),
                 project.steps.env.BUILD_NUMBER,
-                jenkins.getCurrentBuildLogInputStream())
+                jenkins.getCurrentBuildLogInputStream(),
+                util)
         }
         createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
@@ -181,31 +178,6 @@ class LeVADocumentUseCase {
             }
         }
 
-    }
-
-    // This test is only used to upload the parts we need to run docGen tests.
-    @Ignore
-    private String uploadJenkinsJobLog(String projectKey, String buildNumber, InputStream jenkinsJobLog) {
-        String fileName = JENKINS_LOG
-        String nexusPath = "${projectKey.toLowerCase()}/${buildNumber}"
-
-        WeakPair<String, InputStream> file = new WeakPair<String, InputStream>(fileName + ".txt", jenkinsJobLog)
-        WeakPair<String, InputStream> [] files = [ file ]
-
-        String logFileZipped = "${fileName}.zip"
-        byte[] zipArtifact = util.createZipArtifact(logFileZipped, files, true)
-
-        String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
-        URI report = this.nexus.storeArtifact(
-            nexusRepository,
-            nexusPath,
-            logFileZipped,
-            zipArtifact,
-            CONTENT_TYPE
-        )
-
-        logger.info "Report stored in: ${report.toString()}"
-        return report.toString()
     }
 
 }

@@ -45,10 +45,10 @@ enum WiremockServers {
             new WiremockManager("docgen", System.properties["docGen.url"])
         };
         String getUser(){
-            return System.properties["docGen.username"]
+            throw new RuntimeException("no user needed for docGen")
         };
         String getPassword(){
-            return System.properties["docGen.password"]
+            throw new RuntimeException("no password needed for docGen")
         }
     },
     BITBUCKET {

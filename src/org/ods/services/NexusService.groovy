@@ -8,6 +8,8 @@ import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.util.PipelineUtil
+import org.ods.orchestration.util.WeakPair
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -16,6 +18,8 @@ class NexusService {
 
     static final String NEXUS_REPO_EXISTS_KEY = 'nexusRepoExists'
     static final String DEFAULT_NEXUS_REPOSITORY = "leva-documentation"
+    static final String JENKINS_LOG = "jenkins-job-log"
+    static final String CONTENT_TYPE = "application/octet-binary"
 
     URI baseURL
 
@@ -208,6 +212,28 @@ class NexusService {
             fileName,
             zipFilePath.getBytes(),
             "application/octet-binary")
+
+        return report.toString()
+    }
+
+    @NonCPS
+    String uploadJenkinsJobLog(String projectKey, String buildNumber, InputStream jenkinsJobLog, PipelineUtil util) {
+        String nexusPath = "${projectKey.toLowerCase()}/${buildNumber}"
+
+        WeakPair<String, InputStream> file = new WeakPair<String, InputStream>(JENKINS_LOG + ".txt", jenkinsJobLog)
+        WeakPair<String, InputStream> [] files = [ file ]
+
+        String logFileZipped = "${JENKINS_LOG}.zip"
+        byte[] zipArtifact = util.createZipArtifact(logFileZipped, files, true)
+
+        String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
+        URI report = storeArtifact(
+            nexusRepository,
+            nexusPath,
+            logFileZipped,
+            zipArtifact,
+            CONTENT_TYPE
+        )
 
         return report.toString()
     }
