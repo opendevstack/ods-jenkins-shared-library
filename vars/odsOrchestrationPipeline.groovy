@@ -52,9 +52,9 @@ def call(Map config) {
 
           try {
             logger.debug("current: ${this.class.getClassLoader().getClass()}")
-            Field loaderF = ClassLoader.class.getField("classes");
+            Field loaderF = ClassLoader.class.getDeclaredField("classes")
             loaderF.setAccessible(true);
-            //loaderF.set(classloader, new Vector());
+            logger.debug("loaded: ${loaderF.get(classloader, null)}")
           } catch (Exception e) {
               logger.debug("Error: ${e}")
           }
