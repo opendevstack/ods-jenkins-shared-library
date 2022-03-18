@@ -137,13 +137,14 @@ class LevaDocUseCaseFunctTest extends Specification {
         String buildId = "666"
         String projectId = projectFixture.project
         String workspacePath = tempFolder.getRoot().getAbsolutePath()
+        String nexusDirectory = service.getNexusDirectory(projectId, buildId)
 
         when:
-        def frontendUnitRes = useCase.nexus.uploadTestsResults("Unit", projectId, xunitFilesPathUnitFrontend, workspacePath, buildId, "frontend")
-        def backendUnitRes = useCase.nexus.uploadTestsResults("Unit", projectId, xunitFilesPathUnitBackend, workspacePath, buildId, "backend")
-        def acceptanceRes = useCase.nexus.uploadTestsResults("Acceptance", projectId, xunitFilesPathAcceptance, workspacePath, buildId)
-        def integrationRes = useCase.nexus.uploadTestsResults("Integration", projectId, xunitFilesPathIntegration, workspacePath, buildId)
-        def installationRes = useCase.nexus.uploadTestsResults("Installation", projectId, xunitFilesPathInstallation, workspacePath, buildId)
+        def frontendUnitRes = useCase.nexus.uploadTestsResults("Unit", xunitFilesPathUnitFrontend, workspacePath, nexusDirectory, "frontend")
+        def backendUnitRes = useCase.nexus.uploadTestsResults("Unit", xunitFilesPathUnitBackend, workspacePath, nexusDirectory,"backend")
+        def acceptanceRes = useCase.nexus.uploadTestsResults("Acceptance", xunitFilesPathAcceptance, workspacePath, nexusDirectory)
+        def integrationRes = useCase.nexus.uploadTestsResults("Integration", xunitFilesPathIntegration, workspacePath, nexusDirectory)
+        def installationRes = useCase.nexus.uploadTestsResults("Installation", xunitFilesPathInstallation, workspacePath, nexusDirectory)
 
         InputStream jenkinsJobLogInputStream = Paths.get("test/resources/workspace/${projectKey}/jenkins-job-log.zip").toFile().newDataInputStream()
         def jenkinsLogJobRes = useCase.uploadJenkinsJobLog(projectKey, buildId, jenkinsJobLogInputStream)

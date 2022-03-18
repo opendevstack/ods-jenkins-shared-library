@@ -186,17 +186,21 @@ class NexusService {
     }
 
     @NonCPS
+    String getNexusDirectory(String projectId, String buildId) {
+        return "${projectId}/${buildId}".toLowerCase()
+    }
+
+    @NonCPS
     String uploadTestsResults(String testType,
-                              String projectId,
                               URI testReportsUnstashPath,
                               String workspacePath,
-                              String buildId,
+                              String nexusDirectory,
                               String repoId = "") {
 
         String fileName = getFileName(repoId, testType)
         Path zipFilePath = createTemporalZipFile(workspacePath, fileName, testReportsUnstashPath)
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
-        String nexusDirectory = "${projectId}/${buildId}".toLowerCase()
+
 
         URI report = this.storeArtifact(
             "${nexusRepository}",
