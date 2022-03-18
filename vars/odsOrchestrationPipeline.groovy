@@ -54,7 +54,7 @@ def call(Map config) {
             logger.debug("current: ${this.class.getClassLoader().getClass()}")
             Field loaderF = ClassLoader.class.getDeclaredField("classes")
             loaderF.setAccessible(true);
-            logger.debug("loaded: ${loaderF.get(classloader, null)}")
+            logger.debug("loaded: ${loaderF.get(this.class.getClassLoader())}")
           } catch (Exception e) {
               logger.debug("Error: ${e}")
           }
