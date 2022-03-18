@@ -49,16 +49,6 @@ def call(Map config) {
 
   	try {
       node ('master') {
-
-          try {
-            logger.debug("current: ${this.class.getClassLoader().getClass()}")
-            Field loaderF = ClassLoader.class.getDeclaredField("classes")
-            loaderF.setAccessible(true);
-            logger.debug("loaded: ${loaderF.get(this.class.getClassLoader())}")
-          } catch (Exception e) {
-              logger.debug("Error: ${e}")
-          }
-
           logger.debugClocked('orchestration-master-node')
           // Clean workspace from previous runs
           [
@@ -146,14 +136,15 @@ def call(Map config) {
       classloader.clearCache()
       classloader.close()
       logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
-//      try {
-          // really bad hack! but worth a try :D
-          Field loaderF = GroovyClassLoader.class.getField("classes");
-          loaderF.setAccessible(true);
-          loaderF.set(classloader, new Vector());
-//      } catch (Exception x) {      
-//      }
-      logger = null
+        try {
+            logger.debug("current: ${classloader.getClass()}")
+            Field loaderF = ClassLoader.class.getDeclaredField("classes")
+            loaderF.setAccessible(true);
+            loaderF.get(classloader).clear()
+            logger.debug("cleared")
+        } catch (Exception e) {
+            logger.debug("e: ${e}")
+        }
     }
 }
 
