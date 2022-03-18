@@ -112,7 +112,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
         if (LeVADocumentUseCase.DocumentType.TIR.name().equals(projectFixture.docType)) {
-            def nexusUrl = System.properties["nexus.url"]
+            def nexusUrl = levaDocWiremock.nexusServer.server().baseUrl()
             useCase.project.data.jenkinLog = "${nexusUrl}/repository/leva-documentation/${projectFixture.project}/666/jenkins-job-log.zip"
         }
 
