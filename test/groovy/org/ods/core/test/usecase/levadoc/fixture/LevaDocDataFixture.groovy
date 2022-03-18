@@ -72,13 +72,17 @@ class LevaDocDataFixture {
         ]
     }
 
-    Map<String, String> getTestResultsUrls() {
+    Map<String, String> getTestResultsUrls(ProjectFixture projectFixture) {
         return [
-            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/unit-backend.zip",
-            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/acceptance.zip",
-            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/installation.zip",
-            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/integration.zip",
+            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/unit-backend.zip",
+            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/acceptance.zip",
+            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/installation.zip",
+            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/integration.zip",
         ]
+    }
+
+    String getJenkinsLogUrl(ProjectFixture projectFixture) {
+        "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/jenkins-job-log.zip"
     }
 
     Map getInputParamsModule(ProjectFixture projectFixture, LeVADocumentUseCase useCase) {

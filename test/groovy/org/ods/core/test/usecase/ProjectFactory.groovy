@@ -38,7 +38,8 @@ class ProjectFactory {
             project.load(gitService, jiraUseCase)
             project.data.openshift.targetApiUrl = "https://openshift-sample"
             project.data.build.testResultsURLs = [:]
-            project.data.build.testResultsURLs = dataFixture.getTestResultsUrls()
+            project.data.build.testResultsURLs = dataFixture.getTestResultsUrls(projectFixture)
+            project.data.jenkinLog = dataFixture.getJenkinsLogUrl(projectFixture)
             project.repositories.each { repo -> repo.metadata = dataFixture.loadMetadata(repo) }
         } catch(RuntimeException e){
             loggerStub.error("setup error:${e.getMessage()}", e)
