@@ -1,4 +1,5 @@
 import java.nio.file.Paths
+import java.lang.reflect.Field
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
@@ -133,6 +134,13 @@ def call(Map config) {
       classloader.clearCache()
       classloader.close()
       logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
+//      try {
+          // really bad hack! but worth a try :D
+          Field loaderF = GroovyClassLoader.class.getField("classes");
+          loaderF.setAccessible(true);
+          loaderF.set(classloader, new Vector());
+//      } catch (Exception x) {      
+//      }
       logger = null
     }      
 }
