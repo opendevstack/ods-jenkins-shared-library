@@ -1,5 +1,6 @@
 import java.nio.file.Paths
 import java.lang.reflect.Field
+import java.lang.ClassLoader
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
@@ -51,7 +52,7 @@ def call(Map config) {
 
           try {
             logger.debug("current: ${this.class.getClassLoader().getClass()}")
-            Field loaderF = java.lang.Classloader.class.getField("classes");
+            Field loaderF = ClassLoader.class.getField("classes");
             loaderF.setAccessible(true);
             //loaderF.set(classloader, new Vector());
           } catch (Exception e) {
