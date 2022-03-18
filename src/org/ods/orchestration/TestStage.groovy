@@ -71,6 +71,7 @@ class TestStage extends Stage {
             )
         }
 
+        // TODO: Evaluate if we can remove passing globalData to the next phases.
         globalData.tests = [ : ]
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
