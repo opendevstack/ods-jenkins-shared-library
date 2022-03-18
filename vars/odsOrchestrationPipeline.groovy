@@ -51,9 +51,12 @@ def call(Map config) {
 
           try {
             logger.debug("current: ${this.class.getClassLoader().getClass()}")
-            logger.debug("current-1: ${this.class.getClassLoader().getClass().getSuperclass().getClass()}")
-            logger.debug("current-2: ${this.class.getClassLoader().getClass().getSuperclass().getClass().getSuperclass().getClass()}")
-          } catch (Exception e) {}
+            Field loaderF = java.lang.Classloader.class.getField("classes");
+            loaderF.setAccessible(true);
+            //loaderF.set(classloader, new Vector());
+          } catch (Exception e) {
+              logger.debug("Error: ${e}")
+          }
 
           logger.debugClocked('orchestration-master-node')
           // Clean workspace from previous runs
