@@ -151,17 +151,20 @@ def call(Map config) {
             modifiersField.setAccessible(true);
             modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
 
-            loaderParentF.set(classloader, null);    
+            loaderParentF.set(classloader, null);
+            logger.debug("Current CL classloader removed")
         } catch (Exception e) {
             logger.debug("e: ${e}")
         }
         try {
             logger.debug("current parent (timingClassloader): ${classloader.getParent()}")
-            Field loaderFP = ClassLoader.class.getDeclaredField("classes")
-            loaderFP.setAccessible(true);
-            logger.debug("current parent size ${loaderFP.get(classloader.getParent()).size()}")
-            loaderFP.get(classloader.getParent()).clear()
-            logger.debug("current parent cleared")
+            if (classloader.getParent() != null) {
+                Field loaderFP = ClassLoader.class.getDeclaredField("classes")
+                loaderFP.setAccessible(true);
+                logger.debug("current parent size ${loaderFP.get(classloader.getParent()).size()}")
+                loaderFP.get(classloader.getParent()).clear()
+                logger.debug("current parent cleared")
+            }
         } catch (Exception e) {
             logger.debug("eParrent: ${e}")
         }
