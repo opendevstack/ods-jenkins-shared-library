@@ -1,0 +1,25 @@
+{
+  "id" : "66828d1c-7578-4467-9cc8-cf1fafbc4bd9",
+  "name" : "levadoc_ordgp_666_trc",
+  "request" : {
+    "url" : "/levaDoc/ordgp/666/TRC",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"build\":{\"targetEnvironment\":\"dev\",\"targetEnvironmentToken\":\"D\",\"version\":\"WIP\",\"configItem\":\"BI-IT-DEVSTACK\",\"changeDescription\":\"changeDescription\",\"changeId\":\"changeId\",\"rePromote\":false,\"releaseStatusJiraIssueKey\":\"ORDGP-123\",\"runDisplayUrl\":\"https://jenkins-sample/blabla\",\"releaseParamVersion\":\"3.0\",\"buildId\":\"2022-01-22_23-59-59\",\"buildURL\":\"https://jenkins-sample\",\"jobName\":\"ordgp-cd/ordgp-cd-release-master\",\"testResultsURLs\":{\"Unit\":\"https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/unit-backend.zip\",\"Acceptance\":\"https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/acceptance.zip\",\"Installation\":\"https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/installation.zip\",\"Integration\":\"https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/integration.zip\"},\"jenkinLog\":\"https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/jenkins-job-log.zip\"},\"git\":{\"commit\":\"1e84b5100e09d9b6c5ea1b6c2ccee8957391beec\",\"repoURL\":\"https://bitbucket-dev.biscrum.com/scm/ordgp/ordgp-releasemanager.git\",\"releaseManagerRepo\":\"ordgp-releasemanager\",\"releaseManagerBranch\":\"refs/heads/master\",\"baseTag\":\"ods-generated-v3.0-3.0-0b11-D\",\"targetTag\":\"ods-generated-v3.0-3.0-0b11-D\",\"author\":\"s2o\",\"message\":\"Swingin' The Bottle\",\"time\":\"2021-04-20T14:58:31.042152\"},\"openshift\":{\"targetApiUrl\":\"https://openshift-sample\"}}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "[{\"bugs\":[],\"components\":[],\"epics\":[],\"mitigations\":[],\"requirements\":[{\"key\":\"ORDGP-126\",\"action\":\"add\"},{\"key\":\"ORDGP-127\",\"action\":\"add\"},{\"key\":\"ORDGP-125\",\"action\":\"add\"},{\"key\":\"ORDGP-128\",\"action\":\"add\"},{\"key\":\"ORDGP-129\",\"action\":\"add\"}],\"risks\":[{\"key\":\"ORDGP-141\",\"action\":\"add\"},{\"key\":\"ORDGP-142\",\"action\":\"add\"},{\"key\":\"ORDGP-136\",\"action\":\"add\"}],\"techSpecs\":[],\"tests\":[{\"key\":\"ORDGP-130\",\"action\":\"add\"},{\"key\":\"ORDGP-133\",\"action\":\"add\"},{\"key\":\"ORDGP-144\",\"action\":\"add\"},{\"key\":\"ORDGP-145\",\"action\":\"add\"},{\"key\":\"ORDGP-131\",\"action\":\"add\"},{\"key\":\"ORDGP-132\",\"action\":\"add\"},{\"key\":\"ORDGP-143\",\"action\":\"add\"},{\"key\":\"ORDGP-137\",\"action\":\"add\"},{\"key\":\"ORDGP-138\",\"action\":\"add\"},{\"key\":\"ORDGP-147\",\"action\":\"add\"},{\"key\":\"ORDGP-139\",\"action\":\"add\"}],\"docs\":[{\"key\":\"ORDGP-122\",\"action\":\"add\",\"documents\":[\"TRC\"],\"number\":\"3\",\"heading\":\"Document History\"}],\"entryId\":1,\"projectVersion\":\"1.0\",\"previousProjectVersion\":\"\",\"rational\":\"Initial document version.\"}]",
+    "headers" : {
+      "Content-Type" : "application/json",
+      "Date" : "Fri, 18 Mar 2022 11:58:03 GMT",
+      "Keep-Alive" : "timeout=60"
+    }
+  },
+  "uuid" : "66828d1c-7578-4467-9cc8-cf1fafbc4bd9",
+  "persistent" : true,
+  "insertionIndex" : 1
+}
