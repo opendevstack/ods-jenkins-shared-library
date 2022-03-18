@@ -45,7 +45,7 @@ def call(Map config) {
     def repos = []
 
     logger.startClocked('orchestration-master-node')
-  
+
   	try {
       node ('master') {
           logger.debugClocked('orchestration-master-node')
@@ -121,6 +121,7 @@ def call(Map config) {
       logger.resetStopwatch()
       project.clear()
       ServiceRegistry.instance.clear()
+      ServiceRegistry.removeInstance()
       UnirestConfig.shutdown()
       project = null
       git = null
@@ -142,7 +143,7 @@ def call(Map config) {
 //      } catch (Exception x) {      
 //      }
       logger = null
-    }      
+    }
 }
 
 @SuppressWarnings('GStringExpressionWithinString')
