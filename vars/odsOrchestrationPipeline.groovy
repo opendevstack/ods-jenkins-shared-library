@@ -141,9 +141,18 @@ def call(Map config) {
             Field loaderF = ClassLoader.class.getDeclaredField("classes")
             loaderF.setAccessible(true);
             loaderF.get(classloader).clear()
-            logger.debug("cleared")
+            logger.debug("current cleared")
         } catch (Exception e) {
             logger.debug("e: ${e}")
+        }
+        try {
+            logger.debug("current parent: ${classloader.getParent().getClass()}")
+            Field loaderFP = classloader.getParent().getClass().getDeclaredField("classes")
+            loaderFP.setAccessible(true);
+            loaderFP.get(classloader.getParent()).clear()
+            logger.debug("current parent cleared")
+        } catch (Exception e) {
+            logger.debug("eParrent: ${e}")
         }
     }
 }
