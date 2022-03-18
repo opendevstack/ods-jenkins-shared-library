@@ -9,7 +9,7 @@ class ProjectFixture {
 
     String project
     String description
-    String buildId
+    String buildNumber
     String releaseKey
     String version
     List<String> docsToTest
@@ -28,7 +28,7 @@ class ProjectFixture {
         return ProjectFixture.builder()
             .project(project.id as String)
             .description(project.description as String)
-            .buildId(project.buildId as String)
+            .buildNumber(project.buildNumber as String)
             .releaseKey(project.releaseId as String)
             .version(project.version as String)
             .docsToTest(docsToTest)

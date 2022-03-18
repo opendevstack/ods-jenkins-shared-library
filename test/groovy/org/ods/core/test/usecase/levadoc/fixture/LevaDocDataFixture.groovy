@@ -74,15 +74,15 @@ class LevaDocDataFixture {
 
     Map<String, String> getTestResultsUrls(ProjectFixture projectFixture) {
         return [
-            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/unit-backend.zip",
-            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/acceptance.zip",
-            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/installation.zip",
-            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/integration.zip",
+            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildNumber}/unit-backend.zip",
+            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildNumber}/acceptance.zip",
+            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildNumber}/installation.zip",
+            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildNumber}/integration.zip",
         ]
     }
 
     String getJenkinsLogUrl(ProjectFixture projectFixture) {
-        "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildId}/jenkins-job-log.zip"
+        "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/${projectFixture.project}/${projectFixture.buildNumber}/jenkins-job-log.zip"
     }
 
     Map getInputParamsModule(ProjectFixture projectFixture, LeVADocumentUseCase useCase) {
