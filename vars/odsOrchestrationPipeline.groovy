@@ -183,7 +183,7 @@ def call(Map config) {
             modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL);
 
             String currentName = loaderName.get(classloader)
-            loaderName.set(classloader, "${currentName}>${newName}")
+            loaderName.set(classloader, "(" + currentName + ") " + newName)
             String setname = loaderName.get(classloader)
 
             logger.debug("Current CL classloader removed, and name set: ${setname}")
