@@ -32,8 +32,10 @@ def call (Map config) {
     List<WorkflowJob> jobs = Jenkins.getActiveInstance().getAllItems(WorkflowJob.class);
     jobs.each { job -> 
         echo "Job: ${job} - ${job.getFullName()} - ${job.getBuilds().size()}"
-        job.getBuilds().each { build ->
-            eacho "---> Build: ${build}"
+        if (job.getFullName() == 'testbug-cd/testbug-cd-release-master') {
+            job.getBuilds().each { build ->
+                echo "---> Build: ${build}"
+            }
         }
     }
 }
