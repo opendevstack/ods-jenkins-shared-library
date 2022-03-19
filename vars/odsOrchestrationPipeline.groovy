@@ -1,6 +1,7 @@
 import java.nio.file.Paths
 import java.lang.reflect.*
 import java.lang.ClassLoader
+import java.util.List
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
@@ -21,8 +22,24 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.util.UnirestConfig
 
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+
+
+def call (Map config) {
+    echo "${env.JOB_NAME} / ${env.BUILD_NUMBER} "
+    List<WorkflowJob> jobs = Jenkins.getActiveInstance().getAllItems(WorkflowJob.class);
+    jobs.each { job -> 
+        echo "Job: ${job} - ${job.getFullName()} - ${job.getBuilds().size()}"
+        job.getBuilds().each { build ->
+            eacho "---> Build: ${build}"
+        }
+    }
+}
+
 @SuppressWarnings('AbcMetric')
-def call(Map config) {
+def XXXcall(Map config) {
     UnirestConfig.init()
     def steps = new PipelineSteps(this)
 
