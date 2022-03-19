@@ -29,12 +29,17 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 def call (Map config) {
     echo "${env.JOB_NAME} / ${env.BUILD_NUMBER} "
+    def thisJob = env.JOB_NAME
     List<WorkflowJob> jobs = Jenkins.getActiveInstance().getAllItems(WorkflowJob.class);
     jobs.each { job -> 
         echo "Job: ${job} - ${job.getFullName()} - ${job.getBuilds().size()}"
-        if (job.getFullName() == 'testbug-cd/testbug-cd-release-master') {
+        job.getProperties().each { prop -> 
+            echo " -> prop: ${prop}"
+        }
+        if (job.getFullName() == thisJob) {
             job.getBuilds().each { build ->
                 echo "---> Build: ${build}"
+                echo "---> -> ${build.getProperties()}"
             }
         }
     }
