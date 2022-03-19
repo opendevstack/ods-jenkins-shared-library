@@ -27,8 +27,8 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 
-def call (Map config) {
-    echo "${env.JOB_NAME} / ${env.BUILD_NUMBER} "
+def callDebug (Map config) {
+    echo "${env.JOB_NAME} / ${env.BUILD_NUMBER}"
     def thisJob = env.JOB_NAME
     List<WorkflowJob> jobs = Jenkins.getActiveInstance().getAllItems(WorkflowJob.class);
     jobs.each { job -> 
@@ -46,7 +46,8 @@ def call (Map config) {
 }
 
 @SuppressWarnings('AbcMetric')
-def XXXcall(Map config) {
+def call(Map config) {
+    def newName = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
     UnirestConfig.init()
     def steps = new PipelineSteps(this)
 
@@ -176,7 +177,16 @@ def XXXcall(Map config) {
             modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
 
             loaderParentF.set(classloader, null);
-            logger.debug("Current CL classloader removed")
+
+            Field loaderName = ClassLoader.class.getDeclaredField("name")
+            loaderName.setAccessible(true);
+            modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL);
+
+            String currentName = loaderName.get(classloader)
+            loaderName.set(classloader, "${currentName}>${newName}")
+            String setname = loaderName.get(classloader)
+
+            logger.debug("Current CL classloader removed, and name set: ${setname}")
         } catch (Exception e) {
             logger.debug("e: ${e}")
         }
