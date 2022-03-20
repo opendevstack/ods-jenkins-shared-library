@@ -26,7 +26,11 @@ import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-def call (Map config) {
+def call (Map config) { 
+    throw new IllegalStateException ('bla bla bla')
+}
+
+def YYYYcall (Map config) {
     echo "${env.JOB_NAME} / ${env.BUILD_NUMBER}"
     def thisJob = env.JOB_NAME
     List<WorkflowJob> jobs = Jenkins.getActiveInstance().getAllItems(WorkflowJob.class);
