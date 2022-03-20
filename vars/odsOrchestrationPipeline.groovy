@@ -27,26 +27,23 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 
-def callDebug (Map config) {
+def call (Map config) {
     echo "${env.JOB_NAME} / ${env.BUILD_NUMBER}"
     def thisJob = env.JOB_NAME
     List<WorkflowJob> jobs = Jenkins.getActiveInstance().getAllItems(WorkflowJob.class);
     jobs.each { job -> 
         echo "Job: ${job} - ${job.getFullName()} - ${job.getBuilds().size()}"
-        job.getProperties().each { prop -> 
-            echo " -> prop: ${prop}"
-        }
         if (job.getFullName() == thisJob) {
             job.getBuilds().each { build ->
                 echo "---> Build: ${build}"
-                echo "---> -> ${build.getProperties()}"
             }
         }
     }
+    UnirestConfig.init()    
 }
 
 @SuppressWarnings('AbcMetric')
-def call(Map config) {
+def XXXcall(Map config) {
     def newName = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
     UnirestConfig.init()
     def steps = new PipelineSteps(this)
