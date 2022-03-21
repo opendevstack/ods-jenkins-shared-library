@@ -5,27 +5,27 @@ import org.ods.util.ILogger
 
 import org.ods.orchestration.ThrowingStage
 
-import org.ods.util.UnirestConfig
+// import org.ods.util.UnirestConfig
 
 def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
-    if (config.get('return', false)) {
-        echo 'returning from imported groovy'
-        return
-    }
-    UnirestConfig.init()
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    logger.debug('(master) debug')
+    if (config.get('return', false)) {
+        logger.debug '(imported) log via logger'
+        return
+    }
+    // UnirestConfig.init()
+    logger.debug('(root) odsLeakingStage debug')
     try {
         node ('master') {
             writeFile(
                 file: "dummy.groovy",
                 text: "@Library('ods-jenkins-shared-library@fix/extract_enums') _ \n" +
-                    "echo 'thru dynamic load' \n" + 
+                    "echo '(imported) log directly with echo' \n" + 
                     "odsLeakingStage(return : true) \n")
             def data = readFile (file: 'dummy.groovy')
-            logger.debug "Created dummy for script for dynamic load: \n ${data}"
+            logger.debug "(root) Created dummy for script for dynamic load: \n ${data}"
             load ('dummy.groovy')
             new ThrowingStage(this).execute(stages)
         }
