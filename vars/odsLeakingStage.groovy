@@ -23,7 +23,7 @@ def call (Map config, Closure stages = null) {
             writeFile(
                 file: "dummy.groovy",
                 text: "@Library('ods-jenkins-shared-library@fix/extract_enums') _ \n" +
-                    "echo '(imported) groovy: log directly with echo' \n" + 
+                    "echo '(imported) groovy: log directly from imported groovy' \n" + 
                     "odsLeakingStage(return : true) \n")
             def data = readFile (file: 'dummy.groovy')
             logger.debug "(root) Created dummy for script for dynamic load: \n ${data}"
@@ -34,6 +34,9 @@ def call (Map config, Closure stages = null) {
     } finally {
         // clear it all ...
         logger.resetStopwatch()
+        StringWriter writer = new StringWriter()
+        currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)        
+        String log = writer.getBuffer().toString()
         ServiceRegistry.removeInstance()
     }
 }
