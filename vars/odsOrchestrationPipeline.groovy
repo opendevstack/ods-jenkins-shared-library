@@ -34,7 +34,9 @@ def call (Map config) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     logger.debug("here")
     try {
-        new ThrowingStage(this).run()
+        node ('master') {
+            new ThrowingStage(this).execute()
+        }
     } finally {
         ServiceRegistry.removeInstance()
     }
