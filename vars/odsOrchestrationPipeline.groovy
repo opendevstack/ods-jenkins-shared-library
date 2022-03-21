@@ -13,6 +13,7 @@ import org.ods.orchestration.DeployStage
 import org.ods.orchestration.TestStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
+import org.ods.orchestration.ThrowingStage
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
@@ -31,8 +32,9 @@ def call (Map config) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
+    logger.debug("here")
     try {
-        logger.logWithThrow('haha')
+        new ThrowingStage(this).run()
     } finally {
         ServiceRegistry.removeInstance()
     }
