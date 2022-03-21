@@ -22,7 +22,7 @@ def call (Map config, Closure stages = null) {
             writeFile(
                 file: "dummy.groovy",
                 text: "@Library('ods-jenkins-shared-library@fix/extract_enums') _ \n" +
-                    "echo 'dynamic' \n" + 
+                    "echo 'thru dynamic load' \n" + 
                     "odsLeakingStage(return : true) \n")
             def data = readFile (file: 'dummy.groovy')
             logger.debug "Created dummy for script for dynamic load: \n ${data}"
