@@ -3,11 +3,16 @@ package org.ods.orchestration
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 
-public final String STAGE_NAME = 'Throwing Stage'
+class ThrowingStage  {
 
-public ThrowingStage (def script) {
+    public final String STAGE_NAME = 'Throwing Stage'
+    protected script
 
-    public void run () {
+    public ThrowingStage(def script) {
+        this.script = script
+    }
+
+    def run () {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         logger.logWithThrow('haha')
     }
