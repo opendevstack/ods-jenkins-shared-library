@@ -3,6 +3,7 @@ package org.ods.orchestration
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
+import org.ods.orchestration.usecase.DocumentType
 
 class ThrowingBaseStage {
 
@@ -18,7 +19,7 @@ class ThrowingBaseStage {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         script.stage(STAGE_NAME) {
             logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
-            // logger.infoClocked ('**** STARTING orchestration stage ****')
+            logger.info ("${DocumentType.TIR}")
             try {
                 return this.run(stages)
             } catch (e) {
