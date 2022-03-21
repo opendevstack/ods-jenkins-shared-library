@@ -10,7 +10,7 @@ import org.ods.util.UnirestConfig
 def call (Map config, Closure stages = null) {
     UnirestConfig.init()
     def debug = config.get('debug', false)
-    if (!config.get('return', false)) {
+    if (config.get('return', false)) {
         echo 'returning ...'
         return
     }
