@@ -26,7 +26,9 @@ import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-def call (Map config) { 
+def call (Map config) {
+    UnirestConfig.init()
+    currentBuild.result = 'FAILURE'
     throw new IllegalStateException ('bla bla bla')
 }
 
