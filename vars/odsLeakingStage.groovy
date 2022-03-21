@@ -37,6 +37,7 @@ def call (Map config, Closure stages = null) {
         StringWriter writer = new StringWriter()
         currentBuild.getRawBuild().getLogText().writeLogTo(0, writer)        
         String log = writer.getBuffer().toString()
+        currentBuild.result = 'FAILURE'
         ServiceRegistry.removeInstance()
     }
 }

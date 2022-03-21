@@ -23,6 +23,7 @@ class ThrowingBaseStage {
             try {
                 return this.run(stages)
             } catch (e) {
+                script.unstable "TESTS FAILED"
                 hudson.Functions.printThrowable(e)
                 logger.warn("Error occured within the orchestration pipeline: ${e.message}")
                 throw e
