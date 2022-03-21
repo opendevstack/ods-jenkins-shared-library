@@ -15,7 +15,7 @@ class ThrowingStage extends ThrowingBaseStage {
     def run (Closure stages = null) {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         if (stages) {
-            stages(script)
+            stages(logger)
         }
         logger.logWithThrow('haha')
     }

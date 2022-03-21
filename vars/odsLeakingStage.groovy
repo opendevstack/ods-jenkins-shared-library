@@ -7,7 +7,7 @@ import org.ods.orchestration.ThrowingStage
 
 import org.ods.util.UnirestConfig
 
-def call (Map config) {
+def call (Map config, Closure stages = null) {
     UnirestConfig.init()
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
@@ -15,7 +15,7 @@ def call (Map config) {
     logger.debug("here")
     try {
         node ('master') {
-            new ThrowingStage(this).execute()
+            new ThrowingStage(this).execute(stages)
         }
     } finally {
         // clear it all ...
