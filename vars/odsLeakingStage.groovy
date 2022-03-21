@@ -18,6 +18,8 @@ def call (Map config) {
             new ThrowingStage(this).execute()
         }
     } finally {
+        // clear it all ...
+        logger.resetStopwatch()
         ServiceRegistry.removeInstance()
     }
 }
