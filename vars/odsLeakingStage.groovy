@@ -13,7 +13,8 @@ def call (Map config, Closure stages = null) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
     UnirestConfig.init()
     if (config.get('return', false)) {
-        logger.debug '(imported) log via logger'
+        logger.debug '(imported) stage: log via logger'
+        echo '(imported) stage: log via echo'
         return
     }
     logger.debug('(root) odsLeakingStage debug')
@@ -22,7 +23,7 @@ def call (Map config, Closure stages = null) {
             writeFile(
                 file: "dummy.groovy",
                 text: "@Library('ods-jenkins-shared-library@fix/extract_enums') _ \n" +
-                    "echo '(imported) log directly with echo' \n" + 
+                    "echo '(imported) groovy: log directly with echo' \n" + 
                     "odsLeakingStage(return : true) \n")
             def data = readFile (file: 'dummy.groovy')
             logger.debug "(root) Created dummy for script for dynamic load: \n ${data}"
