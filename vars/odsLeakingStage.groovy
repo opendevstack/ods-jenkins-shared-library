@@ -5,17 +5,17 @@ import org.ods.util.ILogger
 
 import org.ods.orchestration.ThrowingStage
 
-// import org.ods.util.UnirestConfig
+import org.ods.util.UnirestConfig
 
 def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
+    UnirestConfig.init()
     if (config.get('return', false)) {
         logger.debug '(imported) log via logger'
         return
     }
-    // UnirestConfig.init()
     logger.debug('(root) odsLeakingStage debug')
     try {
         node ('master') {
