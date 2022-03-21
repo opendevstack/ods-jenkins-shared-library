@@ -8,7 +8,7 @@ class ThrowingStage extends ThrowingBaseStage {
 
     public final String STAGE_NAME = 'Throwing Stage'
 
-    static staticLog (ILogger logger, String message) {
+    static logStatic (ILogger logger, String message) {
         logger.debug(message)
     }
 
