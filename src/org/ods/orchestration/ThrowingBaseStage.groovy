@@ -4,14 +4,14 @@ import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
 import org.ods.util.ILogger
 
-class ThrowingBaseStage extends ThrowingBaseStage {
+class ThrowingBaseStage {
 
-    //protected def script
+    protected def script
 
     public final String STAGE_NAME = 'NOT SET'
 
-    Stage(def script) {
-        super(script)
+    ThrowingBaseStage(def script) {
+        this.script = script
     }
 
     def execute() {
