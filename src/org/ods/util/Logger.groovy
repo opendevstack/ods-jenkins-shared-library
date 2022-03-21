@@ -20,6 +20,12 @@ class Logger implements ILogger, Serializable {
         }
     }
 
+    String logWithThrow (String message) {
+        this.script.echo("About to throw: ${message}")
+        this.script.currentBuild.result = 'FAILURE'
+        throw new IllegalStateException ('bla bla bla')
+    }
+
     String info(String message) {
         script.echo message
         message
