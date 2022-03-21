@@ -40,3 +40,4 @@ def call (Map config, Closure stages = null) {
         ServiceRegistry.removeInstance()
     }
 }
+return this
