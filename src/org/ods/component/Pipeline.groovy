@@ -203,7 +203,7 @@ class Pipeline implements Serializable {
             }
             logger.info "***** Continuing on node '${config.podLabel}'${msgBasedOn} *****"
             logger.startClocked("${config.podLabel}")
-            script.podTemplate(
+/*            script.podTemplate(
                 label: config.podLabel,
                 cloud: 'openshift',
                 containers: config.podContainers,
@@ -297,7 +297,7 @@ class Pipeline implements Serializable {
                         }
                     }
                 }
-            }
+            } */
         }
     }
 
