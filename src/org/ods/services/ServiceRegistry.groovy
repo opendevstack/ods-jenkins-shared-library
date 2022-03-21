@@ -9,6 +9,7 @@ class ServiceRegistry {
     public static ServiceRegistry instance = new ServiceRegistry()
 
     static def removeInstance() {
+        instance.registry.clear()
         instance.registry = null
         instance = null
     }

@@ -28,6 +28,10 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 def call (Map config) {
     UnirestConfig.init()
+    ServiceRegistry.instance.add(Logger, new Logger(this, debug))
+    ILogger logger = ServiceRegistry.instance.get(Logger)
+    logger.debug('haha')
+    ServiceRegistry.removeInstance()
     currentBuild.result = 'FAILURE'
     throw new IllegalStateException ('bla bla bla')
 }
