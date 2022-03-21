@@ -2,6 +2,7 @@ package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
 import org.ods.util.Logger
+import org.ods.util.ILogger
 
 class ThrowingStage  {
 
