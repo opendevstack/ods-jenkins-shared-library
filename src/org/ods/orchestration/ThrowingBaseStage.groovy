@@ -17,15 +17,14 @@ class ThrowingBaseStage {
     def execute() {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         script.stage(STAGE_NAME) {
-            logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
+            logger.info ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
             try {
                 return this.run()
             } catch (e) {
-                def eThrow = e
                 logger.warn("Error occured within the orchestration pipeline: ${e.message}")
-                throw eThrow
+                throw e
             } finally {
-                logger.infoClocked ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
+                logger.info ("${STAGE_NAME}", '**** ENDED orchestration stage ****')
             }
         }
     }

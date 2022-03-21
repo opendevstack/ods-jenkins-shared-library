@@ -7,10 +7,8 @@ import org.ods.util.ILogger
 class ThrowingStage extends ThrowingBaseStage {
 
     public final String STAGE_NAME = 'Throwing Stage'
-    //protected script
 
     public ThrowingStage(def script) {
-        //this.script = script
         super (script)
     }
 

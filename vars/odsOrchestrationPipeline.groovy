@@ -28,11 +28,11 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 def call (Map config) {
-    UnirestConfig.init()
+    //UnirestConfig.init()
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    logger.debug("here")
+    //logger.debug("here")
     try {
         node ('master') {
             new ThrowingStage(this).execute()
