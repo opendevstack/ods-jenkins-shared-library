@@ -17,7 +17,7 @@ class ThrowingStage extends ThrowingBaseStage {
         if (stages) {
             stages(logger)
         }
-        logger.logWithThrow('haha')
+        logger.logWithThrow('throwing from stage')
     }
 
 }

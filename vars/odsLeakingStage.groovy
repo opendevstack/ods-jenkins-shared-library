@@ -10,13 +10,13 @@ import org.ods.util.UnirestConfig
 def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
     if (config.get('return', false)) {
-        echo 'returning ...'
+        echo 'returning from imported groovy'
         return
     }
     UnirestConfig.init()
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    logger.debug('here (master')
+    logger.debug('(master) debug')
     try {
         node ('master') {
             writeFile(
@@ -25,7 +25,7 @@ def call (Map config, Closure stages = null) {
                     "echo 'dynamic' \n" + 
                     "odsLeakingStage(return : true) \n")
             def data = readFile (file: 'dummy.groovy')
-            echo "Created script: \n ${data}"
+            logger.debug "Created dummy for script for dynamic load: \n ${data}"
             load ('dummy.groovy')
             new ThrowingStage(this).execute(stages)
         }
