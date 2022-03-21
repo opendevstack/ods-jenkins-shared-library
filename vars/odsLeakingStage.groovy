@@ -8,13 +8,12 @@ import org.ods.orchestration.ThrowingStage
 import org.ods.util.UnirestConfig
 
 def call (Map config, Closure stages = null) {
-    UnirestConfig.init()
     def debug = config.get('debug', false)
     if (config.get('return', false)) {
         echo 'returning ...'
         return
     }
-
+    UnirestConfig.init()
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
     logger.debug('here (master')
