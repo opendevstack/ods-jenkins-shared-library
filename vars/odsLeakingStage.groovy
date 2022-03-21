@@ -12,9 +12,14 @@ def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    logger.debug("here")
+    logger.debug('here')
     try {
         node ('master') {
+            writeFile(
+                file: "dummy.groovy",
+                text: "@Library('ods-jenkins-shared-library@fix/extract_enums') _ \n echo 'dynamic'")
+            )
+            load ('dummy.groovy')
             new ThrowingStage(this).execute(stages)
         }
     } finally {
