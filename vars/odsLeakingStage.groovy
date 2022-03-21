@@ -27,6 +27,7 @@ def call (Map config, Closure stages = null) {
             def data = readFile (file: 'dummy.groovy')
             logger.debug "(root) Created dummy for script for dynamic load: \n ${data}"
             load ('dummy.groovy')
+            ThrowingStage.logStatic(logger, '(root) static log')
             new ThrowingStage(this).execute(stages)
         }
     } finally {

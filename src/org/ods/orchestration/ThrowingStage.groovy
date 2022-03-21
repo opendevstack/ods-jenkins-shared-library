@@ -8,6 +8,10 @@ class ThrowingStage extends ThrowingBaseStage {
 
     public final String STAGE_NAME = 'Throwing Stage'
 
+    static staticLog (ILogger logger, String message) {
+        logger.debug(message)
+    }
+
     public ThrowingStage(def script) {
         super (script)
     }
