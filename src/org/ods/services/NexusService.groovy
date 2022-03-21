@@ -213,7 +213,7 @@ class NexusService {
             zipFilePath.getBytes(),
             "application/octet-binary")
 
-        return report.toString()
+        return removeUrlHostName(report.toString())
     }
 
     @NonCPS
@@ -235,7 +235,12 @@ class NexusService {
             CONTENT_TYPE
         )
 
-        return report.toString()
+        return removeUrlHostName(report.toString())
+    }
+
+    private String removeUrlHostName(String uri) {
+        URI originalUri = new URI(uri)
+        return uri.getPath() + uri.getQuery() + uri.getFragment()
     }
 
     private Path createTemporalZipFile(String workspacePath, String fileName, URI testReportsUnstashPath) {

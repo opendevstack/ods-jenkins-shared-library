@@ -46,16 +46,16 @@ class LevaDocDataFixture {
     }
 
     private String getJenkinsLogUrl(String projectWithBuild) {
-        "https://dummy/repository/leva-documentation/${projectWithBuild}/jenkins-job-log.zip"
+        "repository/leva-documentation/${projectWithBuild}/jenkins-job-log.zip"
     }
 
     private Map<String, String> buildTestResultsUrls(String projectWithBuild) {
         return [
-                "Unit-backend": "https://dummy/repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
-                "Unit-frontend": "https://dummy/repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
-                "Acceptance" : "https://dummy/repository/leva-documentation/${projectWithBuild}/acceptance.zip",
-                'Installation' : "https://dummy/repository/leva-documentation/${projectWithBuild}/installation.zip",
-                'Integration' : "https://dummy/repository/leva-documentation/${projectWithBuild}/integration.zip",
+                "Unit-backend": "repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
+                "Unit-frontend": "repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
+                "Acceptance" : "repository/leva-documentation/${projectWithBuild}/acceptance.zip",
+                'Installation' : "repository/leva-documentation/${projectWithBuild}/installation.zip",
+                'Integration' : "repository/leva-documentation/${projectWithBuild}/integration.zip",
         ]
     }
 

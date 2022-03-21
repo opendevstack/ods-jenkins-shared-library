@@ -7,25 +7,18 @@ import org.ods.core.test.jira.JiraServiceForWireMock
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
 import org.ods.core.test.wiremock.WiremockServers
-import org.ods.core.test.wiremock.WiremockURLMapper
+
 import org.ods.orchestration.mapper.LeVADocumentParamsMapper
 import org.ods.orchestration.service.DocGenService
-import org.ods.orchestration.service.LeVADocumentChaptersFileService
 import org.ods.orchestration.usecase.BitbucketTraceabilityUseCase
-import org.ods.orchestration.usecase.JUnitTestReportsUseCase
-import org.ods.orchestration.usecase.JiraUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.usecase.LevaDocWiremock
-import org.ods.orchestration.usecase.SonarQubeUseCase
-import org.ods.orchestration.util.MROPipelineUtil
-import org.ods.orchestration.util.PDFUtil
 import org.ods.orchestration.util.Project
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.OpenShiftService
-import org.ods.util.ILogger
 import org.ods.util.IPipelineSteps
 import util.PipelineSteps
 
@@ -70,12 +63,6 @@ class LevaDocUseCaseFactory {
 
         ProjectFactory projectFactory = new ProjectFactory(steps, gitService, jiraServiceForWireMock, new LoggerStub(log))
         Project project = projectFactory.getProject(projectFixture, dataFixture)
-
-        WiremockURLMapper wiremockURLMapper = new WiremockURLMapper(bitbucketService,
-                                                                    jiraServiceForWireMock,
-                                                                    nexusService,
-                                                                    levaDocWiremock)
-        wiremockURLMapper.updateURLs(project)
 
         return new LeVADocumentUseCase
             (
