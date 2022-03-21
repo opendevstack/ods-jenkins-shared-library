@@ -6,6 +6,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
+import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
@@ -162,7 +163,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     private String executeLeVADocumentUseCaseMethodWithTestData(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = fixture.getInputParamsModule(projectFixture, useCase)
+        Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
         Map tests = repo.data.tests
         return useCase."create${projectFixture.docType}"(null, tests)
     }
@@ -170,7 +171,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     private String executeLeVADocumentUseCaseMethodWithComponent(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = fixture.getInputParamsModule(projectFixture, useCase)
+        Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
         Map tests = repo.data.tests
         repo.data.remove('tests')
         return useCase."create${projectFixture.docType}"(repo, tests)

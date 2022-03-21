@@ -4,12 +4,14 @@ import groovy.util.logging.Slf4j
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
+import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixture
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithComponent
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithTestData
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixturesOverall
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
 import org.ods.services.OpenShiftService
@@ -68,7 +70,7 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "create #projectFixture.docType for project: #projectFixture.project"() {
         given: "There's a LeVADocument service"
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
 
         when: "the user creates a LeVA document"
         useCase."create${projectFixture.docType}"()
@@ -89,8 +91,8 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "create #projectFixture.docType for component #projectFixture.component and project: #projectFixture.project"() {
         given: "There's a LeVADocument service"
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
-        Map input =  new LevaDocDataFixture(tempFolder.getRoot()).getInputParamsModule(projectFixture, useCase)
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
+        Map input = RepoDataBuilder.getRepoForComponent(projectFixture.component)
 
         when: "the user creates a LeVA document"
         useCase."create${projectFixture.docType}"(input, input.data)
@@ -109,7 +111,7 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Unroll
     def "create Overall #projectFixture.docType for project: #projectFixture.project"() {
         given: "There's a LeVADocument service"
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
 
         when: "the user creates a LeVA document"
@@ -126,7 +128,8 @@ class LevaDocUseCaseFunctTest extends Specification {
     @Ignore
     def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
-        LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build()
+        LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
+
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
         def projectKey = "${projectFixture.project}".toUpperCase()
         def xunitFilesPathUnitBackend = Paths.get("test/resources/workspace/${projectKey}/xunit/backend/unit/build/test-results/test").toUri()
@@ -161,7 +164,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         projectFixture << new DocTypeProjectFixture().getProjects()
     }
 
-    private LevaDocUseCaseFactory getLevaDocUseCaseFactory(ProjectFixture projectFixture) {
+    private LeVADocumentUseCase getLevaDocUseCase(ProjectFixture projectFixture) {
         levaDocWiremock = new LevaDocWiremock()
         levaDocWiremock.setUpWireMock(projectFixture, tempFolder.root)
 
@@ -170,17 +173,22 @@ class LevaDocUseCaseFunctTest extends Specification {
         jenkins.unstashFilesIntoPath(_, _, _) >> true
         OpenShiftService openShiftService = Mock(OpenShiftService)
         GitService gitService = Mock(GitService)
-        BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(null, null, null))
+        BitbucketService bitbucketService = Mock(BitbucketService)
+        BitbucketTraceabilityUseCase bbT = Spy(new BitbucketTraceabilityUseCase(bitbucketService, null, null))
         bbT.generateSourceCodeReviewFile() >> new FixtureHelper()
             .getResource(BitbucketTraceabilityUseCaseSpec.EXPECTED_BITBUCKET_CSV).getAbsolutePath()
 
-        return new LevaDocUseCaseFactory(
+        LevaDocUseCaseFactory levaDocUseCaseFactory = new LevaDocUseCaseFactory(
             levaDocWiremock,
             gitService,
             tempFolder,
             jenkins,
             openShiftService,
-            bbT)
+            bbT,
+            bitbucketService)
+
+        return levaDocUseCaseFactory.build(projectFixture)
+
     }
 
 }
