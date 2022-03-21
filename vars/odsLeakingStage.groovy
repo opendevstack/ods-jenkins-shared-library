@@ -5,14 +5,14 @@ import org.ods.util.ILogger
 
 import org.ods.orchestration.ThrowingStage
 
-//import org.ods.util.UnirestConfig
+import org.ods.util.UnirestConfig
 
 def call (Map config) {
-    //UnirestConfig.init()
+    UnirestConfig.init()
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    //logger.debug("here")
+    logger.debug("here")
     try {
         node ('master') {
             new ThrowingStage(this).execute()

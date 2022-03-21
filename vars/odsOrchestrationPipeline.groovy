@@ -13,7 +13,6 @@ import org.ods.orchestration.DeployStage
 import org.ods.orchestration.TestStage
 import org.ods.orchestration.ReleaseStage
 import org.ods.orchestration.FinalizeStage
-import org.ods.orchestration.ThrowingStage
 import org.ods.services.OpenShiftService
 import org.ods.services.ServiceRegistry
 import org.ods.services.GitService
@@ -23,41 +22,8 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.PipelineSteps
 import org.ods.util.UnirestConfig
 
-import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-
-def call (Map config) {
-    //UnirestConfig.init()
-    def debug = config.get('debug', false)
-    ServiceRegistry.instance.add(Logger, new Logger(this, debug))
-    ILogger logger = ServiceRegistry.instance.get(Logger)
-    //logger.debug("here")
-    try {
-        node ('master') {
-            new ThrowingStage(this).execute()
-        }
-    } finally {
-        ServiceRegistry.removeInstance()
-    }
-}
-
-def YYYYcall (Map config) {
-    echo "${env.JOB_NAME} / ${env.BUILD_NUMBER}"
-    def thisJob = env.JOB_NAME
-    List<WorkflowJob> jobs = Jenkins.getActiveInstance().getAllItems(WorkflowJob.class);
-    jobs.each { job -> 
-        echo "Job: ${job} - ${job.getFullName()} - ${job.getBuilds().size()}"
-        if (job.getFullName() == thisJob) {
-            job.getBuilds().each { build ->
-                echo "---> Build: ${build}"
-            }
-        }
-    }
-}
-
 @SuppressWarnings('AbcMetric')
-def XXXcall(Map config) {
+def call(Map config) {
     def newName = "${env.JOB_NAME}/${env.BUILD_NUMBER}"
     UnirestConfig.init()
     def steps = new PipelineSteps(this)
