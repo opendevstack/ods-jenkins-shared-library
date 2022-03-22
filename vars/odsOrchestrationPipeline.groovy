@@ -123,7 +123,6 @@ def call(Map config) {
       logger.debug('-- SHUTTING DOWN RM (.. incl classloader HACK!!!!!) --')
       logger.resetStopwatch()
       project.clear()
-      ServiceRegistry.instance.clear()
       ServiceRegistry.removeInstance()
       UnirestConfig.shutdown()
       project = null
@@ -140,7 +139,7 @@ def call(Map config) {
       logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
         try {
             logger.debug("current (CleanGroovyCl): ${classloader}")
-            Field loaderF = ClassLoader.class.getDeclaredField("classes")
+/*            Field loaderF = ClassLoader.class.getDeclaredField("classes")
             loaderF.setAccessible(true);
             logger.debug("current size ${loaderF.get(classloader).size()}")
             loaderF.get(classloader).clear()
@@ -154,20 +153,19 @@ def call(Map config) {
             modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
 
             loaderParentF.set(classloader, null);
-
+*/
             Field loaderName = ClassLoader.class.getDeclaredField("name")
             loaderName.setAccessible(true);
             modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL);
 
-            String currentName = loaderName.get(classloader)
-            loaderName.set(classloader, "(" + currentName + ") " + newName)
+            loaderName.set(classloader, "" + newName)
             String setname = loaderName.get(classloader)
 
-            logger.debug("Current CL classloader removed, and name set: ${setname}")
+            logger.debug("Current CL name set: ${setname}")
         } catch (Exception e) {
             logger.debug("e: ${e}")
         }
-        try {
+/*        try {
             logger.debug("current parent (timingClassloader): ${classloader.getParent()}")
             if (classloader.getParent() != null) {
                 Field loaderFP = ClassLoader.class.getDeclaredField("classes")
@@ -179,6 +177,7 @@ def call(Map config) {
         } catch (Exception e) {
             logger.debug("eParrent: ${e}")
         }
+*/
     }
 }
 
