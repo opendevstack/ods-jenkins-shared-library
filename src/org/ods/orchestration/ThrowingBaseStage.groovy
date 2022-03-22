@@ -5,7 +5,7 @@ import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.orchestration.usecase.DocumentType
 
-class ThrowingBaseStage {
+abstract class ThrowingBaseStage {
 
     protected def script
 
@@ -15,11 +15,13 @@ class ThrowingBaseStage {
         this.script = script
     }
 
+    abstract protected run()
+
     def execute(Closure stages = null) {
         ILogger logger = ServiceRegistry.instance.get(Logger)
         script.stage(STAGE_NAME) {
             logger.infoClocked ("${STAGE_NAME}", '**** STARTING orchestration stage ****')
-            logger.info ("${DocumentType.TIR}")
+            logger.info ("${DocumentType.TIR}, ${options}")
             try {
                 return this.run(stages)
             } catch (e) {
