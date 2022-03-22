@@ -24,6 +24,6 @@ def call(IContext context, Map config = [:]) {
     stage.execute()
 
     // Call to aqua stage always after the image creation
-    // odsComponentStageScanWithAqua(context, config)
+    odsComponentStageScanWithAqua(context, config)
 }
 return this

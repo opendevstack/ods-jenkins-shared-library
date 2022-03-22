@@ -11,9 +11,9 @@ import org.ods.util.ILogger
 class BuildOpenShiftImageStage extends Stage {
 
     public final String STAGE_NAME = 'Build OpenShift Image'
-    //private final OpenShiftService openShift
-    //private final JenkinsService jenkins
-    //private final ILogger logger
+    private final OpenShiftService openShift
+    private final JenkinsService jenkins
+    private final ILogger logger
     private final BuildOpenShiftImageOptions options
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -57,16 +57,15 @@ class BuildOpenShiftImageStage extends Stage {
             config.dockerDir = context.dockerDir
         }
         this.options = new BuildOpenShiftImageOptions(config)
-/*
+
         this.openShift = openShift
         this.jenkins = jenkins
         this.logger = logger
-*/
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
-  /*      findOrCreateBuildConfig()
+        findOrCreateBuildConfig()
         findOrCreateImageStream()
 
         def imageLabels = assembleImageLabels()
@@ -88,8 +87,8 @@ class BuildOpenShiftImageStage extends Stage {
 
         def info = [buildId: buildId.toString(), image: imageReference.toString()]
         context.addBuildToArtifactURIs(options.resourceName, info)
-*/
-        return [ : ] //info
+
+        return info
     }
 
     protected String stageLabel() {
@@ -98,7 +97,7 @@ class BuildOpenShiftImageStage extends Stage {
         }
         STAGE_NAME
     }
-/*
+
     private int startAndFollowBuild() {
         int buildVersion = 0
         steps.timeout(time: options.buildTimeoutMinutes) {
@@ -186,5 +185,4 @@ class BuildOpenShiftImageStage extends Stage {
             text: "[\n${jsonImageLabels.join(',\n')}\n]"
         )
     }
-*/
 }
