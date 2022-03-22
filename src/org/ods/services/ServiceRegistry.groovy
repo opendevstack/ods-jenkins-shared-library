@@ -11,8 +11,8 @@ class ServiceRegistry {
     static def removeInstance() {
         if (instance?.registry) {
             instance.registry.clear()
+            instance.registry = null
         }
-        instance.registry = null
         instance = null
     }
 
