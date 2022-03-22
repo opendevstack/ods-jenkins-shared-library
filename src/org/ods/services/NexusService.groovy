@@ -240,12 +240,14 @@ class NexusService {
 
     private String removeUrlHostName(String uri) {
         URI originalUri = new URI(uri)
-        
+
         String result = originalUri.getPath()
-        if (originalUri.getQuery())
+        if (originalUri.getQuery()) {
             result = result + originalUri.getQuery()
-        if (originalUri.getFragment())
+        }
+        if (originalUri.getFragment()) {
             result = result + originalUri.getFragment()
+        }
 
         return result
     }
