@@ -20,7 +20,7 @@ class ThrowingStage extends ThrowingBaseStage {
 
     protected def run (Closure stages = null) {
         ILogger logger = ServiceRegistry.instance.get(Logger)
-        this.options = new BuildOpenShiftImageOptions(config)
+        this.options = new BuildOpenShiftImageOptions([:])
         if (stages) {
             stages(logger)
         }
