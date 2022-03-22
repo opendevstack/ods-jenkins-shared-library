@@ -1,4 +1,5 @@
 import org.ods.services.ServiceRegistry
+import org.ods.services.OpenShiftService
 
 import org.ods.util.Logger
 import org.ods.util.ILogger
@@ -11,6 +12,8 @@ def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
+    ServiceRegistry.instance.add(OpenShiftService, new OpenShiftService(this, logger))
+
     UnirestConfig.init()
     if (config.get('return', false)) {
         logger.debug '(imported) stage: log via logger'
