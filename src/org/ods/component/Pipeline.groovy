@@ -290,11 +290,17 @@ class Pipeline implements Serializable {
                           	// cleanup
                             logger.debug('-- SHUTTING DOWN RM (..) --')
                             logger.resetStopwatch()
-                            ServiceRegistry.instance.clear()
-                            ServiceRegistry.removeInstance()
                             this.script = null
                             this.steps = null
-                            this.logger = null                          
+                            this.logger = null
+
+                            this.gitService = null
+                            this.openShiftService = null
+                            this.jenkinsService = null
+                            this.bitbucketService = null
+
+                            ServiceRegistry.instance.clear()
+                            ServiceRegistry.removeInstance()
                         }
                     }
                 }
