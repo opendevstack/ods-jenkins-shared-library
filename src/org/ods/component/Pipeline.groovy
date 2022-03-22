@@ -299,7 +299,6 @@ class Pipeline implements Serializable {
                             this.jenkinsService = null
                             this.bitbucketService = null
 
-                            ServiceRegistry.instance.clear()
                             ServiceRegistry.removeInstance()
                         }
                     }
