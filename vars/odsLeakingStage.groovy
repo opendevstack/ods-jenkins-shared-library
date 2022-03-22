@@ -12,8 +12,6 @@ def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    ServiceRegistry.instance.add(OpenShiftService,
-        new OpenShiftService(new PipelineSteps(this), logger))
 
     UnirestConfig.init()
     if (config.get('return', false)) {
@@ -23,7 +21,7 @@ def call (Map config, Closure stages = null) {
     }
     logger.debug('(root) odsLeakingStage debug')
     try {
-        node ('master') {
+        // node ('master') {
             writeFile(
                 file: "dummy.groovy",
                 text: "@Library('ods-jenkins-shared-library@fix/extract_enums') _ \n" +
@@ -34,7 +32,7 @@ def call (Map config, Closure stages = null) {
             load ('dummy.groovy')
             ThrowingStage.logStatic(logger, '(root) static log')
             new ThrowingStage(this).execute(stages)
-        }
+        // }
     } finally {
         // clear it all ...
         logger.resetStopwatch()

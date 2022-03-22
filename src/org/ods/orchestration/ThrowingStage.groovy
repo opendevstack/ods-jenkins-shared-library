@@ -1,7 +1,6 @@
 package org.ods.orchestration
 
 import org.ods.services.ServiceRegistry
-import org.ods.services.OpenShiftService
 import org.ods.util.Logger
 import org.ods.util.ILogger
 import org.ods.component.BuildOpenShiftImageOptions
@@ -10,7 +9,6 @@ class ThrowingStage extends ThrowingBaseStage {
 
     public final String STAGE_NAME = 'Throwing Stage'
     private final BuildOpenShiftImageOptions options
-    private final openShiftService
 
     static logStatic (ILogger logger, String message) {
         logger.debug(message)
@@ -19,7 +17,6 @@ class ThrowingStage extends ThrowingBaseStage {
     public ThrowingStage(def script) {
         super (script)
         this.options = new BuildOpenShiftImageOptions([:])
-        this.openShiftService = registry.get(OpenShiftService)     
     }
 
     protected def run (Closure stages = null) {
