@@ -48,7 +48,7 @@ class FakeProject extends Project {
     }
 
     @Override
-    Project load(GitService git, JiraUseCase jira) {
+    Project load(GitService git, JiraUseCase jiraUseCase) {
         this.git = git
         this.jiraUseCase = jiraUseCase
 
@@ -141,13 +141,13 @@ class FakeProject extends Project {
 }
 
 class FixtureHelper {
-    static Project createProject() {
+    static Project createProject(JiraUseCase jiraUseCase = null) {
         def steps = new PipelineSteps()
         steps.env.WORKSPACE = ""
 
         return new FakeProject(steps, new Logger(steps, true))
             .init("refs/heads/master")
-            .load(new FakeGitUtil(steps, null), null)
+            .load(new FakeGitUtil(steps, null), jiraUseCase)
     }
 
     static Map createProjectBuildEnvironment(def env) {

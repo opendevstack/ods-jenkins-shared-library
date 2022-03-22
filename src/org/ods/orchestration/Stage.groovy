@@ -120,19 +120,21 @@ class Stage {
         }
 
         String testResultsKey = type + repo.id ? "-" + repo.id : ""
+        String workspacePath = "${steps.env.WORKSPACE}"
+        String nexusDirectory = nexusService.getNexusDirectory(
+            project.getJiraProjectKey(),
+            project.steps.env.BUILD_NUMBER
+        )
         project.data.build.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
             type,
-            project.getJiraProjectKey(),
             new URI(testReportsUnstashPath),
-            ${steps.env.WORKSPACE},
-            project.steps.env.BUILD_NUMBER,
+            workspacePath,
+            nexusDirectory,
             repo.id)
 
         def testReportFiles = junit.loadTestReportsFromPath(testReportsUnstashPath)
 
         return [
-            // Load JUnit test report files from path
-            testReportFiles: testReportFiles,
             // Parse JUnit test report files into a report
             testResults: junit.parseTestReportFiles(testReportFiles),
         ]

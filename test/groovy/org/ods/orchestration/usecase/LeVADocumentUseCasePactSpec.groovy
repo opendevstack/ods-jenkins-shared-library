@@ -2,9 +2,11 @@ package org.ods.orchestration.usecase
 
 import au.com.dius.pact.consumer.groovy.PactBuilder
 import groovy.util.logging.Slf4j
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ods.core.test.usecase.LevaDocUseCaseFactory
+import org.ods.core.test.usecase.RepoDataBuilder
 import org.ods.core.test.usecase.levadoc.fixture.*
 import org.ods.orchestration.util.Project
 import org.ods.services.GitService
@@ -26,6 +28,8 @@ import util.FixtureHelper
  *  BUILD_NUMBER: The current build number, such as `153`
  *
  */
+
+@Ignore
 @Slf4j
 class LeVADocumentUseCasePactSpec extends Specification {
 
@@ -80,7 +84,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 given("project with data:", params)
                 uponReceiving("a request for /buildDocument ${docType}")
                 withAttributes(method: 'post', path: "/levaDoc/${params.project}/${params.buildNumber}/${docType}")
-                withBody([prettyPrint: true], defaultBodyParamsWithTests())
+                withBody([prettyPrint: true], defaultBodyParams())
                 willRespondWith(status: 200, headers: ['Content-Type': 'application/json'])
                 withBody([prettyPrint: true], defaultDocGenerationResponse())
                 runTestAndVerify { context ->
@@ -159,7 +163,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     private String executeLeVADocumentUseCaseMethodWithTestData(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = fixture.getInputParamsModule(projectFixture, useCase)
+        Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
         Map tests = repo.data.tests
         return useCase."create${projectFixture.docType}"(null, tests)
     }
@@ -167,7 +171,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
     private String executeLeVADocumentUseCaseMethodWithComponent(ProjectFixture projectFixture, String wiremockURL) {
         LeVADocumentUseCase useCase = getLevaDocUseCaseFactory(projectFixture).loadProject(projectFixture).build(wiremockURL)
         LevaDocDataFixture fixture = new LevaDocDataFixture(tempFolder.getRoot())
-        Map repo = fixture.getInputParamsModule(projectFixture, useCase)
+        Map repo = RepoDataBuilder.getRepoForComponent(projectFixture.component)
         Map tests = repo.data.tests
         repo.data.remove('tests')
         return useCase."create${projectFixture.docType}"(repo, tests)
@@ -214,7 +218,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
-                repoURL url("https://bitbucket-dev.biscrum.com/scm/ordgp/ordgp-releasemanager.git")
                 releaseManagerBranch string("refs/heads/master")
                 releaseManagerRepo string("ordgp-releasemanager")
                 baseTag string("ods-generated-v3.0-3.0-0b11-D")
@@ -228,57 +231,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
                 targetApiUrl url("https://openshift-sample")
             }
         }
-    }
-
-    Closure defaultBodyParamsWithTests() {
-        return {
-            keyLike "tests", {
-                keyLike "unit", {
-                    testReportFiles eachLike() {
-                        parent string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test")
-                        name string("TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        path string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        absolutePath string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        totalSpace numeric(53660876800)
-                        hidden bool(false)
-                        usableSpace numeric(12417183744)
-                        canonicalPath string("/tmp/junit12071942610173190818/workspace/xunit/thefirst/unit/build/test-results/test/TEST-com.boehringer.frml24113.thefirst.ThefirstApplicationTests.xml")
-                        invalid bool(false)
-                        freeSpace numeric(12417183744)
-                        file bool(true)
-                        freeSpace numeric(12417183744)
-                        file bool(true)
-                        absolute bool(true)
-                        prefixLength numeric(1)
-                        directory bool(false)
-                    }
-                    keyLike "testResults", {
-                        testsuites eachLike() {
-                            name string("com.boehringer.frml24113.thefirst.ThefirstApplicationTests")
-                            hostname string("pod-78fd40da-2e86-47bd-b56f-0dabb3231971-mw77k-tv93m")
-                            timestamp string("2021-12-07T12:07:56")
-                            systemErr string("")
-                            testcases eachLike() {
-                                name string("ORDGP163_workingunittest()")
-                                timestamp string("2021-12-07T12:07:56")
-                                systemErr string("")
-                                systemOut string("")
-                                skipped bool(false)
-                                time string("0.612")
-                                classname string("com.boehringer.frml24113.thefirst.ThefirstApplicationTests")
-                            }
-                            tests string("2")
-                            systemOut string("12:07:42.161 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils")
-                            skipped string("0")
-                            errors string("0")
-                            'properties' eachLike([])
-                            failures string("0")
-                            time string("0.677")
-                        }
-                    }
-                }
-            }
-        } << defaultBodyParams()
     }
 
     Closure defaultBodyParamsWithComponent(component) {
@@ -341,7 +293,7 @@ class LeVADocumentUseCasePactSpec extends Specification {
                     type string("ods")
                 }
             }
-        } << defaultBodyParamsWithTests()
+        } << defaultBodyParams()
     }
 
     Closure defaultDocGenerationResponse() {

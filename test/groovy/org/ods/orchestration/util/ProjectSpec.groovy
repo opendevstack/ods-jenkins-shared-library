@@ -10,12 +10,16 @@ import org.ods.services.GitService
 import org.ods.util.IPipelineSteps
 import org.ods.util.Logger
 import org.yaml.snakeyaml.Yaml
-import util.FixtureHelper
 import util.SpecHelper
 
 import java.nio.file.Files
 
-import static util.FixtureHelper.*
+import static util.FixtureHelper.createJiraIssue
+import static util.FixtureHelper.createProjectBuildParams
+import static util.FixtureHelper.createProjectJiraData
+import static util.FixtureHelper.createProjectJiraDataBugs
+import static util.FixtureHelper.createProjectJiraDataDocs
+import static util.FixtureHelper.createProjectJiraDataIssueTypes
 
 class ProjectSpec extends SpecHelper {
 
@@ -77,7 +81,7 @@ class ProjectSpec extends SpecHelper {
         logger = Mock(Logger)
         steps.env.WORKSPACE = ""
 
-        metadataFile = new FixtureHelper().getResource("/project-metadata.yml")
+        metadataFile = new util.FixtureHelper().getResource("/project-metadata.yml")
         Project.METADATA_FILE_NAME = metadataFile.getAbsolutePath()
 
         project = createProject().init().load(git, jiraUseCase)
@@ -1221,11 +1225,12 @@ class ProjectSpec extends SpecHelper {
 
         def projectKey = "DEMO"
 
-        project = createProject([
+        Map<String, Closure> mixins = [
             "loadJiraData": {
                 return projectObj.loadJiraData(projectKey)
             }
-        ])
+        ]
+        project = createProject(mixins)
 
         when:
         docGenData = null
@@ -2695,13 +2700,13 @@ class ProjectSpec extends SpecHelper {
             [(key): [ documents: docs, status: status, key: key ]]
         }
 
-        def data = [(Project.JiraDataItem.TYPE_DOCS):
+        def data = [(Project.JiraDataItem.TYPE_DOCS):(
             issue('done1', Project.JiraDataItem.ISSUE_STATUS_DONE, ['CSD', 'SSDS']) +
                 issue('done2', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
                 issue('canceled', Project.JiraDataItem.ISSUE_STATUS_DONE, ['DTP']) +
                 issue('undone1', 'WORK IN PROGress', ['CSD', 'SSDS']) +
                 issue('undone2', 'Some custom status', ['SSDS']) +
-                issue('undone3', 'TO DO', ['DTP'])
+                issue('undone3', 'TO DO', ['DTP']))
         ]
         def expected = [ CSD: ['undone1'], SSDS: ['undone1', 'undone2'], DTP: ['undone3']]
 

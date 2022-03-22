@@ -190,17 +190,21 @@ class NexusService {
     }
 
     @NonCPS
+    String getNexusDirectory(String projectId, String buildId) {
+        return "${projectId}/${buildId}".toLowerCase()
+    }
+
+    @NonCPS
     String uploadTestsResults(String testType,
-                              String projectId,
                               URI testReportsUnstashPath,
                               String workspacePath,
-                              String buildId,
+                              String nexusDirectory,
                               String repoId = "") {
 
         String fileName = getFileName(repoId, testType)
         Path zipFilePath = createTemporalZipFile(workspacePath, fileName, testReportsUnstashPath)
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
-        String nexusDirectory = "${projectId}/${buildId}".toLowerCase()
+
 
         URI report = this.storeArtifact(
             "${nexusRepository}",
@@ -209,7 +213,7 @@ class NexusService {
             zipFilePath.getBytes(),
             "application/octet-binary")
 
-        return report.toString()
+        return removeUrlHostName(report.toString())
     }
 
     @NonCPS
@@ -231,7 +235,21 @@ class NexusService {
             CONTENT_TYPE
         )
 
-        return report.toString()
+        return removeUrlHostName(report.toString())
+    }
+
+    private String removeUrlHostName(String uri) {
+        URI originalUri = new URI(uri)
+
+        String result = originalUri.getPath()
+        if (originalUri.getQuery()) {
+            result = result + originalUri.getQuery()
+        }
+        if (originalUri.getFragment()) {
+            result = result + originalUri.getFragment()
+        }
+
+        return result
     }
 
     private Path createTemporalZipFile(String workspacePath, String fileName, URI testReportsUnstashPath) {

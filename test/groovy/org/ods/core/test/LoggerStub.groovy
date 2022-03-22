@@ -25,6 +25,16 @@ class LoggerStub implements ILogger, Serializable {
         info ("WARN: ${message}")
     }
 
+    String error(String message) {
+        logger.error("ERROR: ${message}")
+    }
+
+    String error(String message, Throwable e) {
+        logger.error("ERROR: ${message}", e)
+    }
+
+
+
     String debugClocked(String component, String message = null) {
         debug(timedCall(component, message))
     }

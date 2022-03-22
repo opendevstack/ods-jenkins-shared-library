@@ -3,7 +3,6 @@ package org.ods.orchestration
 import org.ods.services.ServiceRegistry
 import org.ods.orchestration.scheduler.LeVADocumentScheduler
 import org.ods.orchestration.usecase.JiraUseCase
-import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.util.Project
 import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.util.PipelineSteps
@@ -21,7 +20,6 @@ class TestStage extends Stage {
     def run() {
         def steps = ServiceRegistry.instance.get(PipelineSteps)
         def jira = ServiceRegistry.instance.get(JiraUseCase)
-        def junit = ServiceRegistry.instance.get(JUnitTestReportsUseCase)
         def levaDocScheduler = ServiceRegistry.instance.get(LeVADocumentScheduler)
         def util = ServiceRegistry.instance.get(MROPipelineUtil)
         def phase = MROPipelineUtil.PipelinePhases.TEST
@@ -38,7 +36,6 @@ class TestStage extends Stage {
                 // fill up with tests results for every type of test
                 data.tests.each {
                     Map testResult = getTestResults(steps, repo, it.key.capitalize())
-                    it.value.testReportFiles = testResult.testReportFiles
                     it.value.testResults = testResult.testResults
                 }
 
@@ -46,7 +43,6 @@ class TestStage extends Stage {
 
                 // Add the test results of component to global data to maintain several e2e
                 globalData.tests.each {
-                    it.value.testReportFiles.addAll(data.tests[it.key].testReportFiles as List)
                     it.value.testResults.testsuites.addAll(
                         data.tests[it.key].testResults.testsuites as List)
                 }
@@ -73,9 +69,10 @@ class TestStage extends Stage {
                 [it.key.capitalize()],
                 it.value.testResults as Map
             )
-            // Parse again all test report files into a single data structure for one type of test
-            it.value.testResults = junit.parseTestReportFiles(it.value.testReportFiles as List<File>)
         }
+
+        // TODO: Evaluate if we can remove passing globalData to the next phases.
+        globalData.tests = [ : ]
 
         levaDocScheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], globalData)
     }

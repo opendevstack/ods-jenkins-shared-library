@@ -2,21 +2,11 @@ package org.ods.core.test.usecase.levadoc.fixture
 
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
-import org.ods.core.test.service.BitbucketReleaseManagerService
-import org.ods.core.test.usecase.RepoDataBuilder
-import org.ods.core.test.workspace.TestsReports
-import org.ods.orchestration.usecase.JUnitTestReportsUseCase
 import org.ods.orchestration.usecase.LeVADocumentUseCase
 import org.ods.orchestration.util.Project
-import org.ods.util.IPipelineSteps
-import util.PipelineSteps
-
-import java.nio.file.Paths
 
 @Slf4j
 class LevaDocDataFixture {
-
-    private static final boolean RECORD = Boolean.parseBoolean(System.properties["testRecordMode"] as String)
 
     private final File tempFolder
 
@@ -24,113 +14,95 @@ class LevaDocDataFixture {
         this.tempFolder = tempFolder
     }
 
-    Map buildParams(ProjectFixture projectFixture){
+    File getTempFolder() {
+        return tempFolder
+    }
+
+    void buildFixtureData(ProjectFixture projectFixture, Project project){
+        project.data.build = buildJobParams(projectFixture)
+        project.data.git =  buildGitData(projectFixture)
+        project.data.openshift = [targetApiUrl:"https://openshift-sample"]
+    }
+
+    private Map<String, String> buildJobParams(ProjectFixture projectFixture){
+        String projectWithBuild = "${projectFixture.project}/${projectFixture.buildNumber}"
+        return  [
+                targetEnvironment: "dev",
+                targetEnvironmentToken: "D",
+                version: "${projectFixture.version}",
+                configItem: "BI-IT-DEVSTACK",
+                changeDescription: "UNDEFINED",
+                changeId: "1.0",
+                rePromote: "false",
+                releaseStatusJiraIssueKey: projectFixture.releaseKey,
+                runDisplayUrl : "",
+                releaseParamVersion : "3.0",
+                buildId : "2022-01-22_23-59-59",
+                buildURL : "https://jenkins-sample",
+                jobName : "${projectFixture.project}-cd/${projectFixture.project}-releasemanager",
+                testResultsURLs: buildTestResultsUrls(projectWithBuild),
+                jenkinLog: getJenkinsLogUrl(projectWithBuild)
+        ]
+    }
+
+    private String getJenkinsLogUrl(String projectWithBuild) {
+        "repository/leva-documentation/${projectWithBuild}/jenkins-job-log.zip"
+    }
+
+    private Map<String, String> buildTestResultsUrls(String projectWithBuild) {
         return [
-            changeDescription: "changeDescription",
-            changeId: "changeId",
-            configItem:  "BI-IT-DEVSTACK",
-            releaseStatusJiraIssueKey: projectFixture.releaseKey,
-            targetEnvironment:  "dev",
-            targetEnvironmentToken: "D",
-            version: projectFixture.version,
-            rePromote: false,
+                "Unit-backend": "repository/leva-documentation/${projectWithBuild}/unit-backend.zip",
+                "Unit-frontend": "repository/leva-documentation/${projectWithBuild}/unit-frontend.zip",
+                "Acceptance" : "repository/leva-documentation/${projectWithBuild}/acceptance.zip",
+                'Installation' : "repository/leva-documentation/${projectWithBuild}/installation.zip",
+                'Integration' : "repository/leva-documentation/${projectWithBuild}/integration.zip",
         ]
     }
 
-    def buildGitData(ProjectFixture projectFixture) {
+    private Map<String, String> buildGitData(ProjectFixture projectFixture) {
+        String bitbucketUrl = System.properties["bitbucket.url"]?: "https://bitbucket-dev.biscrum.com"
         return  [
-            commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
-            url: "https://bitbucket-dev.biscrum.com/scm/ordgp/ordgp-releasemanager.git",
-            releaseManagerRepo: projectFixture.releaseManagerRepo,
-            releaseManagerBranch: "refs/heads/master",
-            baseTag: "ods-generated-v3.0-3.0-0b11-D",
-            targetTag: "ods-generated-v3.0-3.0-0b11-D",
-            author: "s2o",
-            message: "Swingin' The Bottle",
-            time: "2021-04-20T14:58:31.042152",
+                commit: "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                baseTag: "ods-generated-v3.0-3.0-0b11-D",
+                targetTag: "ods-generated-v3.0-3.0-0b11-D",
+                author: "ODS Jenkins Shared Library System User (undefined)",
+                message: "Swingin' The Bottle",
+                time: "2021-04-20T14:58:31.042152",
+                releaseManagerRepo: "${projectFixture.releaseManagerRepo}",
+                releaseManagerBranch: "${projectFixture.releaseManagerBranch}"
         ]
     }
 
-    def loadMetadata(repo) {
-        return  [
-            id: repo.id,
-            name: repo.name,
-            description: "myDescription-A",
-            supplier: "mySupplier-A",
-            version: "myVersion-A",
-            references: "myReferences-A"
-        ]
-    }
-
-    def loadEnvData(ProjectFixture projectFixture){
-        File tmpWorkspace = setTemporalWorkspace(projectFixture)
-        return  [
-            BUILD_ID:"2022-01-22_23-59-59",
-            WORKSPACE: tmpWorkspace.absolutePath,
-            RUN_DISPLAY_URL:"https://jenkins-sample/blabla",
-            version: projectFixture.version,
-            configItem: "Functional-Test",
-            RELEASE_PARAM_VERSION: "3.0",
-            BUILD_NUMBER: "666",
-            BUILD_URL: "https://jenkins-sample",
-            JOB_NAME: "ordgp-cd/ordgp-cd-release-master"
-        ]
-    }
-
-    Map<String, String> getTestResultsUrls() {
-        return [
-            "Unit": "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/unit-backend.zip",
-            "Acceptance" : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/acceptance.zip",
-            'Installation' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/installation.zip",
-            'Integration' : "https://nexus-odsalpha.inh-odsapps.eu.boehringer.com/repository/leva-documentation/ordgp/666/integration.zip",
-        ]
-    }
-
-    Map getInputParamsModule(ProjectFixture projectFixture, LeVADocumentUseCase useCase) {
-        Map input = RepoDataBuilder.getRepoForComponent(projectFixture.component)
-        input.data.tests << [unit: testReports(useCase.project, new PipelineSteps()).getResults(projectFixture.component, "unit")]
-        return input
+    private String copyPdfToTemp(ProjectFixture projectFixture, Map data) {
+        def destPath = "${tempFolder}/reports/${projectFixture.component}"
+        new File(destPath).mkdirs()
+        File expected = testValidator.expectedDoc(projectFixture, data.build.buildId as String)
+        FileUtils.copyFile(expected, new File("${destPath}/${expected.name}"))
+        return expected.name.replaceFirst("pdf", "zip")
     }
 
     void useExpectedComponentDocs(LeVADocumentUseCase useCase, ProjectFixture projectFixture) {
-        useCase.project.repositories.each {repo ->
-            if (!repo.data.documents){
+        useCase.project.repositories.each { repo ->
+            if (!repo.data.documents) {
                 repo.data.documents = [:]
             }
-            if (DocTypeProjectFixtureWithComponent.notIsReleaseModule(repo)){
+            if (DocTypeProjectFixtureWithComponent.notIsReleaseModule(repo)) {
                 // see @org.ods.orchestration.usecase.DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
-                repo.data.documents[projectFixture.docType] =  "/blablabla"
+                repo.data.documents[projectFixture.docType] = "/blablabla"
             }
         }
     }
 
-    Map getAllResults(LeVADocumentUseCase useCase) {
-        return testReports(useCase.project, new PipelineSteps()).getAllResults(useCase.project.repositories)
-    }
+    /*
+    void updateExpectedComponentDocs(ProjectData projectData, Map data, ProjectFixture projectFixture) {
+        projectData.repositories.each {repo ->
+            projectFixture.component = repo.id
+            repo.data.documents = (repo.data.documents)?: [:]
 
-    private TestsReports testReports(Project project, IPipelineSteps steps) {
-        def junitReportsUseCase = new JUnitTestReportsUseCase(project, steps)
-        return new TestsReports(steps, junitReportsUseCase)
-    }
-
-    private File setTemporalWorkspace(ProjectFixture projectFixture) {
-        File tmpWorkspace = new FileTreeBuilder(tempFolder).dir("workspace")
-        System.setProperty("java.io.tmpdir", tmpWorkspace.absolutePath)
-        File workspace =  Paths.get("test/resources/workspace/${projectFixture.project}").toFile()
-        if (RECORD){
-            workspace.mkdirs()
-            downloadReleaseManagerRepo(projectFixture, workspace)
+            // see @DocGenUseCase#createOverallDocument -> unstashFilesIntoPath
+            repo.data.documents[projectFixture.docType] =  copyPdfToTemp(projectFixture, data)
         }
-         FileUtils.copyDirectory(workspace, tmpWorkspace)
-        return tmpWorkspace
+        projectFixture.component = null
     }
-
-    private downloadReleaseManagerRepo(ProjectFixture projectFixture, File tempFolder) {
-        new BitbucketReleaseManagerService().downloadRepo(
-            projectFixture.project,
-            projectFixture.releaseManagerRepo,
-            projectFixture.releaseManagerBranch,
-            tempFolder.absolutePath)
-    }
-
+    */
 }

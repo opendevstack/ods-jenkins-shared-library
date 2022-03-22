@@ -2,6 +2,7 @@ package org.ods.orchestration.service
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import groovy.json.JsonOutput
+import org.ods.orchestration.mapper.LEVADocResponseMapper
 import util.SpecHelper
 
 class DocGenServiceSpec extends SpecHelper {
@@ -31,8 +32,17 @@ class DocGenServiceSpec extends SpecHelper {
 
     def "create document"() {
         given:
+        Map value =
+            [
+                entryId: 69,
+                projectVersion: "projectVersion" ,
+                previousProjectVersion: "previousProjectVersion",
+                rational: "rationalExample"
+            ]
         def request = createDocumentRequestData()
-        def response = createDocumentResponseData()
+        def response = createDocumentResponseData([
+            body: JsonOutput.toJson([ value, value ])
+        ])
 
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port())
@@ -41,7 +51,8 @@ class DocGenServiceSpec extends SpecHelper {
         def result = service.createDocument(request.data.projectId, request.data.build, request.data.levaDocType, request.data.data)
 
         then:
-        result == [nexusURL: 'http://nexus-url/doc']
+        result == LEVADocResponseMapper.parse([ value, value ])
+        // [nexusURL: 'http://nexus-url/doc'] ??
 
         cleanup:
         stopServer(server)

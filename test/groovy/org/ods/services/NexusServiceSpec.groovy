@@ -241,7 +241,7 @@ class NexusServiceSpec extends SpecHelper {
 
         def request = [
             data: [
-                directory: "/leva-documentation/${projectId}/${repoId}/${buildId}",
+                directory: "/leva-documentation/${projectId}/${buildId}",
                 name: "${fileName}",
                 repository: "${repoId}",
             ],
@@ -256,10 +256,11 @@ class NexusServiceSpec extends SpecHelper {
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
-        String expectedResult = "http://localhost:${server.port()}/repository/leva-documentation/${projectId}/${repoId}/${buildId}/${expectedFile}.zip"
+        String expectedResult = "/repository/leva-documentation/${projectId}/${buildId}/${expectedFile}.zip"
+        String nexusDirectory = service.getNexusDirectory(projectId, buildId)
 
         when:
-        def result = service.uploadTestsResults(testType, projectId, temporaryFolder.getRoot().toURI(), temporaryFolder.getRoot().getAbsolutePath(), buildId, repoId)
+        def result = service.uploadTestsResults(testType, temporaryFolder.getRoot().toURI(), temporaryFolder.getRoot().getAbsolutePath(), nexusDirectory, repoId)
 
         then:
         result == expectedResult

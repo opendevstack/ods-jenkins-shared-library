@@ -2,6 +2,7 @@ package org.ods.orchestration.scheduler
 
 import groovy.util.logging.Slf4j
 import org.ods.core.test.LoggerStub
+import org.ods.orchestration.mapper.LeVADocumentParamsMapper
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.services.GitService
@@ -5787,15 +5788,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def docGen = Mock(DocGenService)
         def jenkins = Mock(JenkinsService)
         def jiraUseCase = Mock(JiraUseCase)
-        def junit = Mock(JUnitTestReportsUseCase)
-        def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
-        def os = Mock(OpenShiftService)
-        def pdf = Mock(PDFUtil)
-        def sq = Mock(SonarQubeUseCase)
         def git = Mock(GitService)
         def logger = Mock(Logger)
-        def bbt = Mock(BitbucketTraceabilityUseCase)
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
@@ -5804,8 +5800,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -5894,6 +5892,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
@@ -5902,8 +5901,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -5975,7 +5976,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -5983,8 +5984,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6039,6 +6042,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6046,8 +6050,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6099,7 +6105,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6107,8 +6113,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6159,7 +6167,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6167,8 +6175,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6243,7 +6253,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6251,8 +6261,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6357,7 +6369,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6365,8 +6377,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6488,7 +6502,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6496,8 +6510,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6570,7 +6586,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6578,8 +6594,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6632,7 +6650,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6640,8 +6658,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6694,7 +6714,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6702,8 +6722,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6776,7 +6798,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6784,8 +6806,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6844,7 +6868,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6852,8 +6876,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6896,7 +6922,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6904,8 +6930,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6950,7 +6978,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -6958,8 +6986,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7017,9 +7047,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7064,9 +7096,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7121,9 +7156,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def sq = Mock(SonarQubeUseCase)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7176,7 +7214,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
-
+        LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
         def utilObj = new MROPipelineUtil(project, steps, git, logger)
         def util = Mock(MROPipelineUtil) {
@@ -7184,8 +7222,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 utilObj.executeBlockAndFailBuild(block)
             }
         }
+        jiraUseCase.util = util
+        project.jiraUseCase = jiraUseCase
 
-        def usecaseObj = new LeVADocumentUseCase(project, steps, util, docGen, jenkins, jiraUseCase, junit, levaFiles, nexus, os, pdf, sq, bbt, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
