@@ -240,7 +240,14 @@ class NexusService {
 
     private String removeUrlHostName(String uri) {
         URI originalUri = new URI(uri)
-        return originalUri.getPath() + originalUri.getQuery() + originalUri.getFragment()
+        
+        String result = originalUri.getPath()
+        if (originalUri.getQuery())
+            result = result + originalUri.getQuery()
+        if (originalUri.getFragment())
+            result = result + originalUri.getFragment()
+
+        return result
     }
 
     private Path createTemporalZipFile(String workspacePath, String fileName, URI testReportsUnstashPath) {

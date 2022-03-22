@@ -256,7 +256,7 @@ class NexusServiceSpec extends SpecHelper {
         def server = createServer(WireMock.&post, request, response)
         def service = createService(server.port(), request.username, request.password)
 
-        String expectedResult = "http://localhost:${server.port()}/repository/leva-documentation/${projectId}/${buildId}/${expectedFile}.zip"
+        String expectedResult = "/repository/leva-documentation/${projectId}/${buildId}/${expectedFile}.zip"
         String nexusDirectory = service.getNexusDirectory(projectId, buildId)
 
         when:
