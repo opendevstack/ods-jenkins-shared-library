@@ -12,7 +12,8 @@ def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
-    ServiceRegistry.instance.add(OpenShiftService, new OpenShiftService(this, logger))
+    ServiceRegistry.instance.add(OpenShiftService,
+        new OpenShiftService(new PipelineSteps(this), logger))
 
     UnirestConfig.init()
     if (config.get('return', false)) {
