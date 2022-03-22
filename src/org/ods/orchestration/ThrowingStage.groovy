@@ -16,11 +16,11 @@ class ThrowingStage extends ThrowingBaseStage {
 
     public ThrowingStage(def script) {
         super (script)
+        this.options = new BuildOpenShiftImageOptions([:])        
     }
 
     protected def run (Closure stages = null) {
-        ILogger logger = ServiceRegistry.instance.get(Logger)
-        this.options = new BuildOpenShiftImageOptions([:])
+        ILogger logger = ServiceRegistry.instance.get(Logger)        
         if (stages) {
             stages(logger)
         }
