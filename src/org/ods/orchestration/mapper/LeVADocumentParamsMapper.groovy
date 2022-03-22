@@ -23,7 +23,6 @@ class LeVADocumentParamsMapper {
     private Map<String, Object> mapGitData() {
         [
             commit: this.project.gitData.commit,
-            repoURL: this.project.gitData.url,
             releaseManagerRepo: this.project.gitData.releaseManagerRepo,
             releaseManagerBranch: this.project.data.gitReleaseManagerBranch,
             baseTag: this.project.gitData.baseTag,

@@ -218,7 +218,6 @@ class LeVADocumentUseCasePactSpec extends Specification {
             }
             keyLike "git", {
                 commit string("1e84b5100e09d9b6c5ea1b6c2ccee8957391beec")
-                repoURL url("https://bitbucket-dev.biscrum.com/scm/ordgp/ordgp-releasemanager.git")
                 releaseManagerBranch string("refs/heads/master")
                 releaseManagerRepo string("ordgp-releasemanager")
                 baseTag string("ods-generated-v3.0-3.0-0b11-D")
