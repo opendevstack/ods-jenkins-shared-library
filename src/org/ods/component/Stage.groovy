@@ -29,9 +29,9 @@ abstract class Stage {
             )
             return
         }
-        script.withStage(stageLabel(), context, logger) {
+//        script.withStage(stageLabel(), context, logger) {
             return this.run()
-        }
+ //       }
     }
 
     abstract protected run()
