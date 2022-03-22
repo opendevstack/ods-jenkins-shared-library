@@ -2,18 +2,18 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import org.ods.services.OpenShiftService
-import org.ods.services.JenkinsService
-import org.ods.util.ILogger
+//import org.ods.services.OpenShiftService
+//import org.ods.services.JenkinsService
+//import org.ods.util.ILogger
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
 class BuildOpenShiftImageStage extends Stage {
 
     public final String STAGE_NAME = 'Build OpenShift Image'
-    private final OpenShiftService openShift
-    private final JenkinsService jenkins
-    private final ILogger logger
+    //private final OpenShiftService openShift
+    //private final JenkinsService jenkins
+    //private final ILogger logger
     private final BuildOpenShiftImageOptions options
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -56,16 +56,17 @@ class BuildOpenShiftImageStage extends Stage {
         if (!config.dockerDir) {
             config.dockerDir = context.dockerDir
         }
-
+/*
         this.options = new BuildOpenShiftImageOptions(config)
         this.openShift = openShift
         this.jenkins = jenkins
         this.logger = logger
+*/
     }
 
     // This is called from Stage#execute if the branch being built is eligible.
     protected run() {
-        findOrCreateBuildConfig()
+  /*      findOrCreateBuildConfig()
         findOrCreateImageStream()
 
         def imageLabels = assembleImageLabels()
@@ -87,8 +88,8 @@ class BuildOpenShiftImageStage extends Stage {
 
         def info = [buildId: buildId.toString(), image: imageReference.toString()]
         context.addBuildToArtifactURIs(options.resourceName, info)
-
-        return info
+*/
+        return [ : ] //info
     }
 
     protected String stageLabel() {
@@ -97,7 +98,7 @@ class BuildOpenShiftImageStage extends Stage {
         }
         STAGE_NAME
     }
-
+/*
     private int startAndFollowBuild() {
         int buildVersion = 0
         steps.timeout(time: options.buildTimeoutMinutes) {
@@ -185,5 +186,5 @@ class BuildOpenShiftImageStage extends Stage {
             text: "[\n${jsonImageLabels.join(',\n')}\n]"
         )
     }
-
+*/
 }
