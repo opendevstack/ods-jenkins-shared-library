@@ -147,10 +147,10 @@ def call(Map config) {
 
             Field loaderParentF = ClassLoader.class.getDeclaredField("parent")
             loaderParentF.setAccessible(true);
-
+*/
             Field modifiersField = Field.class.getDeclaredField("modifiers");
             modifiersField.setAccessible(true);
-            modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
+/*           modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
 
             loaderParentF.set(classloader, null);
 */
