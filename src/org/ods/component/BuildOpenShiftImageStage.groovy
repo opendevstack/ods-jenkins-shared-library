@@ -2,9 +2,9 @@ package org.ods.component
 
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-//import org.ods.services.OpenShiftService
-//import org.ods.services.JenkinsService
-//import org.ods.util.ILogger
+import org.ods.services.OpenShiftService
+import org.ods.services.JenkinsService
+import org.ods.util.ILogger
 
 @SuppressWarnings('ParameterCount')
 @TypeChecked
