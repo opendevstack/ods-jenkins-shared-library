@@ -48,12 +48,14 @@ class BuildStage extends Stage {
                         data.tests.unit.testResults
                     )
 
-                    data.tests = [ : ]
-
                     // we check in any case ... (largely because the above call will
                     // return immediatly when no jira adapter is configured).
                     // this  will set failedTests if any xunit tests have failed
                     util.warnBuildIfTestResultsContainFailure(data.tests.unit.testResults)
+
+                    // Omit passing the tests information to other phases
+                    // by setting empty the Map that contains them.
+                    data.tests = [ : ]
                 } else {
                     logger.info("[${repo.id}] Resurrected tests from run " +
                         "${repo.data.openshift.resurrectedBuild} " +
