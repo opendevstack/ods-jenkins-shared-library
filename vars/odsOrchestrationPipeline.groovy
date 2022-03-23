@@ -165,6 +165,38 @@ def call(Map config) {
         } catch (Exception e) {
             logger.debug("e: ${e}")
         }
+
+        try {
+            logger.debug("starting hack cleanup")
+            final Class<?> cacheClass = 
+                this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
+
+            if (cacheClass == null) { 
+                logger.debug('could not find cache class')
+                return; 
+            } else {
+                logger.debug("cache: ${cacheClass}")
+            }
+
+            Field modifiersField1 = Field.class.getDeclaredField("modifiers");
+            modifiersField1.setAccessible(true);
+            
+            Field localDescs = cacheClass.getDeclaredField("localDescs")
+            localDescs.setAccessible(true);
+            modifiersField1.setInt(localDescs, localDescs.getModifiers() & ~Modifier.FINAL);
+
+            clearIfConcurrentHashMap(localDescs.get(null), logger);
+
+            Field reflectors = cacheClass.getDeclaredField("reflectors")
+            reflectors.setAccessible(true);
+            modifiersField1.setInt(reflectors, reflectors.getModifiers() & ~Modifier.FINAL);
+
+            clearIfConcurrentHashMap(reflectors.get(null), logger);
+        }
+        catch (Exception e) {
+            logger.debug("${e}")
+        }
+
 /*        try {
             logger.debug("current parent (timingClassloader): ${classloader.getParent()}")
             if (classloader.getParent() != null) {
@@ -179,6 +211,14 @@ def call(Map config) {
         }
 */
     }
+}
+
+protected void clearIfConcurrentHashMap(Object object, Logger logger) {
+    if (!(object instanceof ConcurrentHashMap)) { return; }
+    ConcurrentHashMap<?,?> map = (ConcurrentHashMap<?,?>) object;
+    int nbOfEntries=map.size();
+    map.clear();
+    logger.info("Detected and fixed leak situation for java.io.ObjectStreamClass ("+nbOfEntries+" entries were flushed).");
 }
 
 @SuppressWarnings('GStringExpressionWithinString')
