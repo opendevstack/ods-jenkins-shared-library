@@ -137,7 +137,7 @@ class LeVADocumentUseCase {
     void createOverallTIR(Map repo = null, Map data = null) {
         final MROPipelineUtil util = project.jiraUseCase?.util
         if (util == null) {
-            throw new RuntimeException("JiraUseCase does not have util (MROPipelineUtil)")
+            throw new RuntimeException("JiraUseCase does not have util (MROPipelineUtil) ")
         }
         if (StringUtils.isEmpty(project.data.jenkinLog)) {
             project.data.jenkinLog = nexus.uploadJenkinsJobLog(

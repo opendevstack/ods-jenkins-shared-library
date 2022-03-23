@@ -1,20 +1,23 @@
 package org.ods.orchestration.util
 
+import com.cloudbees.groovy.cps.NonCPS
+
 class WeakPair<U, V> {
 
     private final U first
     private final V second
 
-    // Constructs a new pair with specified values
     WeakPair(U first, V second) {
         this.first = first
         this.second = second
     }
 
+    @NonCPS
     U getFirst() {
         return first
     }
 
+    @NonCPS
     V getSecond() {
         return second
     }

@@ -216,7 +216,6 @@ class NexusService {
         return removeUrlHostName(report.toString())
     }
 
-    @NonCPS
     String uploadJenkinsJobLog(String projectKey, String buildNumber, InputStream jenkinsJobLog, PipelineUtil util) {
         String nexusPath = "${projectKey.toLowerCase()}/${buildNumber}"
 
