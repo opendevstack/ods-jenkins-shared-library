@@ -69,8 +69,11 @@ def call (Map config, Closure stages = null) {
 
             clearIfConcurrentHashMap(localDescs.get(null), logger);
 
-//            Object reflectorsCache = preventor.getStaticFieldValue(cacheClass, "reflectors");
-//            clearIfConcurrentHashMap(reflectorsCache, preventor);
+            Field reflectors = cacheClass.getDeclaredField("reflectors")
+            reflectors.setAccessible(true);
+            modifiersField.setInt(reflectors, reflectors.getModifiers() & ~Modifier.FINAL);
+
+            clearIfConcurrentHashMap(reflectors.get(null), logger);
         }
         catch (Exception e) {
             logger.debug("${e}")
