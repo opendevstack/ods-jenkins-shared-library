@@ -2,14 +2,8 @@ package org.ods.orchestration.util
 
 class WeakPair<U, V> {
 
-    private final U first;       // the first field of a pair
-    private final V second;      // the second field of a pair
-
-    // Factory method for creating a typed Pair immutable instance
-    static <U, V> WeakPair<U, V> of(U a, V b) {
-        // calls private constructor
-        return new WeakPair<>(a, b)
-    }
+    private final U first
+    private final V second
 
     // Constructs a new pair with specified values
     WeakPair(U first, V second) {
@@ -18,11 +12,11 @@ class WeakPair<U, V> {
     }
 
     U getFirst() {
-        return this.first
+        return first
     }
 
     V getSecond() {
-        return this.second
+        return second
     }
 
     @Override
