@@ -3,6 +3,8 @@ import java.lang.reflect.*
 import java.lang.ClassLoader
 import java.util.List
 import java.util.concurrent.ConcurrentHashMap
+import com.sun.beans.WeakCache
+import com.sun.beans.TypeResolver
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
@@ -198,6 +200,34 @@ def call(Map config) {
         catch (Exception e) {
             logger.debug("${e}")
         }
+
+        try {
+            logger.debug("starting hack cleanup2")
+            // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
+            final Class<?> cacheClass2 = 
+                this.class.getClassLoader().loadClass('com.sun.beans.TypeResolver');
+
+            if (cacheClass2 == null) { 
+                logger.debug('could not find cache class')
+                return; 
+            } else {
+                logger.debug("cache: ${cacheClass2}")
+            }
+
+            Field modifiersField2 = Field.class.getDeclaredField("modifiers");
+            modifiersField2.setAccessible(true);
+            
+            Field localCaches = cacheClass2.getDeclaredField("CACHE")
+            localCaches.setAccessible(true)
+            modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL);
+
+            WeakCache wCache = localCaches.get(null)
+            wCache.clear()
+        }
+        catch (Exception e) {
+            logger.debug("${e}")
+        }
+
 
 /*        try {
             logger.debug("current parent (timingClassloader): ${classloader.getParent()}")
