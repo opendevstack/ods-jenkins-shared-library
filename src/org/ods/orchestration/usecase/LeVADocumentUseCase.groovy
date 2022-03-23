@@ -45,7 +45,6 @@ class LeVADocumentUseCase {
     public static final String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
 
     private final Project project
-    private final MROPipelineUtil util
     private final DocGenService docGen
     private final JenkinsService jenkins
     private final NexusService nexus
@@ -59,7 +58,6 @@ class LeVADocumentUseCase {
                         LeVADocumentParamsMapper leVADocumentParamsMapper,
                         ILogger logger) {
         this.project = project
-        this.util = project.jiraUseCase.util
         this.docGen = docGen
         this.jenkins = jenkins
         this.nexus = nexus
@@ -137,6 +135,10 @@ class LeVADocumentUseCase {
     }
 
     void createOverallTIR(Map repo = null, Map data = null) {
+        final MROPipelineUtil util = project.jiraUseCase?.util
+        if (util == null) {
+            throw new RuntimeException("JiraUseCase does not have util (MROPipelineUtil)")
+        }
         if (StringUtils.isEmpty(project.data.jenkinLog)) {
             project.data.jenkinLog = nexus.uploadJenkinsJobLog(
                 project.getJiraProjectKey(),
