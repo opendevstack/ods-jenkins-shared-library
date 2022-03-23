@@ -169,6 +169,7 @@ def call(Map config) {
 
         try {
             logger.debug("starting hack cleanup")
+            // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
             final Class<?> cacheClass = 
                 this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
 
