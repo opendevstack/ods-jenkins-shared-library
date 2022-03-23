@@ -43,6 +43,41 @@ def call (Map config, Closure stages = null) {
         String log = writer.getBuffer().toString()
         currentBuild.result = 'FAILURE'
         ServiceRegistry.removeInstance()
+
+        try {
+            final Class<?> cacheClass = 
+                (GroovyClassLoader)this.class.getClassLoader().findClass("java.io.ObjectStreamClass$Caches");
+
+            if (cacheClass == null) { 
+                logger.debug('could not find cache class')
+                return; 
+            }
+
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            
+            Field localDescs = cacheClass.getDeclaredField("localDescs")
+            localDescs.setAccessible(true);
+            modifiersField.setInt(localDescs, localDescs.getModifiers() & ~Modifier.FINAL);
+
+            clearIfConcurrentHashMap(localDescs.get(null), logger);
+
+//            Object reflectorsCache = preventor.getStaticFieldValue(cacheClass, "reflectors");
+//            clearIfConcurrentHashMap(reflectorsCache, preventor);
+        }
+        catch (Exception e) {
+            logger.debug("${e}")
+        }
+
     }
 }
+
+protected void clearIfConcurrentHashMap(Object object, Logger logger) {
+    if (!(object instanceof ConcurrentHashMap)) { return; }
+    ConcurrentHashMap<?,?> map = (ConcurrentHashMap<?,?>) object;
+    int nbOfEntries=map.size();
+    map.clear();
+    logger.info("Detected and fixed leak situation for java.io.ObjectStreamClass ("+nbOfEntries+" entries were flushed).");
+}
+
 return this
