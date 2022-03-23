@@ -51,7 +51,7 @@ def call (Map config, Closure stages = null) {
 
         try {
             final Class<?> cacheClass = 
-                (GroovyClassLoader)this.class.getClassLoader().findClass('java.io.ObjectStreamClass$Caches');
+                this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
 
             if (cacheClass == null) { 
                 logger.debug('could not find cache class')
