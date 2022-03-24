@@ -84,9 +84,12 @@ class JenkinsService {
 
     Path storeCurrentBuildLogInFile (String folder, String fileName) {
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        Path targetFile = Paths.get(folder, fileName)
-        FileUtils.copyInputStreamToFile(is, targetFile.toFile())
-        return targetFile
+        Path targetFilePath = Paths.get(folder, fileName)
+        if (! targetFilePath.getParent().toFile().exists()) {
+            targetFilePath.getParent().toFile().mkdirs()
+        }
+        FileUtils.copyInputStreamToFile(is, targetFilePath.toFile())
+        return targetFilePath
     }
 
     String getCurrentBuildLogAsText () {
