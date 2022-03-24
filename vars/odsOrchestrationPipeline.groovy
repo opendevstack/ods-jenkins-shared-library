@@ -136,14 +136,14 @@ def call(Map config) {
 
       // HACK!!!!!
       GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
-//      logger.debug("${classloader} - parent ${classloader.getParent()}")
+      logger.debug("${classloader} - parent ${classloader.getParent()}")
 //      logger.debug("Currently loaded classpath ${classloader.getClassPath()}")
-//      logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
+      logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
 //      classloader.clearCache()
-//      classloader.close()
+
 //      logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
         try {
-            logger.debug("current (CleanGroovyCl): ${classloader}")
+//            logger.debug("current (CleanGroovyCl): ${classloader}")
 /*            Field loaderF = ClassLoader.class.getDeclaredField("classes")
             loaderF.setAccessible(true);
             logger.debug("current size ${loaderF.get(classloader).size()}")
@@ -179,7 +179,7 @@ def call(Map config) {
         } catch (Exception e) {
             logger.debug("cleanupHeap err: ${e}")
         }
-
+        classloader.close()
 /*
         try {
             logger.debug("starting hack cleanup")
