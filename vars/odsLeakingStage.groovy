@@ -55,13 +55,10 @@ def call (Map config, Closure stages = null) {
         currentBuild.result = 'FAILURE'
         ServiceRegistry.removeInstance()
 
-
         try {
-            org.jenkinsci.plugins.workflow.cps.FlowExecution currentExec =
-                currentBuild.getRawBuild().getExecution()
-            Method cleanupHeap = currentExec.class.getDeclaredMethod("cleanupHeap")
+            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanupHeap")
             cleanUpHeap.setAccessible(true)
-            cleanupHeap.invoke(currentExec, null)
+            cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
         } catch (Exception e) {
             logger.debug("cleanupHeap err: ${e}")
         }
