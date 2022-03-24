@@ -11,6 +11,7 @@ import java.lang.ClassLoader
 import java.lang.Class
 
 import java.util.List
+import java.util.Map
 import java.util.concurrent.ConcurrentHashMap
 
 import org.ods.util.UnirestConfig
@@ -68,6 +69,16 @@ def call (Map config, Closure stages = null) {
         }
 
         try {
+            Field reflectors = GrapeIvy.class.getDeclaredField("loadedDeps")
+            reflectors.setAccessible(true);
+            ((Map)reflectors.get(null)).remove(this.class.getClassLoader())
+            logger.debug ("removed graps loader")
+        } catch (Exception e) {
+            logger.debug("cleanupGrapes err: ${e}")
+        }
+
+/*
+        try {
             final Class<?> cacheClass = 
                 this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
 
@@ -96,7 +107,7 @@ def call (Map config, Closure stages = null) {
         catch (Exception e) {
             logger.debug("${e}")
         }
-
+*/
     }
 }
 
