@@ -8,6 +8,8 @@ import org.ods.orchestration.ThrowingStage
 
 import java.lang.reflect.*
 import java.lang.ClassLoader
+import java.lang.Class
+
 import java.util.List
 import java.util.concurrent.ConcurrentHashMap
 
@@ -57,7 +59,8 @@ def call (Map config, Closure stages = null) {
         try {
             org.jenkinsci.plugins.workflow.cps.FlowExection currentExec =
                 currentBuild.getRawBuild().getExecution()
-            Method cleanupHeap = currentExec.class.getDeclaredMethod("cleanupHeap", new Class[] {});
+            Method cleanupHeap = currentExec.class.getDeclaredMethod("cleanupHeap", 
+                new java.lang.Class[] {});
             cleanUpHeap.setAccessible(true)
             cleanupHeap.invoke(currentExec, null)
         } catch (Exception e) {
