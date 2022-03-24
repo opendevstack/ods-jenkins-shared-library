@@ -68,7 +68,7 @@ def call (Map config, Closure stages = null) {
             Field instance = grape.getDeclaredField("instance")
             instance.setAccessible(true);
 
-            Field loadedDeps = grape.getDeclaredField("loadedDeps")
+            Field loadedDeps = grapeIvy.getDeclaredField("loadedDeps")
             loadedDeps.setAccessible(true);
             def result = ((Map)loadedDeps.get(instance.get(null))).remove(this.class.getClassLoader())
             logger.debug ("removed graps loader: ${result}")
