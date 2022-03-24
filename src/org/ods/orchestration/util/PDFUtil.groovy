@@ -1,6 +1,5 @@
 package org.ods.orchestration.util
 
-@GrabConfig(autoDownload=false)
 @Grab('fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.2')
 @Grab('fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.pdf:2.0.2')
 @Grab('org.apache.pdfbox:pdfbox:2.0.17')
