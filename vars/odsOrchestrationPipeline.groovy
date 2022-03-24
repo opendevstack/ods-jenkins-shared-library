@@ -284,7 +284,6 @@ def call(Map config) {
 }
 
 protected void clearIfConcurrentHashMap(Object object, Logger logger) {
-    logger.debug("Clearing: ${object}")
     if (!(object instanceof ConcurrentHashMap)) { return; }
     ConcurrentHashMap<?,?> map = (ConcurrentHashMap<?,?>) object;
     int nbOfEntries=map.size();
