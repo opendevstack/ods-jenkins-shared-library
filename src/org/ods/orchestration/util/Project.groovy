@@ -830,10 +830,12 @@ class Project {
         return this.data.jira?.issueTypes[issueTypeName]?.fields ?: [:]
     }
 
+    @NonCPS
     String getKey() {
         return this.data.metadata.id
     }
 
+    @NonCPS
     String getJiraProjectKey() {
         def services = this.getServices()
         if (services?.jira?.project) {
