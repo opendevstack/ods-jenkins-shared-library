@@ -144,11 +144,16 @@ class LeVADocumentUseCase {
         MROPipelineUtil util = project.jiraUseCase?.util
 
         if (util == null) {
-            throw new RuntimeException("JiraUseCase does not have util (MROPipelineUtil) ")
+            String warnMsg = "JiraUseCase does not have util (MROPipelineUtil) "
+            logger.warn(warnMsg)
+            throw new RuntimeException(warnMsg)
         }
+
         if (StringUtils.isEmpty(project.data.jenkinLog)) {
             Path jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
+            logger.info("Stored jenkins log file in file ${jenkinsLogFilePath.toString()}")
             Path jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as Path[])
+            logger.info("Stored zipped jenkins log file in file ${jenkinsLogZipped.toString()}")
 
             // project.steps.archiveArtifacts(workspacePath)
             project.data.jenkinLog = nexus.uploadJenkinsJobLog(
