@@ -251,6 +251,7 @@ class NexusService {
         return removeUrlHostName(report.toString())
     }
 
+    @NonCPS
     private String removeUrlHostName(String uri) {
         URI originalUri = new URI(uri)
 
@@ -265,6 +266,7 @@ class NexusService {
         return result
     }
 
+    @NonCPS
     private Path createTemporalZipFile(String workspacePath, String fileName, URI testReportsUnstashPath) {
         Path tempZipFilePath = Paths.get(workspacePath, fileName)
 
@@ -276,6 +278,7 @@ class NexusService {
         return zipFile.getFile().toPath()
     }
 
+    @NonCPS
     private String getFileName(String repoId, String testType) {
         if (testType == "Unit") {
             return ((!Strings.isNullOrEmpty(repoId)) ? "${testType}-${repoId}.zip" : testType).toLowerCase()
