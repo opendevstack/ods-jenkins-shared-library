@@ -5,6 +5,7 @@ import java.util.List
 import java.util.concurrent.ConcurrentHashMap
 import com.sun.beans.WeakCache
 import com.sun.beans.TypeResolver
+import java.lang.invoke.MethodType
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
@@ -227,6 +228,39 @@ def call(Map config) {
         catch (Exception e) {
             logger.debug("${e}")
         }
+
+        try {
+            logger.debug("starting hack cleanup3")
+            // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
+            final Class<?> cacheClass3 = 
+                this.class.getClassLoader().loadClass('java.lang.invoke.MethodType');
+
+            if (cacheClass3 == null) { 
+                logger.debug('could not find cache class')
+                return; 
+            } else {
+                logger.debug("cache: ${cacheClass3}")
+            }
+
+            Field modifiersField3 = Field.class.getDeclaredField("modifiers");
+            modifiersField3.setAccessible(true);
+            
+            Field localCacheIntern = cacheClass3.getDeclaredField("internTable")
+            localCacheIntern.setAccessible(true)
+            modifiersField3.setInt(localCacheIntern, localCacheIntern.getModifiers() & ~Modifier.FINAL);
+
+            Object internCache = localCacheIntern.get(null)
+            Field localCacheInternMap = internCache.class.getDeclaredField("map")
+            localCacheInternMap.setAccessible(true)
+            modifiersField3.setInt(localCacheInternMap, localCacheInternMap.getModifiers() & ~Modifier.FINAL);´
+
+            clearIfConcurrentHashMap(localCacheInternMap.get(null), logger);
+            logger.debug("cleared ..")
+        }
+        catch (Exception e) {
+            logger.debug("${e}")
+        }
+
 
 
 /*        try {
