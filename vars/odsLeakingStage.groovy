@@ -84,7 +84,7 @@ def call (Map config, Closure stages = null) {
         } catch (Exception e) {
             logger.debug("cleanupHeap err: ${e}")
         }
-
+/*
         try {
             final Class<?> cacheClass = 
                 this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
