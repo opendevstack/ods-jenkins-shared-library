@@ -70,8 +70,9 @@ def call (Map config, Closure stages = null) {
             Field loadedDeps = grapeInstance.class.getDeclaredField("loadedDeps")
             loadedDeps.setAccessible(true);
 
-            def result = ((Map)loadedDeps.get(grapeInstance).remove(
+            def result = ((Map)loadedDeps.get(grapeInstance)).remove(
                 this.class.getClassLoader())
+
             logger.debug ("removed graps loader: ${result}")
         } catch (Exception e) {
             logger.debug("cleanupGrapes err: ${e}")
