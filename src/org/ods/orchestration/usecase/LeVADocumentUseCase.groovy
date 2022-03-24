@@ -141,7 +141,8 @@ class LeVADocumentUseCase {
     }
 
     void createOverallTIR(Map repo = null, Map data = null) {
-        final MROPipelineUtil util = project.jiraUseCase?.util
+        MROPipelineUtil util = project.jiraUseCase?.util
+
         if (util == null) {
             throw new RuntimeException("JiraUseCase does not have util (MROPipelineUtil) ")
         }

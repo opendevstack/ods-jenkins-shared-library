@@ -104,7 +104,7 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'filesPaths' is undefined.")
         }
 
-        String path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
+        String path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
         this.createZipFile(path, filesPaths)
         if (doCreateArtifact) {
             this.steps.archiveArtifacts(path)

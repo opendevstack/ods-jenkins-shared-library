@@ -8,9 +8,7 @@ import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
-import org.ods.orchestration.util.PipelineUtil
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -91,6 +89,7 @@ class NexusService {
         return storeArtifact(repository, directory, name, bais, contentType)
     }
 
+    @SuppressWarnings('LineLength')
     @NonCPS
     URI storeArtifact(String repository, String directory, String name, ByteArrayInputStream artifact, String contentType) {
         Map nexusParams = [
@@ -111,6 +110,7 @@ class NexusService {
         return storeArtifact(repository, directory, name, artifact.getBytes(), contentType)
     }
 
+    @SuppressWarnings('LineLength')
     @NonCPS
     URI storeComplextArtifact(String repository, byte[] artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(artifact)
