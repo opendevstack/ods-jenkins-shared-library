@@ -18,7 +18,8 @@ def call (Map config, Closure stages = null) {
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
 
-    logger.debug("current: ${currentBuild} ${currentBuild.class} ${currentBuild.class.getClassLoader()}")
+    logger.debug("current: ${currentBuild.getRawBuild()} ${currentBuild.getRawBuild().class} " + 
+        "${currentBuild.getRawBuild().class.getClassLoader()}")
 
 /*
     UnirestConfig.init()
