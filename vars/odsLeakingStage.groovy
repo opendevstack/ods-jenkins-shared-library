@@ -59,9 +59,18 @@ def call (Map config, Closure stages = null) {
 
         try {
             logger.debug("force grape stop")
-            Field reflectors = GrapeIvy.class.getDeclaredField("loadedDeps")
+            final Class<?> grapeIvy = 
+                this.class.getClassLoader().loadClass('groovy.grape.GrapeIvy');
+
+            final Class<?> grape = 
+                this.class.getClassLoader().loadClass('groovy.grape.Grape');
+
+            Field instance = grape.getDeclaredField("instance")
             reflectors.setAccessible(true);
-            ((Map)reflectors.get(null)).remove(this.class.getClassLoader())
+
+            Field reflectors = grape.getDeclaredField("loadedDeps")
+            reflectors.setAccessible(true);
+            ((Map)reflectors.get(instance.get(null))).remove(this.class.getClassLoader())
             logger.debug ("removed graps loader")
         } catch (Exception e) {
             logger.debug("cleanupGrapes err: ${e}")
@@ -76,7 +85,6 @@ def call (Map config, Closure stages = null) {
             logger.debug("cleanupHeap err: ${e}")
         }
 
-/*
         try {
             final Class<?> cacheClass = 
                 this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
