@@ -257,7 +257,7 @@ def call(Map config) {
             localCacheInternMap.setAccessible(true)
             modifiersField3.setInt(localCacheInternMap, localCacheInternMap.getModifiers() & ~Modifier.FINAL);
 
-            clearIfConcurrentHashMap(localCacheInternMap.get(null), logger);
+            clearIfConcurrentHashMap(localCacheInternMap.get(internCache), logger);
             logger.debug("cleared ..")
         }
         catch (Exception e) {
