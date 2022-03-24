@@ -59,18 +59,19 @@ def call (Map config, Closure stages = null) {
 
         try {
             logger.debug("force grape stop")
-            final Class<?> grapeIvy = 
-                this.class.getClassLoader().loadClass('groovy.grape.GrapeIvy');
-
             final Class<?> grape = 
                 this.class.getClassLoader().loadClass('groovy.grape.Grape');
 
             Field instance = grape.getDeclaredField("instance")
             instance.setAccessible(true);
 
-            Field loadedDeps = grapeIvy.getDeclaredField("loadedDeps")
+            Object grapeInstance = instance.get()
+
+            Field loadedDeps = grapeInstance.class.getDeclaredField("loadedDeps")
             loadedDeps.setAccessible(true);
-            def result = ((Map)loadedDeps.get(instance.get(null))).remove(this.class.getClassLoader())
+
+            def result = ((Map)loadedDeps.get(grapeInstance).remove(
+                this.class.getClassLoader())
             logger.debug ("removed graps loader: ${result}")
         } catch (Exception e) {
             logger.debug("cleanupGrapes err: ${e}")
