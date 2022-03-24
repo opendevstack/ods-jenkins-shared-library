@@ -250,6 +250,8 @@ def call(Map config) {
             modifiersField3.setInt(localCacheIntern, localCacheIntern.getModifiers() & ~Modifier.FINAL);
 
             Object internCache = localCacheIntern.get(null)
+            logger.debug("got ${internCache}")
+
             Field localCacheInternMap = internCache.class.getDeclaredField("map")
             localCacheInternMap.setAccessible(true)
             modifiersField3.setInt(localCacheInternMap, localCacheInternMap.getModifiers() & ~Modifier.FINAL);
@@ -259,6 +261,7 @@ def call(Map config) {
         }
         catch (Exception e) {
             logger.debug("${e}")
+            hudson.Functions.printThrowable(e)
         }
 
 
@@ -280,6 +283,7 @@ def call(Map config) {
 }
 
 protected void clearIfConcurrentHashMap(Object object, Logger logger) {
+    logger.debug("Clearing: ${object}")
     if (!(object instanceof ConcurrentHashMap)) { return; }
     ConcurrentHashMap<?,?> map = (ConcurrentHashMap<?,?>) object;
     int nbOfEntries=map.size();
