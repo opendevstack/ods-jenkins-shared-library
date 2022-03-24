@@ -253,6 +253,7 @@ def call(Map config) {
             logger.debug("got ${internCache}")
 
             Field localCacheInternMap = internCache.class.getDeclaredField("map")
+            logger.debug("got field ${localCacheInternMap}")
             localCacheInternMap.setAccessible(true)
             modifiersField3.setInt(localCacheInternMap, localCacheInternMap.getModifiers() & ~Modifier.FINAL);
 
