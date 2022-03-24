@@ -133,14 +133,15 @@ def call(Map config) {
       git = null
       repos = null
       steps = null
+
       // HACK!!!!!
       GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
-      logger.debug("${classloader} - parent ${classloader.getParent()}")
-      logger.debug("Currently loaded classpath ${classloader.getClassPath()}")
-      logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
-      classloader.clearCache()
-      classloader.close()
-      logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
+//      logger.debug("${classloader} - parent ${classloader.getParent()}")
+//      logger.debug("Currently loaded classpath ${classloader.getClassPath()}")
+//      logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
+//      classloader.clearCache()
+//      classloader.close()
+//      logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
         try {
             logger.debug("current (CleanGroovyCl): ${classloader}")
 /*            Field loaderF = ClassLoader.class.getDeclaredField("classes")
@@ -151,7 +152,7 @@ def call(Map config) {
 
             Field loaderParentF = ClassLoader.class.getDeclaredField("parent")
             loaderParentF.setAccessible(true);
-*/
+
             Field modifiersField = Field.class.getDeclaredField("modifiers");
             modifiersField.setAccessible(true);
 /*           modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
@@ -163,13 +164,23 @@ def call(Map config) {
             modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL);
 
             loaderName.set(classloader, "" + newName)
-            String setname = loaderName.get(classloader)
+//            String setname = loaderName.get(classloader)
 
-            logger.debug("Current CL name set: ${setname}")
+//            logger.debug("Current CL name set: ${setname}")
         } catch (Exception e) {
             logger.debug("e: ${e}")
         }
 
+        try {
+            logger.debug("forceClean.....")
+            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
+            cleanupHeap.setAccessible(true)
+            cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
+        } catch (Exception e) {
+            logger.debug("cleanupHeap err: ${e}")
+        }
+
+/*
         try {
             logger.debug("starting hack cleanup")
             // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
@@ -265,7 +276,7 @@ def call(Map config) {
             hudson.Functions.printThrowable(e)
         }
 
-
+*/
 
 /*        try {
             logger.debug("current parent (timingClassloader): ${classloader.getParent()}")
