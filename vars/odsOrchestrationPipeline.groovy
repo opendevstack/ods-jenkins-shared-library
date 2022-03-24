@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentHashMap
 import com.sun.beans.WeakCache
 import com.sun.beans.TypeResolver
 import java.lang.invoke.MethodType
+import java.util.Vector 
+import java.util.Iterator
 
 import org.ods.orchestration.util.PipelineUtil
 import org.ods.orchestration.util.MROPipelineUtil
@@ -124,21 +126,23 @@ def call(Map config) {
           }
       }
     } finally {
-      logger.debug('-- SHUTTING DOWN RM (.. incl classloader HACK!!!!!) --')
-      logger.resetStopwatch()
-      project.clear()
-      ServiceRegistry.removeInstance()
-      UnirestConfig.shutdown()
-      project = null
-      git = null
-      repos = null
-      steps = null
+        logger.debug('-- SHUTTING DOWN RM (.. incl classloader HACK!!!!!) --')
+        logger.resetStopwatch()
+        project.clear()
+        ServiceRegistry.removeInstance()
+        UnirestConfig.shutdown()
+        project = null
+        git = null
+        repos = null
+        steps = null
 
-      // HACK!!!!!
-      GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
-      logger.debug("${classloader} - parent ${classloader.getParent()}")
-      logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
+        // HACK!!!!!
+        GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
+        logger.debug("${classloader} - parent ${classloader.getParent()}")
+        logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
+        // set the classloader name == run name
         try {
+            logger.debug("Rename classloader name to this run ...")
             Field modifiersField = Field.class.getDeclaredField("modifiers");
             modifiersField.setAccessible(true);
             Field loaderName = ClassLoader.class.getDeclaredField("name")
@@ -149,11 +153,11 @@ def call(Map config) {
             logger.debug("e: ${e}")
         }
 
+        // unload GRAPES
         try {
-            logger.debug("force grape stop")
+            logger.debug("force grape unload")
             final Class<?> grape = 
-                this.class.getClassLoader().loadClass('groovy.grape.Grape');
-
+               this.class.getClassLoader().loadClass('groovy.grape.Grape');
             Field instance = grape.getDeclaredField("instance")
             instance.setAccessible(true);
 
@@ -161,18 +165,49 @@ def call(Map config) {
 
             Field loadedDeps = grapeInstance.class.getDeclaredField("loadedDeps")
             loadedDeps.setAccessible(true);
-
             def result = ((Map)loadedDeps.get(grapeInstance)).remove(
-                this.class.getClassLoader())
-
+               this.class.getClassLoader())
             logger.debug ("removed graps loader: ${result}")
         } catch (Exception e) {
             logger.debug("cleanupGrapes err: ${e}")
         }
 
+        /*
+         * the remaining guys are:
+         * a) java.lang.invoke.MethodType -> type references, such as com.vladsch.flexmark.parser.InlineParserFactory
+         * b) java.beans.ThreadGroupContext
+         * c) org.codehaus.groovy.ast.ClassHelper$ClassHelperCache 
+         * d) com.sun.beans.TypeResolver
+         */
+        // go thru this' class GroovyClassLoader -> URLClassLoader -> classes via reflection, and for each 
+        // clear the above ...
+        // unload GRAPES
         try {
-            logger.debug("forceClean.....")
-            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
+            logger.debug("Unload other junk")
+            Field classes = classloader.class.getDeclaredField("classes")
+            instance.setAccessible(true);
+            Iterator classV = ((Vector) classes.get(classloader)).iterator()
+            // courtesy: https://github.com/jenkinsci/workflow-cps-plugin/blob/e034ae78cb28dcdbc20f24df7d905ea63d34937b/src/main/java/org/jenkinsci/plugins/workflow/cps/CpsFlowExecution.java#L1412
+            Field classCacheF = Class.forName('org.codehaus.groovy.ast.ClassHelper$ClassHelperCache').getDeclaredField("classCache");
+            classCacheF.setAccessible(true);
+            Object classCache = classCacheF.get(null);
+            
+            while (classV.hasNext()) {
+                Class clazz = (Class)classV.next()
+                def removed = classCache.getClass().getMethod("remove", Object.class).invoke(classCache, clazz);
+                if (removed) {
+                    logger.debug ("removed class: ${clazz} from ${classCacheF}")
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("cleanupJunk err: ${e}")
+        }
+
+        // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
+        try {
+            logger.debug("forceClean via jenkins internals....")
+            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.
+                getDeclaredMethod("cleanUpHeap")
             cleanupHeap.setAccessible(true)
             cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
         } catch (Exception e) {

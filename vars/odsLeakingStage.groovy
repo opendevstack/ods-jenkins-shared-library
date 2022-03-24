@@ -11,8 +11,7 @@ import java.lang.ClassLoader
 import java.lang.Class
 import groovy.grape.*
 
-import java.util.List
-import java.util.Map
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 import org.ods.util.UnirestConfig
@@ -76,6 +75,27 @@ def call (Map config, Closure stages = null) {
             logger.debug ("removed graps loader: ${result}")
         } catch (Exception e) {
             logger.debug("cleanupGrapes err: ${e}")
+        }
+
+        try {
+            logger.debug("Unload other junk")
+            Field classes = classloader.class.getDeclaredField("classes")
+            instance.setAccessible(true);
+            Iterator classV = ((Vector) classes.get(classloader)).iterator()
+            // courtesy: https://github.com/jenkinsci/workflow-cps-plugin/blob/e034ae78cb28dcdbc20f24df7d905ea63d34937b/src/main/java/org/jenkinsci/plugins/workflow/cps/CpsFlowExecution.java#L1412
+            Field classCacheF = Class.forName('org.codehaus.groovy.ast.ClassHelper$ClassHelperCache').getDeclaredField("classCache");
+            classCacheF.setAccessible(true);
+            Object classCache = classCacheF.get(null);
+            
+            while (classV.hasNext()) {
+                Class clazz = (Class)classV.next()
+                def removed = classCache.getClass().getMethod("remove", Object.class).invoke(classCache, clazz);
+                if (removed) {
+                    logger.debug ("removed class: ${clazz} from ${classCacheF}")
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("cleanupJunk err: ${e}")
         }
 
         try {
