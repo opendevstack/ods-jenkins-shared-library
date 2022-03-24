@@ -2,22 +2,16 @@ package org.ods.orchestration.util
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ods.services.GitService
+import org.ods.util.IPipelineSteps
+import org.ods.util.Logger
+import util.SpecHelper
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import org.apache.pdfbox.pdmodel.PDDocument
-import org.ods.util.IPipelineSteps
-import org.ods.util.Logger
-import org.ods.orchestration.util.Project
-import org.ods.services.GitService
-
-import spock.lang.*
-
-import static util.FixtureHelper.*
-
-import util.*
+import static util.FixtureHelper.createProject
 
 class PipelineUtilSpec extends SpecHelper {
 
@@ -196,25 +190,23 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to create Zip file. 'files' is undefined."
     }
 
-    def "create Zip artifact from InputStreams"() {
+    def "create Zip artifact from Paths"() {
         given:
         File logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
         File logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
 
         when:
         def name = "myZipArtifact"
-        FileInputStream isFile1 = new FileInputStream(logFile1.getAbsolutePath())
-        FileInputStream isFile2 = new FileInputStream(logFile1.getAbsolutePath())
-        WeakPair<String, InputStream> file1 = new WeakPair<>("logFile1", isFile1)
-        WeakPair<String, InputStream> file2 = new WeakPair<>("logFile1", isFile2)
-        WeakPair<String, InputStream> [] files = [file1, file2]
+        Path file1 = Paths.get(logFile1.getAbsolutePath())
+        Path file2 = Paths.get(logFile2.getAbsolutePath())
+        Path [] files = [file1, file2]
         def result = util.createZipArtifact(name, files)
 
         then:
         1 * util.createZipFile(*_)
 
         then:
-        1 * util.archiveArtifact(*_)
+        1 * steps.archiveArtifacts(*_)
 
         then:
         result.size() != 0
@@ -224,26 +216,28 @@ class PipelineUtilSpec extends SpecHelper {
         logFile2.delete()
     }
 
-    def "create Zip artifact with invalid name from InputStreams"() {
+    def "create Zip artifact with invalid name from Paths"() {
+        given:
+        Path [] emptyArray = []
+
         when:
-        WeakPair<String, InputStream> [] files = [:]
-        util.createZipArtifact(null, files)
+        util.createZipArtifact(null, emptyArray)
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Zip artifact. 'name' is undefined."
 
         when:
-        util.createZipArtifact("", [:])
+        util.createZipArtifact("", emptyArray)
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == "Error: unable to create Zip artifact. 'name' is undefined."
     }
 
-    def "create Zip artifact with invalid files from InputStreams"() {
+    def "create Zip artifact with invalid files from Paths"() {
         when:
-        WeakPair<String, InputStream> [] files = null
+        Path [] files = null
         util.createZipArtifact("myZipArtifact", files)
 
         then:
@@ -251,33 +245,32 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to create Zip artifact. 'files' is undefined."
     }
 
-    def "create Zip file from InputStreams"() {
+    def "create Zip file from Paths"() {
         given:
         File logFile1 = Files.createTempFile("log-", ".log").toFile() << "Log File 1"
         File logFile2 = Files.createTempFile("log-", ".log").toFile() << "Log File 2"
-
+        String zipFilePath = "${steps.env.WORKSPACE}/my.zip"
+        Path zipFile = Paths.get(zipFilePath)
         when:
-        def path = "${steps.env.WORKSPACE}/my.zip"
-        FileInputStream isFile1 = new FileInputStream(logFile1.getAbsolutePath())
-        FileInputStream isFile2 = new FileInputStream(logFile1.getAbsolutePath())
-        WeakPair<String, InputStream> file1 = new WeakPair<>("logFile1", isFile1)
-        WeakPair<String, InputStream> file2 = new WeakPair<>("logFile1", isFile2)
-        WeakPair<String, InputStream> [] files = [file1, file2]
 
-        def result = util.createZipFile(path, files)
+        Path file1 = Paths.get(logFile1.getAbsolutePath())
+        Path file2 = Paths.get(logFile2.getAbsolutePath())
+        Path [] files = [file1, file2]
+
+        util.createZipFile(zipFilePath, files)
 
         then:
-        result.size() != 0
+        zipFile.toFile().getBytes().size() > 0
 
         cleanup:
         logFile1.delete()
         logFile2.delete()
-        Paths.get(path).toFile().delete()
+        zipFile.toFile().delete()
     }
 
-    def "create Zip file from InputStreams with invalid name"() {
+    def "create Zip file from Paths with invalid name"() {
         when:
-        WeakPair<String, InputStream> [] files = [:]
+        Path [] files = []
         util.createZipFile(null, files)
 
         then:
@@ -292,9 +285,9 @@ class PipelineUtilSpec extends SpecHelper {
         e.message == "Error: unable to create Zip file. 'path' is undefined."
     }
 
-    def "create Zip file from InputStreams with invalid files"() {
+    def "create Zip file from Paths with invalid files"() {
         when:
-        WeakPair<String, InputStream> [] files = null
+        Path [] files = null
         util.createZipFile("my.zip", files)
 
         then:

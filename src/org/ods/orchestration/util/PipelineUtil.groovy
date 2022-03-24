@@ -11,6 +11,9 @@ import org.ods.util.IPipelineSteps
 import org.ods.util.ILogger
 import org.ods.services.GitService
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 @SuppressWarnings(['JavaIoPackageAccess', 'PublicMethodsBeforeNonPublicMethods'])
 class PipelineUtil {
 
@@ -92,22 +95,22 @@ class PipelineUtil {
         return result
     }
 
-    byte[] createZipArtifact(String name, WeakPair<String, InputStream> [] files, boolean doCreateArtifact = true) {
+    Path createZipArtifact(String name, Path [] filesPaths, boolean doCreateArtifact = true) {
         if (!name?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
         }
 
-        if (files == null) {
-            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'files' is undefined.")
+        if (filesPaths == null) {
+            throw new IllegalArgumentException("Error: unable to create Zip artifact. 'filesPaths' is undefined.")
         }
 
-        def path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
-        def result = this.createZipFile(path, files)
+        String path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}".toString()
+        this.createZipFile(path, filesPaths)
         if (doCreateArtifact) {
-            this.archiveArtifact(path, result)
+            this.steps.archiveArtifacts(path)
         }
 
-        return result
+        return Paths.get(path)
     }
 
     void createAndStashArtifact(String stashName, byte[] file) {
@@ -155,13 +158,13 @@ class PipelineUtil {
     }
 
     @NonCPS
-    byte[] createZipFile(String path, WeakPair<String, InputStream>[] files) {
+    void createZipFile(String path, Path[] filesPaths) {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined.")
         }
 
-        if (files == null) {
-            throw new IllegalArgumentException("Error: unable to create Zip file. 'files' is undefined.")
+        if (filesPaths == null) {
+            throw new IllegalArgumentException("Error: unable to create Zip file. 'filesPaths' is undefined.")
         }
 
         // Create parent directory if needed
@@ -169,15 +172,12 @@ class PipelineUtil {
 
         // Create the Zip file
         def zipFile = new ZipFile(path)
-        files.each { pair ->
-            String filePath = pair.getFirst()
-            InputStream inputStream = pair.getSecond()
+        filesPaths.each { filePath ->
             def params = new ZipParameters()
-            params.setFileNameInZip(filePath)
-            zipFile.addStream(inputStream, params)
+            params.setIncludeRootFolder(false)
+            params.setFileNameInZip(filePath.toFile().getName())
+            zipFile.addFile(filePath.toFile(), params)
         }
-
-        return new File(path).getBytes()
     }
 
     @NonCPS

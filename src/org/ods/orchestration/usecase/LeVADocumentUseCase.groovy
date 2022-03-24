@@ -11,6 +11,8 @@ import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
 
+import java.nio.file.Path
+
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
 
@@ -41,6 +43,10 @@ class LeVADocumentUseCase {
         OVERALL_TIR
 
     }
+
+    private static final String BUILD_FOLDER = 'build'
+    private static final String JENKINS_LOG_TXT_FILE_NAME = 'jenkins-job-log.txt'
+    private static final String JENKINS_LOG_ZIP_FILE_NAME = 'jenkins-job-log.zip'
 
     public static final String WORK_IN_PROGRESS_WATERMARK = 'Work in Progress'
 
@@ -140,11 +146,14 @@ class LeVADocumentUseCase {
             throw new RuntimeException("JiraUseCase does not have util (MROPipelineUtil) ")
         }
         if (StringUtils.isEmpty(project.data.jenkinLog)) {
+            Path jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
+            Path jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as Path[])
+
+            // project.steps.archiveArtifacts(workspacePath)
             project.data.jenkinLog = nexus.uploadJenkinsJobLog(
                 project.getJiraProjectKey(),
                 project.steps.env.BUILD_NUMBER,
-                jenkins.getCurrentBuildLogInputStream(),
-                util)
+                jenkinsLogZipped)
         }
         createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }

@@ -1,6 +1,10 @@
 package org.ods.services
 
+import org.apache.commons.io.FileUtils
 import org.ods.util.ILogger
+
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class JenkinsService {
 
@@ -78,9 +82,11 @@ class JenkinsService {
         return writer.getBuffer().toString()
     }
 
-    InputStream getCurrentBuildLogInputStream () {
+    Path storeCurrentBuildLogInFile (String folder, String fileName) {
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        return is
+        Path targetFile = Paths.get(folder, fileName)
+        FileUtils.copyInputStreamToFile(is, targetFile.toFile())
+        return targetFile
     }
 
     String getCurrentBuildLogAsText () {
