@@ -9,6 +9,7 @@ import org.ods.orchestration.ThrowingStage
 import java.lang.reflect.*
 import java.lang.ClassLoader
 import java.lang.Class
+import groovy.grape.*
 
 import java.util.List
 import java.util.Map
