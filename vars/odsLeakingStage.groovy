@@ -59,8 +59,7 @@ def call (Map config, Closure stages = null) {
         try {
             org.jenkinsci.plugins.workflow.cps.FlowExection currentExec =
                 currentBuild.getRawBuild().getExecution()
-            Method cleanupHeap = currentExec.class.getDeclaredMethod("cleanupHeap", 
-                new java.lang.Class[] {});
+            Method cleanupHeap = currentExec.class.getDeclaredMethod("cleanupHeap")
             cleanUpHeap.setAccessible(true)
             cleanupHeap.invoke(currentExec, null)
         } catch (Exception e) {
