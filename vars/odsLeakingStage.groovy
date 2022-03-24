@@ -80,7 +80,7 @@ def call (Map config, Closure stages = null) {
         GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
         try {
             logger.debug("Unload other junk")
-            Field classes = classloader.class.getDeclaredField("classes")
+            Field classes = ClassLoader.class.getDeclaredField("classes")
             instance.setAccessible(true);
             Iterator classV = ((Vector) classes.get(classloader)).iterator()
             // courtesy: https://github.com/jenkinsci/workflow-cps-plugin/blob/e034ae78cb28dcdbc20f24df7d905ea63d34937b/src/main/java/org/jenkinsci/plugins/workflow/cps/CpsFlowExecution.java#L1412
