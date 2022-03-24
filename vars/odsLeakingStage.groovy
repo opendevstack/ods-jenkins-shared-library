@@ -57,24 +57,22 @@ def call (Map config, Closure stages = null) {
         ServiceRegistry.removeInstance()
 
         try {
-            logger.debug(".....")
-            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
-            logger.debug(".....m: ${cleanupHeap}")
-            cleanupHeap.setAccessible(true)
-
-            logger.debug(".....mInvoke: ${cleanupHeap}")
-            cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
-        } catch (Exception e) {
-            logger.debug("cleanupHeap err: ${e}")
-        }
-
-        try {
+            logger.debug("force grape stop")
             Field reflectors = GrapeIvy.class.getDeclaredField("loadedDeps")
             reflectors.setAccessible(true);
             ((Map)reflectors.get(null)).remove(this.class.getClassLoader())
             logger.debug ("removed graps loader")
         } catch (Exception e) {
             logger.debug("cleanupGrapes err: ${e}")
+        }
+
+        try {
+            logger.debug(".....force cleanUpHeap")
+            Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
+            cleanupHeap.setAccessible(true)
+            cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
+        } catch (Exception e) {
+            logger.debug("cleanupHeap err: ${e}")
         }
 
 /*
