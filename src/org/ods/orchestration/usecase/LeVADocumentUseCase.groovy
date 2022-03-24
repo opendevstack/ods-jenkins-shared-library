@@ -176,18 +176,24 @@ class LeVADocumentUseCase {
         logger.info("create document ${documentType} end")
     }
 
-    @NonCPS
     private void createDoc(DocumentType documentType, Map params) {
+        // WARNING: env -> getEnv -> CPS method
+        String buildNumber = project.steps.env.BUILD_NUMBER as String
+        createDocForBuild(documentType, buildNumber, params)
+    }
+
+    @NonCPS
+    private void createDocForBuild(DocumentType documentType, String buildNumber, Map params) {
         if (documentType.name().startsWith(OVERALL)){
             docGen.createDocumentOverall(
                 project.getJiraProjectKey(),
-                project.steps.env.BUILD_NUMBER as String,
+                buildNumber,
                 documentType.name(),
                 params)
         } else {
             List<DocumentHistoryEntry> docHistoryList =  docGen.createDocument(
                 project.getJiraProjectKey(),
-                project.steps.env.BUILD_NUMBER as String,
+                buildNumber,
                 documentType.name(),
                 params)
             if (docHistoryList.size()>1){
