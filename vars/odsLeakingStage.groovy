@@ -56,8 +56,12 @@ def call (Map config, Closure stages = null) {
         ServiceRegistry.removeInstance()
 
         try {
+            logger.debug(".....")
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
+            logger.debug(".....m: ${cleanupHeap}")
             cleanUpHeap.setAccessible(true)
+
+            logger.debug(".....mInvoke: ${cleanupHeap}")
             cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
         } catch (Exception e) {
             logger.debug("cleanupHeap err: ${e}")
