@@ -176,7 +176,7 @@ def call(Map config) {
          * the remaining guys are:
          * a) java.lang.invoke.MethodType -> type references, such as com.vladsch.flexmark.parser.InlineParserFactory
          * b) java.beans.ThreadGroupContext
-         * c) org.codehaus.groovy.ast.ClassHelper$ClassHelperCache 
+         * c) (DONE) org.codehaus.groovy.ast.ClassHelper$ClassHelperCache 
          * d) com.sun.beans.TypeResolver
          */
         // go thru this' class GroovyClassLoader -> URLClassLoader -> classes via reflection, and for each 
@@ -184,9 +184,10 @@ def call(Map config) {
         // unload GRAPES
         try {
             logger.debug("Unload other junk")
-            Field classes = classloader.class.getDeclaredField("classes")
-            instance.setAccessible(true);
+            Field classes = java.lang.ClassLoader.class.getDeclaredField("classes")
+            classes.setAccessible(true);
             Iterator classV = ((Vector) classes.get(classloader)).iterator()
+
             // courtesy: https://github.com/jenkinsci/workflow-cps-plugin/blob/e034ae78cb28dcdbc20f24df7d905ea63d34937b/src/main/java/org/jenkinsci/plugins/workflow/cps/CpsFlowExecution.java#L1412
             Field classCacheF = Class.forName('org.codehaus.groovy.ast.ClassHelper$ClassHelperCache').getDeclaredField("classCache");
             classCacheF.setAccessible(true);
@@ -194,8 +195,9 @@ def call(Map config) {
             
             while (classV.hasNext()) {
                 Class clazz = (Class)classV.next()
-                def removed = classCache.getClass().getMethod("remove", Object.class).invoke(classCache, clazz);
-                if (removed) {
+                // remove from ClassHelper$ClassHelperCache
+                def removeCHC = classCache.getClass().getMethod("remove", Object.class).invoke(classCache, clazz);
+                if (removeCHC) {
                     logger.debug ("removed class: ${clazz} from ${classCacheF}")
                 }
             }
