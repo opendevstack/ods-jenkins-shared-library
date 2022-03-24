@@ -66,12 +66,12 @@ def call (Map config, Closure stages = null) {
                 this.class.getClassLoader().loadClass('groovy.grape.Grape');
 
             Field instance = grape.getDeclaredField("instance")
-            reflectors.setAccessible(true);
+            instance.setAccessible(true);
 
-            Field reflectors = grape.getDeclaredField("loadedDeps")
-            reflectors.setAccessible(true);
-            ((Map)reflectors.get(instance.get(null))).remove(this.class.getClassLoader())
-            logger.debug ("removed graps loader")
+            Field loadedDeps = grape.getDeclaredField("loadedDeps")
+            loadedDeps.setAccessible(true);
+            def result = ((Map)loadedDeps.get(instance.get(null))).remove(this.class.getClassLoader())
+            logger.debug ("removed graps loader: ${result}")
         } catch (Exception e) {
             logger.debug("cleanupGrapes err: ${e}")
         }
