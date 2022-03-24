@@ -53,6 +53,17 @@ def call (Map config, Closure stages = null) {
         currentBuild.result = 'FAILURE'
         ServiceRegistry.removeInstance()
 
+
+        try {
+            org.jenkinsci.plugins.workflow.cps.FlowExection currentExec =
+                currentBuild.getRawBuild().getExecution()
+            Method cleanupHeap = currentExec.class.getDeclaredMethod("cleanupHeap", new Class[] {});
+            cleanUpHeap.setAccessible(true)
+            cleanupHeap.invoke(currentExec, null)
+        } catch (Exception e) {
+            logger.debug("cleanupHeap err: ${e}")
+        }
+
         try {
             final Class<?> cacheClass = 
                 this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
