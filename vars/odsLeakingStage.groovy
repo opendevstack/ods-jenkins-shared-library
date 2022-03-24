@@ -77,6 +77,7 @@ def call (Map config, Closure stages = null) {
             logger.debug("cleanupGrapes err: ${e}")
         }
 
+        GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
         try {
             logger.debug("Unload other junk")
             Field classes = classloader.class.getDeclaredField("classes")
