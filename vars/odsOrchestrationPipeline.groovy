@@ -137,38 +137,37 @@ def call(Map config) {
       // HACK!!!!!
       GroovyClassLoader classloader = (GroovyClassLoader)this.class.getClassLoader()
       logger.debug("${classloader} - parent ${classloader.getParent()}")
-//      logger.debug("Currently loaded classpath ${classloader.getClassPath()}")
       logger.debug("Currently loaded classes ${classloader.getLoadedClasses()}")
-//      classloader.clearCache()
-
-//      logger.debug("After closing: loaded classes ${classloader.getLoadedClasses().size()}")
         try {
-//            logger.debug("current (CleanGroovyCl): ${classloader}")
-/*            Field loaderF = ClassLoader.class.getDeclaredField("classes")
-            loaderF.setAccessible(true);
-            logger.debug("current size ${loaderF.get(classloader).size()}")
-            loaderF.get(classloader).clear()
-            logger.debug("current cleared, now kicking parent CL")
-
-            Field loaderParentF = ClassLoader.class.getDeclaredField("parent")
-            loaderParentF.setAccessible(true);
-*/
             Field modifiersField = Field.class.getDeclaredField("modifiers");
             modifiersField.setAccessible(true);
-/*           modifiersField.setInt(loaderParentF, loaderParentF.getModifiers() & ~Modifier.FINAL);
-
-            loaderParentF.set(classloader, null);
-*/
             Field loaderName = ClassLoader.class.getDeclaredField("name")
             loaderName.setAccessible(true);
             modifiersField.setInt(loaderName, loaderName.getModifiers() & ~Modifier.FINAL);
-
             loaderName.set(classloader, "" + newName)
-//            String setname = loaderName.get(classloader)
-
-//            logger.debug("Current CL name set: ${setname}")
         } catch (Exception e) {
             logger.debug("e: ${e}")
+        }
+
+        try {
+            logger.debug("force grape stop")
+            final Class<?> grape = 
+                this.class.getClassLoader().loadClass('groovy.grape.Grape');
+
+            Field instance = grape.getDeclaredField("instance")
+            instance.setAccessible(true);
+
+            Object grapeInstance = instance.get()
+
+            Field loadedDeps = grapeInstance.class.getDeclaredField("loadedDeps")
+            loadedDeps.setAccessible(true);
+
+            def result = ((Map)loadedDeps.get(grapeInstance)).remove(
+                this.class.getClassLoader())
+
+            logger.debug ("removed graps loader: ${result}")
+        } catch (Exception e) {
+            logger.debug("cleanupGrapes err: ${e}")
         }
 
         try {
@@ -180,117 +179,6 @@ def call(Map config) {
             logger.debug("cleanupHeap err: ${e}")
         }
         classloader.close()
-/*
-        try {
-            logger.debug("starting hack cleanup")
-            // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
-            final Class<?> cacheClass = 
-                this.class.getClassLoader().loadClass('java.io.ObjectStreamClass$Caches');
-
-            if (cacheClass == null) { 
-                logger.debug('could not find cache class')
-                return; 
-            } else {
-                logger.debug("cache: ${cacheClass}")
-            }
-
-            Field modifiersField1 = Field.class.getDeclaredField("modifiers");
-            modifiersField1.setAccessible(true);
-            
-            Field localDescs = cacheClass.getDeclaredField("localDescs")
-            localDescs.setAccessible(true);
-            modifiersField1.setInt(localDescs, localDescs.getModifiers() & ~Modifier.FINAL);
-
-            clearIfConcurrentHashMap(localDescs.get(null), logger);
-
-            Field reflectors = cacheClass.getDeclaredField("reflectors")
-            reflectors.setAccessible(true);
-            modifiersField1.setInt(reflectors, reflectors.getModifiers() & ~Modifier.FINAL);
-
-            clearIfConcurrentHashMap(reflectors.get(null), logger);
-        }
-        catch (Exception e) {
-            logger.debug("${e}")
-        }
-
-        try {
-            logger.debug("starting hack cleanup2")
-            // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
-            final Class<?> cacheClass2 = 
-                this.class.getClassLoader().loadClass('com.sun.beans.TypeResolver');
-
-            if (cacheClass2 == null) { 
-                logger.debug('could not find cache class')
-                return; 
-            } else {
-                logger.debug("cache: ${cacheClass2}")
-            }
-
-            Field modifiersField2 = Field.class.getDeclaredField("modifiers");
-            modifiersField2.setAccessible(true);
-            
-            Field localCaches = cacheClass2.getDeclaredField("CACHE")
-            localCaches.setAccessible(true)
-            modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL);
-
-            WeakCache wCache = localCaches.get(null)
-            wCache.clear()
-        }
-        catch (Exception e) {
-            logger.debug("${e}")
-        }
-
-        try {
-            logger.debug("starting hack cleanup3")
-            // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
-            final Class<?> cacheClass3 = 
-                this.class.getClassLoader().loadClass('java.lang.invoke.MethodType');
-
-            if (cacheClass3 == null) { 
-                logger.debug('could not find cache class')
-                return; 
-            } else {
-                logger.debug("cache: ${cacheClass3}")
-            }
-
-            Field modifiersField3 = Field.class.getDeclaredField("modifiers");
-            modifiersField3.setAccessible(true);
-            
-            Field localCacheIntern = cacheClass3.getDeclaredField("internTable")
-            localCacheIntern.setAccessible(true)
-            modifiersField3.setInt(localCacheIntern, localCacheIntern.getModifiers() & ~Modifier.FINAL);
-
-            Object internCache = localCacheIntern.get(null)
-            logger.debug("got ${internCache}")
-
-            Field localCacheInternMap = internCache.class.getDeclaredField("map")
-            logger.debug("got field ${localCacheInternMap}")
-            localCacheInternMap.setAccessible(true)
-            modifiersField3.setInt(localCacheInternMap, localCacheInternMap.getModifiers() & ~Modifier.FINAL);
-
-            clearIfConcurrentHashMap(localCacheInternMap.get(internCache), logger);
-            logger.debug("cleared ..")
-        }
-        catch (Exception e) {
-            logger.debug("${e}")
-            hudson.Functions.printThrowable(e)
-        }
-
-*/
-
-/*        try {
-            logger.debug("current parent (timingClassloader): ${classloader.getParent()}")
-            if (classloader.getParent() != null) {
-                Field loaderFP = ClassLoader.class.getDeclaredField("classes")
-                loaderFP.setAccessible(true);
-                logger.debug("current parent size ${loaderFP.get(classloader.getParent()).size()}")
-                loaderFP.get(classloader.getParent()).clear()
-                logger.debug("current parent cleared")
-            }
-        } catch (Exception e) {
-            logger.debug("eParrent: ${e}")
-        }
-*/
     }
 }
 
