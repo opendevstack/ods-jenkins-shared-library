@@ -59,7 +59,7 @@ def call (Map config, Closure stages = null) {
             logger.debug(".....")
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
             logger.debug(".....m: ${cleanupHeap}")
-            cleanUpHeap.setAccessible(true)
+            cleanupHeap.setAccessible(true)
 
             logger.debug(".....mInvoke: ${cleanupHeap}")
             cleanupHeap.invoke(currentBuild.getRawBuild().getExecution(), null)
