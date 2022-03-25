@@ -25,11 +25,14 @@ def call (Map config, Closure stages = null) {
 
     java.util.logging.Logger lLogger = 
         java.util.logging.Logger.getLogger('com.openhtmltopdf.config')
-    java.util.logging.Handler[] lhandler = lLogger.getHandlers()
-    logger.debug("${lhandler}")
-    java.util.logging.Handler thisH = lHandler.find { handler ->
+    java.util.logging.Handler[] lhandlers = lLogger.getHandlers()
+    logger.debug("${lhandlers}")
+    java.util.logging.Handler thisH = lhandlers.find { handler ->
         logger.debug("-> ${handler}")
-        handler.class.classloader = this.class.classloader 
+        handler.class.classloader = this.class.classloader
+    }
+    if (thisH) {
+        lLogger.removeHandler(thisH)
     }
 
     logger.debug("current: ${currentBuild.getRawBuild()} ${currentBuild.getRawBuild().class} " + 
