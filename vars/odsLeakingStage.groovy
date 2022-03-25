@@ -99,6 +99,28 @@ def call (Map config, Closure stages = null) {
             logger.debug("cleanupJunk err: ${e}")
         }
 
+
+        try {
+            logger.debug("starting ThreadGroupContext cleanup")
+            final Class<?> threadGroupContextClass = 
+                this.class.getClassLoader().loadClass('java.lang.ThreadGroupContext');
+
+            if (threadGroupContextClass == null) { 
+                logger.debug('could not find threadGroupContextClass class')
+                return; 
+            } 
+            
+            Method contextMethod = threadGroupContextClass.getClass().getMethod("getContext")
+            contextMethod.setAccessible(true)
+            Object context = contextMethod.invoke(null, null);
+
+            Method clearCacheMethod = context.getClass().getMethod("clearBeanInfoCache")
+            clearCacheMethod.setAccessible(true)
+            clearCacheMethod.invoke(null, null);
+        } catch (Exception e) {
+            logger.debug("could not clean ThreadGroupContext: ${e}")
+        }
+        
         try {
             logger.debug(".....force cleanUpHeap")
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")

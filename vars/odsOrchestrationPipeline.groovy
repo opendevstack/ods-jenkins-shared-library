@@ -175,9 +175,9 @@ def call(Map config) {
         /*
          * the remaining guys are:
          * a) java.lang.invoke.MethodType -> type references, such as com.vladsch.flexmark.parser.InlineParserFactory
-         * b) java.beans.ThreadGroupContext
+         * b) (DONE) java.beans.ThreadGroupContext
          * c) (DONE) org.codehaus.groovy.ast.ClassHelper$ClassHelperCache 
-         * d) com.sun.beans.TypeResolver
+         * d) (DONE) com.sun.beans.TypeResolver
          */
         // go thru this' class GroovyClassLoader -> URLClassLoader -> classes via reflection, and for each 
         // clear the above ...
@@ -227,6 +227,27 @@ def call(Map config) {
             wCache.clear()
         } catch (Exception e) {
             logger.debug("could not clean type-resolver: ${e}")
+        }
+
+        try {
+            logger.debug("starting ThreadGroupContext cleanup")
+            final Class<?> threadGroupContextClass = 
+                this.class.getClassLoader().loadClass('java.lang.ThreadGroupContext');
+
+            if (threadGroupContextClass == null) { 
+                logger.debug('could not find threadGroupContextClass class')
+                return; 
+            } 
+            
+            Method contextMethod = threadGroupContextClass.getClass().getMethod("getContext")
+            contextMethod.setAccessible(true)
+            Object context = contextMethod.invoke(null, null);
+
+            Method clearCacheMethod = context.getClass().getMethod("clearBeanInfoCache")
+            clearCacheMethod.setAccessible(true)
+            clearCacheMethod.invoke(null, null);
+        } catch (Exception e) {
+            logger.debug("could not clean ThreadGroupContext: ${e}")
         }
 
         // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
