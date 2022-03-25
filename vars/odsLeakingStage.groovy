@@ -23,10 +23,11 @@ def call (Map config, Closure stages = null) {
     ILogger logger = ServiceRegistry.instance.get(Logger)
 
 
-    Logger lLogger = Logger.getLogger('com.openhtmltopdf.config')
-    Handler[] lhandler = lLogger.getHandlers()
+    java.util.logging.Logger lLogger = 
+        java.util.logging.Logger.getLogger('com.openhtmltopdf.config')
+    java.util.logging.Handler[] lhandler = lLogger.getHandlers()
     logger.debug("${lhandler}")
-    Handler thisH = lHandler.find { handler ->
+    java.util.logging.Handler thisH = lHandler.find { handler ->
         logger.debug("-> ${handler}")
         handler.class.classloader = this.class.classloader 
     }
