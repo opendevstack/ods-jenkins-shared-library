@@ -12,7 +12,7 @@ class DocumentHistoryEntry implements Map, Serializable {
 
     DocumentHistoryEntry(Map map, Long entryId, String projectVersion,
                          String previousProjectVersion, String rational) {
-        def delegate = (Map) map.clone()
+        Map delegate = (Map) map.clone()
         delegate.keySet().removeAll(['entryId', 'projectVersion', 'previousProjectVersion', 'rational'])
         this.delegate = delegate
         this.entryId = entryId

@@ -197,7 +197,7 @@ class LeVADocumentUseCase {
                 documentType.name(),
                 params)
             if (docHistoryList.size()>1){
-                this.project.setHistoryForDocument(docHistoryList, documentType.name())
+                project.setHistoryForDocument(docHistoryList, documentType.name())
             }
         }
 
