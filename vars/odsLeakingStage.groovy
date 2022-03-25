@@ -99,7 +99,6 @@ def call (Map config, Closure stages = null) {
             logger.debug("cleanupJunk err: ${e}")
         }
 
-
         try {
             logger.debug("starting ThreadGroupContext cleanup")
             final Class<?> threadGroupContextClass = 
@@ -111,14 +110,12 @@ def call (Map config, Closure stages = null) {
             } 
             
             Method contextMethod = threadGroupContextClass.getDeclaredMethod("getContext")
-            logger.debug("context: ${contextMethod}")
             contextMethod.setAccessible(true)
             Object context = contextMethod.invoke(null, null);
-            logger.debug("context: ${context}")
 
             Method clearCacheMethod = context.getClass().getDeclaredMethod("clearBeanInfoCache")
             clearCacheMethod.setAccessible(true)
-            clearCacheMethod.invoke(null, null);
+            clearCacheMethod.invoke(context, null);
         } catch (Exception e) {
             logger.debug("could not clean ThreadGroupContext: ${e}")
         }
