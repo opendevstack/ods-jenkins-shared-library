@@ -103,7 +103,7 @@ def call (Map config, Closure stages = null) {
         try {
             logger.debug("starting ThreadGroupContext cleanup")
             final Class<?> threadGroupContextClass = 
-                this.class.getClassLoader().loadClass('java.lang.ThreadGroupContext');
+                this.class.getClassLoader().loadClass('java.beans.ThreadGroupContext');
 
             if (threadGroupContextClass == null) { 
                 logger.debug('could not find threadGroupContextClass class')
@@ -120,7 +120,7 @@ def call (Map config, Closure stages = null) {
         } catch (Exception e) {
             logger.debug("could not clean ThreadGroupContext: ${e}")
         }
-        
+
         try {
             logger.debug(".....force cleanUpHeap")
             Method cleanupHeap = currentBuild.getRawBuild().getExecution().class.getDeclaredMethod("cleanUpHeap")
