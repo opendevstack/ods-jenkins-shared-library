@@ -48,15 +48,6 @@ abstract class DocGenScheduler {
     void run(String phase, MROPipelineUtil.PipelinePhaseLifecycleStage stage, Map repo = null, Map data = null) {
         def documents = this.usecase.getSupportedDocuments()
         documents.each { documentType ->
-            def args = [repo, data]
-            def argsDefined = args.findAll()
-
-            def paramsSize = this.getMethodParamsSizeForDocumentType(documentType)
-            if (argsDefined.size() > paramsSize) {
-                return
-            }
-
-            def paramsToApply = paramsSize > 0 ? args[0..(Math.min(args.size(), paramsSize) - 1)] : []
 
             if (this.isDocumentApplicable(documentType, phase, stage, repo)) {
                 def message = "Creating document of type '${documentType}' for project '${this.project.key}'"
@@ -64,9 +55,7 @@ abstract class DocGenScheduler {
                     message += " and repo '${repo.id}'"
                 }
                 this.steps.echo(message)
-
-                // Apply args according to the method's parameters length
-                this.usecase.invokeMethod(this.getMethodNameForDocumentType(documentType), paramsToApply as Object[])
+                this.usecase.createDocument(documentType, repo, data)
             }
         }
     }

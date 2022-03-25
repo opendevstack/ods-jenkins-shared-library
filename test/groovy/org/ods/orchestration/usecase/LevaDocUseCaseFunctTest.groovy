@@ -73,7 +73,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
 
         when: "the user creates a LeVA document"
-        useCase."create${projectFixture.docType}"()
+        useCase.createDocument("${projectFixture.docType}")
 
         then: "the generated PDF is as expected"
         true // TODO

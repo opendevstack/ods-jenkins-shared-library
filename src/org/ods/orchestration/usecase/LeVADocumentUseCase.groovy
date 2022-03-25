@@ -76,71 +76,34 @@ class LeVADocumentUseCase {
         return DocumentType.values().collect { it as String }
     }
 
-    void createCSD(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.CSD)
+    void createDocument(DocumentType documentType, Map repo = null, Map data = null) {
+
+        Map params
+        if (isDocWithComponentDataParams(documentType)) {
+            params = getComponentDataParams(repo, data)
+        } else {
+            params = getDefaultParams()
+        }
+
+        if (documentType == DocumentType.OVERALL_TIR) {
+            prepareDataForOverAllTir()
+        }
+
+        // WARNING: env -> getEnv -> CPS method
+        String buildNumber = project.steps.env.BUILD_NUMBER as String
+
+        logger.info("create document ${documentType} start ")
+        logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(data))}")
+        createDoc(documentType, buildNumber, params)
+        logger.info("create document ${documentType} end")
     }
 
-    void createDIL(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.DIL)
+    boolean isDocWithComponentDataParams(DocumentType documentType) {
+        return documentType == DocumentType.DTR ||
+            documentType == DocumentType.TIR
     }
 
-    void createDTP(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.DTP)
-    }
-
-    void createRA(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.RA)
-    }
-
-    void createCFTP(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.CFTP)
-    }
-
-    void createIVP(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.IVP)
-    }
-
-    void createSSDS(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.SSDS)
-    }
-
-    void createTCP(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.TCP)
-    }
-
-    void createTIP(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.TIP)
-    }
-
-    void createTRC(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.TRC)
-    }
-
-    void createTCR(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.TCR)
-    }
-
-    void createDTR(Map repo, Map data) {
-        createDocWithComponentDataParams(DocumentType.DTR, repo, data)
-    }
-
-    void createOverallDTR(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.OVERALL_DTR)
-    }
-
-    void createCFTR(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.CFTR)
-    }
-
-    void createIVR(Map repo = null, Map data = null) {
-        createDocWithDefaultParams(DocumentType.IVR)
-    }
-
-    void createTIR(Map repo, Map data) {
-        createDocWithComponentDataParams(DocumentType.TIR, repo, data)
-    }
-
-    void createOverallTIR(Map repo = null, Map data = null) {
+    void prepareDataForOverAllTir() {
         MROPipelineUtil util = project.jiraUseCase?.util
 
         if (util == null) {
@@ -161,29 +124,18 @@ class LeVADocumentUseCase {
                 project.steps.env.BUILD_NUMBER,
                 jenkinsLogZipped)
         }
-        createDocWithDefaultParams(DocumentType.OVERALL_TIR)
     }
 
-    private void createDocWithDefaultParams(DocumentType documentType) {
-        logger.info("create document ${documentType} start ")
-        createDoc(documentType, leVADocumentParamsMapper.build())
-        logger.info("create document ${documentType} end")
+    private Map getDefaultParams() {
+        return leVADocumentParamsMapper.build()
     }
 
-    private void createDocWithComponentDataParams(DocumentType documentType, Map repo, Map testData) {
-        logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(testData))}")
-        createDoc(documentType, leVADocumentParamsMapper.build([tests: testData, repo: repo]))
-        logger.info("create document ${documentType} end")
-    }
-
-    private void createDoc(DocumentType documentType, Map params) {
-        // WARNING: env -> getEnv -> CPS method
-        String buildNumber = project.steps.env.BUILD_NUMBER as String
-        createDocForBuild(documentType, buildNumber, params)
+    private Map getComponentDataParams(Map repo, Map testData) {
+        return leVADocumentParamsMapper.build([tests: testData, repo: repo])
     }
 
     @NonCPS
-    private void createDocForBuild(DocumentType documentType, String buildNumber, Map params) {
+    private void createDoc(DocumentType documentType, String buildNumber, Map params) {
         if (documentType.name().startsWith(OVERALL)){
             docGen.createDocumentOverall(
                 project.getJiraProjectKey(),
