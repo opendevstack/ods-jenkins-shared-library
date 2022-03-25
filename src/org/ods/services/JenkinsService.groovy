@@ -90,7 +90,7 @@ class JenkinsService {
             script.sh(script: "mkdir -p ${folder}", label: "creating folder ${folder}")
         }
         if (! targetFilePath.getParent().toFile().isDirectory()) {
-            throw new Exception("Folder path is not a directory. Folder path: ${folder}")
+            throw new RuntimeException("Folder path is not a directory. Folder path: ${folder}")
         }
 
         FileUtils.copyInputStreamToFile(is, targetFilePath.toFile())
