@@ -12,6 +12,7 @@ import java.lang.Class
 import groovy.grape.*
 
 import java.util.*
+import java.util.logging.*
 import java.util.concurrent.ConcurrentHashMap
 
 import org.ods.util.UnirestConfig
@@ -20,6 +21,15 @@ def call (Map config, Closure stages = null) {
     def debug = config.get('debug', false)
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
+
+
+    Logger lLogger = Logger.getLogger('com.openhtmltopdf.config')
+    Handler[] lhandler = lLogger.getHandlers()
+    logger.debug("${lhandler}")
+    Handler thisH = lHandler.find { handler ->
+        logger.debug("-> ${handler}")
+        handler.class.classloader = this.class.classloader 
+    }
 
     logger.debug("current: ${currentBuild.getRawBuild()} ${currentBuild.getRawBuild().class} " + 
         "${currentBuild.getRawBuild().class.getClassLoader()}")
