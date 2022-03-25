@@ -192,7 +192,7 @@ def call(Map config) {
             Field classCacheF = Class.forName('org.codehaus.groovy.ast.ClassHelper$ClassHelperCache').getDeclaredField("classCache");
             classCacheF.setAccessible(true);
             Object classCache = classCacheF.get(null);
-            logger.debug("UrlCL classes: ${classV}")
+            logger.debug("UrlCL classes: ${classes.get(classloader)}")
             while (classV.hasNext()) {
                 Class clazz = (Class)classV.next()
                 // remove from ClassHelper$ClassHelperCache
