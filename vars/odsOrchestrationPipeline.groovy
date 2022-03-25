@@ -250,6 +250,9 @@ def call(Map config) {
             logger.debug("could not clean ThreadGroupContext: ${e}")
         }
 
+        logger.debug("Removing logger ...")
+        removeLogger ()
+
         // use the jenkins INTERNAL cleanupHeap method - attention NOTHING can happen after this method!
         try {
             logger.debug("forceClean via jenkins internals....")
@@ -261,6 +264,23 @@ def call(Map config) {
             logger.debug("cleanupHeap err: ${e}")
         }
         classloader.close()
+    }
+}
+
+@NonCPS
+void removeLogger () {
+    java.util.logging.Logger lLogger = 
+        java.util.logging.Logger.getLogger('com.openhtmltopdf.config')
+    java.util.logging.Handler[] lhandlers = lLogger.getHandlers()
+    java.util.logging.Handler thisH = lhandlers.find { handler ->
+        System.out.println("-> handler: " + handler.getFormatter() + 
+            " -cl: " + handler.getFormatter().class.getClassLoader() + 
+            " -this cl: " + this.class.getClassLoader())
+        handler.getFormatter().class.getClassLoader() == this.class.getClassLoader()
+    }
+    if (thisH) {
+        System.out.println("-> removed: " + thisH)
+        lLogger.removeHandler(thisH)
     }
 }
 
