@@ -110,7 +110,7 @@ def call (Map config, Closure stages = null) {
                 return; 
             } 
             
-            Method contextMethod = threadGroupContextClass.getClass().getMethod("getContext")
+            Method contextMethod = threadGroupContextClass.getMethod("getContext")
             contextMethod.setAccessible(true)
             Object context = contextMethod.invoke(null, null);
 
