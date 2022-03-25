@@ -206,7 +206,7 @@ def call(Map config) {
         }
 
         try {
-            logger.debug("starting type-resolver cleanup")
+            logger.debug("starting type-resolver (full) cleanup")
             // https://github.com/mjiderhamn/classloader-leak-prevention/issues/125
             final Class<?> typeResolverClass = 
                 this.class.getClassLoader().loadClass('com.sun.beans.TypeResolver');
@@ -215,18 +215,17 @@ def call(Map config) {
                 logger.debug('could not find typresolver class')
                 return; 
             } 
-            
+
             Field modifiersField2 = Field.class.getDeclaredField("modifiers");
             modifiersField2.setAccessible(true);
             
-            Field localCaches = cacheClass2.getDeclaredField("CACHE")
+            Field localCaches = typeResolverClass.getDeclaredField("CACHE")
             localCaches.setAccessible(true)
             modifiersField2.setInt(localCaches, localCaches.getModifiers() & ~Modifier.FINAL);
 
             WeakCache wCache = localCaches.get(null)
             wCache.clear()
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.debug("could not clean type-resolver: ${e}")
         }
 
