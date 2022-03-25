@@ -110,11 +110,13 @@ def call (Map config, Closure stages = null) {
                 return; 
             } 
             
-            Method contextMethod = threadGroupContextClass.getMethod("getContext")
+            Method contextMethod = threadGroupContextClass.getDeclaredMethod("getContext")
+            logger.debug("context: ${contextMethod}")
             contextMethod.setAccessible(true)
             Object context = contextMethod.invoke(null, null);
+            logger.debug("context: ${context}")
 
-            Method clearCacheMethod = context.getClass().getMethod("clearBeanInfoCache")
+            Method clearCacheMethod = context.getClass().getDeclaredMethod("clearBeanInfoCache")
             clearCacheMethod.setAccessible(true)
             clearCacheMethod.invoke(null, null);
         } catch (Exception e) {
