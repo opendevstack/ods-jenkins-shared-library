@@ -28,8 +28,8 @@ def call (Map config, Closure stages = null) {
     java.util.logging.Handler[] lhandlers = lLogger.getHandlers()
     logger.debug("${lhandlers}")
     java.util.logging.Handler thisH = lhandlers.find { handler ->
-        logger.debug("-> ${handler}, ${handler.class.getClassLoader()}, ${this.class.getClassLoader()}")
-        handler.class.getClassLoader() == this.class.getClassLoader()
+        logger.debug("-> ${handler}, ${handler.getFormatter().class.getClassLoader()}, ${this.class.getClassLoader()}")
+        handler.getFormatter().class.getClassLoader() == this.class.getClassLoader()
     }
     if (thisH) {
         lLogger.removeHandler(thisH)
