@@ -22,19 +22,6 @@ def call (Map config, Closure stages = null) {
     ServiceRegistry.instance.add(Logger, new Logger(this, debug))
     ILogger logger = ServiceRegistry.instance.get(Logger)
 
-
-    java.util.logging.Logger lLogger = 
-        java.util.logging.Logger.getLogger('com.openhtmltopdf.config')
-    java.util.logging.Handler[] lhandlers = lLogger.getHandlers()
-    logger.debug("${lhandlers}")
-    java.util.logging.Handler thisH = lhandlers.find { handler ->
-        logger.debug("-> ${handler}, ${handler.getFormatter().class.getClassLoader()}, ${this.class.getClassLoader()}")
-        handler.getFormatter().class.getClassLoader() == this.class.getClassLoader()
-    }
-    if (thisH) {
-        lLogger.removeHandler(thisH)
-    }
-
     logger.debug("current: ${currentBuild.getRawBuild()} ${currentBuild.getRawBuild().class} " + 
         "${currentBuild.getRawBuild().class.getClassLoader()}")
 
@@ -113,6 +100,8 @@ def call (Map config, Closure stages = null) {
             logger.debug("cleanupJunk err: ${e}")
         }
 
+        logger.debug("removing logger")
+        removeLogger()
         try {
             logger.debug("starting ThreadGroupContext cleanup")
             final Class<?> threadGroupContextClass = 
@@ -173,6 +162,21 @@ def call (Map config, Closure stages = null) {
             logger.debug("${e}")
         }
 */
+    }
+}
+
+@NonCPS
+void removeLogger () {
+    java.util.logging.Logger lLogger = 
+        java.util.logging.Logger.getLogger('com.openhtmltopdf.config')
+    java.util.logging.Handler[] lhandlers = lLogger.getHandlers()
+    java.util.logging.Handler thisH = lhandlers.find { handler ->
+        System.out.println("- " + handler.getFormatter().class.getClassLoader() + 
+            " - " + this.class.getClassLoader())
+        handler.getFormatter().class.getClassLoader() == this.class.getClassLoader()
+    }
+    if (thisH) {
+        lLogger.removeHandler(thisH)
     }
 }
 
