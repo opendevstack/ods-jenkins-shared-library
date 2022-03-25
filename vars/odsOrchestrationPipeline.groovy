@@ -232,20 +232,20 @@ def call(Map config) {
         try {
             logger.debug("starting ThreadGroupContext cleanup")
             final Class<?> threadGroupContextClass = 
-                this.class.getClassLoader().loadClass('java.lang.ThreadGroupContext');
+                this.class.getClassLoader().loadClass('java.beans.ThreadGroupContext');
 
             if (threadGroupContextClass == null) { 
                 logger.debug('could not find threadGroupContextClass class')
                 return; 
             } 
             
-            Method contextMethod = threadGroupContextClass.getClass().getMethod("getContext")
+            Method contextMethod = threadGroupContextClass.getDeclaredMethod("getContext")
             contextMethod.setAccessible(true)
             Object context = contextMethod.invoke(null, null);
 
-            Method clearCacheMethod = context.getClass().getMethod("clearBeanInfoCache")
+            Method clearCacheMethod = context.getClass().getDeclaredMethod("clearBeanInfoCache")
             clearCacheMethod.setAccessible(true)
-            clearCacheMethod.invoke(null, null);
+            clearCacheMethod.invoke(context, null);
         } catch (Exception e) {
             logger.debug("could not clean ThreadGroupContext: ${e}")
         }
