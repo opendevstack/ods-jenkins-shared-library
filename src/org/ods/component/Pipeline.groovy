@@ -211,6 +211,7 @@ class Pipeline implements Serializable {
                 containers: config.podContainers,
                 volumes: config.podVolumes,
                 serviceAccount: config.podServiceAccount,
+                annotations: config.annotations,
                 slaveConnectTimeout: 240, // in seconds
             ) {
                 script.node(config.podLabel) {
@@ -394,6 +395,9 @@ class Pipeline implements Serializable {
         }
         if (!config.containsKey('podLabel')) {
             config.podLabel = "pod-${UUID.randomUUID().toString()}"
+        }
+        if (!config.annotations) {
+            config.annotations = [script.podAnnotation(key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false')]
         }
     }
 
