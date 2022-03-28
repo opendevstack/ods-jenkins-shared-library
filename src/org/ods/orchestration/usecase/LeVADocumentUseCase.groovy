@@ -42,6 +42,16 @@ class LeVADocumentUseCase {
         OVERALL_IVR,
         OVERALL_TIR
 
+
+        static DocumentType getDocumentType(String docTypeName) {
+            for (DocumentType value : DocumentType.values()) {
+                System.out.println(value.name())
+                if (value.name().equalsIgnoreCase(docTypeName)) {
+                    return value
+                }
+            }
+            return null
+        }
     }
 
     private static final String BUILD_FOLDER = 'build'
@@ -102,12 +112,11 @@ class LeVADocumentUseCase {
     }
 
     private DocumentType getDocumentType(String docType) {
-        LeVADocumentUseCase.DocumentType.values().each { value ->
-            if (value.toString().equalsIgnoreCase(docType)) {
-                return value
-            }
+        DocumentType documentType = DocumentType.getDocumentType(docType)
+        if (documentType == null) {
+            throw new RuntimeException("Received a docType value not recognized: ${docType}")
         }
-        throw new RuntimeException("Received a docType value not recognized: ${docType}")
+        return documentType
     }
 
     boolean isDocWithComponentDataParams(DocumentType documentType) {
