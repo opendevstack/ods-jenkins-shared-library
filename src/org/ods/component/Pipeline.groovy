@@ -397,7 +397,11 @@ class Pipeline implements Serializable {
             config.podLabel = "pod-${UUID.randomUUID().toString()}"
         }
         if (!config.annotations) {
-            config.annotations = [script.podAnnotation(key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false')]
+            config.annotations = [
+                script.podAnnotation(
+                    key: 'cluster-autoscaler.kubernetes.io/safe-to-evict', value: 'false'
+                    )
+                ]
         }
     }
 
