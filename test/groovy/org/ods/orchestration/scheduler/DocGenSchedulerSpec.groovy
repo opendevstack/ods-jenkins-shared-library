@@ -25,12 +25,16 @@ class DocGenSchedulerSpec extends SpecHelper {
             super(project, null, null, null, null, log as ILogger)
         }
 
-        void createA() {}
-        void createB(Map repo) {}
-        void createC(Map repo, Map data) {}
-
         List<String> getSupportedDocuments() {
             return ["A", "B", "C"]
+        }
+
+        void createDocument(String docType, Map repo = null, Map data = null) {
+            if ((docType != "A") &&
+                (docType != "B") &&
+                (docType != "C")) {
+                throw new RuntimeException("Unsupported document: ${docType}")
+            }
         }
 
         String getDocumentTemplatesVersion() {
@@ -56,7 +60,40 @@ class DocGenSchedulerSpec extends SpecHelper {
         }
     }
 
-    def "run"() {
+    def "run with repo and data null"() {
+        given:
+        MROPipelineUtil util = Mock(MROPipelineUtil)
+        JiraUseCase jiraUseCase = Mock(JiraUseCase)
+        // Spy(new JiraUseCase(null, null, util, null, log))
+        def project = createProject(jiraUseCase)
+
+        def steps = Spy(util.PipelineSteps)
+        def usecase = Spy(new DocGenUseCaseImpl(project))
+        def scheduler = Spy(new DocGenSchedulerImpl(project, steps, util, usecase))
+
+        // Test Parameters
+        def phase = "myPhase"
+
+        when:
+        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
+
+        then:
+        1 * usecase.getSupportedDocuments()
+
+        then:
+        1 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * usecase.createDocument("A", null, null)
+
+        then:
+        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * usecase.createDocument("B", null, null)
+
+        then:
+        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
+        1 * usecase.createDocument("C", null, null)
+    }
+
+    def "run with repo, not data"() {
         given:
         MROPipelineUtil util = Mock(MROPipelineUtil)
         JiraUseCase jiraUseCase = Mock(JiraUseCase)
@@ -70,25 +107,6 @@ class DocGenSchedulerSpec extends SpecHelper {
         // Test Parameters
         def phase = "myPhase"
         def repo = project.repositories.first()
-        def data = [ a: 1, b: 2, c: 3 ]
-
-        when:
-        scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
-
-        then:
-        1 * usecase.getSupportedDocuments()
-
-        then:
-        1 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
-        1 * usecase.createA()
-
-        then:
-        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
-        1 * usecase.createB(null)
-
-        then:
-        1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, null)
-        1 * usecase.createC(null,  null)
 
         when:
         scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
@@ -97,16 +115,33 @@ class DocGenSchedulerSpec extends SpecHelper {
         1 * usecase.getSupportedDocuments()
 
         then:
-        0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
-        0 * usecase.createA()
+        0 * scheduler.isDocumentApplicable('A', phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        0 * usecase.createDocument('A', repo, _)
 
         then:
-        1 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
-        1 * usecase.createB(repo)
+        1 * scheduler.isDocumentApplicable('B', phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
+        1 * usecase.createDocument('B', repo, _)
 
         then:
         1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
-        1 * usecase.createC(repo,  null)
+        1 * usecase.createDocument('C', repo, _)
+    }
+
+    def "run with repo and data"() {
+        given:
+        MROPipelineUtil util = Mock(MROPipelineUtil)
+        JiraUseCase jiraUseCase = Mock(JiraUseCase)
+        // Spy(new JiraUseCase(null, null, util, null, log))
+        def project = createProject(jiraUseCase)
+
+        def steps = Spy(util.PipelineSteps)
+        def usecase = Spy(new DocGenUseCaseImpl(project))
+        def scheduler = Spy(new DocGenSchedulerImpl(project, steps, util, usecase))
+
+        // Test Parameters
+        def phase = "myPhase"
+        def repo = project.repositories.first()
+        def data = [a: 1, b: 2, c: 3]
 
         when:
         scheduler.run(phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo, data)
@@ -116,14 +151,14 @@ class DocGenSchedulerSpec extends SpecHelper {
 
         then:
         0 * scheduler.isDocumentApplicable("A", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
-        0 * usecase.createA()
+        0 * usecase.createDocument("A", repo, data)
 
         then:
         0 * scheduler.isDocumentApplicable("B", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
-        0 * usecase.createB(repo)
+        0 * usecase.createDocument("B", repo, data)
 
         then:
         1 * scheduler.isDocumentApplicable("C", phase, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, repo)
-        1 * usecase.createC(repo,  data)
+        1 * usecase.createDocument("C", repo, data)
     }
 }

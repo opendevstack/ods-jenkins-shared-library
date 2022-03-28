@@ -2,6 +2,7 @@ package org.ods.core.test.usecase.levadoc.fixture
 
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
+import org.ods.orchestration.usecase.LeVADocumentUseCase
 
 @ToString(includePackage = false, includeNames=true, ignoreNulls = true)
 @Builder

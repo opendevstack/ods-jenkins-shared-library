@@ -76,8 +76,11 @@ class LeVADocumentUseCase {
         return DocumentType.values().collect { it as String }
     }
 
-    void createDocument(DocumentType documentType, Map repo = null, Map data = null) {
+    void createDocument(String docType, Map repo = null, Map data = null) {
 
+        logger.info("create document ${docType} start ")
+
+        DocumentType documentType = getDocumentType(docType)
         Map params
         if (isDocWithComponentDataParams(documentType)) {
             params = getComponentDataParams(repo, data)
@@ -92,10 +95,19 @@ class LeVADocumentUseCase {
         // WARNING: env -> getEnv -> CPS method
         String buildNumber = project.steps.env.BUILD_NUMBER as String
 
-        logger.info("create document ${documentType} start ")
+
         logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(data))}")
         createDoc(documentType, buildNumber, params)
-        logger.info("create document ${documentType} end")
+        logger.info("create document ${docType} end")
+    }
+
+    private DocumentType getDocumentType(String docType) {
+        LeVADocumentUseCase.DocumentType.values().each { value ->
+            if (value.toString().equalsIgnoreCase(docType)) {
+                return value
+            }
+        }
+        throw new RuntimeException("Received a docType value not recognized: ${docType}")
     }
 
     boolean isDocWithComponentDataParams(DocumentType documentType) {
