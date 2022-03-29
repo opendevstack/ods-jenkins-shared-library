@@ -95,11 +95,12 @@ class LeVADocumentUseCase {
         logger.info("create document ${docType} start ")
 
         DocumentType documentType = getDocumentType(docType)
-        Map<String, Map<String, ?>> params = getParams(documentType, repo, data)
 
         if (documentType.isOverallTIR() && StringUtils.isEmpty(project.data.jenkinLog)) {
             project.data.jenkinLog = uploadJenkinsJobLogToNexus()
         }
+
+        Map<String, Map<String, ?>> params = getParams(documentType, repo, data)
 
         // WARNING: env -> getEnv -> CPS method
         String buildNumber = project.steps.env.BUILD_NUMBER as String
@@ -131,10 +132,10 @@ class LeVADocumentUseCase {
 
     private Map<String, Map<String, ?>> getParams(DocumentType documentType, Map repo, Map data) {
         if (documentType.isDTR() || documentType.isTIR()) {
-            return getComponentDataParams(repo, data)
+            return leVADocumentParamsMapper.build([tests: data, repo: repo])
         }
 
-        return getDefaultParams()
+        return leVADocumentParamsMapper.build()
     }
 
     private DocumentType getDocumentType(String docType) {
@@ -161,13 +162,5 @@ class LeVADocumentUseCase {
 
         // project.steps.archiveArtifacts(workspacePath)
         return nexus.uploadJenkinsJobLog(project.getJiraProjectKey(), project.steps.env.BUILD_NUMBER, jenkinsLogZipped)
-    }
-
-    private Map getDefaultParams() {
-        return leVADocumentParamsMapper.build()
-    }
-
-    private Map getComponentDataParams(Map repo, Map testData) {
-        return leVADocumentParamsMapper.build([tests: testData, repo: repo])
     }
 }
