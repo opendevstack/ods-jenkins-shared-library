@@ -42,9 +42,6 @@ class LeVADocumentUseCase {
         OVERALL_IVR,
         OVERALL_TIR
 
-        boolean isOverall() {
-            this.name().startsWith(OVERALL)
-        }
 
         boolean isTIR() {
             this == DocumentType.TIR
@@ -112,7 +109,7 @@ class LeVADocumentUseCase {
 
     @NonCPS
     private void createDoc(DocumentType documentType, String buildNumber, Map params) {
-        if (documentType.isOverall()){
+        if (documentType.name().startsWith(OVERALL)){
             docGen.createDocumentOverall(
                 project.getJiraProjectKey(),
                 buildNumber,
