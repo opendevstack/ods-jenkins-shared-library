@@ -49,7 +49,9 @@ class InitStage extends Stage {
         def gitReleaseBranch = GitService.getReleaseBranch(buildParams.version)
         def gitReleaseManagerBranch
 
-        if (!Project.isWorkInProgress(buildParams.version)) {
+        if (Project.isWorkInProgress(buildParams.version)) {
+            gitReleaseManagerBranch = git.getCurrentBranchName()
+        } else {
             if (Project.isPromotionMode(buildParams.targetEnvironmentToken)) {
                 def tagList = git.readBaseTagList(
                     buildParams.version,
@@ -89,6 +91,7 @@ class InitStage extends Stage {
                 }
             }
         }
+
         logger.debugClocked("git-releasemanager-${STAGE_NAME}")
 
         logger.debug 'Load build params and metadata file information'
