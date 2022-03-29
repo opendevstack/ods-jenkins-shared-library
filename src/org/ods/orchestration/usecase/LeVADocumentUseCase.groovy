@@ -42,14 +42,20 @@ class LeVADocumentUseCase {
         OVERALL_IVR,
         OVERALL_TIR
 
+        boolean isOverall() {
+            this.name().startsWith(OVERALL)
+        }
 
-        static DocumentType getDocumentType(String docTypeName) {
-            for (DocumentType value : DocumentType.values()) {
-                if (value.name().equalsIgnoreCase(docTypeName)) {
-                    return value
-                }
-            }
-            return null
+        boolean isTIR() {
+            this == DocumentType.TIR
+        }
+
+        boolean isDTR() {
+            this == DocumentType.DTR
+        }
+
+        boolean isOverallTIR() {
+            this == DocumentType.OVERALL_TIR
         }
     }
 
@@ -86,77 +92,26 @@ class LeVADocumentUseCase {
     }
 
     void createDocument(String docType, Map repo = null, Map data = null) {
-
         logger.info("create document ${docType} start ")
 
         DocumentType documentType = getDocumentType(docType)
-        Map params
-        if (isDocWithComponentDataParams(documentType)) {
-            params = getComponentDataParams(repo, data)
-        } else {
-            params = getDefaultParams()
-        }
+        Map<String, Map<String, ?>> params = getParams(documentType, repo, data)
 
-        if (documentType == DocumentType.OVERALL_TIR) {
-            prepareDataForOverAllTir()
+        if (documentType.isOverallTIR() && StringUtils.isEmpty(project.data.jenkinLog)) {
+            project.data.jenkinLog = uploadJenkinsJobLogToNexus()
         }
 
         // WARNING: env -> getEnv -> CPS method
         String buildNumber = project.steps.env.BUILD_NUMBER as String
-
 
         logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(data))}")
         createDoc(documentType, buildNumber, params)
         logger.info("create document ${docType} end")
     }
 
-    private DocumentType getDocumentType(String docType) {
-        DocumentType documentType = DocumentType.getDocumentType(docType)
-        if (documentType == null) {
-            throw new RuntimeException("Received a docType value not recognized: ${docType}")
-        }
-        return documentType
-    }
-
-    boolean isDocWithComponentDataParams(DocumentType documentType) {
-        return documentType == DocumentType.DTR ||
-            documentType == DocumentType.TIR
-    }
-
-    void prepareDataForOverAllTir() {
-        MROPipelineUtil util = project.jiraUseCase?.util
-
-        if (util == null) {
-            String warnMsg = "JiraUseCase does not have util (MROPipelineUtil) "
-            logger.warn(warnMsg)
-            throw new RuntimeException(warnMsg)
-        }
-
-        if (StringUtils.isEmpty(project.data.jenkinLog)) {
-            Path jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
-            logger.info("Stored jenkins log file in file ${jenkinsLogFilePath.toString()}")
-            Path jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as Path[])
-            logger.info("Stored zipped jenkins log file in file ${jenkinsLogZipped.toString()}")
-
-            // project.steps.archiveArtifacts(workspacePath)
-            project.data.jenkinLog = nexus.uploadJenkinsJobLog(
-                project.getJiraProjectKey(),
-                project.steps.env.BUILD_NUMBER,
-                jenkinsLogZipped)
-        }
-    }
-
-    private Map getDefaultParams() {
-        return leVADocumentParamsMapper.build()
-    }
-
-    private Map getComponentDataParams(Map repo, Map testData) {
-        return leVADocumentParamsMapper.build([tests: testData, repo: repo])
-    }
-
     @NonCPS
     private void createDoc(DocumentType documentType, String buildNumber, Map params) {
-        if (documentType.name().startsWith(OVERALL)){
+        if (documentType.isOverall()){
             docGen.createDocumentOverall(
                 project.getJiraProjectKey(),
                 buildNumber,
@@ -172,7 +127,47 @@ class LeVADocumentUseCase {
                 project.setHistoryForDocument(docHistoryList, documentType.name())
             }
         }
-
     }
 
+    private Map<String, Map<String, ?>> getParams(DocumentType documentType, Map repo, Map data) {
+        if (documentType.isDTR() || documentType.isTIR()) {
+            return getComponentDataParams(repo, data)
+        }
+
+        return getDefaultParams()
+    }
+
+    private DocumentType getDocumentType(String docType) {
+        DocumentType documentType = DocumentType.valueOf(docType)
+        if (documentType == null) {
+            throw new RuntimeException("Received a docType value not recognized: ${docType}")
+        }
+        return documentType
+    }
+
+    private String uploadJenkinsJobLogToNexus() {
+        MROPipelineUtil util = project.jiraUseCase?.util
+
+        if (util == null) {
+            String warnMsg = "JiraUseCase does not have util (MROPipelineUtil) "
+            logger.warn(warnMsg)
+            throw new RuntimeException(warnMsg)
+        }
+
+        Path jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
+        logger.info("Stored jenkins log file in file ${jenkinsLogFilePath.toString()}")
+        Path jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as Path[])
+        logger.info("Stored zipped jenkins log file in file ${jenkinsLogZipped.toString()}")
+
+        // project.steps.archiveArtifacts(workspacePath)
+        return nexus.uploadJenkinsJobLog(project.getJiraProjectKey(), project.steps.env.BUILD_NUMBER, jenkinsLogZipped)
+    }
+
+    private Map getDefaultParams() {
+        return leVADocumentParamsMapper.build()
+    }
+
+    private Map getComponentDataParams(Map repo, Map testData) {
+        return leVADocumentParamsMapper.build([tests: testData, repo: repo])
+    }
 }
