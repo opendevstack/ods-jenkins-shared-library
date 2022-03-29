@@ -45,7 +45,6 @@ class LeVADocumentUseCase {
 
         static DocumentType getDocumentType(String docTypeName) {
             for (DocumentType value : DocumentType.values()) {
-                System.out.println(value.name())
                 if (value.name().equalsIgnoreCase(docTypeName)) {
                     return value
                 }
