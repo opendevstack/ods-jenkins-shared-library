@@ -331,8 +331,13 @@ class Project {
             author: git.getCommitAuthor(),
             message: git.getCommitMessage(),
             time: git.getCommitTime(),
+            releaseManagerRepo: getRepoName(git.getOriginUrl()),
         ]
         this.logger.debug "Using release manager commit: ${this.data.git.commit}"
+    }
+
+    String getRepoName(String url) {
+        return Paths.get(url).toFile().getName()
     }
 
     Project load(GitService git, JiraUseCase jiraUseCase) {

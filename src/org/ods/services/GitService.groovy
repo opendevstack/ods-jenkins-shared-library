@@ -343,6 +343,14 @@ class GitService {
         )
     }
 
+    String getCurrentBranchName() {
+        return script.sh(
+            script: "git branch --show-current",
+            label: "get current branch name",
+            returnStdout: true,
+        ).trim()
+    }
+
     String readBaseTagList(String version, String changeId, String envToken) {
         def previousEnvToken = 'D'
         if (envToken == 'P') {
