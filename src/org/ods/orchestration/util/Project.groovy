@@ -337,7 +337,9 @@ class Project {
     }
 
     String getRepoName(String url) {
-        return Paths.get(url).toFile().getName()
+        String repoName = Paths.get(url).toFile().getName()
+        int index = repoName.indexOf(".git")
+        return repoName.substring(0, index)
     }
 
     Project load(GitService git, JiraUseCase jiraUseCase) {
