@@ -1,5 +1,6 @@
 package org.ods.core.test.usecase.levadoc.fixture
 
+
 import org.yaml.snakeyaml.Yaml
 
 abstract class DocTypeProjectFixtureBase {
@@ -13,7 +14,7 @@ abstract class DocTypeProjectFixtureBase {
 
     protected final List docTypes
 
-    DocTypeProjectFixtureBase(docTypes){
+    DocTypeProjectFixtureBase(List<String> docTypes){
         this.docTypes = docTypes
     }
 
@@ -45,4 +46,5 @@ abstract class DocTypeProjectFixtureBase {
     }
 
     abstract addDocTypes(Map project, List projects)
+
 }

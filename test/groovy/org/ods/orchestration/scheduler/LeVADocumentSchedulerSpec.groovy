@@ -23,13 +23,13 @@ import util.*
 @Slf4j
 class LeVADocumentSchedulerSpec extends SpecHelper {
 
-    static def PROJECT_GAMP_1
-    static def PROJECT_GAMP_3
-    static def PROJECT_GAMP_3_ODS_SAAS
-    static def PROJECT_GAMP_4
-    static def PROJECT_GAMP_5
-    static def PROJECT_GAMP_5_WITHOUT_JIRA
-    static def PROJECT_GAMP_5_WITHOUT_REPOS
+    static Project PROJECT_GAMP_1
+    static Project PROJECT_GAMP_3
+    static Project PROJECT_GAMP_3_ODS_SAAS
+    static Project PROJECT_GAMP_4
+    static Project PROJECT_GAMP_5
+    static Project PROJECT_GAMP_5_WITHOUT_JIRA
+    static Project PROJECT_GAMP_5_WITHOUT_REPOS
 
     static def REPO_ODS_CODE
     static def REPO_ODS_SERVICE
@@ -5784,38 +5784,20 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
         project.buildParams.version = "WIP"
 
+        ILogger logger = new LoggerStub(log)
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
+
         def nexus = Mock(NexusService)
         def git = Mock(GitService)
-        def logger = Mock(Logger)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
+        def useCase = Spy(new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger))
 
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
-
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
-
-        def usecase = Mock(LeVADocumentUseCase) {
-            getMetaClass() >> {
-                return usecaseObj.getMetaClass()
-            }
-
-            getSupportedDocuments() >> {
-                return usecaseObj.getSupportedDocuments()
-            }
-        }
-
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, useCase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -5824,52 +5806,52 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument('CSD', null, null)
+        0 * useCase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createTIP", [null, null] as Object[])
-        1 * usecase.invokeMethod("createSSDS", [null, null] as Object[])
+        1 * useCase.createDocument("TIP", null, null)
+        1 * useCase.createDocument("SSDS", null, null)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument("TIR", REPO_ODS_CODE, null)
+        0 * useCase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument("TIR", REPO_ODS_SERVICE, null)
+        0 * useCase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
-        1 * usecase.invokeMethod('createRA', [null, null] as Object[])
+        1 * useCase.createDocument("IVP", null, null)
+        1 * useCase.createDocument('RA', null, null)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
+        1 * useCase.createDocument("CFTR", [:], data)
+        1 * useCase.createDocument("IVR", [:], data)
+        1 * useCase.createDocument("TCR", [:], data)
+        1 * useCase.createDocument("DIL", [:], data)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createOverallTIR", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument("OVERALL_TIR", null, null)
+        0 * useCase.createDocument(*_)
     }
 
     def "run for GAMP category 1 in DEV"() {
@@ -5880,9 +5862,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -5894,29 +5877,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
+        def useCase = Spy(new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger))
 
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
-
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
-
-        def usecase = Mock(LeVADocumentUseCase) {
-            getMetaClass() >> {
-                return usecaseObj.getMetaClass()
-            }
-
-            getSupportedDocuments() >> {
-                return usecaseObj.getSupportedDocuments()
-            }
-        }
-
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, useCase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -5925,35 +5888,35 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument('CSD', null, null)
+        0 * useCase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument("TIR", REPO_ODS_CODE, null)
+        0 * useCase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument("TIR", REPO_ODS_SERVICE, null)
+        0 * useCase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * useCase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createOverallTIR", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * useCase.createDocument('OVERALL_TIR', null, null)
+        0 * useCase.createDocument(*_)
     }
 
     def "run for GAMP category 3 in DEV with Developer Preview Mode"() {
@@ -5964,9 +5927,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -5977,15 +5941,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -5999,7 +5954,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6008,18 +5963,18 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('CSD', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument("IVR", [:], data)
+        1 * usecase.createDocument("TCR", [:], data)
+        1 * usecase.createDocument("DIL", [:], data)
+        1 * usecase.createDocument("CFTR", [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 3 in DEV"() {
@@ -6030,9 +5985,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6043,15 +5999,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6065,7 +6012,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6074,14 +6021,14 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('CSD', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 4 in DEV"() {
@@ -6092,9 +6039,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6107,15 +6055,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
-
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
@@ -6126,15 +6065,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             getSupportedDocuments() >> {
                 return usecaseObj.getSupportedDocuments()
             }
-
-            invokeMethod(_, _) >> { method, args ->
-                if (method.startsWith("create")) {
-                    return "http://nexus"
-                }
-            }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6143,8 +6076,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('CSD', null, null)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 4 in DEV with Developer Preview Mode"() {
@@ -6155,9 +6088,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6169,15 +6103,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
-
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
@@ -6188,15 +6113,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             getSupportedDocuments() >> {
                 return usecaseObj.getSupportedDocuments()
             }
-
-            invokeMethod(_, _) >> { method, args ->
-                if (method.startsWith("create")) {
-                    return "http://nexus"
-                }
-            }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6205,32 +6124,32 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('CSD', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createCFTP", [null, null] as Object[])
-        1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
-        1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
-        1 * usecase.invokeMethod("createRA", [null, null] as Object[])
-        1 * usecase.invokeMethod('createTIP', [null, null] as Object[])
-        1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
-        1 * usecase.invokeMethod("createSSDS", [null, null] as Object[])
+        1 * usecase.createDocument('CFTP', null, null)
+        1 * usecase.createDocument('IVP', null, null)
+        1 * usecase.createDocument('TCP', null, null)
+        1 * usecase.createDocument('RA', null, null)
+        1 * usecase.createDocument('TIP', null, null)
+        1 * usecase.createDocument('TRC', null, null)
+        1 * usecase.createDocument('SSDS', null, null)
 
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('CFTR', [:], data)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        1 * usecase.createDocument('TCR', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 5 in DEV"() {
@@ -6241,9 +6160,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "v1.0"
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6255,14 +6175,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6276,7 +6188,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6285,68 +6197,68 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('CSD', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createDTP", [null, null] as Object[])
-        1 * usecase.invokeMethod('createRA', [null, null] as Object[])
-        1 * usecase.invokeMethod('createCFTP', [null, null] as Object[])
-        1 * usecase.invokeMethod("createIVP", [null, null] as Object[])
-        1 * usecase.invokeMethod("createTCP", [null, null] as Object[])
-        1 * usecase.invokeMethod('createTIP', [null, null] as Object[])
-        1 * usecase.invokeMethod('createSSDS', [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('DTP', null, null)
+        1 * usecase.createDocument('RA', null, null)
+        1 * usecase.createDocument('CFTP', null, null)
+        1 * usecase.createDocument('IVP', null, null)
+        1 * usecase.createDocument('TCP', null, null)
+        1 * usecase.createDocument('TIP', null, null)
+        1 * usecase.createDocument('SSDS', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod('createOverallDTR', [null, null])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('OVERALL_DTR', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE, data)
 
         then:
-        1 * usecase.invokeMethod("createDTR", [REPO_ODS_CODE, data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('DTR', REPO_ODS_CODE, data)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, REPO_ODS_CODE)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, REPO_ODS_TEST)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_CODE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_SERVICE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createOverallTIR", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('OVERALL_TIR', null, null)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 5 in DEV with Developer Preview Mode"() {
@@ -6357,9 +6269,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6370,15 +6283,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6392,7 +6296,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6401,86 +6305,86 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.INIT, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createCSD", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('CSD', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        1 * usecase.invokeMethod("createDTP", [null, null] as Object[])
-        1 * usecase.invokeMethod('createRA', [null, null] as Object[])
-        1 * usecase.invokeMethod("createTIP", [null, null] as Object[])
-        1 * usecase.invokeMethod('createCFTP', [null, null] as Object[])
-        1 * usecase.invokeMethod('createIVP', [null, null] as Object[])
-        1 * usecase.invokeMethod('createTCP', [null, null] as Object[])
-        1 * usecase.invokeMethod("createTRC", [null, null] as Object[])
-        1 * usecase.invokeMethod("createSSDS", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('DTP', null, null)
+        1 * usecase.createDocument('RA', null, null)
+        1 * usecase.createDocument('TIP', null, null)
+        1 * usecase.createDocument('CFTP', null, null)
+        1 * usecase.createDocument('IVP', null, null)
+        1 * usecase.createDocument('TCP', null, null)
+        1 * usecase.createDocument('TRC', null, null)
+        1 * usecase.createDocument('SSDS', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createOverallDTR", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('OVERALL_DTR', null, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE, data)
 
         then:
-        1 * usecase.invokeMethod("createDTR", [REPO_ODS_CODE, data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('DTR', REPO_ODS_CODE, data)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, REPO_ODS_CODE)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.BUILD, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, REPO_ODS_TEST)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
 
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_CODE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_SERVICE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('DIL', [:], data)
+        1 * usecase.createDocument('CFTR', [:], data)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('TCR', [:], data)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.FINALIZE, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END)
 
         then:
-        1 * usecase.invokeMethod("createOverallTIR", [null, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('OVERALL_TIR', null, null)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 1 in QA"() {
@@ -6490,9 +6394,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6503,15 +6408,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6525,7 +6421,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6534,37 +6430,37 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_CODE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_SERVICE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('CFTR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        1 * usecase.createDocument('TCR', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 3 in QA"() {
@@ -6574,9 +6470,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6587,15 +6484,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6609,7 +6497,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6618,17 +6506,17 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        1 * usecase.createDocument('TCR', [:], data)
+        1 * usecase.createDocument('CFTR', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 4 in QA"() {
@@ -6638,9 +6526,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6651,15 +6540,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6673,7 +6553,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6682,17 +6562,17 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        1 * usecase.createDocument('CFTR', [:], data)
+        1 * usecase.createDocument('TCR', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 5 in QA"() {
@@ -6702,9 +6582,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6715,15 +6596,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6737,7 +6609,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6746,37 +6618,37 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_CODE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_SERVICE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_START)
 
         then:
-        0 * usecase.invokeMethod(*_)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createCFTR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createTCR", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        1 * usecase.createDocument('CFTR', [:], data)
+        1 * usecase.createDocument('TCR', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 1 in PROD"() {
@@ -6786,9 +6658,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6799,15 +6672,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6821,7 +6685,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6830,23 +6694,23 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_CODE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_SERVICE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 3 in PROD"() {
@@ -6856,9 +6720,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6869,15 +6734,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6891,7 +6747,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6900,7 +6756,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
+        1 * usecase.createDocument('IVR', [:], data)
     }
 
     def "run for GAMP category 4 in PROD"() {
@@ -6910,9 +6766,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6923,15 +6780,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -6945,7 +6793,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -6954,9 +6802,9 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "run for GAMP category 5 in PROD"() {
@@ -6966,9 +6814,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -6980,15 +6829,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
-
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
@@ -7001,7 +6841,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -7010,23 +6850,23 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_CODE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_CODE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_CODE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.DEPLOY, MROPipelineUtil.PipelinePhaseLifecycleStage.POST_EXECUTE_REPO, REPO_ODS_SERVICE)
 
         then:
-        1 * usecase.invokeMethod("createTIR", [REPO_ODS_SERVICE, null] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('TIR', REPO_ODS_SERVICE, null)
+        0 * usecase.createDocument(*_)
 
         when:
         scheduler.run(MROPipelineUtil.PipelinePhases.TEST, MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END, [:], data)
 
         then:
-        1 * usecase.invokeMethod("createIVR", [[:], data] as Object[])
-        1 * usecase.invokeMethod("createDIL", [[:], data] as Object[])
-        0 * usecase.invokeMethod(*_)
+        1 * usecase.createDocument('IVR', [:], data)
+        1 * usecase.createDocument('DIL', [:], data)
+        0 * usecase.createDocument(*_)
     }
 
     def "in Developer Preview Mode all documents types are applicable"() {
@@ -7035,10 +6875,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.version = "WIP"
 
         def steps = Spy(util.PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -7048,8 +6888,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -7063,7 +6901,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         def result = []
         def expected = []
@@ -7084,10 +6922,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def project = createProject()
 
         def steps = Spy(util.PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -7097,9 +6935,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
-
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -7113,7 +6948,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def qTypes = [
@@ -7144,10 +6979,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def project = createProject()
 
         def steps = Spy(util.PipelineSteps)
-        def util = Mock(MROPipelineUtil)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -7157,9 +6992,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
-
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -7173,7 +7005,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def pTypes = [
@@ -7202,9 +7034,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         project.buildParams.targetEnvironmentToken = project.buildParams.targetEnvironment[0].toUpperCase()
 
         def steps = Spy(util.PipelineSteps)
-        def docGen = Mock(DocGenService)
+        MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
+        DocGenService docGen = getDocGenService()
         def jenkins = Mock(JenkinsService)
-        def jiraUseCase = Mock(JiraUseCase)
+        JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
         def nexus = Mock(NexusService)
@@ -7215,15 +7048,6 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def logger = Mock(Logger)
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
-
-        def utilObj = new MROPipelineUtil(project, steps, git, logger)
-        def util = Mock(MROPipelineUtil) {
-            executeBlockAndFailBuild(_) >> { block ->
-                utilObj.executeBlockAndFailBuild(block)
-            }
-        }
-        jiraUseCase.util = util
-        project.jiraUseCase = jiraUseCase
 
         def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
 
@@ -7236,14 +7060,12 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
                 return usecaseObj.getSupportedDocuments()
             }
 
-            invokeMethod(_, _) >> { method, args ->
-                if (method.startsWith("create")) {
-                    throw new IllegalStateException("some error")
-                }
+            createDocument(_, _, _) >> {
+                throw new IllegalStateException("some error")
             }
         }
 
-        def scheduler = Spy(new LeVADocumentScheduler(project, steps, util, usecase, logger))
+        def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, usecase, logger))
 
         // Test Parameters
         def data = [ testReportFiles: null, testResults: null ]
@@ -7255,4 +7077,40 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def e = thrown(IllegalStateException)
         e.message == "Error: Creating document of type 'CSD' for project '${project.key}' in phase '${MROPipelineUtil.PipelinePhases.INIT}' and stage '${MROPipelineUtil.PipelinePhaseLifecycleStage.PRE_END}' has failed: some error."
     }
+
+    DocGenService getDocGenService() {
+        return Mock(DocGenService) {
+            createDocument(_, _, _, _) >> { String projectId, String buildNumber, String levaDocType, Map data ->
+                log.info("createDocument( levaDocType: ${levaDocType} )")
+                DocumentHistoryEntry dhe = new DocumentHistoryEntry([:], 1, "1.0.1", "1.0.0", "none")
+
+                List<DocumentHistoryEntry> result = new ArrayList<DocumentHistoryEntry>()
+                result.add(dhe)
+                return result
+            }
+            createDocumentOverall(_, _, _, _) >> { String projectId, String buildNumber, String levaDocType, Map data ->
+                log.info("createDocumentOverall( levaDocType: ${levaDocType} )")
+            }
+        }
+    }
+
+    JiraUseCase getJiraUseCase(Project project, IPipelineSteps steps, MROPipelineUtil mroPipelineUtil, ILogger logger) {
+
+        JiraUseCase jiraUseCase = Spy(new JiraUseCase(project, steps, mroPipelineUtil, null, logger))
+        project.jiraUseCase = jiraUseCase
+
+        return jiraUseCase
+    }
+
+    MROPipelineUtil getMROPipelineUtil(Project project, IPipelineSteps steps, ILogger logger) {
+        MROPipelineUtil util_BASE = Spy(new MROPipelineUtil(project, steps, null, logger))
+        MROPipelineUtil util = Mock(MROPipelineUtil) {
+            executeBlockAndFailBuild(_) >> { block ->
+                util_BASE.executeBlockAndFailBuild(block)
+            }
+        }
+
+        return util
+    }
+
 }
