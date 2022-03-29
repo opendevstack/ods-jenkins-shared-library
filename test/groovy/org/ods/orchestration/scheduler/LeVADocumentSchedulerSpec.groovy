@@ -16,6 +16,9 @@ import org.ods.util.Logger
 
 import spock.lang.*
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 import static util.FixtureHelper.*
 
 import util.*
@@ -36,6 +39,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
     static def REPO_ODS_TEST
 
     static def REPO_TYPE_ODS_SAAS_SERVICE
+    public static final String UPLOAD_JENKINS_LOG_TO_NEXUS_URL = "http://fakeNexusUrl.nodomain.nowhere/subUrl"
 
     ILogger logger =  new LoggerStub(log)
 
@@ -5791,7 +5795,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def jenkins = Mock(JenkinsService)
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
 
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def git = Mock(GitService)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
@@ -5852,6 +5856,8 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         then:
         1 * useCase.createDocument("OVERALL_TIR", null, null)
         0 * useCase.createDocument(*_)
+
+        project.data.jenkinLog == UPLOAD_JENKINS_LOG_TO_NEXUS_URL
     }
 
     def "run for GAMP category 1 in DEV"() {
@@ -5868,7 +5874,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -5933,7 +5939,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -5991,7 +5997,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6045,7 +6051,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
 
         def pdf = Mock(PDFUtil)
@@ -6094,7 +6100,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6166,7 +6172,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6271,11 +6277,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6396,11 +6402,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6472,11 +6478,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6528,11 +6534,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6584,11 +6590,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6660,11 +6666,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6722,11 +6728,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6768,11 +6774,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6816,11 +6822,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6877,11 +6883,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6924,11 +6930,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -6981,11 +6987,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -7036,11 +7042,11 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def steps = Spy(util.PipelineSteps)
         MROPipelineUtil mroPipelineUtil = getMROPipelineUtil(project, steps, logger)
         DocGenService docGen = getDocGenService()
-        def jenkins = Mock(JenkinsService)
+        JenkinsService jenkins = getJenkinsService()
         JiraUseCase jiraUseCase = getJiraUseCase(project, steps, mroPipelineUtil, logger)
         def junit = Mock(JUnitTestReportsUseCase)
         def levaFiles = Mock(LeVADocumentChaptersFileService)
-        def nexus = Mock(NexusService)
+        NexusService nexus = getNexusService()
         def os = Mock(OpenShiftService)
         def pdf = Mock(PDFUtil)
         def sq = Mock(SonarQubeUseCase)
@@ -7108,9 +7114,33 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
             executeBlockAndFailBuild(_) >> { block ->
                 util_BASE.executeBlockAndFailBuild(block)
             }
+            createZipArtifact(_, _) >> { String name, Path [] filesPaths ->
+                return filesPaths[0]
+            }
         }
 
         return util
+    }
+
+    JenkinsService getJenkinsService() {
+        JenkinsService jenkinsService = Mock(JenkinsService) {
+            storeCurrentBuildLogInFile(_, _) >> { String folder, String fileName ->
+                Path result = Paths.get(folder, fileName)
+                File file = result.toFile()
+                file.createNewFile()
+                file << "Tempus fugit !!"
+                return result
+            }
+        }
+        return jenkinsService
+    }
+
+    NexusService getNexusService() {
+        NexusService nexusService = Mock(NexusService) {
+            uploadJenkinsJobLog(_, _, _) >> { String projectKey, String buildNumber, Path jenkinsJobLog ->
+                return UPLOAD_JENKINS_LOG_TO_NEXUS_URL
+            }
+        }
     }
 
 }
