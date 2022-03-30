@@ -1,6 +1,6 @@
 package org.ods.services
 
-import org.apache.commons.io.FileUtils
+
 import org.ods.util.ILogger
 
 import java.nio.file.Path
@@ -82,23 +82,21 @@ class JenkinsService {
         return writer.getBuffer().toString()
     }
 
-    Path storeCurrentBuildLogInFile (String folder, String fileName) {
+    void storeCurrentBuildLogInFile (Path jenkinsLogFilePath) {
 
-        if (! script.fileExists(folder)) {
-            script.sh(script: "mkdir -p ${folder}", label: "creating folder ${folder}")
+        String parentFolderPath = jenkinsLogFilePath.getParent().toFile().getAbsolutePath()
+        if (! script.fileExists(parentFolderPath)) {
+            script.sh(script: "mkdir -p ${parentFolderPath}", label: "creating folder ${parentFolderPath}")
         }
 
-        Path targetFilePath = Paths.get(folder, fileName)
-        if (! targetFilePath.getParent().toFile().isDirectory()) {
-            throw new RuntimeException("Folder path is not a directory. Folder path: ${folder}")
+        if (! jenkinsLogFilePath.getParent().toFile().isDirectory()) {
+            throw new RuntimeException("Folder path is not a directory. Folder path: ${parentFolderPath}")
         }
 
-        FileWriter fileWriter = new FileWriter(targetFilePath.toFile())
+        FileWriter fileWriter = new FileWriter(jenkinsLogFilePath.toFile())
         this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, fileWriter)
         fileWriter.flush()
         fileWriter.close()
-
-        return targetFilePath
     }
 
     String getCurrentBuildLogAsText () {

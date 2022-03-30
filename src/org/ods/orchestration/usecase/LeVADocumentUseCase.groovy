@@ -10,8 +10,10 @@ import org.ods.orchestration.util.Project
 import org.ods.services.JenkinsService
 import org.ods.services.NexusService
 import org.ods.util.ILogger
+import org.ods.util.IPipelineSteps
 
 import java.nio.file.Path
+import java.nio.file.Paths
 
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
@@ -68,18 +70,21 @@ class LeVADocumentUseCase {
     private final NexusService nexus
     private final LeVADocumentParamsMapper leVADocumentParamsMapper
     private final ILogger logger
+    private final IPipelineSteps steps
 
     LeVADocumentUseCase(Project project,
                         DocGenService docGen,
                         JenkinsService jenkins,
                         NexusService nexus,
                         LeVADocumentParamsMapper leVADocumentParamsMapper,
+                        IPipelineSteps steps,
                         ILogger logger) {
         this.project = project
         this.docGen = docGen
         this.jenkins = jenkins
         this.nexus = nexus
         this.leVADocumentParamsMapper = leVADocumentParamsMapper
+        this.steps = steps
         this.logger = logger
     }
 
@@ -152,7 +157,9 @@ class LeVADocumentUseCase {
             throw new RuntimeException(warnMsg)
         }
 
-        Path jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
+        Path jenkinsLogFilePath = Paths.get("${steps.env.WORKSPACE}", BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
+        jenkins.storeCurrentBuildLogInFile(jenkinsLogFilePath)
+
         logger.info("Stored jenkins log file in file ${jenkinsLogFilePath.toString()}")
         Path jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as Path[])
         logger.info("Stored zipped jenkins log file in file ${jenkinsLogZipped.toString()}")

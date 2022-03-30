@@ -230,6 +230,7 @@ class InitStage extends Stage {
                 registry.get(JenkinsService),
                 registry.get(NexusService),
                 registry.get(LeVADocumentParamsMapper),
+                steps,
                 logger
             )
         )

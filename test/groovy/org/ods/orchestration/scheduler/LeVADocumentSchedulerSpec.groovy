@@ -5799,7 +5799,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def git = Mock(GitService)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def useCase = Spy(new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger))
+        def useCase = Spy(new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger))
 
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, useCase, logger))
 
@@ -5883,7 +5883,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def useCase = Spy(new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger))
+        def useCase = Spy(new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger))
 
         def scheduler = Spy(new LeVADocumentScheduler(project, steps, mroPipelineUtil, useCase, logger))
 
@@ -5948,7 +5948,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6006,7 +6006,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6061,7 +6061,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6109,7 +6109,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6182,7 +6182,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6290,7 +6290,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6415,7 +6415,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6491,7 +6491,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6547,7 +6547,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6603,7 +6603,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6679,7 +6679,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6741,7 +6741,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6787,7 +6787,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6835,7 +6835,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6895,7 +6895,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6942,7 +6942,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -6999,7 +6999,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7055,7 +7055,7 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
         def bbt = Mock(BitbucketTraceabilityUseCase)
         LeVADocumentParamsMapper leVADocumentParamsMapper = Mock(LeVADocumentParamsMapper)
 
-        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, logger)
+        def usecaseObj = new LeVADocumentUseCase(project, docGen, jenkins, nexus, leVADocumentParamsMapper, steps, logger)
 
         def usecase = Mock(LeVADocumentUseCase) {
             getMetaClass() >> {
@@ -7124,12 +7124,10 @@ class LeVADocumentSchedulerSpec extends SpecHelper {
 
     JenkinsService getJenkinsService() {
         JenkinsService jenkinsService = Mock(JenkinsService) {
-            storeCurrentBuildLogInFile(_, _) >> { String folder, String fileName ->
-                Path result = Paths.get(folder, fileName)
-                File file = result.toFile()
+            storeCurrentBuildLogInFile(_) >> { Path jenkinsLogFilePath ->
+                File file = jenkinsLogFilePath.toFile()
                 file.createNewFile()
                 file << "Tempus fugit !!"
-                return result
             }
         }
         return jenkinsService

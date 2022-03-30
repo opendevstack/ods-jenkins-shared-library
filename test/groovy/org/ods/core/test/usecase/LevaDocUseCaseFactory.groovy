@@ -71,6 +71,7 @@ class LevaDocUseCaseFactory {
                 jenkins,
                 nexusService,
                 new LeVADocumentParamsMapper(project),
+                steps,
                 new LoggerStub(log)
             )
     }

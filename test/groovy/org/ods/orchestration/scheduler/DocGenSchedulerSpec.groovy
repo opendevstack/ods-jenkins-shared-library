@@ -18,7 +18,7 @@ class DocGenSchedulerSpec extends SpecHelper {
         List<String> supportedDocuments
 
         DocGenUseCaseImpl(Project project, List<String> supportedDocuments) {
-            super(project, null, null, null, null, log as ILogger)
+            super(project, null, null, null, null, null, log as ILogger)
             this.supportedDocuments = supportedDocuments
         }
 
