@@ -331,8 +331,15 @@ class Project {
             author: git.getCommitAuthor(),
             message: git.getCommitMessage(),
             time: git.getCommitTime(),
+            releaseManagerRepo: getRepoName(git.getOriginUrl()),
         ]
         this.logger.debug "Using release manager commit: ${this.data.git.commit}"
+    }
+
+    String getRepoName(String url) {
+        String repoName = Paths.get(url).toFile().getName()
+        int index = repoName.indexOf(".git")
+        return repoName.substring(0, index)
     }
 
     Project load(GitService git, JiraUseCase jiraUseCase) {
@@ -830,10 +837,12 @@ class Project {
         return this.data.jira?.issueTypes[issueTypeName]?.fields ?: [:]
     }
 
+    @NonCPS
     String getKey() {
         return this.data.metadata.id
     }
 
+    @NonCPS
     String getJiraProjectKey() {
         def services = this.getServices()
         if (services?.jira?.project) {

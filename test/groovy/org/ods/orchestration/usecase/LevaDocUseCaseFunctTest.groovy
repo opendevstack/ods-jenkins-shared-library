@@ -73,7 +73,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
 
         when: "the user creates a LeVA document"
-        useCase."create${projectFixture.docType}"()
+        useCase.createDocument(projectFixture.getDocType())
 
         then: "the generated PDF is as expected"
         true // TODO
@@ -95,7 +95,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         Map input = RepoDataBuilder.getRepoForComponent(projectFixture.component)
 
         when: "the user creates a LeVA document"
-        useCase."create${projectFixture.docType}"(input, input.data)
+        useCase.createDocument("${projectFixture.docType}", input, input.data)
 
         then: "the generated PDF is as expected"
         true // TODO
@@ -115,7 +115,7 @@ class LevaDocUseCaseFunctTest extends Specification {
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
 
         when: "the user creates a LeVA document"
-        useCase."createOverall${projectFixture.docType}"()
+        useCase.createDocument("OVERALL_${projectFixture.docType}")
 
         then: "the generated PDF is as expected"
         true // TODO
@@ -132,11 +132,11 @@ class LevaDocUseCaseFunctTest extends Specification {
 
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
         def projectKey = "${projectFixture.project}".toUpperCase()
-        def xunitFilesPathUnitBackend = Paths.get("test/resources/workspace/${projectKey}/xunit/backend/unit/build/test-results/test").toUri()
-        def xunitFilesPathUnitFrontend = Paths.get("test/resources/workspace/${projectKey}/xunit/frontend/unit/build/test-results/test").toUri()
-        def xunitFilesPathAcceptance = Paths.get("test/resources/workspace/${projectKey}/xunit/test/acceptance/build/test-results").toUri()
-        def xunitFilesPathInstallation = Paths.get("test/resources/workspace/${projectKey}/xunit/test/installation/build/test-results").toUri()
-        def xunitFilesPathIntegration = Paths.get("test/resources/workspace/${projectKey}/xunit/test/integration/build/test-results").toUri()
+        String xunitFilesPathUnitBackend = "test/resources/workspace/${projectKey}/xunit/backend/unit/build/test-results/test"
+        String xunitFilesPathUnitFrontend = "test/resources/workspace/${projectKey}/xunit/frontend/unit/build/test-results/test"
+        String xunitFilesPathAcceptance = "test/resources/workspace/${projectKey}/xunit/test/acceptance/build/test-results"
+        String xunitFilesPathInstallation = "test/resources/workspace/${projectKey}/xunit/test/installation/build/test-results"
+        String xunitFilesPathIntegration = "test/resources/workspace/${projectKey}/xunit/test/integration/build/test-results"
         String buildId = "666"
         String projectId = projectFixture.project
         String workspacePath = tempFolder.getRoot().getAbsolutePath()

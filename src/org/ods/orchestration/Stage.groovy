@@ -127,7 +127,7 @@ class Stage {
         )
         project.data.build.testResultsURLs[testResultsKey] = nexusService.uploadTestsResults(
             type,
-            new URI(testReportsUnstashPath),
+            testReportsUnstashPath,
             workspacePath,
             nexusDirectory,
             repo.id)

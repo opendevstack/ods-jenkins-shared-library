@@ -8,6 +8,10 @@ import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.orchestration.util.Project
 import util.SpecHelper
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
 class NexusServiceSpec extends SpecHelper {
 
     NexusService service
@@ -238,6 +242,8 @@ class NexusServiceSpec extends SpecHelper {
         String buildId = "666"
         String projectId = "ordgp"
         String fileName = "${testType}.zip".toLowerCase()
+        String folderToCompressName = "folderToCompress"
+        String fileToCompressName = "fileInFolderToCompress.txt"
 
         def request = [
             data: [
@@ -259,8 +265,19 @@ class NexusServiceSpec extends SpecHelper {
         String expectedResult = "/repository/leva-documentation/${projectId}/${buildId}/${expectedFile}.zip"
         String nexusDirectory = service.getNexusDirectory(projectId, buildId)
 
+        String temporaryFolderAbsPath = temporaryFolder.getRoot().getAbsolutePath()
+        Path folderToCompressPath = Paths.get(temporaryFolderAbsPath, folderToCompressName)
+        folderToCompressPath.toFile().mkdirs()
+
+        Path fileToCompress = Paths.get(temporaryFolderAbsPath, folderToCompressName, fileToCompressName)
+        fileToCompress.toFile() << "Carpe diem !!!"
+
         when:
-        def result = service.uploadTestsResults(testType, temporaryFolder.getRoot().toURI(), temporaryFolder.getRoot().getAbsolutePath(), nexusDirectory, repoId)
+        def result = service.uploadTestsResults( testType,
+                                                        folderToCompressPath.toFile().getAbsolutePath(),
+                                                        temporaryFolderAbsPath,
+                                                        nexusDirectory,
+                                                        repoId)
 
         then:
         result == expectedResult

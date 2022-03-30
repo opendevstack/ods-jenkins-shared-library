@@ -343,6 +343,16 @@ class GitService {
         )
     }
 
+    String getCurrentBranchName() {
+        // Equivalent in modern git version: git branch --show-current
+        // Other options: git rev-parse --abbrev-ref HEAD
+        return script.sh(
+            script: "git symbolic-ref --short HEAD",
+            label: "get current branch name",
+            returnStdout: true,
+        ).trim()
+    }
+
     String readBaseTagList(String version, String changeId, String envToken) {
         def previousEnvToken = 'D'
         if (envToken == 'P') {
