@@ -215,7 +215,7 @@ class NexusService {
 
     @NonCPS
     String uploadTestsResults(String testType,
-                              URI testReportsUnstashPath,
+                              String testReportsUnstashPath,
                               String workspacePath,
                               String nexusDirectory,
                               String repoId = "") {
@@ -267,13 +267,14 @@ class NexusService {
     }
 
     @NonCPS
-    private Path createTemporalZipFile(String workspacePath, String fileName, URI testReportsUnstashPath) {
+    private Path createTemporalZipFile(String workspacePath, String fileName, String testReportsUnstashPath) {
         Path tempZipFilePath = Paths.get(workspacePath, fileName)
+        Path folderToCompressPath = Paths.get(testReportsUnstashPath)
 
         def zipFile = new ZipFile(tempZipFilePath.toString())
         ZipParameters zipParameters = new ZipParameters()
         zipParameters.setIncludeRootFolder(false)
-        zipFile.addFolder(Paths.get(testReportsUnstashPath).toFile(), zipParameters)
+        zipFile.addFolder(folderToCompressPath.toFile(), zipParameters)
 
         return zipFile.getFile().toPath()
     }
