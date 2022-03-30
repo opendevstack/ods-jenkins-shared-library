@@ -1,9 +1,11 @@
 package org.ods.services
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.apache.commons.io.FileUtils
 import org.ods.util.ILogger
 
 import java.nio.file.Path
+import java.nio.file.Paths
 
 class JenkinsService {
 
@@ -92,7 +94,14 @@ class JenkinsService {
             throw new RuntimeException("Folder path is not a directory. Folder path: ${parentFolderPath}")
         }
 
+        String jenkinsLogFileAbsPath = jenkinsLogFilePath.toFile().getAbsolutePath()
         String currentBuildLog = getCurrentBuildLogAsText()
+        storeCurrentBuildLogStringInFile(currentBuildLog, jenkinsLogFileAbsPath)
+    }
+
+    @NonCPS
+    private void storeCurrentBuildLogStringInFile(String currentBuildLog, String jenkinsLogFileAbsPath) {
+        Path jenkinsLogFilePath = Paths.get(jenkinsLogFileAbsPath)
         try {
             FileUtils.writeStringToFile(jenkinsLogFilePath.toFile(), currentBuildLog)
         } catch (IOException e) {
