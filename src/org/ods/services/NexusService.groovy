@@ -8,6 +8,7 @@ import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
+import org.ods.orchestration.util.Project
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -281,7 +282,7 @@ class NexusService {
 
     @NonCPS
     private String getFileName(String repoId, String testType) {
-        if (testType == "Unit") {
+        if (testType.equalsIgnoreCase(Project.TestType.UNIT)) {
             return ((!Strings.isNullOrEmpty(repoId)) ? "${testType}-${repoId}.zip" : testType).toLowerCase()
         }
 

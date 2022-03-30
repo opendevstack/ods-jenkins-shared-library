@@ -107,7 +107,7 @@ class TestStageSpec extends SpecHelper {
         junit.parseTestReportFiles(_) >> [:]
 
         when:
-        testStage.getTestResults(steps, project.repositories.first(), "acceptance")
+        testStage.getTestResults(steps, project.repositories.first(), Project.TestType.ACCEPTANCE)
 
         then:
         1 * junit.loadTestReportsFromPath(_)
