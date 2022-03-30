@@ -83,17 +83,21 @@ class JenkinsService {
     }
 
     Path storeCurrentBuildLogInFile (String folder, String fileName) {
-        java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        Path targetFilePath = Paths.get(folder, fileName)
 
         if (! script.fileExists(folder)) {
             script.sh(script: "mkdir -p ${folder}", label: "creating folder ${folder}")
         }
+
+        Path targetFilePath = Paths.get(folder, fileName)
         if (! targetFilePath.getParent().toFile().isDirectory()) {
             throw new RuntimeException("Folder path is not a directory. Folder path: ${folder}")
         }
 
-        FileUtils.copyInputStreamToFile(is, targetFilePath.toFile())
+        FileWriter fileWriter = new FileWriter(targetFilePath.toFile())
+        this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, fileWriter)
+        fileWriter.flush()
+        fileWriter.close()
+
         return targetFilePath
     }
 
