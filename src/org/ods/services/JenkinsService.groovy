@@ -1,10 +1,9 @@
 package org.ods.services
 
-
+import org.apache.commons.io.FileUtils
 import org.ods.util.ILogger
 
 import java.nio.file.Path
-import java.nio.file.Paths
 
 class JenkinsService {
 
@@ -93,10 +92,12 @@ class JenkinsService {
             throw new RuntimeException("Folder path is not a directory. Folder path: ${parentFolderPath}")
         }
 
-        FileWriter fileWriter = new FileWriter(jenkinsLogFilePath.toFile())
-        this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, fileWriter)
-        fileWriter.flush()
-        fileWriter.close()
+        String currentBuildLog = getCurrentBuildLogAsText()
+        try {
+            FileUtils.writeStringToFile(jenkinsLogFilePath.toFile(), currentBuildLog)
+        } catch (IOException e) {
+            throw new RuntimeException(e)
+        }
     }
 
     String getCurrentBuildLogAsText () {
