@@ -128,14 +128,13 @@ class NexusService {
         HttpRequestWithBody restCall = Unirest.post(url)
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
-        MultipartBody body = restCall.multiPartContent()
+
+        String fieldName = repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset"
+        MultipartBody body = restCall.field(fieldName, artifact, contentType)
 
         nexusParams.each { key, value ->
             body = body.field(key, value)
         }
-
-        String fieldName = repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset"
-        body = body.field(fieldName, artifact, contentType)
 
         def response = restCall.asString()
         response.ifSuccess {
