@@ -92,6 +92,7 @@ class LeVADocumentUseCase {
 
     void createDocument(String docType, Map repo = null, Map data = null) {
         logger.info("create document ${docType} start ")
+        logger.info("repo: ${prettyPrint(toJson(repo))}, data: ${prettyPrint(toJson(data))}")
 
         DocumentType documentType = getDocumentType(docType)
 
@@ -104,7 +105,6 @@ class LeVADocumentUseCase {
         // WARNING: env -> getEnv -> CPS method
         String buildNumber = project.steps.env.BUILD_NUMBER as String
 
-        logger.info("repo:${prettyPrint(toJson(repo))}), data:${prettyPrint(toJson(data))}")
         createDoc(documentType, buildNumber, params)
         logger.info("create document ${docType} end")
     }

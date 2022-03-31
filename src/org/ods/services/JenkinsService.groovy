@@ -85,31 +85,16 @@ class JenkinsService {
 
     String storeCurrentBuildLogInFile (String workspace, String buildFolder, String jenkinsLogFileName) {
 
-        logger.warn("storeCurrentBuildLogInFile: 1st")
         String jenkinsLogFilePath = getFullPath(workspace, buildFolder, jenkinsLogFileName)
-
-        logger.warn("storeCurrentBuildLogInFile: 2nd")
         String parentFolderPath = getFullPath(workspace, buildFolder)
 
-        logger.warn("storeCurrentBuildLogInFile: 3rd")
         if (! script.fileExists(parentFolderPath)) {
             script.sh(script: "mkdir -p ${parentFolderPath}", label: "creating folder ${parentFolderPath}")
         }
 
-        logger.warn("storeCurrentBuildLogInFile: 6th")
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-
-        logger.warn("storeCurrentBuildLogInFile: 8th")
         FileUtils.copyInputStreamToFile(is, new File(jenkinsLogFilePath))
 
-        /*
-        FileWriter fileWriter = new FileWriter(jenkinsLogFilePath.toFile())
-        this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, fileWriter)
-        fileWriter.flush()
-        fileWriter.close()
-         */
-
-        logger.warn("storeCurrentBuildLogInFile: 9th")
         return jenkinsLogFilePath
     }
 
