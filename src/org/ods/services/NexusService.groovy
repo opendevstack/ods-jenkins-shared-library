@@ -4,12 +4,14 @@ package org.ods.services
 
 import com.cloudbees.groovy.cps.NonCPS
 import com.google.common.base.Strings
+import kong.unirest.MultipartBody
 import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import org.apache.http.client.utils.URIBuilder
 import org.ods.orchestration.util.Project
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -80,8 +82,8 @@ class NexusService {
 
     @NonCPS
     URI storeArtifact(String repository, String directory, String name, Path artifact, String contentType) {
-        ByteArrayInputStream bais = new ByteArrayInputStream(artifact.toFile().getBytes())
-        return storeArtifact(repository, directory, name, bais, contentType)
+        InputStream inputStream = Files.newInputStream(artifact)
+        return storeArtifact(repository, directory, name, inputStream, contentType)
     }
 
     @NonCPS
@@ -92,7 +94,7 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     @NonCPS
-    URI storeArtifact(String repository, String directory, String name, ByteArrayInputStream artifact, String contentType) {
+    URI storeArtifact(String repository, String directory, String name, InputStream artifact, String contentType) {
         Map nexusParams = [
             'raw.directory': directory,
             'raw.asset1.filename': name,
@@ -120,8 +122,9 @@ class NexusService {
 
     @SuppressWarnings('LineLength')
     @NonCPS
-    URI storeComplextArtifact(String repository, ByteArrayInputStream artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
-        def restCall = Unirest.post("${this.baseURL}/service/rest/v1/components?repository={repository}")
+    URI storeComplextArtifact(String repository, InputStream artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
+        String url = "${this.baseURL}/service/rest/v1/components?repository={repository}"
+        MultipartBody restCall = (MultipartBody) Unirest.post(url)
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
 
@@ -129,26 +132,25 @@ class NexusService {
             restCall = restCall.field(key, value)
         }
 
-        restCall = restCall.field(
-            repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset",
-            artifact, contentType)
+        String fieldName = repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset"
+        restCall = restCall.field(fieldName, artifact, contentType)
 
         def response = restCall.asString()
         response.ifSuccess {
             if (response.getStatus() != 204) {
                 throw new RuntimeException(
-                    'Error: unable to store artifact. ' +
+                    'Error: unable to store artifact at ${url}. ' +
                         "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
                 )
             }
         }
 
         response.ifFailure {
-            def message = 'Error: unable to store artifact. ' +
+            def message = 'Error: unable to store artifact at ${url}. ' +
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
-                message = "Error: unable to store artifact. Nexus could not be found at: '${this.baseURL}' with repo: ${repository}."
+                message = "Error: unable to store artifact at ${url}. Nexus could not be found at: '${this.baseURL}' with repo: ${repository}."
             }
 
             throw new RuntimeException(message)
