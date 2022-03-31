@@ -107,7 +107,7 @@ class PipelineUtil {
         String zipArtifactPath = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
         this.createZipFile(zipArtifactPath, filesPaths)
         if (doCreateArtifact) {
-            this.steps.archiveArtifacts(zipArtifactPath)
+            this.steps.archiveArtifacts("${ARTIFACTS_BASE_DIR}/${name}")
         }
 
         return zipArtifactPath
