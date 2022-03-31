@@ -95,7 +95,8 @@ class PipelineUtil {
         return result
     }
 
-    Path createZipArtifact(String name, Path [] filesPaths, boolean doCreateArtifact = true) {
+    @NonCPS
+    String createZipArtifact(String name, String [] filesPaths, boolean doCreateArtifact = true) {
         if (!name?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'name' is undefined.")
         }
@@ -104,13 +105,23 @@ class PipelineUtil {
             throw new IllegalArgumentException("Error: unable to create Zip artifact. 'filesPaths' is undefined.")
         }
 
-        String path = "${this.steps.env.WORKSPACE}/${ARTIFACTS_BASE_DIR}/${name}"
-        this.createZipFile(path, filesPaths)
+        Path zipArtifactPath = Paths.get("${this.steps.env.WORKSPACE}", ARTIFACTS_BASE_DIR, name)
+        String zipArtifactAbsPath = zipArtifactPath.toFile().getAbsolutePath()
+        this.createZipFile(zipArtifactAbsPath, filesPaths)
         if (doCreateArtifact) {
-            this.steps.archiveArtifacts(path)
+            this.steps.archiveArtifacts(zipArtifactAbsPath)
         }
 
-        return Paths.get(path)
+        return zipArtifactAbsPath
+    }
+
+    @NonCPS
+    private Path [] fromStringPathsToPaths(String [] filesPaths) {
+        ArrayList<Path> outFilesPaths = []
+        filesPaths.each {String filePath ->
+            outFilesPaths << Paths.get(filePath)
+        }
+        return outFilesPaths
     }
 
     void createAndStashArtifact(String stashName, byte[] file) {
@@ -158,7 +169,7 @@ class PipelineUtil {
     }
 
     @NonCPS
-    void createZipFile(String path, Path[] filesPaths) {
+    void createZipFile(String path, String[] filesPaths) {
         if (!path?.trim()) {
             throw new IllegalArgumentException("Error: unable to create Zip file. 'path' is undefined.")
         }
@@ -172,11 +183,12 @@ class PipelineUtil {
 
         // Create the Zip file
         def zipFile = new ZipFile(path)
-        filesPaths.each { filePath ->
-            def params = new ZipParameters()
+        filesPaths.each { String filePath ->
+            File fileToAdd = new File(filePath)
+            ZipParameters params = new ZipParameters()
             params.setIncludeRootFolder(false)
-            params.setFileNameInZip(filePath.toFile().getName())
-            zipFile.addFile(filePath.toFile(), params)
+            params.setFileNameInZip(fileToAdd.getName())
+            zipFile.addFile(fileToAdd, params)
         }
     }
 

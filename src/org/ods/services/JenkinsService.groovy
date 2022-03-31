@@ -83,8 +83,9 @@ class JenkinsService {
         return writer.getBuffer().toString()
     }
 
-    void storeCurrentBuildLogInFile (Path jenkinsLogFilePath) {
+    String storeCurrentBuildLogInFile (String workspace, String buildFolder, String jenkinsLogFileName) {
 
+        Path jenkinsLogFilePath = Paths.get(workspace, buildFolder, jenkinsLogFileName)
         String parentFolderPath = jenkinsLogFilePath.getParent().toFile().getAbsolutePath()
         if (! script.fileExists(parentFolderPath)) {
             script.sh(script: "mkdir -p ${parentFolderPath}", label: "creating folder ${parentFolderPath}")
@@ -95,18 +96,24 @@ class JenkinsService {
         }
 
         String jenkinsLogFileAbsPath = jenkinsLogFilePath.toFile().getAbsolutePath()
-        String currentBuildLog = getCurrentBuildLogAsText()
-        storeCurrentBuildLogStringInFile(currentBuildLog, jenkinsLogFileAbsPath)
+        storeCurrentBuildLogStringInFile(jenkinsLogFileAbsPath)
+
+        return jenkinsLogFileAbsPath
     }
 
     @NonCPS
-    private void storeCurrentBuildLogStringInFile(String currentBuildLog, String jenkinsLogFileAbsPath) {
+    private void storeCurrentBuildLogStringInFile(String jenkinsLogFileAbsPath) {
         Path jenkinsLogFilePath = Paths.get(jenkinsLogFileAbsPath)
-        try {
-            FileUtils.writeStringToFile(jenkinsLogFilePath.toFile(), currentBuildLog)
-        } catch (IOException e) {
-            throw new RuntimeException(e)
-        }
+
+        java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
+        FileUtils.copyInputStreamToFile(is, jenkinsLogFilePath.toFile())
+
+        /*
+        FileWriter fileWriter = new FileWriter(jenkinsLogFilePath.toFile())
+        this.script.currentBuild.getRawBuild().getLogText().writeLogTo(0, fileWriter)
+        fileWriter.flush()
+        fileWriter.close()
+         */
     }
 
     String getCurrentBuildLogAsText () {

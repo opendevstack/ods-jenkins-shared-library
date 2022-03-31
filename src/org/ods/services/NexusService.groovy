@@ -237,15 +237,16 @@ class NexusService {
     }
 
     @NonCPS
-    String uploadJenkinsJobLog(String projectKey, String buildNumber, Path jenkinsJobLog) {
+    String uploadJenkinsJobLog(String projectKey, String buildNumber, String jenkinsJobLog) {
+        Path jenkinsJobLogPath = Paths.get(jenkinsJobLog)
         String nexusPath = "${projectKey.toLowerCase()}/${buildNumber}"
-
         String nexusRepository = NexusService.DEFAULT_NEXUS_REPOSITORY
+
         URI report = storeArtifact(
             nexusRepository,
             nexusPath,
-            jenkinsJobLog.getFileName(),
-            jenkinsJobLog,
+            jenkinsJobLogPath.toFile().getName(),
+            jenkinsJobLogPath,
             CONTENT_TYPE_JENKINS_LOG_ZIP
         )
 

@@ -157,14 +157,15 @@ class LeVADocumentUseCase {
             throw new RuntimeException(warnMsg)
         }
 
-        Path jenkinsLogFilePath = Paths.get("${steps.env.WORKSPACE}", BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
-        jenkins.storeCurrentBuildLogInFile(jenkinsLogFilePath)
+        String jenkinsLogFilePath = jenkins.storeCurrentBuildLogInFile(
+            "${steps.env.WORKSPACE}", BUILD_FOLDER, JENKINS_LOG_TXT_FILE_NAME)
 
-        logger.info("Stored jenkins log file in file ${jenkinsLogFilePath.toString()}")
-        Path jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as Path[])
-        logger.info("Stored zipped jenkins log file in file ${jenkinsLogZipped.toString()}")
+        logger.info("Stored jenkins log file in file ${jenkinsLogFilePath}")
+        String jenkinsLogZipped = util.createZipArtifact(JENKINS_LOG_ZIP_FILE_NAME, [ jenkinsLogFilePath ] as String[])
+        logger.info("Stored zipped jenkins log file in file ${jenkinsLogZipped}")
 
         // project.steps.archiveArtifacts(workspacePath)
-        return nexus.uploadJenkinsJobLog(project.getJiraProjectKey(), project.steps.env.BUILD_NUMBER, jenkinsLogZipped)
+        return nexus.uploadJenkinsJobLog(project.getJiraProjectKey(), "${project.steps.env.BUILD_NUMBER}",
+            jenkinsLogZipped)
     }
 }
