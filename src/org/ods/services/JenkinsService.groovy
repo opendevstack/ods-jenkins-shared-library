@@ -97,23 +97,10 @@ class JenkinsService {
         }
 
         logger.warn("storeCurrentBuildLogInFile: 6th")
-        storeCurrentBuildLogStringInFile(jenkinsLogFilePath)
-
-        return jenkinsLogFilePath
-    }
-
-    @NonCPS
-    String getFullPath(String first, String... more) {
-        Path fullPath = Paths.get(first, more)
-        return fullPath.toFile().getAbsolutePath()
-    }
-
-    @NonCPS
-    private void storeCurrentBuildLogStringInFile(String jenkinsLogFileAbsPath) {
-        Path jenkinsLogFilePath = Paths.get(jenkinsLogFileAbsPath)
-
         java.io.InputStream is = this.script.currentBuild.getRawBuild().getLogInputStream()
-        FileUtils.copyInputStreamToFile(is, jenkinsLogFilePath.toFile())
+        
+        logger.warn("storeCurrentBuildLogInFile: 8th")
+        FileUtils.copyInputStreamToFile(is, new File(jenkinsLogFilePath))
 
         /*
         FileWriter fileWriter = new FileWriter(jenkinsLogFilePath.toFile())
@@ -121,6 +108,15 @@ class JenkinsService {
         fileWriter.flush()
         fileWriter.close()
          */
+
+        logger.warn("storeCurrentBuildLogInFile: 9th")
+        return jenkinsLogFilePath
+    }
+
+    @NonCPS
+    String getFullPath(String first, String... more) {
+        Path fullPath = Paths.get(first, more)
+        return fullPath.toFile().getAbsolutePath()
     }
 
     String getCurrentBuildLogAsText () {
