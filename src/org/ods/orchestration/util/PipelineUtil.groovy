@@ -115,8 +115,8 @@ class PipelineUtil {
     }
 
     @NonCPS
-    private String getFullPath(String first, String... more) {
-        Path fullPath = Paths.get(first, more)
+    private String getFullPath(String first, String second, String third) {
+        Path fullPath = Paths.get(first, second, third)
         return fullPath.toFile().getAbsolutePath()
     }
 
