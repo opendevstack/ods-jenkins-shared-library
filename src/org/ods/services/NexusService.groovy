@@ -125,31 +125,29 @@ class NexusService {
     @NonCPS
     URI storeComplextArtifact(String repository, InputStream artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
         String url = "${this.baseURL}/service/rest/v1/components?repository={repository}"
-        HttpRequestWithBody restCall = Unirest.post(url)
+        def restCall = Unirest.post(url)
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-
-        String fieldName = repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset"
-        MultipartBody body = restCall.field(fieldName, artifact, contentType)
 
         nexusParams.each { key, value ->
-            body = body.field(key, value)
+            restCall = restCall.field(key, value)
         }
+
+        String fieldName = repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset"
+        restCall = restCall.field(fieldName, artifact, contentType)
 
         def response = restCall.asString()
         response.ifSuccess {
             if (response.getStatus() != 204) {
                 throw new RuntimeException(
-                    'Error: unable to store artifact at ${url}. ' +
+                    "Error: unable to store artifact at ${url}. " +
                         "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
                 )
             }
         }
 
         response.ifFailure {
-            def message = 'Error: unable to store artifact at ${url}. ' +
+            def message = "Error: unable to store artifact at ${url}. " +
                 "Nexus responded with code: '${response.getStatus()}' and message: '${response.getBody()}'."
 
             if (response.getStatus() == 404) {
