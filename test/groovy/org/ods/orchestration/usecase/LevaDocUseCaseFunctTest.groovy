@@ -11,6 +11,7 @@ import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixtureWithTestDa
 import org.ods.core.test.usecase.levadoc.fixture.DocTypeProjectFixturesOverall
 import org.ods.core.test.usecase.levadoc.fixture.LevaDocDataFixture
 import org.ods.core.test.usecase.levadoc.fixture.ProjectFixture
+import org.ods.orchestration.util.MROPipelineUtil
 import org.ods.services.BitbucketService
 import org.ods.services.GitService
 import org.ods.services.JenkinsService
@@ -124,20 +125,20 @@ class LevaDocUseCaseFunctTest extends Specification {
         projectFixture << new DocTypeProjectFixturesOverall().getProjects()
     }
 
-    @Ignore
     @Unroll
     def "upload #projectFixture.project xunit and jenkins log from workspace to nexus"() {
         given:
         LeVADocumentUseCase useCase = getLevaDocUseCase(projectFixture)
 
         new LevaDocDataFixture(tempFolder.getRoot()).useExpectedComponentDocs(useCase, projectFixture)
-        def projectKey = "${projectFixture.project}".toUpperCase()
-        String xunitFilesPathUnitBackend = "test/resources/workspace/${projectKey}/xunit/backend/unit/build/test-results/test"
-        String xunitFilesPathUnitFrontend = "test/resources/workspace/${projectKey}/xunit/frontend/unit/build/test-results/test"
-        String xunitFilesPathAcceptance = "test/resources/workspace/${projectKey}/xunit/test/acceptance/build/test-results"
-        String xunitFilesPathInstallation = "test/resources/workspace/${projectKey}/xunit/test/installation/build/test-results"
-        String xunitFilesPathIntegration = "test/resources/workspace/${projectKey}/xunit/test/integration/build/test-results"
+        def projectKey = "${projectFixture.project}"
         String buildNumber = "${projectFixture.buildNumber}"
+
+        String xunitFilesPathUnitBackend = "test/resources/workspace/${projectKey}/xunit-build-${buildNumber}/backend/unit/build/test-results/test"
+        String xunitFilesPathUnitFrontend = "test/resources/workspace/${projectKey}/xunit-build-${buildNumber}/frontend/unit/build/test-results/test"
+        String xunitFilesPathAcceptance = "test/resources/workspace/${projectKey}/xunit-build-${buildNumber}/test/acceptance/build/test-results"
+        String xunitFilesPathInstallation = "test/resources/workspace/${projectKey}/xunit-build-${buildNumber}/test/installation/build/test-results"
+        String xunitFilesPathIntegration = "test/resources/workspace/${projectKey}/xunit-build-${buildNumber}/test/integration/build/test-results"
         String projectId = projectFixture.project
         String workspacePath = tempFolder.getRoot().getAbsolutePath()
         String nexusDirectory = useCase.nexus.getNexusDirectory(projectId, buildNumber)
@@ -149,16 +150,16 @@ class LevaDocUseCaseFunctTest extends Specification {
         def integrationRes = useCase.nexus.uploadTestsResults("Integration", xunitFilesPathIntegration, workspacePath, nexusDirectory)
         def installationRes = useCase.nexus.uploadTestsResults("Installation", xunitFilesPathInstallation, workspacePath, nexusDirectory)
 
-        InputStream jenkinsJobLogInputStream = Paths.get("test/resources/workspace/${projectKey}/jenkins-job-log.zip").toFile().newDataInputStream()
-        def jenkinsLogJobRes = useCase.nexus.uploadJenkinsJobLog(projectKey, buildNumber, jenkinsJobLogInputStream, useCase.util)
+        String jenkinsLogPath = "test/resources/workspace/${projectKey}/jenkins-job-log.zip"
+        def jenkinsLogJobRes = useCase.nexus.uploadJenkinsJobLog(projectKey, buildNumber, jenkinsLogPath)
 
         then:
-        acceptanceRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildNumber}/acceptance.zip")
-        integrationRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildNumber}/integration.zip")
-        installationRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildNumber}/installation.zip")
-        frontendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildNumber}/unit-frontend.zip")
-        backendUnitRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildNumber}/unit-backend.zip")
-        jenkinsLogJobRes.endsWith("/repository/leva-documentation/${projectFixture.project}/${buildNumber}/jenkins-job-log.zip")
+        acceptanceRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/acceptance.zip"
+        integrationRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/integration.zip"
+        installationRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/installation.zip"
+        frontendUnitRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/unit-frontend.zip"
+        backendUnitRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/unit-backend.zip"
+        jenkinsLogJobRes == "repository/leva-documentation/${projectFixture.project}/${buildNumber}/jenkins-job-log.zip"
 
         where:
         projectFixture << new DocTypeProjectFixture().getProjects()
