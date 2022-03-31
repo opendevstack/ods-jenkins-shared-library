@@ -4,6 +4,7 @@ package org.ods.services
 
 import com.cloudbees.groovy.cps.NonCPS
 import com.google.common.base.Strings
+import kong.unirest.HttpRequestWithBody
 import kong.unirest.MultipartBody
 import kong.unirest.Unirest
 import net.lingala.zip4j.ZipFile
@@ -124,16 +125,17 @@ class NexusService {
     @NonCPS
     URI storeComplextArtifact(String repository, InputStream artifact, String contentType, String repositoryType, Map nexusParams = [ : ]) {
         String url = "${this.baseURL}/service/rest/v1/components?repository={repository}"
-        MultipartBody restCall = (MultipartBody) Unirest.post(url)
+        HttpRequestWithBody restCall = Unirest.post(url)
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
+        MultipartBody body = restCall.multiPartContent()
 
         nexusParams.each { key, value ->
-            restCall = restCall.field(key, value)
+            body = body.field(key, value)
         }
 
         String fieldName = repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset"
-        restCall = restCall.field(fieldName, artifact, contentType)
+        body = body.field(fieldName, artifact, contentType)
 
         def response = restCall.asString()
         response.ifSuccess {
