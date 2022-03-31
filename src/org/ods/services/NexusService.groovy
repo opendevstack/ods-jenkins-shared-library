@@ -128,6 +128,7 @@ class NexusService {
         HttpRequestWithBody restCall = Unirest.post(url)
             .routeParam('repository', repository)
             .basicAuth(this.username, this.password)
+            .header("Content-Type", "multipart/mixed")
 
         String fieldName = repositoryType == 'raw' || repositoryType == 'maven2' ? "${repositoryType}.asset1" : "${repositoryType}.asset"
         MultipartBody body = restCall.field(fieldName, artifact, contentType)
